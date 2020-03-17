@@ -97,7 +97,7 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _BarrageT extends Card {
+    static abstract class _BarrageT extends Card {
         private final int n;
 
         public _BarrageT(String cardName, int n) {
@@ -364,10 +364,10 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _CompiledDriverT extends Card {
+    static abstract class _CompileDriverT extends Card {
         private final int n;
 
-        public _CompiledDriverT(String cardName, int n) {
+        public _CompileDriverT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             entityProperty.selectEnemy = true;
@@ -387,15 +387,15 @@ public class CardDefect {
         }
     }
 
-    public static class CompiledDriver extends CardDefect._CompiledDriverT {
-        public CompiledDriver() {
-            super("Compiled Driver", 7);
+    public static class CompileDriver extends _CompileDriverT {
+        public CompileDriver() {
+            super("Compile Driver", 7);
         }
     }
 
-    public static class CompiledDriverP extends CardDefect._CompiledDriverT {
-        public CompiledDriverP() {
-            super("Compiled Driver+", 10);
+    public static class CompileDriverP extends _CompileDriverT {
+        public CompileDriverP() {
+            super("Compile Driver+", 10);
         }
     }
 
@@ -1114,11 +1114,11 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _ChillT extends Card {
-        public _ChillT(String cardName, boolean innate) {
+    static abstract class _ChillT extends Card {
+        public _ChillT(String cardName, boolean innate, boolean exhaust) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.innate = innate;
-            this.exhaustWhenPlayed = true;
+            this.exhaustWhenPlayed = exhaust;
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
@@ -1138,13 +1138,13 @@ public class CardDefect {
 
     public static class Chill extends CardDefect._ChillT {
         public Chill() {
-            super("Chill", false);
+            super("Chill", false, true);
         }
     }
 
     public static class ChillP extends CardDefect._ChillT {
         public ChillP() {
-            super("Chill+", true);
+            super("Chill+", true, true);
         }
     }
 
@@ -1176,18 +1176,18 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _DarknessT extends Card {
-        private final boolean triggerDarkPassive;
+    static abstract class _DarknessT extends Card {
+        private final int triggerDarkPassiveTimes;
 
-        public _DarknessT(String cardName, boolean triggerDarkPassive) {
+        public _DarknessT(String cardName, int triggerDarkPassiveTimes) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
-            this.triggerDarkPassive = triggerDarkPassive;
+            this.triggerDarkPassiveTimes = triggerDarkPassiveTimes;
             entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.channelOrb(OrbType.DARK);
-            if (triggerDarkPassive) {
+            for (int i = 0; i < triggerDarkPassiveTimes; i++) {
                 state.triggerDarkPassive();
             }
             return GameActionCtx.PLAY_CARD;
@@ -1196,13 +1196,13 @@ public class CardDefect {
 
     public static class Darkness extends CardDefect._DarknessT {
         public Darkness() {
-            super("Darkness", false);
+            super("Darkness", 0);
         }
     }
 
     public static class DarknessP extends CardDefect._DarknessT {
         public DarknessP() {
-            super("Darkness+", true);
+            super("Darkness+", 1);
         }
     }
 
@@ -1705,7 +1705,7 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _GlacierT extends Card {
+    static abstract class _GlacierT extends Card {
         private final int n;
 
         public _GlacierT(String cardName, int n) {
@@ -1828,7 +1828,7 @@ public class CardDefect {
                         new CardDefect.ChargeBattery(),
                         new CardDefect.Claw(),
                         new CardDefect.ColdSnap(),
-                        new CardDefect.CompiledDriver(),
+                        new CardDefect.CompileDriver(),
                         new CardDefect.Coolheaded(),
                         new CardDefect.GoForTheEye(),
                         new CardDefect.Hologram(),
@@ -2261,15 +2261,18 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _StormT extends Card {
-        public _StormT(String cardName, boolean innate) {
+    static abstract class _StormT extends Card {
+        private final int lightningPerPower;
+
+        public _StormT(String cardName, boolean innate, int lightningPerPower) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.innate = innate;
+            this.lightningPerPower = lightningPerPower;
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx]++;
+            state.getCounterForWrite()[counterIdx] += lightningPerPower;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2302,15 +2305,16 @@ public class CardDefect {
 
     public static class Storm extends CardDefect._StormT {
         public Storm() {
-            super("Storm", false);
+            super("Storm", false, 1);
         }
     }
 
     public static class StormP extends CardDefect._StormT {
         public StormP() {
-            super("Storm+", true);
+            super("Storm+", true, 1);
         }
     }
+
     private static abstract class _SunderT extends Card {
         private final int n;
 

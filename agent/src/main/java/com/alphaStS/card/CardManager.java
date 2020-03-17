@@ -316,7 +316,7 @@ public class CardManager {
             cards.add(new CardDefect.BeamCell());
             cards.add(new CardDefect.Claw());
             cards.add(new CardDefect.ColdSnap());
-            cards.add(new CardDefect.CompiledDriver());
+            cards.add(new CardDefect.CompileDriver());
             cards.add(new CardDefect.GoForTheEye());
             cards.add(new CardDefect.Rebound());
             cards.add(new CardDefect.Streamline());

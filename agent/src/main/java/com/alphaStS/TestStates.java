@@ -1320,7 +1320,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BiasedCognitionP(), 1);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
         builder.addCard(new CardDefect.DoomAndGloom(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.Streamline(), 1);
         builder.addCard(new CardDefect.ChargeBatteryP(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
@@ -1359,7 +1359,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BiasedCognitionP(), 2);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
         builder.addCard(new CardDefect.DoomAndGloom(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.Streamline(), 1);
         builder.addCard(new CardDefect.ChargeBatteryP(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
@@ -1410,7 +1410,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BiasedCognitionP(), 2);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
         builder.addCard(new CardDefect.DoomAndGloom(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.Streamline(), 1);
         builder.addCard(new CardDefect.ChargeBatteryP(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
@@ -1462,7 +1462,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BiasedCognitionP(), 2);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
         builder.addCard(new CardDefect.DoomAndGloom(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.Streamline(), 1);
         builder.addCard(new CardDefect.ChargeBatteryP(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
@@ -1513,8 +1513,8 @@ public class TestStates {
         builder.addCard(new CardDefect.CoolheadedP(), 2);
         builder.addCard(new CardDefect.SweepingBeamP(), 1);
         builder.addCard(new CardDefect.BallLightning(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 2);
-        builder.addCard(new CardDefect.CompiledDriverP(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 2);
+        builder.addCard(new CardDefect.CompileDriverP(), 1);
         builder.addCard(new CardDefect.Equilibrium(), 1);
         builder.addCard(new CardDefect.BeamCellP(), 1);
         builder.addCard(new CardDefect.BufferP(), 1);
@@ -1637,7 +1637,7 @@ public class TestStates {
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.BiasedCognitionP(), 1);
         builder.addCard(new CardDefect.SweepingBeam(), 2);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.FTL(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 4);
         builder.addCard(new CardDefect.Coolheaded(), 2);
@@ -1713,7 +1713,7 @@ public class TestStates {
         builder.addCard(new CardDefect.FTL(), 1);
         builder.addCard(new CardDefect.Equilibrium(), 1);
         builder.addCard(new CardDefect.MachineLearningP(), 1);
-        builder.addCard(new CardDefect.CompiledDriverP(), 1);
+        builder.addCard(new CardDefect.CompileDriverP(), 1);
         builder.addCard(new CardDefect.CapacitorP(), 1);
         builder.addCard(new CardDefect.Rainbow(), 1);
         builder.addCard(new CardDefect.HeatsinksP(), 2);
@@ -1774,7 +1774,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Chill(), 1);
         builder.addCard(new CardDefect.Hologram(), 1);
         builder.addCard(new CardDefect.EchoForm(), 1);
-        builder.addCard(new CardDefect.CompiledDriverP(), 1);
+        builder.addCard(new CardDefect.CompileDriverP(), 1);
         builder.addCard(new CardDefect.ConsumeP(), 1);
         builder.addCard(new CardDefect.Equilibrium(), 1);
         builder.addCard(new CardDefect.ColdSnapP(), 1);
@@ -2128,7 +2128,7 @@ public class TestStates {
         builder.addCard(new CardColorless.TripP());
         builder.addCard(new CardDefect.RecursionP(), 2);
         builder.addCard(new CardDefect.ColdSnapP());
-        builder.addCard(new CardDefect.CompiledDriverP());
+        builder.addCard(new CardDefect.CompileDriverP());
         builder.addCard(new CardDefect.GoForTheEyeP());
         builder.addCard(new CardDefect.HologramP(), 3);
         builder.addCard(new CardDefect.Electrodynamics());
@@ -2862,7 +2862,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardDefect.Skim(), 1);
         builder.addCard(new CardDefect.Buffer(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.ReinforcedBody(), 1);
         builder.addCard(new CardDefect.Aggregate(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
@@ -2871,7 +2871,7 @@ public class TestStates {
         EnemyEncounter.addSlaversEliteFight(builder);
         EnemyEncounter.addGremlinLeaderFight(builder);
         GameStateRandomization randomization = new StateModificationRandomization(List.of(
-                List.of(new Add(new CardDefect.CompiledDriver())),
+                List.of(new Add(new CardDefect.CompileDriver())),
                 List.of(new Add(new CardDefect.Rebound())),
                 List.of(new Add(new CardDefect.BeamCellP())),
                 List.of()
@@ -2900,7 +2900,7 @@ public class TestStates {
         builder.addCard(new CardDefect.LoopP(), 1);
         builder.addCard(new CardDefect.BallLightning(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
-        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.CompileDriver(), 1);
         builder.addCard(new CardDefect.ConsumeP(), 1);
         builder.addCard(new CardDefect.MeteorStrike(), 1);
         builder.addCard(new CardDefect.Blizzard(), 1);

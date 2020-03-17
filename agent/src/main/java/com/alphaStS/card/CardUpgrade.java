@@ -165,7 +165,7 @@ public class CardUpgrade {
         map.put(new CardDefect.ChargeBattery(), new CardDefect.ChargeBatteryP());
 //        map.put(new CardDefect.Claw(3), new CardDefect.ClawP(5));
         map.put(new CardDefect.ColdSnap(), new CardDefect.ColdSnapP());
-        map.put(new CardDefect.CompiledDriver(), new CardDefect.CompiledDriverP());
+        map.put(new CardDefect.CompileDriver(), new CardDefect.CompileDriverP());
         map.put(new CardDefect.Coolheaded(), new CardDefect.CoolheadedP());
         map.put(new CardDefect.GoForTheEye(), new CardDefect.GoForTheEyeP());
         map.put(new CardDefect.Hologram(), new CardDefect.HologramP());
