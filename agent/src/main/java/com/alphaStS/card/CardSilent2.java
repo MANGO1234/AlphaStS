@@ -1,173 +1,374 @@
 package com.alphaStS.card;
 
+import com.alphaStS.*;
+import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
+
+import java.util.List;
+
 public class CardSilent2 {
     // **************************************************************************************************
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
-    // TODO: Defend (Silent) (Basic) - 1 energy, Skill
-    //   Effect: Gain 5 Block.
-    //   Upgraded Effect: Gain 8 Block.
+    public static class Defend extends Card.Defend {
+    }
 
-    // TODO: Neutralize (Basic) - 0 energy, Attack
-    //   Effect: Deal 3 damage. Apply 1 Weak.
-    //   Upgraded Effect: Deal 4 damage. Apply 2 Weak.
+    public static class DefendP extends Card.DefendP {
+    }
 
-    // TODO: Strike (Silent) (Basic) - 1 energy, Attack
-    //   Effect: Deal 6 damage.
-    //   Upgraded Effect: Deal 9 damage.
+    public static class Neutralize extends CardSilent.Neutralize {
+    }
 
-    // TODO: Survivor (Basic) - 1 energy, Skill
-    //   Effect: Gain 8 Block. Discard 1 card.
-    //   Upgraded Effect: Gain 11 Block. Discard 1 card.
+    public static class NeutralizeP extends CardSilent.NeutralizeP {
+    }
+
+    public static class Strike extends Card.Strike {
+    }
+
+    public static class StrikeP extends Card.StrikeP {
+    }
+
+    public static class Survivor extends CardSilent.Survivor {
+    }
+
+    public static class SurvivorP extends CardSilent.SurvivorP {
+    }
 
     // **************************************************************************************************
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Acrobatics (Common) - 1 energy, Skill
-    //   Effect: Draw 3 cards. Discard 1 card.
-    //   Upgraded Effect: Draw 4 cards. Discard 1 card.
+    public static class Acrobatics extends CardSilent.Acrobatics {
+    }
+
+    public static class AcrobaticsP extends CardSilent.AcrobaticsP {
+    }
 
     // TODO: Anticipate (Common) - 0 energy, Skill
     //   Effect: Gain 3 Dexterity this turn.
     //   Upgraded Effect: Gain 5 Dexterity this turn.
 
-    // TODO: Backflip (Common) - 1 energy, Skill
-    //   Effect: Gain 5 Block. Draw 2 cards.
-    //   Upgraded Effect: Gain 8 Block. Draw 2 cards.
+    public static class Backflip extends CardSilent.Backflip {
+    }
 
-    // TODO: Blade Dance (Common) - 1 energy, Skill
-    //   Effect: Add 3 Shivs into your Hand. Exhaust.
-    //   Upgraded Effect: Add 4 Shivs into your Hand. Exhaust.
+    public static class BackflipP extends CardSilent.BackflipP {
+    }
 
-    // TODO: Cloak and Dagger (Common) - 1 energy, Skill
-    //   Effect: Gain 6 Block. Add 1 Shiv into your Hand.
-    //   Upgraded Effect: Gain 6 Block. Add 2 Shivs into your Hand.
+    public static class BladeDance extends CardSilent._BladeDanceT {
+        public BladeDance() {
+            super("Blade Dance", 3);
+            this.exhaustWhenPlayed = true;
+        }
+    }
 
-    // TODO: Dagger Spray (Common) - 1 energy, Attack
-    //   Effect: Deal 4 damage to ALL enemies twice.
-    //   Upgraded Effect: Deal 6 damage to ALL enemies twice.
+    public static class BladeDanceP extends CardSilent._BladeDanceT {
+        public BladeDanceP() {
+            super("Blade Dance+", 4);
+            this.exhaustWhenPlayed = true;
+        }
+    }
 
-    // TODO: Dagger Throw (Common) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Draw 1 card. Discard 1 card.
-    //   Upgraded Effect: Deal 12 damage. Draw 1 card. Discard 1 card.
+    public static class CloakAndDagger extends CardSilent.CloakAndDagger {
+    }
 
-    // TODO: Deadly Poison (Common) - 1 energy, Skill
-    //   Effect: Apply 5 Poison.
-    //   Upgraded Effect: Apply 7 Poison.
+    public static class CloakAndDaggerP extends CardSilent.CloakAndDaggerP {
+    }
 
-    // TODO: Deflect (Common) - 0 energy, Skill
-    //   Effect: Gain 4 Block.
-    //   Upgraded Effect: Gain 7 Block.
+    public static class DaggerSpray extends CardSilent.DaggerSpray {
+    }
 
-    // TODO: Dodge and Roll (Common) - 1 energy, Skill
-    //   Effect: Gain 4 Block. Next turn, gain 4 Block.
-    //   Upgraded Effect: Gain 6 Block. Next turn, gain 6 Block.
+    public static class DaggerSprayP extends CardSilent.DaggerSprayP {
+    }
+
+    public static class DaggerThrow extends CardSilent.DaggerThrow {
+    }
+
+    public static class DaggerThrowP extends CardSilent.DaggerThrowP {
+    }
+
+    public static class DeadlyPoison extends CardSilent.DeadlyPoison {
+    }
+
+    public static class DeadlyPoisonP extends CardSilent.DeadlyPoisonP {
+    }
+
+    public static class Deflect extends CardSilent.Deflect {
+    }
+
+    public static class DeflectP extends CardSilent.DeflectP {
+    }
+
+    public static class DodgeAndRoll extends CardSilent.DodgeAndRoll {
+    }
+
+    public static class DodgeAndRollP extends CardSilent.DodgeAndRollP {
+    }
 
     // TODO: Flick-Flack (Common) - 1 energy, Attack
     //   Effect: Sly. Deal 7 damage to ALL enemies.
     //   Upgraded Effect: Sly. Deal 9 damage to ALL enemies.
 
-    // TODO: Leading Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Add 1 Shiv into your Hand.
-    //   Upgraded Effect: Deal 10 damage. Add 1 Shiv into your Hand.
+    private static abstract class _LeadingStrikeT extends Card {
+        private final int n;
 
-    // TODO: Piercing Wail (Common) - 1 energy, Skill
-    //   Effect: ALL enemies lose 6 Strength this turn. Exhaust.
-    //   Upgraded Effect: ALL enemies lose 8 Strength this turn. Exhaust.
+        public _LeadingStrikeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.n = n;
+            entityProperty.selectEnemy = true;
+        }
 
-    // TODO: Poisoned Stab (Common) - 1 energy, Attack
-    //   Effect: Deal 6 damage. Apply 3 Poison.
-    //   Upgraded Effect: Deal 8 damage. Apply 4 Poison.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.addCardToHand(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Prepared (Common) - 0 energy, Skill
-    //   Effect: Draw 1 card. Discard 1 card.
-    //   Upgraded Effect: Draw 2 cards. Discard 2 cards.
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Shiv());
+        }
+    }
+
+    public static class LeadingStrike extends _LeadingStrikeT {
+        public LeadingStrike() {
+            super("Leading Strike", 7);
+        }
+    }
+
+    public static class LeadingStrikeP extends _LeadingStrikeT {
+        public LeadingStrikeP() {
+            super("Leading Strike+", 10);
+        }
+    }
+
+    public static class PiercingWail extends CardSilent.PiercingWail {
+    }
+
+    public static class PiercingWailP extends CardSilent.PiercingWailP {
+    }
+
+    public static class PoisonedStab extends CardSilent.PoisonedStab {
+    }
+
+    public static class PoisonedStabP extends CardSilent.PoisonedStabP {
+    }
+
+    public static class Prepared extends CardSilent.Prepared {
+    }
+
+    public static class PreparedP extends CardSilent.PreparedP {
+    }
 
     // TODO: Ricochet (Common) - 2 energy, Attack
     //   Effect: Sly. Deal 3 damage to a random enemy 4 times.
     //   Upgraded Effect: Sly. Deal 3 damage to a random enemy 5 times.
 
-    // TODO: Slice (Common) - 0 energy, Attack
-    //   Effect: Deal 6 damage.
-    //   Upgraded Effect: Deal 9 damage.
+    public static class Slice extends CardSilent.Slice {
+    }
 
-    // TODO: Snakebite (Common) - 2 energy, Skill
-    //   Effect: Retain. Apply 7 Poison.
-    //   Upgraded Effect: Retain. Apply 10 Poison.
+    public static class SliceP extends CardSilent.SliceP {
+    }
 
-    // TODO: Sucker Punch (Common) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Apply 1 Weak.
-    //   Upgraded Effect: Deal 10 damage. Apply 2 Weak.
+    private static abstract class _SnakebiteT extends Card {
+        private final int n;
+
+        public _SnakebiteT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2, Card.COMMON);
+            this.n = n;
+            this.retain = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.poisonEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Snakebite extends _SnakebiteT {
+        public Snakebite() {
+            super("Snakebite", 7);
+        }
+    }
+
+    public static class SnakebiteP extends _SnakebiteT {
+        public SnakebiteP() {
+            super("Snakebite+", 10);
+        }
+    }
+
+    public static class SuckerPunch extends CardSilent._SuckerPunchT {
+        public SuckerPunch() {
+            super("Sucker Punch", 8, 1);
+        }
+    }
+
+    public static class SuckerPunchP extends CardSilent._SuckerPunchT {
+        public SuckerPunchP() {
+            super("Sucker Punch+", 10, 2);
+        }
+    }
 
     // TODO: Untouchable (Common) - 2 energy, Skill
     //   Effect: Sly. Gain 9 Block.
     //   Upgraded Effect: Sly. Gain 12 Block.
 
     // **************************************************************************************************
-    // ********************************************* Uncommon *********************************************
+    // ********************************************* Uncommon *******************************************
     // **************************************************************************************************
 
-    // TODO: Accuracy (Uncommon) - 1 energy, Power
-    //   Effect: Shivs deal 4 additional damage.
-    //   Upgraded Effect: Shivs deal 6 additional damage.
+    public static class Accuracy extends CardSilent.Accuracy {
+    }
 
-    // TODO: Backstab (Uncommon) - 0 energy, Attack
-    //   Effect: Innate. Deal 11 damage. Exhaust.
-    //   Upgraded Effect: Innate. Deal 15 damage. Exhaust.
+    public static class AccuracyP extends CardSilent.AccuracyP {
+    }
 
-    // TODO: Blur (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 5 Block. Block is not removed at the start of your next turn.
-    //   Upgraded Effect: Gain 8 Block. Block is not removed at the start of your next turn.
+    public static class Backstab extends CardSilent.Backstab {
+    }
 
-    // TODO: Bouncing Flask (Uncommon) - 2 energy, Skill
-    //   Effect: Apply 3 Poison to a random enemy 3 times.
-    //   Upgraded Effect: Apply 3 Poison to a random enemy 4 times.
+    public static class BackstabP extends CardSilent.BackstabP {
+    }
 
-    // TODO: Bubble Bubble (Uncommon) - 1 energy, Skill
-    //   Effect: If the enemy has Poison, apply 9 Poison.
-    //   Upgraded Effect: If the enemy has Poison, apply 12 Poison.
+    public static class Blur extends CardSilent.Blur {
+    }
 
-    // TODO: Calculated Gamble (Uncommon) - 0 energy, Skill
-    //   Effect: Discard your Hand, then draw that many cards. Exhaust.
-    //   Upgraded Effect: Retain. Discard your Hand, then draw that many cards. Exhaust.
+    public static class BlurP extends CardSilent.BlurP {
+    }
 
-    // TODO: Dash (Uncommon) - 2 energy, Attack
-    //   Effect: Gain 10 Block. Deal 10 damage.
-    //   Upgraded Effect: Gain 13 Block. Deal 13 damage.
+    public static class BouncingFlask extends CardSilent.BouncingFlask {
+    }
 
-    // TODO: Escape Plan (Uncommon) - 0 energy, Skill
-    //   Effect: Draw 1 card. If you draw a Skill, gain 3 Block.
-    //   Upgraded Effect: Draw 1 card. If you draw a Skill, gain 5 Block.
+    public static class BouncingFlaskP extends CardSilent.BouncingFlaskP {
+    }
 
-    // TODO: Expertise (Uncommon) - 1 energy, Skill
-    //   Effect: Draw cards until you have 6 in your Hand.
-    //   Upgraded Effect: Draw cards until you have 7 in your Hand.
+    private static abstract class _BubbleBubbleT extends Card {
+        private final int n;
+
+        public _BubbleBubbleT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.selectEnemy = true;
+            entityProperty.poisonEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getEnemiesForRead().get(idx).getPoison() > 0) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BubbleBubble extends _BubbleBubbleT {
+        public BubbleBubble() {
+            super("Bubble Bubble", 9);
+        }
+    }
+
+    public static class BubbleBubbleP extends _BubbleBubbleT {
+        public BubbleBubbleP() {
+            super("Bubble Bubble+", 12);
+        }
+    }
+
+    public static class CalculatedGamble extends CardSilent.CalculatedGamble {
+    }
+
+    public static class CalculatedGambleP extends CardSilent._CalculatedGambleT {
+        public CalculatedGambleP() {
+            super("Calculated Gamble+", true);
+            this.retain = true;
+        }
+    }
+
+    public static class Dash extends CardSilent.Dash {
+    }
+
+    public static class DashP extends CardSilent.DashP {
+    }
+
+    public static class EscapePlan extends CardSilent.EscapePlan {
+    }
+
+    public static class EscapePlanP extends CardSilent.EscapePlanP {
+    }
+
+    public static class Expertise extends CardSilent.Expertise {
+    }
+
+    public static class ExpertiseP extends CardSilent.ExpertiseP {
+    }
 
     // TODO: Expose (Uncommon) - 0 energy, Skill
     //   Effect: Remove all Artifact and Block from the enemy. Apply 2 Vulnerable. Exhaust.
     //   Upgraded Effect: Remove all Artifact and Block from the enemy. Apply 3 Vulnerable. Exhaust.
 
-    // TODO: Finisher (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 6 damage for each Attack already played this turn.
-    //   Upgraded Effect: Deal 8 damage for each Attack already played this turn.
+    public static class Finisher extends CardSilent.Finisher {
+    }
 
-    // TODO: Flanking (Uncommon) - 2 energy, Skill
-    //   Effect: The enemy takes double damage from other players this turn.
-    //   Upgraded Effect (1 energy): The enemy takes double damage from other players this turn.
+    public static class FinisherP extends CardSilent.FinisherP {
+    }
 
-    // TODO: Flechettes (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 5 damage for each Skill in your Hand.
-    //   Upgraded Effect: Deal 7 damage for each Skill in your Hand.
+    // No need to implement Flanking: Multiplayer
 
-    // TODO: Follow Through (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 6 damage to ALL enemies. If the last card you played this turn was a Skill, apply 1 Weak to ALL enemies.
-    //   Upgraded Effect: Deal 8 damage to ALL enemies. If the last card you played this turn was a Skill, apply 2 Weak to ALL enemies.
+    public static class Flechettes extends CardSilent._FlechetteT {
+        public Flechettes() {
+            super("Flechettes", 5);
+        }
+    }
 
-    // TODO: Footwork (Uncommon) - 1 energy, Power
-    //   Effect: Gain 2 Dexterity.
-    //   Upgraded Effect: Gain 3 Dexterity.
+    public static class FlechettesP extends CardSilent._FlechetteT {
+        public FlechettesP() {
+            super("Flechettes+", 7);
+        }
+    }
+
+    private static abstract class _FollowThroughT extends Card {
+        private final int dmg;
+        private final int weak;
+
+        public _FollowThroughT(String cardName, int dmg, int weak) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.weak = weak;
+            this.needsLastCardType = true;
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, dmg);
+            }
+            if (state.getLastCardPlayedType() == Card.SKILL) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.applyDebuff(state, DebuffType.WEAK, weak);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FollowThrough extends _FollowThroughT {
+        public FollowThrough() {
+            super("Follow Through", 6, 1);
+        }
+    }
+
+    public static class FollowThroughP extends _FollowThroughT {
+        public FollowThroughP() {
+            super("Follow Through+", 8, 2);
+        }
+    }
+
+    public static class Footwork extends CardSilent.Footwork {
+    }
+
+    public static class FootworkP extends CardSilent.FootworkP {
+    }
 
     // TODO: Hand Trick (Uncommon) - 1 energy, Skill
     //   Effect: Gain 7 Block. Add Sly to a Skill in your Hand this turn.
@@ -181,25 +382,58 @@ public class CardSilent2 {
     //   Effect: Discard 2 cards. Add 2 Shivs into your Hand.
     //   Upgraded Effect: Discard 2 cards. Add 2 Shivs+ into your Hand.
 
-    // TODO: Infinite Blades (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, add 1 Shiv into your Hand.
-    //   Upgraded Effect: Innate. At the start of your turn, add 1 Shiv into your Hand.
+    public static class InfiniteBlades extends CardSilent.InfiniteBlade {
+    }
 
-    // TODO: Leg Sweep (Uncommon) - 2 energy, Skill
-    //   Effect: Apply 2 Weak. Gain 11 Block.
-    //   Upgraded Effect: Apply 3 Weak. Gain 14 Block.
+    public static class InfiniteBladeP extends CardSilent.InfiniteBladeP {
+    }
+
+    public static class LegSweep extends CardSilent.LegSweep {
+    }
+
+    public static class LegSweepP extends CardSilent.LegSweepP {
+    }
 
     // TODO: Memento Mori (Uncommon) - 1 energy, Attack
     //   Effect: Deal 8 damage. Deals 4 additional damage for each card discarded this turn.
     //   Upgraded Effect: Deal 10 damage. Deals 5 additional damage for each card discarded this turn.
 
-    // TODO: Mirage (Uncommon) - 1 energy, Skill
-    //   Effect: Gain Block equal to Poison on ALL enemies. Exhaust.
-    //   Upgraded Effect (0 energy): Gain Block equal to Poison on ALL enemies. Exhaust.
+    private static abstract class _MirageT extends Card {
+        public _MirageT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
+            this.exhaustWhenPlayed = true;
+        }
 
-    // TODO: Noxious Fumes (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, apply 2 Poison to ALL enemies.
-    //   Upgraded Effect: At the start of your turn, apply 3 Poison to ALL enemies.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int totalPoison = 0;
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                var e = state.getEnemiesForRead().get(i);
+                if (e.isAlive()) {
+                    totalPoison += e.getPoison();
+                }
+            }
+            state.getPlayerForWrite().gainBlock(totalPoison);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Mirage extends _MirageT {
+        public Mirage() {
+            super("Mirage", 1);
+        }
+    }
+
+    public static class MirageP extends _MirageT {
+        public MirageP() {
+            super("Mirage+", 0);
+        }
+    }
+
+    public static class NoxiousFumes extends CardSilent.NoxiousFume {
+    }
+
+    public static class NoxiousFumesP extends CardSilent.NoxiousFumeP {
+    }
 
     // TODO: Outbreak (Uncommon) - 1 energy, Power
     //   Effect: Every 3 times you apply Poison, deal 11 damage to ALL enemies.
@@ -217,21 +451,49 @@ public class CardSilent2 {
     //   Effect: Deal 12 damage. The next Skill you play costs 0 energy.
     //   Upgraded Effect: Deal 18 damage. The next Skill you play costs 0 energy.
 
-    // TODO: Precise Cut (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 13 damage. Deals 2 less damage for each other card in your Hand.
-    //   Upgraded Effect: Deal 16 damage. Deals 2 less damage for each other card in your Hand.
+    private static abstract class _PreciseCutT extends Card {
+        private final int n;
 
-    // TODO: Predator (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 15 damage. Next turn, draw 2 cards.
-    //   Upgraded Effect: Deal 20 damage. Next turn, draw 2 cards.
+        public _PreciseCutT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int dmg = Math.max(0, n - 2 * state.handArrLen);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class PreciseCut extends _PreciseCutT {
+        public PreciseCut() {
+            super("Precise Cut", 13);
+        }
+    }
+
+    public static class PreciseCutP extends _PreciseCutT {
+        public PreciseCutP() {
+            super("Precise Cut+", 16);
+        }
+    }
+
+    public static class Predator extends CardSilent.Predator {
+    }
+
+    public static class PredatorP extends CardSilent.PredatorP {
+    }
 
     // TODO: Reflex (Uncommon) - 3 energy, Skill
     //   Effect: Sly. Draw 2 cards.
     //   Upgraded Effect: Sly. Draw 3 cards.
 
-    // TODO: Skewer (Uncommon) - X energy, Attack
-    //   Effect: Deal 7 damage X times.
-    //   Upgraded Effect: Deal 10 damage X times.
+    public static class Skewer extends CardSilent.Skewer {
+    }
+
+    public static class SkewerP extends CardSilent.SkewerP {
+    }
 
     // TODO: Speedster (Uncommon) - 2 energy, Power
     //   Effect: Whenever you draw a card during your turn, deal 2 damage to ALL enemies.
@@ -249,9 +511,11 @@ public class CardSilent2 {
     //   Effect: Add 3 Shivs into your Hand. Reduce this card's cost by 1.
     //   Upgraded Effect: Add 4 Shivs into your Hand. Reduce this card's cost by 1.
 
-    // TODO: Well-Laid Plans (Uncommon) - 1 energy, Power
-    //   Effect: At the end of your turn, Retain up to 1 card.
-    //   Upgraded Effect: At the end of your turn, Retain up to 2 cards.
+    public static class WellLaidPlans extends CardSilent.WellLaidPlans {
+    }
+
+    public static class WellLaidPlansP extends CardSilent.WellLaidPlansP {
+    }
 
     // **************************************************************************************************
     // *********************************************  Rare  *********************************************
@@ -265,29 +529,67 @@ public class CardSilent2 {
     //   Effect: Poison is triggered 1 additional time.
     //   Upgraded Effect: Poison is triggered 2 additional times.
 
-    // TODO: Adrenaline (Rare) - 0 energy, Skill
-    //   Effect: Gain energy. Draw 2 cards. Exhaust.
-    //   Upgraded Effect: Gain 2 energy. Draw 2 cards. Exhaust.
+    public static class Adrenaline extends CardSilent.Adrenaline {
+    }
 
-    // TODO: Afterimage (Rare) - 1 energy, Power
-    //   Effect: Whenever you play a card, gain 1 Block.
-    //   Upgraded Effect: Innate. Whenever you play a card, gain 1 Block.
+    public static class AdrenalineP extends CardSilent.AdrenalineP {
+    }
 
-    // TODO: Assassinate (Rare) - 0 energy, Attack
-    //   Effect: Innate. Deal 10 damage. Apply 1 Vulnerable. Exhaust.
-    //   Upgraded Effect: Innate. Deal 13 damage. Apply 2 Vulnerable. Exhaust.
+    public static class AfterImage extends CardSilent.AfterImage {
+    }
+
+    public static class AfterImageP extends CardSilent.AfterImageP {
+    }
+
+    private static abstract class _AssassinateT extends Card {
+        private final int dmg;
+        private final int vul;
+
+        public _AssassinateT(String cardName, int dmg, int vul) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.dmg = dmg;
+            this.vul = vul;
+            this.innate = true;
+            this.exhaustWhenPlayed = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, vul);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Assassinate extends _AssassinateT {
+        public Assassinate() {
+            super("Assassinate", 10, 1);
+        }
+    }
+
+    public static class AssassinateP extends _AssassinateT {
+        public AssassinateP() {
+            super("Assassinate+", 13, 2);
+        }
+    }
 
     // TODO: Blade of Ink (Rare) - 1 energy, Skill
     //   Effect: This turn, whenever you play an Attack, gain 2 Strength this turn.
     //   Upgraded Effect: This turn, whenever you play an Attack, gain 3 Strength this turn.
 
-    // TODO: Bullet Time (Rare) - 3 energy, Skill
-    //   Effect: You cannot draw additional cards this turn. ALL cards in your Hand are free to play this turn.
-    //   Upgraded Effect (2 energy): You cannot draw additional cards this turn. ALL cards in your Hand are free to play this turn.
+    public static class BulletTime extends CardSilent.BulletTime {
+    }
 
-    // TODO: Burst (Rare) - 1 energy, Skill
-    //   Effect: This turn, your next Skill is played an extra time.
-    //   Upgraded Effect: This turn, your next 2 Skills are played an extra time.
+    public static class BulletTimeP extends CardSilent.BulletTimeP {
+    }
+
+    public static class Burst extends CardSilent.Burst {
+    }
+
+    public static class BurstP extends CardSilent.BurstP {
+    }
 
     // TODO: Corrosive Wave (Rare) - 1 energy, Skill
     //   Effect: Whenever you draw a card this turn, apply 3 Poison to ALL enemies.
@@ -297,25 +599,34 @@ public class CardSilent2 {
     //   Effect: Deal 10 damage to ALL enemies. Repeat this effect for each enemy killed.
     //   Upgraded Effect: Deal 13 damage to ALL enemies. Repeat this effect for each enemy killed.
 
-    // TODO: Envenom (Rare) - 2 energy, Power
-    //   Effect: Whenever an Attack deals unblocked damage, apply 1 Poison.
-    //   Upgraded Effect: Whenever an Attack deals unblocked damage, apply 2 Poison.
+    public static class Envenom extends CardSilent.Envenom {
+    }
+
+    public static class EnvenomP extends CardSilent._EnvenomT {
+        public EnvenomP() {
+            super("Envenom+", 2, 2);
+        }
+    }
 
     // TODO: Fan of Knives (Rare) - 2 energy, Power
     //   Effect: Shivs now hit ALL enemies. Add 4 Shivs into your Hand.
     //   Upgraded Effect: Shivs now hit ALL enemies. Add 5 Shivs into your Hand.
 
-    // TODO: Grand Finale (Rare) - 0 energy, Attack
-    //   Effect: Can only be played if there are no cards in your Draw Pile. Deal 50 damage to ALL enemies.
-    //   Upgraded Effect: Can only be played if there are no cards in your Draw Pile. Deal 60 damage to ALL enemies.
+    public static class GrandFinale extends CardSilent.GrandFinale {
+    }
+
+    public static class GrandFinaleP extends CardSilent.GrandFinaleP {
+    }
 
     // TODO: Knife Trap (Rare) - 2 energy, Skill
     //   Effect: Play every Shiv in your Exhaust Pile on the enemy.
     //   Upgraded Effect: Upgrade and play every Shiv in your Exhaust Pile on the enemy.
 
-    // TODO: Malaise (Rare) - X energy, Skill
-    //   Effect: Enemy loses X Strength. Apply X Weak. Exhaust.
-    //   Upgraded Effect: Enemy loses X+1 Strength. Apply X+1 Weak. Exhaust.
+    public static class Malaise extends CardSilent.Malaise {
+    }
+
+    public static class MalaiseP extends CardSilent.MalaiseP {
+    }
 
     // TODO: Master Planner (Rare) - 2 energy, Power
     //   Effect: When you play a Skill, it gains Sly.
@@ -325,13 +636,63 @@ public class CardSilent2 {
     //   Effect: Deal 1 damage. Deals 1 additional damage for each card drawn this combat.
     //   Upgraded Effect (2 energy): Deal 1 damage. Deals 1 additional damage for each card drawn this combat.
 
-    // TODO: Nightmare (Rare) - 3 energy, Skill
-    //   Effect: Choose a card. Next turn, add 3 copies of that card into your Hand. Exhaust.
-    //   Upgraded Effect (2 energy): Choose a card. Next turn, add 3 copies of that card into your Hand. Exhaust.
+    public static class Nightmare extends CardSilent.Nightmare {
+    }
 
-    // TODO: Serpent Form (Rare) - 3 energy, Power
-    //   Effect: Whenever you play a card, deal 4 damage to a random enemy.
-    //   Upgraded Effect: Whenever you play a card, deal 5 damage to a random enemy.
+    public static class NightmareP extends CardSilent.NightmareP {
+    }
+
+    private static abstract class _SerpentFormT extends Card {
+        private final int n;
+
+        public _SerpentFormT(String cardName, int n) {
+            super(cardName, Card.POWER, 3, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SerpentForm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("SerpentForm", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        if (state.properties.cardDict[cardIdx].cardName.startsWith("Serpent Form")) {
+                            return;
+                        }
+                        var enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                        if (enemyIdx >= 0) {
+                            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), state.getCounterForRead()[counterIdx], true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SerpentForm extends _SerpentFormT {
+        public SerpentForm() {
+            super("Serpent Form", 4);
+        }
+    }
+
+    public static class SerpentFormP extends _SerpentFormT {
+        public SerpentFormP() {
+            super("Serpent Form+", 5);
+        }
+    }
 
     // TODO: Shadow Step (Rare) - 1 energy, Skill
     //   Effect: Discard your Hand. Next turn, Attacks deal double damage.
@@ -345,17 +706,21 @@ public class CardSilent2 {
     //   Effect: Sly. Whenever another player attacks an enemy, gain 1 Block.
     //   Upgraded Effect: Sly. Whenever another player attacks an enemy, gain 2 Block.
 
-    // TODO: Storm of Steel (Rare) - 1 energy, Skill
-    //   Effect: Discard your Hand. Add 1 Shiv into your Hand for each card discarded.
-    //   Upgraded Effect: Discard your Hand. Add 1 Shiv+ into your Hand for each card discarded.
+    public static class StormOfSteel extends CardSilent.StormOfSteel {
+    }
+
+    public static class StormOfSteelP extends CardSilent.StormOfSteelP {
+    }
 
     // TODO: The Hunt (Rare) - 1 energy, Attack
     //   Effect: Deal 10 damage. If Fatal, gain an additional card reward. Exhaust.
     //   Upgraded Effect: Deal 15 damage. If Fatal, gain an additional card reward. Exhaust.
 
-    // TODO: Tools of the Trade (Rare) - 1 energy, Power
-    //   Effect: At the start of your turn, draw 1 card and discard 1 card.
-    //   Upgraded Effect (0 energy): At the start of your turn, draw 1 card and discard 1 card.
+    public static class ToolsOfTheTrade extends CardSilent.ToolsOfTheTrade {
+    }
+
+    public static class ToolsOfTheTradeP extends CardSilent.ToolsOfTheTradeP {
+    }
 
     // TODO: Tracking (Rare) - 2 energy, Power
     //   Effect: Weak enemies take double damage from Attacks.
@@ -365,27 +730,64 @@ public class CardSilent2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
-    // TODO: Caltrops (Event) - 1 energy, Power
-    //   Effect: Whenever you are attacked, deal 3 damage back.
-    //   Upgraded Effect: Whenever you are attacked, deal 5 damage back.
+    public static class Caltrops extends CardSilent.Caltrops {
+    }
 
-    // TODO: Distraction (Event) - 1 energy, Skill
-    //   Effect: Add a random Skill into your Hand. It's free to play this turn. Exhaust.
-    //   Upgraded Effect (0 energy): Add a random Skill into your Hand. It's free to play this turn. Exhaust.
+    public static class CaltropsP extends CardSilent.CaltropsP {
+    }
 
-    // TODO: Outmaneuver (Event) - 1 energy, Skill
-    //   Effect: Next turn, gain 2 energy.
-    //   Upgraded Effect: Next turn, gain 3 energy.
+    public static class Distraction extends CardSilent.Distraction {
+    }
+
+    public static class DistractionP extends CardSilent.DistractionP {
+    }
+
+    public static class Outmaneuver extends CardSilent.Outmaneuver {
+    }
+
+    public static class OutmaneuverP extends CardSilent.OutmaneuverP {
+    }
 
     // **************************************************************************************************
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
-    // TODO: Suppress (Ancient) - 0 energy, Attack
-    //   Effect: Innate. Deal 11 damage. Apply 3 Weak.
-    //   Upgraded Effect: Innate. Deal 17 damage. Apply 5 Weak.
+    private static abstract class _SuppressT extends Card {
+        private final int dmg;
+        private final int weak;
 
-    // TODO: Wraith Form (Ancient) - 3 energy, Power
-    //   Effect: Gain 2 Intangible. At the start of your turn, lose 1 Dexterity.
-    //   Upgraded Effect: Gain 3 Intangible. At the start of your turn, lose 1 Dexterity.
+        public _SuppressT(String cardName, int dmg, int weak) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.dmg = dmg;
+            this.weak = weak;
+            this.innate = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            enemy.applyDebuff(state, DebuffType.WEAK, weak);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Suppress extends _SuppressT {
+        public Suppress() {
+            super("Suppress", 11, 3);
+        }
+    }
+
+    public static class SuppressP extends _SuppressT {
+        public SuppressP() {
+            super("Suppress+", 17, 5);
+        }
+    }
+
+    public static class WraithForm extends CardSilent.WraithForm {
+    }
+
+    public static class WraithFormP extends CardSilent.WraithFormP {
+    }
 }
