@@ -1428,7 +1428,7 @@ public class CardIronclad {
         }
     }
 
-    private static abstract class _HemokinesisT extends Card {
+    static abstract class _HemokinesisT extends Card {
         private final int damage;
 
         public _HemokinesisT(String cardName, int damage) {

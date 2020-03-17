@@ -174,7 +174,7 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _BladeDanceT extends Card {
+    static abstract class _BladeDanceT extends Card {
         private final int n;
 
         public _BladeDanceT(String cardName, int n) {
@@ -730,7 +730,7 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _SuckerPunchT extends Card {
+    static abstract class _SuckerPunchT extends Card {
         private final int n;
         private final int weak;
 
@@ -956,7 +956,7 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _CalculatedGambleT extends Card {
+    static abstract class _CalculatedGambleT extends Card {
         public _CalculatedGambleT(String cardName, boolean exhaustWhenPlayed) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
@@ -1447,7 +1447,7 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _FlechetteT extends Card {
+    static abstract class _FlechetteT extends Card {
         private final int n;
 
         public _FlechetteT(String cardName, int n) {
@@ -2567,13 +2567,16 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _EnvenomT extends Card {
-        public _EnvenomT(String cardName, int energyCost) {
+    static abstract class _EnvenomT extends Card {
+        final int n;
+
+        public _EnvenomT(String cardName, int energyCost, int n) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
+            this.n = n;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 1;
+            state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2597,13 +2600,13 @@ public class CardSilent {
 
     public static class Envenom extends _EnvenomT {
         public Envenom() {
-            super("Envenom", 2);
+            super("Envenom", 2, 1);
         }
     }
 
     public static class EnvenomP extends _EnvenomT {
         public EnvenomP() {
-            super("Envenom+", 1);
+            super("Envenom+", 1, 1);
         }
     }
 
