@@ -920,9 +920,35 @@ public class CardIronclad2 {
     //   Effect: Deal 12 damage to ALL enemies. Costs 1 less energy for each Attack played this turn.
     //   Upgraded Effect: Deal 15 damage to ALL enemies. Costs 1 less energy for each Attack played this turn.
 
-    // TODO: Stone Armor (Uncommon) - 1 energy, Power
-    //   Effect: Gain 4 Plating.
-    //   Upgraded Effect: Gain 6 Plating.
+    private static abstract class _StoneArmorT extends Card {
+        private final int amount;
+
+        public _StoneArmorT(String cardName, int amount) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.amount = amount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.properties.platingCounterIdx] += amount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatingCounter();
+        }
+    }
+
+    public static class StoneArmor extends _StoneArmorT {
+        public StoneArmor() {
+            super("Stone Armor", 4);
+        }
+    }
+
+    public static class StoneArmorP extends _StoneArmorT {
+        public StoneArmorP() {
+            super("Stone Armor+", 6);
+        }
+    }
 
     private static abstract class _TauntT extends Card {
         private final int block;

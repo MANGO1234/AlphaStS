@@ -47,8 +47,18 @@ public class Relic2 {
         }
     }
 
-    // TODO: Gorget (Common)
-    //   Effect: At the start of each combat, gain 4 Plating.
+    public static class Gorget extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatingCounter();
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[state.properties.platingCounterIdx] += 4;
+                    }
+                }
+            });
+        }
+    }
 
     public static class HappyFlower extends Relic.HappyFlower {
         public HappyFlower(int n, int healthReward) {

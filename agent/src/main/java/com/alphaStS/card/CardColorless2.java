@@ -1,5 +1,8 @@
 package com.alphaStS.card;
 
+import com.alphaStS.*;
+import com.alphaStS.gameAction.GameActionCtx;
+
 public class CardColorless2 {
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
@@ -193,9 +196,35 @@ public class CardColorless2 {
     //   Effect: At the start of your turn, Transform 1 card in your Hand.
     //   Upgraded Effect: Innate. At the start of your turn, Transform 1 card in your Hand.
 
-    // TODO: Eternal Armor (Rare) - 3 energy, Power
-    //   Effect: Gain 7 Plating.
-    //   Upgraded Effect: Gain 9 Plating.
+    private static abstract class _EternalArmorT extends Card {
+        private final int amount;
+
+        public _EternalArmorT(String cardName, int amount) {
+            super(cardName, Card.POWER, 3, Card.RARE);
+            this.amount = amount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.properties.platingCounterIdx] += amount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatingCounter();
+        }
+    }
+
+    public static class EternalArmor extends _EternalArmorT {
+        public EternalArmor() {
+            super("Eternal Armor", 7);
+        }
+    }
+
+    public static class EternalArmorP extends _EternalArmorT {
+        public EternalArmorP() {
+            super("Eternal Armor+", 9);
+        }
+    }
 
     // TODO: Gold Axe (Rare) - 1 energy, Attack
     //   Effect: Deal damage equal to the number of cards played this combat.

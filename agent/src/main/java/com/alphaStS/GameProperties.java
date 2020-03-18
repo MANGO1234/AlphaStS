@@ -204,6 +204,7 @@ public class GameProperties implements Cloneable {
     public int nunchakuCounterIdx = -1;
     public int penNibCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
+    public int platingCounterIdx = -1;
     public int playCardOnTopOfDeckCounterIdx = -1;
     public int reboundCounterIdx = -1;
     public int regenerationCounterIdx = -1;
@@ -686,6 +687,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant PlatingCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.platingCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.platingCounterIdx;
+        }
+    };
+
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -793,6 +803,30 @@ public class GameProperties implements Cloneable {
         addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.metallicizeCounterIdx]);
+            }
+        });
+    }
+
+    public void registerPlatingCounter() {
+        registerCounter("Plating", PlatingCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.platingCounterIdx] / 10.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addPreEndOfTurnHandler("Plating", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.platingCounterIdx]);
+            }
+        });
+        addEndOfTurnHandler("Plating", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                if (state.getCounterForRead()[state.properties.platingCounterIdx] > 0) {
+                    state.getCounterForWrite()[state.properties.platingCounterIdx]--;
+                }
             }
         });
     }

@@ -80,8 +80,17 @@ public class Potion2 {
     public static class GamblersBrew extends Potion.GamblersBrew {
     }
 
-    // TODO: Heart of Iron (Uncommon)
-    //   Effect: Gain 7 Plating.
+    public static class HeartOfIron extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int platingAmount = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 14 : 7;
+            state.getCounterForWrite()[state.properties.platingCounterIdx] += platingAmount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatingCounter();
+        }
+    }
 
     public static class LiquidBronze extends Potion.LiquidBronze {
     }
