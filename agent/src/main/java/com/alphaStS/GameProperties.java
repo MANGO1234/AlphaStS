@@ -141,6 +141,7 @@ public class GameProperties implements Cloneable {
     public int[] healCardsIdxes;
     public int[] masterfulStabPTransformIndexes;
     public int[] masterfulStabTransformIndexes;
+    public int[] momentumStrikeTransformIndexes;
     public int[] nilroysCodexIdxes;
     public int[] pandorasBoxCardsIdxes;
     public int[] perseverancePTransformIndexes;

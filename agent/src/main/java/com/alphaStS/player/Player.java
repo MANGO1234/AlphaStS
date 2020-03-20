@@ -157,6 +157,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_DEXTERITY -> this.gainDexterity(-n);
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
+        case LOSE_FOCUS_EOT -> this.loseFocusEot += n;
         case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         case ENTANGLED -> this.entangled = state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.entangled == 0 ? n + 1 : n;
@@ -200,8 +201,12 @@ public class Player extends PlayerReadOnly {
         if (loseDexterityEot > 0) {
             applyDebuff(state, DebuffType.LOSE_DEXTERITY, loseDexterityEot);
         }
+        if (loseFocusEot > 0) {
+            state.gainFocus(-loseFocusEot);
+        }
         loseStrengthEot = 0;
         loseDexterityEot = 0;
+        loseFocusEot = 0;
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
         } else if (state.properties.blurCounterIdx >= 0 && state.getCounterForRead()[state.properties.blurCounterIdx] > 0) {
             state.getCounterForWrite()[state.properties.blurCounterIdx]--;
@@ -247,6 +252,7 @@ public class Player extends PlayerReadOnly {
         entangled = 0;
         loseStrengthEot = 0;
         loseDexterityEot = 0;
+        loseFocusEot = 0;
         if (strength < 0) {
             strength = 0;
         }

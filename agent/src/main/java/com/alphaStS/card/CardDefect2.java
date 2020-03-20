@@ -1,8 +1,17 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.Tuple;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CardDefect2 {
     // **************************************************************************************************
@@ -61,9 +70,36 @@ public class CardDefect2 {
     public static class BeamCellP extends CardDefect.BeamCellP {
     }
 
-    // TODO: Boost Away (Common) - 0 energy, Skill
-    //   Effect: Gain 6 Block. Add a Dazed into your Discard Pile.
-    //   Upgraded Effect: Gain 9 Block. Add a Dazed into your Discard Pile.
+    private static abstract class _BoostAwayT extends Card {
+        private final int block;
+
+        public _BoostAwayT(String cardName, int block) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.addCardToDiscard(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.Dazed());
+        }
+    }
+
+    public static class BoostAway extends _BoostAwayT {
+        public BoostAway() {
+            super("Boost Away", 6);
+        }
+    }
+
+    public static class BoostAwayP extends _BoostAwayT {
+        public BoostAwayP() {
+            super("Boost Away+", 9);
+        }
+    }
 
     public static class ChargeBattery extends CardDefect.ChargeBattery {
     }
@@ -93,9 +129,38 @@ public class CardDefect2 {
     public static class CoolheadedP extends CardDefect.CoolheadedP {
     }
 
-    // TODO: Focused Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Gain 1 Focus this turn.
-    //   Upgraded Effect: Deal 11 damage. Gain 2 Focus this turn.
+    private static abstract class _FocusedStrikeT extends Card {
+        private final int damage;
+        private final int focus;
+
+        public _FocusedStrikeT(String cardName, int damage, int focus) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.focus = focus;
+            entityProperty.selectEnemy = true;
+            entityProperty.changePlayerFocus = true;
+            entityProperty.changePlayerFocusEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.gainFocus(focus);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS_EOT, focus);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FocusedStrike extends _FocusedStrikeT {
+        public FocusedStrike() {
+            super("Focused Strike", 9, 1);
+        }
+    }
+
+    public static class FocusedStrikeP extends _FocusedStrikeT {
+        public FocusedStrikeP() {
+            super("Focused Strike+", 11, 2);
+        }
+    }
 
     public static class GoForTheEye extends CardDefect.GoForTheEye {
     }
@@ -103,9 +168,40 @@ public class CardDefect2 {
     public static class GoForTheEyeP extends CardDefect.GoForTheEyeP {
     }
 
-    // TODO: Gunk Up (Common) - 1 energy, Attack
-    //   Effect: Deal 4 damage 3 times. Add a Slimed into your Discard Pile.
-    //   Upgraded Effect: Deal 5 damage 3 times. Add a Slimed into your Discard Pile.
+    private static abstract class _GunkUpT extends Card {
+        private final int damage;
+
+        public _GunkUpT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.addCardToDiscard(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.Slime());
+        }
+    }
+
+    public static class GunkUp extends _GunkUpT {
+        public GunkUp() {
+            super("Gunk Up", 4);
+        }
+    }
+
+    public static class GunkUpP extends _GunkUpT {
+        public GunkUpP() {
+            super("Gunk Up+", 5);
+        }
+    }
 
     public static class Hologram extends CardDefect.Hologram {
     }
@@ -113,9 +209,34 @@ public class CardDefect2 {
     public static class HologramP extends CardDefect.HologramP {
     }
 
-    // TODO: Hotfix (Common) - 0 energy, Skill
-    //   Effect: Gain 2 Focus this turn.
-    //   Upgraded Effect: Gain 3 Focus this turn.
+    private static abstract class _HotfixT extends Card {
+        private final int focus;
+
+        public _HotfixT(String cardName, int focus) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.focus = focus;
+            entityProperty.changePlayerFocus = true;
+            entityProperty.changePlayerFocusEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainFocus(focus);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS_EOT, focus);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Hotfix extends _HotfixT {
+        public Hotfix() {
+            super("Hotfix", 2);
+        }
+    }
+
+    public static class HotfixP extends _HotfixT {
+        public HotfixP() {
+            super("Hotfix+", 3);
+        }
+    }
 
     public static class Leap extends CardDefect.Leap {
     }
@@ -123,13 +244,105 @@ public class CardDefect2 {
     public static class LeapP extends CardDefect.LeapP {
     }
 
-    // TODO: Lightning Rod (Common) - 1 energy, Skill
-    //   Effect: Gain 4 Block. At the start of the next 2 turns, Channel 1 Lightning.
-    //   Upgraded Effect: Gain 7 Block. At the start of the next 2 turns, Channel 1 Lightning.
+    private static abstract class _LightningRodT extends Card {
+        private final int block;
 
-    // TODO: Momentum Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Reduce this card's cost to 0 energy.
-    //   Upgraded Effect: Deal 13 damage. Reduce this card's cost to 0 energy.
+        public _LightningRodT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.getCounterForWrite()[counterIdx] += 2;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("LightningRod", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("LightningRod", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                        state.channelOrb(OrbType.LIGHTNING);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class LightningRod extends _LightningRodT {
+        public LightningRod() {
+            super("Lightning Rod", 4);
+        }
+    }
+
+    public static class LightningRodP extends _LightningRodT {
+        public LightningRodP() {
+            super("Lightning Rod+", 7);
+        }
+    }
+
+    private static abstract class _MomentumStrikeT extends Card {
+        private final int damage;
+
+        public _MomentumStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .filter(c -> c.getBaseCard() instanceof _MomentumStrikeT)
+                    .map(c -> c.getPermCostIfPossible(0))
+                    .distinct()
+                    .toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.momentumStrikeTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.momentumStrikeTransformIndexes, -1);
+            for (int i = 0; i < state.properties.momentumStrikeTransformIndexes.length; i++) {
+                if (state.properties.cardDict[i].getBaseCard() instanceof _MomentumStrikeT
+                        && state.properties.cardDict[i].energyCost != 0) {
+                    state.properties.momentumStrikeTransformIndexes[i] =
+                            state.properties.findCardIndex(state.properties.cardDict[i].getPermCostIfPossible(0));
+                }
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.momentumStrikeTransformIndexes[cardIdx];
+        }
+    }
+
+    public static class MomentumStrike extends _MomentumStrikeT {
+        public MomentumStrike() {
+            super("Momentum Strike", 10);
+        }
+    }
+
+    public static class MomentumStrikeP extends _MomentumStrikeT {
+        public MomentumStrikeP() {
+            super("Momentum Strike+", 13);
+        }
+    }
 
     public static class SweepingBeam extends CardDefect.SweepingBeam {
     }
@@ -143,9 +356,58 @@ public class CardDefect2 {
     public static class TurboP extends CardDefect.TurboP {
     }
 
-    // TODO: Uproar (Common) - 2 energy, Attack
-    //   Effect: Deal 5 damage twice. Play a random Attack from your Draw Pile.
-    //   Upgraded Effect: Deal 7 damage twice. Play a random Attack from your Draw Pile.
+    private static abstract class _UproarT extends Card {
+        private final int damage;
+
+        public _UproarT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage);
+            int attackCount = 0;
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.properties.cardDict[state.deckArr[i]].cardType == Card.ATTACK) {
+                    attackCount++;
+                }
+            }
+            if (attackCount > 0) {
+                int r = state.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardGen, new Tuple<>(state, null));
+                int count = 0;
+                for (int i = 0; i < state.deckArrLen; i++) {
+                    int cardIdx = state.deckArr[i];
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        if (count == r) {
+                            state.removeCardFromDeck(cardIdx, false);
+                            state.addCardToHand(cardIdx);
+                            break;
+                        }
+                        count++;
+                    }
+                }
+                if (attackCount > 1) {
+                    state.setIsStochastic();
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Uproar extends _UproarT {
+        public Uproar() {
+            super("Uproar", 5);
+        }
+    }
+
+    public static class UproarP extends _UproarT {
+        public UproarP() {
+            super("Uproar+", 7);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
@@ -157,9 +419,35 @@ public class CardDefect2 {
     public static class BootSequenceP extends CardDefect.BootSequenceP {
     }
 
-    // TODO: Bulk Up (Uncommon) - 2 energy, Power
-    //   Effect: Lose 1 Orb Slot. Gain 2 Strength. Gain 2 Dexterity.
-    //   Upgraded Effect: Lose 1 Orb Slot. Gain 3 Strength. Gain 3 Dexterity.
+    private static abstract class _BulkUpT extends Card {
+        private final int n;
+
+        public _BulkUpT(String cardName, int n) {
+            super(cardName, Card.POWER, 2, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerDexterity = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainOrbSlot(-1);
+            state.getPlayerForWrite().gainStrength(n);
+            state.getPlayerForWrite().gainDexterity(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BulkUp extends _BulkUpT {
+        public BulkUp() {
+            super("Bulk Up", 2);
+        }
+    }
+
+    public static class BulkUpP extends _BulkUpT {
+        public BulkUpP() {
+            super("Bulk Up+", 3);
+        }
+    }
 
     public static class Capacitor extends CardDefect.Capacitor {
     }
@@ -182,9 +470,45 @@ public class CardDefect2 {
         }
     }
 
-    // TODO: Compact (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 6 Block. Transform all Status cards in your Hand into Fuel.
-    //   Upgraded Effect: Gain 7 Block. Transform all Status cards in your Hand into Fuel+.
+    private static abstract class _CompactT extends Card {
+        private final int block;
+
+        public _CompactT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            var handArr = state.getHandArrForWrite();
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.properties.cardDict[handArr[i]].cardType == Card.STATUS) {
+                    handArr[i] = (short) generatedCardIdx;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Compact extends _CompactT {
+        public Compact() {
+            super("Compact", 6);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Fuel());
+        }
+    }
+
+    public static class CompactP extends _CompactT {
+        public CompactP() {
+            super("Compact+", 7);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.FuelP());
+        }
+    }
 
     public static class Darkness extends CardDefect._DarknessT {
         public Darkness() {
@@ -204,9 +528,7 @@ public class CardDefect2 {
     public static class DoubleEnergyP extends CardDefect.DoubleEnergyP {
     }
 
-    // TODO: Energy Surge (Uncommon) - 1 energy, Skill
-    //   Effect: ALL players gain 2 energy. Exhaust.
-    //   Upgraded Effect: ALL players gain 3 energy. Exhaust.
+    // No need to implement Energy Surge: Multiplayer
 
     public static class FTL extends CardDefect.FTL {
     }

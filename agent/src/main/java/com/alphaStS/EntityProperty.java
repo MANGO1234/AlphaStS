@@ -9,6 +9,7 @@ public class EntityProperty {
     public boolean changePlayerDexterity;
     public boolean changePlayerDexterityEot;
     public boolean changePlayerFocus;
+    public boolean changePlayerFocusEot;
     public boolean changePlayerVulnerable;
     public boolean changePlayerWeakened;
     public boolean changePlayerFrailed;
@@ -41,6 +42,7 @@ public class EntityProperty {
         changePlayerDexterity |= other.changePlayerDexterity;
         changePlayerDexterityEot |= other.changePlayerDexterityEot;
         changePlayerFocus |= other.changePlayerFocus;
+        changePlayerFocusEot |= other.changePlayerFocusEot;
         changePlayerVulnerable |= other.changePlayerVulnerable;
         changePlayerWeakened |= other.changePlayerWeakened;
         changePlayerFrailed |= other.changePlayerFrailed;

@@ -582,6 +582,20 @@ public class NNInputSchema {
             });
         }
 
+        // Player lose focus eot
+        if (props.anyEntityProperty.changePlayerFocusEot) {
+            inputLen += 1;
+            descBody.append("    1 input to keep track of player lose focus eot debuff\n");
+            inputModules.add((s, x, idx) -> {
+                x[idx] = s.getPlayeForRead().getLoseFocusEot() / 10.0f;
+                return 1;
+            });
+            inputPrinters.add((s, input, idx) -> {
+                System.out.println("Player Lose Focus Eot: " + input[idx]);
+                return 1;
+            });
+        }
+
         // Watcher stance
         if (props.character == CharacterEnum.WATCHER) {
             inputLen += 4;
