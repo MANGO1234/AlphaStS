@@ -114,6 +114,7 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_ARMANENT = 1 << 8;
     public final static int GENERATE_CARD_APOTHEOSIS = 1 << 9;
     public final static int GENERATE_CARD_SEARING_BLOW_UPGRADE = 1 << 10;
+    public final static int GENERATE_CARD_DRAIN_POWER = 1 << 11;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
     public int generateCardOptions;
 
@@ -259,6 +260,7 @@ public class GameProperties implements Cloneable {
     public int crueltyCounterIdx = -1;
     public int otsyHPCounterIdx = -1;
     public int otsyMaxHPCounterIdx = -1;
+    public int otsyAttackedThisTurnCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
     public Relic blackBlood = null;
@@ -848,6 +850,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant OtsyAttackedThisTurnCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.otsyAttackedThisTurnCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.otsyAttackedThisTurnCounterIdx;
+        }
+    };
+
     private static CounterRegistrant SkillsPlayedThisTurnCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             gameProperties.skillsPlayedThisTurnCounterIdx = idx;
@@ -1138,6 +1149,24 @@ public class GameProperties implements Cloneable {
         addStartOfTurnHandler("AttacksPlayedThisTurn", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getCounterForWrite()[state.properties.attacksPlayedThisTurnCounterIdx] = 0;
+            }
+        });
+    }
+
+    public void registerOtsyAttackedThisTurnCounter() {
+        registerCounter("OtsyAttackedThisTurn", OtsyAttackedThisTurnCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.otsyAttackedThisTurnCounterIdx] > 0 ? 1.0f : 0.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addStartOfTurnHandler("OtsyAttackedThisTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.otsyAttackedThisTurnCounterIdx] = 0;
             }
         });
     }

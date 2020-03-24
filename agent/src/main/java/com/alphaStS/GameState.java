@@ -3567,6 +3567,10 @@ public final class GameState implements State {
         return cardIdx;
     }
 
+    public void transformCard(short[] arr, int pos, int newCardIdx) {
+        arr[pos] = (short) newCardIdx;
+    }
+
     public void removeCardFromDiscard(int cardIndex) {
         for (int i = discardArrLen - 1; i >= 0; i--) {
             if (discardArr[i] == cardIndex) {
@@ -3906,6 +3910,20 @@ public final class GameState implements State {
 
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
         return playerDoDamageToEnemy(enemy, dmgInt, false);
+    }
+
+    public void summon(int n) {
+        if (properties.otsyHPCounterIdx >= 0) {
+            getCounterForWrite()[properties.otsyHPCounterIdx] += n;
+            getCounterForWrite()[properties.otsyMaxHPCounterIdx] += n;
+        }
+    }
+
+    public int otsyDoDamageToEnemy(Enemy enemy, int dmgInt) {
+        if (properties.otsyAttackedThisTurnCounterIdx >= 0) {
+            getCounterForWrite()[properties.otsyAttackedThisTurnCounterIdx]++;
+        }
+        return playerDoDamageToEnemy(enemy, dmgInt);
     }
 
     public void checkWristBladeBuffForZeroCostAttack(int cardIdx) {

@@ -1,65 +1,422 @@
 package com.alphaStS.card;
 
+import com.alphaStS.*;
+import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.DebuffType;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 public class CardNecrobinder2 {
     // **************************************************************************************************
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
-    // TODO: Bodyguard (Basic) - 1 energy, Skill
-    //   Effect: Summon 5.
-    //   Upgraded Effect: Summon 7.
+    private static abstract class _BodyguardT extends Card {
+        private final int n;
 
-    // TODO: Defend (Necrobinder) (Basic) - 1 energy, Skill
-    //   Effect: Gain 5 Block.
-    //   Upgraded Effect: Gain 8 Block.
+        public _BodyguardT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.n = n;
+            entityProperty.canSummon = true;
+        }
 
-    // TODO: Strike (Necrobinder) (Basic) - 1 energy, Attack
-    //   Effect: Deal 6 damage.
-    //   Upgraded Effect: Deal 9 damage.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.summon(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Unleash (Basic) - 1 energy, Attack
-    //   Effect: Osty deals 6 damage. Deals additional damage equal to Osty's current HP.
-    //   Upgraded Effect: Osty deals 9 damage. Deals additional damage equal to Osty's current HP.
+    public static class Bodyguard extends _BodyguardT {
+        public Bodyguard() {
+            super("Bodyguard", 5);
+        }
+    }
+
+    public static class BodyguardP extends _BodyguardT {
+        public BodyguardP() {
+            super("Bodyguard+", 7);
+        }
+    }
+
+    public static class Defend extends Card.Defend {
+    }
+
+    public static class DefendP extends Card.DefendP {
+    }
+
+    public static class Strike extends Card.Strike {
+    }
+
+    public static class StrikeP extends Card.StrikeP {
+    }
+
+    private static abstract class _UnleashT extends Card {
+        private final int damage;
+
+        public _UnleashT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int otsyHP = state.properties.otsyHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyHPCounterIdx] : 0;
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + otsyHP);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Unleash extends _UnleashT {
+        public Unleash() {
+            super("Unleash", 6);
+        }
+    }
+
+    public static class UnleashP extends _UnleashT {
+        public UnleashP() {
+            super("Unleash+", 9);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Afterlife (Common) - 1 energy, Skill
-    //   Effect: Summon 6. Exhaust.
-    //   Upgraded Effect: Summon 9. Exhaust.
+    private static abstract class _AfterlifeT extends Card {
+        private final int n;
 
-    // TODO: Blight Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Apply Doom equal to damage dealt.
-    //   Upgraded Effect: Deal 10 damage. Apply Doom equal to damage dealt.
+        public _AfterlifeT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.n = n;
+            this.exhaustWhenPlayed = true;
+            entityProperty.canSummon = true;
+        }
 
-    // TODO: Defile (Common) - 1 energy, Attack
-    //   Effect: Ethereal. Deal 13 damage.
-    //   Upgraded Effect: Ethereal. Deal 17 damage.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.summon(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Defy (Common) - 1 energy, Skill
-    //   Effect: Ethereal. Gain 6 Block. Apply 1 Weak.
-    //   Upgraded Effect: Ethereal. Gain 7 Block. Apply 2 Weak.
+    public static class Afterlife extends _AfterlifeT {
+        public Afterlife() {
+            super("Afterlife", 6);
+        }
+    }
 
-    // TODO: Drain Power (Common) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Upgrade 2 random cards in your Discard Pile.
-    //   Upgraded Effect: Deal 12 damage. Upgrade 3 random cards in your Discard Pile.
+    public static class AfterlifeP extends _AfterlifeT {
+        public AfterlifeP() {
+            super("Afterlife+", 9);
+        }
+    }
 
-    // TODO: Fear (Common) - 1 energy, Attack
-    //   Effect: Ethereal. Deal 7 damage. Apply 1 Vulnerable.
-    //   Upgraded Effect: Ethereal. Deal 8 damage. Apply 2 Vulnerable.
+    private static abstract class _BlightStrikeT extends Card {
+        private final int damage;
 
-    // TODO: Flatten (Common) - 2 energy, Attack
-    //   Effect: Osty deals 12 damage. This card costs 0 energy if Osty has attacked this turn.
-    //   Upgraded Effect: Osty deals 16 damage. This card costs 0 energy if Osty has attacked this turn.
+        public _BlightStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.doomEnemy = true;
+        }
 
-    // TODO: Grave Warden (Common) - 1 energy, Skill
-    //   Effect: Gain 8 Block. Add a Soul into your Draw Pile.
-    //   Upgraded Effect: Gain 10 Block. Add a Soul+ into your Draw Pile.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int dmgDealt = state.playerDoDamageToEnemy(enemy, damage);
+            if (dmgDealt > 0 && enemy.isAlive()) {
+                enemy.applyDebuff(state, DebuffType.DOOM, dmgDealt);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Graveblast (Common) - 1 energy, Attack
-    //   Effect: Deal 4 damage. Put a card from your Discard Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Deal 6 damage. Put a card from your Discard Pile into your Hand.
+    public static class BlightStrike extends _BlightStrikeT {
+        public BlightStrike() {
+            super("Blight Strike", 8);
+        }
+    }
+
+    public static class BlightStrikeP extends _BlightStrikeT {
+        public BlightStrikeP() {
+            super("Blight Strike+", 10);
+        }
+    }
+
+    private static abstract class _DefileT extends Card {
+        private final int damage;
+
+        public _DefileT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.ethereal = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Defile extends _DefileT {
+        public Defile() {
+            super("Defile", 13);
+        }
+    }
+
+    public static class DefileP extends _DefileT {
+        public DefileP() {
+            super("Defile+", 17);
+        }
+    }
+
+    private static abstract class _DefyT extends Card {
+        private final int block;
+        private final int weak;
+
+        public _DefyT(String cardName, int block, int weak) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+            this.weak = weak;
+            this.ethereal = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, weak);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Defy extends _DefyT {
+        public Defy() {
+            super("Defy", 6, 1);
+        }
+    }
+
+    public static class DefyP extends _DefyT {
+        public DefyP() {
+            super("Defy+", 7, 2);
+        }
+    }
+
+    private static abstract class _DrainPowerT extends Card {
+        private final int damage;
+        private final int numUpgrades;
+        private boolean canUpgrade = true;
+
+        public _DrainPowerT(String cardName, int damage, int numUpgrades) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.numUpgrades = numUpgrades;
+            entityProperty.selectEnemy = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_DRAIN_POWER) != 0;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            if (!canUpgrade) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            var discardArr = state.getDiscardArrForRead();
+            int discardLen = state.getNumCardsInDiscard();
+            var upgradeablePositions = new ArrayList<Integer>();
+            for (int i = 0; i < discardLen; i++) {
+                if (state.properties.upgradeIdxes[discardArr[i]] >= 0) {
+                    upgradeablePositions.add(i);
+                }
+            }
+            int upgrades = Math.min(numUpgrades, upgradeablePositions.size());
+            if (upgrades == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            if (upgradeablePositions.size() > numUpgrades) {
+                state.setIsStochastic();
+                for (int i = 0; i < upgrades; i++) {
+                    int pick = i + state.getSearchRandomGen().nextInt(upgradeablePositions.size() - i, RandomGenCtx.RandomCardDiscardAggression);
+                    int temp = upgradeablePositions.get(i);
+                    upgradeablePositions.set(i, upgradeablePositions.get(pick));
+                    upgradeablePositions.set(pick, temp);
+                }
+            }
+            var writeArr = state.getDiscardArrForWrite();
+            for (int i = 0; i < upgrades; i++) {
+                int pos = upgradeablePositions.get(i);
+                state.transformCard(writeArr, pos, state.properties.upgradeIdxes[discardArr[pos]]);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_DRAIN_POWER) == 0) {
+                return List.of();
+            }
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
+        }
+    }
+
+    public static class DrainPower extends _DrainPowerT {
+        public DrainPower() {
+            super("Drain Power", 10, 2);
+        }
+    }
+
+    public static class DrainPowerP extends _DrainPowerT {
+        public DrainPowerP() {
+            super("Drain Power+", 12, 3);
+        }
+    }
+
+    private static abstract class _FearT extends Card {
+        private final int damage;
+        private final int vuln;
+
+        public _FearT(String cardName, int damage, int vuln) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.vuln = vuln;
+            this.ethereal = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, vuln);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Fear extends _FearT {
+        public Fear() {
+            super("Fear", 7, 1);
+        }
+    }
+
+    public static class FearP extends _FearT {
+        public FearP() {
+            super("Fear+", 8, 2);
+        }
+    }
+
+    private static abstract class _FlattenT extends Card {
+        private final int damage;
+
+        public _FlattenT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            return state.properties.otsyAttackedThisTurnCounterIdx >= 0 &&
+                   state.getCounterForRead()[state.properties.otsyAttackedThisTurnCounterIdx] > 0 ? 0 : 2;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerOtsyAttackedThisTurnCounter();
+        }
+    }
+
+    public static class Flatten extends _FlattenT {
+        public Flatten() {
+            super("Flatten", 12);
+        }
+    }
+
+    public static class FlattenP extends _FlattenT {
+        public FlattenP() {
+            super("Flatten+", 16);
+        }
+    }
+
+    private static abstract class _GraveblastT extends Card {
+        private final int damage;
+
+        public _GraveblastT(String cardName, int damage, boolean exhaustWhenPlayed) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromDiscard = true;
+            selectFromDiscardLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
+                    state.removeCardFromDiscard(idx);
+                    state.addCardToHand(idx);
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Graveblast extends _GraveblastT {
+        public Graveblast() {
+            super("Graveblast", 4, true);
+        }
+    }
+
+    public static class GraveblastP extends _GraveblastT {
+        public GraveblastP() {
+            super("Graveblast+", 6, false);
+        }
+    }
+
+    private static abstract class _GraveWardenT extends Card {
+        private final int block;
+
+        public _GraveWardenT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.addCardToDeck(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class GraveWarden extends _GraveWardenT {
+        public GraveWarden() {
+            super("Grave Warden", 8);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
+
+    public static class GraveWardenP extends _GraveWardenT {
+        public GraveWardenP() {
+            super("Grave Warden+", 10);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.SoulP());
+        }
+    }
 
     // TODO: Invoke (Common) - 1 energy, Skill
     //   Effect: Next turn, Summon 2 and gain 2 energy.
