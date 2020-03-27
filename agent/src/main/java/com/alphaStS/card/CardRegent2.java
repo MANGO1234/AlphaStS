@@ -1,61 +1,372 @@
 package com.alphaStS.card;
 
+import com.alphaStS.*;
+import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.DebuffType;
+import com.alphaStS.gameAction.GameActionCtx;
+
+import java.util.List;
+
 public class CardRegent2 {
     // **************************************************************************************************
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
-    // TODO: Defend (Regent) (Basic) - 1 energy, Skill
-    //   Effect: Gain 5 Block.
-    //   Upgraded Effect: Gain 8 Block.
+    public static class Defend extends Card.Defend {
+    }
 
-    // TODO: Falling Star (Basic) - 0 energy, Attack
-    //   Effect: Deal 7 damage. Apply 1 Weak. Apply 1 Vulnerable.
-    //   Upgraded Effect: Deal 11 damage. Apply 1 Weak. Apply 1 Vulnerable.
+    public static class DefendP extends Card.DefendP {
+    }
 
-    // TODO: Strike (Regent) (Basic) - 1 energy, Attack
-    //   Effect: Deal 6 damage.
-    //   Upgraded Effect: Deal 9 damage.
+    private static abstract class _FallingStarT extends Card {
+        private final int dmg;
 
-    // TODO: Venerate (Basic) - 1 energy, Skill
-    //   Effect: Gain 2 star.
-    //   Upgraded Effect: Gain 3 star.
+        public _FallingStarT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.dmg = dmg;
+            this.starCost = 2;
+            entityProperty.selectEnemy = true;
+            entityProperty.weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            enemy.applyDebuff(state, DebuffType.WEAK, 1);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FallingStar extends _FallingStarT {
+        public FallingStar() {
+            super("Falling Star", 7);
+        }
+    }
+
+    public static class FallingStarP extends _FallingStarT {
+        public FallingStarP() {
+            super("Falling Star+", 11);
+        }
+    }
+
+    public static class Strike extends Card.Strike {
+    }
+
+    public static class StrikeP extends Card.StrikeP {
+    }
+
+    private static abstract class _VenerateT extends Card {
+        private final int n;
+
+        public _VenerateT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainStar(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Venerate extends _VenerateT {
+        public Venerate() {
+            super("Venerate", 2);
+        }
+    }
+
+    public static class VenerateP extends _VenerateT {
+        public VenerateP() {
+            super("Venerate+", 3);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Astral Pulse (Common) - 0 energy, 3 star, Attack
-    //   Effect: Deal 14 damage to ALL enemies.
-    //   Upgraded Effect: Deal 18 damage to ALL enemies.
+    private static abstract class _AstralPulseT extends Card {
+        private final int dmg;
 
-    // TODO: BEGONE! (Common) - 1 energy, Attack
-    //   Effect: Deal 4 damage. Choose a card in your Hand to Transform into Minion Dive Bomb.
-    //   Upgraded Effect: Deal 5 damage. Choose a card in your Hand to Transform into Minion Dive Bomb+.
+        public _AstralPulseT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.dmg = dmg;
+            this.starCost = 3;
+            entityProperty.hasStarCost = true;
+        }
 
-    // TODO: Celestial Might (Common) - 2 energy, Attack
-    //   Effect: Deal 6 damage 3 times.
-    //   Upgraded Effect: Deal 8 damage 3 times.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, dmg);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Cloak of Stars (Common) - 0 energy, 1 star, Skill
-    //   Effect: Gain 7 Block.
-    //   Upgraded Effect: Gain 10 Block.
+    public static class AstralPulse extends _AstralPulseT {
+        public AstralPulse() {
+            super("Astral Pulse", 14);
+        }
+    }
 
-    // TODO: Collision Course (Common) - 0 energy, Attack
-    //   Effect: Deal 9 damage. Add a Debris into your Hand.
-    //   Upgraded Effect: Deal 12 damage. Add a Debris into your Hand.
+    public static class AstralPulseP extends _AstralPulseT {
+        public AstralPulseP() {
+            super("Astral Pulse+", 18);
+        }
+    }
 
-    // TODO: Cosmic Indifference (Common) - 1 energy, Skill
-    //   Effect: Gain 6 Block. Put a card from your Discard Pile on top of your Draw Pile.
-    //   Upgraded Effect: Gain 9 Block. Put a card from your Discard Pile on top of your Draw Pile.
+    private static abstract class _BegoneT extends Card {
+        private final int dmg;
 
-    // TODO: Crescent Spear (Common) - 1 energy, 1 star, Attack
-    //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards that have a star cost.
-    //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards that have a star cost.
+        public _BegoneT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
 
-    // TODO: Crush Under (Common) - 1 energy, Attack
-    //   Effect: Deal 7 damage to ALL enemies. All enemies lose 1 Strength this turn.
-    //   Upgraded Effect: Deal 8 damage to ALL enemies. All enemies lose 2 Strength this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+                return state.getNumCardsInHand() > 0 ? GameActionCtx.SELECT_CARD_HAND : GameActionCtx.PLAY_CARD;
+            } else {
+                var hand = state.getHandArrForRead();
+                for (int i = 0; i < state.getNumCardsInHand(); i++) {
+                    if (hand[i] == idx) {
+                        state.transformCard(state.getHandArrForWrite(), i, generatedCardIdx);
+                        break;
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Begone extends _BegoneT {
+        public Begone() {
+            super("BEGONE!", 4);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.MinionDiveBomb());
+        }
+    }
+
+    public static class BegoneP extends _BegoneT {
+        public BegoneP() {
+            super("BEGONE!+", 5);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.MinionDiveBombP());
+        }
+    }
+
+    private static abstract class _CelestialMightT extends Card {
+        private final int dmg;
+
+        public _CelestialMightT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 2, Card.COMMON);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            for (int i = 0; i < 3; i++) {
+                state.playerDoDamageToEnemy(enemy, dmg);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CelestialMight extends _CelestialMightT {
+        public CelestialMight() {
+            super("Celestial Might", 6);
+        }
+    }
+
+    public static class CelestialMightP extends _CelestialMightT {
+        public CelestialMightP() {
+            super("Celestial Might+", 8);
+        }
+    }
+
+    private static abstract class _CloakOfStarsT extends Card {
+        private final int block;
+
+        public _CloakOfStarsT(String cardName, int block) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.block = block;
+            this.starCost = 1;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CloakOfStars extends _CloakOfStarsT {
+        public CloakOfStars() {
+            super("Cloak of Stars", 7);
+        }
+    }
+
+    public static class CloakOfStarsP extends _CloakOfStarsT {
+        public CloakOfStarsP() {
+            super("Cloak of Stars+", 10);
+        }
+    }
+
+    private static abstract class _CollisionCourseT extends Card {
+        private final int dmg;
+
+        public _CollisionCourseT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.addCardToHand(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther2.Debris());
+        }
+    }
+
+    public static class CollisionCourse extends _CollisionCourseT {
+        public CollisionCourse() {
+            super("Collision Course", 9);
+        }
+    }
+
+    public static class CollisionCourseP extends _CollisionCourseT {
+        public CollisionCourseP() {
+            super("Collision Course+", 12);
+        }
+    }
+
+    private static abstract class _CosmicIndifferenceT extends Card {
+        private final int block;
+
+        public _CosmicIndifferenceT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+            entityProperty.selectFromDiscard = true;
+            entityProperty.putCardOnTopDeck = true;
+            selectFromDiscardLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.playerGainBlock(block);
+                return state.getNumCardsInDiscard() > 0 ? GameActionCtx.SELECT_CARD_DISCARD : GameActionCtx.PLAY_CARD;
+            } else {
+                state.removeCardFromDiscard(idx);
+                state.addCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class CosmicIndifference extends _CosmicIndifferenceT {
+        public CosmicIndifference() {
+            super("Cosmic Indifference", 6);
+        }
+    }
+
+    public static class CosmicIndifferenceP extends _CosmicIndifferenceT {
+        public CosmicIndifferenceP() {
+            super("Cosmic Indifference+", 9);
+        }
+    }
+
+    private static abstract class _CrescentSpearT extends Card {
+        private final int baseDmg;
+        private final int bonusDmg;
+
+        public _CrescentSpearT(String cardName, int baseDmg, int bonusDmg) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.baseDmg = baseDmg;
+            this.bonusDmg = bonusDmg;
+            this.starCost = 1;
+            entityProperty.selectEnemy = true;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int count = 0;
+            var hand = state.getHandArrForRead();
+            for (int i = 0; i < state.getNumCardsInHand(); i++) {
+                if (state.properties.cardDict[hand[i]].starCost > 0) count++;
+            }
+            var deck = state.getDeckArrForRead();
+            for (int i = 0; i < state.getNumCardsInDeck(); i++) {
+                if (state.properties.cardDict[deck[i]].starCost > 0) count++;
+            }
+            var discard = state.getDiscardArrForRead();
+            for (int i = 0; i < state.getNumCardsInDiscard(); i++) {
+                if (state.properties.cardDict[discard[i]].starCost > 0) count++;
+            }
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusDmg * count);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CrescentSpear extends _CrescentSpearT {
+        public CrescentSpear() {
+            super("Crescent Spear", 6, 2);
+        }
+    }
+
+    public static class CrescentSpearP extends _CrescentSpearT {
+        public CrescentSpearP() {
+            super("Crescent Spear+", 6, 3);
+        }
+    }
+
+    private static abstract class _CrushUnderT extends Card {
+        private final int dmg;
+        private final int strengthLoss;
+
+        public _CrushUnderT(String cardName, int dmg, int strengthLoss) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.dmg = dmg;
+            this.strengthLoss = strengthLoss;
+            entityProperty.affectEnemyStrength = true;
+            entityProperty.affectEnemyStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, dmg);
+                enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strengthLoss);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CrushUnder extends _CrushUnderT {
+        public CrushUnder() {
+            super("Crush Under", 7, 1);
+        }
+    }
+
+    public static class CrushUnderP extends _CrushUnderT {
+        public CrushUnderP() {
+            super("Crush Under+", 8, 2);
+        }
+    }
 
     // TODO: Gather Light (Common) - 1 energy, Skill
     //   Effect: Gain 7 Block. Gain star.
