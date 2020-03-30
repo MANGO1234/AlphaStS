@@ -172,7 +172,7 @@ public class NNInputLenTest {
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
 
         builder.addPotion(new Potion.FearPotion());      // vulnEnemy + selectEnemy
         builder.addPotion(new Potion.WeakPotion());      // weakEnemy
@@ -185,7 +185,7 @@ public class NNInputLenTest {
         builder.addPotion(new Potion.PoisonPotion());    // poisonEnemy
         builder.addPotion(new Potion.BloodPotion());     // healPlayer
         builder.addPotion(new Potion.GamblersBrew());    // selectFromHand
-        builder.addPotion(new Potion.LiquidMemory());    // selectFromDiscard
+        builder.addPotion(new Potion.LiquidMemories());  // selectFromDiscard
 
         builder.setPlayer(new Player(32, 75));
 
@@ -225,7 +225,7 @@ public class NNInputLenTest {
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
 
         builder.addRelic(new Relic.Shuriken());      // changePlayerStrength
         builder.addRelic(new Relic.Kunai());          // changePlayerDexterity
@@ -281,7 +281,7 @@ public class NNInputLenTest {
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
 
         builder.setPlayer(new Player(32, 75));
 

@@ -301,8 +301,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Ceramic Fish: No need to implement
-    // Dream Catcher: No need to implement
+    // No need to implement Ceramic Fish
+    // No need to implement Dream Catcher
 
     public static class HappyFlower extends Relic {
         int n;
@@ -380,7 +380,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Juzu Bracelet: No need to implement
+    // No need to implement Juzu Bracelet
 
     public static class Lantern extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -394,8 +394,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Maw Bank: No need to implement
-    // Meal Ticket: No need to implement
+    // No need to implement Maw Bank
+    // No need to implement Meal Ticket
 
     public static class Nunchaku extends Relic {
         int n;
@@ -466,7 +466,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Omamori: No need to implement
+    // No need to implement Omamori
 
     public static class Orichalcum extends Relic {
         private final int gainBlock;
@@ -580,9 +580,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Regal Pillow: No need to implement
-    // Smiling Mask: No need to implement
-    // Strawberry: No need to implement
+    // No need to implement Regal Pillow
+    // No need to implement Smiling Mask
+    // No need to implement Strawberry
 
     public static class TheBoot extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -590,7 +590,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Tiny Chest: No need to implement
+    // No need to implement Tiny Chest
 
     public static class ToyOrnithopter extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -599,7 +599,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class Vajira extends Relic {
+    public static class Vajra extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("OddlySmoothStone", new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -715,9 +715,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Darkstone Periapt: No need to implement
-    // Eternal Feather: No need to implement
-    // Frozen Egg: No need to implement
+    // No need to implement Darkstone Periapt
+    // No need to implement Eternal Feather
+    // No need to implement Frozen Egg
 
     public static class GremlinHorn extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -898,7 +898,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Matryoshka: No need to implement
+    // No need to implement Matryoshka
 
     public static class MeatOnTheBone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -927,7 +927,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Molten Egg: No need to implement
+    // No need to implement Molten Egg
 
     public static class MummifiedHand extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1032,8 +1032,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Pear: No need to implement
-    // Question Card: No need to implement
+    // No need to implement Pear
+    // No need to implement Question Card
 
     public static class Shuriken extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1073,7 +1073,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Singing Bowl: No need to implement
+    // No need to implement Singing Bowl
 
     public static class StrikeDummy extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1153,9 +1153,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // The Courier: No need to implement
-    // Toxic Egg: No need to implement
-    // White Beast Statue: No need to implement
+    // No need to implement The Courier
+    // No need to implement Toxic Egg
+    // No need to implement White Beast Statue
 
     // **********************************************************************************************************************************************
     // ************************************************************** Rare Relics *******************************************************************
@@ -1423,9 +1423,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class LizardTail extends Relic {
     }
 
-    // Mango: No need to implement
-    // Old Coin: No need to implement
-    // Peace Pipe: No need to implement
+    // No need to implement Mango
+    // No need to implement Old Coin
+    // No need to implement Peace Pipe
 
     public static class Pocketwatch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1465,8 +1465,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Prayer Wheel: No need to implement
-    // Shovel: No need to implement
+    // No need to implement Prayer Wheel
+    // No need to implement Shovel
 
     public static class StoneCalendar extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1531,8 +1531,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     // ************************************************************** Shop Relics *******************************************************************
     // **********************************************************************************************************************************************
-    // Winged Greaves: No need to implement
-    // Cauldron: No need to implement
+
+    // No need to implement Wing Boots
+    // No need to implement Cauldron
+
     public static class ChemicalX extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.chemicalX = this;
@@ -1551,7 +1553,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Dollys Mirror: No need to implement
+    // No need to implement Dolly's Mirror
 
     public static class FrozenEye extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1566,7 +1568,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Lee's Waffle: No need to implement
+    // No need to implement Lee's Waffle
 
     public static class MedicalKit extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1574,7 +1576,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Membership Card: No need to implement
+    // No need to implement Membership Card
 
     public static class OrangePellets extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1620,8 +1622,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Orrery: No need to implement
-    // Prismatic Shard: No need to implement
+    // No need to implement Orrery
+    // No need to implement Prismatic Shard
 
     public static class SlingOfCourage extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1720,7 +1722,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Black Star: No need to implement
+    // No need to implement Black Star
 
     public static class BustedCrown extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1734,7 +1736,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Calling Bell: No need to implement
+    // No need to implement Calling Bell
 
     public static class CoffeeDripper extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1772,7 +1774,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Empty Cage: No need to implement
+    // No need to implement Empty Cage
 
     public static class FusionHammer extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1923,7 +1925,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Tiny House: No need to implement
+    // No need to implement Tiny House
     public static class VelvetChoker extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -1978,7 +1980,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Cultist Mask: No need to implement
+    // No need to implement Cultist Headpiece
 
     public static class Enchiridion extends Relic {
         private Card filter;
@@ -2010,8 +2012,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Face Of Cleric: No need to implement
-    // Golden Idol: No need to implement
+    // No need to implement Face of Cleric
+    // No need to implement Golden Idol
 
     public static class GremlinVisage extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2043,8 +2045,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Nloth's Gift: No need to implement
-    // Nloth's Mask: No need to implement
+    // No need to implement N'loth's Gift
+    // No need to implement N'loth's Hungry Face
+    // No need to implement N'loth's Mask
+    // No need to implement Neow's Lament
 
     public static class Necronomicon extends Relic {
         public Necronomicon() {
@@ -2088,11 +2092,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Neows Blessing: No need to implement
+    // No need to implement Neows Blessing
 
-    public static class NilroysCodex extends Relic {
+    public static class NilrysCodex extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.nilroysCodex = this;
+            state.properties.nilrysCodex = this;
             int helperIdx = state.properties.findCardIndex(new CardOther.NilroysCodexChoice());
             state.properties.nilroysCodexHelperCardIdx = helperIdx;
             state.properties.nilroysCodexIdxes = Arrays.stream(generatedCardIdxes).filter(idx -> idx != helperIdx).toArray();
@@ -2104,7 +2108,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }
             state.setSelect1OutOf3Idxes(state.properties.nilroysCodexIdxes);
             var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][state.properties.nilroysCodexHelperCardIdx];
-            state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, action, NilroysCodex.class);
+            state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, action, NilrysCodex.class);
             return true;
         }
 
@@ -2140,8 +2144,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Spirit Poop: No need to implement
-    // Ssserpent Head: No need to implement
+    // No need to implement Spirit Poop
+    // No need to implement Ssserpent Head
 
     public static class WarpedTongs extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2381,7 +2385,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ********************************************************** Silent Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
-    public static class RingOfSnake extends Relic {
+    public static class RingOfTheSnake extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("RingOfSnake", new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -2417,13 +2421,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class PaperCrane extends Relic {
+    public static class PaperKrane extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.paperCrane = this;
+            state.properties.paperKrane = this;
         }
     }
 
-    public static class Specimen extends Relic {
+    public static class TheSpecimen extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("Specimen", new GameEventEnemyHandler() {
                 @Override public void handle(GameState state, EnemyReadOnly deadEnemy) {
@@ -2511,8 +2515,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ********************************************************** Defect Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
-    public static class CrackedOrb extends Relic {
-        public CrackedOrb() {
+    public static class CrackedCore extends Relic {
+        public CrackedCore() {
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
@@ -2572,9 +2576,33 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class GoldPlatedCable extends Relic {
+    public static class FrozenCore extends Relic {
+        public FrozenCore() {
+            entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.goldPlatedCable = this;
+            state.properties.addEndOfTurnHandler("FrozenCore", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    var orbs = state.getOrbs();
+                    if (orbs == null) return;
+                    for (int i = 0; i < orbs.length; i += 2) {
+                        if (orbs[i] == 0) {
+                            state.channelOrb(OrbType.FROST);
+                            break;
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class GoldPlatedCables extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.goldPlatedCables = this;
         }
     }
 
@@ -2668,6 +2696,22 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public CounterStat getCounterStat() {
             return new CounterStat(counterIdx, "Inserter");
+        }
+    }
+
+    public static class SymbioticVirus extends Relic {
+        public SymbioticVirus() {
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.channelOrb(OrbType.DARK);
+                    }
+                }
+            });
         }
     }
 
@@ -3075,4 +3119,41 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // **************************************************************************************************
+    // ********************************************* Blight *********************************************
+    // **************************************************************************************************
+
+    // No need to implement Accursed
+
+    // No need to implement Ancient Augmentation
+
+    // No need to implement Grotesque Trophy
+
+    // No need to implement Hauntings
+
+    // No need to implement Mimic Infestation
+
+    // No need to implement Muzzle
+
+    // No need to implement Post-Durian
+
+    // No need to implement Scatterbrain
+
+    // No need to implement Shield of Blight
+
+    // No need to implement Spear of Blight
+
+    // No need to implement Time Maze
+
+    // No need to implement Twisting Mind
+
+    // No need to implement Void Essence
+
+    // **************************************************************************************************
+    // ********************************************* Special *********************************************
+    // **************************************************************************************************
+
+    // No need to implement Circlet
+
+    // No need to implement Red Circlet
 }

@@ -1982,7 +1982,7 @@ public final class GameState implements State {
             }
         }
         chosenCardsArrLen = 0;
-        if (properties.nilroysCodex != null && ((Relic.NilroysCodex) properties.nilroysCodex).openSelection(this)) {
+        if (properties.nilrysCodex != null && ((Relic.NilrysCodex) properties.nilrysCodex).openSelection(this)) {
             return;
         }
         completeEndTurnRemainder();
@@ -2334,7 +2334,7 @@ public final class GameState implements State {
                 v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0));
                 v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !GameProperties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenPotion pot && !GameProperties.isHeartFight(this)) {
                 v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0));
                 v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
@@ -2354,7 +2354,7 @@ public final class GameState implements State {
                 base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v.get(GameState.V_EXTRA_IDX_START + properties.potionsVExtraIdx[i]);
                 continue;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !GameProperties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenPotion) && !GameProperties.isHeartFight(this)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
@@ -2607,8 +2607,8 @@ public final class GameState implements State {
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.BloodPotion pot) {
                         maxHealPreBattleEnd += pot.getHealAmount(this);
                     }
-                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion) {
-                        maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenPotion) {
+                        maxPossibleRegen += Potion.RegenPotion.getRegenerationAmount(this);
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.PowerPotion) {
                         maxPossiblePowers += 1000;
@@ -2630,7 +2630,7 @@ public final class GameState implements State {
                     canGeneratePotion = true;
                 }
                 if (canGeneratePotion) {
-                    maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
+                    maxPossibleRegen += Potion.RegenPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
                     if (properties.toyOrnithopter != null) {
                         maxHealPreBattleEnd += 5 * properties.numOfPotionSlots;
                     }
@@ -4045,7 +4045,7 @@ public final class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getWeak() > 0) {
-            double weakMult = properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
+            double weakMult = properties.paperKrane != null && properties.paperKrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
             if (enemy.getDebilitate() > 0) {
                 weakMult = 1.0 - (1.0 - weakMult) * 2;
             }
@@ -4641,7 +4641,7 @@ public final class GameState implements State {
         if (orbs == null) return;
         for (int i = 0; i < orbs.length; i += 2) {
             triggerNonPlasmaOrbPassive(i);
-            if (properties.goldPlatedCable != null && properties.goldPlatedCable.isRelicEnabledInScenario(this) && i == 0) {
+            if (properties.goldPlatedCables != null && properties.goldPlatedCables.isRelicEnabledInScenario(this) && i == 0) {
                 triggerNonPlasmaOrbPassive(i);
             }
         }
@@ -4653,7 +4653,7 @@ public final class GameState implements State {
         for (int i = 0; i < orbs.length; i += 2) {
             if (orbs[i] == OrbType.PLASMA.ordinal()) {
                 gainEnergy(1);
-                if (properties.goldPlatedCable != null && properties.goldPlatedCable.isRelicEnabledInScenario(this) && i == 0) {
+                if (properties.goldPlatedCables != null && properties.goldPlatedCables.isRelicEnabledInScenario(this) && i == 0) {
                     gainEnergy(1);
                 }
                 if (triggerLoopCount > 0 && i == 0) {

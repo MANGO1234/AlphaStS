@@ -143,7 +143,6 @@ public class CardColorless {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
@@ -1853,6 +1852,37 @@ public class CardColorless {
     public static class ExpungerP extends _ExpungerT {
         public ExpungerP(int xValue) {
             super("Expunger+ (" + xValue + ")", 15, xValue);
+        }
+    }
+
+    // **************************************************************************************************
+    // ********************************************* Special *********************************************
+    // **************************************************************************************************
+
+    private static abstract class _JAXT extends Card {
+        private final int strength;
+
+        public _JAXT(String cardName, int strength) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.strength = strength;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.doNonAttackDamageToPlayer(3, false, this);
+            state.getPlayerForWrite().gainStrength(strength);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class JAX extends _JAXT {
+        public JAX() {
+            super("J.A.X.", 2);
+        }
+    }
+
+    public static class JAXP extends _JAXT {
+        public JAXP() {
+            super("J.A.X.+", 3);
         }
     }
 }

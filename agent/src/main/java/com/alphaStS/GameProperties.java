@@ -298,7 +298,7 @@ public class GameProperties implements Cloneable {
     public Relic frozenEye = null;
     public Relic ginger = null;
     public Relic goldenEye = null;
-    public Relic goldPlatedCable = null;
+    public Relic goldPlatedCables = null;
     public Relic handDrill = null;
     public Relic hoveringKite = null;
     public Relic iceCream = null;
@@ -306,9 +306,9 @@ public class GameProperties implements Cloneable {
     public Relic markOfTheBloom = null;
     public Relic meatOnTheBone = null;
     public Relic medicalKit = null;
-    public Relic nilroysCodex = null;
+    public Relic nilrysCodex = null;
     public Relic oddMushroom = null;
-    public Relic paperCrane = null;
+    public Relic paperKrane = null;
     public Relic paperPhrog = null;
     public Relic runicDome = null;
     public Relic runicPyramid = null;

@@ -134,7 +134,7 @@ public class Relic2 {
 
     // No need to implement Tiny Mailbox: Whenever you Rest, procure a random potion.
 
-    public static class Vajra extends Relic.Vajira {
+    public static class Vajra extends Relic.Vajra {
     }
 
     public static class VenerableTeaSet extends Relic.AncientTeaSet {
@@ -372,7 +372,7 @@ public class Relic2 {
     }
 
     // TODO: Petrified Toad (Uncommon)
-    //   Effect: At the start of each combat, procure a  Potion-Shaped Rock.
+    //   Effect: At the start of each combat, procure a Potion-Shaped Rock.
 
     // No need to implement Planisphere: Whenever you enter a ? room, heal 4 HP.
 
@@ -681,7 +681,7 @@ public class Relic2 {
     // No need to implement Prayer Wheel: Normal enemies drop an additional card reward.
 
     // TODO: Rainbow Ring (Rare)
-    //   Effect: The first time you play an Attack, Skill, and Power each turn, gain 1 Strength and 1 Dexterity.
+    //   Effect: The first time you play an Attack, Skill, and Powers each turn, gain 1 Strength and 1 Dexterity.
 
     // TODO: Razor Tooth (Rare)
     //   Effect: Every time you play an Attack or Skill, Upgrade it for the remainder of combat.
@@ -823,7 +823,7 @@ public class Relic2 {
     //   Effect: At the start of the next combat, Upgrade your starting hand.
 
     // TODO: Byrdpip (Event)
-    //   Effect: Upon pickup, gain the card  Byrd Swoop. A Byrdpip will accompany you in battles.
+    //   Effect: Upon pickup, gain the card Byrd Swoop. A Byrdpip will accompany you in battles.
 
     // No need to implement Darkstone Periapt: Whenever you obtain a Curse, raise your Max HP by 6.
 
@@ -885,7 +885,7 @@ public class Relic2 {
     //   Effect: Start each combat Confused.
 
     // TODO: Strike Dummy??? (Event)
-    //   Effect: Cards containing "Strike" deal 1 additional damage.
+    //   Effect: Cards containing “Strike” deal 1 additional damage.
 
     // TODO: Sword of Jade (Event)
     //   Effect: Start each combat with 3 Strength.
@@ -928,15 +928,15 @@ public class Relic2 {
     //   Effect: Upon pickup, choose 3 cards in your Deck. Enchant them with Swift 3.
 
     // TODO: Biiig Hug (Ancient)
-    //   Effect: Upon pickup, remove 4 cards from your Deck. Whenever you shuffle your Draw Pile, add a  Soot into your Draw Pile.
+    //   Effect: Upon pickup, remove 4 cards from your Deck. Whenever you shuffle your Draw Pile, add a Soot into your Draw Pile.
 
     // No need to implement Black Star: Elites drop an additional Relic when defeated.
 
     // TODO: Blessed Antler (Ancient)
-    //   Effect: Gain energy at the start of each turn. At the start of each combat, shuffle 3  Dazed into your Draw Pile.
+    //   Effect: Gain energy at the start of each turn. At the start of each combat, shuffle 3 Dazed into your Draw Pile.
 
     // TODO: Blood-Soaked Rose (Ancient)
-    //   Effect: Upon pickup, add 1  Enthralled to your Deck. Gain energy at the start of each turn.
+    //   Effect: Upon pickup, add 1 Enthralled to your Deck. Gain energy at the start of each turn.
 
     // TODO: Booming Conch (Ancient)
     //   Effect: At the start of Elite combats, draw 2 additional cards.
@@ -1027,7 +1027,7 @@ public class Relic2 {
     // No need to implement Nutritious Oyster: Upon pickup, raise your Max HP by 11.
 
     // TODO: Nutritious Soup (Ancient)
-    //   Effect: Upon pickup, Enchant all Strikes in your Deck with Tezcatara.
+    //   Effect: Upon pickup, Enchant all Strikes in your Deck with Tezcatara's Ember.
 
     // TODO: Pael's Blood (Ancient)
     //   Effect: At the start of your turn, draw 1 additional card.
@@ -1080,7 +1080,7 @@ public class Relic2 {
     //   Effect: Gain energy at the start of each turn. Extinguishes at the start of Act 3.
 
     // TODO: Radiant Pearl (Ancient)
-    //   Effect: At the start of each combat, add 1  Luminesce into your Hand.
+    //   Effect: At the start of each combat, add 1 Luminesce into your Hand.
 
     public static class RunicPyramid extends Relic.RunicPyramid {
     }
@@ -1195,13 +1195,13 @@ public class Relic2 {
     public static class NinjaScroll extends Relic.NinjaScroll {
     }
 
-    public static class PaperKrane extends Relic.PaperCrane {
+    public static class PaperKrane extends Relic.PaperKrane {
     }
 
     // TODO: Ring of the Drake (Starter)
     //   Effect: At the start of your first 3 turns, draw 2 additional cards.
 
-    public static class RingOfTheSnake extends Relic.RingOfSnake {
+    public static class RingOfTheSnake extends Relic.RingOfTheSnake {
     }
 
     public static class SneckoSkull extends Relic.SneckoSkull {
@@ -1220,7 +1220,7 @@ public class Relic2 {
     // ********************************************* Defect *********************************************
     // **************************************************************************************************
 
-    public static class CrackedCore extends Relic.CrackedOrb {
+    public static class CrackedCore extends Relic.CrackedCore {
     }
 
     public static class DataDisk extends Relic.DataDisk {
@@ -1229,7 +1229,7 @@ public class Relic2 {
     public static class EmotionChip extends Relic.EmotionChip {
     }
 
-    public static class GoldPlatedCables extends Relic.GoldPlatedCable {
+    public static class GoldPlatedCables extends Relic.GoldPlatedCables {
     }
 
     public static class InfusedCore extends Relic {
@@ -1259,20 +1259,7 @@ public class Relic2 {
     public static class RunicCapacitor extends Relic.RunicCapacitor {
     }
 
-    public static class SymbioticVirus extends Relic {
-        public SymbioticVirus() {
-            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfBattleHandler(new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state)) {
-                        state.channelOrb(OrbType.DARK);
-                    }
-                }
-            });
-        }
+    public static class SymbioticVirus extends Relic.SymbioticVirus {
     }
 
     // **************************************************************************************************
@@ -1304,7 +1291,7 @@ public class Relic2 {
     //   Effect: Whenever you create a Colorless card, gain 2 Block.
 
     // TODO: Vitruvian Minion (Shop)
-    //   Effect: Cards containing "Minion" deal double damage and gain double Block.
+    //   Effect: Cards containing “Minion” deal double damage and gain double Block.
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************
@@ -1320,7 +1307,7 @@ public class Relic2 {
     //   Effect: Whenever a non-Minion enemy dies to Doom, heal 3 HP.
 
     // TODO: Bookmark (Rare)
-    //   Effect: At the end of each turn, lower the cost of a random Retain card by 1 until played.
+    //   Effect: At the end of each turn, lower the cost of a random Retained card by 1 until played.
 
     // TODO: Bound Phylactery (Starter)
     //   Effect: At the start of your turn, Summon 1.

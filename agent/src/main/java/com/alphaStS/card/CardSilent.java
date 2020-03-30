@@ -2698,7 +2698,6 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-
         public int energyCost(GameState state) {
             return state.deckArrLen > 0 ? -1 : 0;
         }

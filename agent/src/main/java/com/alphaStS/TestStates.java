@@ -45,7 +45,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addEnemyEncounter(new EnemyExordium.JawWorm(false));
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         var randomization = new StateModificationRandomization(List.of(
                 List.of(new Add(new CardIronclad.Bash())),
                 List.of(new Add(new Card.Defend(), new CardSilent.Neutralize(), new CardSilent.Survivor())),
@@ -74,7 +74,7 @@ public class TestStates {
         EnemyEncounter.addSentriesFight(builder);
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.setPlayer(new Player(32, 75));
         return new GameState(builder);
     }
@@ -266,7 +266,7 @@ public class TestStates {
         ));
         builder.setRandomization(randomization);
         builder.addPotion(new Potion.WeakPotion());
-        builder.addPotion(new Potion.LiquidMemory());
+        builder.addPotion(new Potion.LiquidMemories());
         builder.setPlayer(new Player(16, 75));
         return new GameState(builder);
     }
@@ -290,7 +290,7 @@ public class TestStates {
         builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
         builder.setBurningElite();
         builder.addRelic(new Relic.BagOfPreparation());
-        builder.addPotion(new Potion.LiquidMemory());
+        builder.addPotion(new Potion.LiquidMemories());
         builder.setPlayer(new Player(43, 75));
         return new GameState(builder);
     }
@@ -416,7 +416,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.DemonForm(), 1);
         builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
         builder.addRelic(new Relic.Anchor());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.RedSkull());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.BurningBlood());
@@ -462,14 +462,14 @@ public class TestStates {
         builder.addRelic(new Relic.BurningBlood());
         builder.addRelic(new Relic.BottledLightning(new CardIronclad.BattleTranceP()));
         builder.addRelic(new Relic.Shuriken());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.OddlySmoothStone());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.PaperPhrog());
         builder.addRelic(new Relic.ChampionBelt());
         builder.addRelic(new Relic.SacredBark());
         EnemyEncounter.addAwakenedOneFight(builder);
-        builder.addPotion(new Potion.LiquidMemory());
+        builder.addPotion(new Potion.LiquidMemories());
         //        builder.addPotion(new Potion.BlessingOfTheForge());
         builder.setPlayer(new Player(49, 60));
         return new GameState(builder);
@@ -505,7 +505,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Anger(), 1);
         builder.addCard(new CardIronclad.Thunderclap(), 1);
         builder.addCard(new CardIronclad.Uppercut(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         EnemyEncounter.addSentriesFight(builder);
         builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
         builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
@@ -539,7 +539,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(2, 2));
         EnemyEncounter.addSentriesFight(builder);
@@ -547,7 +547,7 @@ public class TestStates {
         builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.setBurningElite();
         builder.addPotion(new Potion.SwiftPotion());
-        builder.addPotion(new Potion.LiquidMemory());
+        builder.addPotion(new Potion.LiquidMemories());
         builder.setPlayer(new Player(38, 38));
         return new GameState(builder);
     }
@@ -568,7 +568,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 1);
         builder.addCard(new CardIronclad.Disarm(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(8, 2));
         builder.addEnemyEncounter(new EnemyExordium.Hexaghost());
@@ -577,7 +577,7 @@ public class TestStates {
                 List.of(new Upgrade(new CardIronclad.Disarm()))
         ));
         builder.setRandomization(randomization);
-        builder.addPotion(new Potion.LiquidMemory());
+        builder.addPotion(new Potion.LiquidMemories());
         builder.setPlayer(new Player(35, 35));
         return new GameState(builder);
     }
@@ -603,7 +603,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.SeverSoul(), 1);
         builder.addCard(new CardIronclad.DemonForm(), 1);
         builder.addCard(new CardIronclad.Evolve(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(7, 2));
         builder.addRelic(new Relic.GremlinHorn());
@@ -641,7 +641,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.DemonFormP(), 1);
         builder.addCard(new CardIronclad.Evolve(), 1);
         builder.addCard(new CardIronclad.ShrugItOff(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(9, 8));
         builder.addRelic(new Relic.GremlinHorn());
@@ -683,7 +683,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.WarcryP(), 2);
         builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(8, 2));
         builder.addRelic(new Relic.GremlinHorn());
@@ -733,7 +733,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.WarcryP(), 2);
         builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(9, 2));
         builder.addRelic(new Relic.GremlinHorn());
@@ -782,7 +782,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.WarcryP(), 2);
         builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(9, 0));
         builder.addRelic(new Relic.GremlinHorn());
@@ -797,9 +797,9 @@ public class TestStates {
         builder.addRelic(new Relic.InkBottle(9, 0));
         EnemyEncounter.addCorruptHeartFight(builder);
 //        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.LiquidMemories().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.RegenerationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.RegenPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
         builder.setPlayer(new Player(123, 144));
         return new GameState(builder);
@@ -922,7 +922,7 @@ public class TestStates {
 //        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
 //        EnemyEncounter.addSlaversEliteFight(builder);
         EnemyEncounter.addGremlinLeaderFight(builder);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.Lantern());
@@ -957,7 +957,7 @@ public class TestStates {
 //        EnemyEncounter.addSlaversEliteFight(builder);
 //        EnemyEncounter.addGremlinLeaderFight2(builder);
 //        EnemyEncounter.addBronzeAutomatonFight(builder);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.Lantern());
@@ -1007,7 +1007,7 @@ public class TestStates {
 //        builder.addEnemyEncounter(new EnemyBeyond.Nemesis());
 //        EnemyEncounter.addReptomancerFight(builder);
 //        builder.setBurningElite();
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.Lantern());
@@ -1058,7 +1058,7 @@ public class TestStates {
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.Lantern());
@@ -1111,7 +1111,7 @@ public class TestStates {
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
         EnemyEncounter.addCorruptHeartFight(builder);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.Lantern());
@@ -1165,7 +1165,7 @@ public class TestStates {
         );
         builder.setRandomization(randomization);
         builder.addPotion(new Potion.SwiftPotion());
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.OddlySmoothStone());
         builder.addRelic(new Relic.DataDisk());
         builder.addRelic(new Relic.Nunchaku(0, 1));
@@ -1187,7 +1187,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.addPotion(new Potion.FocusPotion());
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.TungstenRod());
         builder.setPlayer(new Player(68, 68));
         return new GameState(builder);
@@ -1235,7 +1235,7 @@ public class TestStates {
         builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(90));
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.LetterOpener());
@@ -1244,7 +1244,7 @@ public class TestStates {
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.SneckoSkull());
-        builder.addRelic(new Relic.PaperCrane());
+        builder.addRelic(new Relic.PaperKrane());
         builder.addRelic(new Relic.Tingsha());
         builder.addRelic(new Relic.ThreadAndNeedle());
         builder.setPlayer(new Player(66, 66));
@@ -1291,7 +1291,7 @@ public class TestStates {
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
 //        builder.setGameStateViaInteractiveMode(List.of("rng off", "c", "1", "def", "mal+", "def", "cal", "pha+", "legswe+", "e", "0", "1", "exit"));
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.LetterOpener());
@@ -1300,7 +1300,7 @@ public class TestStates {
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.SneckoSkull());
-        builder.addRelic(new Relic.PaperCrane());
+        builder.addRelic(new Relic.PaperKrane());
         builder.addRelic(new Relic.Tingsha());
         builder.addRelic(new Relic.ThreadAndNeedle());
         builder.addRelic(new Relic.OrangePellets());
@@ -1338,7 +1338,7 @@ public class TestStates {
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
         builder.setPlayer(new Player(53, 53));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.Sundial(0, 0));
         builder.addRelic(new Relic.StrikeDummy());
         builder.addRelic(new Relic.Inserter(1, 0));
@@ -1388,7 +1388,7 @@ public class TestStates {
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
         builder.setPlayer(new Player(80, 80));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.Sundial(0, 2));
         builder.addRelic(new Relic.StrikeDummy());
         builder.addRelic(new Relic.Inserter(0, 2));
@@ -1439,7 +1439,7 @@ public class TestStates {
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
         builder.setPlayer(new Player(88, 98));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.Sundial(2, 2));
         builder.addRelic(new Relic.StrikeDummy());
         builder.addRelic(new Relic.Inserter(1, 2));
@@ -1490,7 +1490,7 @@ public class TestStates {
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(1);
         builder.setPlayer(new Player(63, 63));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.Sundial(0, 0));
         builder.addRelic(new Relic.StrikeDummy());
         builder.addRelic(new Relic.Inserter(1, 0));
@@ -1539,7 +1539,7 @@ public class TestStates {
 //        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(95));
         builder.setPotionsScenarios(1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.NuclearBattery());
         builder.addRelic(new Relic.RedMask());
         builder.addRelic(new Relic.BagOfPreparation());
@@ -1579,7 +1579,7 @@ public class TestStates {
         builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(3);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.MummifiedHand());
         builder.addRelic(new Relic.SneckoEye());
         return new GameState(builder);
@@ -1620,7 +1620,7 @@ public class TestStates {
         ));
         builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.LetterOpener());
@@ -1665,13 +1665,13 @@ public class TestStates {
         builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.BronzeScales());
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.Nunchaku(9, 0));
         builder.addRelic(new Relic.BlueCandle());
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.StrikeDummy());
@@ -1725,7 +1725,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
         builder.addCard(new CardColorless.ThinkingAhead(), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.ClockworkSouvenir());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.Anchor());
@@ -1787,7 +1787,7 @@ public class TestStates {
         builder.addCard(new CardDefect.GeneticAlgorithmP(76, 0), 1);
         builder.addCard(new CardDefect.GeneticAlgorithmP(67, 0), 1);
         builder.addCard(new Card.Defend(), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.Anchor());
@@ -1852,7 +1852,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Capacitor(), 1);
         builder.addCard(new CardDefect.GeneticAlgorithmP(37, 0), 1);
         builder.addCard(new CardDefect.GeneticAlgorithmP(43, 0), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.SlingOfCourage());
         builder.addRelic(new Relic.IceCream());
         builder.addRelic(new Relic.DataDisk());
@@ -1862,13 +1862,13 @@ public class TestStates {
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.RunicPyramid());
         builder.addRelic(new Relic.Akabeko());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.MedicalKit());
         builder.addRelic(new Relic.TungstenRod());
         builder.addPotion(new Potion.LizardTail().setBasePenaltyRatio(100));
 //        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.PotionOfCapacity().setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.LiquidMemories().setBasePenaltyRatio(100));
 //        builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
         EnemyEncounter.addCorruptHeartFight(builder);
@@ -1917,7 +1917,7 @@ public class TestStates {
         builder.addCard(new CardDefect.EchoForm(), 1);
         builder.addCard(new CardDefect.Capacitor(), 1);
         builder.addCard(new CardColorless.ApotheosisP(), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.IceCream());
         builder.addRelic(new Relic.Akabeko());
         builder.addRelic(new Relic.LetterOpener());
@@ -1935,7 +1935,7 @@ public class TestStates {
         EnemyEncounter.addCorruptHeartFight(builder);
         builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.RegenerationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.RegenPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(15);
         builder.setGameStateViaInteractiveMode(List.of("", "c", "1", "core", "apo", "see", "ec", "bea", "e", "0", "exit"));
@@ -1974,7 +1974,7 @@ public class TestStates {
         builder.addCard(new CardDefect.StackP(), 2);
         builder.addCard(new CardColorless.MasterOfStrategy(), 1);
         builder.addCard(new CardDefect.AllForOne(0, 0), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.InkBottle(9, 2));
         builder.addRelic(new Relic.Enchiridion(new CardDefect.Electrodynamics()));
@@ -2024,7 +2024,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Chill(), 1);
         builder.addCard(new CardDefect.Defragment(), 1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.BirdFacedUrn());
         builder.addRelic(new Relic.EmotionChip());
         builder.addRelic(new Relic.DataDisk());
@@ -2084,7 +2084,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Equilibrium(), 1);
         builder.addCard(new CardDefect.TurboP(), 1);
         builder.addCard(new CardDefect.Storm(), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.BirdFacedUrn());
         builder.addRelic(new Relic.EmotionChip());
         builder.addRelic(new Relic.DataDisk());
@@ -2140,7 +2140,7 @@ public class TestStates {
         builder.addCard(new CardDefect.AllForOne(0 ,0));
         builder.addCard(new Card.Strike(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.CursedKey());
         builder.addRelic(new Relic.Pocketwatch());
         builder.addRelic(new Relic.FusionHammer());
@@ -2189,7 +2189,7 @@ public class TestStates {
         builder.addCard(new CardSilent.WellLaidPlans(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
         builder.addCard(new CardColorless.PanicButton(), 1);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.CoffeeDripper());
         builder.addRelic(new Relic.CursedKey());
@@ -2201,7 +2201,7 @@ public class TestStates {
         builder.addRelic(new Relic.Akabeko());
         builder.addRelic(new Relic.UnceasingTop());
         builder.addRelic(new Relic.PenNib(6, 2));
-        builder.addRelic(new Relic.PaperCrane());
+        builder.addRelic(new Relic.PaperKrane());
         EnemyEncounter.addCorruptHeartFight(builder);
 //        EnemyEncounter.addShieldAndSpearFollowByHeartFight(builder);
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
@@ -2245,7 +2245,7 @@ public class TestStates {
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addCard(new CardColorless.ApotheosisP(), 1);
         builder.addCard(new CardOther.CurseOfTheBell(), 1);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.Nunchaku(9, 2));
@@ -2305,7 +2305,7 @@ public class TestStates {
         builder.addCard(new CardSilent.FootworkP(), 1);
         builder.addCard(new CardColorless.ApotheosisP(), 1);
         builder.addCard(new CardColorless.Apparition(), 3);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.NinjaScroll());
         builder.addRelic(new Relic.BronzeScales());
@@ -2349,7 +2349,7 @@ public class TestStates {
         builder.addCard(new CardSilent.DodgeAndRoll(), 1);
         builder.addCard(new Card.Strike(), 5);
         builder.addCard(new Card.Defend(), 5);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.StoneCalendar());
         builder.addRelic(new Relic.Sundial(0, 0));
         builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
@@ -2400,13 +2400,13 @@ public class TestStates {
         builder.addCard(new CardSilent.QuickSlashP(), 1);
         builder.addCard(new CardColorless.RitualDagger(54, 0), 1);
         builder.addCard(new CardColorless.GoodInstincts(), 1);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.IceCream());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.RunicPyramid());
         builder.addRelic(new Relic.FossilizedHelix());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
         builder.addRelic(new Relic.CursedKey());
         builder.addRelic(new Relic.HornCleat());
         builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
@@ -2449,7 +2449,7 @@ public class TestStates {
         builder.addCard(new CardSilent.GrandFinale(), 1);
         builder.addCard(new CardSilent.PreparedP(), 2);
         builder.addCard(new CardColorless.TripP(), 1);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Kunai());
         builder.addRelic(new Relic.Ectoplasm());
         builder.addRelic(new Relic.Enchiridion());
@@ -2508,7 +2508,7 @@ public class TestStates {
         builder.addCard(new CardSilent.Caltrops(), 1);
         builder.addCard(new CardSilent.BladeDanceP(), 1);
         builder.addCard(new CardColorless.SecretTechnique(), 0); // via Toolbox
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.Orichalcum());
@@ -2523,7 +2523,7 @@ public class TestStates {
         builder.addRelic(new Relic.StrikeDummy());
         builder.addRelic(new Relic.HornCleat());
         builder.addRelic(new Relic.FossilizedHelix());
-        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Vajra());
 //        builder.addRelic(new Relic.Toolbox());
         EnemyEncounter.addCorruptHeartFight(builder);
         builder.setGameStateViaInteractiveMode(List.of("", "c", "1", "leg", "refl", "bla", "bla+", "asc", "mas", "gla", "e", "0", "c", "8", "35", "exit"));
@@ -2567,7 +2567,7 @@ public class TestStates {
         builder.addCard(new CardSilent.AcrobaticsP(), 1);
         builder.addCard(new CardSilent.FootworkP(), 1);
         builder.addCard(new CardColorless.SecretTechniqueP(), 1);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.Ectoplasm());
         builder.addRelic(new Relic.MummifiedHand());
@@ -2620,7 +2620,7 @@ public class TestStates {
         builder.addCard(new CardSilent.CalculatedGamble(), 1);
         builder.addCard(new CardSilent.AfterImage(), 1);
         builder.addCard(new CardOther.Decay(), 1);
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.OddlySmoothStone());
         builder.addRelic(new Relic.Nunchaku(8, 0));
@@ -2684,10 +2684,10 @@ public class TestStates {
         builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(85));
         builder.setPotionsScenarios(3);
         builder.setPlayer(new Player(50, 50));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.PreservedInsect());
         builder.addRelic(new Relic.BagOfMarbles());
-        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.GoldPlatedCables());
         builder.addRelic(new Relic.NuclearBattery());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.RunicCapacitor());
@@ -2736,10 +2736,10 @@ public class TestStates {
 //        builder.setInnateOrder("Boot Sequence", "Dramatic Entrance+");
         builder.setGameStateViaInteractiveMode(List.of("c", "1", "Defend", "Defend", "Stack+", "e", "0", "exit"));
         builder.setPlayer(new Player(63, 63));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.PreservedInsect());
         builder.addRelic(new Relic.BagOfMarbles());
-        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.GoldPlatedCables());
         builder.addRelic(new Relic.NuclearBattery());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.RunicCapacitor());
@@ -2788,10 +2788,10 @@ public class TestStates {
         //        builder.setInnateOrder("Boot Sequence", "Dramatic Entrance+");
         builder.setGameStateViaInteractiveMode(List.of("c", "1", "Ascender's Bane", "Rebound", "Reboot+", "e", "0", "c", "3", "0", "56", "c", "3", "1", "56", "exit"));
         builder.setPlayer(new Player(1, 1));
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.PreservedInsect());
         builder.addRelic(new Relic.BagOfMarbles());
-        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.GoldPlatedCables());
         builder.addRelic(new Relic.NuclearBattery());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.RunicCapacitor());
@@ -2829,7 +2829,7 @@ public class TestStates {
         builder.addCard(new CardColorless.Apparition(), 2);
         builder.addCard(new CardColorless.ApparitionP(), 1);
         builder.setPlayer(new Player(35, 35));
-        builder.addRelic(new Relic.RingOfSnake());
+        builder.addRelic(new Relic.RingOfTheSnake());
         builder.addRelic(new Relic.HappyFlower(2, 1));
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.ArtOfWar());
@@ -2882,7 +2882,7 @@ public class TestStates {
         builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(3);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.PenNib(9, 2));
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.OrangePellets());
@@ -2919,7 +2919,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Skim(), 1);
         builder.addCard(new CardDefect.Loop(), 1);
         builder.addCard(new CardColorless.EnlightenmentP(), 1);
-        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CrackedCore());
         builder.addRelic(new Relic.EmotionChip());
         builder.addRelic(new Relic.MeatOnTheBone());
         builder.addRelic(new Relic.Akabeko());
@@ -2930,7 +2930,7 @@ public class TestStates {
         builder.addRelic(new Relic.MummifiedHand());
         builder.addRelic(new Relic.InkBottle(9, 0));
         builder.addRelic(new Relic.CoffeeDripper());
-        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.GoldPlatedCables());
         builder.addRelic(new Relic.DataDisk());
         builder.addRelic(new Relic.IceCream());
         builder.addRelic(new Relic.BloodVial());

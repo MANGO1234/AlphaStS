@@ -352,6 +352,7 @@ public class CardUpgrade {
         map.put(new CardColorless.Beta(), new CardColorless.BetaP());
         map.put(new CardColorless.Omega(), new CardColorless.OmegaP());
 //        map.put(new CardColorless.Expunger(), new CardColorless.ExpungerP());
+        map.put(new CardColorless.JAX(), new CardColorless.JAXP());
 
         map = Collections.unmodifiableMap(map);
     }

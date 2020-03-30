@@ -994,7 +994,6 @@ public class CardWatcher {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties, cards);
         }

@@ -333,8 +333,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
-    public static class RegenerationPotion extends Potion {
-        public RegenerationPotion() {
+    public static class RegenPotion extends Potion {
+        public RegenPotion() {
             healPlayer = true;
         }
 
@@ -416,8 +416,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
-    public static class LiquidMemory extends Potion {
-        public LiquidMemory() {
+    public static class LiquidMemories extends Potion {
+        public LiquidMemories() {
             entityProperty.selectFromDiscard = true;
         }
 
@@ -912,16 +912,16 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new LiquidBronze().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             uncommonPotions.add(List.of(
-                    new LiquidMemory().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new LiquidMemory().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new LiquidMemory().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new LiquidMemory().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                    new LiquidMemories().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidMemories().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidMemories().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidMemories().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             uncommonPotions.add(List.of(
-                    new RegenerationPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new RegenerationPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new RegenerationPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new RegenerationPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                    new RegenPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new RegenPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new RegenPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new RegenPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             rarePotions.add(List.of(
                     new CultistPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
@@ -1123,4 +1123,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             );
         }
     }
+
+    // No need to implement Fruit Juice
 }

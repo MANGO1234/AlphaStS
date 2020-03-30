@@ -210,7 +210,7 @@ public class Potion2 {
         }
     }
 
-    public static class RegenPotion extends Potion.RegenerationPotion {
+    public static class RegenPotion extends Potion.RegenPotion {
     }
 
     public static class StableSerum extends Potion {
@@ -340,12 +340,12 @@ public class Potion2 {
     public static class FairyInABottle extends Potion.FairyInABottle {
     }
 
-    // No need to implement: Fruit Juice
+    // No need to implement Fruit Juice
 
     // TODO: Gigantification Potion (Rare)
     //   Effect: The next Attack you play deals triple damage.
 
-    public static class LiquidMemories extends Potion.LiquidMemory {
+    public static class LiquidMemories extends Potion.LiquidMemories {
     }
 
     // TODO: Lucky Tonic (Rare)
@@ -444,7 +444,7 @@ public class Potion2 {
     //   Effect: Forge 15.
 
     // TODO: Star Potion (Common)
-    //   Effect: Gain 3 star.
+    //   Effect: Gain 3 star
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************
