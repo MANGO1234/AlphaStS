@@ -91,13 +91,24 @@ public class GameStateBuilder {
     }
 
     public void addEnemyEncounter(EnemyEncounter.EncounterEnum encounterEnum, Enemy... enemies) {
-        addEnemyEncounter(-1, encounterEnum, enemies);
+        addEnemyEncounterInternal(encounterEnum, null, enemies);
     }
 
-    public void addEnemyEncounter(int startingHealth, EnemyEncounter.EncounterEnum encounterEnum, Enemy... enemies) {
+    public void addEnemyEncounter(EnemyEncounter.EncounterEnum encounterEnum, GameStateRandomization randomization, Enemy... enemies) {
+        addEnemyEncounterInternal(encounterEnum, randomization, enemies);
+    }
+
+    public void addEnemyEncounter(Enemy... enemies) {
+        addEnemyEncounterInternal(EnemyEncounter.EncounterEnum.UNKNOWN, null, enemies);
+    }
+
+    public void addEnemyEncounter(GameStateRandomization randomization, Enemy... enemies) {
+        addEnemyEncounterInternal(EnemyEncounter.EncounterEnum.UNKNOWN, randomization, enemies);
+    }
+
+    private void addEnemyEncounterInternal(EnemyEncounter.EncounterEnum encounterEnum, GameStateRandomization randomization, Enemy[] enemies) {
         var indexes = new ArrayList<Tuple<Integer, Integer>>();
         boolean isGremlinLeaderFight = false;
-        boolean isGremlinGangFight = false;
         for (Enemy enemy : enemies) {
             if (enemy instanceof EnemyCity.GremlinLeader) {
                 isGremlinLeaderFight = true;
@@ -120,16 +131,10 @@ public class GameStateBuilder {
                 indexes.add(new Tuple<>(this.enemies.size() + i, -1));
             }
         }
-        enemiesEncounters.add(new EnemyEncounter(startingHealth, encounterEnum, indexes));
+        var encounter = new EnemyEncounter(encounterEnum, indexes);
+        encounter.randomization = randomization;
+        enemiesEncounters.add(encounter);
         this.enemies.addAll(List.of(enemies));
-    }
-
-    public void addEnemyEncounter(Enemy... enemies) {
-        addEnemyEncounter(EnemyEncounter.EncounterEnum.UNKNOWN, enemies);
-    }
-
-    public void addEnemyEncounter(int startingHealth, Enemy... enemies) {
-        addEnemyEncounter(startingHealth, EnemyEncounter.EncounterEnum.UNKNOWN, enemies);
     }
 
     public List<EnemyEncounter> getEnemiesEncounters() {
@@ -151,6 +156,12 @@ public class GameStateBuilder {
                 var encounter = enemiesEncounters.get(gremlinGangEncounterIndexes);
                 r = r.followByIf(gremlinGangEncounterIndexes, new EnemyEncounter.GremlinGangRandomization(enemies, encounter.idxes.get(0).v1()));
             }
+            for (int i = 0; i < enemiesEncounters.size(); i++) {
+                var enc = enemiesEncounters.get(i);
+                if (enc.randomization != null) {
+                    r = r.followByIf(i, enc.randomization);
+                }
+            }
             randomization = randomization == null ? r : randomization.doAfter(r);
         } else if (enemiesEncounters.size() == 1) {
             if (gremlinEncounterFightIndexes.size() > 0) {
@@ -161,6 +172,10 @@ public class GameStateBuilder {
                 var encounter = enemiesEncounters.get(gremlinGangEncounterIndexes.get(0));
                 var r = new EnemyEncounter.GremlinGangRandomization(enemies, encounter.idxes.get(0).v1());
                 randomization = randomization == null ? r : randomization.doAfter(r);
+            }
+            var enc = enemiesEncounters.get(0);
+            if (enc.randomization != null) {
+                randomization = randomization == null ? enc.randomization : randomization.doAfter(enc.randomization);
             }
             state.currentEncounter = enemiesEncounters.get(0).encounterEnum;
         }

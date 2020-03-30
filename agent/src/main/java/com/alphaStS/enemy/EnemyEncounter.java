@@ -22,12 +22,11 @@ public class EnemyEncounter {
         GREMLIN_GANG,
     }
 
-    public int startingHealth;
     public EncounterEnum encounterEnum;
     public List<Tuple<Integer, Integer>> idxes;
+    public GameStateRandomization randomization;
 
-    public EnemyEncounter(int startingHealth, EncounterEnum encounterEnum, ArrayList<Tuple<Integer, Integer>> indexes) {
-        this.startingHealth = startingHealth;
+    public EnemyEncounter(EncounterEnum encounterEnum, ArrayList<Tuple<Integer, Integer>> indexes) {
         this.encounterEnum = encounterEnum;
         this.idxes = indexes;
     }

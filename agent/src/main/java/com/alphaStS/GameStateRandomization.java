@@ -858,6 +858,31 @@ public interface GameStateRandomization {
                 return "Health " + origHealth;
             }
         }
+
+        static class PotionPenalty implements StateModification {
+            private final int potionIdx;
+            private final boolean usable;
+            private final short penalty;
+
+            public PotionPenalty(int potionIdx, boolean usable, short penalty) {
+                this.potionIdx = potionIdx;
+                this.usable = usable;
+                this.penalty = penalty;
+            }
+
+            @Override public void modify(GameState state) {
+                if (usable) {
+                    state.setPotionUsable(potionIdx);
+                    state.setPotionPenalty(potionIdx, penalty);
+                } else {
+                    state.setPotionUnusable(potionIdx, penalty);
+                }
+            }
+
+            @Override public String describe() {
+                return usable ? "Potion " + potionIdx + " Penalty " + penalty : "Potion " + potionIdx + " Unusable";
+            }
+        }
     }
 
     class EnemyEncounterRandomization implements GameStateRandomization {
@@ -926,9 +951,6 @@ public interface GameStateRandomization {
                 }
             }
             state.currentEncounter = encounter.encounterEnum;
-            if (encounter.startingHealth >= 1) {
-                state.getPlayerForWrite().setHealth(encounter.startingHealth);
-            }
             int k = 0;
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 if (state.getEnemiesForRead().get(i).getHealth() > 0) {
