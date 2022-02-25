@@ -3,7 +3,7 @@ tmp/
 __pycache__
 *.c
 *.iml
-java/.idea/
-java/out/
+agent/.idea/
 *.pyd
 build/
+target
