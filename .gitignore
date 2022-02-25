@@ -1,0 +1,9 @@
+saves/
+tmp/
+__pycache__
+*.c
+*.iml
+java/.idea/
+java/out/
+*.pyd
+build/
