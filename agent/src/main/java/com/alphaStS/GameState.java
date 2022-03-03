@@ -12,6 +12,7 @@ class GameProperties {
     boolean enemyCanGetVuln;
     boolean enemyCanGetWeakened;
     long possibleBuffs;
+    boolean needDeckOrderMemory;
     Random random;
     Card[] cardDict;
     int maxNumOfActions;
@@ -213,6 +214,7 @@ public class GameState implements State {
         prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy);
         prop.playerThornCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Flame Barrier"));
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuffs.CORRUPTION : 0;
+        prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
 
         // game state
         actionCtx = GameActionCtx.START_GAME;
@@ -289,10 +291,12 @@ public class GameState implements State {
                 }
             }
         }
-        for (int i = 0; i < prop.upgradeIdxes.length; i++) {
-            if (prop.upgradeIdxes[i] >= 0) {
-                l.add(i);
-                l.add(prop.upgradeIdxes[i]);
+        if (prop.upgradeIdxes != null) {
+            for (int i = 0; i < prop.upgradeIdxes.length; i++) {
+                if (prop.upgradeIdxes[i] >= 0) {
+                    l.add(i);
+                    l.add(prop.upgradeIdxes[i]);
+                }
             }
         }
         return l.stream().sorted().mapToInt(Integer::intValue).toArray();
@@ -749,7 +753,7 @@ public class GameState implements State {
         input_len += deck.length;
         input_len += hand.length;
         input_len += prop.discardIdxes.length;
-        if (MAX_AGENT_DECK_ORDER_MEMORY > 0) {
+        if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && prop.needDeckOrderMemory) {
             input_len += hand.length * MAX_AGENT_DECK_ORDER_MEMORY;
         }
         int non_play_card_ctx_count = 0;
@@ -834,7 +838,7 @@ public class GameState implements State {
         for (int i = 0; i < prop.discardIdxes.length; i++) {
             x[idx++] = discard[prop.discardIdxes[i]] / (float) 10.0;
         }
-        if (MAX_AGENT_DECK_ORDER_MEMORY > 0) {
+        if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && prop.needDeckOrderMemory) {
             for (int i = 0; i < Math.min(MAX_AGENT_DECK_ORDER_MEMORY, drawOrderLen); i++) {
                 for (int j = 0; j < hand.length; j++) {
                     if (j == drawOrder[drawOrderLen - i]) {
@@ -850,7 +854,7 @@ public class GameState implements State {
                 }
             }
         }
-        if (non_play_card_ctx_count > 1) {
+        if (non_play_card_ctx_count > 0) {
             for (int i = 2; i < prop.actionsByCtx.length; i++) {
                 if (prop.actionsByCtx[i] != null) {
                     x[idx++] = actionCtx.ordinal() == i ? 0.5f : -0.5f;
@@ -888,7 +892,7 @@ public class GameState implements State {
                 if (prop.cardDict[action.cardIdx()].selectEnemy ||
                         prop.cardDict[action.cardIdx()].selectFromHand ||
                         prop.cardDict[action.cardIdx()].selectFromDiscard) {
-                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.5f : -0.5f;
+                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
                 }
             }
         }

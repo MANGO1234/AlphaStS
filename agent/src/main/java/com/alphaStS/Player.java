@@ -95,6 +95,9 @@ public class Player {
         if (weak > 0) {
             weak -= 1;
         }
+        if (frail > 0) {
+            frail -= 1;
+        }
         block = 0;
     }
 

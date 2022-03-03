@@ -513,7 +513,7 @@ abstract class Enemy {
                 state.addCardToDiscard(state.prop.slimeCardIdx);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.FRAIL, 3);
+                state.player.applyDebuff(DebuffType.FRAIL, 4);
             } else if (move == SPLIT) {
                 // todo
             }
@@ -586,7 +586,7 @@ abstract class Enemy {
                 state.enemyDoDamageToPlayer(this, 10);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.FRAIL, 1);
+                state.player.applyDebuff(DebuffType.FRAIL, 2);
             }
         }
 
@@ -719,7 +719,7 @@ abstract class Enemy {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.WEAK, 2);
+                state.player.applyDebuff(DebuffType.WEAK, 3);
             } else if (move == SPLIT) {
                 // todo
             }
@@ -801,7 +801,7 @@ abstract class Enemy {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 12);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.WEAK, 1);
+                state.player.applyDebuff(DebuffType.WEAK, 2);
             }
         }
 
@@ -875,7 +875,7 @@ abstract class Enemy {
             if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 4);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.WEAK, 1);
+                state.player.applyDebuff(DebuffType.WEAK, 2);
             }
         }
 
@@ -1115,7 +1115,7 @@ abstract class Enemy {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d);
             } else if (move == SPIT_WEB) {
-                state.player.weak += 2;
+                state.player.applyDebuff(DebuffType.WEAK, 3);
             }
         }
 
@@ -1220,7 +1220,7 @@ abstract class Enemy {
             super.damage(n, state);
             if (!isDead && health <= 0) {
                 isDead = true;
-                state.player.applyDebuff(DebuffType.VULNERABLE, 2);
+                state.player.applyDebuff(DebuffType.VULNERABLE, 3);
             }
         }
 
@@ -1228,7 +1228,7 @@ abstract class Enemy {
             super.nonAttackDamage(n, blockable, state);
             if (!isDead && health <= 0) {
                 isDead = true;
-                state.player.applyDebuff(DebuffType.VULNERABLE, 2);
+                state.player.applyDebuff(DebuffType.VULNERABLE, 3);
             }
         }
 

@@ -25,6 +25,7 @@ abstract class Card {
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean affectEnemyStrength;
+    public boolean putCardOnTopDeck;
 
     public Card(String cardName, int cardType) {
         this.cardType = cardType;
@@ -375,6 +376,7 @@ abstract class Card {
             selectEnemy = true;
             selectFromDiscard = true;
             secondActionCtx = GameActionCtx.SELECT_CARD_DISCARD;
+            putCardOnTopDeck = true;
         }
 
         public void play(GameState state, int idx) {

@@ -27,24 +27,16 @@ public class Main {
 //        var state = new GameState(enemies, new Player(33, 85), cards, relics);
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Strike(), 5));
         cards.add(new CardCount(new Card.Defend(), 4));
         cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.SeverSoul(), 1));
-        cards.add(new CardCount(new Card.Clash(), 1));
-        cards.add(new CardCount(new Card.Headbutt(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Disarm(), 1));
-        cards.add(new CardCount(new Card.ArmanentP(), 1));
-        cards.add(new CardCount(new Card.PommelStrike(), 1));
+        cards.add(new CardCount(new Card.Corruption(), 1));
+        cards.add(new CardCount(new Card.TwinStrike(), 1));
         var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Lagavulin());
+        enemies.add(new Enemy.GreenLouse());
+        enemies.add(new Enemy.GreenLouse());
         var relics = new ArrayList<Relic>();
-        relics.add(new Relic.Orichalcum());
-        relics.add(new Relic.BronzeScales());
-        relics.add(new Relic.Vajira());
-        relics.add(new Relic.Anchor());
-        var state = new GameState(enemies, new Player(33, 85), cards, relics);
+        var state = new GameState(enemies, new Player(46, 75), cards, relics);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
@@ -229,6 +221,9 @@ public class Main {
                         if (enemy.vulnerable > 0) {
                             System.out.println("  Vulnerable: " + enemy.vulnerable);
                         }
+                        if (enemy.weak > 0) {
+                            System.out.println("  Weak: " + enemy.weak);
+                        }
                         if (enemy instanceof Enemy.RedLouse louse) {
                             if (!louse.hasCurledUp) {
                                 System.out.println("  Curl Up: " + louse.curlUpAmount);
@@ -250,7 +245,12 @@ public class Main {
                     if (state.player.vulnerable > 0) {
                         System.out.println("  Vulnerable: " + state.player.vulnerable);
                     }
-                    if (state.buffs != 0) {
+                    if (state.player.weak > 0) {
+                        System.out.println("  Weak: " + state.player.weak);
+                    }
+                    if (state.player.frail > 0) {
+                        System.out.println("  Frail: " + state.player.frail);
+                    }                    if (state.buffs != 0) {
                         System.out.print("  Buffs:");
                         if ((state.buffs & PlayerBuffs.CORRUPTION) != 0) {
                             System.out.println("    - Corruption");
