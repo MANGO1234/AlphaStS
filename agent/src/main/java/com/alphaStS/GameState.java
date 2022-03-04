@@ -766,7 +766,7 @@ public class GameState implements State {
     public void doEval(Model model) {
         Output output = model.eval(this);
         this.policy = output.policy();
-        this.v_health = output.v_health();
+        this.v_health = Math.min(output.v_health(), this.player.health / (float) this.player.maxHealth);
         this.v_win = output.v_win();
     }
 
