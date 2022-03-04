@@ -26,9 +26,9 @@ public class MCTS {
             state.doEval(model);
         }
         float[] policy = state.policy;
-        if (!training) {
+//        if (!training) {
             policy = applyFutileSearchPruning(state, policy, remainingCalls);
-        }
+//        }
         if (training) {
             policy = applyDirichletNoiseToPolicy(state, policy);
         }
