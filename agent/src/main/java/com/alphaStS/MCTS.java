@@ -122,7 +122,7 @@ public class MCTS {
         if (actionCount > 1) {
             policy = Arrays.copyOf(policy, policy.length);
             var param = new double[actionCount];
-            Arrays.fill(param, 0.2);
+            Arrays.fill(param, 2);
             var noiseGen = new Dirichlet(param);
             var noise = noiseGen.nextDistribution(); // todo move out
             int k = 0;
