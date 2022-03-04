@@ -94,7 +94,7 @@ public class Main {
             return;
         }
         if (TMP_DIR.equals("../tmp")) {
-            ITERATION_COUNT = 500;
+            ITERATION_COUNT = 100;
         }
 
         if (PLAY_A_GAME) {

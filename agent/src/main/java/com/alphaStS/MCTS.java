@@ -22,45 +22,22 @@ public class MCTS {
             return state.get_v();
         }
 
-        float[] policy = null;
         if (state.policy == null) {
             state.doEval(model);
         }
-        policy = state.policy;
+        float[] policy = state.policy;
+        if (!training) {
+            policy = applyFutileSearchPruning(state, policy, remainingCalls);
+        }
         if (training) {
-            //            policy = np.array(state.policy, copy=True)
-            //            action_n = 0
-            int actionCount = 0;
-            for (int i = 0; i < policy.length; i++) {
-                if (state.isActionLegal(i)) {
-                    actionCount += 1;
-                }
-            }
-            if (actionCount > 1) {
-                policy = Arrays.copyOf(policy, policy.length);
-                var param = new double[actionCount];
-                Arrays.fill(param, 0.2);
-                var noiseGen = new Dirichlet(param);
-                var noise = noiseGen.nextDistribution(); // todo move out
-                int k = 0;
-                for (int i = 0; i < policy.length; i++) {
-                    if (state.isActionLegal(i)) {
-                        policy[i] = (float) noise[k] * 0.25f + policy[i] * 0.75f;
-                        k += 1;
-                    }
-                }
-            }
+            policy = applyDirichletNoiseToPolicy(state, policy);
         }
 
         int action = 0;
         double maxU = -1000000;
         int numberOfActions = 0;
-        int max_n = Utils.max(state.n);
         for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-            if (!state.isActionLegal(i)) {
-                continue;
-            }
-            if (remainingCalls > 0 && max_n - state.n[i] > remainingCalls) {
+            if (policy[i] <= 0) {
                 continue;
             }
             numberOfActions += 1;
@@ -104,6 +81,59 @@ public class MCTS {
         state.total_n += 1;
         this.numberOfPossibleActions = numberOfActions;
         return v;
+    }
+
+    private float[] applyFutileSearchPruning(GameState state, float[] policy, int remainingCalls) {
+        if (remainingCalls <= 0) {
+            return policy;
+        }
+        int max_n = Utils.max(state.n);
+        float[] newPolicy = policy;
+        float sumP = 1.0f;
+        float pp = 0;
+        for (int i = 0; i < policy.length; i++) {
+            if (policy[i] > 0 && max_n - state.n[i] > remainingCalls) {
+                if (newPolicy == policy) {
+                    newPolicy = Arrays.copyOf(policy, policy.length);
+                }
+                sumP -= newPolicy[i];
+                newPolicy[i] = 0;
+            }
+            pp += policy[i];
+        }
+        assert pp == 1.0f;
+        if (newPolicy != policy) {
+//            for (int i = 0; i < newPolicy.length; i++) {
+//                if (newPolicy[i] > 0) {
+//                    newPolicy[i] = newPolicy[i] / sumP;
+//                }
+//            }
+        }
+        return newPolicy;
+    }
+
+    private float[] applyDirichletNoiseToPolicy(GameState state, float[] policy) {
+        int actionCount = 0;
+        for (int i = 0; i < policy.length; i++) {
+            if (policy[i] > 0) {
+                actionCount += 1;
+            }
+        }
+        if (actionCount > 1) {
+            policy = Arrays.copyOf(policy, policy.length);
+            var param = new double[actionCount];
+            Arrays.fill(param, 0.2);
+            var noiseGen = new Dirichlet(param);
+            var noise = noiseGen.nextDistribution(); // todo move out
+            int k = 0;
+            for (int i = 0; i < policy.length; i++) {
+                if (state.isActionLegal(i)) {
+                    policy[i] = (float) noise[k] * 0.25f + policy[i] * 0.75f;
+                    k += 1;
+                }
+            }
+        }
+        return policy;
     }
 
     static private void printTreeH(State s, int depth, Writer writer, String indent) throws IOException {

@@ -259,13 +259,13 @@ public class GameState implements State {
         enemiesAlive = (int) enemies.stream().filter((x) -> x.health > 0).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
-        transpositions = new HashSet<>();
 
         // mcts related fields
         policy = null;
         q = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
+        transpositions = new HashSet<>();
 
         for (Relic relic : relics) {
             relic.startOfGame(this);
@@ -374,7 +374,6 @@ public class GameState implements State {
         previousCard = other.previousCard;
         previousCardIdx = other.previousCardIdx;
         drawOrder = new DrawOrder(other.drawOrder);
-        transpositions = other.transpositions;
 
         buffs = other.buffs;
         thorn = other.thorn;
@@ -384,6 +383,7 @@ public class GameState implements State {
         q = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
+        transpositions = other.transpositions;
     }
 
     void draw(int count) {
