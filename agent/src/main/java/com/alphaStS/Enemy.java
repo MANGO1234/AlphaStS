@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.Random;
 
 abstract class Enemy {
@@ -143,6 +145,25 @@ abstract class Enemy {
 
     public void randomize(Random random) {
     }
+
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Enemy enemy = (Enemy) o;
+        return health == enemy.health && maxHealth == enemy.maxHealth && block == enemy.block && strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact && move == enemy.move && Arrays.equals(moveHistory, enemy.moveHistory);
+    }
+
+    @Override public int hashCode() {
+        int result = Objects.hash(health, maxHealth, block, strength, vulnerable, weak, artifact, move);
+        result = 31 * result + Arrays.hashCode(moveHistory);
+        return result;
+    }
+
+    // ******************************************************************************************
+    // ******************************************************************************************
+    // ******************************************************************************************
 
     public static class GremlinNob extends Enemy {
         int turn;
@@ -428,7 +449,17 @@ abstract class Enemy {
             } else if (move == SLAM) {
                 state.enemyDoDamageToPlayer(this, 38);
             } else if (move == SPLIT) {
-                // todo
+                for (Enemy enemy : state.enemies) {
+                    if (enemy instanceof Enemy.LargeAcidSlime) {
+                        enemy.health = health;
+                        state.enemiesAlive += 1;
+                    } else if (enemy instanceof Enemy.LargeSpikeSlime) {
+                        enemy.health = health;
+                        state.enemiesAlive += 1;
+                    }
+                }
+                health = 0;
+                state.enemiesAlive -= 1;
             }
         }
 
@@ -437,8 +468,8 @@ abstract class Enemy {
                 move = PREPARING;
             } else if (move == PREPARING) {
                 move = SLAM;
-            } else if (move == SLAM) {
-                move = PREPARING;
+            } else {
+                move = GOOP_SPRAY;
             }
         }
 
@@ -489,6 +520,11 @@ abstract class Enemy {
             setSharedFields(other);
         }
 
+        public LargeSpikeSlime(int health, boolean startDead) {
+            this(health);
+            if (startDead) this.health = 0;
+        }
+
         @Override public Enemy copy() {
             return new LargeSpikeSlime(this);
         }
@@ -515,7 +551,14 @@ abstract class Enemy {
             } else if (move == LICK) {
                 state.player.applyDebuff(DebuffType.FRAIL, 4);
             } else if (move == SPLIT) {
-                // todo
+                for (Enemy enemy : state.enemies) {
+                    if (enemy instanceof Enemy.MediumSpikeSlime) {
+                        enemy.health = health;
+                        state.enemiesAlive += 1;
+                    }
+                }
+                health = 0;
+                state.enemiesAlive -= 1;
             }
         }
 
@@ -570,6 +613,11 @@ abstract class Enemy {
             moveHistory = new int[] {-1};
             canSlime = true;
             canFrail = true;
+        }
+
+        public MediumSpikeSlime(int health, boolean startDead) {
+            this(health);
+            if (startDead) this.health = 0;
         }
 
         public MediumSpikeSlime(MediumSpikeSlime other) {
@@ -688,6 +736,11 @@ abstract class Enemy {
             canWeaken = true;
         }
 
+        public LargeAcidSlime(int health, boolean startDead) {
+            this(health);
+            if (startDead) this.health = 0;
+        }
+
         public LargeAcidSlime(LargeAcidSlime other) {
             this(other.health);
             setSharedFields(other);
@@ -721,7 +774,14 @@ abstract class Enemy {
             } else if (move == LICK) {
                 state.player.applyDebuff(DebuffType.WEAK, 3);
             } else if (move == SPLIT) {
-                // todo
+                for (Enemy enemy : state.enemies) {
+                    if (enemy instanceof Enemy.MediumAcidSlime) {
+                        enemy.health = health;
+                        state.enemiesAlive += 1;
+                    }
+                }
+                health = 0;
+                state.enemiesAlive += 0;
             }
         }
 
@@ -784,6 +844,12 @@ abstract class Enemy {
             canSlime = true;
             canWeaken = true;
         }
+
+        public MediumAcidSlime(int health, boolean startDead) {
+            this(health);
+            if (startDead) this.health = 0;
+        }
+
 
         public MediumAcidSlime(MediumAcidSlime other) {
             this(other.health);

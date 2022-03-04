@@ -5,38 +5,48 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-//        var cards = new ArrayList<CardCount>();
-//        cards.add(new CardCount(new Card.Bash(), 1));
-//        cards.add(new CardCount(new Card.Strike(), 4));
-//        cards.add(new CardCount(new Card.Defend(), 4));
-//        cards.add(new CardCount(new Card.AscendersBane(), 1));
-//        cards.add(new CardCount(new Card.SeverSoul(), 1));
-//        cards.add(new CardCount(new Card.Clash(), 1));
-//        cards.add(new CardCount(new Card.Headbutt(), 1));
-//        cards.add(new CardCount(new Card.Anger(), 1));
-//        cards.add(new CardCount(new Card.Disarm(), 1));
-//        cards.add(new CardCount(new Card.ArmanentP(), 1));
-//        cards.add(new CardCount(new Card.PommelStrike(), 1));
-//        var enemies = new ArrayList<Enemy>();
-//        enemies.add(new Enemy.Lagavulin());
-//        var relics = new ArrayList<Relic>();
-//        relics.add(new Relic.Orichalcum());
-//        relics.add(new Relic.BronzeScales());
-//        relics.add(new Relic.Vajira());
-//        relics.add(new Relic.Anchor());
-//        var state = new GameState(enemies, new Player(33, 85), cards, relics);
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.Strike(), 4));
         cards.add(new CardCount(new Card.Defend(), 4));
         cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Corruption(), 1));
-        cards.add(new CardCount(new Card.TwinStrike(), 1));
+        cards.add(new CardCount(new Card.SeverSoul(), 1));
+        cards.add(new CardCount(new Card.Clash(), 1));
+        cards.add(new CardCount(new Card.Headbutt(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+//       cards.add(new CardCount(new Card.Disarm(), 1));
+//       cards.add(new CardCount(new Card.ArmanentP(), 1));
+//       cards.add(new CardCount(new Card.PommelStrike(), 1));
         var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.GreenLouse());
-        enemies.add(new Enemy.GreenLouse());
+//         enemies.add(new Enemy.GremlinNob());
+         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+//       enemies.add(new Enemy.SlimeBoss());
+//       enemies.add(new Enemy.LargeSpikeSlime(75, true));
+//       enemies.add(new Enemy.LargeAcidSlime(75, true));
+//       enemies.add(new Enemy.MediumSpikeSlime(37, true));
+//       enemies.add(new Enemy.MediumSpikeSlime(37, true));
+//       enemies.add(new Enemy.MediumAcidSlime(37, true));
+//       enemies.add(new Enemy.MediumAcidSlime(37, true));
         var relics = new ArrayList<Relic>();
-        var state = new GameState(enemies, new Player(46, 75), cards, relics);
+        relics.add(new Relic.Orichalcum());
+        relics.add(new Relic.BronzeScales());
+        relics.add(new Relic.Vajira());
+       relics.add(new Relic.Anchor());
+        var state = new GameState(enemies, new Player(30, 85), cards, relics);
+//        var cards = new ArrayList<CardCount>();
+//        cards.add(new CardCount(new Card.Bash(), 1));
+//        cards.add(new CardCount(new Card.Strike(), 5));
+//        cards.add(new CardCount(new Card.Defend(), 4));
+//        cards.add(new CardCount(new Card.AscendersBane(), 1));
+//        cards.add(new CardCount(new Card.Corruption(), 1));
+//        cards.add(new CardCount(new Card.TwinStrike(), 1));
+//        var enemies = new ArrayList<Enemy>();
+//        enemies.add(new Enemy.GreenLouse());
+//        enemies.add(new Enemy.GreenLouse());
+//        var relics = new ArrayList<Relic>();
+//        var state = new GameState(enemies, new Player(46, 75), cards, relics);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
@@ -84,7 +94,7 @@ public class Main {
             return;
         }
         if (TMP_DIR.equals("../tmp")) {
-            ITERATION_COUNT = 1000;
+            ITERATION_COUNT = 500;
         }
 
         if (PLAY_A_GAME) {
@@ -100,7 +110,7 @@ public class Main {
 
         MatchSession session = new MatchSession(state, TMP_DIR);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
-            session.logGame = !TEST_AGENT_FITNESS && ITERATION_COUNT <= 200;
+            session.logGame = !TEST_AGENT_FITNESS && ITERATION_COUNT <= 500;
             if (PLAY_MATCHES) {
                 File file = new File(TMP_DIR + "/matches.txt");
                 file.delete();
@@ -112,7 +122,7 @@ public class Main {
             long end = System.currentTimeMillis();
             System.out.println("Deaths: " + session.deathCount);
             System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-            System.out.println("Avg Damage (Not Including Deaths): " + ((double) session.totalDamageTaken) / session.game_i);
+            System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
             System.out.println("Time Taken: " + (end - start));
             System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
             System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
@@ -154,7 +164,7 @@ public class Main {
             var writer = new DataOutputStream(System.out);
             for (List<GameStep> game : games) {
                 var lastState = game.get(game.size() - 1).state();
-                float v = (float) (((double) lastState.player.health) / lastState.player.origHealth);
+                float v = (float) (((double) lastState.player.health) / lastState.player.maxHealth);
                 float v_win = lastState.isTerminal() == 1 ? 1.0f : 0.0f;
                 for (int i = game.size() - 2; i >= 0; i--) {
                     state = game.get(i).state();
@@ -257,13 +267,13 @@ public class Main {
                         }
                     }
                     System.out.println();
-                    if (state.drawOrderLen > 0) {
+                    if (state.getDrawOrder().size() > 0) {
                         System.out.print("Draw Order: [");
-                        for (int i = state.drawOrderLen - 1; i >= 0; i--) {
-                            if (i != state.drawOrderLen - 1) {
+                        for (int i = state.getDrawOrder().size() - 1; i >= 0; i--) {
+                            if (i != state.getDrawOrder().size() - 1) {
                                 System.out.print(", ");
                             }
-                            System.out.print(state.prop.cardDict[state.drawOrder[i]].cardName);
+                            System.out.print(state.prop.cardDict[state.getDrawOrder().ithCardFromTop(i)].cardName);
                         }
                         System.out.println("]");
                     }
@@ -496,6 +506,25 @@ public class Main {
                     drawOrder = new ArrayList<Integer>();
                     mode = 1;
                     continue;
+                } else if (line.equals("tree")) {
+                    MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
+                    continue;
+                } else if (line.equals("matches")) {
+                    MatchSession session = new MatchSession(state, "../tmp");
+                    session.logGame = false;
+                    long start = System.currentTimeMillis();
+                    for (int i = 0; i < 100; i++) {
+                        session.playGame(1000);
+                    }
+                    long end = System.currentTimeMillis();
+                    System.out.println("Deaths: " + session.deathCount);
+                    System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
+                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) session.totalDamageTaken) / session.game_i);
+                    System.out.println("Time Taken: " + (end - start));
+                    System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
+                    System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
+                    System.out.print("--------------------");
+                    continue;
                 } else if (line.equals("")) {
                     continue;
                 }
@@ -522,9 +551,11 @@ public class Main {
                         drawOrder.remove(drawOrder.size() - 1);
                     }
                     continue;
+                } else if (line.equals("clear")) {
+                    state.getDrawOrder().clear();
                 } else if (line.equals("e")) {
                     for (int i = drawOrder.size() - 1; i >= 0; i--) {
-                        state.pushCardToDrawOrder(drawOrder.get(i));
+                        state.getDrawOrder().pushOnTop(drawOrder.get(i));
                     }
                     mode = 0;
                     continue;

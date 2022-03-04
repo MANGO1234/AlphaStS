@@ -2,10 +2,11 @@ package com.alphaStS;
 
 import java.io.Writer;
 import java.io.IOException;
-import java.time.chrono.IsoChronology;
 import java.util.Arrays;
 
 import cc.mallet.types.Dirichlet;
+import com.alphaStS.utils.Utils;
+
 import static java.lang.Math.sqrt;
 
 public class MCTS {

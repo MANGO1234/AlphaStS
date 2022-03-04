@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.utils.DrawOrder;
+
 import java.util.*;
 
 class GameProperties {
@@ -78,8 +80,7 @@ public class GameState implements State {
     Card previousCard;
     int previousCardIdx;
     short turn_num;
-    int[] drawOrder;
-    int drawOrderLen;
+    private DrawOrder drawOrder;
 
     // various other buffs/debuffs
     long buffs;
@@ -93,6 +94,23 @@ public class GameState implements State {
     State[] ns;
     int total_n;
     float[] policy;
+
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        GameState gameState = (GameState) o;
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && thorn == gameState.thorn && thornLoseEOT == gameState.thornLoseEOT && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder);
+    }
+
+    @Override public int hashCode() {
+        int result = Objects.hash(actionCtx, energy, energyRefill, enemies, enemiesAlive, player, previousCard, previousCardIdx, drawOrder, buffs, thorn, thornLoseEOT);
+        result = 31 * result + Arrays.hashCode(deck);
+        result = 31 * result + Arrays.hashCode(hand);
+        result = 31 * result + Arrays.hashCode(discard);
+        return result;
+    }
 
     public void gotoActionCtx(GameActionCtx ctx, Card card, int card_idx) {
         if (ctx == GameActionCtx.PLAY_CARD) {
@@ -227,7 +245,7 @@ public class GameState implements State {
             discard[i] = 0;
             deckArrLen += deck[i];
         }
-        deckArr = new int[deckArrLen + 30];
+        deckArr = new int[deckArrLen + 60];
         int idx = 0;
         for (int i = 0; i < cards.size(); i++) {
             for (int j = 0; j < cards.get(i).count(); j++) {
@@ -239,6 +257,7 @@ public class GameState implements State {
         this.enemies = enemies;
         enemiesAlive = (int) enemies.stream().filter((x) -> x.health > 0).count();
         this.player = player;
+        drawOrder = new DrawOrder(10);
 
         // mcts related fields
         policy = null;
@@ -352,10 +371,7 @@ public class GameState implements State {
         enemiesAlive = other.enemiesAlive;
         previousCard = other.previousCard;
         previousCardIdx = other.previousCardIdx;
-        if (other.drawOrder != null && other.drawOrderLen > 0) {
-            drawOrder = Arrays.copyOf(other.drawOrder, other.drawOrder.length);
-            drawOrderLen = other.drawOrderLen;
-        }
+        drawOrder = new DrawOrder(other.drawOrder);
 
         buffs = other.buffs;
         thorn = other.thorn;
@@ -384,8 +400,8 @@ public class GameState implements State {
                 return;
             }
             int i;
-            if (drawOrderLen > 0) {
-                i = drawOrder[--drawOrderLen];
+            if (drawOrder != null && drawOrder.size() > 0) {
+                i = drawOrder.drawTop();
                 assert deck[i] > 0;
                 drawCardByIdx(i);
             } else {
@@ -603,12 +619,12 @@ public class GameState implements State {
             return 0;
         } else {
             if (enemies.stream().allMatch((x) -> x.health <= 0)) {
-                return 0.5 + 0.5 * ((double) player.health) / player.origHealth;
-//                 return ((double) player.health) / player.origHealth;
+               return 0.5 + 0.5 * ((double) player.health) / player.maxHealth;
+//                  return ((double) player.health) / player.maxHealth;
             }
         }
-        return 0.5 * v_win + 0.5 * v_health;
-//         return v_health;
+       return 0.5 * v_win + 0.5 * v_health;
+//          return v_health;
     }
 
     int isTerminal() {
@@ -647,7 +663,7 @@ public class GameState implements State {
             }
         }
         str.append("]");
-        str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.origHealth)).append(")");
+        str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.maxHealth)).append(")");
         if (policy != null) {
             str.append(", p=[");
             for (int i = 0; i < policy.length; i++) {
@@ -721,7 +737,7 @@ public class GameState implements State {
             }
         }
         str.append("]");
-        str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.origHealth)).append(")");
+        str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.maxHealth)).append(")");
         str.append(", p/q/n=[");
         first = true;
         for (int i = 0; i < q.length; i++) {
@@ -839,16 +855,16 @@ public class GameState implements State {
             x[idx++] = discard[prop.discardIdxes[i]] / (float) 10.0;
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && prop.needDeckOrderMemory) {
-            for (int i = 0; i < Math.min(MAX_AGENT_DECK_ORDER_MEMORY, drawOrderLen); i++) {
+            for (int i = 0; i < Math.min(MAX_AGENT_DECK_ORDER_MEMORY, drawOrder.size()); i++) {
                 for (int j = 0; j < hand.length; j++) {
-                    if (j == drawOrder[drawOrderLen - i]) {
+                    if (j == drawOrder.ithCardFromTop(i)) {
                         x[idx++] = 1f;
                     } else {
                         x[idx++] = 0f;
                     }
                 }
             }
-            for (int i = 0; i < MAX_AGENT_DECK_ORDER_MEMORY - drawOrderLen; i++) {
+            for (int i = 0; i < MAX_AGENT_DECK_ORDER_MEMORY - drawOrder.size(); i++) {
                 for (int j = 0; j < hand.length; j++) {
                     x[idx++] = 0f;
                 }
@@ -964,17 +980,9 @@ public class GameState implements State {
 
     private void exhaustedCardHandle(int cardIdx) {
     }
-
-    public void pushCardToDrawOrder(int cardIdx) {
-        if (drawOrder == null) {
-            drawOrder = new int[10];
-        }
-        drawOrder[drawOrderLen++] = cardIdx;
-    }
-
-    public void clearDrawOrder() {
-        drawOrder = null;
-        drawOrderLen = 0;
+    
+    public DrawOrder getDrawOrder() {
+        return drawOrder;
     }
 
     public boolean drawCardByIdx(int card_idx) {
@@ -1089,7 +1097,7 @@ public class GameState implements State {
     public void putCardOnTopOfDeck(int idx) {
         deck[idx]++;
         deckArr[deckArrLen++] = idx;
-        pushCardToDrawOrder(idx);
+        drawOrder.pushOnTop(idx);
     }
 
     public void enemyDoDamageToPlayer(Enemy enemy, int d) {
@@ -1138,7 +1146,6 @@ class ChanceState implements State {
         public Node(GameState state) {
             this.state = state;
         }
-
     }
 
     Hashtable<InputHash, Node> cache;

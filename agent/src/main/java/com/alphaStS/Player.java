@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import java.util.Objects;
+
 public class Player {
     int origHealth;
     int maxHealth;
@@ -53,23 +55,22 @@ public class Player {
         }
     }
 
-    public void applyDebuff(DebuffType type, int n) {
-        if (artifact > 0) {
-            artifact--;
-            return;
-        }
-        switch (type) {
-        case VULNERABLE -> this.vulnerable += n;
-        case WEAK -> this.weak += n;
-        case FRAIL -> this.frail += n;
-        }
-    }
-
     void doDamageToEnemy(GameState state, Enemy enemy, int n) {
         if (weak > 0) {
             n = n * 3 / 4;
         }
         enemy.damage(n + strength, state);
+    }
+
+    public void heal(int n) {
+        health += Math.min(n, maxHealth - health);
+    }
+
+    public int calcDamage(int n) {
+        if (vulnerable > 0) {
+            return n + n / 2;
+        }
+        return n;
     }
 
     void gainBlock(int n) {
@@ -88,6 +89,28 @@ public class Player {
         }
     }
 
+    public void gainStrength(int n) {
+        strength += n;
+        strength = Math.min(999, Math.max(-999, strength));
+    }
+
+    public void gainDexterity(int n) {
+        dexterity += n;
+        dexterity = Math.min(999, Math.max(-999, dexterity));
+    }
+
+    public void applyDebuff(DebuffType type, int n) {
+        if (artifact > 0) {
+            artifact--;
+            return;
+        }
+        switch (type) {
+        case VULNERABLE -> this.vulnerable += n;
+        case WEAK -> this.weak += n;
+        case FRAIL -> this.frail += n;
+        }
+    }
+
     void endTurn() {
         if (vulnerable > 0) {
             vulnerable -= 1;
@@ -103,39 +126,40 @@ public class Player {
 
     @Override public String toString() {
         String str = "Player{health=" + health;
+        if (block > 0) {
+            str += ", block=" + block;
+        }
         if (strength > 0) {
             str += ", str=" + strength;
         }
-        if (block > 0) {
-            str += ", block=" + block;
+        if (dexterity > 0) {
+            str += ", dex=" + dexterity;
         }
         if (vulnerable > 0) {
             str += ", vuln=" + vulnerable;
         }
         if (weak > 0) {
-            str += ", vuln=" + weak;
+            str += ", weak=" + weak;
+        }
+        if (frail > 0) {
+            str += ", frail=" + frail;
+        }
+        if (artifact > 0) {
+            str += ", artifact=" + artifact;
         }
         return str + '}';
     }
 
-    public int calcDamage(int n) {
-        if (vulnerable > 0) {
-            return n + n / 2;
-        }
-        return n;
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Player player = (Player) o;
+        return origHealth == player.origHealth && maxHealth == player.maxHealth && health == player.health && block == player.block && strength == player.strength && dexterity == player.dexterity && vulnerable == player.vulnerable && weak == player.weak && frail == player.frail && artifact == player.artifact;
     }
 
-    public void heal(int n) {
-        health += Math.min(n, maxHealth - health);
-    }
-
-    public void gainStrength(int n) {
-        strength += n;
-        strength = Math.min(999, Math.max(-999, strength));
-    }
-
-    public void gainDexterity(int n) {
-        dexterity += n;
-        dexterity = Math.min(999, Math.max(-999, dexterity));
+    @Override public int hashCode() {
+        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact);
     }
 }
