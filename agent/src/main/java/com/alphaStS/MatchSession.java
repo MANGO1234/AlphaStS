@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -96,7 +97,6 @@ public class MatchSession {
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
         }
-        int b = (int) Math.floor(Math.random() * 20) + 1;
         Random random = state.prop.random;
         for (Enemy enemy : state.enemies) {
             enemy.randomize(random);
@@ -115,6 +115,9 @@ public class MatchSession {
             int turnCount = 0;
             if (turnCount >= 0) {
                 for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                    if (state.transpositions_policy_mask[i]) {
+                        continue;
+                    }
                     if (state.n[i] > max_n) {
                         action = i;
                         nextState = state.ns[i];
@@ -125,15 +128,15 @@ public class MatchSession {
                 int r = random.nextInt(state.total_n);
                 int acc = 0;
                 for (int i = 0; i < state.policy.length; i++) {
+                    if (state.transpositions_policy_mask[i]) {
+                        continue;
+                    }
                     acc += state.n[i];
                     if (acc > r) {
                         nextState = state.ns[i];
                         action = i;
                         break;
                     }
-                }
-                if (action == state.policy.length - 1) {
-                    turnCount += 1;
                 }
             }
 
@@ -147,6 +150,13 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
+            if (newState == null) {
+                System.out.println(state);
+                System.out.println(Arrays.toString(state.transpositions_policy_mask));
+                System.out.println(state.transpositions);
+                System.out.println(action);
+                System.out.println(mcts.numberOfPossibleActions);
+            }
             state = newState;
         }
         states.add(new GameStep(state, -1));
