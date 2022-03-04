@@ -75,8 +75,6 @@ public class MCTS {
                         }
                         v = state2.get_v();
                         state.transpositions.add(state2);
-                    } else {
-//                        System.out.println("Transpotion!" + state.toStringReadable() + "||||" + state2.toStringReadable() + "||||" + state.getActionString(action));
                     }
                 }
             } else {

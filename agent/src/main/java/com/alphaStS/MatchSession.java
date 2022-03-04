@@ -99,7 +99,9 @@ public class MatchSession {
         }
         Random random = state.prop.random;
         for (Enemy enemy : state.enemies) {
-            enemy.randomize(random);
+            if (enemy.health > 0) {
+                enemy.randomize(random);
+            }
         }
 
         state.doEval(mcts.model);
@@ -150,13 +152,6 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
-            if (newState == null) {
-                System.out.println(state);
-                System.out.println(Arrays.toString(state.transpositions_policy_mask));
-                System.out.println(state.transpositions);
-                System.out.println(action);
-                System.out.println(mcts.numberOfPossibleActions);
-            }
             state = newState;
         }
         states.add(new GameStep(state, -1));

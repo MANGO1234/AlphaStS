@@ -403,6 +403,99 @@ abstract class Enemy {
         }
     }
 
+    public static class Hexaghost extends Enemy {
+        static int ACTIVATE = 0;
+        static int DIVIDER = 1;
+        static int SEAR_1 = 2;
+        static int TACKLE_1 = 3;
+        static int SEAR_2 = 4;
+        static int INFLAME_1 = 5;
+        static int TACKLE_2 = 6;
+        static int SEAR_3 = 7;
+        static int INFERNAL_1 = 8;
+
+        boolean afterFirstInfernal;
+
+        public Hexaghost() {
+            this(264);
+        }
+
+        public Hexaghost(int health) {
+            super(health, 9);
+            canGainStrength = true;
+            canGainBlock = true;
+            afterFirstInfernal = false;
+        }
+
+        public Hexaghost(Hexaghost other) {
+            this(other.health);
+            setSharedFields(other);
+            afterFirstInfernal = other.afterFirstInfernal;
+        }
+
+        @Override public Enemy copy() {
+            return new Hexaghost(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == DIVIDER) {
+                int n = state.player.health / 12 + 1;
+                for (int i = 0; i < 6; i++) {
+                    state.enemyDoDamageToPlayer(this, n + strength);
+                }
+            } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
+                state.enemyDoDamageToPlayer(this, 6 + strength);
+            } else if (move == TACKLE_1 || move == TACKLE_2) {
+                state.enemyDoDamageToPlayer(this, 6 + strength);
+                state.enemyDoDamageToPlayer(this, 6 + strength);
+            } else if (move == INFLAME_1) {
+                strength += 3;
+                gainBlock(12);;
+            } else if (move == INFERNAL_1) {
+                for (int i = 0; i < 6; i++) {
+                    state.enemyDoDamageToPlayer(this, 3 + strength);
+                }
+            }
+        }
+
+        @Override public void nextMove(Random random) {
+            if (move < 9) {
+                move = move + 1;
+            }
+            if (move == 9) {
+                afterFirstInfernal = true;
+                move = SEAR_1;
+            }
+        }
+
+        public String getMoveString(GameState state) {
+            if (move == ACTIVATE) {
+                return "Activate";
+            } else if (move == DIVIDER) {
+                int n = state.player.health / 12 + 1;
+                return "Attack " + state.player.calcDamage(3 + strength) + "x6";
+            } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
+                return "Attack " + state.player.calcDamage(6 + strength);
+            } else if (move == TACKLE_1 || move == TACKLE_2) {
+                return "Attack " + state.player.calcDamage(6 + strength) + "x2";
+            } else if (move == INFLAME_1) {
+                return "Gain 3 Strength+12 Block";
+            } else if (move == INFERNAL_1) {
+                return "Attack " + state.player.calcDamage(3 + strength) + "x6";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(Random random) {
+            int b = random.nextInt(25) + 1;
+            health = 264 * b / 25;
+        }
+
+        public String getName() {
+            return "Hexaghost";
+        }
+    }
+
     public static class SlimeBoss extends Enemy {
         static int GOOP_SPRAY = 0;
         static int PREPARING = 1;
@@ -450,11 +543,13 @@ abstract class Enemy {
                 state.enemyDoDamageToPlayer(this, 38);
             } else if (move == SPLIT) {
                 for (Enemy enemy : state.enemies) {
-                    if (enemy instanceof Enemy.LargeAcidSlime) {
+                    if (enemy instanceof Enemy.LargeAcidSlime slime) {
                         enemy.health = health;
+                        slime.splitMaxHealth = health;
                         state.enemiesAlive += 1;
-                    } else if (enemy instanceof Enemy.LargeSpikeSlime) {
+                    } else if (enemy instanceof Enemy.LargeSpikeSlime slime) {
                         enemy.health = health;
+                        slime.splitMaxHealth = health;
                         state.enemiesAlive += 1;
                     }
                 }
@@ -504,6 +599,8 @@ abstract class Enemy {
         private static final int LICK = 1;
         private static final int SPLIT = 2;
 
+        private int splitMaxHealth;
+
         public LargeSpikeSlime() {
             this(73);
         }
@@ -513,11 +610,13 @@ abstract class Enemy {
             moveHistory = new int[] {-1};
             canSlime = true;
             canFrail = true;
+            splitMaxHealth = maxHealth;
         }
 
         public LargeSpikeSlime(LargeSpikeSlime other) {
             this(other.health);
             setSharedFields(other);
+            splitMaxHealth = other.splitMaxHealth;
         }
 
         public LargeSpikeSlime(int health, boolean startDead) {
@@ -531,14 +630,14 @@ abstract class Enemy {
 
         @Override void damage(int n, GameState state) {
             super.damage(n, state);
-            if (health <= maxHealth / 2) {
+            if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
         }
 
         @Override void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
-            if (health <= maxHealth / 2) {
+            if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
         }
@@ -725,6 +824,8 @@ abstract class Enemy {
         private static final int LICK = 2;
         private static final int SPLIT = 3;
 
+        private int splitMaxHealth;
+
         public LargeAcidSlime() {
             this(72);
         }
@@ -739,11 +840,13 @@ abstract class Enemy {
         public LargeAcidSlime(int health, boolean startDead) {
             this(health);
             if (startDead) this.health = 0;
+            splitMaxHealth = maxHealth;
         }
 
         public LargeAcidSlime(LargeAcidSlime other) {
             this(other.health);
             setSharedFields(other);
+            splitMaxHealth = other.splitMaxHealth;
         }
 
         @Override public Enemy copy() {
@@ -752,14 +855,14 @@ abstract class Enemy {
 
         @Override void damage(int n, GameState state) {
             super.damage(n, state);
-            if (health <= maxHealth / 2) {
+            if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
         }
 
         @Override void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
-            if (health <= maxHealth / 2) {
+            if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
         }

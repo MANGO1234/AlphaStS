@@ -140,9 +140,9 @@ if DO_TRAINING:
             policy_head_train = []
             for x, v_health, v_win, p in minibatch:
                 x_train.append(np.asarray(x))
-                exp_health_head_train.append(np.asarray(v_health).reshape(1, 1))
-                exp_win_head_train.append(np.asarray(v_win).reshape(1, 1))
-                policy_head_train.append(np.asarray(p).reshape(1, num_of_actions))
+                exp_health_head_train.append(np.asarray(v_health).reshape(1))
+                exp_win_head_train.append(np.asarray(v_win).reshape(1))
+                policy_head_train.append(np.asarray(p).reshape(num_of_actions))
             x_train = np.asarray(x_train)
             exp_health_head_train = np.asarray(exp_health_head_train)
             exp_win_head_train = np.asarray(exp_win_head_train)
