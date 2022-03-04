@@ -64,6 +64,7 @@ public class GameState implements State {
 
     boolean isStochastic;
     Set<State> transpositions;
+    boolean[] transpositions_policy_mask;
     GameProperties prop;
     private boolean[] actionsCache;
     GameActionCtx actionCtx;
@@ -265,6 +266,7 @@ public class GameState implements State {
         q = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
+        transpositions_policy_mask = new boolean[prop.maxNumOfActions];
         transpositions = new HashSet<>();
 
         for (Relic relic : relics) {
@@ -383,6 +385,7 @@ public class GameState implements State {
         q = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
+        transpositions_policy_mask = new boolean[prop.maxNumOfActions];
         transpositions = other.transpositions;
     }
 
