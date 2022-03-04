@@ -17,7 +17,7 @@ public class MCTS {
         this.model = model;
     }
 
-    double search(GameState state, boolean training, int remainingCalls) {
+    double search(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
             return state.get_v();
         }
@@ -29,7 +29,7 @@ public class MCTS {
 //        if (!training) {
             policy = applyFutileSearchPruning(state, policy, remainingCalls);
 //        }
-        if (training) {
+        if (isRoot && training) {
             policy = applyDirichletNoiseToPolicy(state, policy);
         }
 
@@ -86,10 +86,10 @@ public class MCTS {
                         state2.doEval(model);
                         v = state2.get_v();
                     } else {
-                        v = this.search(state2, training, remainingCalls);
+                        v = this.search(state2, training, remainingCalls，false);
                     }
                 } else {
-                    v = this.search((GameState) nextState, training, remainingCalls);
+                    v = this.search((GameState) nextState, training, remainingCalls, false);
                 }
             }
             if (v >= 0) {

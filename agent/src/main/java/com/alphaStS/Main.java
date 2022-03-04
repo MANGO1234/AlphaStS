@@ -367,7 +367,7 @@ public class Main {
                     try {
                         int count = Integer.parseInt(line.substring(2));
                         for (int i = state.total_n; i < count; i++) {
-                            mcts.search(state, false, -1);
+                            mcts.search(state, false, -1, true);
                         }
                         System.out.println(state.toStringReadable());
                         skipPrint = true;
@@ -382,7 +382,7 @@ public class Main {
                         int move_i = 0;
                         do {
                             for (int i = s.total_n; i < count; i++) {
-                                mcts.search(s, false, -1);
+                                mcts.search(s, false, -1, true);
                             }
                             int max_n = -1;
                             int max_i = 0;
