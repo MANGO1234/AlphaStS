@@ -63,6 +63,7 @@ public class GameState implements State {
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
 
     boolean isStochastic;
+    Set<State> transpositions;
     GameProperties prop;
     private boolean[] actionsCache;
     GameActionCtx actionCtx;
@@ -258,6 +259,7 @@ public class GameState implements State {
         enemiesAlive = (int) enemies.stream().filter((x) -> x.health > 0).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
+        transpositions = new HashSet<>();
 
         // mcts related fields
         policy = null;
@@ -372,6 +374,7 @@ public class GameState implements State {
         previousCard = other.previousCard;
         previousCardIdx = other.previousCardIdx;
         drawOrder = new DrawOrder(other.drawOrder);
+        transpositions = other.transpositions;
 
         buffs = other.buffs;
         thorn = other.thorn;
@@ -566,6 +569,9 @@ public class GameState implements State {
         policy = null;
         v_win = 0;
         v_health = 0;
+        if (isStochastic) {
+            transpositions = new HashSet<>();
+        }
     }
 
     boolean isActionLegal(int action) {
@@ -1148,7 +1154,7 @@ class ChanceState implements State {
         }
     }
 
-    Hashtable<InputHash, Node> cache;
+    Hashtable<GameState, Node> cache;
     long total_n;
     double v_health = -1;
 
@@ -1158,30 +1164,20 @@ class ChanceState implements State {
 
     public ChanceState(GameState initState) {
         cache = new Hashtable<>();
-        var x = initState.getInput();
-        var hash = new InputHash(x);
-        cache.put(hash, new Node(initState));
+        cache.put(initState, new Node(initState));
     }
 
     GameState getNextState(GameState parentState, int action) {
         var state = new GameState(parentState);
         state.doAction(action);
-        var x = state.getInput();
-        var hash = new InputHash(x);
         total_n += 1;
-        var node = cache.get(hash);
+        var node = cache.get(state);
         if (node != null) {
             node.n += 1;
             return node.state;
         }
-        cache.put(hash, new Node(state));
+        cache.put(state, new Node(state));
         return state;
-    }
-
-    long getCount(GameState state) {
-        var hash = new InputHash(state.getInput());
-        var node = cache.get(hash);
-        return node != null ? node.n : 0;
     }
 
     @Override public String toString() {

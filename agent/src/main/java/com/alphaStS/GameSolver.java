@@ -134,7 +134,7 @@ public class GameSolver {
             newState = solveH(newState);
             var node = new ChanceState.Node(newState);
             node.n = n;
-            cState.cache.put(new InputHash(newState.getInput()), node);
+            cState.cache.put(newState, node);
             return;
         }
         if (i >= m_state.deck.length) {
