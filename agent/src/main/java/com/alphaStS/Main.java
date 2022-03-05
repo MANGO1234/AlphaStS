@@ -92,7 +92,7 @@ public class Main {
         state = BasicSentriesState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
+            System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
             return;
         }
 
@@ -228,20 +228,8 @@ public class Main {
                     }
                     writer.writeFloat(v);
                     writer.writeFloat(v_win);
-                    for (GameActionCtx ctx : GameActionCtx.values()) {
-                        if (state.prop.actionsByCtx[ctx.ordinal()] != null) {
-                            var a = state.prop.actionsByCtx[ctx.ordinal()];
-                            if (ctx == state.actionCtx) {
-                                for (int j = 0; j < a.length; j++) {
-                                    assert !state.isActionLegal(j) || state.n[j] > 0;
-                                    writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
-                                }
-                            } else {
-                                for (int j = 0; j < a.length; j++) {
-                                    writer.writeFloat(0);
-                                }
-                            }
-                        }
+                    for (int j = 0; j < state.prop.maxNumOfActions; j++) {
+                        writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
                     }
                 }
             }
