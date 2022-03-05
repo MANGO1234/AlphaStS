@@ -35,71 +35,76 @@ public class MCTS {
 
         int action = 0;
         int numberOfActions = 0;
-        double v = 0.0;
-        while (true) {
-            v = -1.0;
-            numberOfActions = 0;
-            double maxU = -1000000;
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (policy[i] <= 0 || state.transpositions_policy_mask[i]) {
-                    continue;
-                }
-                numberOfActions += 1;
-                double u = (state.n[i] > 0 ? state.q[i] / state.n[i] : 0) + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
-                if (u > maxU) {
-                    action = i;
-                    maxU = u;
-                }
+        double v;
+        double maxU = -1000000;
+        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+            if (policy[i] <= 0) {
+                continue;
             }
-            if (numberOfActions == 0) {
-                return -1;
+            numberOfActions += 1;
+            double u = (state.n[i] > 0 ? state.q[i] / state.n[i] : 0) + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
+            if (u > maxU) {
+                action = i;
+                maxU = u;
             }
+        }
 
-            State nextState = state.ns[action];
-            GameState state2;
-            if (nextState == null) {
-                state2 = new GameState((GameState) state);
-                state2.doAction(action);
-                if (state2.isStochastic) {
-                    var cState = new ChanceState(state2);
-                    state.ns[action] = cState;
+        State nextState = state.ns[action];
+        GameState state2;
+        if (nextState == null) {
+            state2 = new GameState((GameState) state);
+            state2.doAction(action);
+            if (state2.isStochastic) {
+                var cState = new ChanceState(state2);
+                state.ns[action] = cState;
+                if (state2.policy == null) {
+                    state2.doEval(model);
+                }
+                v = state2.get_v();
+            } else {
+//                    state.ns[action] = state2;
+//                    if (state2.policy == null) {
+//                        state2.doEval(model);
+//                    }
+//                    v = state2.get_v();
+//                    state.transpositions.put(state2, state2);
+                if (state.transpositions.get(state2) == null) {
+                    state.ns[action] = state2;
                     if (state2.policy == null) {
                         state2.doEval(model);
                     }
                     v = state2.get_v();
+                    state.transpositions.put(state2, state2);
                 } else {
-                    if (!state.transpositions.contains(state2)) {
-                        state.ns[action] = state2;
-                        if (state2.policy == null) {
-                            state2.doEval(model);
-                        }
-                        v = state2.get_v();
-                        state.transpositions.add(state2);
-                    }
+                    state.ns[action] = state.transpositions.get(state2);
+                    var s = ((GameState) state.ns[action]);
+                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
+                    state.transpositions_policy_mask[action] = true;
+                }
+            }
+        } else {
+            if (nextState instanceof ChanceState cState) {
+                state2 = cState.getNextState(state, action);
+                if (state2.policy == null) {
+                    state2.doEval(model);
+                    v = state2.get_v();
+                } else {
+                    v = this.search(state2, training, remainingCalls, false);
                 }
             } else {
-                if (nextState instanceof ChanceState cState) {
-                    state2 = cState.getNextState(state, action);
-                    if (state2.policy == null) {
-                        state2.doEval(model);
-                        v = state2.get_v();
-                    } else {
-                        v = this.search(state2, training, remainingCalls, false);
-                    }
+                if (state.transpositions_policy_mask[action] && state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
+                    var s = ((GameState) state.ns[action]);
+                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
                 } else {
                     v = this.search((GameState) nextState, training, remainingCalls, false);
                 }
-            }
-            if (v >= 0) {
-                break;
-            } else {
-                state.transpositions_policy_mask[action] = true;
             }
         }
 
         state.q[action] += v;
         state.n[action] += 1;
         state.total_n += 1;
+        state.total_q += v;
         this.numberOfPossibleActions = numberOfActions;
         return v;
     }

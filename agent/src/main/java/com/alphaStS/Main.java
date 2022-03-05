@@ -4,6 +4,52 @@ import java.io.*;
 import java.util.*;
 
 public class Main {
+    public static GameState BasicGremlinNobState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.BashP(), 1));
+        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.GremlinNob());
+        enemies.get(0).health = 85;
+        var relics = new ArrayList<Relic>();
+        return new GameState(enemies, new Player(75, 75), cards, relics);
+    }
+
+    public static GameState BasicGremlinNobState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.StrikeP(), 1));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.GremlinNob());
+        enemies.get(0).health = 85;
+        var relics = new ArrayList<Relic>();
+        return new GameState(enemies, new Player(75, 75), cards, relics);
+    }
+
+    public static GameState BasicSentriesState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.SeverSoul(), 1));
+        cards.add(new CardCount(new Card.Clash(), 1));
+        cards.add(new CardCount(new Card.Headbutt(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.Orichalcum());
+        relics.add(new Relic.BronzeScales());
+        relics.add(new Relic.Vajira());
+        return new GameState(enemies, new Player(32, 75), cards, relics);
+    }
+
     public static void main(String[] args) throws IOException {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -14,27 +60,22 @@ public class Main {
         cards.add(new CardCount(new Card.Clash(), 1));
         cards.add(new CardCount(new Card.Headbutt(), 1));
         cards.add(new CardCount(new Card.Anger(), 1));
-       cards.add(new CardCount(new Card.Disarm(), 1));
-       cards.add(new CardCount(new Card.ArmanentP(), 1));
-       cards.add(new CardCount(new Card.PommelStrike(), 1));
+        cards.add(new CardCount(new Card.Disarm(), 1));
+        cards.add(new CardCount(new Card.ArmanentP(), 1));
+        cards.add(new CardCount(new Card.PommelStrike(), 1));
         var enemies = new ArrayList<Enemy>();
-//         enemies.add(new Enemy.GremlinNob());
-//         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-//         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-//         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-//         enemies.add(new Enemy.Hexaghost());
-       enemies.add(new Enemy.SlimeBoss());
-       enemies.add(new Enemy.LargeSpikeSlime(75, true));
-       enemies.add(new Enemy.LargeAcidSlime(75, true));
-       enemies.add(new Enemy.MediumSpikeSlime(37, true));
-       enemies.add(new Enemy.MediumSpikeSlime(37, true));
-       enemies.add(new Enemy.MediumAcidSlime(37, true));
-       enemies.add(new Enemy.MediumAcidSlime(37, true));
+        enemies.add(new Enemy.SlimeBoss());
+        enemies.add(new Enemy.LargeSpikeSlime(75, true));
+        enemies.add(new Enemy.LargeAcidSlime(75, true));
+        enemies.add(new Enemy.MediumSpikeSlime(37, true));
+        enemies.add(new Enemy.MediumSpikeSlime(37, true));
+        enemies.add(new Enemy.MediumAcidSlime(37, true));
+        enemies.add(new Enemy.MediumAcidSlime(37, true));
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Orichalcum());
         relics.add(new Relic.BronzeScales());
         relics.add(new Relic.Vajira());
-       relics.add(new Relic.Anchor());
+        relics.add(new Relic.Anchor());
         var state = new GameState(enemies, new Player(45, 85), cards, relics);
 //        var cards = new ArrayList<CardCount>();
 //        cards.add(new CardCount(new Card.Bash(), 1));
@@ -48,9 +89,10 @@ public class Main {
 //        enemies.add(new Enemy.GreenLouse());
 //        var relics = new ArrayList<Relic>();
 //        var state = new GameState(enemies, new Player(46, 75), cards, relics);
+        state = BasicSentriesState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
+            System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
             return;
         }
 
@@ -186,8 +228,20 @@ public class Main {
                     }
                     writer.writeFloat(v);
                     writer.writeFloat(v_win);
-                    for (int j = 0; j < state.prop.maxNumOfActions; j++) {
-                        writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                    for (GameActionCtx ctx : GameActionCtx.values()) {
+                        if (state.prop.actionsByCtx[ctx.ordinal()] != null) {
+                            var a = state.prop.actionsByCtx[ctx.ordinal()];
+                            if (ctx == state.actionCtx) {
+                                for (int j = 0; j < a.length; j++) {
+                                    assert !state.isActionLegal(j) || state.n[j] > 0;
+                                    writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                                }
+                            } else {
+                                for (int j = 0; j < a.length; j++) {
+                                    writer.writeFloat(0);
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -331,6 +385,7 @@ public class Main {
             if (mode == 0) {
                 if (line.equals("e")) {
                     states.add(state);
+                    state.clearNextStates();
                     state = new GameState(state);
                     for (int i = 0; i < state.prop.maxNumOfActions; i++) {
                         if (state.isActionLegal(i) && state.getAction(i).type() == GameActionType.END_TURN) {

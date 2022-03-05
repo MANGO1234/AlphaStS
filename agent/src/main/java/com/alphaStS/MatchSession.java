@@ -1,10 +1,7 @@
 package com.alphaStS;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 record GameStep(GameState state, int action) {
 }
@@ -117,9 +114,6 @@ public class MatchSession {
             int turnCount = 0;
             if (turnCount >= 0) {
                 for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                    if (state.transpositions_policy_mask[i]) {
-                        continue;
-                    }
                     if (state.n[i] > max_n) {
                         action = i;
                         nextState = state.ns[i];
@@ -130,9 +124,6 @@ public class MatchSession {
                 int r = random.nextInt(state.total_n);
                 int acc = 0;
                 for (int i = 0; i < state.policy.length; i++) {
-                    if (state.transpositions_policy_mask[i]) {
-                        continue;
-                    }
                     acc += state.n[i];
                     if (acc > r) {
                         nextState = state.ns[i];
@@ -152,7 +143,8 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
-            state = newState;
+            state = new GameState(newState);
+            state.transpositions = new HashMap<>();
         }
         states.add(new GameStep(state, -1));
     }

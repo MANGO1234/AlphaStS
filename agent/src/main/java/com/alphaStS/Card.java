@@ -138,7 +138,7 @@ abstract class Card {
 
     public static class DefendP extends Card {
         public DefendP() {
-            super("DefendP", Card.SKILL);
+            super("Defend+", Card.SKILL);
         }
 
         public void play(GameState state, int idx) {

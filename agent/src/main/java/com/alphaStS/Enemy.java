@@ -563,7 +563,7 @@ abstract class Enemy {
                 move = PREPARING;
             } else if (move == PREPARING) {
                 move = SLAM;
-            } else {
+            } else if (move < 0 || move == SLAM){
                 move = GOOP_SPRAY;
             }
         }
@@ -662,6 +662,9 @@ abstract class Enemy {
         }
 
         @Override public void nextMove(Random random) {
+            if (move == SPLIT) {
+                return;
+            }
             int r = random.nextInt(100);
             int newMove;
             if (r < 30) {
@@ -889,6 +892,9 @@ abstract class Enemy {
         }
 
         @Override public void nextMove(Random random) {
+            if (move == SPLIT) {
+                return;
+            }
             int r = random.nextInt(100);
             int newMove;
             if (r < 40) {

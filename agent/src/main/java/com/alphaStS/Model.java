@@ -8,6 +8,7 @@ import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -96,6 +97,18 @@ public class Model {
             float v_health = ((float[][]) output.get(0).getValue())[0][0];
             float v_win = ((float[][]) output.get(1).getValue())[0][0];
             float[] policy = ((float[][]) output.get(2).getValue())[0];
+            int startIdx = 0;
+            for (GameActionCtx ctx : GameActionCtx.values()) {
+                if (ctx == state.actionCtx) {
+                    var newPolicy = new float[state.prop.maxNumOfActions];
+                    for (int i = 0; i < state.prop.actionsByCtx[ctx.ordinal()].length; i++) {
+                        newPolicy[i] = policy[startIdx + i];
+                    }
+                    policy = newPolicy;
+                    break;
+                }
+                startIdx += state.prop.actionsByCtx[ctx.ordinal()] == null ? 0 : state.prop.actionsByCtx[ctx.ordinal()].length;
+            }
             for (int i = 0; i < policy.length; i++) {
                 if (!state.isActionLegal(i)) {
                     policy[i] = -1000;

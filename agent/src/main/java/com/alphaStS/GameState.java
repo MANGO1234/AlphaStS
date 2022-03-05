@@ -18,6 +18,7 @@ class GameProperties {
     Random random;
     Card[] cardDict;
     int maxNumOfActions;
+    int totalNumOfActions;
     GameAction[][] actionsByCtx;
 
     // cached card indexes
@@ -41,7 +42,6 @@ enum GameActionCtx {
     SELECT_CARD_DISCARD,
     SELECT_CARD_HAND,
     SELECT_POTION,
-    MAX,
 }
 
 enum GameActionType {
@@ -52,7 +52,6 @@ enum GameActionType {
     SELECT_CARD_HAND,
     SELECT_POTION,
     END_TURN,
-    MAX,
 }
 
 record GameAction(GameActionType type, int cardIdx, int enemyIdx) {
@@ -63,7 +62,7 @@ public class GameState implements State {
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
 
     boolean isStochastic;
-    Set<State> transpositions;
+    Map<State, State> transpositions;
     boolean[] transpositions_policy_mask;
     GameProperties prop;
     private boolean[] actionsCache;
@@ -95,6 +94,7 @@ public class GameState implements State {
     int[] n;
     State[] ns;
     int total_n;
+    double total_q;
     float[] policy;
 
     @Override public boolean equals(Object o) {
@@ -177,7 +177,7 @@ public class GameState implements State {
         prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemies);
 
         // start of game actions
-        prop.actionsByCtx = new GameAction[GameActionCtx.MAX.ordinal()][];
+        prop.actionsByCtx = new GameAction[GameActionCtx.values().length][];
         prop.actionsByCtx[GameActionCtx.START_GAME.ordinal()] = new GameAction[] { new GameAction(GameActionType.START_GAME, 0, 0) };
 
         // play card actions
@@ -220,6 +220,7 @@ public class GameState implements State {
         for (int i = 0; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null) {
                 prop.maxNumOfActions = Math.max(prop.maxNumOfActions, prop.actionsByCtx[i].length);
+                prop.totalNumOfActions += prop.actionsByCtx[i].length;
             }
         }
 
@@ -267,7 +268,7 @@ public class GameState implements State {
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
         transpositions_policy_mask = new boolean[prop.maxNumOfActions];
-        transpositions = new HashSet<>();
+        transpositions = new HashMap<>();
 
         for (Relic relic : relics) {
             relic.startOfGame(this);
@@ -573,7 +574,7 @@ public class GameState implements State {
         v_win = 0;
         v_health = 0;
         if (isStochastic) {
-            transpositions = new HashSet<>();
+            transpositions = new HashMap<>();
         }
     }
 
@@ -843,6 +844,12 @@ public class GameState implements State {
             if (enemy.hasArtifact) {
                 input_len += 1; // enemy artifact
             }
+            input_len += enemy.numOfMoves; // enemy moves
+            if (enemy.moveHistory != null) {
+                for (int move : enemy.moveHistory) {
+                    input_len += enemy.numOfMoves;
+                }
+            }
             input_len += 1; // enemy move
             if (enemy.moveHistory != null) {
                 input_len += enemy.moveHistory.length;
@@ -939,10 +946,22 @@ public class GameState implements State {
                 if (enemy.hasArtifact) {
                     x[idx++] = enemy.artifact / 3.0f;
                 }
-                x[idx++] = enemy.move / (float) enemy.numOfMoves;
+                for (int i = 0; i < enemy.numOfMoves; i++) {
+                    if (enemy.move == i) {
+                        x[idx++] = 0.5f;
+                    } else {
+                        x[idx++] = -0.5f;
+                    }
+                }
                 if (enemy.moveHistory != null) {
                     for (int move : enemy.moveHistory) {
-                        x[idx++] = move / (float) enemy.numOfMoves;
+                        for (int i = 0; i < enemy.numOfMoves; i++) {
+                            if (move == i) {
+                                x[idx++] = 0.5f;
+                            } else {
+                                x[idx++] = -0.5f;
+                            }
+                        }
                     }
                 }
                 if (enemy instanceof Enemy.RedLouse louse) {
@@ -967,10 +986,14 @@ public class GameState implements State {
                 if (enemy.hasArtifact) {
                     x[idx++] = -0.1f;
                 }
-                x[idx++] = -0.1f;
+                for (int i = 0; i < enemy.numOfMoves; i++) {
+                    x[idx++] = -0.1f;
+                }
                 if (enemy.moveHistory != null) {
                     for (int move : enemy.moveHistory) {
-                        x[idx++] = -0.1f;
+                        for (int i = 0; i < enemy.numOfMoves; i++) {
+                            x[idx++] = -0.1f;
+                        }
                     }
                 }
                 if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
