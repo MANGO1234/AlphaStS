@@ -305,7 +305,7 @@ public class GameState implements State {
             } else if (cards.get(i).card().exhaustNonAttacks) {
                 for (int j = 0; j < cards.size(); j++) {
                     if (cards.get(j).card().cardType != Card.ATTACK && !cards.get(j).card().exhaustEndOfTurn &&
-                        getCardEnergyCost(j) >= 0) {
+                            getCardEnergyCost(j) >= 0) {
                         l.add(j);
                     }
                 }
@@ -629,12 +629,12 @@ public class GameState implements State {
             return 0;
         } else {
             if (enemies.stream().allMatch((x) -> x.health <= 0)) {
-               return 0.5 + 0.5 * ((double) player.health) / player.maxHealth;
-//                  return ((double) player.health) / player.maxHealth;
+                return 0.5 + 0.5 * ((double) player.health) / player.maxHealth;
+                //                  return ((double) player.health) / player.maxHealth;
             }
         }
-       return 0.5 * v_win + 0.5 * v_health;
-//          return v_health;
+        return 0.5 * v_win + 0.5 * v_health;
+        //          return v_health;
     }
 
     int isTerminal() {
@@ -1012,7 +1012,7 @@ public class GameState implements State {
 
     private void exhaustedCardHandle(int cardIdx) {
     }
-    
+
     public DrawOrder getDrawOrder() {
         return drawOrder;
     }
@@ -1133,10 +1133,25 @@ public class GameState implements State {
     }
 
     public void enemyDoDamageToPlayer(Enemy enemy, int d) {
-        player.damage(d + enemy.strength);
+        d += enemy.strength;
+        if (enemy.weak > 0) {
+            d = d * 3 / 4;
+        }
+        player.damage(d);
         if (thorn > 0) {
             enemy.nonAttackDamage(thorn, false, this);
         }
+    }
+
+    public int enemyCalcDamageToPlayer(Enemy enemy, int d) {
+        d += enemy.strength;
+        if (enemy.weak > 0) {
+            d = d * 3 / 4;
+        }
+        if (player.vulnerable > 0) {
+            d = d + d / 2;
+        }
+        return d;
     }
 
     public void enemyDoNonAttackDamageToPlayer(Enemy enemy, int d, boolean blockable, boolean addStrength) {

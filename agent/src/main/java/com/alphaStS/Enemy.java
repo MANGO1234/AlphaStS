@@ -217,9 +217,9 @@ abstract class Enemy {
             if (move == 0) {
                 return "Buff";
             } else if (move == 1) {
-                return "Attack " + state.player.calcDamage(8 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this,8);
             } else if (move == 2 || move == 3) {
-                return "Attack " + state.player.calcDamage(16 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this,16);
             }
             return "Unknown";
         }

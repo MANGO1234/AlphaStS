@@ -50,7 +50,7 @@ public class Main {
         return new GameState(enemies, new Player(32, 75), cards, relics);
     }
 
-    public static void main(String[] args) throws IOException {
+    public static GameState SlimeBossState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
         cards.add(new CardCount(new Card.Strike(), 4));
@@ -76,20 +76,31 @@ public class Main {
         relics.add(new Relic.BronzeScales());
         relics.add(new Relic.Vajira());
         relics.add(new Relic.Anchor());
-        var state = new GameState(enemies, new Player(45, 85), cards, relics);
-//        var cards = new ArrayList<CardCount>();
-//        cards.add(new CardCount(new Card.Bash(), 1));
-//        cards.add(new CardCount(new Card.Strike(), 5));
-//        cards.add(new CardCount(new Card.Defend(), 4));
-//        cards.add(new CardCount(new Card.AscendersBane(), 1));
-//        cards.add(new CardCount(new Card.Corruption(), 1));
-//        cards.add(new CardCount(new Card.TwinStrike(), 1));
-//        var enemies = new ArrayList<Enemy>();
-//        enemies.add(new Enemy.GreenLouse());
-//        enemies.add(new Enemy.GreenLouse());
-//        var relics = new ArrayList<Relic>();
-//        var state = new GameState(enemies, new Player(46, 75), cards, relics);
-        state = BasicSentriesState();
+        return new GameState(enemies, new Player(45, 85), cards, relics);
+    }
+
+    public static void main(String[] args) throws IOException {
+//        var state = BasicGremlinNobState();
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.Defend(), 3));
+        cards.add(new CardCount(new Card.DefendP(), 1));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.Corruption(), 1));
+        cards.add(new CardCount(new Card.TwinStrike(), 1));
+        cards.add(new CardCount(new Card.UppercutP(), 1));
+        cards.add(new CardCount(new Card.ShockwaveP(), 1));
+        cards.add(new CardCount(new Card.ShrugItOff(), 1));
+        cards.add(new CardCount(new Card.FlameBarrierP(), 1));
+        var enemies = new ArrayList<Enemy>();
+//        enemies.add(new Enemy.GremlinNob());
+        enemies.add(new Enemy.Sentry(Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.Sentry(Enemy.Sentry.BEAM));
+        enemies.add(new Enemy.Sentry(Enemy.Sentry.BOLT));
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.Anchor());
+        var state = new GameState(enemies, new Player(29, 75), cards, relics);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
@@ -137,7 +148,7 @@ public class Main {
             return;
         }
         if (TMP_DIR.equals("../tmp")) {
-            ITERATION_COUNT = 500;
+            ITERATION_COUNT = 6000;
         }
 
         if (PLAY_A_GAME) {
@@ -563,7 +574,7 @@ public class Main {
                     long end = System.currentTimeMillis();
                     System.out.println("Deaths: " + session.deathCount);
                     System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) session.totalDamageTaken) / session.game_i);
+                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
                     System.out.println("Time Taken: " + (end - start));
                     System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
                     System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
@@ -577,6 +588,7 @@ public class Main {
                     int action = Integer.parseInt(line);
                     if (state.isActionLegal(action)) {
                         states.add(state);
+                        state.clearNextStates();
                         state = new GameState(state);
                         state.doAction(action);
                         continue;

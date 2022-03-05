@@ -12,6 +12,7 @@ import static java.lang.Math.sqrt;
 public class MCTS {
     Model model;
     int numberOfPossibleActions;
+    double v_win;
 
     void setModel(Model model) {
         this.model = model;
@@ -93,7 +94,8 @@ public class MCTS {
             } else {
                 if (state.transpositions_policy_mask[action] && state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
                     var s = ((GameState) state.ns[action]);
-                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
+//                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
+                    v = ((s.total_q + s.get_v()) / (s.total_n + 1) * (state.n[action] + 1) - state.q[action]);
                 } else {
                     v = this.search((GameState) nextState, training, remainingCalls, false);
                 }
