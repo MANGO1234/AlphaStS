@@ -143,8 +143,7 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
-            state = new GameState(newState);
-            state.transpositions = new HashMap<>();
+            state = newState;
         }
         states.add(new GameStep(state, -1));
     }
