@@ -62,24 +62,24 @@ public class MCTS {
                 }
                 v = state2.get_v();
             } else {
-                   state.ns[action] = state2;
-                   if (state2.policy == null) {
-                       state2.doEval(model);
-                   }
-                   v = state2.get_v();
-                // if (state.transpositions.get(state2) == null) {
-                //     state.ns[action] = state2;
-                //     if (state2.policy == null) {
-                //         state2.doEval(model);
-                //     }
-                //     v = state2.get_v();
-                //     state.transpositions.put(state2, state2);
-                // } else {
-                //     state.ns[action] = state.transpositions.get(state2);
-                //     var s = ((GameState) state.ns[action]);
-                //     v = (s.total_q + s.get_v()) / (s.total_n + 1);
-                //     state.transpositions_policy_mask[action] = true;
+                // state.ns[action] = state2;
+                // if (state2.policy == null) {
+                //     state2.doEval(model);
                 // }
+                // v = state2.get_v();
+                if (state.transpositions.get(state2) == null) {
+                    state.ns[action] = state2;
+                    if (state2.policy == null) {
+                        state2.doEval(model);
+                    }
+                    v = state2.get_v();
+                    state.transpositions.put(state2, state2);
+                } else {
+                    state.ns[action] = state.transpositions.get(state2);
+                    var s = ((GameState) state.ns[action]);
+                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
+                    state.transpositions_policy_mask[action] = true;
+                }
             }
         } else {
             if (nextState instanceof ChanceState cState) {
