@@ -90,11 +90,13 @@ public class GameState implements State {
 
     double v_win;
     double v_health;
-    double[] q;
+    double[] q_win;
+    double[] q_health;
     int[] n;
     State[] ns;
     int total_n;
-    double total_q;
+    double total_q_win;
+    double total_q_health;
     float[] policy;
 
     @Override public boolean equals(Object o) {
@@ -264,7 +266,8 @@ public class GameState implements State {
 
         // mcts related fields
         policy = null;
-        q = new double[prop.maxNumOfActions];
+        q_win = new double[prop.maxNumOfActions];
+        q_health = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
         transpositions_policy_mask = new boolean[prop.maxNumOfActions];
@@ -383,7 +386,8 @@ public class GameState implements State {
         thornLoseEOT = other.thornLoseEOT;
 
         policy = null;
-        q = new double[prop.maxNumOfActions];
+        q_health = new double[prop.maxNumOfActions];
+        q_win = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
         transpositions_policy_mask = new boolean[prop.maxNumOfActions];
@@ -624,17 +628,18 @@ public class GameState implements State {
         return false;
     }
 
-    double get_v() {
+    void get_v(double[] out) {
         if (player.health <= 0 || turn_num > 30) {
-            return 0;
+            out[0] = 0;
+            out[1] = 0;
         } else {
             if (enemies.stream().allMatch((x) -> x.health <= 0)) {
-                return 0.5 + 0.5 * ((double) player.health) / player.maxHealth;
-                //                  return ((double) player.health) / player.maxHealth;
+                out[0] = 1;
+                out[1] = ((double) player.health) / player.maxHealth;
             }
         }
-        return 0.5 * v_win + 0.5 * v_health;
-        //          return v_health;
+        out[0] = v_win;
+        out[1] = v_health;
     }
 
     int isTerminal() {
@@ -685,15 +690,19 @@ public class GameState implements State {
             str.append(']');
         }
         str.append(", q=[");
-        for (int i = 0; i < q.length; i++) {
-            str.append(format_float(n[i] == 0 ? 0 : q[i] / n[i]));
-            if (i != q.length - 1) {
+        for (int i = 0; i < q_win.length; i++) {
+            str.append(format_float(n[i] == 0 ? 0 : calc_q(q_win[i], q_health[i]) / n[i]));
+            if (i != q_win.length - 1) {
                 str.append(", ");
             }
         }
         str.append(']');
         str.append(", n=").append(Arrays.toString(n)).append('}');
         return str.toString();
+    }
+
+    public static double calc_q(double q_win, double q_health) {
+        return q_win * 0.5 + q_health * 0.5;
     }
 
     public String toStringReadable() {
@@ -748,17 +757,19 @@ public class GameState implements State {
         }
         str.append("]");
         str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.maxHealth)).append(")");
-        str.append(", p/q/n=[");
+        str.append(", q/p/n=[");
         first = true;
-        for (int i = 0; i < q.length; i++) {
+        for (int i = 0; i < q_win.length; i++) {
             var p_str = policy != null ? format_float(policy[i]) : "0";
-            var q_str = format_float(n[i] == 0 ? 0 : q[i] / n[i]);
+            var q_win_str = format_float(n[i] == 0 ? 0 : q_win[i] / n[i]);
+            var q_health_str = format_float(n[i] == 0 ? 0 : q_health[i] / n[i]);
+            var q_str = format_float(n[i] == 0 ? 0 : calc_q(q_win[i] / n[i], q_health[i] / n[i]));
             if (isActionLegal(i)) {
                 if (!first) {
                     str.append(", ");
                 }
                 first = false;
-                str.append(p_str).append('/').append(q_str).append('/').append(n[i]);
+                str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/').append(p_str).append('/').append(n[i]);
                 str.append(" (").append(getActionString(i)).append(")");
             }
         }

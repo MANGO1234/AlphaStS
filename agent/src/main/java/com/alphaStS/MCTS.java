@@ -12,15 +12,17 @@ import static java.lang.Math.sqrt;
 public class MCTS {
     Model model;
     int numberOfPossibleActions;
-    double v_win;
+    double[] v;
 
     void setModel(Model model) {
+        v = new double[2];
         this.model = model;
     }
 
-    double search(GameState state, boolean training, int remainingCalls, boolean isRoot) {
+    void search(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
-            return state.get_v();
+            state.get_v(v);
+            return;
         }
 
         if (state.policy == null) {
@@ -36,14 +38,14 @@ public class MCTS {
 
         int action = 0;
         int numberOfActions = 0;
-        double v;
         double maxU = -1000000;
         for (int i = 0; i < state.prop.maxNumOfActions; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
             numberOfActions += 1;
-            double u = (state.n[i] > 0 ? state.q[i] / state.n[i] : 0) + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
+            double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : 0;
+            double u = q + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
             if (u > maxU) {
                 action = i;
                 maxU = u;
@@ -53,7 +55,7 @@ public class MCTS {
         State nextState = state.ns[action];
         GameState state2;
         if (nextState == null) {
-            state2 = new GameState((GameState) state);
+            state2 = new GameState(state);
             state2.doAction(action);
             if (state2.isStochastic) {
                 var cState = new ChanceState(state2);
@@ -61,24 +63,26 @@ public class MCTS {
                 if (state2.policy == null) {
                     state2.doEval(model);
                 }
-                v = state2.get_v();
+                state2.get_v(v);
             } else {
                 // state.ns[action] = state2;
                 // if (state2.policy == null) {
                 //     state2.doEval(model);
                 // }
-                // v = state2.get_v();
+                // state2.get_v(v);
                 if (state.transpositions.get(state2) == null) {
                     state.ns[action] = state2;
                     if (state2.policy == null) {
                         state2.doEval(model);
                     }
-                    v = state2.get_v();
+                    state2.get_v(v);
                     state.transpositions.put(state2, state2);
                 } else {
                     state.ns[action] = state.transpositions.get(state2);
                     var s = ((GameState) state.ns[action]);
-                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
+                    s.get_v(v);
+                    v[0] = (s.total_q_win + v[0]) / (s.total_n + 1);
+                    v[1] = (s.total_q_health + v[1]) / (s.total_n + 1);
                     state.transpositions_policy_mask[action] = true;
                 }
             }
@@ -87,27 +91,29 @@ public class MCTS {
                 state2 = cState.getNextState(state, action);
                 if (state2.policy == null) {
                     state2.doEval(model);
-                    v = state2.get_v();
+                    state2.get_v(v);
                 } else {
-                    v = this.search(state2, training, remainingCalls, false);
+                    this.search(state2, training, remainingCalls, false);
                 }
             } else {
                 if (state.transpositions_policy_mask[action] && state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
                     var s = ((GameState) state.ns[action]);
-//                    v = (s.total_q + s.get_v()) / (s.total_n + 1);
-                    v = ((s.total_q + s.get_v()) / (s.total_n + 1) * (state.n[action] + 1) - state.q[action]);
+                    s.get_v(v);
+                    v[0] = (s.total_q_win + v[0]) / (s.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
+                    v[1] = (s.total_q_health + v[1]) / (s.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
                 } else {
-                    v = this.search((GameState) nextState, training, remainingCalls, false);
+                    this.search((GameState) nextState, training, remainingCalls, false);
                 }
             }
         }
 
-        state.q[action] += v;
+        state.q_win[action] += v[0];
+        state.q_health[action] += v[1];
         state.n[action] += 1;
         state.total_n += 1;
-        state.total_q += v;
+        state.total_q_win += v[0];
+        state.total_q_health += v[1];
         this.numberOfPossibleActions = numberOfActions;
-        return v;
     }
 
     private float[] applyFutileSearchPruning(GameState state, float[] policy, int remainingCalls) {

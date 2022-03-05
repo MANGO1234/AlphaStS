@@ -455,7 +455,8 @@ public class Main {
                                 break;
                             }
                             System.out.println("  " + (++move_i) + ". " + s.getActionString(max_i) +
-                                    " (" + max_n + ", " + (s.q[max_i] / max_n + ")"));
+                                    " (" + max_n + ", " + GameState.calc_q(s.q_win[max_i] / max_n, s.q_health[max_i] / max_n) + ", "  +
+                                    (s.q_win[max_i] / max_n) + ", " + (s.q_health[max_i] / max_n) + ")");
                             State ns = s.ns[max_i];
                             if (ns instanceof ChanceState cState) {
                                 break;
