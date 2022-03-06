@@ -98,6 +98,15 @@ public class Model {
             float v_health = ((float[][]) output.get(0).getValue())[0][0];
             float v_win = ((float[][]) output.get(1).getValue())[0][0];
             float[] policy = ((float[][]) output.get(2).getValue())[0];
+            if (state.prop.maxNumOfActions != state.prop.totalNumOfActions) {
+                if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                    float[] newPolicy = new float[state.prop.maxNumOfActions];
+                    Utils.arrayCopy(newPolicy, policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length, state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length);
+                    policy = newPolicy;
+                } else {
+                    policy = Arrays.copyOf(policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
+                }
+            }
             for (int i = 0; i < policy.length; i++) {
                 if (!state.isActionLegal(i)) {
                     policy[i] = -1000;
