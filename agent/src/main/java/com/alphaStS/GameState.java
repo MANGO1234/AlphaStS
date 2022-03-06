@@ -643,10 +643,12 @@ public class GameState implements State {
         if (player.health <= 0 || turn_num > 30) {
             out[0] = 0;
             out[1] = 0;
+            return;
         } else {
             if (enemies.stream().allMatch((x) -> x.health <= 0)) {
                 out[0] = 1;
                 out[1] = ((double) player.health) / player.maxHealth;
+                return;
             }
         }
         out[0] = v_win;

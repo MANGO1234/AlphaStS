@@ -928,6 +928,8 @@ abstract class Enemy {
                 return "Attack " + state.player.calcDamage(18 + strength);
             } else if (move == LICK) {
                 return "Weak 2";
+            } else if (move == SPLIT) {
+                return "Split";
             }
             return "Unknown";
         }

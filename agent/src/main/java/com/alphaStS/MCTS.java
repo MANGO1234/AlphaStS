@@ -22,6 +22,9 @@ public class MCTS {
     void search(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
             state.get_v(v);
+//            if (state.isTerminal() > 0) {
+//                System.out.println(v[0] + "," + v[1] + "," + state.isTerminal() + ","+state.player.health +","+state.player.maxHealth);
+//            }
             return;
         }
 
@@ -111,6 +114,20 @@ public class MCTS {
         state.q_health[action] += v[1];
         state.n[action] += 1;
         state.total_n += 1;
+//        float max_n = -1000;
+//        int max_n_i = 0;
+//        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+//            if (state.isActionLegal(i)) {
+//                if (state.n[i] > max_n) {
+//                    max_n = state.n[i];
+//                    max_n_i = i;
+//                }
+//            }
+//        }
+//        double q_win_total = state.q_win[max_n_i] / state.n[max_n_i] * state.total_n;
+//        double q_health_total = state.q_health[max_n_i] / state.n[max_n_i] * state.total_n;
+//        v[0] = q_win_total - state.total_q_win;
+//        v[1] = q_health_total - state.total_q_health;
         state.total_q_win += v[0];
         state.total_q_health += v[1];
         this.numberOfPossibleActions = numberOfActions;

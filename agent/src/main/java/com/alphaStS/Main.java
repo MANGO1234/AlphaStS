@@ -80,7 +80,6 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-//        var state = BasicGremlinNobState();
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
         cards.add(new CardCount(new Card.Strike(), 5));
@@ -105,6 +104,7 @@ public class Main {
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
         var state = new GameState(enemies, new Player(47, 75), cards, relics);
+//        state = BasicSentriesState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -152,7 +152,7 @@ public class Main {
             return;
         }
         if (TMP_DIR.equals("../tmp")) {
-            ITERATION_COUNT = 6000;
+            ITERATION_COUNT = 100;
         }
 
         if (PLAY_A_GAME) {
