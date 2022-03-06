@@ -133,6 +133,9 @@ abstract class Enemy {
     }
 
     public void applyDebuff(DebuffType type, int amount) {
+        if (health <= 0) {
+            return;
+        }
         if (artifact > 0) {
             artifact--;
             return;

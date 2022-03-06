@@ -10,6 +10,7 @@ public class MatchSession {
     long totalDamageTaken = 0;
     long deathCount = 0;
     boolean logGame;
+    int startingAction;
     int game_i = 0;
     MCTS mcts;
     String logDir;
@@ -23,12 +24,16 @@ public class MatchSession {
         this.origState = state;
         states = new ArrayList<GameStep>();
         logDir = tmpDir;
+        startingAction = -1;
     }
 
     public void playGame(int nodeCount) {
-        var state = new GameState(origState);
+        var state = origState.clone(false);
+        state.transpositions = new HashMap<>();
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
+        } else if (state.actionCtx == GameActionCtx.PLAY_CARD && startingAction >= 0) {
+            state.doAction(startingAction);
         }
         state.doEval(mcts.model);
         states.clear();
@@ -90,7 +95,7 @@ public class MatchSession {
     }
 
     public void playTrainingGame(int nodeCount) throws IOException {
-        var state = new GameState(origState);
+        var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
         }

@@ -93,17 +93,21 @@ public class Main {
         cards.add(new CardCount(new Card.ShockwaveP(), 1));
         cards.add(new CardCount(new Card.ShrugItOff(), 1));
         cards.add(new CardCount(new Card.FlameBarrierP(), 1));
+        cards.add(new CardCount(new Card.SpotWeakness(), 1));
         var enemies = new ArrayList<Enemy>();
-//        enemies.add(new Enemy.GremlinNob());
-        enemies.add(new Enemy.Sentry(Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.Sentry(Enemy.Sentry.BEAM));
-        enemies.add(new Enemy.Sentry(Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.SlimeBoss());
+        enemies.add(new Enemy.LargeSpikeSlime(75, true));
+        enemies.add(new Enemy.LargeAcidSlime(75, true));
+        enemies.add(new Enemy.MediumSpikeSlime(37, true));
+        enemies.add(new Enemy.MediumSpikeSlime(37, true));
+        enemies.add(new Enemy.MediumAcidSlime(37, true));
+        enemies.add(new Enemy.MediumAcidSlime(37, true));
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
-        var state = new GameState(enemies, new Player(29, 75), cards, relics);
+        var state = new GameState(enemies, new Player(47, 75), cards, relics);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
+            System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
             return;
         }
 
@@ -239,8 +243,22 @@ public class Main {
                     }
                     writer.writeFloat(v);
                     writer.writeFloat(v_win);
-                    for (int j = 0; j < state.prop.maxNumOfActions; j++) {
-                        writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                    for (int j = 0; j < state.prop.totalNumOfActions; j++) {
+                        if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
+                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                                writer.writeFloat(0);
+                            } else {
+                                assert !state.isActionLegal(j) || state.n[j] > 0;
+                                writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                            }
+                        } else {
+                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                                assert !state.isActionLegal(j) || state.n[j] > 0;
+                                writer.writeFloat((float) (((double) state.n[j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length]) / state.total_n));
+                            } else {
+                                writer.writeFloat(0);
+                            }
+                        }
                     }
                 }
             }
@@ -385,7 +403,7 @@ public class Main {
                 if (line.equals("e")) {
                     states.add(state);
                     state.clearNextStates();
-                    state = new GameState(state);
+                    state = state.clone(false);
                     for (int i = 0; i < state.prop.maxNumOfActions; i++) {
                         if (state.isActionLegal(i) && state.getAction(i).type() == GameActionType.END_TURN) {
                             state.doAction(i);
@@ -565,9 +583,27 @@ public class Main {
                 } else if (line.equals("tree")) {
                     MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
                     continue;
-                } else if (line.equals("matches")) {
+                } else if (line.startsWith("matches")) {
                     MatchSession session = new MatchSession(state, "../tmp");
                     session.logGame = false;
+                    if (line.startsWith("matches ")) {
+                        try {
+                            int action;
+                            if (line.substring(8).equals("e")) {
+                                action = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+                            } else {
+                                action = Integer.parseInt(line.substring(8));
+                            }
+                            if (state.isActionLegal(action)) {
+                                session.startingAction = action;
+                            }
+                        } catch (NumberFormatException e) {
+                            // do nothing
+                        }
+                        if (session.startingAction < 0) {
+                            System.out.println("Unknown action.");
+                        }
+                    }
                     long start = System.currentTimeMillis();
                     for (int i = 0; i < 100; i++) {
                         session.playGame(1000);
@@ -590,7 +626,7 @@ public class Main {
                     if (state.isActionLegal(action)) {
                         states.add(state);
                         state.clearNextStates();
-                        state = new GameState(state);
+                        state = state.clone(false);
                         state.doAction(action);
                         continue;
                     }

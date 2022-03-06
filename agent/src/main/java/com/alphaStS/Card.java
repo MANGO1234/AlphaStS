@@ -1380,7 +1380,7 @@ abstract class Card {
 
         public void play(GameState state, int idx) {
             if (state.enemies.get(idx).getMoveString(state).contains("Attack")) {
-                state.enemies.get(idx).strength += 4;
+                state.player.gainStrength(3);
             }
         }
 
@@ -1398,7 +1398,7 @@ abstract class Card {
 
         public void play(GameState state, int idx) {
             if (state.enemies.get(idx).getMoveString(state).contains("Attack")) {
-                state.enemies.get(idx).strength += 4;
+                state.player.gainStrength(4);
             }
         }
 

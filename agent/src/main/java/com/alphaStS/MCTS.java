@@ -55,7 +55,7 @@ public class MCTS {
         State nextState = state.ns[action];
         GameState state2;
         if (nextState == null) {
-            state2 = new GameState(state);
+            state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
                 var cState = new ChanceState(state2);

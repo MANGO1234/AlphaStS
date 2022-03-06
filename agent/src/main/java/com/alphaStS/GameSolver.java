@@ -8,7 +8,7 @@ public class GameSolver {
     HashMap<InputHash, GameState> nodes;
 
     public GameSolver(GameState origState) {
-        this.origState = new GameState(origState);
+        this.origState = origState.clone(false);
         nodes = new HashMap<>();
     }
 
@@ -43,7 +43,7 @@ public class GameSolver {
                         continue;
                     }
                 }
-                GameState s = new GameState(state);
+                GameState s = state.clone(false);
                 s.doAction(i);
                 if (s.isStochastic) {
                     ChanceState cState = new ChanceState();
@@ -99,7 +99,7 @@ public class GameSolver {
 
     private void generateAllPossibilities(ChanceState cState, GameState state, int action) {
         if (state.getAction(action).type() == GameActionType.END_TURN || state.actionCtx == GameActionCtx.START_GAME) {
-            var m_state = new GameState(state);
+            var m_state = state.clone(false);
             m_state.discardHand();
             int toDraw = 5;
             if (m_state.deckArrLen < toDraw) {
@@ -107,7 +107,7 @@ public class GameSolver {
                 toDraw -= m_state.deckArrLen;
                 m_state.reshuffle();
             }
-            var mm = new GameState(m_state);
+            var mm = m_state.clone(false);
             cState.total_n = factorials[m_state.deckArrLen] / factorials[m_state.deckArrLen - toDraw] / factorials[toDraw];
             gen_draw(cState, state, m_state, toDraw, action, 0, 1);
             if (cState.cache.size() == 0) {
@@ -124,7 +124,7 @@ public class GameSolver {
 
     private void gen_draw(ChanceState cState, GameState state, GameState m_state, int toDraw, int action, int i, long n) {
         if (toDraw == 0) {
-            var newState = new GameState(state);
+            var newState = state.clone(false);
             newState.doAction(action);
             newState.hand = Arrays.copyOf(m_state.hand, m_state.hand.length);
             newState.deck = Arrays.copyOf(m_state.deck, m_state.deck.length);

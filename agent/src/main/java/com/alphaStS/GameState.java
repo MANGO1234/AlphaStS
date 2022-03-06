@@ -222,7 +222,9 @@ public class GameState implements State {
         for (int i = 0; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null) {
                 prop.maxNumOfActions = Math.max(prop.maxNumOfActions, prop.actionsByCtx[i].length);
-                prop.totalNumOfActions += prop.actionsByCtx[i].length;
+                if (i == GameActionCtx.PLAY_CARD.ordinal() || i == GameActionCtx.SELECT_ENEMY.ordinal()) {
+                    prop.totalNumOfActions += prop.actionsByCtx[i].length;
+                }
             }
         }
 
@@ -359,7 +361,7 @@ public class GameState implements State {
         return new ArrayList<>(set);
     }
 
-    public GameState(GameState other) {
+    private GameState(GameState other) {
         prop = other.prop;
 
         actionCtx = other.actionCtx;
@@ -391,7 +393,16 @@ public class GameState implements State {
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
         transpositions_policy_mask = new boolean[prop.maxNumOfActions];
-        transpositions = other.transpositions;
+    }
+
+    public GameState clone(boolean keepTranspositions) {
+        GameState clone = new GameState(this);
+        if (keepTranspositions) {
+            clone.transpositions = transpositions;
+        } else {
+            clone.transpositions = new HashMap<>();
+        }
+        return clone;
     }
 
     void draw(int count) {
@@ -1110,6 +1121,7 @@ public class GameState implements State {
         for (int i = 0; i < ns.length; i++) {
             ns[i] = null;
         }
+        transpositions = new HashMap<>();
     }
 
     public void gainEnergy(int n) {
@@ -1220,7 +1232,7 @@ class ChanceState implements State {
     }
 
     GameState getNextState(GameState parentState, int action) {
-        var state = new GameState(parentState);
+        var state = parentState.clone(false);
         state.doAction(action);
         total_n += 1;
         var node = cache.get(state);
