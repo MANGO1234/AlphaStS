@@ -107,7 +107,7 @@ public class Main {
 //        state = BasicSentriesState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
+            System.out.print(state.getInput().length + "," + state.prop.maxNumOfActions);
             return;
         }
 
@@ -243,22 +243,8 @@ public class Main {
                     }
                     writer.writeFloat(v);
                     writer.writeFloat(v_win);
-                    for (int j = 0; j < state.prop.totalNumOfActions; j++) {
-                        if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
-                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                                writer.writeFloat(0);
-                            } else {
-                                assert !state.isActionLegal(j) || state.n[j] > 0;
-                                writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
-                            }
-                        } else {
-                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                                assert !state.isActionLegal(j) || state.n[j] > 0;
-                                writer.writeFloat((float) (((double) state.n[j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length]) / state.total_n));
-                            } else {
-                                writer.writeFloat(0);
-                            }
-                        }
+                    for (int j = 0; j < state.prop.maxNumOfActions; j++) {
+                        writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
                     }
                 }
             }

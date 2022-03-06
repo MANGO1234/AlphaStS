@@ -222,9 +222,7 @@ public class GameState implements State {
         for (int i = 0; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null) {
                 prop.maxNumOfActions = Math.max(prop.maxNumOfActions, prop.actionsByCtx[i].length);
-                if (i == GameActionCtx.PLAY_CARD.ordinal() || i == GameActionCtx.SELECT_ENEMY.ordinal()) {
-                    prop.totalNumOfActions += prop.actionsByCtx[i].length;
-                }
+                prop.totalNumOfActions += prop.actionsByCtx[i].length;
             }
         }
 
