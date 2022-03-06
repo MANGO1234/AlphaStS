@@ -890,7 +890,7 @@ abstract class Enemy {
                     }
                 }
                 health = 0;
-                state.enemiesAlive += 0;
+                state.enemiesAlive -= 1;
             }
         }
 

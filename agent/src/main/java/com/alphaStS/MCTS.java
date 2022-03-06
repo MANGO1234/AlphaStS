@@ -39,76 +39,86 @@ public class MCTS {
             policy = applyDirichletNoiseToPolicy(state, policy);
         }
 
-        int action = 0;
-        int numberOfActions = 0;
-        double maxU = -1000000;
-        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-            if (policy[i] <= 0) {
-                continue;
-            }
-            numberOfActions += 1;
-            double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : 0;
-            double u = q + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
-            if (u > maxU) {
-                action = i;
-                maxU = u;
-            }
-        }
+        int numberOfActions;
+        int action;
+        do {
+            numberOfActions = 0;
+            action = -1;
+            double maxU = -1000000;
+            v[0] = -1000000;
+            v[1] = -1000000;
 
-        State nextState = state.ns[action];
-        GameState state2;
-        if (nextState == null) {
-            state2 = state.clone(true);
-            state2.doAction(action);
-            if (state2.isStochastic) {
-                var cState = new ChanceState(state2);
-                state.ns[action] = cState;
-                if (state2.policy == null) {
-                    state2.doEval(model);
+            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                if (policy[i] <= 0 || state.transpositions_policy_mask[i]) {
+                    continue;
                 }
-                state2.get_v(v);
-            } else {
-                // state.ns[action] = state2;
-                // if (state2.policy == null) {
-                //     state2.doEval(model);
-                // }
-                // state2.get_v(v);
-                if (state.transpositions.get(state2) == null) {
-                    state.ns[action] = state2;
+                numberOfActions += 1;
+                double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : 0;
+                double u = q + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
+                if (u > maxU) {
+                    action = i;
+                    maxU = u;
+                }
+            }
+
+            if (numberOfActions == 0) {
+                return;
+            }
+
+            State nextState = state.ns[action];
+            GameState state2;
+            if (nextState == null) {
+                state2 = state.clone(true);
+                state2.doAction(action);
+                if (state2.isStochastic) {
+                    var cState = new ChanceState(state2);
+                    state.ns[action] = cState;
                     if (state2.policy == null) {
                         state2.doEval(model);
                     }
                     state2.get_v(v);
-                    state.transpositions.put(state2, state2);
                 } else {
-                    state.ns[action] = state.transpositions.get(state2);
-                    var s = ((GameState) state.ns[action]);
-                    s.get_v(v);
-                    v[0] = (s.total_q_win + v[0]) / (s.total_n + 1);
-                    v[1] = (s.total_q_health + v[1]) / (s.total_n + 1);
-                    state.transpositions_policy_mask[action] = true;
-                }
-            }
-        } else {
-            if (nextState instanceof ChanceState cState) {
-                state2 = cState.getNextState(state, action);
-                if (state2.policy == null) {
-                    state2.doEval(model);
-                    state2.get_v(v);
-                } else {
-                    this.search(state2, training, remainingCalls, false);
+                    // state.ns[action] = state2;
+                    // if (state2.policy == null) {
+                    //     state2.doEval(model);
+                    // }
+                    // state2.get_v(v);
+                    if (state.transpositions.get(state2) == null) {
+                        state.ns[action] = state2;
+                        if (state2.policy == null) {
+                            state2.doEval(model);
+                        }
+                        state2.get_v(v);
+                        state.transpositions.put(state2, state2);
+                    } else {
+                        //                    state.ns[action] = state.transpositions.get(state2);
+                        //                    var s = ((GameState) state.ns[action]);
+                        //                    s.get_v(v);
+                        //                    v[0] = (s.total_q_win + v[0]) / (s.total_n + 1);
+                        //                    v[1] = (s.total_q_health + v[1]) / (s.total_n + 1);
+                        //                    state.transpositions_policy_mask[action] = true;
+                    }
                 }
             } else {
-                if (state.transpositions_policy_mask[action] && state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
-                    var s = ((GameState) state.ns[action]);
-                    s.get_v(v);
-                    v[0] = (s.total_q_win + v[0]) / (s.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
-                    v[1] = (s.total_q_health + v[1]) / (s.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
+                if (nextState instanceof ChanceState cState) {
+                    state2 = cState.getNextState(state, action);
+                    if (state2.policy == null) {
+                        state2.doEval(model);
+                        state2.get_v(v);
+                    } else {
+                        this.search(state2, training, remainingCalls, false);
+                    }
                 } else {
                     this.search((GameState) nextState, training, remainingCalls, false);
                 }
             }
-        }
+
+            if (v[0] > -1000000) {
+                break;
+            } else {
+                state.transpositions_policy_mask[action] = true;
+            }
+        } while (true);
 
         state.q_win[action] += v[0];
         state.q_health[action] += v[1];
