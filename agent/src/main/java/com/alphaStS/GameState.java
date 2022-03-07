@@ -1211,6 +1211,10 @@ class InputHash {
 }
 
 class ChanceState implements State {
+    public long getCount(GameState state) {
+        return cache.get(state).n;
+    }
+
     static class Node {
         GameState state;
         long n = 1;

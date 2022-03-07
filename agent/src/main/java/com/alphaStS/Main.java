@@ -152,7 +152,7 @@ public class Main {
             return;
         }
         if (TMP_DIR.equals("../tmp")) {
-            ITERATION_COUNT = 100;
+            ITERATION_COUNT = 500;
         }
 
         if (PLAY_A_GAME) {
@@ -226,17 +226,6 @@ public class Main {
                 float v_win = lastState.isTerminal() == 1 ? 1.0f : 0.0f;
                 for (int i = game.size() - 2; i >= 0; i--) {
                     state = game.get(i).state();
-//                    if (state.isStochastic && i > 0) {
-//                        var prevState = game.get(i - 1).state();
-//                        var prevAction = game.get(i - 1).action();
-//                        ChanceState cState = new ChanceState(state);
-//                        for (int j = 0; j < 999; j++) {
-//                            cState.getNextState(prevState, prevAction);
-//                        }
-//                        float p = ((float) cState.getCount(state)) / cState.total_n;
-//                        v = v * p + (float) state.v_health * (1 - p);
-//                        v_win = v_win * p + (float) state.v_win * (1 - p);
-//                    }
                     var x = state.getInput();
                     for (int j = 0; j < x.length; j++) {
                         writer.writeFloat(x[j]);
@@ -259,6 +248,17 @@ public class Main {
                                 writer.writeFloat(0);
                             }
                         }
+                    }
+                    if (state.isStochastic && i > 0) {
+                        var prevState = game.get(i - 1).state();
+                        var prevAction = game.get(i - 1).action();
+                        ChanceState cState = new ChanceState(state);
+                        for (int j = 0; j < 2000 - cState.total_n; j++) {
+                            cState.getNextState(prevState, prevAction);
+                        }
+                        float p = ((float) cState.getCount(state)) / cState.total_n;
+                        v = v * p + (float) state.v_health * (1 - p);
+                        v_win = v_win * p + (float) state.v_win * (1 - p);
                     }
                 }
             }
