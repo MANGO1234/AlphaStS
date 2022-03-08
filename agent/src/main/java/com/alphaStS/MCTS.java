@@ -73,6 +73,10 @@ public class MCTS {
                 state2.doAction(action);
                 if (state2.isStochastic) {
                     var cState = new ChanceState(state2);
+//                    var cState2 = new ChanceState(state2);
+//                    for (int i = 0; i < 2000; i++) {
+//                        cState2.getNextState(state, action);
+//                    }
                     state.ns[action] = cState;
                     if (state2.policy == null) {
                         state2.doEval(model);

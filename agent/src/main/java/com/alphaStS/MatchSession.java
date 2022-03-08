@@ -9,21 +9,23 @@ record GameStep(GameState state, int action) {
 public class MatchSession {
     long totalDamageTaken = 0;
     long deathCount = 0;
-    boolean logGame;
+    Writer matchLogWriter;
+    Writer trainingDataWriter;
     int startingAction;
     int game_i = 0;
+    int trainingGame_i = 0;
     MCTS mcts;
     String logDir;
     GameState origState;
     List<GameStep> states;
 
-    public MatchSession(GameState state, String tmpDir) {
-        Model model = new Model(tmpDir);
+    public MatchSession(GameState state, String dir) {
+        Model model = new Model(dir);
         mcts = new MCTS();
         mcts.setModel(model);
         this.origState = state;
         states = new ArrayList<GameStep>();
-        logDir = tmpDir;
+        logDir = dir;
         startingAction = -1;
     }
 
@@ -75,20 +77,20 @@ public class MatchSession {
         }
         totalDamageTaken += state.player.origHealth - state.player.health;
         game_i += 1;
-        if (logGame) {
-            try (FileWriter writer = new FileWriter(logDir + "/matches.txt", true)) {
-                writer.write("*** Match " + game_i + " ***\n");
-                writer.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                writer.write("Damage Taken: " + (origState.player.origHealth - state.player.health) + "\n");
+        if (matchLogWriter != null) {
+            try {
+                matchLogWriter.write("*** Match " + game_i + " ***\n");
+                matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+                matchLogWriter.write("Damage Taken: " + (origState.player.origHealth - state.player.health) + "\n");
                 for (GameStep step : states) {
-                    writer.write(step.state().toStringReadable() + "\n");
+                    matchLogWriter.write(step.state().toStringReadable() + "\n");
                     if (step.action() >= 0) {
-                        writer.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+                        matchLogWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
                     }
                 }
-                writer.write("\n");
-                writer.write("\n");
-            } catch (Exception e) {
+                matchLogWriter.write("\n");
+                matchLogWriter.write("\n");
+            } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -148,8 +150,63 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
-            state = newState;
+            state = newState.clone(false);
         }
         states.add(new GameStep(state, -1));
+        trainingGame_i += 1;
+        if (trainingDataWriter != null) {
+            try {
+                trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
+                trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+                trainingDataWriter.write("Damage Taken: " + (origState.player.origHealth - state.player.health) + "\n");
+                for (GameStep step : states) {
+                    trainingDataWriter.write(step.state().toStringReadable() + "\n");
+                    if (step.action() >= 0) {
+                        trainingDataWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+                    }
+                }
+                trainingDataWriter.write("\n");
+                trainingDataWriter.write("\n");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void setMatchLogFile(String fileName) {
+        try {
+            File file = new File(logDir + "/" + fileName);
+            file.delete();
+            matchLogWriter = new BufferedWriter(new FileWriter(logDir + "/" + fileName, true));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setTrainingDataLogFile(String fileName) {
+        try {
+            File file = new File(logDir + "/" + fileName);
+            file.delete();
+            trainingDataWriter = new BufferedWriter(new FileWriter(logDir + "/" + fileName, true));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void flushFileWriters() {
+        try {
+            if (matchLogWriter != null) {
+                matchLogWriter.flush();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            if (trainingDataWriter != null) {
+                trainingDataWriter.flush();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
