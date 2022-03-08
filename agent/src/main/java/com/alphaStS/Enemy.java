@@ -146,7 +146,7 @@ abstract class Enemy {
         }
     }
 
-    public void randomize(Random random) {
+    public void randomize(Random random, boolean training) {
     }
 
     @Override public boolean equals(Object o) {
@@ -227,7 +227,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             int b = random.nextInt(10) + 1;
             if (b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -324,7 +324,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             int b = random.nextInt(10) + 1;
             if (b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -392,9 +392,9 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             int b = random.nextInt(4) + 1;
-            if (b < 4) {
+            if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
             } else {
                 health = 39 + random.nextInt(7);
@@ -489,7 +489,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             int b = random.nextInt(25) + 1;
             health = 264 * b / 25;
         }
@@ -584,7 +584,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             int b = random.nextInt(15) + 1;
             health = 10 * b;
             if (health <= maxHealth / 2) {
@@ -696,7 +696,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 67 + random.nextInt(7);
         }
 
@@ -770,7 +770,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 29 + random.nextInt(6);
         }
 
@@ -814,7 +814,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 11 + random.nextInt(5);
         }
 
@@ -934,7 +934,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 68 + random.nextInt(5);
         }
 
@@ -1020,7 +1020,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 29 + random.nextInt(6);
         }
 
@@ -1076,7 +1076,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 9 + random.nextInt(5);
         }
 
@@ -1157,7 +1157,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 42 + random.nextInt(5);
         }
 
@@ -1246,7 +1246,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 11 + random.nextInt(6);
         }
 
@@ -1334,7 +1334,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 12 + random.nextInt(7);
         }
 
@@ -1421,7 +1421,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 24 + random.nextInt(5);
         }
 
@@ -1496,7 +1496,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random) {
+        public void randomize(Random random, boolean training) {
             health = 46 + random.nextInt(5);
         }
 

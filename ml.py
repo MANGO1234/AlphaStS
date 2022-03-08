@@ -163,10 +163,12 @@ if training_info['iteration'] >= SLOW_WINDOW_END:
 
 if DO_TRAINING:
     for _iterations in range(0, ITERATION_COUNT):
+        agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', './saves']
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
-            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '100', '-n', '500', '-t', '-dir', './saves'], capture_output=True)
-        else:
-            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', './saves'], capture_output=True)
+            agent_args += ['-tm', '-c', '100', '-n', '500']
+        if training_info['iteration'] < SLOW_WINDOW_END:
+            agent_args += ['-slow']
+        agent_output = subprocess.run(agent_args, capture_output=True)
         if len(agent_output.stderr) > 0:
             print(agent_output.stderr.decode('ascii'))
             raise "agent error"

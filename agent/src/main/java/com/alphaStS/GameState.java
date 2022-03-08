@@ -62,7 +62,7 @@ public class GameState implements State {
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
 
     boolean isStochastic;
-    Map<State, State> transpositions;
+    Map<GameState, GameState> transpositions;
     boolean[] transpositions_policy_mask;
     GameProperties prop;
     private boolean[] actionsCache;
@@ -1102,7 +1102,11 @@ public class GameState implements State {
         } else if (action.type() == GameActionType.END_TURN) {
             return "End Turn";
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
-            return "Attack " + enemies.get(action.enemyIdx()).getName();
+            if (enemiesAlive > 1) {
+                return "Attack " + enemies.get(action.enemyIdx()).getName() + "(" + action.enemyIdx() + ")";
+            } else {
+                return "Attack " + enemies.get(action.enemyIdx()).getName();
+            }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             return "Select " + prop.cardDict[action.cardIdx()].cardName + " From Hand";
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {

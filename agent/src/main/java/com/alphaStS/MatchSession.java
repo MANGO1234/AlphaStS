@@ -58,7 +58,6 @@ public class MatchSession {
                     max_n = state.n[i];
                 }
             }
-
             GameState newState;
             if (nextState instanceof ChanceState cState) {
                 newState = cState.getNextState(state, action);
@@ -104,7 +103,7 @@ public class MatchSession {
         Random random = state.prop.random;
         for (Enemy enemy : state.enemies) {
             if (enemy.health > 0) {
-                enemy.randomize(random);
+                enemy.randomize(random, true);
             }
         }
 
@@ -150,7 +149,7 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
-            state = newState.clone(false);
+            state = newState;
         }
         states.add(new GameStep(state, -1));
         trainingGame_i += 1;

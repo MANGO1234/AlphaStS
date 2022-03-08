@@ -120,6 +120,7 @@ public class Main {
         boolean TEST_AGENT_FITNESS = false;
         boolean PLAY_MATCHES = false;
         boolean PLAY_A_GAME = false;
+        boolean SLOW_TRAINING_WINDOW = false;
         int MATCHES_COUNT = 5;
         int NODE_COUNT = 1000;
         String SAVES_DIR = "../saves";
@@ -148,20 +149,24 @@ public class Main {
                 SAVES_DIR = args[i + 1];
                 i++;
             }
+            if (args[i].equals("-slow")) {
+                SLOW_TRAINING_WINDOW = true;
+            }
         }
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
+        if (SAVES_DIR.equals("../saves")) {
+            MATCHES_COUNT = 10;
+            NODE_COUNT = 5000;
+            iteration = 22;
+        }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
             interactiveStart(state, curIterationDir);
             return;
-        }
-        if (SAVES_DIR.equals("../saves")) {
-            MATCHES_COUNT = 200;
-            NODE_COUNT = 100;
         }
 
         if (PLAY_A_GAME) {
@@ -202,7 +207,7 @@ public class Main {
             long start = System.currentTimeMillis();
             var games = new ArrayList<List<GameStep>>();
             for (int i = 0; i < 200; i++) {
-                session.playTrainingGame(50);
+                session.playTrainingGame(100);
                 games.add(List.copyOf(session.states));
                 for (GameStep step : session.states) {
                     step.state().clearNextStates();
@@ -262,7 +267,7 @@ public class Main {
                             }
                         }
                     }
-                    if (state.isStochastic && i > 0) {
+                    if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
                         var prevState = game.get(i - 1).state();
                         var prevAction = game.get(i - 1).action();
                         ChanceState cState = new ChanceState(state);
