@@ -163,8 +163,8 @@ public class Main {
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.equals("../saves")) {
             MATCHES_COUNT = 200;
-            NODE_COUNT = 500;
-//            iteration = 22;
+            NODE_COUNT = 5000;
+            iteration = 18;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
@@ -293,10 +293,10 @@ public class Main {
                         est_v_win /= (cState.total_n - cState.getCount(state));
                         est_v_health /= (cState.total_n - cState.getCount(state));
                         float p = ((float) cState.getCount(state)) / cState.total_n;
-//                        System.out.println(p + "/" + prevState.v_win + "/" + (v_win * p + est_v_win) + "/" + prevState.v_win * (1 - ((float) cState.getCount(state)) / cState.total_n) + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
-//                        System.out.println(p + "/" + prevState.v_health + "/" + (v_health * p + est_v_health) + "/" + prevState.v_health * (1 - ((float) cState.getCount(state)) / cState.total_n) + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
-                        v_win = v_win * p + (float) est_v_win;
-                        v_health = v_health * p + (float) est_v_health;
+                        // System.out.println(p + "/" + prevState.v_win + "/" + (v_win * p + est_v_win) + "/" + prevState.v_win * (1 - ((float) cState.getCount(state)) / cState.total_n) + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
+                        // System.out.println(p + "/" + prevState.v_health + "/" + (v_health * p + est_v_health) + "/" + prevState.v_health * (1 - ((float) cState.getCount(state)) / cState.total_n) + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
+                        v_win = Math.min(v_win * p + (float) est_v_win, 1);
+                        v_health = Math.min(v_health * p + (float) est_v_health, 1);
 //                        v_win = v_win * p + (float) prevState.v_win * (1 - p);
 //                        v_health = v_health * p + (float) prevState.v_health * (1 - p);
                     }
