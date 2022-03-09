@@ -586,7 +586,7 @@ abstract class Enemy {
 
         public void randomize(Random random, boolean training) {
             int b = random.nextInt(15) + 1;
-            health = 10 * b;
+            health = 10 * (training ? b : 15);
             if (health <= maxHealth / 2) {
                 move = SPLIT;
             }

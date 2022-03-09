@@ -406,9 +406,9 @@ public class GameState implements State {
     }
 
     void draw(int count) {
-        if (deckArrLen != count) { // todo: add discard count too
+//        if (deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
             isStochastic = true;
-        }
+//        }
         int cardsInHand = 0;
         for (int i = 0; i < hand.length; i++) {
             cardsInHand += hand[i];
@@ -721,19 +721,7 @@ public class GameState implements State {
     public String toStringReadable() {
         boolean first;
         StringBuilder str = new StringBuilder("{");
-        str.append("deck=[");
-        first = true;
-        for (int i = 0; i < deck.length; i++) {
-            if (deck[i] > 0) {
-                if (!first) {
-                    str.append(", ");
-                }
-                first = false;
-                str.append(deck[i]).append(" ").append(prop.cardDict[i].cardName);
-            }
-        }
-        str.append("]");
-        str.append(", hand=[");
+        str.append("hand=[");
         first = true;
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
@@ -742,6 +730,18 @@ public class GameState implements State {
                 }
                 first = false;
                 str.append(hand[i]).append(" ").append(prop.cardDict[i].cardName);
+            }
+        }
+        str.append("]");
+        str.append(", deck=[");
+        first = true;
+        for (int i = 0; i < deck.length; i++) {
+            if (deck[i] > 0) {
+                if (!first) {
+                    str.append(", ");
+                }
+                first = false;
+                str.append(deck[i]).append(" ").append(prop.cardDict[i].cardName);
             }
         }
         str.append("]");
@@ -1221,10 +1221,11 @@ class ChanceState implements State {
 
     static class Node {
         GameState state;
-        long n = 1;
+        long n;
 
         public Node(GameState state) {
             this.state = state;
+            n = 1;
         }
     }
 

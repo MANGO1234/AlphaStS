@@ -28,10 +28,12 @@ public class MCTS {
             state.get_v(v);
             return;
         }
-
         if (state.policy == null) {
             state.doEval(model);
+            state.get_v(v);
+            return;
         }
+
         float[] policy = state.policy;
 //        if (!training) {
             policy = applyFutileSearchPruning(state, policy, remainingCalls);
@@ -55,7 +57,7 @@ public class MCTS {
                 }
                 numberOfActions += 1;
                 double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : 0;
-                double u = q + 1 * policy[i] * sqrt(1 + state.total_n) / (1 + state.n[i]);
+                double u = q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]);
                 if (u > maxU) {
                     action = i;
                     maxU = u;
@@ -78,29 +80,18 @@ public class MCTS {
 //                        cState2.getNextState(state, action);
 //                    }
                     state.ns[action] = cState;
-                    if (state2.policy == null) {
-                        state2.doEval(model);
-                    }
-                    state2.get_v(v);
+                    this.search(state2, training, remainingCalls, false);
                 } else {
                     if (state.transpositions.get(state2) == null) {
-                        state.ns[action] = state2;
-                        if (state2.policy == null) {
-                            state2.doEval(model);
-                        }
-                        state2.get_v(v);
                         state.transpositions.put(state2, state);
+                        state.ns[action] = state2;
+                        this.search(state2, training, remainingCalls, false);
                     }
                 }
             } else {
                 if (nextState instanceof ChanceState cState) {
                     state2 = cState.getNextState(state, action);
-                    if (state2.policy == null) {
-                        state2.doEval(model);
-                        state2.get_v(v);
-                    } else {
-                        this.search(state2, training, remainingCalls, false);
-                    }
+                    this.search(state2, training, remainingCalls, false);
                 } else {
                     this.search((GameState) nextState, training, remainingCalls, false);
                 }

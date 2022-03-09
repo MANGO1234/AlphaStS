@@ -600,7 +600,7 @@ abstract class Card {
                     }
                 }
             }
-            if (state.enemiesAlive > 0) {
+            if (state.enemiesAlive > 1) {
                 state.isStochastic = true;
             }
         }
@@ -629,7 +629,7 @@ abstract class Card {
                     }
                 }
             }
-            if (state.enemiesAlive > 0) {
+            if (state.enemiesAlive > 1) {
                 state.isStochastic = true;
             }
         }

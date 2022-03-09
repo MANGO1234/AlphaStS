@@ -328,7 +328,7 @@ public class InteractiveMode {
                     MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
                     continue;
                 } else if (line.startsWith("matches")) {
-                    MatchSession session = new MatchSession(state, "../tmp");
+                    MatchSession session = new MatchSession(state, modelDir);
                     if (line.startsWith("matches ")) {
                         try {
                             int action;

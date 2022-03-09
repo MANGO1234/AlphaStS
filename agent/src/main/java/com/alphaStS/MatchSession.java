@@ -7,6 +7,7 @@ record GameStep(GameState state, int action) {
 }
 
 public class MatchSession {
+    boolean randomize_enemy;
     long totalDamageTaken = 0;
     long deathCount = 0;
     Writer matchLogWriter;
@@ -103,7 +104,7 @@ public class MatchSession {
         Random random = state.prop.random;
         for (Enemy enemy : state.enemies) {
             if (enemy.health > 0) {
-                enemy.randomize(random, true);
+                enemy.randomize(random, randomize_enemy);
             }
         }
 

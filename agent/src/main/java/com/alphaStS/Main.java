@@ -109,7 +109,7 @@ public class Main {
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
         var state = new GameState(enemies, new Player(47, 75), cards, relics);
-        state = BasicSentriesState();
+        state = SlimeBossState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -121,6 +121,7 @@ public class Main {
         boolean PLAY_MATCHES = false;
         boolean PLAY_A_GAME = false;
         boolean SLOW_TRAINING_WINDOW = false;
+        boolean CURRICULUM_TRAINING_ON = false;
         int MATCHES_COUNT = 5;
         int NODE_COUNT = 1000;
         String SAVES_DIR = "../saves";
@@ -152,15 +153,18 @@ public class Main {
             if (args[i].equals("-slow")) {
                 SLOW_TRAINING_WINDOW = true;
             }
+            if (args[i].equals("-curriculum_training")) {
+                CURRICULUM_TRAINING_ON = true;
+            }
         }
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.equals("../saves")) {
-            MATCHES_COUNT = 10;
-            NODE_COUNT = 5000;
-            iteration = 22;
+            MATCHES_COUNT = 200;
+            NODE_COUNT = 500;
+//            iteration = 22;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
@@ -204,6 +208,7 @@ public class Main {
 
         if (GEN_TRAINING_MATCHES) {
             session.setTrainingDataLogFile("training_data.txt");
+            session.randomize_enemy = CURRICULUM_TRAINING_ON;
             long start = System.currentTimeMillis();
             var games = new ArrayList<List<GameStep>>();
             for (int i = 0; i < 200; i++) {
@@ -240,7 +245,7 @@ public class Main {
             var writer = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(curIterationDir +  "/training_data.bin")));
             for (List<GameStep> game : games) {
                 var lastState = game.get(game.size() - 1).state();
-                float v = (float) (((double) lastState.player.health) / lastState.player.maxHealth);
+                float v_health = (float) (((double) lastState.player.health) / lastState.player.maxHealth);
                 float v_win = lastState.isTerminal() == 1 ? 1.0f : 0.0f;
                 for (int i = game.size() - 2; i >= 0; i--) {
                     state = game.get(i).state();
@@ -248,7 +253,7 @@ public class Main {
                     for (int j = 0; j < x.length; j++) {
                         writer.writeFloat(x[j]);
                     }
-                    writer.writeFloat(v);
+                    writer.writeFloat(v_health);
                     writer.writeFloat(v_win);
                     for (int j = 0; j < state.prop.totalNumOfActions; j++) {
                         if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
@@ -271,12 +276,29 @@ public class Main {
                         var prevState = game.get(i - 1).state();
                         var prevAction = game.get(i - 1).action();
                         ChanceState cState = new ChanceState(state);
-                        for (int j = 0; j < 2000 - cState.total_n; j++) {
+                        for (int j = 1; j < 1000; j++) {
                             cState.getNextState(prevState, prevAction);
                         }
+                        double est_v_win = 0;
+                        double est_v_health = 0;
+                        double[] out = new double[2];
+                        for (ChanceState.Node node : cState.cache.values()) {
+                            if (node.state != state) {
+                                node.state.doEval(session.mcts.model);
+                                node.state.get_v(out);
+                                est_v_win += out[0] * node.n;
+                                est_v_health += out[1] * node.n;
+                            }
+                        }
+                        est_v_win /= (cState.total_n - cState.getCount(state));
+                        est_v_health /= (cState.total_n - cState.getCount(state));
                         float p = ((float) cState.getCount(state)) / cState.total_n;
-                        v = v * p + (float) state.v_health * (1 - p);
-                        v_win = v_win * p + (float) state.v_win * (1 - p);
+//                        System.out.println(p + "/" + prevState.v_win + "/" + (v_win * p + est_v_win) + "/" + prevState.v_win * (1 - ((float) cState.getCount(state)) / cState.total_n) + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
+//                        System.out.println(p + "/" + prevState.v_health + "/" + (v_health * p + est_v_health) + "/" + prevState.v_health * (1 - ((float) cState.getCount(state)) / cState.total_n) + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
+                        v_win = v_win * p + (float) est_v_win;
+                        v_health = v_health * p + (float) est_v_health;
+//                        v_win = v_win * p + (float) prevState.v_win * (1 - p);
+//                        v_health = v_health * p + (float) prevState.v_health * (1 - p);
                     }
                 }
             }

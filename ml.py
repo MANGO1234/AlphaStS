@@ -25,7 +25,7 @@ PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
 ITERATION_COUNT = int(getFlagValue('-c', 5))
 NODE_COUNT = int(getFlagValue('-n', 1000))
-SAVES_DIR = 'saves'
+SAVES_DIR = getFlagValue('-dir', './saves')
 
 
 def convertToOnnx(model, input_len, output_dir):
@@ -135,15 +135,15 @@ def get_training_samples(training_pool, iteration, file_path):
             raise "agent error"
 
 
-SLOW_WINDOW_END = 3
-TRAINING_WINDOW_SIZE = 5
+SLOW_WINDOW_END = 4
+TRAINING_WINDOW_SIZE = 6
 
 
 def expire_training_samples(training_pool, iteration):
     if iteration < SLOW_WINDOW_END:
         cutoff = iteration - 1
     else:
-        cutoff = max(SLOW_WINDOW_END, training_info['iteration'] - TRAINING_WINDOW_SIZE)
+        cutoff = max(SLOW_WINDOW_END - 1, training_info['iteration'] - TRAINING_WINDOW_SIZE)
     i = 0
     while i < len(training_pool):
         if training_pool[i][0] >= cutoff:
@@ -163,11 +163,13 @@ if training_info['iteration'] >= SLOW_WINDOW_END:
 
 if DO_TRAINING:
     for _iterations in range(0, ITERATION_COUNT):
-        agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', './saves']
+        agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
             agent_args += ['-tm', '-c', '100', '-n', '500']
         if training_info['iteration'] < SLOW_WINDOW_END:
             agent_args += ['-slow']
+        if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1:
+            agent_args += ['-curriculum_training']
         agent_output = subprocess.run(agent_args, capture_output=True)
         if len(agent_output.stderr) > 0:
             print(agent_output.stderr.decode('ascii'))
@@ -187,11 +189,14 @@ if DO_TRAINING:
         get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')
         training_pool = expire_training_samples(training_pool, training_info["iteration"])
 
-        print(f'number of samples={len(training_pool)} (start_iter={training_pool[0][0]})')
-        for i in range(200):
-            minibatch = rand.sample(training_pool, len(training_pool) // 200)
-        # for i in range(1):
-        #     minibatch = training_pool
+        print(f'number of samples={len(training_pool)}')
+        print(f'sample oldest iteration={training_pool[0][0]}')
+        for i in range(200 if training_info['iteration'] >= SLOW_WINDOW_END else 200):
+            if training_info['iteration'] >= SLOW_WINDOW_END:
+                minibatch = rand.sample(training_pool, len(training_pool) // 200)
+            else:
+                minibatch = rand.sample(training_pool, len(training_pool) // 200)
+                # minibatch = training_pool
             x_train = []
             exp_health_head_train = []
             exp_win_head_train = []
@@ -213,7 +218,7 @@ if DO_TRAINING:
             json.dump(training_info, f)
 
         if _iterations == ITERATION_COUNT - 1:
-            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '100', '-n', '500', '-dir', './saves'], capture_output=True)
+            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '100', '-n', '500', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stderr.decode('ascii'))
                 raise "agent error"
