@@ -64,7 +64,6 @@ else:
     with open(f'{SAVES_DIR}/training.json', 'w') as f:
         json.dump(training_info, f)
 
-
 if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/models'):
     custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits}
     with keras.utils.custom_object_scope(custom_objects):
@@ -109,6 +108,16 @@ else:
     model.save(f'{SAVES_DIR}/iteration0')
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
 
+# x = np.random.uniform(0, 1, input_len)
+# x = np.reshape(x, newshape=(1, input_len))
+# basey = model.predict(x)
+# model.save('./tmp/base_model')
+# custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits}
+# with keras.utils.custom_object_scope(custom_objects):
+#     loaded_model = tf.keras.models.load_model('./tmp/base_model')
+#     loadedy = loaded_model.predict(x)
+#     print(basey)
+#     print(loadedy)
 
 start = time.time()
 # np.set_printoptions(threshold=np.inf)

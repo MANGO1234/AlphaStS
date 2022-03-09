@@ -34,12 +34,21 @@ public class MCTS {
             return;
         }
 
-        float[] policy = state.policy;
-//        if (!training) {
+        float[] policy;
+        if (training) {
+            if (state.policy2 == null) {
+                if (isRoot) {
+                    state.policy2 = applyDirichletNoiseToPolicy(state, state.policy);
+                } else {
+                    state.policy2 = state.policy;
+                }
+            }
+            policy = state.policy2;
+        } else {
+            policy = state.policy;
+        }
+        if (!training) {
             policy = applyFutileSearchPruning(state, policy, remainingCalls);
-//        }
-        if (isRoot && training) {
-            policy = applyDirichletNoiseToPolicy(state, policy);
         }
 
         int numberOfActions;

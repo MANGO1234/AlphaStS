@@ -98,6 +98,7 @@ public class GameState implements State {
     double total_q_win;
     double total_q_health;
     float[] policy;
+    float[] policy2;
 
     @Override public boolean equals(Object o) {
         if (this == o)

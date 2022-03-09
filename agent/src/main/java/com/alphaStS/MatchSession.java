@@ -150,7 +150,7 @@ public class MatchSession {
                 newState = (GameState) nextState;
             }
             states.add(new GameStep(state, action));
-            state = newState;
+            state = newState.clone(false);
         }
         states.add(new GameStep(state, -1));
         trainingGame_i += 1;
