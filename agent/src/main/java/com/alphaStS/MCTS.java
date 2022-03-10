@@ -13,6 +13,8 @@ public class MCTS {
     Model model;
     int numberOfPossibleActions;
     double[] v;
+    double terminal_v_win;
+    double terminal_v_health;
 
     void setModel(Model model) {
         v = new double[2];
@@ -24,26 +26,44 @@ public class MCTS {
     }
 
     void search1(GameState state, boolean training, int remainingCalls, boolean isRoot) {
+        if (state.terminal_v_win == 1) {
+            v[0] = state.terminal_v_win;
+            v[1] = state.terminal_v_health;
+            terminal_v_win = -100; // don't propagate upward
+            return;
+        }
         if (state.isTerminal() != 0) {
             state.get_v(v);
+            if (v[0] == 1) {
+                terminal_v_win = v[0];
+                terminal_v_health = v[1];
+            } else {
+                terminal_v_win = -100;
+            }
             return;
         }
         if (state.policy == null) {
+            terminal_v_win = -100;
             state.doEval(model);
             state.get_v(v);
             return;
         }
 
+//        float[] policy = state.policy;
+//            policy = applyFutileSearchPruning(state, policy, remainingCalls);
+//        if (isRoot && training) {
+//            policy = applyDirichletNoiseToPolicy(state, policy);
+//        }
         float[] policy;
         if (training) {
-            if (state.policy2 == null) {
+            if (state.policyMod == null) {
                 if (isRoot) {
-                    state.policy2 = applyDirichletNoiseToPolicy(state, state.policy);
+                    state.policyMod = applyDirichletNoiseToPolicy(state, state.policy);
                 } else {
-                    state.policy2 = state.policy;
+                    state.policyMod = state.policy;
                 }
             }
-            policy = state.policy2;
+            policy = state.policyMod;
         } else {
             policy = state.policy;
         }
@@ -61,7 +81,7 @@ public class MCTS {
             v[1] = -1000000;
 
             for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (policy[i] <= 0 || state.transpositions_policy_mask[i]) {
+                if (policy[i] <= 0 || state.transpositionsPolicyMask[i]) {
                     continue;
                 }
                 numberOfActions += 1;
@@ -74,6 +94,7 @@ public class MCTS {
             }
 
             if (numberOfActions == 0) {
+                terminal_v_win = -100;
                 return;
             }
 
@@ -109,7 +130,7 @@ public class MCTS {
             if (v[0] > -1000000) {
                 break;
             } else {
-                state.transpositions_policy_mask[action] = true;
+                state.transpositionsPolicyMask[action] = true;
             }
         } while (true);
 
@@ -117,13 +138,22 @@ public class MCTS {
         state.q_health[action] += v[1];
         state.n[action] += 1;
         state.total_n += 1;
-        float max_n = -1000;
         int max_n_i = 0;
-        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-            if (state.isActionLegal(i)) {
-                if (state.n[i] > max_n) {
-                    max_n = state.n[i];
-                    max_n_i = i;
+        if (terminal_v_win == 1) {
+            state.terminal_v_win = 1;
+            state.terminal_v_health = v[1];
+            if (state.isStochastic) {
+                terminal_v_win = -100;
+            }
+            max_n_i = action;
+        } else {
+            float max_n = -1000;
+            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                if (state.isActionLegal(i)) {
+                    if (state.n[i] > max_n) {
+                        max_n = state.n[i];
+                        max_n_i = i;
+                    }
                 }
             }
         }
@@ -195,7 +225,7 @@ public class MCTS {
                     s.get_v(v);
                     v[0] = (s.total_q_win + v[0]) / (s.total_n + 1);
                     v[1] = (s.total_q_health + v[1]) / (s.total_n + 1);
-                    state.transpositions_policy_mask[action] = true;
+                    state.transpositionsPolicyMask[action] = true;
                 }
             }
         } else {
@@ -208,7 +238,7 @@ public class MCTS {
                     this.search(state2, training, remainingCalls, false);
                 }
             } else {
-                if (state.transpositions_policy_mask[action] && state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
+                if (state.transpositionsPolicyMask[action] && state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
                     var s = ((GameState) state.ns[action]);
                     s.get_v(v);
                     v[0] = (s.total_q_win + v[0]) / (s.total_n + 1) * (state.n[action] + 1) - state.q_win[action];

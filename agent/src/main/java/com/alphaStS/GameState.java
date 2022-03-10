@@ -62,8 +62,6 @@ public class GameState implements State {
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
 
     boolean isStochastic;
-    Map<GameState, GameState> transpositions;
-    boolean[] transpositions_policy_mask;
     GameProperties prop;
     private boolean[] actionsCache;
     GameActionCtx actionCtx;
@@ -88,17 +86,21 @@ public class GameState implements State {
     int thorn;
     int thornLoseEOT;
 
-    double v_win;
-    double v_health;
-    double[] q_win;
-    double[] q_health;
-    int[] n;
-    State[] ns;
-    int total_n;
-    double total_q_win;
-    double total_q_health;
-    float[] policy;
-    float[] policy2;
+    double v_win; // if terminal, 1.0 or -1.0, else from NN
+    double v_health; // if terminal, player_health/player_max_health, else from NN
+    double[] q_win; // total v_win value propagated from each child
+    double[] q_health; // total v_health value propagated from each child
+    int[] n; // visit count for each child
+    State[] ns; // the state object for each child (either GameState or ChanceState)
+    int total_n; // sum of n array
+    double total_q_win; // sum of q_win array
+    double total_q_health; // sum of q_health _array
+    float[] policy; // policy from NN
+    float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
+    Map<GameState, GameState> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
+    boolean[] transpositionsPolicyMask; // true if the associated action is a transposition
+    double terminal_v_win; // detected a win from child, no need to waste more time search
+    double terminal_v_health; // detected a win from child, no need to waste more time search
 
     @Override public boolean equals(Object o) {
         if (this == o)
@@ -110,10 +112,12 @@ public class GameState implements State {
     }
 
     @Override public int hashCode() {
-        int result = Objects.hash(actionCtx, energy, energyRefill, enemies, enemiesAlive, player, previousCard, previousCardIdx, drawOrder, buffs, thorn, thornLoseEOT);
-        result = 31 * result + Arrays.hashCode(deck);
+        // actionCtx, energy, energyRefill, hand, enemies health, previousCardIdx, drawOrder, buffs should cover most
+        int result = Objects.hash(actionCtx, energy, energyRefill, previousCardIdx, drawOrder, buffs);
+        for (Enemy enemy : enemies) {
+            result = 31 * result + enemy.health;
+        }
         result = 31 * result + Arrays.hashCode(hand);
-        result = 31 * result + Arrays.hashCode(discard);
         return result;
     }
 
@@ -273,7 +277,8 @@ public class GameState implements State {
         q_health = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
-        transpositions_policy_mask = new boolean[prop.maxNumOfActions];
+        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
+        terminal_v_win = -100;
         transpositions = new HashMap<>();
 
         for (Relic relic : relics) {
@@ -393,7 +398,8 @@ public class GameState implements State {
         q_win = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
-        transpositions_policy_mask = new boolean[prop.maxNumOfActions];
+        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
+        terminal_v_win = -100;
     }
 
     public GameState clone(boolean keepTranspositions) {
@@ -1222,11 +1228,10 @@ class ChanceState implements State {
 
     static class Node {
         GameState state;
-        long n;
+        long n = 1;
 
         public Node(GameState state) {
             this.state = state;
-            n = 1;
         }
     }
 

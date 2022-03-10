@@ -109,7 +109,7 @@ public class Main {
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
         var state = new GameState(enemies, new Player(47, 75), cards, relics);
-        state = SlimeBossState();
+//        state = SlimeBossState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -158,14 +158,17 @@ public class Main {
             }
         }
 
+        SAVES_DIR = "../saves4";
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.equals("../saves")) {
-            MATCHES_COUNT = 200;
-            NODE_COUNT = 500;
-            iteration = 26;
+            MATCHES_COUNT = 500;
+            NODE_COUNT = 100;
+            //            SAVES_DIR = "../saves";
+            //            iteration = 19;
         }
+        iteration = 27;
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {

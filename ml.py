@@ -144,7 +144,7 @@ def get_training_samples(training_pool, iteration, file_path):
             raise "agent error"
 
 
-SLOW_WINDOW_END = 4
+SLOW_WINDOW_END = 5
 TRAINING_WINDOW_SIZE = 6
 
 
@@ -200,12 +200,14 @@ if DO_TRAINING:
 
         print(f'number of samples={len(training_pool)}')
         print(f'sample oldest iteration={training_pool[0][0]}')
-        for i in range(200 if training_info['iteration'] >= SLOW_WINDOW_END else 200):
-            if training_info['iteration'] >= SLOW_WINDOW_END:
-                minibatch = rand.sample(training_pool, len(training_pool) // 200)
-            else:
-                minibatch = rand.sample(training_pool, len(training_pool) // 200)
-                # minibatch = training_pool
+        # for i in range(200 if training_info['iteration'] >= SLOW_WINDOW_END else 200):
+        #     if training_info['iteration'] >= SLOW_WINDOW_END:
+        #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
+        #     else:
+        #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
+        #         # minibatch = training_pool
+        for i in range(10):
+            minibatch = training_pool
             x_train = []
             exp_health_head_train = []
             exp_win_head_train = []
