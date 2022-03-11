@@ -43,7 +43,7 @@ public class MatchSession {
         while (state.isTerminal() == 0) {
             int upto = nodeCount - state.total_n;
             for (int i = 0; i < upto; i++) {
-                mcts.search(state, false, upto - i, true);
+                mcts.search3(state, false, upto - i, true);
                 if (mcts.numberOfPossibleActions == 1) {
                     break;
                 }

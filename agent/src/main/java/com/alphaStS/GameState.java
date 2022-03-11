@@ -90,11 +90,13 @@ public class GameState implements State {
     double v_health; // if terminal, player_health/player_max_health, else from NN
     double[] q_win; // total v_win value propagated from each child
     double[] q_health; // total v_health value propagated from each child
+    double[] q_comb; // total q value propagated from each child
     int[] n; // visit count for each child
     State[] ns; // the state object for each child (either GameState or ChanceState)
     int total_n; // sum of n array
     double total_q_win; // sum of q_win array
     double total_q_health; // sum of q_health _array
+    double total_q_comb; // sum of q_win array
     float[] policy; // policy from NN
     float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
     Map<GameState, GameState> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
@@ -275,6 +277,7 @@ public class GameState implements State {
         policy = null;
         q_win = new double[prop.maxNumOfActions];
         q_health = new double[prop.maxNumOfActions];
+        q_comb = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
         transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
@@ -395,6 +398,7 @@ public class GameState implements State {
 
         policy = null;
         q_health = new double[prop.maxNumOfActions];
+        q_comb = new double[prop.maxNumOfActions];
         q_win = new double[prop.maxNumOfActions];
         n = new int[prop.maxNumOfActions];
         ns = new State[prop.maxNumOfActions];
@@ -650,16 +654,19 @@ public class GameState implements State {
         if (player.health <= 0 || turn_num > 30) {
             out[0] = 0;
             out[1] = 0;
+            out[2] = 0;
             return;
         } else {
             if (enemies.stream().allMatch((x) -> x.health <= 0)) {
                 out[0] = 1;
                 out[1] = ((double) player.health) / player.maxHealth;
+                out[2] = calc_q(out[0], out[1]);
                 return;
             }
         }
         out[0] = v_win;
         out[1] = v_health;
+        out[2] = calc_q(out[0], out[1]);
     }
 
     int isTerminal() {
@@ -722,6 +729,7 @@ public class GameState implements State {
     }
 
     public static double calc_q(double q_win, double q_health) {
+//        return q_win * 0.5 + q_win * q_win * q_health * 0.5;
         return q_win * 0.5 + q_health * 0.5;
     }
 
@@ -783,7 +791,7 @@ public class GameState implements State {
             var p_str = policy != null ? format_float(policy[i]) : "0";
             var q_win_str = format_float(n[i] == 0 ? 0 : q_win[i] / n[i]);
             var q_health_str = format_float(n[i] == 0 ? 0 : q_health[i] / n[i]);
-            var q_str = format_float(n[i] == 0 ? 0 : calc_q(q_win[i] / n[i], q_health[i] / n[i]));
+            var q_str = format_float(n[i] == 0 ? 0 : q_comb[i] / n[i]);
             if (isActionLegal(i)) {
                 if (!first) {
                     str.append(", ");

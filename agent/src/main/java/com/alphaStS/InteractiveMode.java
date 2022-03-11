@@ -20,12 +20,12 @@ public class InteractiveMode {
         mcts.setModel(model);
         List<Integer> drawOrder = null;
         Enemy curEnemy = null;
+        List<String> history = new ArrayList<>();
 
         while (true) {
             if (mode == 0) {
                 if (state.isTerminal() != 0) {
                     System.out.println("Game finished. Result " + (state.isTerminal() == 1 ? "Win" : "Loss"));
-                    return;
                 }
                 if (!skipPrint) {
                     for (int i = 0; i < state.enemies.size(); i++) {
@@ -143,6 +143,8 @@ public class InteractiveMode {
             if (line.equals("exit") || line.equals("q")) {
                 return;
             }
+            history.add(line);
+
             if (mode == 0) {
                 if (line.equals("e")) {
                     states.add(state);
@@ -324,6 +326,12 @@ public class InteractiveMode {
                     drawOrder = new ArrayList<Integer>();
                     mode = 1;
                     continue;
+                } else if (line.equals("hist")) {
+                    for (String l : history) {
+                        if (!l.equals("tree") && !l.equals("matches") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
+                            System.out.println(l);
+                        }
+                    }
                 } else if (line.equals("tree")) {
                     MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
                     continue;

@@ -158,17 +158,18 @@ public class Main {
             }
         }
 
-        SAVES_DIR = "../saves4";
+//        SAVES_DIR = "../tmp/saves4";
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
-        if (SAVES_DIR.equals("../saves")) {
+        if (SAVES_DIR.startsWith("../")) {
+            MATCHES_COUNT = 300;
+            NODE_COUNT = 5000;
             MATCHES_COUNT = 500;
             NODE_COUNT = 100;
             //            SAVES_DIR = "../saves";
-            //            iteration = 19;
+            iteration = 31;
         }
-        iteration = 27;
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
@@ -198,6 +199,17 @@ public class Main {
             long start = System.currentTimeMillis();
             for (int i = 0; i < MATCHES_COUNT; i++) {
                 session.playGame(NODE_COUNT);
+                if (!TEST_AGENT_FITNESS && session.game_i % 25 == 0) {
+                    long end = System.currentTimeMillis();
+                    System.out.println("Progress: " + session.game_i + "/" + MATCHES_COUNT);;
+                    System.out.println("Deaths: " + session.deathCount);
+                    System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
+                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
+                    System.out.println("Time Taken: " + (end - start));
+                    System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
+                    System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
+                    System.out.println("--------------------");
+                }
             }
             long end = System.currentTimeMillis();
             System.out.println("Deaths: " + session.deathCount);
