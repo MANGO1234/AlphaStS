@@ -156,6 +156,11 @@ public class InteractiveMode {
                             state.doAction(i);
                         }
                     }
+                    for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                        if (state.isActionLegal(i) && state.getAction(i).type() == GameActionType.BEGIN_TURN) {
+                            state.doAction(i);
+                        }
+                    }
                     continue;
                 } else if (line.equals("a")) {
                     System.out.println("Deck");

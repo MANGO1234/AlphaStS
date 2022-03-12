@@ -98,14 +98,23 @@ public class MCTS {
             if (nextState == null) {
                 state2 = state.clone(true);
                 state2.doAction(action);
-                if (state2.isStochastic) {
-                    state.ns[action] = new ChanceState(state2);
-                    this.search1_r(state2, training, remainingCalls, false);
-                } else {
-                    if (state.transpositions.get(state2) == null) {
-                        state.transpositions.put(state2, state);
-                        state.ns[action] = state2;
+                while (true) {
+                    if (state2.isStochastic) {
+                        state.ns[action] = new ChanceState(state2);
                         this.search1_r(state2, training, remainingCalls, false);
+                        break;
+                    } else {
+                        if (state.transpositions.get(state2) == null) {
+                            state.transpositions.put(state2, state2);
+                            if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                                state2 = state2.clone(true);
+                                state2.doAction(0);
+                                continue;
+                            }
+                            state.ns[action] = state2;
+                            this.search1_r(state2, training, remainingCalls, false);
+                        }
+                        break;
                     }
                 }
             } else {

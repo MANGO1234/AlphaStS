@@ -50,16 +50,7 @@ public class MatchSession {
             }
 
             int action = MCTS.getActionWithMaxNodesOrTerminal(state);
-            State nextState = state.ns[action];
-            GameState newState;
-            if (nextState instanceof ChanceState cState) {
-                newState = cState.getNextState(state, action);
-                if (newState.policy == null) {
-                    newState.doEval(mcts.model);
-                }
-            } else {
-                newState = (GameState) nextState;
-            }
+            GameState newState = getNextState(state, action);
             states.add(new GameStep(state, action));
             state = newState;
         }
@@ -89,6 +80,23 @@ public class MatchSession {
         }
     }
 
+    private GameState getNextState(GameState state, int action) {
+        State nextState = state.ns[action];
+        GameState newState;
+        if (nextState instanceof ChanceState cState) {
+            newState = cState.getNextState(state, action);
+            if (newState.policy == null) {
+                newState.doEval(mcts.model);
+            }
+            if (newState.actionCtx == GameActionCtx.BEGIN_TURN) {
+                Integer.parseInt(null);
+            }
+        } else {
+            newState = (GameState) nextState;
+        }
+        return newState;
+    }
+
     public void playTrainingGame(int nodeCount) throws IOException {
         states.clear();
         var state = origState.clone(false);
@@ -108,7 +116,6 @@ public class MatchSession {
                 mcts.search(state, true, -1);
             }
 
-            State nextState;
             int action = 0;
             int turnCount = 0;
             if (turnCount >= 0) {
@@ -124,17 +131,7 @@ public class MatchSession {
                     }
                 }
             }
-            nextState = state.ns[action];
-
-            GameState newState;
-            if (nextState instanceof ChanceState cState) {
-                newState = cState.getNextState(state, action);
-                if (newState.policy == null) {
-                    newState.doEval(mcts.model);
-                }
-            } else {
-                newState = (GameState) nextState;
-            }
+            GameState newState = getNextState(state, action);
             states.add(new GameStep(state, action));
             state = newState.clone(false);
         }

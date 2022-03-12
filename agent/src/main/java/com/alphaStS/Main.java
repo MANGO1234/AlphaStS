@@ -198,15 +198,12 @@ public class Main {
             }
         }
 
-//        SAVES_DIR = "../tmp/saves4";
         ObjectMapper mapper = new ObjectMapper();
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
             MATCHES_COUNT = 500;
-            NODE_COUNT = 500;
-            //            SAVES_DIR = "../saves";
-//            iteration = 16;
+            NODE_COUNT = 5000;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
