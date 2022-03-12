@@ -1088,7 +1088,33 @@ abstract class Card {
         }
     }
 
-    // todo: metallicize
+    public static class Metallicize extends Card {
+        public Metallicize() {
+            super("Metallicize", Card.POWER);
+        }
+
+        public void play(GameState state, int idx) {
+            state.metallicize += 3;
+        }
+
+        public int energyCost(GameState state) {
+            return 1;
+        }
+    }
+
+    public static class MetallicizeP extends Card {
+        public MetallicizeP() {
+            super("Metallicize", Card.POWER);
+        }
+
+        public void play(GameState state, int idx) {
+            state.metallicize += 4;
+        }
+
+        public int energyCost(GameState state) {
+            return 1;
+        }
+    }
 
     public static class PowerThrough extends Card {
         public PowerThrough() {

@@ -10,6 +10,7 @@ class GameProperties {
     boolean playerCanGetVuln;
     boolean playerCanGetWeakened;
     boolean playerCanGetFrailed;
+    boolean playerCanGetMetallicize;
     boolean playerThornCanChange;
     boolean enemyCanGetVuln;
     boolean enemyCanGetWeakened;
@@ -89,6 +90,7 @@ public class GameState implements State {
     long buffs;
     int thorn;
     int thornLoseEOT;
+    int metallicize;
 
     double v_win; // if terminal, 1.0 or -1.0, else from NN
     double v_health; // if terminal, player_health/player_max_health, else from NN
@@ -259,6 +261,7 @@ public class GameState implements State {
         prop.playerCanGetFrailed = enemies.stream().anyMatch((x) -> x.canFrail);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
         prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy);
+        prop.playerCanGetMetallicize = cards.stream().anyMatch((x) -> x.card().cardName.contains("Metallicize"));
         prop.playerThornCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Flame Barrier"));
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuffs.CORRUPTION : 0;
         prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
@@ -411,6 +414,7 @@ public class GameState implements State {
         buffs = other.buffs;
         thorn = other.thorn;
         thornLoseEOT = other.thornLoseEOT;
+        metallicize = other.metallicize;
 
         policy = null;
         q_health = new double[prop.maxNumOfActions];
@@ -555,6 +559,7 @@ public class GameState implements State {
         for (GameTrigger gameTrigger : prop.preEndTurnTrigger) {
             gameTrigger.act(this);
         }
+        if (metallicize > 0) player.gainBlock(metallicize);
         for (Enemy enemy : enemies) {
             if (enemy.health > 0) {
                 enemy.doMove(this);
@@ -841,6 +846,9 @@ public class GameState implements State {
             }
         }
         str.append("]");
+        if (metallicize > 0) {
+            str.append("], metal=").append(metallicize);
+        }
         str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.maxHealth)).append(")");
         str.append(", q/p/n=[");
         first = true;
@@ -912,6 +920,9 @@ public class GameState implements State {
         }
         if (prop.playerCanGetFrailed) {
             input_len += 1; // player weak
+        }
+        if (prop.playerCanGetMetallicize) {
+            input_len += 1; // player metallicize
         }
         if (prop.playerThornCanChange) {
             input_len += 1; // player thorn
@@ -1021,6 +1032,9 @@ public class GameState implements State {
         }
         if (prop.playerCanGetFrailed) {
             x[idx++] = player.frail / (float) 10.0;
+        }
+        if (prop.playerCanGetMetallicize) {
+            x[idx++] = metallicize / 10.0f;
         }
         if (prop.playerThornCanChange) {
             x[idx++] = thorn / 10.0f;

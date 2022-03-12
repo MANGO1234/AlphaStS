@@ -22,7 +22,7 @@ public class MCTS {
     }
 
     void search(GameState state, boolean training, int remainingCalls) {
-        search2(state, training, remainingCalls);
+        search1(state, training, remainingCalls);
     }
 
     void search1(GameState state, boolean training, int remainingCalls) {
@@ -238,6 +238,7 @@ public class MCTS {
             } else {
                 if (state.n[action] < ((GameState) state.ns[action]).total_n + 1) {
                     var s = ((GameState) state.ns[action]);
+//                    this.search2_r(s, training, remainingCalls, false);
                     v[0] = s.total_q_win / (s.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
 //                    System.out.println(v[0] + "|" + s.total_q_win + "|" + (s.total_n + 1) + "|" + (state.n[action] + 1) + "|" + state.q_win[action] + "|" + state.toStringReadable());
                     v[1] = s.total_q_health / (s.total_n + 1) * (state.n[action] + 1) - state.q_health[action];

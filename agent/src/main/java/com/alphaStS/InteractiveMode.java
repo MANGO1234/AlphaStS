@@ -328,13 +328,13 @@ public class InteractiveMode {
                     continue;
                 } else if (line.startsWith("matches")) {
                     int match_count = 100;
-                    if (line.startsWith("matches ")) {
-                        try {
-                            match_count = Integer.parseInt(line.substring(8));
-                        } catch (NumberFormatException e) {
-                            // do nothing
-                        }
-                    }
+//                    if (line.startsWith("matches ")) {
+//                        try {
+//                            match_count = Integer.parseInt(line.substring(8));
+//                        } catch (NumberFormatException e) {
+//                            // do nothing
+//                        }
+//                    }
                     MatchSession session = new MatchSession(state, modelDir);
                     if (line.startsWith("matches ")) {
                         try {
@@ -356,7 +356,8 @@ public class InteractiveMode {
                     }
                     long start = System.currentTimeMillis();
                     for (int i = 0; i < match_count; i++) {
-                        if ((i + 1) % 25 == 0) {
+                        session.playGame(1000);
+                        if (session.game_i % 25 == 0) {
                             long end = System.currentTimeMillis();
                             System.out.println("Progress: " + session.game_i + "/" + match_count);;
                             System.out.println("Deaths: " + session.deathCount);
@@ -367,7 +368,6 @@ public class InteractiveMode {
                             System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
                             System.out.println("--------------------");
                         }
-                        session.playGame(1000);
                     }
                     long end = System.currentTimeMillis();
                     System.out.println("Deaths: " + session.deathCount);

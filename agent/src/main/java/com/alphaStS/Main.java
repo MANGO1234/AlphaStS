@@ -55,6 +55,26 @@ public class Main {
         return new GameState(enemies, new Player(32, 75), cards, relics);
     }
 
+    public static GameState BasicSentriesState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 2));
+        cards.add(new CardCount(new Card.ThunderclapP(), 1));
+        cards.add(new CardCount(new Card.CarnageP(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.Metallicize(), 1));
+        cards.add(new CardCount(new Card.Shockwave(), 1));
+        cards.add(new CardCount(new Card.ShrugItOff(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        var relics = new ArrayList<Relic>();
+        return new GameState(enemies, new Player(51, 75), cards, relics);
+    }
+
     public static GameState BasicLagavulinState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -183,10 +203,10 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 100;
-            NODE_COUNT = 20000;
+            MATCHES_COUNT = 500;
+            NODE_COUNT = 500;
             //            SAVES_DIR = "../saves";
-//            iteration = 31;
+//            iteration = 16;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
