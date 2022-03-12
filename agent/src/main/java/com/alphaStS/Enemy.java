@@ -326,7 +326,7 @@ abstract class Enemy {
 
         public void randomize(Random random, boolean training) {
             int b = random.nextInt(10) + 1;
-            if (b < 10) {
+            if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
                 health = 112 + random.nextInt(4);

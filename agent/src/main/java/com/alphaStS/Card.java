@@ -19,6 +19,7 @@ abstract class Card {
     public boolean exhaustNonAttacks = false;
     public boolean selectEnemy;
     public boolean selectFromDiscard;
+    public boolean selectFromExhaust;
     public boolean selectFromHand;
     public boolean changePlayerStrength;
     public boolean changePlayerDexterity;
@@ -1543,7 +1544,41 @@ abstract class Card {
     // todo: demon form
 
     // todo: double tap
-    // todo: exhume
+
+    public static class Exhume extends Card {
+        public Exhume() {
+            super("Exhume", Card.SKILL);
+            selectFromExhaust = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public void play(GameState state, int idx) {
+            state.exhaust[idx] -= 1;
+            state.addCardToHand(idx);
+        }
+
+        public int energyCost(GameState state) {
+            return 1;
+        }
+    }
+
+    public static class ExhumeP extends Card {
+        public ExhumeP() {
+            super("Exhume+", Card.SKILL);
+            selectFromExhaust = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public void play(GameState state, int idx) {
+            state.exhaust[idx] -= 1;
+            state.addCardToHand(idx);
+        }
+
+        public int energyCost(GameState state) {
+            return 0;
+        }
+    }
+
     // todo: feed
 
     public static class FiendFire extends Card {

@@ -45,9 +45,10 @@ def softmax_cross_entropy_with_logits(y_true, y_pred):
     p = y_pred
     pi = y_true
     zero = tf.zeros(shape=tf.shape(pi), dtype=tf.float32)
-    where = tf.equal(pi, zero)
+    where = tf.less(pi, zero)
     negatives = tf.fill(tf.shape(pi), -1000.0)
     p = tf.where(where, negatives, p)
+    pi = tf.where(where, zero, pi)
     loss = tf.nn.softmax_cross_entropy_with_logits(labels=pi, logits=p)
     return loss
 
@@ -73,21 +74,21 @@ else:
     x = layers.Dense(input_len, activation="linear", use_bias=True, name="layer1")(inputs)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
-    # x = layers.Dense(input_len, activation="linear", use_bias=True, name="layer1.1")(x)
-    # x = layers.BatchNormalization(axis=1)(x)
-    # x = layers.LeakyReLU()(x)
-    x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
+    x = layers.Dense(input_len, activation="linear", use_bias=True, name="layer1.1")(x)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
-    x1 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer3")(x)
-    x1 = layers.BatchNormalization(axis=1)(x1)
-    x1 = layers.LeakyReLU()(x1)
-    x2 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer4")(x)
-    x2 = layers.BatchNormalization(axis=1)(x2)
-    x2 = layers.LeakyReLU()(x2)
-    exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='sigmoid')(x1)
-    exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='sigmoid')(x1)
-    policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x2)
+    # x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
+    # x = layers.BatchNormalization(axis=1)(x)
+    # x = layers.LeakyReLU()(x)
+    # x1 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer3")(x)
+    # x1 = layers.BatchNormalization(axis=1)(x1)
+    # x1 = layers.LeakyReLU()(x1)
+    # x2 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer4")(x)
+    # x2 = layers.BatchNormalization(axis=1)(x2)
+    # x2 = layers.LeakyReLU()(x2)
+    exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='sigmoid')(x)
+    exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='sigmoid')(x)
+    policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
     # x = layers.Dense(math.floor((input_len + 1) / 2), activation="linear", use_bias=True, name="layer1")(inputs)
     # x = layers.BatchNormalization(axis=1)(x)
     # x = layers.LeakyReLU()(x)
@@ -103,7 +104,7 @@ else:
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
         # optimizer='adam',
         # loss_weights={'exp_health_head': 0.5, 'policy_head': 0.5}
-        loss_weights={'exp_health_head': 0.33, 'policy_head': 0.33, 'exp_win_head': 0.33}
+        loss_weights={'exp_health_head': 1 / 3, 'policy_head': 1 / 3, 'exp_win_head': 1 / 3}
     )
     model.save(f'{SAVES_DIR}/iteration0')
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
@@ -144,7 +145,7 @@ def get_training_samples(training_pool, iteration, file_path):
             raise "agent error"
 
 
-SLOW_WINDOW_END = 5
+SLOW_WINDOW_END = 4
 TRAINING_WINDOW_SIZE = 6
 
 

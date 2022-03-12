@@ -31,34 +31,26 @@ public class MatchSession {
     }
 
     public void playGame(int nodeCount) {
+        states.clear();
         var state = origState.clone(false);
-        state.transpositions = new HashMap<>();
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
         } else if (state.actionCtx == GameActionCtx.PLAY_CARD && startingAction >= 0) {
             state.doAction(startingAction);
         }
+
         state.doEval(mcts.model);
-        states.clear();
         while (state.isTerminal() == 0) {
             int upto = nodeCount - state.total_n;
             for (int i = 0; i < upto; i++) {
-                mcts.search3(state, false, upto - i, true);
+                mcts.search(state, false, upto - i);
                 if (mcts.numberOfPossibleActions == 1) {
                     break;
                 }
             }
 
-            State nextState = null;
-            int max_n = 0;
-            int action = 0;
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.n[i] > max_n) {
-                    action = i;
-                    nextState = state.ns[i];
-                    max_n = state.n[i];
-                }
-            }
+            int action = MCTS.getActionWithMaxNodesOrTerminal(state);
+            State nextState = state.ns[action];
             GameState newState;
             if (nextState instanceof ChanceState cState) {
                 newState = cState.getNextState(state, action);
@@ -72,6 +64,7 @@ public class MatchSession {
             state = newState;
         }
         states.add(new GameStep(state, -1));
+
         if (state.isTerminal() == -1) {
             deathCount += 1;
         }
@@ -97,6 +90,7 @@ public class MatchSession {
     }
 
     public void playTrainingGame(int nodeCount) throws IOException {
+        states.clear();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
@@ -109,36 +103,28 @@ public class MatchSession {
         }
 
         state.doEval(mcts.model);
-        states.clear();
         while (state.isTerminal() == 0) {
             for (int i = 0; i < nodeCount; i++) {
-                mcts.search(state, true, -1, true);
+                mcts.search(state, true, -1);
             }
 
-            State nextState = null;
-            int max_n = 0;
+            State nextState;
             int action = 0;
             int turnCount = 0;
             if (turnCount >= 0) {
-                for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                    if (state.n[i] > max_n) {
-                        action = i;
-                        nextState = state.ns[i];
-                        max_n = state.n[i];
-                    }
-                }
+                action = MCTS.getActionWithMaxNodesOrTerminal(state);
             } else {
                 int r = random.nextInt(state.total_n);
                 int acc = 0;
                 for (int i = 0; i < state.policy.length; i++) {
                     acc += state.n[i];
                     if (acc > r) {
-                        nextState = state.ns[i];
                         action = i;
                         break;
                     }
                 }
             }
+            nextState = state.ns[action];
 
             GameState newState;
             if (nextState instanceof ChanceState cState) {
@@ -153,6 +139,7 @@ public class MatchSession {
             state = newState.clone(false);
         }
         states.add(new GameStep(state, -1));
+
         trainingGame_i += 1;
         if (trainingDataWriter != null) {
             try {

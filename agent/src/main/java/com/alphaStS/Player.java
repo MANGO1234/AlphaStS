@@ -129,10 +129,10 @@ public class Player {
         if (block > 0) {
             str += ", block=" + block;
         }
-        if (strength > 0) {
+        if (strength != 0) {
             str += ", str=" + strength;
         }
-        if (dexterity > 0) {
+        if (dexterity != 0) {
             str += ", dex=" + dexterity;
         }
         if (vulnerable > 0) {

@@ -55,6 +55,26 @@ public class Main {
         return new GameState(enemies, new Player(32, 75), cards, relics);
     }
 
+    public static GameState BasicLagavulinState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 2));
+        cards.add(new CardCount(new Card.BodySlam(), 1));
+        cards.add(new CardCount(new Card.Cleave(), 1));
+        cards.add(new CardCount(new Card.IronWave(), 1));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.Impervious(), 1));
+        cards.add(new CardCount(new Card.SeeingRed(), 1));
+        cards.add(new CardCount(new Card.Exhume(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.Lagavulin());
+        var relics = new ArrayList<Relic>();
+        var player = new Player(73, 75);
+//        player.dexterity = 2;
+        return new GameState(enemies, player, cards, relics);
+    }
+
     public static GameState SlimeBossState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -109,7 +129,7 @@ public class Main {
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
         var state = new GameState(enemies, new Player(47, 75), cards, relics);
-//        state = SlimeBossState();
+        state = BasicLagavulinState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -163,12 +183,10 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 300;
-            NODE_COUNT = 5000;
-            MATCHES_COUNT = 500;
-            NODE_COUNT = 100;
+            MATCHES_COUNT = 100;
+            NODE_COUNT = 20000;
             //            SAVES_DIR = "../saves";
-            iteration = 31;
+//            iteration = 31;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
@@ -272,18 +290,33 @@ public class Main {
                     writer.writeFloat(v_win);
                     for (int j = 0; j < state.prop.totalNumOfActions; j++) {
                         if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
-                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                                writer.writeFloat(0);
+                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY || !state.isActionLegal(j)) {
+                                writer.writeFloat(-1);
                             } else {
-                                assert !state.isActionLegal(j) || state.n[j] > 0;
-                                writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                                if (state.terminal_action > 0) {
+                                    if (state.terminal_action == j) {
+                                        writer.writeFloat(1);
+                                    } else {
+                                        writer.writeFloat(0);
+                                    }
+                                } else {
+                                    writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                                }
                             }
                         } else {
-                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                                assert !state.isActionLegal(j) || state.n[j] > 0;
-                                writer.writeFloat((float) (((double) state.n[j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length]) / state.total_n));
+                            int action = j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY && state.isActionLegal(action)) {
+                                if (state.terminal_action > 0) {
+                                    if (state.terminal_action == action) {
+                                        writer.writeFloat(1);
+                                    } else {
+                                        writer.writeFloat(0);
+                                    }
+                                } else {
+                                    writer.writeFloat((float) (((double) state.n[action]) / state.total_n));
+                                }
                             } else {
-                                writer.writeFloat(0);
+                                writer.writeFloat(-1);
                             }
                         }
                     }

@@ -106,7 +106,8 @@ public class InteractiveMode {
                         if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
                                 state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
                                 state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD) {
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST) {
                             System.out.println(i + ". " + state.getActionString(i));
                         } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                             System.out.println("e. End Turn");
@@ -186,7 +187,7 @@ public class InteractiveMode {
                     try {
                         int count = Integer.parseInt(line.substring(2));
                         for (int i = state.total_n; i < count; i++) {
-                            mcts.search(state, false, -1, true);
+                            mcts.search(state, false, -1);
                         }
                         System.out.println(state.toStringReadable());
                         skipPrint = true;
@@ -201,28 +202,18 @@ public class InteractiveMode {
                         int move_i = 0;
                         do {
                             for (int i = s.total_n; i < count; i++) {
-                                mcts.search(s, false, -1, true);
+                                mcts.search(s, false, -1);
                             }
-                            int max_n = -1;
-                            int max_i = 0;
-                            int number = 0;
-                            for (int i = 0; i < s.prop.maxNumOfActions; i++) {
-                                if (s.ns[i] != null) {
-                                    number++;
-                                    if (s.n[i] > max_n) {
-                                        max_i = i;
-                                        max_n = s.n[i];
-                                    }
-                                }
-                            }
-                            if (number == 0) {
+                            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
+                            if (action < 0) {
                                 break;
                             }
-                            System.out.println("  " + (++move_i) + ". " + s.getActionString(max_i) +
-                                    " (" + max_n + ", " + GameState.calc_q(s.q_win[max_i] / max_n, s.q_health[max_i] / max_n) + ", "  +
-                                    (s.q_win[max_i] / max_n) + ", " + (s.q_health[max_i] / max_n) + ")");
-                            State ns = s.ns[max_i];
-                            if (ns instanceof ChanceState cState) {
+                            int max_n = s.n[action];
+                            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
+                                    " (" + max_n + ", " + GameState.calc_q(s.q_win[action] / max_n, s.q_health[action] / max_n) + ", "  +
+                                    (s.q_win[action] / max_n) + ", " + (s.q_health[action] / max_n) + ")");
+                            State ns = s.ns[action];
+                            if (ns instanceof ChanceState) {
                                 break;
                             } else if (ns instanceof GameState ns2) {
                                 if (ns2.isTerminal() != 0) {
@@ -336,6 +327,14 @@ public class InteractiveMode {
                     MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
                     continue;
                 } else if (line.startsWith("matches")) {
+                    int match_count = 100;
+                    if (line.startsWith("matches ")) {
+                        try {
+                            match_count = Integer.parseInt(line.substring(8));
+                        } catch (NumberFormatException e) {
+                            // do nothing
+                        }
+                    }
                     MatchSession session = new MatchSession(state, modelDir);
                     if (line.startsWith("matches ")) {
                         try {
@@ -356,7 +355,18 @@ public class InteractiveMode {
                         }
                     }
                     long start = System.currentTimeMillis();
-                    for (int i = 0; i < 100; i++) {
+                    for (int i = 0; i < match_count; i++) {
+                        if ((i + 1) % 25 == 0) {
+                            long end = System.currentTimeMillis();
+                            System.out.println("Progress: " + session.game_i + "/" + match_count);;
+                            System.out.println("Deaths: " + session.deathCount);
+                            System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
+                            System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
+                            System.out.println("Time Taken: " + (end - start));
+                            System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
+                            System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
+                            System.out.println("--------------------");
+                        }
                         session.playGame(1000);
                     }
                     long end = System.currentTimeMillis();
