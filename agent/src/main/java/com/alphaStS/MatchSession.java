@@ -88,9 +88,6 @@ public class MatchSession {
             if (newState.policy == null) {
                 newState.doEval(mcts.model);
             }
-            if (newState.actionCtx == GameActionCtx.BEGIN_TURN) {
-                Integer.parseInt(null);
-            }
         } else {
             newState = (GameState) nextState;
         }

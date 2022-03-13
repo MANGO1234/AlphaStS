@@ -182,6 +182,7 @@ if DO_TRAINING:
             agent_args += ['-curriculum_training']
         agent_output = subprocess.run(agent_args, capture_output=True)
         if len(agent_output.stderr) > 0:
+            print(agent_output.stdout.decode('ascii'))
             print(agent_output.stderr.decode('ascii'))
             raise "agent error"
         agent_output = agent_output.stdout
@@ -232,6 +233,7 @@ if DO_TRAINING:
         if _iterations == ITERATION_COUNT - 1:
             agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '100', '-n', '500', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
+                print(agent_output.stdout.decode('ascii'))
                 print(agent_output.stderr.decode('ascii'))
                 raise "agent error"
             agent_output = agent_output.stdout

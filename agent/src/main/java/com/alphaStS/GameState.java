@@ -591,6 +591,7 @@ public class GameState implements State {
             turn_num++;
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
+//            startTurn();
             turn_num++;
             gotoActionCtx(GameActionCtx.BEGIN_TURN, null, -1);
         } else if (action.type() == GameActionType.PLAY_CARD) {

@@ -91,7 +91,7 @@ public class Main {
         enemies.add(new Enemy.Lagavulin());
         var relics = new ArrayList<Relic>();
         var player = new Player(73, 75);
-//        player.dexterity = 2;
+        player.dexterity = 2;
         return new GameState(enemies, player, cards, relics);
     }
 
@@ -202,7 +202,7 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 500;
+            MATCHES_COUNT = 2000;
             NODE_COUNT = 5000;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

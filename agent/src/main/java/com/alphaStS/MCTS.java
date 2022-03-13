@@ -224,6 +224,9 @@ public class MCTS {
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
+            if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                state2.doAction(0);
+            }
             if (state2.isStochastic) {
                 state.ns[action] = new ChanceState(state2);
                 this.search2_r(state2, training, remainingCalls, false);
@@ -345,12 +348,16 @@ public class MCTS {
         int actionToPropagate = -1;
         float max_n = -1000;
         for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-            if (state.isActionLegal(i)) {
+            if (state.isActionLegal(i) && !state.transpositionsPolicyMask[i]) {
                 if (state.n[i] > max_n) {
                     max_n = state.n[i];
                     actionToPropagate = i;
                 }
             }
+        }
+        if (actionToPropagate == -1) {
+            System.out.println("!!!!!!!|| " + state.toStringReadable());
+            System.out.println(Arrays.toString(state.transpositionsPolicyMask));
         }
         return actionToPropagate;
     }
