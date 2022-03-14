@@ -59,20 +59,21 @@ public class Main {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
         cards.add(new CardCount(new Card.Strike(), 2));
-        cards.add(new CardCount(new Card.ThunderclapP(), 1));
-        cards.add(new CardCount(new Card.CarnageP(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.BodySlamP(), 1));
+        cards.add(new CardCount(new Card.Cleave(), 1));
+        cards.add(new CardCount(new Card.IronWave(), 1));
         cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Metallicize(), 1));
-        cards.add(new CardCount(new Card.Shockwave(), 1));
-        cards.add(new CardCount(new Card.ShrugItOff(), 1));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.Impervious(), 1));
+        cards.add(new CardCount(new Card.SeeingRed(), 1));
+        cards.add(new CardCount(new Card.Exhume(), 1));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
         var relics = new ArrayList<Relic>();
-        return new GameState(enemies, new Player(51, 75), cards, relics);
+        var player = new Player(46, 75);
+        return new GameState(enemies, player, cards, relics);
     }
 
     public static GameState BasicLagavulinState() {
@@ -124,7 +125,8 @@ public class Main {
         return new GameState(enemies, new Player(45, 85), cards, relics);
     }
 
-    public static void main(String[] args) throws IOException {
+    private static GameState SlimeBossStateLC() {
+        // https://youtu.be/wKbAoS80HA0?t=11397
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
         cards.add(new CardCount(new Card.Strike(), 5));
@@ -148,8 +150,11 @@ public class Main {
         enemies.add(new Enemy.MediumAcidSlime(37, true));
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
-        var state = new GameState(enemies, new Player(47, 75), cards, relics);
-        state = BasicLagavulinState();
+        return new GameState(enemies, new Player(47, 75), cards, relics);
+    }
+
+    public static void main(String[] args) throws IOException {
+        var state = SlimeBossStateLC();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -202,7 +207,7 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 2000;
+            MATCHES_COUNT = 200;
             NODE_COUNT = 5000;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

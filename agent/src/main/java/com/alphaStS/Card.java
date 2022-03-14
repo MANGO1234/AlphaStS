@@ -1292,7 +1292,7 @@ abstract class Card {
         }
 
         public int energyCost(GameState state) {
-            return 0;
+            return 1;
         }
     }
 
@@ -1307,7 +1307,7 @@ abstract class Card {
         }
 
         public int energyCost(GameState state) {
-            return 0;
+            return 1;
         }
     }
 

@@ -646,8 +646,11 @@ public class GameState implements State {
     }
 
     boolean isActionLegal(int action) {
-        if (actionsCache != null && action < actionsCache.length) {
-            return actionsCache[action];
+        if (actionsCache != null) {
+            if (action >=0 && action < actionsCache.length) {
+                return actionsCache[action];
+            }
+            return false;
         }
         if (actionCtx == GameActionCtx.START_GAME || actionCtx == GameActionCtx.BEGIN_TURN) {
             return action == 0;
@@ -1233,6 +1236,24 @@ public class GameState implements State {
             ns[i] = null;
         }
         transpositions = new HashMap<>();
+    }
+
+    public void clearAllSearchInfo() {
+        policy = null;
+        q_health = new double[prop.maxNumOfActions];
+        q_comb = new double[prop.maxNumOfActions];
+        q_win = new double[prop.maxNumOfActions];
+        n = new int[prop.maxNumOfActions];
+        ns = new State[prop.maxNumOfActions];
+        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
+        transpositions = new HashMap<>();
+        terminal_action = -100;
+        total_n = 0;
+        total_q_win = 0;
+        total_q_health = 0;
+        total_q_comb = 0;
+        v_health = 0;
+        v_win = 0;
     }
 
     public void gainEnergy(int n) {

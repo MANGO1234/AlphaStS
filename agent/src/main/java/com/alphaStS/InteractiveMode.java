@@ -1,11 +1,13 @@
 package com.alphaStS;
 
+import javax.management.DescriptorAccess;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class InteractiveMode {
@@ -149,7 +151,7 @@ public class InteractiveMode {
             if (mode == 0) {
                 if (line.equals("e")) {
                     states.add(state);
-                    state.clearNextStates();
+                    state.clearAllSearchInfo();
                     state = state.clone(false);
                     for (int i = 0; i < state.prop.maxNumOfActions; i++) {
                         if (state.isActionLegal(i) && state.getAction(i).type() == GameActionType.END_TURN) {
@@ -226,6 +228,11 @@ public class InteractiveMode {
                                 } else {
                                     s = ns2;
                                 }
+                            } else {
+                                System.out.println("Unknown ns: " + state.toStringReadable());
+                                System.out.println("Unknown ns: " + Arrays.toString(state.transpositionsPolicyMask));
+                                System.out.println("Unknown ns: " + Arrays.asList(state.ns).stream().map((x) -> x == null).toList());
+                                break;
                             }
                         } while (true);
                         skipPrint = true;
@@ -257,10 +264,10 @@ public class InteractiveMode {
                         // ignore
                     }
                 } else if (line.startsWith("louse-curl ")) {
-                    try {
-                        String[] s = line.split(" ");
-                        int enemyIdx = Integer.parseInt(s[1]);
-                        int n = Integer.parseInt(s[2]);
+                    String[] s = line.split(" ");
+                    if (s.length == 3) {
+                        int enemyIdx = parseInt(s[1], -1);
+                        int n = parseInt(s[2], -1);
                         if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
                             if (state.enemies.get(enemyIdx) instanceof Enemy.RedLouse louse) {
                                 louse.curlUpAmount = n;
@@ -271,14 +278,13 @@ public class InteractiveMode {
                                 louse.curlUpAmount = n;
                             }
                         }
-                    } catch (NumberFormatException e) {
-                        // ignore
                     }
+                    continue;
                 } else if (line.startsWith("louse-dmg ")) {
-                    try {
-                        String[] s = line.split(" ");
-                        int enemyIdx = Integer.parseInt(s[1]);
-                        int n = Integer.parseInt(s[2]);
+                    String[] s = line.split(" ");
+                    if (s.length == 3) {
+                        int enemyIdx = parseInt(s[1], -1);
+                        int n = Integer.parseInt(s[2], -1);
                         if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
                             if (state.enemies.get(enemyIdx) instanceof Enemy.RedLouse louse) {
                                 louse.d = n;
@@ -289,30 +295,21 @@ public class InteractiveMode {
                                 louse.d = n;
                             }
                         }
-                    } catch (NumberFormatException e) {
-                        // ignore
                     }
+                    continue;
                 } else if (line.startsWith("em ")) {
-                    try {
-                        int enemyIdx = Integer.parseInt(line.substring(3));
-                        if (0 <= enemyIdx && enemyIdx < state.enemies.size()) {
-                            curEnemy = state.enemies.get(enemyIdx);
-                            mode = 2;
-                            continue;
-                        }
-                    } catch (NumberFormatException e) {
-                        // ignore
+                    int enemyIdx = parseInt(line.substring(3), -1);
+                    if (0 <= enemyIdx && enemyIdx < state.enemies.size()) {
+                        curEnemy = state.enemies.get(enemyIdx);
+                        mode = 2;
+                        continue;
                     }
                 } else if (line.equals("ph ")) {
-                    try {
-                        int hp = Integer.parseInt(line.substring(2));
-                        if (hp >= 0) {
-                            state.player.health = hp;
-                        }
-                        continue;
-                    } catch (NumberFormatException e) {
-                        // ignore
+                    int hp = parseInt(line.substring(2), -1);
+                    if (hp >= 0) {
+                        state.player.health = hp;
                     }
+                    continue;
                 } else if (line.equals("b")) {
                     if (states.size() > 0) {
                         state = states.remove(states.size() - 1);
@@ -324,81 +321,30 @@ public class InteractiveMode {
                     continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
-                        if (!l.equals("tree") && !l.equals("matches") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
+                        if (!l.equals("tree") && !l.startsWith("matches") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
                             System.out.println(l);
                         }
                     }
+                    continue;
                 } else if (line.equals("tree")) {
                     MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
                     continue;
                 } else if (line.startsWith("matches")) {
-                    int match_count = 100;
-//                    if (line.startsWith("matches ")) {
-//                        try {
-//                            match_count = Integer.parseInt(line.substring(8));
-//                        } catch (NumberFormatException e) {
-//                            // do nothing
-//                        }
-//                    }
-                    MatchSession session = new MatchSession(state, modelDir);
-                    if (line.startsWith("matches ")) {
-                        try {
-                            int action;
-                            if (line.substring(8).equals("e")) {
-                                action = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
-                            } else {
-                                action = Integer.parseInt(line.substring(8));
-                            }
-                            if (state.isActionLegal(action)) {
-                                session.startingAction = action;
-                            }
-                        } catch (NumberFormatException e) {
-                            // do nothing
-                        }
-                        if (session.startingAction < 0) {
-                            System.out.println("Unknown action.");
-                        }
-                    }
-                    long start = System.currentTimeMillis();
-                    for (int i = 0; i < match_count; i++) {
-                        session.playGame(1000);
-                        if (session.game_i % 25 == 0) {
-                            long end = System.currentTimeMillis();
-                            System.out.println("Progress: " + session.game_i + "/" + match_count);;
-                            System.out.println("Deaths: " + session.deathCount);
-                            System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-                            System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
-                            System.out.println("Time Taken: " + (end - start));
-                            System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-                            System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
-                            System.out.println("--------------------");
-                        }
-                    }
-                    long end = System.currentTimeMillis();
-                    System.out.println("Deaths: " + session.deathCount);
-                    System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
-                    System.out.println("Time Taken: " + (end - start));
-                    System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-                    System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
-                    System.out.print("--------------------");
+                    runMatches(modelDir, state, line);
                     continue;
                 } else if (line.equals("")) {
                     continue;
                 }
 
-                try {
-                    int action = Integer.parseInt(line);
-                    if (state.isActionLegal(action)) {
-                        states.add(state);
-                        state.clearNextStates();
-                        state = state.clone(false);
-                        state.doAction(action);
-                        continue;
-                    }
-                } catch (NumberFormatException e) {
-                    // ignore
+                int action = parseInt(line, -1);
+                if (action >= 0 && state.isActionLegal(action)) {
+                    states.add(state);
+                    state.clearAllSearchInfo();
+                    state = state.clone(false);
+                    state.doAction(action);
+                    continue;
                 }
+
                 System.out.println("Unknown Command.");
             } else if (mode == 1) {
                 if (line.equals("b")) {
@@ -449,6 +395,67 @@ public class InteractiveMode {
                 }
                 System.out.println("Unknown Command.");
             }
+        }
+    }
+
+    private static void runMatches(String modelDir, GameState state, String line) {
+        String[] s = line.split(" ");
+        int matchCount = 100;
+        int nodeCount = 1000;
+        MatchSession session = new MatchSession(state, modelDir);
+
+        if (s.length > 1) {
+            for (int i = 1; i < s.length; i++) {
+                if (s[i].startsWith("c=")) {
+                    matchCount = parseInt(s[i].substring(2), 0);
+                }
+                if (s[i].startsWith("n=")) {
+                    nodeCount = parseInt(s[i].substring(2), 1000);
+                }
+                if (s[i].startsWith("a=")) {
+                    if (s[i].substring(2).equals("e")) {
+                        session.startingAction = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+                    } else {
+                        session.startingAction = parseInt(s[i].substring(2), -1);
+                    }
+                    if (!state.isActionLegal(session.startingAction)) {
+                        System.out.println("Unknown action.");
+                        matchCount = 0;
+                    }
+                }
+            }
+        }
+
+        long start = System.currentTimeMillis();
+        for (int i = 0; i < matchCount; i++) {
+            session.playGame(nodeCount);
+            if (session.game_i % 25 == 0) {
+                long end = System.currentTimeMillis();
+                System.out.println("Progress: " + session.game_i + "/" + matchCount);;
+                System.out.println("Deaths: " + session.deathCount);
+                System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
+                System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
+                System.out.println("Time Taken: " + (end - start));
+                System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
+                System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
+                System.out.println("--------------------");
+            }
+        }
+        long end = System.currentTimeMillis();
+        System.out.println("Deaths: " + session.deathCount);
+        System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
+        System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
+        System.out.println("Time Taken: " + (end - start));
+        System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
+        System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
+        System.out.print("--------------------");
+    }
+
+    private static int parseInt(String s, int default_v) {
+        try {
+            return Integer.parseInt(s);
+        } catch (NumberFormatException e) {
+            return default_v;
         }
     }
 }

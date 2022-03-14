@@ -341,6 +341,23 @@ public class MCTS {
         return policy;
     }
 
+    public static int getActionRandomOrTerminal(GameState state) {
+        if (state.terminal_action >= 0) {
+            return state.terminal_action;
+        }
+        int r = state.prop.random.nextInt(state.total_n);
+        int acc = 0;
+        int action = -1;
+        for (int i = 0; i < state.policy.length; i++) {
+            acc += state.n[i];
+            if (acc > r) {
+                action = i;
+                break;
+            }
+        }
+        return action;
+    }
+
     public static int getActionWithMaxNodesOrTerminal(GameState state) {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
