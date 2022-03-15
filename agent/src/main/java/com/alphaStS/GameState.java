@@ -33,9 +33,11 @@ class GameProperties {
     int dazedCardIdx = -1;
     int slimeCardIdx = -1;
     int woundCardIdx = -1;
+    boolean battleTranceExist;
 
     int inputLen;
     List<GameTrigger> preEndTurnTrigger;
+    List<GameTrigger> onPlayerDamageTrigger;
 }
 
 enum GameActionCtx {
@@ -86,7 +88,7 @@ public class GameState implements State {
     Player player;
     Card previousCard;
     int previousCardIdx;
-    short turn_num;
+    short turnNum;
     private DrawOrder drawOrder;
 
     // various other buffs/debuffs
@@ -136,6 +138,7 @@ public class GameState implements State {
         prop = new GameProperties();
         prop.random = new Random();
         prop.preEndTurnTrigger = new ArrayList<>();
+        prop.onPlayerDamageTrigger = new ArrayList<>();
 
         cards = collectAllPossibleCards(cards, enemies);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
@@ -237,8 +240,10 @@ public class GameState implements State {
         prop.playerCanGetMetallicize = cards.stream().anyMatch((x) -> x.card().cardName.contains("Metallicize"));
         prop.playerThornCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Flame Barrier"));
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuffs.CORRUPTION : 0;
+        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.RunicPyramid) ? PlayerBuffs.RUNIC_PYRAMID : 0;
         prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
+        prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
 
         // game state
         actionCtx = GameActionCtx.START_GAME;
@@ -380,7 +385,7 @@ public class GameState implements State {
         deckArr = Arrays.copyOf(other.deckArr, other.deckArr.length);
         deckArrLen = other.deckArrLen;
         energy = other.energy;
-        turn_num = other.turn_num;
+        turnNum = other.turnNum;
         energyRefill = other.energyRefill;
         player = new Player(other.player);
         enemies = new ArrayList<>();
@@ -418,6 +423,9 @@ public class GameState implements State {
     }
 
     void draw(int count) {
+        if (player.cannotDrawCard) {
+            return;
+        }
 //        if (deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
             isStochastic = true;
 //        }
@@ -558,7 +566,7 @@ public class GameState implements State {
 
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             for (Enemy enemy : enemies) {
-                enemy.react(prop.cardDict[cardIdx]);
+                enemy.react(this, prop.cardDict[cardIdx]);
             }
             if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
                 exhaustedCardHandle(cardIdx);
@@ -571,7 +579,7 @@ public class GameState implements State {
     }
 
     void startTurn() {
-        turn_num++;
+        turnNum++;
         for (Enemy enemy : enemies) {
             if (enemy.health > 0) {
                 enemy.nextMove(prop.random);
@@ -586,11 +594,6 @@ public class GameState implements State {
             gameTrigger.act(this);
         }
         if (metallicize > 0) player.gainBlock(metallicize);
-        for (Enemy enemy : enemies) {
-            if (enemy.health > 0) {
-                enemy.doMove(this);
-            }
-        }
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
                 if (!prop.cardDict[i].exhaustEndOfTurn) {
@@ -608,6 +611,7 @@ public class GameState implements State {
         }
         for (Enemy enemy : enemies) {
             if (enemy.health > 0) {
+                enemy.doMove(this);
                 enemy.endTurn();
             }
         }
@@ -707,7 +711,7 @@ public class GameState implements State {
     }
 
     void get_v(double[] out) {
-        if (player.health <= 0 || turn_num > 30) {
+        if (player.health <= 0 || turnNum > 30) {
             out[0] = 0;
             out[1] = 0;
             out[2] = 0;
@@ -726,7 +730,7 @@ public class GameState implements State {
     }
 
     int isTerminal() {
-        if (player.health <= 0 || turn_num > 30) {
+        if (player.health <= 0 || turnNum > 30) {
             return -1;
         } else {
             return enemies.stream().allMatch((x) -> x.health <= 0) ? 1 : 0;
@@ -894,8 +898,14 @@ public class GameState implements State {
         if (prop.playerThornCanChange) {
             inputLen += 1; // player thorn
         }
+        if (prop.battleTranceExist) {
+            inputLen += 1; // battle trance
+        }
         if ((prop.possibleBuffs & PlayerBuffs.CORRUPTION) != 0) {
-            inputLen += 1; // player thorn
+            inputLen += 1; // corruption in deck
+        }
+        if ((prop.possibleBuffs & PlayerBuffs.RUNIC_PYRAMID) != 0) {
+            inputLen += 1; // has runic pyramid
         }
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
@@ -940,6 +950,8 @@ public class GameState implements State {
             }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 inputLen += 1;
+            } else if (enemy instanceof Enemy.TheGuardian guardian) {
+                inputLen += 2;
             }
         }
         return inputLen;
@@ -1007,8 +1019,14 @@ public class GameState implements State {
         if (prop.playerThornCanChange) {
             x[idx++] = thorn / 10.0f;
         }
+        if (prop.battleTranceExist) {
+            x[idx++] = player.cannotDrawCard ? 0.5f : -0.5f;
+        }
         if ((prop.possibleBuffs & PlayerBuffs.CORRUPTION) != 0) {
             x[idx++] = (buffs & PlayerBuffs.CORRUPTION) != 0 ? 0.5f : -0.5f;
+        }
+        if ((prop.possibleBuffs & PlayerBuffs.RUNIC_PYRAMID) != 0) {
+            x[idx++] = (buffs & PlayerBuffs.RUNIC_PYRAMID) != 0 ? 0.5f : -0.5f;
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
                 prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
@@ -1063,6 +1081,9 @@ public class GameState implements State {
                     x[idx++] = (louse.curlUpAmount - 10) / 2.0f;
                 } else if (enemy instanceof Enemy.GreenLouse louse) {
                     x[idx++] = (louse.curlUpAmount - 10) / 2.0f;
+                } else if (enemy instanceof Enemy.TheGuardian guardian) {
+                    x[idx++] = (guardian.modeShiftDmg - 50) / 20f;
+                    x[idx++] = (guardian.maxModeShiftDmg - 50) / 20f;
                 }
             } else {
                 x[idx++] = enemy.health / (float) enemy.maxHealth;
@@ -1092,6 +1113,9 @@ public class GameState implements State {
                     }
                 }
                 if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
+                    x[idx++] = -0.1f;
+                } else if (enemy instanceof Enemy.TheGuardian) {
+                    x[idx++] = -0.1f;
                     x[idx++] = -0.1f;
                 }
             }
@@ -1198,6 +1222,10 @@ public class GameState implements State {
         prop.preEndTurnTrigger.add(gameTrigger);
     }
 
+    public void addOnDamageTrigger(GameTrigger gameTrigger) {
+        prop.onPlayerDamageTrigger.add(gameTrigger);
+    }
+
     public void clearNextStates() { // oom during training due to holding too many states
         for (int i = 0; i < ns.length; i++) {
             ns[i] = null;
@@ -1260,14 +1288,25 @@ public class GameState implements State {
         drawOrder.pushOnTop(idx);
     }
 
-    public void enemyDoDamageToPlayer(Enemy enemy, int d) {
-        d += enemy.strength;
-        if (enemy.weak > 0) {
-            d = d * 3 / 4;
-        }
-        player.damage(d);
-        if (thorn > 0) {
-            enemy.nonAttackDamage(thorn, false, this);
+    public void enemyDoDamageToPlayer(Enemy enemy, int dmg, int times) {
+        int move = enemy.move;
+        for (int i = 0; i < times; i++) {
+            if (enemy.health <= 0 || enemy.move != move) {
+                return;
+            }
+            dmg += enemy.strength;
+            if (enemy.weak > 0) {
+                dmg = dmg * 3 / 4;
+            }
+            player.damage(dmg);
+            if (thorn > 0) {
+                enemy.nonAttackDamage(thorn, false, this);
+            }
+            if (dmg > 0) {
+                for (GameTrigger trigger : prop.onPlayerDamageTrigger) {
+                    trigger.act(this);
+                }
+            }
         }
     }
 
@@ -1282,8 +1321,13 @@ public class GameState implements State {
         return d;
     }
 
-    public void enemyDoNonAttackDamageToPlayer(Enemy enemy, int d, boolean blockable, boolean addStrength) {
-        player.nonAttackDamage(d + (addStrength ? enemy.strength : 0), blockable);
+    public void enemyDoNonAttackDamageToPlayer(Enemy enemy, int dmg, boolean blockable, boolean addStrength) {
+        player.nonAttackDamage(dmg + (addStrength ? enemy.strength : 0), blockable);
+        if (dmg + (addStrength ? enemy.strength : 0) > 0) {
+            for (GameTrigger trigger : prop.onPlayerDamageTrigger) {
+                trigger.act(this);
+            }
+        }
     }
 }
 

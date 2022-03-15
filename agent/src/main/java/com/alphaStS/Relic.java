@@ -36,4 +36,18 @@ public abstract class Relic {
             state.thorn += 3;
         }
     }
+
+    public static class RunicPyramid extends Relic {
+        @Override public void startOfGame(GameState state) {
+            state.buffs |= PlayerBuffs.RUNIC_PYRAMID;
+            state.addOnDamageTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    if ((state.buffs & PlayerBuffs.RUNIC_PYRAMID) != 0) {
+                        state.buffs &= ~PlayerBuffs.RUNIC_PYRAMID;
+                        state.draw(3);
+                    }
+                }
+            });
+        }
+    }
 }

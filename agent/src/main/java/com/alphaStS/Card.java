@@ -767,8 +767,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             state.draw(3);
-            // todo
-//            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
+            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -780,8 +779,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             state.draw(4);
-            // todo
-//            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
+            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }

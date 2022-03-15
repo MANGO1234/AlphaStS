@@ -129,7 +129,7 @@ abstract class Enemy {
     public void startOfGameSetup(Random random) {
     }
 
-    public void react(Card card) {
+    public void react(GameState state, Card card) {
     }
 
     public void applyDebuff(DebuffType type, int amount) {
@@ -193,10 +193,10 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == 1) {
-                state.enemyDoDamageToPlayer(this, 8);
+                state.enemyDoDamageToPlayer(this, 8, 1);
                 state.player.vulnerable += 3;
             } else if (move == 2 || move == 3) {
-                state.enemyDoDamageToPlayer(this, 16);
+                state.enemyDoDamageToPlayer(this, 16, 1);
             }
         }
 
@@ -210,7 +210,7 @@ abstract class Enemy {
             turn += 1;
         }
 
-        @Override public void react(Card card) {
+        @Override public void react(GameState state, Card card) {
             if (card.cardType == Card.SKILL && turn > 1) {
                 strength += 3;
             }
@@ -294,7 +294,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == ATTACK_1 || move == ATTACK_2) {
-                state.enemyDoDamageToPlayer(this, 20);
+                state.enemyDoDamageToPlayer(this, 20, 1);
             } else if (move == SIPHON_SOUL) {
                 state.player.gainStrength(-2);
                 state.player.gainDexterity(-2);
@@ -367,7 +367,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == BEAM) {
-                state.enemyDoDamageToPlayer(this, 10);
+                state.enemyDoDamageToPlayer(this, 10, 1);
             } else if (move == BOLT) {
                 state.addCardToDiscard(state.prop.dazedCardIdx);
                 state.addCardToDiscard(state.prop.dazedCardIdx);
@@ -443,21 +443,16 @@ abstract class Enemy {
         @Override public void doMove(GameState state) {
             if (move == DIVIDER) {
                 int n = state.player.health / 12 + 1;
-                for (int i = 0; i < 6; i++) {
-                    state.enemyDoDamageToPlayer(this, n + strength);
-                }
+                state.enemyDoDamageToPlayer(this, n, 6);
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
-                state.enemyDoDamageToPlayer(this, 6 + strength);
+                state.enemyDoDamageToPlayer(this, 6, 1);
             } else if (move == TACKLE_1 || move == TACKLE_2) {
-                state.enemyDoDamageToPlayer(this, 6 + strength);
-                state.enemyDoDamageToPlayer(this, 6 + strength);
+                state.enemyDoDamageToPlayer(this, 6, 2);
             } else if (move == INFLAME_1) {
                 strength += 3;
                 gainBlock(12);;
             } else if (move == INFERNAL_1) {
-                for (int i = 0; i < 6; i++) {
-                    state.enemyDoDamageToPlayer(this, 3 + strength);
-                }
+                state.enemyDoDamageToPlayer(this, 3, 6);
             }
         }
 
@@ -496,6 +491,134 @@ abstract class Enemy {
 
         public String getName() {
             return "Hexaghost";
+        }
+    }
+
+    public static class TheGuardian extends Enemy {
+        static int CHARGING_UP = 0;
+        static int FIERCE_BASH = 1;
+        static int VENT_STEAM = 2;
+        static int WHIRL_WIND = 3;
+        static int DEFENSIVE_MODE = 4;
+        static int ROLL_ATTACK = 5;
+        static int TWIN_SLAM = 6;
+
+        int modeShiftDmg;
+        int maxModeShiftDmg;
+
+        public TheGuardian() {
+            this(250);
+        }
+
+        public TheGuardian(int health) {
+            super(health, 7);
+            canGainBlock = true;
+            canVulnerable = true;
+            canWeaken = true;
+            modeShiftDmg = 40;
+            maxModeShiftDmg = 40;
+        }
+
+        public TheGuardian(TheGuardian other) {
+            this(other.health);
+            setSharedFields(other);
+            modeShiftDmg = other.modeShiftDmg;
+            maxModeShiftDmg = other.maxModeShiftDmg;
+        }
+
+        @Override public Enemy copy() {
+            return new TheGuardian(this);
+        }
+
+        void damage(int n, GameState state) {
+            int oldHealth = health;
+            super.damage(n, state);
+            if (move != DEFENSIVE_MODE && move != ROLL_ATTACK && move != TWIN_SLAM) {
+                modeShiftDmg = Math.max(modeShiftDmg - (oldHealth - health), 0);
+                if (modeShiftDmg == 0) {
+                    move = DEFENSIVE_MODE;
+                    gainBlock(20);
+                }
+            }
+        }
+
+        void nonAttackDamage(int n, boolean blockable, GameState state) {
+            int oldHealth = health;
+            super.nonAttackDamage(n, blockable, state);
+            if (move != DEFENSIVE_MODE && move != ROLL_ATTACK && move != TWIN_SLAM) {
+                modeShiftDmg = Math.max(modeShiftDmg - (oldHealth - health), 0);
+                if (modeShiftDmg == 0) {
+                    move = DEFENSIVE_MODE;
+                    gainBlock(20);
+                }
+            }
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == CHARGING_UP) {
+            } else if (move == FIERCE_BASH) {
+                state.enemyDoDamageToPlayer(this, 36, 1);
+            } else if (move == VENT_STEAM) {
+                state.player.applyDebuff(DebuffType.VULNERABLE, 2);
+                state.player.applyDebuff(DebuffType.WEAK, 2);
+            } else if (move == WHIRL_WIND) {
+                state.enemyDoDamageToPlayer(this, 5, 4);
+            } else if (move == DEFENSIVE_MODE) {
+            } else if (move == ROLL_ATTACK) {
+                state.enemyDoDamageToPlayer(this, 10, 1);
+            } else if (move == TWIN_SLAM) {
+                state.enemyDoDamageToPlayer(this, 8, 2);
+            }
+        }
+
+        @Override public void nextMove(Random random) {
+            if (move < WHIRL_WIND) {
+                move++;
+            } else if (move == WHIRL_WIND) {
+                move = CHARGING_UP;
+            } else if (move == DEFENSIVE_MODE) {
+                move = ROLL_ATTACK;
+            } else if (move == ROLL_ATTACK) {
+                move = TWIN_SLAM;
+            } else if (move == TWIN_SLAM) {
+                move = CHARGING_UP;
+                maxModeShiftDmg += 10;
+                modeShiftDmg = maxModeShiftDmg;
+            }
+        }
+
+        public String getMoveString(GameState state) {
+            if (move == CHARGING_UP) {
+                return "Charging Up";
+            } else if (move == FIERCE_BASH) {
+                return "Attack " + state.player.calcDamage(36 + strength);
+            } else if (move == VENT_STEAM) {
+                return "2 Vulnerable+2 Weak";
+            } else if (move == WHIRL_WIND) {
+                return "Attack " + state.player.calcDamage(5 + strength) + "x4";
+            } else if (move == DEFENSIVE_MODE) {
+                return "Defensive Mode";
+            } else if (move == ROLL_ATTACK) {
+                return "Attack " + state.player.calcDamage(10 + strength);
+            } else if (move == TWIN_SLAM) {
+                return "Attack " + state.player.calcDamage(8 + strength) + "x2";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(Random random, boolean training) {
+            int b = training ? random.nextInt(25) + 1 : 25;
+            health = 250 * b / 25;
+        }
+
+        @Override public void react(GameState state, Card card) {
+            if (card.cardType == Card.ATTACK && (move == ROLL_ATTACK || move == TWIN_SLAM)) {
+                state.enemyDoNonAttackDamageToPlayer(this, 4, true, false);
+            }
+        }
+
+        public String getName() {
+            return "The Guardian";
         }
     }
 
@@ -543,7 +666,7 @@ abstract class Enemy {
                     state.addCardToDiscard(state.prop.slimeCardIdx);
                 }
             } else if (move == SLAM) {
-                state.enemyDoDamageToPlayer(this, 38);
+                state.enemyDoDamageToPlayer(this, 38, 1);
             } else if (move == SPLIT) {
                 for (Enemy enemy : state.enemies) {
                     if (enemy instanceof Enemy.LargeAcidSlime slime) {
@@ -647,7 +770,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == FLAME_TACKLE) {
-                state.enemyDoDamageToPlayer(this, 18);
+                state.enemyDoDamageToPlayer(this, 18, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
@@ -736,7 +859,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == FLAME_TACKLE) {
-                state.enemyDoDamageToPlayer(this, 10);
+                state.enemyDoDamageToPlayer(this, 10, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
                 state.player.applyDebuff(DebuffType.FRAIL, 2);
@@ -800,7 +923,7 @@ abstract class Enemy {
         }
 
         @Override public void doMove(GameState state) {
-            state.enemyDoDamageToPlayer(this, 6);
+            state.enemyDoDamageToPlayer(this, 6, 1);
         }
 
         @Override public void nextMove(Random random) {
@@ -875,11 +998,11 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == CORROSIVE_SPIT) {
-                state.enemyDoDamageToPlayer(this, 12);
+                state.enemyDoDamageToPlayer(this, 12, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == TACKLE) {
-                state.enemyDoDamageToPlayer(this, 18);
+                state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == LICK) {
                 state.player.applyDebuff(DebuffType.WEAK, 3);
             } else if (move == SPLIT) {
@@ -976,10 +1099,10 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == CORROSIVE_SPIT) {
-                state.enemyDoDamageToPlayer(this, 8);
+                state.enemyDoDamageToPlayer(this, 8, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == TACKLE) {
-                state.enemyDoDamageToPlayer(this, 12);
+                state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == LICK) {
                 state.player.applyDebuff(DebuffType.WEAK, 2);
             }
@@ -1053,7 +1176,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == TACKLE) {
-                state.enemyDoDamageToPlayer(this, 4);
+                state.enemyDoDamageToPlayer(this, 4, 1);
             } else if (move == LICK) {
                 state.player.applyDebuff(DebuffType.WEAK, 2);
             }
@@ -1108,12 +1231,12 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == 0) {
-                state.enemyDoDamageToPlayer(this, 12);
+                state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == 1) {
                 strength += 5;
                 gainBlock(9);
             } else if (move == 2) {
-                state.enemyDoDamageToPlayer(this, 7);
+                state.enemyDoDamageToPlayer(this, 7, 1);
                 gainBlock(5);
             }
         }
@@ -1205,7 +1328,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == BITE) {
-                state.enemyDoDamageToPlayer(this, d);
+                state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == GROW) {
                 strength += 4;
             }
@@ -1230,7 +1353,7 @@ abstract class Enemy {
             super.damage(n, state);
         }
 
-        @Override public void react(Card card) {
+        @Override public void react(GameState state, Card card) {
             if (tookAttackDamage && !hasCurledUp) {
                 hasCurledUp = true;
                 gainBlock(curlUpAmount);
@@ -1293,7 +1416,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == BITE) {
-                state.enemyDoDamageToPlayer(this, d);
+                state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == SPIT_WEB) {
                 state.player.applyDebuff(DebuffType.WEAK, 3);
             }
@@ -1318,7 +1441,7 @@ abstract class Enemy {
             super.damage(n, state);
         }
 
-        @Override public void react(Card card) {
+        @Override public void react(GameState state, Card card) {
             if (tookAttackDamage && !hasCurledUp) {
                 hasCurledUp = true;
                 gainBlock(curlUpAmount);
@@ -1372,7 +1495,7 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == BITE) {
-                state.enemyDoDamageToPlayer(this, 6);
+                state.enemyDoDamageToPlayer(this, 6, 1);
             } else if (move == GROW) {
                 strength += 5;
             }
@@ -1457,11 +1580,11 @@ abstract class Enemy {
 
         @Override public void doMove(GameState state) {
             if (move == MUG_1 || move == MUG_2) {
-                state.enemyDoDamageToPlayer(this, 11);
+                state.enemyDoDamageToPlayer(this, 11, 1);
             } else if (move == LUNGE) {
-                state.enemyDoDamageToPlayer(this, 14);
+                state.enemyDoDamageToPlayer(this, 14, 1);
             } else if (move == SMOKE_BOMB) {
-                state.enemyDoDamageToPlayer(this, 6);
+                state.enemyDoDamageToPlayer(this, 6, 1);
             } else if (move == ESCAPE) { // simulate the pain of losing gold, todo: need to combine with mugger later
                 state.enemyDoNonAttackDamageToPlayer(this, Math.min(30, state.player.health - 1), false, false);
                 health = 0;

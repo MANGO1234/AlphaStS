@@ -13,6 +13,7 @@ public class Player {
     int weak;
     int frail;
     int artifact;
+    boolean cannotDrawCard;
 
     public Player(int health, int maxHealth) {
         this.maxHealth = maxHealth;
@@ -30,6 +31,7 @@ public class Player {
         vulnerable = other.vulnerable;
         weak = other.weak;
         frail = other.frail;
+        cannotDrawCard = other.cannotDrawCard;
     }
 
     void damage(int n) {
@@ -108,6 +110,7 @@ public class Player {
         case VULNERABLE -> this.vulnerable += n;
         case WEAK -> this.weak += n;
         case FRAIL -> this.frail += n;
+        case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         }
     }
 
@@ -121,6 +124,7 @@ public class Player {
         if (frail > 0) {
             frail -= 1;
         }
+        cannotDrawCard = false;
         block = 0;
     }
 
@@ -147,6 +151,9 @@ public class Player {
         if (artifact > 0) {
             str += ", artifact=" + artifact;
         }
+        if (cannotDrawCard) {
+            str += ", cannotDrawCard=true";
+        }
         return str + '}';
     }
 
@@ -156,10 +163,10 @@ public class Player {
         if (o == null || getClass() != o.getClass())
             return false;
         Player player = (Player) o;
-        return origHealth == player.origHealth && maxHealth == player.maxHealth && health == player.health && block == player.block && strength == player.strength && dexterity == player.dexterity && vulnerable == player.vulnerable && weak == player.weak && frail == player.frail && artifact == player.artifact;
+        return origHealth == player.origHealth && maxHealth == player.maxHealth && health == player.health && block == player.block && strength == player.strength && dexterity == player.dexterity && vulnerable == player.vulnerable && weak == player.weak && frail == player.frail && artifact == player.artifact && cannotDrawCard == player.cannotDrawCard;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact);
+        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, cannotDrawCard);
     }
 }
