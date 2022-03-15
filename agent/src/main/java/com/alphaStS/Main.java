@@ -44,6 +44,7 @@ public class Main {
         cards.add(new CardCount(new Card.Clash(), 1));
         cards.add(new CardCount(new Card.Headbutt(), 1));
         cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.BurningPactP(), 1));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
@@ -207,7 +208,7 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 200;
+            MATCHES_COUNT = 500;
             NODE_COUNT = 5000;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

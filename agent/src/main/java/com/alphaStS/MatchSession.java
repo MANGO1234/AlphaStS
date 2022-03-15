@@ -108,17 +108,20 @@ public class MatchSession {
         }
 
         state.doEval(mcts.model);
+        int turnCount = 0;
         while (state.isTerminal() == 0) {
             for (int i = 0; i < nodeCount; i++) {
                 mcts.search(state, true, -1);
             }
 
             int action = 0;
-            int turnCount = 0;
-            if (turnCount < 5) {
+            if (turnCount >= 0) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);
+            }
+            if (state.getAction(action).type() == GameActionType.END_TURN) {
+                turnCount += 1;
             }
             GameState newState = getNextState(state, action);
             states.add(new GameStep(state, action));

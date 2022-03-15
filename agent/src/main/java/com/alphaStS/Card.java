@@ -13,6 +13,7 @@ abstract class Card {
 
     int cardType;
     String cardName;
+    int energyCost;
     public GameActionCtx secondActionCtx;
     public boolean exhaustEndOfTurn = false;
     public boolean exhaustWhenPlayed = false;
@@ -21,6 +22,10 @@ abstract class Card {
     public boolean selectFromDiscard;
     public boolean selectFromExhaust;
     public boolean selectFromHand;
+    public boolean selectFromDiscardLater;
+    public boolean selectFromHandLater;
+    public boolean exhaustSkill;
+    public boolean exhaustCardFromHand;
     public boolean changePlayerStrength;
     public boolean changePlayerDexterity;
     public boolean vulnEnemy;
@@ -28,17 +33,21 @@ abstract class Card {
     public boolean affectEnemyStrength;
     public boolean putCardOnTopDeck;
 
-    public Card(String cardName, int cardType) {
+    public Card(String cardName, int cardType, int energyCost) {
         this.cardType = cardType;
         this.cardName = cardName;
+        this.energyCost = energyCost;
     }
 
-    abstract void play(GameState state, int idx);
-    void playPart2(GameState state, int idx) {};
-    abstract int energyCost(GameState state);
+    public int energyCost(GameState state) {
+        return energyCost;
+    }
+
+    abstract GameActionCtx play(GameState state, int idx);
     void onDiscard(GameState state) {}
+    void onExhaust(GameState state) {}
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return null; }
-    public boolean canSelectFromHand(Card card) { return false; };
+    public boolean canSelectFromHand(Card card) { return true; };
 
     @Override public String toString() {
         return "Card{" +
@@ -61,142 +70,116 @@ abstract class Card {
 
     public static class Bash extends Card {
         public Bash() {
-            super("Bash", Card.ATTACK);
+            super("Bash", Card.ATTACK, 2);
             selectEnemy = true;
             vulnEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 2);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class BashP extends Card {
         public BashP() {
-            super("Bash+", Card.ATTACK);
+            super("Bash+", Card.ATTACK, 2);
             selectEnemy = true;
             vulnEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 3);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Strike extends Card {
         public Strike() {
-            super("Strike", Card.ATTACK);
+            super("Strike", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 6);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class StrikeP extends Card {
         public StrikeP() {
-            super("Strike+", Card.ATTACK);
+            super("Strike+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Defend extends Card {
         public Defend() {
-            super("Defend", Card.SKILL);
+            super("Defend", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(5);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class DefendP extends Card {
         public DefendP() {
-            super("Defend+", Card.SKILL);
+            super("Defend+", Card.SKILL, 1);
+            energyCost = 1;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(8);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Anger extends Card {
         public Anger() {
-            super("Anger", Card.ATTACK);
+            super("Anger", Card.ATTACK, 0);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 6);
-            state.discard[state.prop.angerCardIdx] += 1;
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            state.addCardToDiscard(state.prop.angerCardIdx);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class AngerP extends Card {
         public AngerP() {
-            super("Anger+", Card.ATTACK);
+            super("Anger+", Card.ATTACK, 0);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
-            state.discard[state.prop.angerPCardIdx] += 1;
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            state.addCardToDiscard(state.prop.angerCardIdx);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Armanent extends Card {
         public Armanent() {
-            super("Armanent", Card.SKILL);
+            super("Armanent", Card.SKILL, 1);
             selectFromHand = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(5);
-            state.hand[state.prop.upgradeIdxes[idx]] += 1;
-            state.hand[idx] -= 1;
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            state.addCardToHand(state.prop.upgradeIdxes[idx]);
+            state.removeCardFromHand(idx);
+            return GameActionCtx.PLAY_CARD;
         }
 
         @Override public boolean canSelectFromHand(Card card) {
@@ -210,10 +193,10 @@ abstract class Card {
 
     public static class ArmanentP extends Card {
         public ArmanentP() {
-            super("Armanent+", Card.SKILL);
+            super("Armanent+", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(5);
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                 if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
@@ -221,10 +204,7 @@ abstract class Card {
                     state.hand[i] = 0;
                 }
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -234,42 +214,37 @@ abstract class Card {
 
     public static class BodySlam extends Card {
         public BodySlam() {
-            super("Body Slam", Card.ATTACK);
+            super("Body Slam", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), state.player.block);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class BodySlamP extends Card {
         public BodySlamP() {
-            super("Body Slam+", Card.ATTACK);
+            super("Body Slam+", Card.ATTACK, 0);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), state.player.block);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Clash extends Card {
         public Clash() {
-            super("Clash", Card.ATTACK);
+            super("Clash", Card.ATTACK, -1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 14);
+            return GameActionCtx.PLAY_CARD;
         }
 
         public int energyCost(GameState state) {
@@ -284,12 +259,13 @@ abstract class Card {
 
     public static class ClashP extends Card {
         public ClashP() {
-            super("Clash+", Card.ATTACK);
+            super("Clash+", Card.ATTACK, -1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 18);
+            return GameActionCtx.PLAY_CARD;
         }
 
         public int energyCost(GameState state) {
@@ -304,187 +280,188 @@ abstract class Card {
 
     public static class Cleave extends Card {
         public Cleave() {
-            super("Cleave", Card.ATTACK);
+            super("Cleave", Card.ATTACK, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.player.doDamageToEnemy(state, enemy, 8);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class CleaveP extends Card {
         public CleaveP() {
-            super("Cleave+", Card.ATTACK);
+            super("Cleave+", Card.ATTACK, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.player.doDamageToEnemy(state, enemy, 11);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Clothesline extends Card {
         public Clothesline() {
-            super("Clothesline", Card.ATTACK);
+            super("Clothesline", Card.ATTACK, 2);
             selectEnemy = true;
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 2);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ClotheslineP extends Card {
         public ClotheslineP() {
-            super("Clothesline+", Card.ATTACK);
+            super("Clothesline+", Card.ATTACK, 2);
             selectEnemy = true;
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 14);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 3);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
-    // todo: Flex
+    public static class Flex extends Card {
+        public Flex() {
+            super("Flex", Card.ATTACK, 0);
+            changePlayerStrength = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.gainStrength(2);
+            // todo
+//            state.player.applyDebuff(DebuffType.LOSE_STRENGTH_EOT, 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FlexP extends Card {
+        public FlexP() {
+            super("Flex+", Card.ATTACK, 0);
+            changePlayerStrength = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.gainStrength(4);
+            // todo
+//            state.player.applyDebuff(DebuffType.LOSE_STRENGTH_EOT, 4);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
     // todo: Havoc
 
     public static class Headbutt extends Card {
         public Headbutt() {
-            super("Headbutt", Card.ATTACK);
+            super("Headbutt", Card.ATTACK, 1);
             selectEnemy = true;
             selectFromDiscard = true;
+            selectFromDiscardLater = true;
             secondActionCtx = GameActionCtx.SELECT_CARD_DISCARD;
             putCardOnTopDeck = true;
         }
 
-        public void play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
-        }
-
-        @Override public void playPart2(GameState state, int idx) {
-            state.discard[idx] -= 1;
-            state.putCardOnTopOfDeck(idx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+        public GameActionCtx play(GameState state, int idx) {
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                state.discard[idx] -= 1;
+                state.putCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
         }
     }
 
     public static class HeadbuttP extends Card {
         public HeadbuttP() {
-            super("Headbutt+", Card.ATTACK);
+            super("Headbutt+", Card.ATTACK, 1);
             selectEnemy = true;
             selectFromDiscard = true;
+            selectFromDiscardLater = true;
             secondActionCtx = GameActionCtx.SELECT_CARD_DISCARD;
         }
 
-        public void play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
-        }
-
-        @Override public void playPart2(GameState state, int idx) {
-            state.discard[idx] -= 1;
-            state.putCardOnTopOfDeck(idx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+        public GameActionCtx play(GameState state, int idx) {
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                state.discard[idx] -= 1;
+                state.putCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
         }
     }
 
     public static class HeavyBlade extends Card {
         public HeavyBlade() {
-            super("Heavy Blade", Card.ATTACK);
+            super("Heavy Blade", Card.ATTACK, 2);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 14 + state.player.strength * 2);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class HeavyBladeP extends Card {
         public HeavyBladeP() {
-            super("Heavy Blade+", Card.ATTACK);
+            super("Heavy Blade+", Card.ATTACK, 2);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 14 + state.player.strength * 4);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class IronWave extends Card {
         public IronWave() {
-            super("Iron Wave", Card.ATTACK);
+            super("Iron Wave", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
             state.player.gainBlock(5);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class IronWaveP extends Card {
         public IronWaveP() {
-            super("Iron Wave+", Card.ATTACK);
+            super("Iron Wave+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
             state.player.gainBlock(7);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class PerfectedStrike extends Card {
         public PerfectedStrike() {
-            super("Perfected Strike", Card.ATTACK);
+            super("Perfected Strike", Card.ATTACK, 2);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             int count = 0;
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
@@ -492,20 +469,17 @@ abstract class Card {
                 count += state.deck[state.prop.strikeCardIdxes[i]];
             }
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 6 + 2 * count);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class PerfectedStrikeP extends Card {
         public PerfectedStrikeP() {
-            super("Perfected Strike+", Card.ATTACK);
+            super("Perfected Strike+", Card.ATTACK, 2);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             int count = 0;
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
@@ -513,81 +487,66 @@ abstract class Card {
                 count += state.deck[state.prop.strikeCardIdxes[i]];
             }
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 6 + 3 * count);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class PommelStrike extends Card {
         public PommelStrike() {
-            super("Pommel Strike", Card.ATTACK);
+            super("Pommel Strike", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
             state.draw(1);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class PommelStrikeP extends Card {
         public PommelStrikeP() {
-            super("Pommel Strike+", Card.ATTACK);
+            super("Pommel Strike+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
             state.draw(2);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ShrugItOff extends Card {
         public ShrugItOff() {
-            super("Shrug It Off", Card.SKILL);
+            super("Shrug It Off", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(8);
             state.draw(1);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ShrugItOffP extends Card {
         public ShrugItOffP() {
-            super("Shrug It Off+", Card.SKILL);
+            super("Shrug It Off+", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(11);
             state.draw(1);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SwordBoomerang extends Card {
         public SwordBoomerang() {
-            super("Sword Boomerang", Card.ATTACK);
+            super("Sword Boomerang", Card.ATTACK, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < 3; i++) {
                 int enemy_j = state.prop.random.nextInt(state.enemiesAlive);
                 int j = 0;
@@ -604,19 +563,16 @@ abstract class Card {
             if (state.enemiesAlive > 1) {
                 state.isStochastic = true;
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SwordBoomerangP extends Card {
         public SwordBoomerangP() {
-            super("Sword Boomerang+", Card.ATTACK);
+            super("Sword Boomerang+", Card.ATTACK, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < 4; i++) {
                 int enemy_j = state.prop.random.nextInt(state.enemiesAlive);
                 int j = 0;
@@ -633,98 +589,153 @@ abstract class Card {
             if (state.enemiesAlive > 1) {
                 state.isStochastic = true;
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Thunderclap extends Card {
         public Thunderclap() {
-            super("Thunderclap", Card.ATTACK);
+            super("Thunderclap", Card.ATTACK, 1);
             vulnEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.player.doDamageToEnemy(state, enemy, 4);
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ThunderclapP extends Card {
         public ThunderclapP() {
-            super("Thunderclap+", Card.ATTACK);
+            super("Thunderclap+", Card.ATTACK, 1);
             vulnEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.player.doDamageToEnemy(state, enemy, 7);
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
-    // todo: true grit
+    public static class TrueGrit extends Card {
+        public TrueGrit() {
+            super("True Grit", Card.SKILL, 1);
+            exhaustCardFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.gainBlock(7);
+            int c = 0;
+            for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
+                c += state.hand[cardIdx];
+            }
+            int r = state.prop.random.nextInt(c);
+            for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
+                if (r <= 0) {
+                    state.exhaustCardFromHand(cardIdx);
+                }
+                r -= state.hand[cardIdx];
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TrueGritP extends Card {
+        public TrueGritP() {
+            super("True Grit+", Card.SKILL, 1);
+            selectFromHand = true;
+            exhaustCardFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.gainBlock(9);
+            state.exhaustCardFromHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class TwinStrike extends Card {
         public TwinStrike() {
-            super("Twin Strike", Card.ATTACK);
+            super("Twin Strike", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class TwinStrikeP extends Card {
         public TwinStrikeP() {
-            super("Twin Strike+", Card.ATTACK);
+            super("Twin Strike+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
-    // todo: warcry
+    public static class WarCry extends Card {
+        public WarCry() {
+            super("War Cry", Card.SKILL, 0);
+            selectFromHand = true;
+            selectFromHandLater = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(1);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.removeCardFromHand(idx);
+                state.putCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class WarCryP extends Card {
+        public WarCryP() {
+            super("War Cry+", Card.SKILL, 0);
+            selectFromHand = true;
+            selectFromHandLater = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(2);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.removeCardFromHand(idx);
+                state.putCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
 
     public static class WildStrike extends Card {
         public WildStrike() {
-            super("Wild Strike", Card.ATTACK);
+            super("Wild Strike", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
             state.addCardToDeck(state.prop.woundCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -734,17 +745,14 @@ abstract class Card {
 
     public static class WildStrikeP extends Card {
         public WildStrikeP() {
-            super("Wild Strike+", Card.ATTACK);
+            super("Wild Strike+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
             state.addCardToDeck(state.prop.woundCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -752,70 +760,119 @@ abstract class Card {
         }
     }
 
-    // todo: battle trance
+    public static class BattleTrance extends Card {
+        public BattleTrance() {
+            super("Battle Trance", Card.SKILL, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.draw(3);
+            // todo
+//            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BattleTranceP extends Card {
+        public BattleTranceP() {
+            super("Battle Trance+", Card.SKILL, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.draw(4);
+            // todo
+//            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
     // todo: blood for blood
 
     public static class Bloodletting extends Card {
         public Bloodletting() {
-            super("Bloodletting", Card.SKILL);
+            super("Bloodletting", Card.SKILL, 0);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.nonAttackDamage(3, false);
             state.gainEnergy(2);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class BloodlettingP extends Card {
         public BloodlettingP() {
-            super("Bloodletting+", Card.SKILL);
+            super("Bloodletting+", Card.SKILL, 0);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.nonAttackDamage(3, false);
             state.gainEnergy(3);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
-    // todo: burning pact
+    public static class BurningPact extends Card {
+        public BurningPact() {
+            super("Burning Pact", Card.SKILL, 1);
+            selectFromHand =  true;
+            selectFromHandLater = true;
+            exhaustCardFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(2);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.exhaustCardFromHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class BurningPactP extends Card {
+        public BurningPactP() {
+            super("Burning Pact+", Card.SKILL, 1);
+            selectFromHand =  true;
+            selectFromHandLater = true;
+            exhaustCardFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(3);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.exhaustCardFromHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
 
     public static class Carnage extends Card {
         public Carnage() {
-            super("Carnage", Card.ATTACK);
+            super("Carnage", Card.ATTACK, 2);
             selectEnemy = true;
             exhaustEndOfTurn = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 20);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class CarnageP extends Card {
         public CarnageP() {
-            super("Carnage+", Card.ATTACK);
+            super("Carnage+", Card.ATTACK, 2);
             selectEnemy = true;
             exhaustEndOfTurn = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 28);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -824,73 +881,61 @@ abstract class Card {
 
     public static class Disarm extends Card {
         public Disarm() {
-            super("Disarm", Card.SKILL);
+            super("Disarm", Card.SKILL, 1);
             exhaustWhenPlayed = true;
             selectEnemy = true;
             affectEnemyStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.enemies.get(idx).strength -= 2;
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class DisarmP extends Card {
         public DisarmP() {
-            super("Disarm+", Card.SKILL);
+            super("Disarm+", Card.SKILL, 1);
             exhaustWhenPlayed = true;
             selectEnemy = true;
             affectEnemyStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.enemies.get(idx).strength -= 2;
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Dropkick extends Card {
         public Dropkick() {
-            super("Dropkick", Card.ATTACK);
+            super("Dropkick", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
             if (state.enemies.get(idx).vulnerable > 0) {
                 state.energy += 1;
                 state.draw(1);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class DropkickP extends Card {
         public DropkickP() {
-            super("Dropkick+", Card.ATTACK);
+            super("Dropkick+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
             if (state.enemies.get(idx).vulnerable > 0) {
                 state.energy += 1;
                 state.draw(1);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -898,29 +943,23 @@ abstract class Card {
 
     public static class Entrench extends Card {
         public Entrench() {
-            super("Entrench", Card.SKILL);
+            super("Entrench", Card.SKILL, 2);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlockNoDex(state.player.block);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class EntrenchP extends Card {
         public EntrenchP() {
-            super("Entrench+", Card.SKILL);
+            super("Entrench+", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlockNoDex(state.player.block);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -930,95 +969,77 @@ abstract class Card {
 
     public static class FlameBarrier extends Card {
         public FlameBarrier() {
-            super("Flame Barrier", Card.SKILL);
+            super("Flame Barrier", Card.SKILL, 2);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(12);
             state.thorn += 4;
             state.thornLoseEOT += 4;
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class FlameBarrierP extends Card {
         public FlameBarrierP() {
-            super("Flame Barrier+", Card.SKILL);
+            super("Flame Barrier+", Card.SKILL, 2);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(16);
             state.thorn += 6;
             state.thornLoseEOT += 6;
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class GhostlyArmor extends Card {
         public GhostlyArmor() {
-            super("Ghostly Armor", Card.SKILL);
+            super("Ghostly Armor", Card.SKILL, 1);
             exhaustEndOfTurn = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(10);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class GhostlyArmorP extends Card {
         public GhostlyArmorP() {
-            super("Ghostly Armor+", Card.SKILL);
+            super("Ghostly Armor+", Card.SKILL, 1);
             exhaustEndOfTurn = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(13);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Hemokinesis extends Card {
         public Hemokinesis() {
-            super("Hemokinesis", Card.ATTACK);
+            super("Hemokinesis", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.nonAttackDamage(2, false);
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 15);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class HemokinesisP extends Card {
         public HemokinesisP() {
-            super("Hemokinesis+", Card.ATTACK);
+            super("Hemokinesis+", Card.ATTACK, 1);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.nonAttackDamage(2, false);
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 20);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1026,109 +1047,88 @@ abstract class Card {
 
     public static class Inflame extends Card {
         public Inflame() {
-            super("Inflame", Card.POWER);
+            super("Inflame", Card.POWER, 1);
             changePlayerStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainStrength(2);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class InflameP extends Card {
         public InflameP() {
-            super("Inflame+", Card.POWER);
+            super("Inflame+", Card.POWER, 1);
             changePlayerStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainStrength(3);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Intimidate extends Card {
         public Intimidate() {
-            super("Intimidate", Card.SKILL);
+            super("Intimidate", Card.SKILL, 0);
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 1);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class IntimidateP extends Card {
         public IntimidateP() {
-            super("Intimidate+", Card.SKILL);
+            super("Intimidate+", Card.SKILL, 0);
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 2);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Metallicize extends Card {
         public Metallicize() {
-            super("Metallicize", Card.POWER);
+            super("Metallicize", Card.POWER, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.metallicize += 3;
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class MetallicizeP extends Card {
         public MetallicizeP() {
-            super("Metallicize", Card.POWER);
+            super("Metallicize", Card.POWER, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.metallicize += 4;
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class PowerThrough extends Card {
         public PowerThrough() {
-            super("Power Through", Card.ATTACK);
+            super("Power Through", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(15);
             state.addCardToHand(state.prop.woundCardIdx);
             state.addCardToHand(state.prop.woundCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -1138,17 +1138,14 @@ abstract class Card {
 
     public static class PowerThroughP extends Card {
         public PowerThroughP() {
-            super("Power Through+", Card.ATTACK);
+            super("Power Through+", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(20);
             state.addCardToHand(state.prop.woundCardIdx);
             state.addCardToHand(state.prop.woundCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -1158,37 +1155,31 @@ abstract class Card {
 
     public static class Pummel extends Card {
         public Pummel() {
-            super("Pummel", Card.ATTACK);
+            super("Pummel", Card.ATTACK, 1);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < 4; i++) {
                 state.player.doDamageToEnemy(state, state.enemies.get(idx), 2);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class PummelP extends Card {
         public PummelP() {
-            super("Pummel+", Card.ATTACK);
+            super("Pummel+", Card.ATTACK, 1);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < 5; i++) {
                 state.player.doDamageToEnemy(state, state.enemies.get(idx), 2);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1197,17 +1188,14 @@ abstract class Card {
 
     public static class RecklessCharge extends Card {
         public RecklessCharge() {
-            super("Reckless Charge", Card.ATTACK);
+            super("Reckless Charge", Card.ATTACK, 0);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
             state.addCardToDeck(state.prop.dazedCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -1217,17 +1205,14 @@ abstract class Card {
 
     public static class RecklessChargeP extends Card {
         public RecklessChargeP() {
-            super("Reckless Charge+", Card.ATTACK);
+            super("Reckless Charge+", Card.ATTACK, 0);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
             state.addCardToDeck(state.prop.dazedCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -1240,11 +1225,11 @@ abstract class Card {
 
     public static class SecondWind extends Card {
         public SecondWind() {
-            super("Second Wind", Card.SKILL);
+            super("Second Wind", Card.SKILL, 1);
             exhaustNonAttacks = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -1253,19 +1238,16 @@ abstract class Card {
                     }
                 }
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SecondWindP extends Card {
         public SecondWindP() {
-            super("Second Wind+", Card.SKILL);
+            super("Second Wind+", Card.SKILL, 1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -1274,53 +1256,73 @@ abstract class Card {
                     }
                 }
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SeeingRed extends Card {
         public SeeingRed() {
-            super("Seeing Red", Card.SKILL);
+            super("Seeing Red", Card.SKILL, 1);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.gainEnergy(2);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SeeingRedP extends Card {
         public SeeingRedP() {
-            super("Seeing Red+", Card.SKILL);
+            super("Seeing Red+", Card.SKILL, 0);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
-            state.gainEnergy(3);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+        public GameActionCtx play(GameState state, int idx) {
+            state.gainEnergy(2);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
-    // todo: sentinel
+    public static class Sentinel extends Card {
+        public Sentinel() {
+            super("Sentinel", Card.SKILL, 1);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.gainBlock(5);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public void onExhaust(GameState state) {
+            state.energy += 2;
+        }
+    }
+
+    public static class SentinelP extends Card {
+        public SentinelP() {
+            super("Sentinel+", Card.SKILL, 1);
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.gainBlock(8);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public void onExhaust(GameState state) {
+            state.energy += 3;
+        }
+    }
 
     public static class SeverSoul extends Card {
         public SeverSoul() {
-            super("Sever Soul", Card.ATTACK);
+            super("Sever Soul", Card.ATTACK, 2);
             selectEnemy = true;
             exhaustNonAttacks = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -1329,20 +1331,17 @@ abstract class Card {
                 }
             }
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 16);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SeverSoulP extends Card {
         public SeverSoulP() {
-            super("Sever Soul+", Card.ATTACK);
+            super("Sever Soul+", Card.ATTACK, 2);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -1351,136 +1350,116 @@ abstract class Card {
                 }
             }
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 22);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Shockwave extends Card {
         public Shockwave() {
-            super("Shockwave", Card.SKILL);
+            super("Shockwave", Card.SKILL, 2);
             exhaustWhenPlayed = true;
             vulnEnemy = true;
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 enemy.applyDebuff(DebuffType.WEAK, 3);
                 enemy.applyDebuff(DebuffType.VULNERABLE, 3);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ShockwaveP extends Card {
         public ShockwaveP() {
-            super("Shockwave+", Card.SKILL);
+            super("Shockwave+", Card.SKILL, 2);
             exhaustWhenPlayed = true;
             vulnEnemy = true;
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 enemy.applyDebuff(DebuffType.WEAK, 5);
                 enemy.applyDebuff(DebuffType.VULNERABLE, 5);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SpotWeakness extends Card {
         public SpotWeakness() {
-            super("Spot Weakness", Card.SKILL);
+            super("Spot Weakness", Card.SKILL, 1);
             selectEnemy = true;
             changePlayerStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             if (state.enemies.get(idx).getMoveString(state).contains("Attack")) {
                 state.player.gainStrength(3);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class SpotWeaknessP extends Card {
         public SpotWeaknessP() {
-            super("Spot Weakness+", Card.SKILL);
+            super("Spot Weakness+", Card.SKILL, 1);
             selectEnemy = true;
             changePlayerStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             if (state.enemies.get(idx).getMoveString(state).contains("Attack")) {
                 state.player.gainStrength(4);
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Uppercut extends Card {
         public Uppercut() {
-            super("Uppercut", Card.ATTACK);
+            super("Uppercut", Card.ATTACK, 2);
             selectEnemy = true;
             vulnEnemy = true;
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 13);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 1);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 1);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class UppercutP extends Card {
         public UppercutP() {
-            super("Uppercut+", Card.ATTACK);
+            super("Uppercut+", Card.ATTACK, 2);
             selectEnemy = true;
             vulnEnemy = true;
             weakEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 13);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 2);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 2);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Whirlwind extends Card {
         public Whirlwind() {
-            super("Whirlwind", Card.ATTACK);
+            super("Whirlwind", Card.ATTACK, -1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.energy; i++) {
                 state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
             }
+            return GameActionCtx.PLAY_CARD;
         }
 
         public int energyCost(GameState state) {
@@ -1490,13 +1469,14 @@ abstract class Card {
 
     public static class WhirlwindP extends Card {
         public WhirlwindP() {
-            super("Whirlwind+", Card.ATTACK);
+            super("Whirlwind+", Card.ATTACK, -1);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.energy; i++) {
                 state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
             }
+            return GameActionCtx.PLAY_CARD;
         }
 
         public int energyCost(GameState state) {
@@ -1509,31 +1489,25 @@ abstract class Card {
 
     public static class Bludgeon extends Card {
         public Bludgeon() {
-            super("Bludgeon", Card.ATTACK);
+            super("Bludgeon", Card.ATTACK, 3);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 32);
-        }
-
-        public int energyCost(GameState state) {
-            return 3;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class BludgeonP extends Card {
         public BludgeonP() {
-            super("Bludgeon+", Card.ATTACK);
+            super("Bludgeon+", Card.ATTACK, 3);
             selectEnemy = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 42);
-        }
-
-        public int energyCost(GameState state) {
-            return 3;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1541,67 +1515,55 @@ abstract class Card {
 
     public static class Corruption extends Card {
         public Corruption() {
-            super("Corruption", Card.POWER);
+            super("Corruption", Card.POWER, 3);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.buffs |= PlayerBuffs.CORRUPTION;
-        }
-
-        public int energyCost(GameState state) {
-            return 3;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class CorruptionP extends Card {
         public CorruptionP() {
-            super("Corruption+", Card.POWER);
+            super("Corruption+", Card.POWER, 2);
+            exhaustSkill = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.buffs |= PlayerBuffs.CORRUPTION;
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     // todo: demon form
-
     // todo: double tap
 
     public static class Exhume extends Card {
         public Exhume() {
-            super("Exhume", Card.SKILL);
+            super("Exhume", Card.SKILL, 1);
             selectFromExhaust = true;
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.exhaust[idx] -= 1;
             state.addCardToHand(idx);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ExhumeP extends Card {
         public ExhumeP() {
-            super("Exhume+", Card.SKILL);
+            super("Exhume+", Card.SKILL, 0);
             selectFromExhaust = true;
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.exhaust[idx] -= 1;
             state.addCardToHand(idx);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1609,60 +1571,51 @@ abstract class Card {
 
     public static class FiendFire extends Card {
         public FiendFire() {
-            super("Fiend Fire", Card.ATTACK);
+            super("Fiend Fire", Card.ATTACK, 2);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.hand.length; i++) {
                 while (state.hand[i] > 0) {
                     state.exhaustCardFromHand(i);
                     state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
                 }
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class FiendFireP extends Card {
         public FiendFireP() {
-            super("Fiend Fire+", Card.ATTACK);
+            super("Fiend Fire+", Card.ATTACK, 2);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.hand.length; i++) {
                 while (state.hand[i] > 0) {
                     state.exhaustCardFromHand(i);
                     state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
                 }
             }
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Immolate extends Card {
         public Immolate() {
-            super("Immolate", Card.ATTACK);
+            super("Immolate", Card.ATTACK, 2);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.player.doDamageToEnemy(state, enemy, 21);
             }
             state.addCardToDiscard(state.prop.burnCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -1672,18 +1625,15 @@ abstract class Card {
 
     public static class ImmolateP extends Card {
         public ImmolateP() {
-            super("Immolate+", Card.ATTACK);
+            super("Immolate+", Card.ATTACK, 2);
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
                 state.player.doDamageToEnemy(state, enemy, 28);
             }
             state.addCardToDiscard(state.prop.burnCardIdx);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -1693,31 +1643,25 @@ abstract class Card {
 
     public static class Impervious extends Card {
         public Impervious() {
-            super("Impervious", Card.SKILL);
+            super("Impervious", Card.SKILL, 2);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(30);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ImperviousP extends Card {
         public ImperviousP() {
-            super("Impervious+", Card.SKILL);
+            super("Impervious+", Card.SKILL, 2);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(40);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1725,74 +1669,62 @@ abstract class Card {
 
     public static class LimitBreak extends Card {
         public LimitBreak() {
-            super("Limit Break", Card.SKILL);
+            super("Limit Break", Card.SKILL, 1);
             exhaustWhenPlayed = true;
             changePlayerStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainStrength(state.player.strength);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class LimitBreakP extends Card {
         public LimitBreakP() {
-            super("Limit Break+", Card.SKILL);
+            super("Limit Break+", Card.SKILL, 1);
             changePlayerStrength = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.gainStrength(state.player.strength);
-        }
-
-        public int energyCost(GameState state) {
-            return 1;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Offering extends Card {
         public Offering() {
-            super("Offering", Card.SKILL);
+            super("Offering", Card.SKILL, 0);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.nonAttackDamage(6, false);
             state.draw(3);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class OfferingP extends Card {
         public OfferingP() {
-            super("Offering+", Card.SKILL);
+            super("Offering+", Card.SKILL, 0);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             state.player.nonAttackDamage(6, false);
             state.draw(5);
-        }
-
-        public int energyCost(GameState state) {
-            return 0;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Reaper extends Card {
         public Reaper() {
-            super("Reaper", Card.ATTACK);
+            super("Reaper", Card.ATTACK, 2);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             int amount = 0;
             for (Enemy enemy : state.enemies) {
                 int prevHp = enemy.health;
@@ -1800,20 +1732,17 @@ abstract class Card {
                 amount += enemy.health - prevHp;
             }
             state.player.heal(amount);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class ReaperP extends Card {
         public ReaperP() {
-            super("Reaper+", Card.ATTACK);
+            super("Reaper+", Card.ATTACK, 2);
             exhaustWhenPlayed = true;
         }
 
-        public void play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx) {
             int amount = 0;
             for (Enemy enemy : state.enemies) {
                 int prevHp = enemy.health;
@@ -1821,10 +1750,7 @@ abstract class Card {
                 amount += enemy.health - prevHp;
             }
             state.player.heal(amount);
-        }
-
-        public int energyCost(GameState state) {
-            return 2;
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1834,55 +1760,47 @@ abstract class Card {
 
     public static class Wound extends Card {
         public Wound() {
-            super("Wound", Card.STATUS);
+            super("Wound", Card.STATUS, -1);
         }
 
-        void play(GameState state, int idx) {}
-
-        public int energyCost(GameState state) {
-            return -1;
+        GameActionCtx play(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Burn extends Card {
         public Burn() {
-            super("Burn", Card.STATUS);
+            super("Burn", Card.STATUS, -1);
         }
 
-        void play(GameState state, int idx) {}
+        GameActionCtx play(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
+        }
 
         void onDiscard(GameState state) {
             state.player.nonAttackDamage(2, true);
-        }
-
-        public int energyCost(GameState state) {
-            return -1;
         }
     }
 
     public static class Dazed extends Card {
         public Dazed() {
-            super("Dazed", Card.STATUS);
+            super("Dazed", Card.STATUS, -1);
             exhaustEndOfTurn = true;
         }
 
-        void play(GameState state, int idx) {}
-
-        public int energyCost(GameState state) {
-            return -1;
+        GameActionCtx play(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Slime extends Card {
         public Slime() {
-            super("Slime", Card.STATUS);
+            super("Slime", Card.STATUS, 1);
             exhaustWhenPlayed = true;
         }
 
-        void play(GameState state, int idx) {}
-
-        public int energyCost(GameState state) {
-            return 1;
+        GameActionCtx play(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1893,14 +1811,12 @@ abstract class Card {
     // clumsy
     public static class AscendersBane extends Card {
         public AscendersBane() {
-            super("Ascender's Bane", Card.CURSE);
+            super("Ascender's Bane", Card.CURSE, -1);
             exhaustEndOfTurn = true;
         }
 
-        void play(GameState state, int idx) {}
-
-        public int energyCost(GameState state) {
-            return -1;
+        GameActionCtx play(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1919,13 +1835,11 @@ abstract class Card {
     // Parasite
     public static class UnplayableCurse extends Card {
         public UnplayableCurse() {
-            super("Unplayable Curse", Card.CURSE);
+            super("Unplayable Curse", Card.CURSE, -1);
         }
 
-        void play(GameState state, int idx) {}
-
-        public int energyCost(GameState state) {
-            return -1;
+        GameActionCtx play(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
         }
     }
 }
