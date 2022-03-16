@@ -114,7 +114,7 @@ public class Player {
         }
     }
 
-    void endTurn() {
+    void endTurn(GameState state) {
         if (vulnerable > 0) {
             vulnerable -= 1;
         }
@@ -125,7 +125,12 @@ public class Player {
             frail -= 1;
         }
         cannotDrawCard = false;
-        block = 0;
+        if ((state.buffs & PlayerBuffs.BARRICADE) != 0) {
+        } else if ((state.buffs & PlayerBuffs.CALIPERS) != 0) {
+            block = Math.max(block - 15, 0);
+        } else {
+            block = 0;
+        }
     }
 
     @Override public String toString() {

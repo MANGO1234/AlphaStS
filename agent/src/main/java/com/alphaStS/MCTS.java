@@ -39,7 +39,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health) {
                 terminal_v_win = v[0];
             }
             return;
@@ -83,6 +83,7 @@ public class MCTS {
 //                double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : GameState.calc_q(state.total_q_win / (state.total_n + 1), state.total_q_health / (state.total_n + 1));
                 double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
                 double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+//                double u = state.total_n > 0 ? q + (Math.log((state.total_n + 18000 + 1) / 18000) + 1) * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
                 if (u > maxU) {
                     action = i;
                     maxU = u;

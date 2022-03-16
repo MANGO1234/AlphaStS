@@ -21,6 +21,24 @@ public class Main {
         return new GameState(enemies, new Player(75, 75), cards, relics);
     }
 
+    public static GameState BasicGremlinNobState3() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.StrikeP(), 1));
+        cards.add(new CardCount(new Card.Dropkick(), 1));
+        cards.add(new CardCount(new Card.Defend(), 3));
+        cards.add(new CardCount(new Card.DefendP(), 1));
+        cards.add(new CardCount(new Card.PommelStrike(), 1));
+        cards.add(new CardCount(new Card.Whirlwind(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.GremlinNob());
+        enemies.get(0).health = 90;
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.BagOfPreparation());
+        return new GameState(enemies, new Player(37, 75), cards, relics);
+    }
+
     public static GameState BasicGremlinNobState2() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -126,6 +144,26 @@ public class Main {
         return new GameState(enemies, new Player(45, 85), cards, relics);
     }
 
+    public static GameState GuardianState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 2));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.BodySlamP(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.HemokinesisP(), 1));
+        cards.add(new CardCount(new Card.Metallicize(), 1));
+        cards.add(new CardCount(new Card.Hemokinesis(), 1));
+        cards.add(new CardCount(new Card.BattleTrance(), 1));
+        cards.add(new CardCount(new Card.FlameBarrier(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.TheGuardian());
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.CentennialPuzzle());
+        return new GameState(enemies, new Player(36, 75), cards, relics);
+    }
+
     private static GameState SlimeBossStateLC() {
         // https://youtu.be/wKbAoS80HA0?t=11397
         var cards = new ArrayList<CardCount>();
@@ -155,7 +193,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = SlimeBossStateLC();
+        var state = GuardianState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -208,8 +246,8 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 500;
-            NODE_COUNT = 5000;
+            MATCHES_COUNT = 1000;
+            NODE_COUNT = 500;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 

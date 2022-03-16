@@ -317,7 +317,7 @@ abstract class Enemy {
             if (move == WAIT_1 || move == WAIT_2 || move == WAIT_3) {
                 return "Asleep";
             } else if (move == ATTACK_1 || move == ATTACK_2) {
-                return "Attack " + state.player.calcDamage(20 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 20);
             } else if (move == SIPHON_SOUL) {
                 return "-2 Strength+-2 Dexterity";
             }
@@ -385,7 +385,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == BEAM) {
-                return "Attack " + state.player.calcDamage(10 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10);
             } else if (move == BOLT) {
                 return "Shuffle 3 Dazes Into Deck";
             }
@@ -471,15 +471,15 @@ abstract class Enemy {
                 return "Activate";
             } else if (move == DIVIDER) {
                 int n = state.player.health / 12 + 1;
-                return "Attack " + state.player.calcDamage(3 + strength) + "x6";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 3) + "x6";
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
-                return "Attack " + state.player.calcDamage(6 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
             } else if (move == TACKLE_1 || move == TACKLE_2) {
-                return "Attack " + state.player.calcDamage(6 + strength) + "x2";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6) + "x2";
             } else if (move == INFLAME_1) {
                 return "Gain 3 Strength+12 Block";
             } else if (move == INFERNAL_1) {
-                return "Attack " + state.player.calcDamage(3 + strength) + "x6";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 3) + "x6";
             }
             return "Unknown";
         }
@@ -554,6 +554,12 @@ abstract class Enemy {
             }
         }
 
+        @Override public void startTurn() {
+            if (move == FIERCE_BASH) {
+                gainBlock(9);
+            }
+        }
+
         @Override public void doMove(GameState state) {
             if (move == CHARGING_UP) {
             } else if (move == FIERCE_BASH) {
@@ -581,7 +587,7 @@ abstract class Enemy {
             } else if (move == ROLL_ATTACK) {
                 move = TWIN_SLAM;
             } else if (move == TWIN_SLAM) {
-                move = CHARGING_UP;
+                move = WHIRL_WIND;
                 maxModeShiftDmg += 10;
                 modeShiftDmg = maxModeShiftDmg;
             }
@@ -591,17 +597,17 @@ abstract class Enemy {
             if (move == CHARGING_UP) {
                 return "Charging Up";
             } else if (move == FIERCE_BASH) {
-                return "Attack " + state.player.calcDamage(36 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 36);
             } else if (move == VENT_STEAM) {
                 return "2 Vulnerable+2 Weak";
             } else if (move == WHIRL_WIND) {
-                return "Attack " + state.player.calcDamage(5 + strength) + "x4";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 5) + "x4";
             } else if (move == DEFENSIVE_MODE) {
                 return "Defensive Mode";
             } else if (move == ROLL_ATTACK) {
-                return "Attack " + state.player.calcDamage(10 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10);
             } else if (move == TWIN_SLAM) {
-                return "Attack " + state.player.calcDamage(8 + strength) + "x2";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "x2";
             }
             return "Unknown";
         }
@@ -613,12 +619,16 @@ abstract class Enemy {
 
         @Override public void react(GameState state, Card card) {
             if (card.cardType == Card.ATTACK && (move == ROLL_ATTACK || move == TWIN_SLAM)) {
-                state.enemyDoNonAttackDamageToPlayer(this, 4, true, false);
+                state.doNonAttackDamageToPlayer(4, true);
             }
         }
 
         public String getName() {
             return "The Guardian";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && maxModeShiftDmg == ((TheGuardian) o).maxModeShiftDmg && modeShiftDmg == ((TheGuardian) o).modeShiftDmg;
         }
     }
 
@@ -700,7 +710,7 @@ abstract class Enemy {
             } else if (move == PREPARING) {
                 return "Preparing";
             } else if (move == SLAM) {
-                return "Attack " + state.player.calcDamage(38 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 38);
             } else if (move == SPLIT) {
                 return "Split";
             }
@@ -810,7 +820,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == FLAME_TACKLE) {
-                return "Attack " + state.player.calcDamage(18 + strength) + "+Slimed 2";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 18) + "+Slimed 2";
             } else if (move == LICK) {
                 return "Frail 3";
             } else if (move == SPLIT) {
@@ -886,7 +896,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == FLAME_TACKLE) {
-                return "Attack " + state.player.calcDamage(10 + strength) + "+Slimed 1";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10) + "+Slimed 1";
             } else if (move == LICK) {
                 return "Frail 1";
             }
@@ -932,7 +942,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == TACKLE) {
-                return "Attack " + state.player.calcDamage(6 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
             }
             return "Unknown";
         }
@@ -1046,9 +1056,9 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == CORROSIVE_SPIT) {
-                return "Attack " + state.player.calcDamage(12 + strength) + "+Slimed 2";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12) + "+Slimed 2";
             } else if (move == TACKLE) {
-                return "Attack " + state.player.calcDamage(18 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 18);
             } else if (move == LICK) {
                 return "Weak 2";
             } else if (move == SPLIT) {
@@ -1134,9 +1144,9 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == CORROSIVE_SPIT) {
-                return "Attack " + state.player.calcDamage(8 + strength) + "+Slimed 1";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "+Slimed 1";
             } else if (move == TACKLE) {
-                return "Attack " + state.player.calcDamage(12 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12);
             } else if (move == LICK) {
                 return "Weak 1";
             }
@@ -1192,7 +1202,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == TACKLE) {
-                return "Attack " + state.player.calcDamage(4 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 4);
             } else if (move == LICK) {
                 return "Weak 1";
             }
@@ -1271,11 +1281,11 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == 0) {
-                return "Attack " + state.player.calcDamage(12 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12);
             } else if (move == 1) {
                 return "Gain 5 Strength+Block 9";
             } else if (move == 2) {
-                return "Attack " + state.player.calcDamage(7 + strength) + "+Block 5";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7) + "+Block 5";
             }
             return "Unknown";
         }
@@ -1362,7 +1372,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == BITE) {
-                return "Attack " + state.player.calcDamage(d + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, d);
             } else if (move == GROW) {
                 return "Gain 4 Strength";
             }
@@ -1450,7 +1460,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == BITE) {
-                return "Attack " + state.player.calcDamage(d + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, d);
             } else if (move == SPIT_WEB) {
                 return "Applies 2 Week";
             }
@@ -1537,7 +1547,7 @@ abstract class Enemy {
 
         public String getMoveString(GameState state) {
             if (move == BITE) {
-                return "Attack " + state.player.calcDamage(6 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
             } else if (move == GROW) {
                 return "Gain 5 Strength";
             }
@@ -1586,7 +1596,7 @@ abstract class Enemy {
             } else if (move == SMOKE_BOMB) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
             } else if (move == ESCAPE) { // simulate the pain of losing gold, todo: need to combine with mugger later
-                state.enemyDoNonAttackDamageToPlayer(this, Math.min(30, state.player.health - 1), false, false);
+                state.doNonAttackDamageToPlayer(Math.min(30, state.player.health - 1), false);
                 health = 0;
             }
         }
@@ -1608,9 +1618,9 @@ abstract class Enemy {
         }
         public String getMoveString(GameState state) {
             if (move == MUG_1 || move == MUG_2) {
-                return "Attack " + state.player.calcDamage(11 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 11);
             } else if (move == LUNGE) {
-                return "Attack " + state.player.calcDamage(14 + strength);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 14);
             } else if (move == SMOKE_BOMB) {
                 return "Block 6";
             } else if (move == ESCAPE) {

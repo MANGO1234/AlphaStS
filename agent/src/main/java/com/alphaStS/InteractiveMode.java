@@ -1,13 +1,11 @@
 package com.alphaStS;
 
-import javax.management.DescriptorAccess;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class InteractiveMode {
@@ -60,6 +58,8 @@ public class InteractiveMode {
                             if (!louse.hasCurledUp) {
                                 System.out.println("  Curl Up: " + louse.curlUpAmount);
                             }
+                        } else if (enemy instanceof Enemy.TheGuardian guardian) {
+                            System.out.println("  Mode Shift Damage: " + guardian.modeShiftDmg + "/" + guardian.maxModeShiftDmg);
                         }
                         System.out.println("  Move: " + enemy.getMoveString(state));
                         System.out.println();
@@ -78,10 +78,20 @@ public class InteractiveMode {
                     }
                     if (state.player.frail > 0) {
                         System.out.println("  Frail: " + state.player.frail);
-                    }                    if (state.buffs != 0) {
+                    }
+                    if (state.thorn > 0) {
+                        System.out.println("  Thorn: " + state.thorn);
+                    }
+                    if (state.buffs != 0) {
                         System.out.print("  Buffs:");
                         if ((state.buffs & PlayerBuffs.CORRUPTION) != 0) {
                             System.out.println("    - Corruption");
+                        }
+                        if ((state.buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
+                            System.out.println("    - Runic Pyramid");
+                        }
+                        if ((state.buffs & PlayerBuffs.BARRICADE) != 0) {
+                            System.out.println("    - Barricade");
                         }
                     }
                     System.out.println();

@@ -792,7 +792,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.nonAttackDamage(3, false);
+            state.doNonAttackDamageToPlayer(3, false);
             state.gainEnergy(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -804,7 +804,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.nonAttackDamage(3, false);
+            state.doNonAttackDamageToPlayer(3, false);
             state.gainEnergy(3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -937,7 +937,39 @@ abstract class Card {
         }
     }
 
-    // todo: dual wield
+    // todo: need to keep track of discard
+    public static class DualWield extends Card {
+        public DualWield() {
+            super("Dual Wield", Card.SKILL, 1);
+            selectFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.addCardToHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public boolean canSelectFromHand(Card card) {
+            return card.cardType == Card.ATTACK;
+        }
+    }
+
+    public static class DualWieldP extends Card {
+        public DualWieldP() {
+            super("Dual Wield+", Card.SKILL, 1);
+            selectFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.addCardToHand(idx);
+            state.addCardToHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public boolean canSelectFromHand(Card card) {
+            return card.cardType == Card.ATTACK;
+        }
+    }
 
     public static class Entrench extends Card {
         public Entrench() {
@@ -1022,7 +1054,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.nonAttackDamage(2, false);
+            state.doNonAttackDamageToPlayer(2, false);
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 15);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1035,7 +1067,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.nonAttackDamage(2, false);
+            state.doNonAttackDamageToPlayer(2, false);
             state.player.doDamageToEnemy(state, state.enemies.get(idx), 20);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1482,8 +1514,51 @@ abstract class Card {
         }
     }
 
-    // todo: barricade
-    // todo: berserk
+    public static class Barricade extends Card {
+        public Barricade() {
+            super("Barricade", Card.POWER, 3);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.buffs |= PlayerBuffs.BARRICADE;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BarricadeP extends Card {
+        public BarricadeP() {
+            super("Barricade+", Card.POWER, 2);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.buffs |= PlayerBuffs.BARRICADE;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Berserk extends Card {
+        public Berserk() {
+            super("Berserk", Card.POWER, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.applyDebuff(DebuffType.VULNERABLE, 2);
+            state.energyRefill += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BerserkP extends Card {
+        public BerserkP() {
+            super("Berserk+", Card.POWER, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.player.applyDebuff(DebuffType.VULNERABLE, 1);
+            state.energyRefill += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class Bludgeon extends Card {
         public Bludgeon() {
@@ -1697,7 +1772,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.nonAttackDamage(6, false);
+            state.doNonAttackDamageToPlayer(6, false);
             state.draw(3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1710,7 +1785,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.nonAttackDamage(6, false);
+            state.doNonAttackDamageToPlayer(6, false);
             state.draw(5);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1776,7 +1851,7 @@ abstract class Card {
         }
 
         void onDiscard(GameState state) {
-            state.player.nonAttackDamage(2, true);
+            state.doNonAttackDamageToPlayer(2, true);
         }
     }
 
