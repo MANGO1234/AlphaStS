@@ -31,10 +31,11 @@ public class Player {
         vulnerable = other.vulnerable;
         weak = other.weak;
         frail = other.frail;
+        artifact = other.artifact;
         cannotDrawCard = other.cannotDrawCard;
     }
 
-    void damage(int n) {
+    public void damage(int n) {
         if (vulnerable > 0) {
             n = n + n / 2;
         }
@@ -45,7 +46,7 @@ public class Player {
         }
     }
 
-    void nonAttackDamage(int n, boolean blockable) {
+    public void nonAttackDamage(int n, boolean blockable) {
         if (blockable) {
             health -= Math.max(0, n - block);
             block = Math.max(0, block - n);
@@ -57,7 +58,7 @@ public class Player {
         }
     }
 
-    void doDamageToEnemy(GameState state, Enemy enemy, int n) {
+    public void doDamageToEnemy(GameState state, Enemy enemy, int n) {
         if (weak > 0) {
             n = n * 3 / 4;
         }
@@ -68,14 +69,7 @@ public class Player {
         health += Math.min(n, maxHealth - health);
     }
 
-    public int calcDamage(int n) {
-        if (vulnerable > 0) {
-            return n + n / 2;
-        }
-        return n;
-    }
-
-    void gainBlock(int n) {
+    public void gainBlock(int n) {
         n += dexterity;
         n = frail > 0? n * 3 / 4 : n;
         block += n;
@@ -84,7 +78,7 @@ public class Player {
         }
     }
 
-    void gainBlockNoDex(int n) {
+    public void gainBlockNotFromCardPlay(int n) {
         block += n;
         if (block > 999) {
             block = 999;
@@ -110,11 +104,13 @@ public class Player {
         case VULNERABLE -> this.vulnerable += n;
         case WEAK -> this.weak += n;
         case FRAIL -> this.frail += n;
+        case LOSE_DEXTERITY -> this.gainDexterity(-2);
+        case LOSE_STRENGTH -> this.gainStrength(-2);
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         }
     }
 
-    void endTurn(GameState state) {
+    public void endTurn(GameState state) {
         if (vulnerable > 0) {
             vulnerable -= 1;
         }
@@ -154,10 +150,10 @@ public class Player {
             str += ", frail=" + frail;
         }
         if (artifact > 0) {
-            str += ", artifact=" + artifact;
+            str += ", art=" + artifact;
         }
         if (cannotDrawCard) {
-            str += ", cannotDrawCard=true";
+            str += ", cannotDraw=true";
         }
         return str + '}';
     }

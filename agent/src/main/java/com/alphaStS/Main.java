@@ -23,8 +23,10 @@ public class Main {
 
     public static GameState BasicGremlinNobState3() {
         var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.FeelNoPain(), 1));
         cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Strike(), 3));
         cards.add(new CardCount(new Card.StrikeP(), 1));
         cards.add(new CardCount(new Card.Dropkick(), 1));
         cards.add(new CardCount(new Card.Defend(), 3));
@@ -33,7 +35,6 @@ public class Main {
         cards.add(new CardCount(new Card.Whirlwind(), 1));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.GremlinNob());
-        enemies.get(0).health = 90;
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.BagOfPreparation());
         return new GameState(enemies, new Player(37, 75), cards, relics);
@@ -246,8 +247,9 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 1000;
-            NODE_COUNT = 500;
+            MATCHES_COUNT = 400;
+            NODE_COUNT = 50000;
+            iteration = 29;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
@@ -267,7 +269,6 @@ public class Main {
             }
         }
 
-
         MatchSession session = new MatchSession(state, curIterationDir);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
             if (TEST_AGENT_FITNESS) {
@@ -278,39 +279,19 @@ public class Main {
             long start = System.currentTimeMillis();
             for (int i = 0; i < MATCHES_COUNT; i++) {
                 session.playGame(NODE_COUNT);
-                if (!TEST_AGENT_FITNESS && session.game_i % 25 == 0) {
-                    long end = System.currentTimeMillis();
-                    System.out.println("Progress: " + session.game_i + "/" + MATCHES_COUNT);;
-                    System.out.println("Deaths: " + session.deathCount);
-                    System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
-                    System.out.println("Time Taken: " + (end - start));
-                    System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-                    System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
-                    System.out.println("--------------------");
+                if ((!TEST_AGENT_FITNESS && session.game_i % 25 == 0) || session.game_i == MATCHES_COUNT) {
+                    session.printProgress(start, MATCHES_COUNT);
                 }
             }
-            long end = System.currentTimeMillis();
-            System.out.println("Deaths: " + session.deathCount);
-            System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-            System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
-            System.out.println("Time Taken: " + (end - start));
-            System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-            System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
-            System.out.print("--------------------");
         }
 
         if (GEN_TRAINING_MATCHES) {
             session.setTrainingDataLogFile("training_data.txt");
-            session.randomize_enemy = CURRICULUM_TRAINING_ON;
             long start = System.currentTimeMillis();
             var games = new ArrayList<List<GameStep>>();
             for (int i = 0; i < 200; i++) {
-                session.playTrainingGame(100);
+                session.playTrainingGame(100, CURRICULUM_TRAINING_ON);
                 games.add(List.copyOf(session.states));
-                for (GameStep step : session.states) {
-                    step.state().clearNextStates();
-                }
             }
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

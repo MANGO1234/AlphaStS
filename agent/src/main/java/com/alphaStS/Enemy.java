@@ -14,7 +14,7 @@ abstract class Enemy {
     int artifact;
     int numOfMoves;
     int move;
-    int moveHistory[];
+    int[] moveHistory;
     boolean canVulnerable;
     boolean canWeaken;
     boolean canFrail;
@@ -296,8 +296,8 @@ abstract class Enemy {
             if (move == ATTACK_1 || move == ATTACK_2) {
                 state.enemyDoDamageToPlayer(this, 20, 1);
             } else if (move == SIPHON_SOUL) {
-                state.player.gainStrength(-2);
-                state.player.gainDexterity(-2);
+                state.player.applyDebuff(DebuffType.LOSE_DEXTERITY, -2);
+                state.player.applyDebuff(DebuffType.LOSE_STRENGTH, -2);
             }
         }
 
@@ -625,6 +625,11 @@ abstract class Enemy {
 
         public String getName() {
             return "The Guardian";
+        }
+
+        @Override public String toString() {
+            String s = super.toString();
+            return s.subSequence(0, s.length() - 1) + ", modeShift=" + modeShiftDmg + "/" + maxModeShiftDmg + "}";
         }
 
         @Override public boolean equals(Object o) {

@@ -117,7 +117,7 @@ public class GameState implements State {
     double total_q_comb; // sum of q_win array
     float[] policy; // policy from NN
     float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
-    Map<GameState, GameState> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
+    Map<GameState, State> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
     boolean[] transpositionsPolicyMask; // true if the associated action is a transposition
     int terminal_action; // detected a win from child, no need to waste more time search
 
@@ -613,7 +613,7 @@ public class GameState implements State {
         for (GameTrigger gameTrigger : prop.preEndTurnTrigger) {
             gameTrigger.act(this);
         }
-        if (metallicize > 0) player.gainBlock(metallicize);
+        if (metallicize > 0) player.gainBlockNotFromCardPlay(metallicize);
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
                 if (!prop.cardDict[i].exhaustEndOfTurn) {
@@ -758,13 +758,13 @@ public class GameState implements State {
         }
     }
 
-    private String format_float(double f) {
+    private String formatFloat(double f) {
         if (f == 0) {
             return "0";
         } else if (f < 0.001) {
-            return String.format("%6.3e", f);
+            return String.format("%6.3e", f).trim();
         } else {
-            return String.format("%6.3f", f);
+            return String.format("%6.3f", f).trim();
         }
     }
 
@@ -832,11 +832,11 @@ public class GameState implements State {
         }
         str.append(", energy=").append(energy).append(", ctx=").append(actionCtx).append(", ").append(player);
         str.append(", [");
-        int ii = 0;
+        int eAlive = 0;
         for (Enemy enemy : enemies) {
             if (enemy.health > 0) {
                 str.append(enemy.toString(this));
-                if (ii++ < enemiesAlive) {
+                if (++eAlive < enemiesAlive) {
                     str.append(", ");
                 }
             }
@@ -849,7 +849,7 @@ public class GameState implements State {
             str.append(", fnp=").append(feelNotPain);
         }
         if (darkEmbrace > 0) {
-            str.append(", dark_embr=").append(darkEmbrace);
+            str.append(", darkEmbr=").append(darkEmbrace);
         }
         if (buffs > 0) {
             str.append(", buffs=[");
@@ -859,7 +859,7 @@ public class GameState implements State {
                 first = false;
             }
             if ((buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-                str.append(first ? "" : ", ").append("Runic Pyramid");
+                str.append(first ? "" : ", ").append("Centennial Puzzle");
                 first = false;
             }
             if ((buffs & PlayerBuffs.BARRICADE) != 0) {
@@ -868,15 +868,15 @@ public class GameState implements State {
             }
             str.append("]");
         }
-        str.append(", v=(").append(format_float(v_win)).append(", ").append(format_float(v_health)).append("/").append(format_float(v_health * player.maxHealth)).append(")");
+        str.append(", v=(").append(formatFloat(v_win)).append(", ").append(formatFloat(v_health)).append("/").append(formatFloat(v_health * player.maxHealth)).append(")");
         str.append(", q/p/n=[");
         first = true;
         for (int i = 0; i < q_win.length; i++) {
-            var p_str = policy != null ? format_float(policy[i]) : "0";
-            var p_str2 = policyMod != null ? format_float(policyMod[i]) : null;
-            var q_win_str = format_float(n[i] == 0 ? 0 : q_win[i] / n[i]);
-            var q_health_str = format_float(n[i] == 0 ? 0 : q_health[i] / n[i]);
-            var q_str = format_float(n[i] == 0 ? 0 : q_comb[i] / n[i]);
+            var p_str = policy != null ? formatFloat(policy[i]) : "0";
+            var p_str2 = policyMod != null ? formatFloat(policyMod[i]) : null;
+            var q_win_str = formatFloat(n[i] == 0 ? 0 : q_win[i] / n[i]);
+            var q_health_str = formatFloat(n[i] == 0 ? 0 : q_health[i] / n[i]);
+            var q_str = formatFloat(n[i] == 0 ? 0 : q_comb[i] / n[i]);
             if (isActionLegal(i)) {
                 if (!first) {
                     str.append(", ");
@@ -1207,7 +1207,7 @@ public class GameState implements State {
         prop.cardDict[cardIdx].onExhaust(this);
         exhaust[cardIdx] += 1;
         if (feelNotPain > 0) {
-            player.gainBlock(feelNotPain);
+            player.gainBlockNotFromCardPlay(feelNotPain);
         }
         if (darkEmbrace > 0) {
             draw(darkEmbrace);
@@ -1458,8 +1458,10 @@ class ChanceState implements State {
 
     Hashtable<GameState, Node> cache;
     long total_n;
+    double total_q_win;
+    double total_q_health;
+    double total_q_comb;
     double v_health = -1;
-    GameState lastState;
 
     public ChanceState() {
         cache = new Hashtable<>();
@@ -1469,7 +1471,6 @@ class ChanceState implements State {
         cache = new Hashtable<>();
         cache.put(initState, new Node(initState));
         total_n = 1;
-        lastState = initState;
     }
 
     GameState getNextState(GameState parentState, int action) {
@@ -1483,13 +1484,11 @@ class ChanceState implements State {
         }
         total_n += 1;
         var node = cache.get(state);
-        lastState = state;
         if (node != null) {
             node.n += 1;
             return node.state;
         }
         cache.put(state, new Node(state));
-        lastState = state;
         return state;
     }
 

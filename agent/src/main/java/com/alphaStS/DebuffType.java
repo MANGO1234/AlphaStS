@@ -5,4 +5,6 @@ public enum DebuffType {
     WEAK,
     FRAIL,
     NO_MORE_CARD_DRAW,
+    LOSE_STRENGTH,
+    LOSE_DEXTERITY,
 }

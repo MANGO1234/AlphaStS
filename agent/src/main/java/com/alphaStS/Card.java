@@ -875,7 +875,28 @@ abstract class Card {
     }
 
     // todo: combust
-    // todo: dark embrace
+
+    public static class DarkEmbrace extends Card {
+        public DarkEmbrace() {
+            super("Dark Embrace", Card.POWER, 2);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.darkEmbrace += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DarkEmbraceP extends Card {
+        public DarkEmbraceP() {
+            super("Dark Embrace+", Card.POWER, 1);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.darkEmbrace += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class Disarm extends Card {
         public Disarm() {
@@ -977,7 +998,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlockNoDex(state.player.block);
+            state.player.gainBlockNotFromCardPlay(state.player.block);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -988,13 +1009,35 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlockNoDex(state.player.block);
+            state.player.gainBlockNotFromCardPlay(state.player.block);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     // todo: evolve
-    // todo: feel no pain
+
+    public static class FeelNoPain extends Card {
+        public FeelNoPain() {
+            super("Feel No Pain", Card.POWER, 1);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.feelNotPain += 3;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FeelNoPainP extends Card {
+        public FeelNoPainP() {
+            super("Feel No Pain+", Card.POWER, 1);
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.feelNotPain += 4;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
     // todo: fire breathing
 
     public static class FlameBarrier extends Card {

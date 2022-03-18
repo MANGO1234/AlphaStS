@@ -88,7 +88,7 @@ public class InteractiveMode {
                             System.out.println("    - Corruption");
                         }
                         if ((state.buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-                            System.out.println("    - Runic Pyramid");
+                            System.out.println("    - Centennial Puzzle");
                         }
                         if ((state.buffs & PlayerBuffs.BARRICADE) != 0) {
                             System.out.println("    - Barricade");
@@ -440,25 +440,9 @@ public class InteractiveMode {
         for (int i = 0; i < matchCount; i++) {
             session.playGame(nodeCount);
             if (session.game_i % 25 == 0) {
-                long end = System.currentTimeMillis();
-                System.out.println("Progress: " + session.game_i + "/" + matchCount);;
-                System.out.println("Deaths: " + session.deathCount);
-                System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-                System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
-                System.out.println("Time Taken: " + (end - start));
-                System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-                System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
-                System.out.println("--------------------");
+                session.printProgress(start, matchCount);
             }
         }
-        long end = System.currentTimeMillis();
-        System.out.println("Deaths: " + session.deathCount);
-        System.out.println("Avg Damage: " + ((double) session.totalDamageTaken) / session.game_i);
-        System.out.println("Avg Damage (Not Including Deaths): " + ((double) (session.totalDamageTaken - session.origState.player.origHealth * session.deathCount)) / (session.game_i - session.deathCount));
-        System.out.println("Time Taken: " + (end - start));
-        System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-        System.out.println("Model: cache_size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
-        System.out.print("--------------------");
     }
 
     private static int parseInt(String s, int default_v) {
