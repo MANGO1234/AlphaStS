@@ -46,6 +46,7 @@ class GameProperties {
     List<GameTrigger> startOfTurnTrigger;
     List<GameTrigger> preEndTurnTrigger;
     List<GameTrigger> onPlayerDamageTrigger;
+    List<onCardPlayedHandler> onCardPlayedHandlers;
 
     public int findCardIndex(Card card) {
         for (int i = 0; i < cardDict.length; i++) {
@@ -160,6 +161,7 @@ public class GameState implements State {
         prop.startOfTurnTrigger = new ArrayList<>();
         prop.preEndTurnTrigger = new ArrayList<>();
         prop.onPlayerDamageTrigger = new ArrayList<>();
+        prop.onCardPlayedHandlers = new ArrayList<>();
 
         cards = collectAllPossibleCards(cards, enemies);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
@@ -308,7 +310,10 @@ public class GameState implements State {
         transpositions = new HashMap<>();
 
         for (Relic relic : relics) {
-            relic.startOfGame(this);
+            relic.startOfGameSetup(this);
+        }
+        for (Card card : prop.cardDict) {
+            card.startOfGameSetup(this);
         }
     }
 
@@ -595,6 +600,9 @@ public class GameState implements State {
             for (Enemy enemy : enemies) {
                 enemy.react(this, prop.cardDict[cardIdx]);
             }
+            for (var handler : prop.onCardPlayedHandlers) {
+                handler.handle(this, prop.cardDict[cardIdx]);
+            }
             if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
                 exhaustedCardHandle(cardIdx);
             } else if ((buffs & PlayerBuffs.CORRUPTION) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
@@ -655,9 +663,6 @@ public class GameState implements State {
     void doAction(int actionIdx) {
         GameAction action = prop.actionsByCtx[actionCtx.ordinal()][actionIdx];
         if (action.type() == GameActionType.START_GAME) {
-            for (Enemy enemy : enemies) {
-                enemy.startOfGameSetup(prop.random);
-            }
             startTurn();
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
         } else if (action.type() == GameActionType.END_TURN) {
@@ -1321,6 +1326,10 @@ public class GameState implements State {
         prop.onPlayerDamageTrigger.add(gameTrigger);
     }
 
+    public void addOnCardPlayedHandler(onCardPlayedHandler handler) {
+        prop.onCardPlayedHandlers.add(handler);
+    }
+
     public void clearNextStates() { // oom during training due to holding too many states
         for (int i = 0; i < ns.length; i++) {
             ns[i] = null;
@@ -1383,10 +1392,23 @@ public class GameState implements State {
         drawOrder.pushOnTop(idx);
     }
 
+    public void playerDoDamageToEnemy(Enemy enemy, int dmg) {
+        if ((buffs & PlayerBuffs.AKABEKO) != 0) {
+            dmg += 8;
+        }
+        dmg += player.strength;
+        if (player.weak > 0) {
+            dmg = dmg * 3 / 4;
+        }
+        if (enemy.health > 0) {
+            enemy.damage(dmg, this);
+        }
+    }
+
     public void enemyDoDamageToPlayer(Enemy enemy, int dmg, int times) {
         int move = enemy.move;
         for (int i = 0; i < times; i++) {
-            if (enemy.health <= 0 || enemy.move != move) {
+            if (enemy.health <= 0 || enemy.move != move) { // dead or interrupted
                 return;
             }
             dmg += enemy.strength;

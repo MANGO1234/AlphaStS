@@ -4,28 +4,39 @@ abstract class GameTrigger {
     abstract void act(GameState state);
 }
 
+abstract class onCardPlayedHandler {
+    abstract void handle(GameState state, Card card);
+}
+
 public abstract class Relic {
-    public void startOfGame(GameState state) {}
+    public void startOfGameSetup(GameState state) {}
 
 
     // **********************************************************************************************************************************************
     // ************************************************************* Common Relics ******************************************************************
     // **********************************************************************************************************************************************
 
-    public static class Akkebeko extends Relic {
-        @Override public void startOfGame(GameState state) {
-            state.buffs |= PlayerBuffs.AKKEBEKO;
+    public static class Akabeko extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.buffs |= PlayerBuffs.AKABEKO;
+            state.addOnCardPlayedHandler(new onCardPlayedHandler() {
+                @Override void handle(GameState state, Card card) {
+                    if (card.cardType == Card.ATTACK) {
+                        state.buffs &= ~PlayerBuffs.AKABEKO;
+                    }
+                }
+            });
         }
     }
 
     public static class Anchor extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.player.gainBlockNotFromCardPlay(10);
         }
     }
 
     public static class AncientTeaSet extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energy += 2;
         }
     }
@@ -33,7 +44,7 @@ public abstract class Relic {
     // todo: Art of War
 
     public static class BagOfMarbles extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             for (Enemy enemy : state.enemies) {
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
@@ -41,7 +52,7 @@ public abstract class Relic {
     }
 
     public static class BagOfPreparation extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnTrigger(new GameTrigger() {
                 @Override void act(GameState state) {
                     if (state.turnNum == 1) {
@@ -55,13 +66,13 @@ public abstract class Relic {
     // Blood Vial: No need to implement
 
     public static class BronzeScales extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.thorn += 3;
         }
     }
 
     public static class CentennialPuzzle extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuffs.CENTENNIAL_PUZZLE;
             state.addOnDamageTrigger(new GameTrigger() {
                 @Override void act(GameState state) {
@@ -82,7 +93,7 @@ public abstract class Relic {
     // Juzu Bracelet: No need to implement
 
     public static class Lantern extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energy += 1;
         }
     }
@@ -95,7 +106,7 @@ public abstract class Relic {
     // Omamori: No need to implement
 
     public static class Orichalcum extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.addPreEndOfTurnTrigger(new GameTrigger() {
                 @Override void act(GameState state) {
                     if (state.player.block == 0) {
@@ -123,7 +134,7 @@ public abstract class Relic {
     // todo: Toy Ornithopter
 
     public static class Vajira extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.player.gainStrength(1);
         }
     }
@@ -155,7 +166,7 @@ public abstract class Relic {
     // todo: Meat on the Bone
 
     public static class MercuryHourglass extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnTrigger(new GameTrigger() {
                 @Override void act(GameState state) {
                     for (Enemy enemy : state.enemies) {
@@ -194,13 +205,13 @@ public abstract class Relic {
 
     public static class Calipers extends Relic {
 
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuffs.CALIPERS;
         }
     }
 
     public static class OddlySmoothStone extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.player.gainDexterity(1);
         }
     }
@@ -257,7 +268,7 @@ public abstract class Relic {
     // Black Star: No need to implement
 
     public static class BustedCrown extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
         }
     }
@@ -266,13 +277,13 @@ public abstract class Relic {
     // todo: Coffee Dripper
 
     public static class CursedKey extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
         }
     }
 
     public static class Ectoplasm extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
         }
     }
@@ -280,7 +291,7 @@ public abstract class Relic {
     // Empty Cage: No need to implement
 
     public static class FusionHammer extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
         }
     }
@@ -294,7 +305,7 @@ public abstract class Relic {
     // todo: Snecko Eye
 
     public static class Sozu extends Relic {
-        @Override public void startOfGame(GameState state) {
+        @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
         }
     }

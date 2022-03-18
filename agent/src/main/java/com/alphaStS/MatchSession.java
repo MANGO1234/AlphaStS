@@ -86,7 +86,7 @@ public class MatchSession {
         System.out.println("Time Taken: " + (System.currentTimeMillis() - start_time));
         System.out.println("Time Taken (By Model): " + mcts.model.time_taken);
         System.out.println("Model: cache_size=" + mcts.model.cache.size() + ", " + mcts.model.cache_hits + "/" + mcts.model.calls + " hits (" + (double) mcts.model.cache_hits / mcts.model.calls + ")");
-        System.out.print("--------------------");
+        System.out.println("--------------------");
     }
 
     private GameState getNextState(GameState state, int action) {

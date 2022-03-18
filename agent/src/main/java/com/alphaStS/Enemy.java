@@ -126,9 +126,6 @@ abstract class Enemy {
         return str + '}';
     }
 
-    public void startOfGameSetup(Random random) {
-    }
-
     public void react(GameState state, Card card) {
     }
 
@@ -1336,11 +1333,6 @@ abstract class Enemy {
             return new RedLouse(this);
         }
 
-        @Override public void startOfGameSetup(Random random) {
-            d = 6 + random.nextInt(3);
-            curlUpAmount = 9 + random.nextInt(4);
-        }
-
         @Override public void doMove(GameState state) {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d, 1);
@@ -1386,6 +1378,8 @@ abstract class Enemy {
 
         public void randomize(Random random, boolean training) {
             health = 11 + random.nextInt(6);
+            d = 6 + random.nextInt(3);
+            curlUpAmount = 9 + random.nextInt(4);
         }
 
         public String getName() {
@@ -1422,11 +1416,6 @@ abstract class Enemy {
 
         @Override public Enemy copy() {
             return new GreenLouse(this);
-        }
-
-        @Override public void startOfGameSetup(Random random) {
-            d = 6 + random.nextInt(3);
-            curlUpAmount = 9 + random.nextInt(4);
         }
 
         @Override public void doMove(GameState state) {
@@ -1474,6 +1463,8 @@ abstract class Enemy {
 
         public void randomize(Random random, boolean training) {
             health = 12 + random.nextInt(7);
+            d = 6 + random.nextInt(3);
+            curlUpAmount = 9 + random.nextInt(4);
         }
 
         public String getName() {

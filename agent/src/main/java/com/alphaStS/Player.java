@@ -58,13 +58,6 @@ public class Player {
         }
     }
 
-    public void doDamageToEnemy(GameState state, Enemy enemy, int n) {
-        if (weak > 0) {
-            n = n * 3 / 4;
-        }
-        enemy.damage(n + strength, state);
-    }
-
     public void heal(int n) {
         health += Math.min(n, maxHealth - health);
     }

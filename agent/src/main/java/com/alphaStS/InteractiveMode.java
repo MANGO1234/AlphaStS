@@ -83,7 +83,7 @@ public class InteractiveMode {
                         System.out.println("  Thorn: " + state.thorn);
                     }
                     if (state.buffs != 0) {
-                        System.out.print("  Buffs:");
+                        System.out.println("  Buffs:");
                         if ((state.buffs & PlayerBuffs.CORRUPTION) != 0) {
                             System.out.println("    - Corruption");
                         }

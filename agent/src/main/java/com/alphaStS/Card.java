@@ -77,7 +77,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 8);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -91,7 +91,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 10);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -104,7 +104,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 6);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 6);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -116,7 +116,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 9);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -151,7 +151,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 6);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 6);
             state.addCardToDiscard(state.prop.angerCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -164,7 +164,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 8);
             state.addCardToDiscard(state.prop.angerCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -220,7 +220,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), state.player.block);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), state.player.block);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -232,7 +232,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), state.player.block);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), state.player.block);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -244,7 +244,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 14);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 14);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -265,7 +265,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 18);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 18);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -286,7 +286,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.player.doDamageToEnemy(state, enemy, 8);
+                state.playerDoDamageToEnemy(enemy, 8);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -299,7 +299,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.player.doDamageToEnemy(state, enemy, 11);
+                state.playerDoDamageToEnemy(enemy, 11);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -313,7 +313,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 12);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -327,7 +327,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 14);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 14);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -375,7 +375,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
+                state.playerDoDamageToEnemy(state.enemies.get(idx), 9);
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
                 state.discard[idx] -= 1;
@@ -396,7 +396,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
+                state.playerDoDamageToEnemy(state.enemies.get(idx), 9);
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
                 state.discard[idx] -= 1;
@@ -413,7 +413,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 14 + state.player.strength * 2);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 14 + state.player.strength * 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -425,7 +425,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 14 + state.player.strength * 4);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 14 + state.player.strength * 4);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -437,7 +437,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
             state.player.gainBlock(5);
             return GameActionCtx.PLAY_CARD;
         }
@@ -450,7 +450,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 7);
             state.player.gainBlock(7);
             return GameActionCtx.PLAY_CARD;
         }
@@ -469,7 +469,7 @@ abstract class Card {
                 count += state.discard[state.prop.strikeCardIdxes[i]];
                 count += state.deck[state.prop.strikeCardIdxes[i]];
             }
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 6 + 2 * count);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 6 + 2 * count);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -487,7 +487,7 @@ abstract class Card {
                 count += state.discard[state.prop.strikeCardIdxes[i]];
                 count += state.deck[state.prop.strikeCardIdxes[i]];
             }
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 6 + 3 * count);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 6 + 3 * count);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -499,7 +499,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 9);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 9);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -512,7 +512,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 10);
             state.draw(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -554,7 +554,7 @@ abstract class Card {
                 for (Enemy enemy : state.enemies) {
                     if (enemy.health >= 0) {
                         if (j == enemy_j) {
-                            state.player.doDamageToEnemy(state, enemy, 3);
+                            state.playerDoDamageToEnemy(enemy, 3);
                             break;
                         }
                         enemy_j += 1;
@@ -580,7 +580,7 @@ abstract class Card {
                 for (Enemy enemy : state.enemies) {
                     if (enemy.health >= 0) {
                         if (j == enemy_j) {
-                            state.player.doDamageToEnemy(state, enemy, 3);
+                            state.playerDoDamageToEnemy(enemy, 3);
                             break;
                         }
                         enemy_j += 1;
@@ -602,7 +602,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.player.doDamageToEnemy(state, enemy, 4);
+                state.playerDoDamageToEnemy(enemy, 4);
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
             return GameActionCtx.PLAY_CARD;
@@ -617,7 +617,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.player.doDamageToEnemy(state, enemy, 7);
+                state.playerDoDamageToEnemy(enemy, 7);
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
             return GameActionCtx.PLAY_CARD;
@@ -668,8 +668,8 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -681,8 +681,8 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 7);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 7);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -734,7 +734,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 12);
             state.addCardToDeck(state.prop.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -751,7 +751,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 12);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 12);
             state.addCardToDeck(state.prop.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -857,7 +857,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 20);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 20);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -870,7 +870,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 28);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 28);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -934,7 +934,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
             if (state.enemies.get(idx).vulnerable > 0) {
                 state.energy += 1;
                 state.draw(1);
@@ -950,7 +950,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 8);
             if (state.enemies.get(idx).vulnerable > 0) {
                 state.energy += 1;
                 state.draw(1);
@@ -1099,7 +1099,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             state.doNonAttackDamageToPlayer(2, false);
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 15);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 15);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1112,7 +1112,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             state.doNonAttackDamageToPlayer(2, false);
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 20);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 20);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1236,7 +1236,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < 4; i++) {
-                state.player.doDamageToEnemy(state, state.enemies.get(idx), 2);
+                state.playerDoDamageToEnemy(state.enemies.get(idx), 2);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1251,7 +1251,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < 5; i++) {
-                state.player.doDamageToEnemy(state, state.enemies.get(idx), 2);
+                state.playerDoDamageToEnemy(state.enemies.get(idx), 2);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1267,7 +1267,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 7);
             state.addCardToDeck(state.prop.dazedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1284,7 +1284,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 10);
             state.addCardToDeck(state.prop.dazedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1404,7 +1404,7 @@ abstract class Card {
                     }
                 }
             }
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 16);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 16);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1423,7 +1423,7 @@ abstract class Card {
                     }
                 }
             }
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 22);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 22);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1501,7 +1501,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 13);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 13);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 1);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 1);
             return GameActionCtx.PLAY_CARD;
@@ -1517,7 +1517,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 13);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 13);
             state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 2);
             state.enemies.get(idx).applyDebuff(DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
@@ -1531,7 +1531,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.energy; i++) {
-                state.player.doDamageToEnemy(state, state.enemies.get(idx), 5);
+                state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1548,7 +1548,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (int i = 0; i < state.energy; i++) {
-                state.player.doDamageToEnemy(state, state.enemies.get(idx), 8);
+                state.playerDoDamageToEnemy(state.enemies.get(idx), 8);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1611,7 +1611,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 32);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 32);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1623,7 +1623,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.doDamageToEnemy(state, state.enemies.get(idx), 42);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 42);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1697,7 +1697,7 @@ abstract class Card {
             for (int i = 0; i < state.hand.length; i++) {
                 while (state.hand[i] > 0) {
                     state.exhaustCardFromHand(i);
-                    state.player.doDamageToEnemy(state, state.enemies.get(idx), 7);
+                    state.playerDoDamageToEnemy(state.enemies.get(idx), 7);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1715,7 +1715,7 @@ abstract class Card {
             for (int i = 0; i < state.hand.length; i++) {
                 while (state.hand[i] > 0) {
                     state.exhaustCardFromHand(i);
-                    state.player.doDamageToEnemy(state, state.enemies.get(idx), 10);
+                    state.playerDoDamageToEnemy(state.enemies.get(idx), 10);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1729,7 +1729,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.player.doDamageToEnemy(state, enemy, 21);
+                state.playerDoDamageToEnemy(enemy, 21);
             }
             state.addCardToDiscard(state.prop.burnCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1747,7 +1747,7 @@ abstract class Card {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.player.doDamageToEnemy(state, enemy, 28);
+                state.playerDoDamageToEnemy(enemy, 28);
             }
             state.addCardToDiscard(state.prop.burnCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1845,7 +1845,7 @@ abstract class Card {
             int amount = 0;
             for (Enemy enemy : state.enemies) {
                 int prevHp = enemy.health;
-                state.player.doDamageToEnemy(state, enemy, 4);
+                state.playerDoDamageToEnemy(enemy, 4);
                 amount += enemy.health - prevHp;
             }
             state.player.heal(amount);
@@ -1863,7 +1863,7 @@ abstract class Card {
             int amount = 0;
             for (Enemy enemy : state.enemies) {
                 int prevHp = enemy.health;
-                state.player.doDamageToEnemy(state, enemy, 5);
+                state.playerDoDamageToEnemy(enemy, 5);
                 amount += enemy.health - prevHp;
             }
             state.player.heal(amount);
