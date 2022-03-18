@@ -29,19 +29,32 @@ class GameProperties {
     int angerCardIdx = -1;
     int angerPCardIdx = -1;
     int[] strikeCardIdxes;
+    // cached status indexes
     int burnCardIdx = -1;
     int dazedCardIdx = -1;
     int slimeCardIdx = -1;
     int woundCardIdx = -1;
+
+    // cached game properties for generating NN input
     boolean battleTranceExist;
     boolean feelNoPainExist;
     boolean darkEmbraceExist;
     boolean energyRefillCanChange;
-
     int inputLen;
+
+    // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     List<GameTrigger> startOfTurnTrigger;
     List<GameTrigger> preEndTurnTrigger;
     List<GameTrigger> onPlayerDamageTrigger;
+
+    public int findCardIndex(Card card) {
+        for (int i = 0; i < cardDict.length; i++) {
+            if (cardDict[i].equals(card)) {
+                return i;
+            }
+        }
+        return -1;
+    }
 }
 
 enum GameActionCtx {
@@ -157,14 +170,14 @@ public class GameState implements State {
 
         List<Integer> strikeIdxes = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
-            if (cards.get(i).card().cardName.equals("Slime")) {
-                prop.slimeCardIdx = i;
-            } else if (cards.get(i).card().cardName.equals("Wound")) {
-                prop.woundCardIdx = i;
-            } else if (cards.get(i).card().cardName.equals("Burn")) {
+            if (cards.get(i).card().cardName.equals("Burn")) {
                 prop.burnCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Dazed")) {
                 prop.dazedCardIdx = i;
+            } if (cards.get(i).card().cardName.equals("Slime")) {
+                prop.slimeCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Wound")) {
+                prop.woundCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Anger")) {
                 prop.angerCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Anger+")) {
@@ -318,15 +331,13 @@ public class GameState implements State {
         Set<Integer> l = new HashSet<>();
         for (Enemy enemy : enemies) {
             if (enemy.canDaze) {
-                l.add(prop.dazedCardIdx);
-            } else if (enemy.canSlime) {
-                l.add(prop.slimeCardIdx);
+                l.add(prop.findCardIndex(new Card.Dazed()));
             }
         }
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().exhaustWhenPlayed || cards.get(i).card().cardType == Card.POWER) {
                 l.add(i);
-            } else if (cards.get(i).card().exhaustEndOfTurn && getCardEnergyCost(i) >= 0) {
+            } else if (cards.get(i).card().ethereal && getCardEnergyCost(i) >= 0) {
                 l.add(i);
             } else if (cards.get(i).card().exhaustNonAttacks) {
                 for (int j = 0; j < cards.size(); j++) {
@@ -616,7 +627,7 @@ public class GameState implements State {
         if (metallicize > 0) player.gainBlockNotFromCardPlay(metallicize);
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
-                if (!prop.cardDict[i].exhaustEndOfTurn) {
+                if (!prop.cardDict[i].ethereal) {
                     for (int j = 0; j < hand[i]; j++) {
                         prop.cardDict[i].onDiscard(this);
                     }

@@ -15,7 +15,7 @@ abstract class Card {
     String cardName;
     int energyCost;
     public GameActionCtx secondActionCtx;
-    public boolean exhaustEndOfTurn = false;
+    public boolean ethereal = false;
     public boolean exhaustWhenPlayed = false;
     public boolean exhaustNonAttacks = false;
     public boolean selectEnemy;
@@ -43,11 +43,12 @@ abstract class Card {
         return energyCost;
     }
 
-    abstract GameActionCtx play(GameState state, int idx);
+    GameActionCtx play(GameState state, int idx) { return GameActionCtx.PLAY_CARD; }
     void onDiscard(GameState state) {}
     void onExhaust(GameState state) {}
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return null; }
-    public boolean canSelectFromHand(Card card) { return true; };
+    public boolean canSelectFromHand(Card card) { return true; }
+    public void startOfGameSetup(GameState state) {}
 
     @Override public String toString() {
         return "Card{" +
@@ -852,7 +853,7 @@ abstract class Card {
         public Carnage() {
             super("Carnage", Card.ATTACK, 2);
             selectEnemy = true;
-            exhaustEndOfTurn = true;
+            ethereal = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -865,7 +866,7 @@ abstract class Card {
         public CarnageP() {
             super("Carnage+", Card.ATTACK, 2);
             selectEnemy = true;
-            exhaustEndOfTurn = true;
+            ethereal = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -1069,7 +1070,7 @@ abstract class Card {
     public static class GhostlyArmor extends Card {
         public GhostlyArmor() {
             super("Ghostly Armor", Card.SKILL, 1);
-            exhaustEndOfTurn = true;
+            ethereal = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -1081,7 +1082,7 @@ abstract class Card {
     public static class GhostlyArmorP extends Card {
         public GhostlyArmorP() {
             super("Ghostly Armor+", Card.SKILL, 1);
-            exhaustEndOfTurn = true;
+            ethereal = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -1874,38 +1875,44 @@ abstract class Card {
     // ********************************************* Statuses ***************************************************
     // **********************************************************************************************************
 
-    public static class Wound extends Card {
-        public Wound() {
-            super("Wound", Card.STATUS, -1);
-        }
-
-        GameActionCtx play(GameState state, int idx) {
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
     public static class Burn extends Card {
         public Burn() {
             super("Burn", Card.STATUS, -1);
         }
 
-        GameActionCtx play(GameState state, int idx) {
-            return GameActionCtx.PLAY_CARD;
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addPreEndOfTurnTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.doNonAttackDamageToPlayer(2, true);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class BurnP extends Card {
+        public BurnP() {
+            super("Burn+", Card.STATUS, -1);
         }
 
-        void onDiscard(GameState state) {
-            state.doNonAttackDamageToPlayer(2, true);
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addPreEndOfTurnTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.doNonAttackDamageToPlayer(4, true);
+                    }
+                }
+            });
         }
     }
 
     public static class Dazed extends Card {
         public Dazed() {
             super("Dazed", Card.STATUS, -1);
-            exhaustEndOfTurn = true;
-        }
-
-        GameActionCtx play(GameState state, int idx) {
-            return GameActionCtx.PLAY_CARD;
+            ethereal = true;
         }
     }
 
@@ -1914,48 +1921,147 @@ abstract class Card {
             super("Slime", Card.STATUS, 1);
             exhaustWhenPlayed = true;
         }
+    }
 
-        GameActionCtx play(GameState state, int idx) {
-            return GameActionCtx.PLAY_CARD;
+    public static class Wound extends Card {
+        public Wound() {
+            super("Wound", Card.STATUS, -1);
         }
     }
+
+    // todo: Void
 
     // **********************************************************************************************************
     // ********************************************** Curses ****************************************************
     // **********************************************************************************************************
 
-    // clumsy
     public static class AscendersBane extends Card {
         public AscendersBane() {
             super("Ascender's Bane", Card.CURSE, -1);
-            exhaustEndOfTurn = true;
-        }
-
-        GameActionCtx play(GameState state, int idx) {
-            return GameActionCtx.PLAY_CARD;
+            ethereal = true;
         }
     }
 
-    // todo: Necronomicurse
-    // todo: Decay
-    // todo: Doubt
-    // todo: Normality
-    // todo: Pain
-    // todo: Regret
-    // todo: Shame
-    // todo: Writh
-    // todo: Pride
+    public static class Clumsy extends Card {
+        public Clumsy() {
+            super("Clumsy", Card.CURSE, -1);
+            ethereal = true;
+        }
+    }
 
-    // Curse of the Bell
-    // Injury
-    // Parasite
-    public static class UnplayableCurse extends Card {
-        public UnplayableCurse() {
-            super("Unplayable Curse", Card.CURSE, -1);
+    public static class Necronomicurse extends Card {
+        public Necronomicurse() {
+            super("Necronomicurse", Card.CURSE, -1);
         }
 
-        GameActionCtx play(GameState state, int idx) {
-            return GameActionCtx.PLAY_CARD;
+        int cardIndex = -1;
+
+        @Override public void startOfGameSetup(GameState state) {
+            cardIndex = state.prop.findCardIndex(this);
+        }
+
+        @Override void onExhaust(GameState state) {
+            state.addCardToHand(cardIndex);
+        }
+    }
+
+    public static class Decay extends Card {
+        public Decay() {
+            super("Decay", Card.CURSE, -1);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addPreEndOfTurnTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.doNonAttackDamageToPlayer(2, true);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Doubt extends Card {
+        public Doubt() {
+            super("Doubt", Card.CURSE, -1);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addPreEndOfTurnTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.player.applyDebuff(DebuffType.WEAK, 1);
+                    }
+                }
+            });
+        }
+    }
+
+    // todo: Normality
+    // todo: Pain
+
+    public static class Regret extends Card {
+        public Regret() {
+            super("Regret", Card.CURSE, -1);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addPreEndOfTurnTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    int numOfCards = 0;
+                    for (int n : state.hand) {
+                        numOfCards += n;
+                    }
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.doNonAttackDamageToPlayer(numOfCards, false);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Shame extends Card {
+        public Shame() {
+            super("Shame", Card.CURSE, -1);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addPreEndOfTurnTrigger(new GameTrigger() {
+                @Override void act(GameState state) {
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.player.applyDebuff(DebuffType.FRAIL, 1);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Writhe extends Card {
+        public Writhe() {
+            super("Writhe", Card.CURSE, -1);
+//            innate = true;
+        }
+    }
+
+    public static class Parasite extends Card {
+        public Parasite() {
+            super("Parasite", Card.CURSE, -1);
+        }
+    }
+
+    public static class Injury extends Card {
+        public Injury() {
+            super("Injury", Card.CURSE, -1);
+        }
+    }
+
+    public static class CurseOfTheBell extends Card {
+        public CurseOfTheBell() {
+            super("Curse of The Bell", Card.CURSE, -1);
         }
     }
 }
