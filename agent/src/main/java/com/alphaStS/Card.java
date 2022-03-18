@@ -1564,7 +1564,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.buffs |= PlayerBuffs.BARRICADE;
+            state.buffs |= PlayerBuff.BARRICADE.mask();
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1575,7 +1575,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.buffs |= PlayerBuffs.BARRICADE;
+            state.buffs |= PlayerBuff.BARRICADE.mask();
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1636,7 +1636,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.buffs |= PlayerBuffs.CORRUPTION;
+            state.buffs |= PlayerBuff.CORRUPTION.mask();
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1648,7 +1648,7 @@ abstract class Card {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.buffs |= PlayerBuffs.CORRUPTION;
+            state.buffs |= PlayerBuff.CORRUPTION.mask();
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2000,7 +2000,23 @@ abstract class Card {
     }
 
     // todo: Normality
-    // todo: Pain
+
+    public static class Pain extends Card {
+        public Pain() {
+            super("Pain", Card.CURSE, -1);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var cardIndex = state.prop.findCardIndex(this);
+            state.addOnCardPlayedHandler(new OnCardPlayedHandler() {
+                @Override void handle(GameState state, Card card) {
+                    for (int i = 0; i < state.hand[cardIndex]; i++) {
+                        state.doNonAttackDamageToPlayer(1, false);
+                    }
+                }
+            });
+        }
+    }
 
     public static class Regret extends Card {
         public Regret() {

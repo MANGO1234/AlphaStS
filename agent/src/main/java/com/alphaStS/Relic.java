@@ -4,7 +4,7 @@ abstract class GameTrigger {
     abstract void act(GameState state);
 }
 
-abstract class onCardPlayedHandler {
+abstract class OnCardPlayedHandler {
     abstract void handle(GameState state, Card card);
 }
 
@@ -18,11 +18,11 @@ public abstract class Relic {
 
     public static class Akabeko extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.buffs |= PlayerBuffs.AKABEKO;
-            state.addOnCardPlayedHandler(new onCardPlayedHandler() {
+            state.buffs |= PlayerBuff.AKABEKO.mask();
+            state.addOnCardPlayedHandler(new OnCardPlayedHandler() {
                 @Override void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
-                        state.buffs &= ~PlayerBuffs.AKABEKO;
+                        state.buffs &= ~PlayerBuff.AKABEKO.mask();
                     }
                 }
             });
@@ -73,11 +73,11 @@ public abstract class Relic {
 
     public static class CentennialPuzzle extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.buffs |= PlayerBuffs.CENTENNIAL_PUZZLE;
+            state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
             state.addOnDamageTrigger(new GameTrigger() {
                 @Override void act(GameState state) {
-                    if ((state.buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-                        state.buffs &= ~PlayerBuffs.CENTENNIAL_PUZZLE;
+                    if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
+                        state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();
                         state.draw(3);
                     }
                 }
@@ -204,9 +204,8 @@ public abstract class Relic {
     // todo: Bird Faced Urn
 
     public static class Calipers extends Relic {
-
         @Override public void startOfGameSetup(GameState state) {
-            state.buffs |= PlayerBuffs.CALIPERS;
+            state.prop.hasCaliper = true;
         }
     }
 

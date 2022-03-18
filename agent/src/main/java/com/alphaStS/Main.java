@@ -247,8 +247,8 @@ public class Main {
         JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 1000;
-            NODE_COUNT = 5000;
+            MATCHES_COUNT = 200;
+            NODE_COUNT = 50000;
             iteration = 29;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

@@ -35,6 +35,8 @@ class GameProperties {
     int slimeCardIdx = -1;
     int woundCardIdx = -1;
 
+    boolean hasCaliper;
+
     // cached game properties for generating NN input
     boolean battleTranceExist;
     boolean feelNoPainExist;
@@ -46,7 +48,7 @@ class GameProperties {
     List<GameTrigger> startOfTurnTrigger;
     List<GameTrigger> preEndTurnTrigger;
     List<GameTrigger> onPlayerDamageTrigger;
-    List<onCardPlayedHandler> onCardPlayedHandlers;
+    List<OnCardPlayedHandler> onCardPlayedHandlers;
 
     public int findCardIndex(Card card) {
         for (int i = 0; i < cardDict.length; i++) {
@@ -262,10 +264,10 @@ public class GameState implements State {
         prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy);
         prop.playerCanGetMetallicize = cards.stream().anyMatch((x) -> x.card().cardName.contains("Metallicize"));
         prop.playerThornCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Flame Barrier"));
-        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuffs.CORRUPTION : 0;
-        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuffs.BARRICADE : 0;
-        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuffs.CENTENNIAL_PUZZLE : 0;
-        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Calipers) ? PlayerBuffs.CALIPERS : 0;
+        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
+        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
+        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
+        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
         prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
@@ -489,7 +491,7 @@ public class GameState implements State {
     }
 
     private int getCardEnergyCost(int cardIdx) {
-        if ((buffs & PlayerBuffs.CORRUPTION) != 0) {
+        if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0) {
             if (prop.cardDict[cardIdx].cardType == Card.SKILL) {
                 return 0;
             }
@@ -605,7 +607,7 @@ public class GameState implements State {
             }
             if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
                 exhaustedCardHandle(cardIdx);
-            } else if ((buffs & PlayerBuffs.CORRUPTION) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
+            } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
                 exhaustedCardHandle(cardIdx);
             } else if (prop.cardDict[cardIdx].cardType != Card.POWER) {
                 discard[cardIdx] += 1;
@@ -870,17 +872,11 @@ public class GameState implements State {
         if (buffs > 0) {
             str.append(", buffs=[");
             first = true;
-            if ((buffs & PlayerBuffs.CORRUPTION) != 0) {
-                str.append(first ? "" : ", ").append("Corruption");
-                first = false;
-            }
-            if ((buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-                str.append(first ? "" : ", ").append("Centennial Puzzle");
-                first = false;
-            }
-            if ((buffs & PlayerBuffs.BARRICADE) != 0) {
-                str.append(first ? "" : ", ").append("Barricade");
-                first = false;
+            for (PlayerBuff buff : PlayerBuff.BUFFS) {
+                if ((buffs & buff.mask()) != 0) {
+                    str.append(first ? "" : ", ").append(buff.name());
+                    first = false;
+                }
             }
             str.append("]");
         }
@@ -970,17 +966,10 @@ public class GameState implements State {
         if (prop.energyRefillCanChange) {
             inputLen += 1; // berserk
         }
-        if ((prop.possibleBuffs & PlayerBuffs.BARRICADE) != 0) {
-            inputLen += 1; // barricade in deck
-        }
-        if ((prop.possibleBuffs & PlayerBuffs.CORRUPTION) != 0) {
-            inputLen += 1; // corruption in deck
-        }
-        if ((prop.possibleBuffs & PlayerBuffs.CALIPERS) != 0) {
-            inputLen += 1; // has runic pyramid
-        }
-        if ((prop.possibleBuffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-            inputLen += 1; // has runic pyramid
+        for (PlayerBuff buff : PlayerBuff.BUFFS) {
+            if ((prop.possibleBuffs & buff.mask()) != 0) {
+                inputLen += 1; // barricade in deck
+            }
         }
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
@@ -1106,17 +1095,10 @@ public class GameState implements State {
         if (prop.energyRefillCanChange) {
             x[idx++] = (energyRefill - 5) / 2f;
         }
-        if ((prop.possibleBuffs & PlayerBuffs.BARRICADE) != 0) {
-            x[idx++] = (buffs & PlayerBuffs.BARRICADE) != 0 ? 0.5f : -0.5f;
-        }
-        if ((prop.possibleBuffs & PlayerBuffs.CORRUPTION) != 0) {
-            x[idx++] = (buffs & PlayerBuffs.CORRUPTION) != 0 ? 0.5f : -0.5f;
-        }
-        if ((prop.possibleBuffs & PlayerBuffs.CALIPERS) != 0) {
-            x[idx++] = (buffs & PlayerBuffs.CALIPERS) != 0 ? 0.5f : -0.5f;
-        }
-        if ((prop.possibleBuffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-            x[idx++] = (buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0 ? 0.5f : -0.5f;
+        for (PlayerBuff buff : PlayerBuff.BUFFS) {
+            if ((prop.possibleBuffs & buff.mask()) != 0) {
+                x[idx++] = (buffs & buff.mask()) != 0 ? 0.5f : -0.5f;
+            }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
                 prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
@@ -1326,7 +1308,7 @@ public class GameState implements State {
         prop.onPlayerDamageTrigger.add(gameTrigger);
     }
 
-    public void addOnCardPlayedHandler(onCardPlayedHandler handler) {
+    public void addOnCardPlayedHandler(OnCardPlayedHandler handler) {
         prop.onCardPlayedHandlers.add(handler);
     }
 
@@ -1393,7 +1375,7 @@ public class GameState implements State {
     }
 
     public void playerDoDamageToEnemy(Enemy enemy, int dmg) {
-        if ((buffs & PlayerBuffs.AKABEKO) != 0) {
+        if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
         }
         dmg += player.strength;

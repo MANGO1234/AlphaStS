@@ -84,14 +84,10 @@ public class InteractiveMode {
                     }
                     if (state.buffs != 0) {
                         System.out.println("  Buffs:");
-                        if ((state.buffs & PlayerBuffs.CORRUPTION) != 0) {
-                            System.out.println("    - Corruption");
-                        }
-                        if ((state.buffs & PlayerBuffs.CENTENNIAL_PUZZLE) != 0) {
-                            System.out.println("    - Centennial Puzzle");
-                        }
-                        if ((state.buffs & PlayerBuffs.BARRICADE) != 0) {
-                            System.out.println("    - Barricade");
+                        for (PlayerBuff buff : PlayerBuff.BUFFS) {
+                            if ((state.buffs & buff.mask()) != 0) {
+                                System.out.println("    - " + buff.name());
+                            }
                         }
                     }
                     System.out.println();

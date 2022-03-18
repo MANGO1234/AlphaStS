@@ -114,8 +114,8 @@ public class Player {
             frail -= 1;
         }
         cannotDrawCard = false;
-        if ((state.buffs & PlayerBuffs.BARRICADE) != 0) {
-        } else if ((state.buffs & PlayerBuffs.CALIPERS) != 0) {
+        if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
+        } else if (state.prop.hasCaliper) {
             block = Math.max(block - 15, 0);
         } else {
             block = 0;
