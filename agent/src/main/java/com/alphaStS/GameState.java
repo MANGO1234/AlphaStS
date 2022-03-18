@@ -4,6 +4,14 @@ import com.alphaStS.utils.DrawOrder;
 
 import java.util.*;
 
+abstract class GameEventHandler {
+    abstract void handle(GameState state);
+}
+
+abstract class OnCardPlayedHandler {
+    abstract void handle(GameState state, Card card);
+}
+
 class GameProperties {
     boolean playerStrengthCanChange;
     boolean playerDexterityCanChange;
@@ -45,9 +53,9 @@ class GameProperties {
     int inputLen;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
-    List<GameTrigger> startOfTurnTrigger;
-    List<GameTrigger> preEndTurnTrigger;
-    List<GameTrigger> onPlayerDamageTrigger;
+    List<GameEventHandler> startOfTurnHandlers;
+    List<GameEventHandler> preEndTurnHandlers;
+    List<GameEventHandler> onPlayerDamageHandlers;
     List<OnCardPlayedHandler> onCardPlayedHandlers;
 
     public int findCardIndex(Card card) {
@@ -160,9 +168,9 @@ public class GameState implements State {
         // game properties (shared)
         prop = new GameProperties();
         prop.random = new Random();
-        prop.startOfTurnTrigger = new ArrayList<>();
-        prop.preEndTurnTrigger = new ArrayList<>();
-        prop.onPlayerDamageTrigger = new ArrayList<>();
+        prop.startOfTurnHandlers = new ArrayList<>();
+        prop.preEndTurnHandlers = new ArrayList<>();
+        prop.onPlayerDamageHandlers = new ArrayList<>();
         prop.onCardPlayedHandlers = new ArrayList<>();
 
         cards = collectAllPossibleCards(cards, enemies);
@@ -625,14 +633,14 @@ public class GameState implements State {
             enemy.startTurn();
         }
         draw(5);
-        for (GameTrigger gameTrigger : prop.startOfTurnTrigger) {
-            gameTrigger.act(this);
+        for (GameEventHandler handler : prop.startOfTurnHandlers) {
+            handler.handle(this);
         }
     }
 
     private void endTurn() {
-        for (GameTrigger gameTrigger : prop.preEndTurnTrigger) {
-            gameTrigger.act(this);
+        for (GameEventHandler handler : prop.preEndTurnHandlers) {
+            handler.handle(this);
         }
         if (metallicize > 0) player.gainBlockNotFromCardPlay(metallicize);
         for (int i = 0; i < hand.length; i++) {
@@ -1296,16 +1304,16 @@ public class GameState implements State {
         return prop.actionsByCtx[actionCtx.ordinal()][i];
     }
 
-    public void addStartOfTurnTrigger(GameTrigger gameTrigger) {
-        prop.startOfTurnTrigger.add(gameTrigger);
+    public void addStartOfTurnHandler(GameEventHandler handler) {
+        prop.startOfTurnHandlers.add(handler);
     }
 
-    public void addPreEndOfTurnTrigger(GameTrigger gameTrigger) {
-        prop.preEndTurnTrigger.add(gameTrigger);
+    public void addPreEndOfTurnHandler(GameEventHandler handler) {
+        prop.preEndTurnHandlers.add(handler);
     }
 
-    public void addOnDamageTrigger(GameTrigger gameTrigger) {
-        prop.onPlayerDamageTrigger.add(gameTrigger);
+    public void addOnDamageHandler(GameEventHandler handler) {
+        prop.onPlayerDamageHandlers.add(handler);
     }
 
     public void addOnCardPlayedHandler(OnCardPlayedHandler handler) {
@@ -1402,8 +1410,8 @@ public class GameState implements State {
                 enemy.nonAttackDamage(thorn, false, this);
             }
             if (dmg > 0) {
-                for (GameTrigger trigger : prop.onPlayerDamageTrigger) {
-                    trigger.act(this);
+                for (GameEventHandler handler : prop.onPlayerDamageHandlers) {
+                    handler.handle(this);
                 }
             }
         }
@@ -1423,8 +1431,8 @@ public class GameState implements State {
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable) {
         player.nonAttackDamage(dmg, blockable);
         if (dmg > 0) {
-            for (GameTrigger trigger : prop.onPlayerDamageTrigger) {
-                trigger.act(this);
+            for (GameEventHandler handler : prop.onPlayerDamageHandlers) {
+                handler.handle(this);
             }
         }
     }

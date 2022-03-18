@@ -1882,8 +1882,8 @@ abstract class Card {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(2, true);
                     }
@@ -1899,8 +1899,8 @@ abstract class Card {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(4, true);
                     }
@@ -1972,8 +1972,8 @@ abstract class Card {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(2, true);
                     }
@@ -1989,8 +1989,8 @@ abstract class Card {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.player.applyDebuff(DebuffType.WEAK, 1);
                     }
@@ -2025,8 +2025,8 @@ abstract class Card {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     int numOfCards = 0;
                     for (int n : state.hand) {
                         numOfCards += n;
@@ -2046,8 +2046,8 @@ abstract class Card {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.player.applyDebuff(DebuffType.FRAIL, 1);
                     }

@@ -1,13 +1,5 @@
 package com.alphaStS;
 
-abstract class GameTrigger {
-    abstract void act(GameState state);
-}
-
-abstract class OnCardPlayedHandler {
-    abstract void handle(GameState state, Card card);
-}
-
 public abstract class Relic {
     public void startOfGameSetup(GameState state) {}
 
@@ -53,8 +45,8 @@ public abstract class Relic {
 
     public static class BagOfPreparation extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addStartOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     if (state.turnNum == 1) {
                         state.draw(2);
                     }
@@ -74,8 +66,8 @@ public abstract class Relic {
     public static class CentennialPuzzle extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
-            state.addOnDamageTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addOnDamageHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
                         state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();
                         state.draw(3);
@@ -107,8 +99,8 @@ public abstract class Relic {
 
     public static class Orichalcum extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addPreEndOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     if (state.player.block == 0) {
                         state.player.gainBlockNotFromCardPlay(6);
                     }
@@ -167,8 +159,8 @@ public abstract class Relic {
 
     public static class MercuryHourglass extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addStartOfTurnTrigger(new GameTrigger() {
-                @Override void act(GameState state) {
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
                     for (Enemy enemy : state.enemies) {
                         enemy.nonAttackDamage(3, true, state);
                     }
