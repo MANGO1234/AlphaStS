@@ -43,6 +43,7 @@ class GameProperties {
     int slimeCardIdx = -1;
     int woundCardIdx = -1;
 
+    boolean hasBoot;
     boolean hasCaliper;
 
     // cached game properties for generating NN input
@@ -56,6 +57,7 @@ class GameProperties {
     List<GameEventHandler> startOfTurnHandlers;
     List<GameEventHandler> preEndTurnHandlers;
     List<GameEventHandler> onPlayerDamageHandlers;
+    List<GameEventHandler> onBlockHandlers;
     List<OnCardPlayedHandler> onCardPlayedHandlers;
 
     public int findCardIndex(Card card) {
@@ -65,6 +67,50 @@ class GameProperties {
             }
         }
         return -1;
+    }
+
+    interface CounterRegistrant {
+        void setCounterIdx(int idx);
+    }
+
+    interface NetworkInputHandler {
+        int addToInput(float[] input, int idx);
+        int getInputLenDelta();
+    }
+
+    Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
+    Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
+    public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
+        var registrants = counterRegistrants.get(name);
+        if (registrants == null) {
+            registrants = new ArrayList<>();
+            counterRegistrants.put(name, registrants);
+        }
+        registrants.add(registrant);
+
+        if (handler != null) {
+            var h = counterHandlerMap.get(name);
+            if (h == null) {
+                counterHandlerMap.put(name, handler);
+            }
+        }
+    }
+
+    String[] counterNames;
+    NetworkInputHandler[] counterHandlers;
+    NetworkInputHandler[] counterHandlersNonNull;
+
+    public void compileCounterInfo() {
+        var names = counterRegistrants.keySet().stream().sorted().toList();
+        counterNames = names.toArray(new String[] {});
+        counterHandlers = new NetworkInputHandler[counterNames.length];
+        for (int i = 0; i < counterNames.length; i++) {
+            counterHandlers[i] = counterHandlerMap.get(counterNames[i]);
+            for (CounterRegistrant registrant : counterRegistrants.get(counterNames[i])) {
+                registrant.setCounterIdx(i);
+            }
+        }
+        counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList().toArray(new NetworkInputHandler[0]);
     }
 }
 
@@ -119,6 +165,8 @@ public class GameState implements State {
     short turnNum;
     int playerTurnStartHealth;
     private DrawOrder drawOrder;
+    private boolean counterCloned;
+    private int[] counter; // copy on read/write
 
     // various other buffs/debuffs
     long buffs;
@@ -151,7 +199,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && metallicize == gameState.metallicize && feelNotPain == gameState.feelNotPain && darkEmbrace == gameState.darkEmbrace && thorn == gameState.thorn && thornLoseEOT == gameState.thornLoseEOT && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && (counter == gameState.counter || Arrays.equals(counter, gameState.counter)) && metallicize == gameState.metallicize && feelNotPain == gameState.feelNotPain && darkEmbrace == gameState.darkEmbrace && thorn == gameState.thorn && thornLoseEOT == gameState.thornLoseEOT && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder);
     }
 
     @Override public int hashCode() {
@@ -308,7 +356,6 @@ public class GameState implements State {
         drawOrder = new DrawOrder(10);
 
         // mcts related fields
-        prop.inputLen = getInputLen();
         policy = null;
         q_win = new double[prop.maxNumOfActions];
         q_health = new double[prop.maxNumOfActions];
@@ -324,6 +371,11 @@ public class GameState implements State {
         }
         for (Card card : prop.cardDict) {
             card.startOfGameSetup(this);
+        }
+        prop.compileCounterInfo();
+        prop.inputLen = getInputLen();
+        if (prop.counterNames.length > 0) {
+            counter = new int[prop.counterNames.length];
         }
     }
 
@@ -438,6 +490,7 @@ public class GameState implements State {
         drawOrder = new DrawOrder(other.drawOrder);
 
         buffs = other.buffs;
+        counter = other.counter;
         thorn = other.thorn;
         thornLoseEOT = other.thornLoseEOT;
         metallicize = other.metallicize;
@@ -888,6 +941,17 @@ public class GameState implements State {
             }
             str.append("]");
         }
+        if (prop.counterHandlersNonNull.length > 0) {
+            str.append(", other=[");
+            first = true;
+            for (int i = 0; i < prop.counterHandlers.length; i++) {
+                if (prop.counterHandlers[i] != null) {
+                    str.append(first ? "" : ", ").append(prop.counterNames[i]).append('=').append(getCounterForRead()[i]);
+                    first = false;
+                }
+            }
+            str.append("]");
+        }
         str.append(", v=(").append(formatFloat(v_win)).append(", ").append(formatFloat(v_health)).append("/").append(formatFloat(v_health * player.maxHealth)).append(")");
         str.append(", q/p/n=[");
         first = true;
@@ -978,6 +1042,9 @@ public class GameState implements State {
             if ((prop.possibleBuffs & buff.mask()) != 0) {
                 inputLen += 1; // barricade in deck
             }
+        }
+        for (var handler : prop.counterHandlersNonNull) {
+            inputLen += handler.getInputLenDelta();
         }
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
@@ -1107,6 +1174,9 @@ public class GameState implements State {
             if ((prop.possibleBuffs & buff.mask()) != 0) {
                 x[idx++] = (buffs & buff.mask()) != 0 ? 0.5f : -0.5f;
             }
+        }
+        for (var handler : prop.counterHandlersNonNull) {
+            idx = handler.addToInput(x, idx);
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
                 prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
@@ -1390,6 +1460,9 @@ public class GameState implements State {
         if (player.weak > 0) {
             dmg = dmg * 3 / 4;
         }
+        if (prop.hasBoot && dmg < 5) {
+            dmg = 5;
+        }
         if (enemy.health > 0) {
             enemy.damage(dmg, this);
         }
@@ -1435,6 +1508,18 @@ public class GameState implements State {
                 handler.handle(this);
             }
         }
+    }
+
+    public int[] getCounterForWrite() {
+        if (!counterCloned) {
+            counter = Arrays.copyOf(counter, counter.length);
+            counterCloned = true;
+        }
+        return counter;
+    }
+
+    public int[] getCounterForRead() {
+        return counter;
     }
 }
 

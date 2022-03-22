@@ -90,6 +90,14 @@ public class InteractiveMode {
                             }
                         }
                     }
+                    if (state.prop.counterHandlersNonNull.length > 0) {
+                        System.out.println("  Other:");
+                        for (int i = 0; i < state.prop.counterHandlers.length; i++) {
+                            if (state.prop.counterHandlers[i] != null) {
+                                System.out.println("    - " + state.prop.counterNames[i] + "=" + state.getCounterForRead()[i]);
+                            }
+                        }
+                    }
                     System.out.println();
                     if (state.getDrawOrder().size() > 0) {
                         System.out.print("Draw Order: [");
@@ -310,8 +318,8 @@ public class InteractiveMode {
                         mode = 2;
                         continue;
                     }
-                } else if (line.equals("ph ")) {
-                    int hp = parseInt(line.substring(2), -1);
+                } else if (line.startsWith("ph ")) {
+                    int hp = parseInt(line.substring(3), -1);
                     if (hp >= 0) {
                         state.player.health = hp;
                     }
@@ -436,7 +444,7 @@ public class InteractiveMode {
         for (int i = 0; i < matchCount; i++) {
             session.playGame(nodeCount);
             if (session.game_i % 25 == 0) {
-                session.printProgress(start, matchCount);
+                session.printProgress(start, matchCount, true);
             }
         }
     }

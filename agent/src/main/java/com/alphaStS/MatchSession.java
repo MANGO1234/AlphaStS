@@ -78,14 +78,17 @@ public class MatchSession {
         }
     }
 
-    public void printProgress(long start_time, int matchCount) {
-        System.out.println("Progress: " + game_i + "/" + matchCount);;
+    public void printProgress(long start_time, int matchCount, boolean printDamages) {
+        System.out.println("Progress: " + game_i + "/" + matchCount);
         System.out.println("Deaths: " + deathCount);
         System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
         System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - origState.player.origHealth * deathCount)) / (game_i - deathCount));
         System.out.println("Time Taken: " + (System.currentTimeMillis() - start_time));
         System.out.println("Time Taken (By Model): " + mcts.model.time_taken);
         System.out.println("Model: cache_size=" + mcts.model.cache.size() + ", " + mcts.model.cache_hits + "/" + mcts.model.calls + " hits (" + (double) mcts.model.cache_hits / mcts.model.calls + ")");
+        if (game_i == matchCount && printDamages) {
+            System.out.println(damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).map((e) -> e.getKey() + ": " + e.getValue()).reduce("", (acc, x) -> acc + "\n" + x));
+        }
         System.out.println("--------------------");
     }
 

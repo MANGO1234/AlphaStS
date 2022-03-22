@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-abstract class Card {
+abstract class Card implements GameProperties.CounterRegistrant {
     public static int ATTACK = 0;
     public static int SKILL = 1;
     public static int POWER = 2;
@@ -32,6 +32,11 @@ abstract class Card {
     public boolean weakEnemy;
     public boolean affectEnemyStrength;
     public boolean putCardOnTopDeck;
+    int counterIdx = -1;
+
+    public void setCounterIdx(int idx) {
+        counterIdx = idx;
+    }
 
     public Card(String cardName, int cardType, int energyCost) {
         this.cardType = cardType;
@@ -68,6 +73,7 @@ abstract class Card {
     @Override public int hashCode() {
         return Objects.hash(cardName);
     }
+
 
     public static class Bash extends Card {
         public Bash() {
@@ -1633,6 +1639,7 @@ abstract class Card {
     public static class Corruption extends Card {
         public Corruption() {
             super("Corruption", Card.POWER, 3);
+            exhaustSkill = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -1653,7 +1660,68 @@ abstract class Card {
         }
     }
 
-    // todo: demon form
+    public static class DemonForm extends Card {
+        public DemonForm() {
+            super("Demon Form", Card.POWER, 3);
+            changePlayerStrength = true;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("DemonForm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] == 0 ? 6 : counter[counterIdx]) / 6.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    var counter = state.getCounterForRead();
+                    state.player.gainStrength(counter[counterIdx]);
+                }
+            });
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += 2;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DemonFormP extends Card {
+        public DemonFormP() {
+            super("Demon Form+", Card.POWER, 3);
+            changePlayerStrength = true;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("DemonForm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] == 0 ? 6 : counter[counterIdx]) / 6.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    var counter = state.getCounterForRead();
+                    state.player.gainStrength(counter[counterIdx]);
+                }
+            });
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += 3;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
     // todo: double tap
 
     public static class Exhume extends Card {
@@ -1782,7 +1850,55 @@ abstract class Card {
         }
     }
 
-    // todo: juggarnaut
+    public static class Juggernaut extends Card {
+        public Juggernaut() {
+            super("Juggernaut", Card.POWER, 2);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Juggernaut", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] == 0 ? 14 : counter[counterIdx]) / 14.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        // todo: implement the effect
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += 5;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class JuggernautP extends Card {
+        public JuggernautP() {
+            super("Juggernaut+", Card.POWER, 2);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Juggernaut", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] == 0 ? 14 : counter[counterIdx]) / 14.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += 7;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class LimitBreak extends Card {
         public LimitBreak() {

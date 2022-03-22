@@ -111,6 +111,7 @@ public class Main {
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.Lagavulin());
         var relics = new ArrayList<Relic>();
+        relics.add(new Relic.HappyFlower());
         var player = new Player(73, 75);
         player.dexterity = 2;
         return new GameState(enemies, player, cards, relics);
@@ -194,7 +195,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = GuardianState();
+        var state = BasicLagavulinState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
@@ -248,8 +249,7 @@ public class Main {
         int iteration = root.get("iteration").asInt();
         if (SAVES_DIR.startsWith("../")) {
             MATCHES_COUNT = 200;
-            NODE_COUNT = 50000;
-            iteration = 29;
+            NODE_COUNT = 1000;
         }
         String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
@@ -280,7 +280,7 @@ public class Main {
             for (int i = 0; i < MATCHES_COUNT; i++) {
                 session.playGame(NODE_COUNT);
                 if ((!TEST_AGENT_FITNESS && session.game_i % 25 == 0) || session.game_i == MATCHES_COUNT) {
-                    session.printProgress(start, MATCHES_COUNT);
+                    session.printProgress(start, MATCHES_COUNT, !TEST_AGENT_FITNESS);
                 }
             }
         }
