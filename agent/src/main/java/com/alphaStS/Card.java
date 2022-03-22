@@ -34,7 +34,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public boolean putCardOnTopDeck;
     int counterIdx = -1;
 
-    public void setCounterIdx(int idx) {
+    public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
     }
 
@@ -49,7 +49,6 @@ abstract class Card implements GameProperties.CounterRegistrant {
     }
 
     GameActionCtx play(GameState state, int idx) { return GameActionCtx.PLAY_CARD; }
-    void onDiscard(GameState state) {}
     void onExhaust(GameState state) {}
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return null; }
     public boolean canSelectFromHand(Card card) { return true; }

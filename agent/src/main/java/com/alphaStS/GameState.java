@@ -45,6 +45,9 @@ class GameProperties {
 
     boolean hasBoot;
     boolean hasCaliper;
+    boolean hasRunicPyramid;
+
+    int penNibCounterIdx = -1;
 
     // cached game properties for generating NN input
     boolean battleTranceExist;
@@ -70,7 +73,7 @@ class GameProperties {
     }
 
     interface CounterRegistrant {
-        void setCounterIdx(int idx);
+        void setCounterIdx(GameProperties gameProperties, int idx);
     }
 
     interface NetworkInputHandler {
@@ -107,7 +110,7 @@ class GameProperties {
         for (int i = 0; i < counterNames.length; i++) {
             counterHandlers[i] = counterHandlerMap.get(counterNames[i]);
             for (CounterRegistrant registrant : counterRegistrants.get(counterNames[i])) {
-                registrant.setCounterIdx(i);
+                registrant.setCounterIdx(this, i);
             }
         }
         counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList().toArray(new NetworkInputHandler[0]);
@@ -310,14 +313,16 @@ public class GameState implements State {
         }
 
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
-        prop.playerStrengthCanChange |= enemies.stream().anyMatch((x) -> x.canAffectPlayerStrength);
+        prop.playerStrengthCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
-        prop.playerDexterityCanChange |= enemies.stream().anyMatch((x) -> x.canAffectPlayerDexterity);
+        prop.playerDexterityCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerCanGetVuln = enemies.stream().anyMatch((x) -> x.canVulnerable);
         prop.playerCanGetWeakened = enemies.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemies.stream().anyMatch((x) -> x.canFrail);
-        prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
-        prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy);
+        prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy) || relics.stream().anyMatch((x) -> x.vulnEnemy);
+        prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy) || relics.stream().anyMatch((x) -> x.weakEnemy);;
         prop.playerCanGetMetallicize = cards.stream().anyMatch((x) -> x.card().cardName.contains("Metallicize"));
         prop.playerThornCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Flame Barrier"));
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
@@ -355,17 +360,6 @@ public class GameState implements State {
         this.player = player;
         drawOrder = new DrawOrder(10);
 
-        // mcts related fields
-        policy = null;
-        q_win = new double[prop.maxNumOfActions];
-        q_health = new double[prop.maxNumOfActions];
-        q_comb = new double[prop.maxNumOfActions];
-        n = new int[prop.maxNumOfActions];
-        ns = new State[prop.maxNumOfActions];
-        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
-        terminal_action = -100;
-        transpositions = new HashMap<>();
-
         for (Relic relic : relics) {
             relic.startOfGameSetup(this);
         }
@@ -377,6 +371,17 @@ public class GameState implements State {
         if (prop.counterNames.length > 0) {
             counter = new int[prop.counterNames.length];
         }
+
+        // mcts related fields
+        policy = null;
+        q_win = new double[prop.maxNumOfActions];
+        q_health = new double[prop.maxNumOfActions];
+        q_comb = new double[prop.maxNumOfActions];
+        n = new int[prop.maxNumOfActions];
+        ns = new State[prop.maxNumOfActions];
+        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
+        terminal_action = -100;
+        transpositions = new HashMap<>();
     }
 
     private int[] findUpgradeIdxes(List<CardCount> cards) {
@@ -698,18 +703,16 @@ public class GameState implements State {
         if (metallicize > 0) player.gainBlockNotFromCardPlay(metallicize);
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
-                if (!prop.cardDict[i].ethereal) {
-                    for (int j = 0; j < hand[i]; j++) {
-                        prop.cardDict[i].onDiscard(this);
-                    }
-                    discard[i] += hand[i];
-                } else {
+                if (prop.cardDict[i].ethereal) {
                     for (int count = 0; count < hand[i]; count++) {
                         exhaustedCardHandle(i);
                     }
+                    hand[i] = 0;
+                } else if (!prop.hasRunicPyramid) {
+                    discard[i] += hand[i];
+                    hand[i] = 0;
                 }
             }
-            hand[i] = 0;
         }
         for (Enemy enemy : enemies) {
             if (enemy.health > 0) {
@@ -1457,6 +1460,9 @@ public class GameState implements State {
             dmg += 8;
         }
         dmg += player.strength;
+        if (prop.penNibCounterIdx >= 0 && counter[prop.penNibCounterIdx] == 9) {
+            dmg *= 2;
+        }
         if (player.weak > 0) {
             dmg = dmg * 3 / 4;
         }
@@ -1465,6 +1471,12 @@ public class GameState implements State {
         }
         if (enemy.health > 0) {
             enemy.damage(dmg, this);
+        }
+    }
+
+    public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
+        if (enemy.health > 0) {
+            enemy.nonAttackDamage(dmg, blockable, this);
         }
     }
 

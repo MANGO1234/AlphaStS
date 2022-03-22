@@ -22,8 +22,8 @@ abstract class Enemy {
     boolean canDaze;
     boolean canGainStrength;
     boolean canGainBlock;
-    boolean canAffectPlayerStrength;
-    boolean canAffectPlayerDexterity;
+    boolean changePlayerStrength;
+    boolean changePlayerDexterity;
     boolean hasArtifact;
 
     public abstract void doMove(GameState state);
@@ -255,8 +255,8 @@ abstract class Enemy {
         public Lagavulin(int health) {
             super(health, 6);
             canGainBlock = true;
-            canAffectPlayerStrength = true;
-            canAffectPlayerDexterity = true;
+            changePlayerStrength = true;
+            changePlayerDexterity = true;
         }
 
         public Lagavulin(Lagavulin other) {
