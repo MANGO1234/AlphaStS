@@ -1,9 +1,6 @@
 package com.alphaStS;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +12,11 @@ public class InteractiveMode {
         var states = new ArrayList<GameState>();
         GameState state = origState;
         boolean skipPrint = false;
-        Model model = new Model(modelDir);
+        Model model = null;
+        try {
+            model = new Model(modelDir);
+        } catch (Exception e) {}
+        String prevLine = null;
         MCTS mcts = new MCTS();
         mcts.setModel(model);
         List<Integer> drawOrder = null;
@@ -201,7 +202,7 @@ public class InteractiveMode {
                     skipPrint = true;
                     continue;
                 } else if (line.equals("i")) {
-                    System.out.println(Arrays.toString(state.getInput()));
+                    System.out.println(Arrays.toString(state.getNNInput()));
                     skipPrint = true;
                     continue;
                 } else if (line.startsWith("n ")) {
@@ -333,6 +334,12 @@ public class InteractiveMode {
                     drawOrder = new ArrayList<Integer>();
                     mode = 1;
                     continue;
+                } else if (line.equals("rc")) { // remove card from hand
+                    cardSelectScreen(reader, line, history);
+                    continue;
+                } else if (line.equals("ac")) { // add card to hand
+                    cardSelectScreen(reader, line, history);
+                    continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
                         if (!l.equals("tree") && !l.startsWith("matches") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
@@ -345,6 +352,9 @@ public class InteractiveMode {
                     continue;
                 } else if (line.startsWith("matches")) {
                     runMatches(modelDir, state, line);
+                    continue;
+                } else if (line.startsWith("desc")) {
+                    System.out.println(state.getNNInputDesc());
                     continue;
                 } else if (line.equals("")) {
                     continue;
@@ -409,6 +419,24 @@ public class InteractiveMode {
                 }
                 System.out.println("Unknown Command.");
             }
+        }
+    }
+
+    private static void cardSelectScreen(BufferedReader reader, String parent, List<String> history) throws IOException {
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            if (line.equals("b")) {
+                return;
+            }
+            if (parseInt(line, -1) >= 0) {
+                if (parent.equals("rc")) {
+
+                }
+                return;
+            }
+            System.out.println("Unknown Command");
         }
     }
 

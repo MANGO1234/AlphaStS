@@ -32,6 +32,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public boolean weakEnemy;
     public boolean affectEnemyStrength;
     public boolean putCardOnTopDeck;
+    public boolean healPlayer;
     int counterIdx = -1;
 
     public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -50,7 +51,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
 
     GameActionCtx play(GameState state, int idx) { return GameActionCtx.PLAY_CARD; }
     void onExhaust(GameState state) {}
-    List<Card> getPossibleGeneratedCards(List<Card> cards) { return null; }
+    List<Card> getPossibleGeneratedCards(List<Card> cards) { return Arrays.asList(); }
     public boolean canSelectFromHand(Card card) { return true; }
     public void startOfGameSetup(GameState state) {}
 
@@ -183,8 +184,11 @@ abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(5);
-            state.addCardToHand(state.prop.upgradeIdxes[idx]);
-            state.removeCardFromHand(idx);
+            System.out.println(":" + idx);
+            if (idx >= 0) {
+                state.removeCardFromHand(idx);
+                state.addCardToHand(state.prop.upgradeIdxes[idx]);
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1189,7 +1193,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
 
     public static class MetallicizeP extends Card {
         public MetallicizeP() {
-            super("Metallicize", Card.POWER, 1);
+            super("Metallicize+", Card.POWER, 1);
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -1953,6 +1957,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Reaper extends Card {
         public Reaper() {
             super("Reaper", Card.ATTACK, 2);
+            healPlayer = true;
             exhaustWhenPlayed = true;
         }
 
@@ -1971,6 +1976,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class ReaperP extends Card {
         public ReaperP() {
             super("Reaper+", Card.ATTACK, 2);
+            healPlayer = true;
             exhaustWhenPlayed = true;
         }
 
@@ -2054,6 +2060,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
         public AscendersBane() {
             super("Ascender's Bane", Card.CURSE, -1);
             ethereal = true;
+            exhaustWhenPlayed = true;
         }
     }
 
@@ -2061,12 +2068,14 @@ abstract class Card implements GameProperties.CounterRegistrant {
         public Clumsy() {
             super("Clumsy", Card.CURSE, -1);
             ethereal = true;
+            exhaustWhenPlayed = true;
         }
     }
 
     public static class Necronomicurse extends Card {
         public Necronomicurse() {
             super("Necronomicurse", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
 
         int cardIndex = -1;
@@ -2083,6 +2092,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Decay extends Card {
         public Decay() {
             super("Decay", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2100,6 +2110,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Doubt extends Card {
         public Doubt() {
             super("Doubt", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2119,6 +2130,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Pain extends Card {
         public Pain() {
             super("Pain", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2136,6 +2148,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Regret extends Card {
         public Regret() {
             super("Regret", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2157,6 +2170,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Shame extends Card {
         public Shame() {
             super("Shame", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2174,6 +2188,8 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Writhe extends Card {
         public Writhe() {
             super("Writhe", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
+// todo
 //            innate = true;
         }
     }
@@ -2181,18 +2197,21 @@ abstract class Card implements GameProperties.CounterRegistrant {
     public static class Parasite extends Card {
         public Parasite() {
             super("Parasite", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
     }
 
     public static class Injury extends Card {
         public Injury() {
             super("Injury", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
     }
 
     public static class CurseOfTheBell extends Card {
         public CurseOfTheBell() {
             super("Curse of The Bell", Card.CURSE, -1);
+            exhaustWhenPlayed = true;
         }
     }
 }

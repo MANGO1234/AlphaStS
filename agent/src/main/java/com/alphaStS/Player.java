@@ -36,9 +36,6 @@ public class Player {
     }
 
     public void damage(int n) {
-        if (vulnerable > 0) {
-            n = n + n / 2;
-        }
         health -= Math.max(0, n - block);
         block = Math.max(0, block - n);
         if (health < 0) {

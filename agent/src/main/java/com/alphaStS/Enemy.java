@@ -15,6 +15,7 @@ abstract class Enemy {
     int numOfMoves;
     int move;
     int[] moveHistory;
+    boolean isElite;
     boolean canVulnerable;
     boolean canWeaken;
     boolean canFrail;
@@ -174,6 +175,7 @@ abstract class Enemy {
 
         public GremlinNob(int health) {
             super(health, 4);
+            isElite = true;
             canVulnerable = true;
             canGainStrength = true;
         }
@@ -254,6 +256,7 @@ abstract class Enemy {
 
         public Lagavulin(int health) {
             super(health, 6);
+            isElite = true;
             canGainBlock = true;
             changePlayerStrength = true;
             changePlayerDexterity = true;
@@ -509,6 +512,7 @@ abstract class Enemy {
 
         public TheGuardian(int health) {
             super(health, 7);
+            isElite = true;
             canGainBlock = true;
             canVulnerable = true;
             canWeaken = true;

@@ -1,19 +1,34 @@
 package com.alphaStS;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+
 public abstract class Relic implements GameProperties.CounterRegistrant {
     public boolean changePlayerStrength;
     public boolean changePlayerDexterity;
     public boolean vulnEnemy;
     public boolean weakEnemy;
+    public boolean healPlayer;
 
     public void startOfGameSetup(GameState state) {}
+    List<Card> getPossibleGeneratedCards(List<Card> cards) { return Arrays.asList(); }
 
     int counterIdx = -1;
     @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
     }
 
-    // **********************************************************************************************************************************************
+    private static boolean isEliteFight(GameState state) {
+        boolean isEliteFight = false;
+        for (Enemy enemy : state.enemies) {
+            if (enemy.isElite) {
+                isEliteFight = true;
+            }
+        }
+        return isEliteFight;
+    }
+
     // ************************************************************* Common Relics ******************************************************************
     // **********************************************************************************************************************************************
 
@@ -219,7 +234,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     // Potion Belt: No need to implement
 
-    // todo: Preserved Insect: implement?
+    public static class PreservedInsect extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            if (isEliteFight(state)) {
+                for (Enemy enemy : state.enemies) {
+                    enemy.health = enemy.health * 3 / 4;
+                }
+            }
+        }
+    }
 
     // Regal Pillow: No need to implement
     // Smiling Mask: No need to implement
@@ -248,7 +271,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // ************************************************************ Uncommon Relics *****************************************************************
     // **********************************************************************************************************************************************
 
-    // todo: Blue Candle
+    public static class BlueCandle extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasBlueCandle = true;
+        }
+    }
+
     // todo: Bottled Flame
     // todo: Bottled Lightning
     // todo: Bottled Storm
@@ -460,7 +488,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // ************************************************************** Rare Relics *******************************************************************
     // **********************************************************************************************************************************************
 
-    // todo: Bird Faced Urn
+    public static class BirdFacedUrn extends Relic {
+        public BirdFacedUrn() {
+            healPlayer = true;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.addOnCardPlayedHandler(new OnCardPlayedHandler() {
+                @Override void handle(GameState state, Card card) {
+                    if (card.cardType == Card.POWER) {
+                        state.player.heal(2);
+                    }
+                }
+            });
+        }
+    }
 
     public static class Calipers extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -490,8 +532,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // todo: Fossilized Helix
     // todo: Gambling Chip
     // todo: Ginger
-    // todo: Girya
-    // todo: Ice Cream
+
+    public static class Girya extends Relic {
+        private final int strength;
+
+        public Girya(int strength) {
+            this.strength = strength;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.player.gainStrength(strength);
+        }
+    }
+
+    public static class IceCream extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasIceCream = true;
+        }
+    }
+
     // todo: Incense Burner
     // todo: Lizard Tail
     // Mango: No need to implement
@@ -518,12 +577,26 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // todo: Frozen Eye
     // todo: Hand Drill
     // Lee's Waffle: No need to implement
-    // todo: Medical Kit
+
+    public static class MedicalKit extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasMedicalKit = true;
+        }
+    }
+
     // Membership Card: No need to implement
     // todo: Orange Pellets
     // Orrery: No need to implement
     // todo: Prismatic Shard: implement?!?
-    // todo: Sling of Courage
+
+    public static class SlingOfCourage extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            if (isEliteFight(state)) {
+                state.player.gainStrength(2);
+            }
+        }
+    }
+
     // todo: Strange Spoon
     // todo: The Abacus
     // todo: Toolbox
@@ -589,7 +662,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     // todo: Sacred Bark
-    // todo: Slavers Collar
+
+    public static class SlaversCollar extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            if (isEliteFight(state)) {
+                state.energyRefill += 1;
+            }
+        }
+    }
+
     // todo: Snecko Eye
 
     public static class Sozu extends Relic {
@@ -618,7 +699,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // todo: Necronomicon
     // Neows Blessing: No need to implement
     // todo: Nilrys Codex
-    // todo: Odd Mushroom
+
+    public static class OddMushroom extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasOddMushroom = true;
+        }
+    }
 
     public static class RedMask extends Relic {
         public boolean weakEnemy = true;
@@ -632,5 +718,45 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     // Spirit Poop: No need to implement
     // Ssserpent Head: No need to implement
-    // todo: Warped Tongs
+
+    public static class WarpedTongs extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    int nonUpgradedCardCount = 0;
+                    for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+                        if (state.prop.upgradeIdxes[i] >= 0) {
+                            if (state.hand[i] > 0) {
+                                nonUpgradedCardCount += state.hand[i];
+                            }
+                        }
+                    }
+                    if (nonUpgradedCardCount == 0) {
+                        return;
+                    }
+                    int r = state.prop.random.nextInt(nonUpgradedCardCount);
+                    int acc = 0;
+                    for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+                        if (state.prop.upgradeIdxes[i] >= 0) {
+                            if (state.hand[i] > 0) {
+                                acc += state.hand[i];
+                                if (acc > r) {
+                                    if (state.hand[i] != nonUpgradedCardCount) {
+                                        state.isStochastic = true;
+                                    }
+                                    state.removeCardFromHand(i);
+                                    state.addCardToHand(state.prop.upgradeIdxes[i]);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+        }
+    }
 }

@@ -39,7 +39,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health && !state.prop.playerCanHeal) {
                 terminal_v_win = v[0];
             }
             return;
@@ -50,6 +50,12 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
+            numberOfPossibleActions = 0;
+            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                if (state.policy[i] <= 0) {
+                    numberOfPossibleActions++;
+                }
+            }
             return;
         }
 
@@ -163,7 +169,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health && !state.prop.playerCanHeal) {
                 terminal_v_win = v[0];
             }
             return;
@@ -174,6 +180,12 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
+            numberOfPossibleActions = 0;
+            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                if (state.policy[i] <= 0) {
+                    numberOfPossibleActions++;
+                }
+            }
             return;
         }
 
@@ -306,7 +318,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health && !state.prop.playerCanHeal) {
                 terminal_v_win = v[0];
             }
             return;
@@ -317,6 +329,12 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
+            numberOfPossibleActions = 0;
+            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                if (state.policy[i] <= 0) {
+                    numberOfPossibleActions++;
+                }
+            }
             return;
         }
 

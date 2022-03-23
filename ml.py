@@ -175,7 +175,7 @@ if DO_TRAINING:
     for _iterations in range(0, ITERATION_COUNT):
         agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
-            agent_args += ['-tm', '-c', '100', '-n', '500']
+            agent_args += ['-tm', '-c', '10000', '-n', '1']
         if training_info['iteration'] < SLOW_WINDOW_END:
             agent_args += ['-slow']
         if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1:
@@ -231,7 +231,7 @@ if DO_TRAINING:
             json.dump(training_info, f)
 
         if _iterations == ITERATION_COUNT - 1:
-            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '100', '-n', '500', '-dir', SAVES_DIR], capture_output=True)
+            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '10000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stdout.decode('ascii'))
                 print(agent_output.stderr.decode('ascii'))

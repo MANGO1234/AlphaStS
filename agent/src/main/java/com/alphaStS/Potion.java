@@ -7,6 +7,7 @@ public abstract class Potion {
     boolean selectEnemy;
 
     public abstract void use(GameState state, int enemyIdx);
+    public abstract void useDouble(GameState state, int enemyIdx);
 
     public static class VulnerablePotion extends Potion {
         public VulnerablePotion() {
@@ -16,6 +17,10 @@ public abstract class Potion {
 
         @Override public void use(GameState state, int enemyIdx) {
             state.enemies.get(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 3);
+        }
+
+        @Override public void useDouble(GameState state, int enemyIdx) {
+            state.enemies.get(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 6);
         }
     }
 
@@ -27,6 +32,10 @@ public abstract class Potion {
         @Override public void use(GameState state, int enemyIdx) {
             state.player.gainStrength(2);
         }
+
+        @Override public void useDouble(GameState state, int enemyIdx) {
+            state.player.gainStrength(4);
+        }
     }
 
     public static class DexterityPotion extends Potion {
@@ -36,6 +45,10 @@ public abstract class Potion {
 
         @Override public void use(GameState state, int enemyIdx) {
             state.player.gainDexterity(2);
+        }
+
+        @Override public void useDouble(GameState state, int enemyIdx) {
+            state.player.gainDexterity(4);
         }
     }
 }

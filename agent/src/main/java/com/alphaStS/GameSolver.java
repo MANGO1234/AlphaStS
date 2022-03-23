@@ -13,7 +13,7 @@ public class GameSolver {
     }
 
     private GameState solveH(GameState state) {
-        InputHash hash = new InputHash(state.getInput());
+        InputHash hash = new InputHash(state.getNNInput());
         GameState node = nodes.get(hash);
         if (node != null) {
             return node;

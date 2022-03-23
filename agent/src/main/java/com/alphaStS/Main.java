@@ -75,27 +75,6 @@ public class Main {
         return new GameState(enemies, new Player(32, 75), cards, relics);
     }
 
-    public static GameState BasicSentriesState2() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 2));
-        cards.add(new CardCount(new Card.BodySlamP(), 1));
-        cards.add(new CardCount(new Card.Cleave(), 1));
-        cards.add(new CardCount(new Card.IronWave(), 1));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.Impervious(), 1));
-        cards.add(new CardCount(new Card.SeeingRed(), 1));
-        cards.add(new CardCount(new Card.Exhume(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        var relics = new ArrayList<Relic>();
-        var player = new Player(46, 75);
-        return new GameState(enemies, player, cards, relics);
-    }
-
     public static GameState BasicLagavulinState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -166,6 +145,30 @@ public class Main {
         return new GameState(enemies, new Player(36, 75), cards, relics);
     }
 
+    public static GameState GuardianState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.BashP(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.Clash(), 1));
+        cards.add(new CardCount(new Card.Armanent(), 1));
+        cards.add(new CardCount(new Card.Carnage(), 1));
+        cards.add(new CardCount(new Card.Metallicize(), 1));
+        cards.add(new CardCount(new Card.Shockwave(), 1));
+        cards.add(new CardCount(new Card.ShrugItOff(), 1));
+        cards.add(new CardCount(new Card.PowerThrough(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.TheGuardian());
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.AncientTeaSet());
+        relics.add(new Relic.DuVuDoll());
+        relics.add(new Relic.WarpedTongs());
+//        return new GameState(enemies, new Player(19, 75), cards, relics);
+        return new GameState(enemies, new Player(41, 75), cards, relics);
+    }
+
     private static GameState SlimeBossStateLC() {
         // https://youtu.be/wKbAoS80HA0?t=11397
         var cards = new ArrayList<CardCount>();
@@ -195,10 +198,10 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = BasicLagavulinState();
+        var state = GuardianState2();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getInput().length + "," + state.prop.totalNumOfActions);
+            System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             return;
         }
 
@@ -245,13 +248,18 @@ public class Main {
         }
 
         ObjectMapper mapper = new ObjectMapper();
-        JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
-        int iteration = root.get("iteration").asInt();
-        if (SAVES_DIR.startsWith("../")) {
-            MATCHES_COUNT = 200;
-            NODE_COUNT = 1000;
+        String curIterationDir = SAVES_DIR + "/iteration0";
+        try {
+            JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
+            int iteration = root.get("iteration").asInt();
+            if (SAVES_DIR.startsWith("../")) {
+                MATCHES_COUNT = 100;
+                NODE_COUNT = 5000;
+            }
+            curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
+        } catch (FileNotFoundException e) {
+            System.out.println("Unable to find neural network.");
         }
-        String curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
             interactiveStart(state, curIterationDir);
@@ -324,7 +332,7 @@ public class Main {
                 float v_win = lastState.isTerminal() == 1 ? 1.0f : 0.0f;
                 for (int i = game.size() - 2; i >= 0; i--) {
                     state = game.get(i).state();
-                    var x = state.getInput();
+                    var x = state.getNNInput();
                     for (int j = 0; j < x.length; j++) {
                         writer.writeFloat(x[j]);
                     }

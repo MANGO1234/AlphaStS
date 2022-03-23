@@ -123,6 +123,9 @@ public class MatchSession {
         while (state.isTerminal() == 0) {
             for (int i = 0; i < nodeCount; i++) {
                 mcts.search(state, true, -1);
+                if (mcts.numberOfPossibleActions == 1) {
+                    break;
+                }
             }
 
             int action;

@@ -83,7 +83,7 @@ public class Model {
         //                    System.out.println(i.toString());
         //                }
         calls += 1;
-        InputHash hash = new InputHash(state.getInput());
+        InputHash hash = new InputHash(state.getNNInput());
         Output o = cache.get(hash);
         if (o != null) {
             cache_hits += 1;
