@@ -253,7 +253,7 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                MATCHES_COUNT = 1000;
+                MATCHES_COUNT = 200;
                 NODE_COUNT = 500;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
@@ -267,8 +267,8 @@ public class Main {
         }
 
         if (PLAY_A_GAME) {
-            MatchSession session = new MatchSession(state, curIterationDir);
-            for (GameStep step : session.playGame(NODE_COUNT)) {
+            MatchSession session = new MatchSession(1, curIterationDir);
+            for (GameStep step : session.playGame(state, session.mcts.get(0), NODE_COUNT)) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
@@ -276,34 +276,27 @@ public class Main {
             }
         }
 
-        MatchSession session = new MatchSession(state, curIterationDir);
+        MatchSession session = new MatchSession(1, curIterationDir);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
             if (TEST_AGENT_FITNESS && MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("training_matches.txt");
             } else if (MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("matches.txt");
             }
-            long start = System.currentTimeMillis();
-            for (int i = 0; i < MATCHES_COUNT; i++) {
-                session.playGame(NODE_COUNT);
-                if ((!TEST_AGENT_FITNESS && session.game_i % 25 == 0) || session.game_i == MATCHES_COUNT) {
-                    session.printProgress(start, MATCHES_COUNT, !TEST_AGENT_FITNESS);
-                }
-            }
+            session.playGames(state, MATCHES_COUNT, NODE_COUNT, !TEST_AGENT_FITNESS);
         }
 
         if (GEN_TRAINING_MATCHES) {
             session.setTrainingDataLogFile("training_data.txt");
             long start = System.currentTimeMillis();
-            var games = new ArrayList<List<GameStep>>();
-            for (int i = 0; i < 200; i++) {
-                session.playTrainingGame(100, CURRICULUM_TRAINING_ON);
-                games.add(List.copyOf(session.states));
-            }
+            var games = session.playTrainingGames(state,200, 100, CURRICULUM_TRAINING_ON);
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
-            System.out.println("Time Taken (By Model): " + session.mcts.model.time_taken);
-            System.out.println("Model: size=" + session.mcts.model.cache.size() + ", " + session.mcts.model.cache_hits + "/" + session.mcts.model.calls + " hits (" + (double) session.mcts.model.cache_hits / session.mcts.model.calls + ")");
+            for (int i = 0; i < session.mcts.size(); i++) {
+                var m = session.mcts.get(i);
+                System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
+                System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
+            }
             //            for (List<GameStep> game : games) {
             //                var lastState = game.get(game.size() - 1).state();
             //                float v = (float) (((double) lastState.player.health) / lastState.player.origHealth);
@@ -381,7 +374,7 @@ public class Main {
                         double[] out = new double[2];
                         for (ChanceState.Node node : cState.cache.values()) {
                             if (node.state != state) {
-                                node.state.doEval(session.mcts.model);
+                                node.state.doEval(session.mcts.get(0).model);
                                 node.state.get_v(out);
                                 est_v_win += out[0] * node.n;
                                 est_v_health += out[1] * node.n;

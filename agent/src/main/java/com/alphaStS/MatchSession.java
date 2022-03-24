@@ -3,33 +3,29 @@ package com.alphaStS;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 record GameStep(GameState state, int action) {
 }
 
 public class MatchSession {
-    long totalDamageTaken = 0;
-    long deathCount = 0;
     Writer matchLogWriter;
     Writer trainingDataWriter;
     int startingAction = -1;
-    int game_i = 0;
-    int trainingGame_i = 0;
-    MCTS mcts;
     String logDir;
-    GameState origState;
-    Map<Integer, Integer> damageCount = new HashMap<>();
-    List<GameStep> states = new ArrayList<>();
+    List<MCTS> mcts = new ArrayList<>();
 
-    public MatchSession(GameState state, String dir) {
-        Model model = new Model(dir);
-        mcts = new MCTS();
-        mcts.setModel(model);
-        this.origState = state;
+    public MatchSession(int numberOfThreads, String dir) {
         logDir = dir;
+        for (int i = 0; i < numberOfThreads; i++) {
+            Model model = new Model(dir);
+            var m = new MCTS();
+            m.setModel(model);
+            mcts.add(m);
+        }
     }
 
-    public List<GameStep> playGame(int nodeCount) {
+    public List<GameStep> playGame(GameState origState, MCTS mcts, int nodeCount) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
@@ -50,80 +46,86 @@ public class MatchSession {
 
             int action = MCTS.getActionWithMaxNodesOrTerminal(state);
             states.add(new GameStep(state, action));
-            state = getNextState(state, action);
+            state = getNextState(state, mcts, action);
             states.get(states.size() - 1).state().clearNextStates();
         }
         states.add(new GameStep(state, -1));
-
-        deathCount += state.isTerminal() == -1 ? 1 : 0;
-        int damageTaken = state.player.origHealth - state.player.health;
-        damageCount.put(damageTaken, damageCount.getOrDefault(damageTaken, 0) + 1);
-        totalDamageTaken += damageTaken;
-        game_i += 1;
-        if (matchLogWriter != null) {
-            try {
-                matchLogWriter.write("*** Match " + game_i + " ***\n");
-                matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
-                for (GameStep step : states) {
-                    matchLogWriter.write(step.state().toStringReadable() + "\n");
-                    if (step.action() >= 0) {
-                        matchLogWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
-                    }
-                }
-                matchLogWriter.write("\n");
-                matchLogWriter.write("\n");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
         return states;
     }
 
-    public void printProgress(long start_time, int matchCount, boolean printDamages) {
-        System.out.println("Progress: " + game_i + "/" + matchCount);
-        System.out.println("Deaths: " + deathCount);
-        System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
-        System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - origState.player.origHealth * deathCount)) / (game_i - deathCount));
-        System.out.println("Time Taken: " + (System.currentTimeMillis() - start_time));
-        System.out.println("Time Taken (By Model): " + mcts.model.time_taken);
-        System.out.println("Model: cache_size=" + mcts.model.cache.size() + ", " + mcts.model.cache_hits + "/" + mcts.model.calls + " hits (" + (double) mcts.model.cache_hits / mcts.model.calls + ")");
-        if (game_i == matchCount && printDamages) {
-            System.out.println(damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).map((e) -> e.getKey() + ": " + e.getValue()).reduce("", (acc, x) -> acc + "\n" + x));
-        }
-        System.out.println("--------------------");
-    }
-
-    public void playGames(int numOfGames, int nodeCount, int numberOfThreads) {
-        game_i = 0;
+    public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var deq = new LinkedBlockingDeque<List<GameStep>>();
-        var threads = new ArrayList<Thread>();
         var session = this;
-        for (int i = 0; i < numberOfThreads; i++) {
-            threads.add(new Thread(new Runnable() {
-                @Override public void run() {
-                    session.playGame(nodeCount);
+        var numToPlay = new AtomicInteger(numOfGames);
+        for (int i = 0; i < mcts.size(); i++) {
+            int ii = i;
+            new Thread(() -> {
+                var state = origState.clone(false);
+                while (numToPlay.getAndDecrement() > 0) {
+                    try {
+                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount));
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-            }));
+            }).start();
         }
-    }
 
-    private GameState getNextState(GameState state, int action) {
-        State nextState = state.ns[action];
-        GameState newState;
-        if (nextState instanceof ChanceState cState) {
-            newState = cState.getNextState(state, action);
-            if (newState.policy == null) {
-                newState.doEval(mcts.model);
+        var game_i = 0;
+        var deathCount = 0;
+        var totalDamageTaken = 0;
+        var damageCount = new HashMap<Integer, Integer>();
+        var start = System.currentTimeMillis();
+        while (game_i < numOfGames) {
+            List<GameStep> steps;
+            try {
+                steps = deq.takeFirst();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-        } else {
-            newState = (GameState) nextState;
+            var state = steps.get(steps.size() - 1).state();
+            deathCount += state.isTerminal() == -1 ? 1 : 0;
+            int damageTaken = state.player.origHealth - state.player.health;
+            damageCount.put(damageTaken, damageCount.getOrDefault(damageTaken, 0) + 1);
+            totalDamageTaken += damageTaken;
+            game_i += 1;
+            if (matchLogWriter != null) {
+                try {
+                    matchLogWriter.write("*** Match " + game_i + " ***\n");
+                    matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+                    matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
+                    for (GameStep step : steps) {
+                        matchLogWriter.write(step.state().toStringReadable() + "\n");
+                        if (step.action() >= 0) {
+                            matchLogWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+                        }
+                    }
+                    matchLogWriter.write("\n");
+                    matchLogWriter.write("\n");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            if ((printProgress && game_i % 25 == 0) || game_i == numOfGames) {
+                System.out.println("Progress: " + game_i + "/" + numOfGames);
+                System.out.println("Deaths: " + deathCount);
+                System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
+                System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - state.player.origHealth * deathCount)) / (game_i - deathCount));
+                System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
+                for (int i = 0; i < mcts.size(); i++) {
+                    var m = mcts.get(i);
+                    System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
+                    System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
+                }
+//                if (game_i == numOfGames && printProgress) {
+//                    System.out.println(damageCount.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).reduce("", (acc, x) -> acc + "\n" + x));
+//                }
+                System.out.println("--------------------");            }
         }
-        return newState;
     }
 
-    public void playTrainingGame(int nodeCount, boolean curriculumTraining) {
-        states.clear();
+    private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
+        var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
@@ -151,29 +153,76 @@ public class MatchSession {
                 action = MCTS.getActionRandomOrTerminal(state);
             }
             states.add(new GameStep(state, action));
-            state = getNextState(state, action).clone(false);
+            state = getNextState(state, mcts, action).clone(false);
             states.get(states.size() - 1).state().clearNextStates();
         }
         states.add(new GameStep(state, -1));
+        return states;
+    }
 
-        trainingGame_i += 1;
-        if (trainingDataWriter != null) {
-            try {
-                trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
-                trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                trainingDataWriter.write("Damage Taken: " + (origState.player.origHealth - state.player.health) + "\n");
-                for (GameStep step : states) {
-                    trainingDataWriter.write(step.state().toStringReadable() + "\n");
-                    if (step.action() >= 0) {
-                        trainingDataWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+    public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount, boolean curriculumTraining) {
+        var deq = new LinkedBlockingDeque<List<GameStep>>();
+        var session = this;
+        var numToPlay = new AtomicInteger(numOfGames);
+        for (int i = 0; i < mcts.size(); i++) {
+            int ii = i;
+            new Thread(() -> {
+                var state = origState.clone(false);
+                while (numToPlay.getAndDecrement() > 0) {
+                    try {
+                        deq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii), curriculumTraining));
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
                 }
-                trainingDataWriter.write("\n");
-                trainingDataWriter.write("\n");
-            } catch (IOException e) {
+            }).start();
+        }
+
+        var trainingGame_i = 0;
+        var result = new ArrayList<List<GameStep>>();
+        while (numToPlay.get() != 0) {
+            List<GameStep> steps;
+            try {
+                steps = deq.takeFirst();
+            } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+            result.add(steps);
+            var state = steps.get(steps.size() - 1).state();
+            trainingGame_i += 1;
+            if (trainingDataWriter != null) {
+                try {
+                    trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
+                    trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+                    trainingDataWriter.write("Damage Taken: " + (origState.player.origHealth - state.player.health) + "\n");
+                    for (GameStep step : steps) {
+                        trainingDataWriter.write(step.state().toStringReadable() + "\n");
+                        if (step.action() >= 0) {
+                            trainingDataWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+                        }
+                    }
+                    trainingDataWriter.write("\n");
+                    trainingDataWriter.write("\n");
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
+        return result;
+    }
+
+    private GameState getNextState(GameState state, MCTS mcts, int action) {
+        State nextState = state.ns[action];
+        GameState newState;
+        if (nextState instanceof ChanceState cState) {
+            newState = cState.getNextState(state, action);
+            if (newState.policy == null) {
+                newState.doEval(mcts.model);
+            }
+        } else {
+            newState = (GameState) nextState;
+        }
+        return newState;
     }
 
     public void setMatchLogFile(String fileName) {

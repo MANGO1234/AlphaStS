@@ -467,14 +467,13 @@ public class InteractiveMode {
 
     private static void runMatches(String modelDir, GameState state, String line) {
         String[] s = line.split(" ");
-        int matchCount = 100;
+        int numberOfGames = 100;
         int nodeCount = 1000;
-        MatchSession session = new MatchSession(state, modelDir);
-
+        MatchSession session = new MatchSession(1, modelDir);
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
                 if (s[i].startsWith("c=")) {
-                    matchCount = parseInt(s[i].substring(2), 0);
+                    numberOfGames = parseInt(s[i].substring(2), 0);
                 }
                 if (s[i].startsWith("n=")) {
                     nodeCount = parseInt(s[i].substring(2), 1000);
@@ -487,19 +486,12 @@ public class InteractiveMode {
                     }
                     if (!state.isActionLegal(session.startingAction)) {
                         System.out.println("Unknown action.");
-                        matchCount = 0;
+                        numberOfGames = 0;
                     }
                 }
             }
         }
-
-        long start = System.currentTimeMillis();
-        for (int i = 0; i < matchCount; i++) {
-            session.playGame(nodeCount);
-            if (session.game_i % 25 == 0) {
-                session.printProgress(start, matchCount, true);
-            }
-        }
+        session.playGames(state, numberOfGames, nodeCount, true);
     }
 
     private static void runMCTS(GameState state, MCTS mcts, String line) {
