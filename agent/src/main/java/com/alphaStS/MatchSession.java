@@ -108,7 +108,7 @@ public class MatchSession {
             }
             if ((printProgress && game_i % 25 == 0) || game_i == numOfGames) {
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
-                System.out.println("Deaths: " + deathCount);
+                System.out.println("Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) numOfGames).trim() + "%)");
                 System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
                 System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - state.player.origHealth * deathCount)) / (game_i - deathCount));
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
@@ -180,7 +180,7 @@ public class MatchSession {
 
         var trainingGame_i = 0;
         var result = new ArrayList<List<GameStep>>();
-        while (numToPlay.get() != 0) {
+        while (trainingGame_i < numOfGames) {
             List<GameStep> steps;
             try {
                 steps = deq.takeFirst();

@@ -468,29 +468,35 @@ public class InteractiveMode {
     private static void runMatches(String modelDir, GameState state, String line) {
         String[] s = line.split(" ");
         int numberOfGames = 100;
+        int numberOfThreads = 1;
         int nodeCount = 1000;
-        MatchSession session = new MatchSession(1, modelDir);
+        int startingAction = -1;
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
                 if (s[i].startsWith("c=")) {
                     numberOfGames = parseInt(s[i].substring(2), 0);
+                }
+                if (s[i].startsWith("t=")) {
+                    numberOfThreads = parseInt(s[i].substring(2), 1);
                 }
                 if (s[i].startsWith("n=")) {
                     nodeCount = parseInt(s[i].substring(2), 1000);
                 }
                 if (s[i].startsWith("a=")) {
                     if (s[i].substring(2).equals("e")) {
-                        session.startingAction = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+                        startingAction = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
                     } else {
-                        session.startingAction = parseInt(s[i].substring(2), -1);
+                        startingAction = parseInt(s[i].substring(2), -1);
                     }
-                    if (!state.isActionLegal(session.startingAction)) {
+                    if (!state.isActionLegal(startingAction)) {
                         System.out.println("Unknown action.");
                         numberOfGames = 0;
                     }
                 }
             }
         }
+        MatchSession session = new MatchSession(numberOfThreads, modelDir);
+        session.startingAction = startingAction;
         session.playGames(state, numberOfGames, nodeCount, true);
     }
 

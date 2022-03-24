@@ -175,7 +175,13 @@ if DO_TRAINING:
     for _iterations in range(0, ITERATION_COUNT):
         agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
-            agent_args += ['-tm', '-c', '10000', '-n', '1']
+            if training_info["iteration"] < 15:
+                matches_count = 1000
+            elif training_info["iteration"] < 25:
+                matches_count = 1000 * (training_info["iteration"] - 14)
+            else:
+                matches_count = 10000
+            agent_args += ['-tm', '-c', str(matches_count), '-n', '1']
         if training_info['iteration'] < SLOW_WINDOW_END:
             agent_args += ['-slow']
         if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1:

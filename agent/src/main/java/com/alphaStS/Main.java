@@ -253,7 +253,7 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                MATCHES_COUNT = 200;
+                MATCHES_COUNT = 1000;
                 NODE_COUNT = 500;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
@@ -276,7 +276,7 @@ public class Main {
             }
         }
 
-        MatchSession session = new MatchSession(1, curIterationDir);
+        MatchSession session = new MatchSession(3, curIterationDir);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
             if (TEST_AGENT_FITNESS && MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("training_matches.txt");
@@ -289,7 +289,7 @@ public class Main {
         if (GEN_TRAINING_MATCHES) {
             session.setTrainingDataLogFile("training_data.txt");
             long start = System.currentTimeMillis();
-            var games = session.playTrainingGames(state,200, 100, CURRICULUM_TRAINING_ON);
+            var games = session.playTrainingGames(state,100, 200, CURRICULUM_TRAINING_ON);
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {
