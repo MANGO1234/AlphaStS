@@ -28,7 +28,7 @@ abstract class Enemy {
     boolean hasArtifact;
 
     public abstract void doMove(GameState state);
-    public abstract void nextMove(Random random);
+    public abstract void nextMove(RandomGen random);
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state);
     public abstract String getName();
@@ -60,9 +60,6 @@ abstract class Enemy {
     void damage(int n, GameState state) {
         if (health <= 0) {
             return;
-        }
-        if (vulnerable > 0) {
-            n = n + n / 2;
         }
         health -= Math.max(0, n - block);
         block = Math.max(0, block - n);
@@ -144,7 +141,7 @@ abstract class Enemy {
         }
     }
 
-    public void randomize(Random random, boolean training) {
+    public void randomize(RandomGen random, boolean training) {
     }
 
     @Override public boolean equals(Object o) {
@@ -199,7 +196,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (turn == 0) {
                 move = 0;
                 turn = 1;
@@ -226,7 +223,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(10) + 1;
             if (b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -301,7 +298,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move <= 2 && tookDamage) {
                 move = ATTACK_1;
                 return;
@@ -324,7 +321,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(10) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -375,7 +372,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move == -1) {
                 move = startMove;
                 return;
@@ -392,7 +389,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(4) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
@@ -456,7 +453,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move < 9) {
                 move = move + 1;
             }
@@ -484,7 +481,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(25) + 1;
             health = 264 * b / 25;
         }
@@ -578,7 +575,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move < WHIRL_WIND) {
                 move++;
             } else if (move == WHIRL_WIND) {
@@ -613,7 +610,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             int b = training ? random.nextInt(25) + 1 : 25;
             health = 250 * b / 25;
         }
@@ -700,7 +697,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move == GOOP_SPRAY) {
                 move = PREPARING;
             } else if (move == PREPARING) {
@@ -723,7 +720,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(15) + 1;
             health = 10 * (training ? b : 15);
             if (health <= maxHealth / 2) {
@@ -803,7 +800,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move == SPLIT) {
                 return;
             }
@@ -835,7 +832,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 67 + random.nextInt(7);
         }
 
@@ -882,7 +879,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             int r = random.nextInt(100);
             int newMove;
             if (r < 30) {
@@ -909,7 +906,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 29 + random.nextInt(6);
         }
 
@@ -942,7 +939,7 @@ abstract class Enemy {
             state.enemyDoDamageToPlayer(this, 6, 1);
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             move = TACKLE;
         }
 
@@ -953,7 +950,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 11 + random.nextInt(5);
         }
 
@@ -1033,7 +1030,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move == SPLIT) {
                 return;
             }
@@ -1073,7 +1070,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 68 + random.nextInt(5);
         }
 
@@ -1124,7 +1121,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             int r = random.nextInt(100);
             int newMove;
             if (r < 40) {
@@ -1159,7 +1156,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 29 + random.nextInt(6);
         }
 
@@ -1198,7 +1195,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move == -1 || move == TACKLE) {
                 move = LICK;
             } else {
@@ -1215,7 +1212,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 9 + random.nextInt(5);
         }
 
@@ -1257,7 +1254,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             if (move == -1) {
                 move = 0;
                 return;
@@ -1296,7 +1293,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 42 + random.nextInt(5);
         }
 
@@ -1345,7 +1342,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             int r = random.nextInt(100);
             int newMove;
             if (r < 25) {
@@ -1380,7 +1377,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 11 + random.nextInt(6);
             d = 6 + random.nextInt(3);
             curlUpAmount = 9 + random.nextInt(4);
@@ -1430,7 +1427,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             int r = random.nextInt(100);
             int newMove;
             if (r < 25) {
@@ -1465,7 +1462,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 12 + random.nextInt(7);
             d = 6 + random.nextInt(3);
             curlUpAmount = 9 + random.nextInt(4);
@@ -1511,7 +1508,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             int r = random.nextInt(100);
             int newMove;
             if (r < 60) {
@@ -1554,7 +1551,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 24 + random.nextInt(5);
         }
 
@@ -1601,7 +1598,7 @@ abstract class Enemy {
             }
         }
 
-        @Override public void nextMove(Random random) {
+        @Override public void nextMove(RandomGen random) {
             int newMove;
             if (move < 0) {
                 newMove = MUG_1;
@@ -1629,7 +1626,7 @@ abstract class Enemy {
             return "Unknown";
         }
 
-        public void randomize(Random random, boolean training) {
+        public void randomize(RandomGen random, boolean training) {
             health = 46 + random.nextInt(5);
         }
 

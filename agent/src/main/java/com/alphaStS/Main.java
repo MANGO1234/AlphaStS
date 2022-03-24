@@ -253,8 +253,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                MATCHES_COUNT = 100;
-                NODE_COUNT = 5000;
+                MATCHES_COUNT = 1000;
+                NODE_COUNT = 500;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {
@@ -268,8 +268,7 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(state, curIterationDir);
-            session.playGame(NODE_COUNT);
-            for (GameStep step : session.states) {
+            for (GameStep step : session.playGame(NODE_COUNT)) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
@@ -279,7 +278,7 @@ public class Main {
 
         MatchSession session = new MatchSession(state, curIterationDir);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
-            if (TEST_AGENT_FITNESS) {
+            if (TEST_AGENT_FITNESS && MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("training_matches.txt");
             } else if (MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("matches.txt");

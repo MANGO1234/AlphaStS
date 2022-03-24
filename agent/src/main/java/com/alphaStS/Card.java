@@ -171,7 +171,7 @@ abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.enemies.get(idx), 8);
-            state.addCardToDiscard(state.prop.angerCardIdx);
+            state.addCardToDiscard(state.prop.angerPCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -184,7 +184,6 @@ abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(5);
-            System.out.println(":" + idx);
             if (idx >= 0) {
                 state.removeCardFromHand(idx);
                 state.addCardToHand(state.prop.upgradeIdxes[idx]);

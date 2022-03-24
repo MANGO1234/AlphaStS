@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.LinkedBlockingDeque;
 
 record GameStep(GameState state, int action) {
 }
@@ -28,8 +29,8 @@ public class MatchSession {
         logDir = dir;
     }
 
-    public void playGame(int nodeCount) {
-        states.clear();
+    public List<GameStep> playGame(int nodeCount) {
+        var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
@@ -76,6 +77,7 @@ public class MatchSession {
                 throw new RuntimeException(e);
             }
         }
+        return states;
     }
 
     public void printProgress(long start_time, int matchCount, boolean printDamages) {
@@ -90,6 +92,20 @@ public class MatchSession {
             System.out.println(damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).map((e) -> e.getKey() + ": " + e.getValue()).reduce("", (acc, x) -> acc + "\n" + x));
         }
         System.out.println("--------------------");
+    }
+
+    public void playGames(int numOfGames, int nodeCount, int numberOfThreads) {
+        game_i = 0;
+        var deq = new LinkedBlockingDeque<List<GameStep>>();
+        var threads = new ArrayList<Thread>();
+        var session = this;
+        for (int i = 0; i < numberOfThreads; i++) {
+            threads.add(new Thread(new Runnable() {
+                @Override public void run() {
+                    session.playGame(nodeCount);
+                }
+            }));
+        }
     }
 
     private GameState getNextState(GameState state, int action) {
@@ -112,7 +128,7 @@ public class MatchSession {
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
         }
-        Random random = state.prop.random;
+        RandomGen random = state.prop.random;
         for (Enemy enemy : state.enemies) {
             if (enemy.health > 0) {
                 enemy.randomize(random, curriculumTraining);

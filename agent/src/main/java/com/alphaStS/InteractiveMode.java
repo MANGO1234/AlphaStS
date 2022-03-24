@@ -16,12 +16,12 @@ public class InteractiveMode {
         try {
             model = new Model(modelDir);
         } catch (Exception e) {}
-        String prevLine = null;
         MCTS mcts = new MCTS();
         mcts.setModel(model);
         List<Integer> drawOrder = null;
         Enemy curEnemy = null;
         List<String> history = new ArrayList<>();
+        state.prop.random = new RandomGenInteractive(reader, history);
 
         while (true) {
             if (mode == 0) {
@@ -205,56 +205,6 @@ public class InteractiveMode {
                     System.out.println(Arrays.toString(state.getNNInput()));
                     skipPrint = true;
                     continue;
-                } else if (line.startsWith("n ")) {
-                    try {
-                        int count = Integer.parseInt(line.substring(2));
-                        for (int i = state.total_n; i < count; i++) {
-                            mcts.search(state, false, -1);
-                        }
-                        System.out.println(state.toStringReadable());
-                        skipPrint = true;
-                        continue;
-                    } catch (NumberFormatException e) {
-                        // ignore
-                    }
-                } else if (line.startsWith("nn ")) {
-                    try {
-                        int count = Integer.parseInt(line.substring(3));
-                        GameState s = state;
-                        int move_i = 0;
-                        do {
-                            for (int i = s.total_n; i < count; i++) {
-                                mcts.search(s, false, -1);
-                            }
-                            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
-                            if (action < 0) {
-                                break;
-                            }
-                            int max_n = s.n[action];
-                            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                                    " (" + max_n + ", " + GameState.calc_q(s.q_win[action] / max_n, s.q_health[action] / max_n) + ", "  +
-                                    (s.q_win[action] / max_n) + ", " + (s.q_health[action] / max_n) + ")");
-                            State ns = s.ns[action];
-                            if (ns instanceof ChanceState) {
-                                break;
-                            } else if (ns instanceof GameState ns2) {
-                                if (ns2.isTerminal() != 0) {
-                                    break;
-                                } else {
-                                    s = ns2;
-                                }
-                            } else {
-                                System.out.println("Unknown ns: " + state.toStringReadable());
-                                System.out.println("Unknown ns: " + Arrays.toString(state.transpositionsPolicyMask));
-                                System.out.println("Unknown ns: " + Arrays.asList(state.ns).stream().map((x) -> x == null).toList());
-                                break;
-                            }
-                        } while (true);
-                        skipPrint = true;
-                        continue;
-                    } catch (NumberFormatException e) {
-                        // ignore
-                    }
                 } else if (line.startsWith("eh ")) {
                     try {
                         String[] s = line.split(" ");
@@ -335,10 +285,12 @@ public class InteractiveMode {
                     mode = 1;
                     continue;
                 } else if (line.equals("rc")) { // remove card from hand
-                    cardSelectScreen(reader, line, history);
+                    removeCardFromHandSelectScreen(reader, state, history);
+                    state.clearAllSearchInfo();
                     continue;
                 } else if (line.equals("ac")) { // add card to hand
-                    cardSelectScreen(reader, line, history);
+                    addCardToHandSelectScreen(reader, state, history);
+                    state.clearAllSearchInfo();
                     continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
@@ -346,15 +298,44 @@ public class InteractiveMode {
                             System.out.println(l);
                         }
                     }
+                    skipPrint = true;
                     continue;
                 } else if (line.equals("tree")) {
                     MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
+                    skipPrint = true;
+                    continue;
+                } else if (line.startsWith("n ")) {
+                    boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                    ((RandomGenInteractive) state.prop.random).rngOn = true;
+                    runMCTS(state, mcts, line);
+                    ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                    skipPrint = true;
+                    continue;
+                } else if (line.startsWith("nn ")) {
+                    boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                    ((RandomGenInteractive) state.prop.random).rngOn = true;
+                    runNNPV(state, mcts, line);
+                    ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                    skipPrint = true;
                     continue;
                 } else if (line.startsWith("matches")) {
+                    boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                    ((RandomGenInteractive) state.prop.random).rngOn = true;
                     runMatches(modelDir, state, line);
+                    ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                    skipPrint = true;
                     continue;
-                } else if (line.startsWith("desc")) {
+                } else if (line.equals("rng off")) {
+                    ((RandomGenInteractive) state.prop.random).rngOn = false;
+                    skipPrint = true;
+                    continue;
+                } else if (line.equals("rng on")) {
+                    ((RandomGenInteractive) state.prop.random).rngOn = true;
+                    skipPrint = true;
+                    continue;
+                } else if (line.equals("desc")) {
                     System.out.println(state.getNNInputDesc());
+                    skipPrint = true;
                     continue;
                 } else if (line.equals("")) {
                     continue;
@@ -422,7 +403,10 @@ public class InteractiveMode {
         }
     }
 
-    private static void cardSelectScreen(BufferedReader reader, String parent, List<String> history) throws IOException {
+    private static void addCardToHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        for (int i = 0; i < state.prop.cardDict.length; i++) {
+            System.out.println(i + ". " + state.prop.cardDict[i].cardName);
+        }
         while (true) {
             System.out.print("> ");
             String line = reader.readLine();
@@ -430,11 +414,52 @@ public class InteractiveMode {
             if (line.equals("b")) {
                 return;
             }
-            if (parseInt(line, -1) >= 0) {
-                if (parent.equals("rc")) {
-
-                }
+            int idx = parseInt(line, -1);
+            if (idx >= 0 && idx < state.prop.cardDict.length) {
+                state.addCardToHand(idx);
                 return;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
+    private static void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        for (int i = 0; i < state.prop.cardDict.length; i++) {
+            if (state.hand[i] > 0) {
+                System.out.println(i + ". " + state.prop.cardDict[i].cardName);
+            }
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            if (line.equals("b")) {
+                return;
+            }
+            int idx = parseInt(line, -1);
+            if (idx >= 0 && idx < state.prop.cardDict.length && state.hand[idx] > 0) {
+                state.removeCardFromHand(idx);
+                return;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
+    static int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        int nonUpgradedCardCount = 0;
+        for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+            if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                System.out.println(nonUpgradedCardCount + ". " + state.prop.cardDict[i].cardName);
+                nonUpgradedCardCount += state.hand[i];
+            }
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < nonUpgradedCardCount) {
+                return r;
             }
             System.out.println("Unknown Command");
         }
@@ -477,11 +502,82 @@ public class InteractiveMode {
         }
     }
 
+    private static void runMCTS(GameState state, MCTS mcts, String line) {
+        int count = Integer.parseInt(line.substring(2));
+        for (int i = state.total_n; i < count; i++) {
+            mcts.search(state, false, -1);
+        }
+        System.out.println(state.toStringReadable());
+    }
+
+    private static void runNNPV(GameState state, MCTS mcts, String line) {
+        int count = parseInt(line.substring(3), 1);
+        GameState s = state;
+        int move_i = 0;
+        do {
+            for (int i = s.total_n; i < count; i++) {
+                mcts.search(s, false, -1);
+            }
+            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
+            if (action < 0) {
+                break;
+            }
+            int max_n = s.n[action];
+            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
+                    " (" + max_n + ", " + GameState.calc_q(s.q_win[action] / max_n, s.q_health[action] / max_n) + ", "  +
+                    (s.q_win[action] / max_n) + ", " + (s.q_health[action] / max_n) + ")");
+            State ns = s.ns[action];
+            if (ns instanceof ChanceState) {
+                break;
+            } else if (ns instanceof GameState ns2) {
+                if (ns2.isTerminal() != 0) {
+                    break;
+                } else {
+                    s = ns2;
+                }
+            } else {
+                System.out.println("Unknown ns: " + state.toStringReadable());
+                System.out.println("Unknown ns: " + Arrays.toString(state.transpositionsPolicyMask));
+                System.out.println("Unknown ns: " + Arrays.asList(state.ns).stream().map((x) -> x == null).toList());
+                break;
+            }
+        } while (true);
+    }
+
     private static int parseInt(String s, int default_v) {
         try {
             return Integer.parseInt(s);
         } catch (NumberFormatException e) {
             return default_v;
+        }
+    }
+}
+
+class RandomGenInteractive extends RandomGen {
+    boolean rngOn = true;
+    private final BufferedReader reader;
+    private final List<String> history;
+
+    public RandomGenInteractive(BufferedReader reader, List<String> history) {
+        this.reader = reader;
+        this.history = history;
+    }
+
+    @Override public int nextInt(int bound, GameState state, RandomGenCtx ctx) {
+        if (rngOn) {
+            return super.nextInt(bound, state, ctx);
+        }
+        switch (ctx) {
+        case WarpedTongs -> {
+            try {
+                return InteractiveMode.selectCardForWarpedTongs(reader, state, history);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        default -> {
+            return super.nextInt(bound, state, ctx);
+        }
         }
     }
 }

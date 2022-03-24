@@ -26,7 +26,7 @@ class GameProperties {
     long possibleBuffs;
     boolean needDeckOrderMemory;
     boolean selectFromExhaust;
-    Random random;
+    RandomGen random;
     Card[] cardDict;
     int maxNumOfActions;
     int totalNumOfActions;
@@ -89,18 +89,10 @@ class GameProperties {
     Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
     Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
     public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
-        var registrants = counterRegistrants.get(name);
-        if (registrants == null) {
-            registrants = new ArrayList<>();
-            counterRegistrants.put(name, registrants);
-        }
+        var registrants = counterRegistrants.computeIfAbsent(name, k -> new ArrayList<>());
         registrants.add(registrant);
-
         if (handler != null) {
-            var h = counterHandlerMap.get(name);
-            if (h == null) {
-                counterHandlerMap.put(name, handler);
-            }
+            counterHandlerMap.putIfAbsent(name, handler);
         }
     }
 
@@ -223,7 +215,7 @@ public class GameState implements State {
     public GameState(List<Enemy> enemies, Player player, List<CardCount> cards, List<Relic> relics) {
         // game properties (shared)
         prop = new GameProperties();
-        prop.random = new Random();
+        prop.random = new RandomGen();
         prop.startOfTurnHandlers = new ArrayList<>();
         prop.preEndTurnHandlers = new ArrayList<>();
         prop.onPlayerDamageHandlers = new ArrayList<>();
@@ -1536,6 +1528,7 @@ public class GameState implements State {
         total_q_comb = 0;
         v_health = 0;
         v_win = 0;
+        actionsCache = null;
     }
 
     public void gainEnergy(int n) {
@@ -1583,6 +1576,9 @@ public class GameState implements State {
         if (prop.penNibCounterIdx >= 0 && counter[prop.penNibCounterIdx] == 9) {
             dmg *= 2;
         }
+        if (enemy.vulnerable > 0) {
+            dmg = dmg + dmg / 2;
+        }
         if (player.weak > 0) {
             dmg = dmg * 3 / 4;
         }
@@ -1607,11 +1603,11 @@ public class GameState implements State {
                 return;
             }
             dmg += enemy.strength;
-            if (enemy.weak > 0) {
-                dmg = dmg * 3 / 4;
-            }
             if (player.vulnerable > 0) {
                 dmg = dmg + dmg / (prop.hasOddMushroom ? 4 : 2);
+            }
+            if (enemy.weak > 0) {
+                dmg = dmg * 3 / 4;
             }
             player.damage(dmg);
             if (thorn > 0) {

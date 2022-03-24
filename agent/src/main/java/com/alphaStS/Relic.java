@@ -725,29 +725,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 @Override void handle(GameState state) {
                     int nonUpgradedCardCount = 0;
                     for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                        if (state.prop.upgradeIdxes[i] >= 0) {
-                            if (state.hand[i] > 0) {
-                                nonUpgradedCardCount += state.hand[i];
-                            }
+                        if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                            nonUpgradedCardCount += state.hand[i];
                         }
                     }
                     if (nonUpgradedCardCount == 0) {
                         return;
                     }
-                    int r = state.prop.random.nextInt(nonUpgradedCardCount);
+                    int r = state.prop.random.nextInt(nonUpgradedCardCount, state, RandomGenCtx.WarpedTongs);
                     int acc = 0;
                     for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                        if (state.prop.upgradeIdxes[i] >= 0) {
-                            if (state.hand[i] > 0) {
-                                acc += state.hand[i];
-                                if (acc > r) {
-                                    if (state.hand[i] != nonUpgradedCardCount) {
-                                        state.isStochastic = true;
-                                    }
-                                    state.removeCardFromHand(i);
-                                    state.addCardToHand(state.prop.upgradeIdxes[i]);
-                                    break;
+                        if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                            acc += state.hand[i];
+                            if (acc > r) {
+                                if (state.hand[i] != nonUpgradedCardCount) {
+                                    state.isStochastic = true;
                                 }
+                                state.removeCardFromHand(i);
+                                state.addCardToHand(state.prop.upgradeIdxes[i]);
+                                break;
                             }
                         }
                     }
