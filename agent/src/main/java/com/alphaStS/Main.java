@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.alphaStS.InteractiveMode.interactiveStart;
 
@@ -255,6 +256,7 @@ public class Main {
             if (SAVES_DIR.startsWith("../")) {
                 MATCHES_COUNT = 1000;
                 NODE_COUNT = 500;
+                iteration = 35;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {
@@ -276,7 +278,7 @@ public class Main {
             }
         }
 
-        MatchSession session = new MatchSession(3, curIterationDir);
+        MatchSession session = new MatchSession(2, curIterationDir);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
             if (TEST_AGENT_FITNESS && MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("training_matches.txt");
@@ -288,8 +290,9 @@ public class Main {
 
         if (GEN_TRAINING_MATCHES) {
             session.setTrainingDataLogFile("training_data.txt");
+            session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
             long start = System.currentTimeMillis();
-            var games = session.playTrainingGames(state,100, 200, CURRICULUM_TRAINING_ON);
+            var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {
@@ -297,104 +300,204 @@ public class Main {
                 System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
                 System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
             }
-            //            for (List<GameStep> game : games) {
-            //                var lastState = game.get(game.size() - 1).state();
-            //                float v = (float) (((double) lastState.player.health) / lastState.player.origHealth);
-            //                for (int i = 0; i < game.size() - 1; i++) {
-            //                    state = game.get(i).state();
-            //                    var x = state.getInput();
-            //                    System.out.println(state);
-            //                    System.out.println(Arrays.toString(x));
-            //                    System.out.println(v);
-            //                    System.out.println(lastState.isTerminal() == 1 ? 1.0f : 0.0f);
-            //                    float[] p = new float[state.numOfActions];
-            //                    for (int j = 0; j < state.numOfActions; j++) {
-            //                        p[j] = (float)(((double) state.n[j]) / state.total_n);
-            //                    }
-            //                    System.out.println(Arrays.toString(p));
-            //                }
-            //            }
-            System.out.print("--------------------");
+            System.out.println("--------------------");
             File file = new File(curIterationDir +  "/training_data.bin");
             file.delete();
-            var writer = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(curIterationDir +  "/training_data.bin")));
-            for (List<GameStep> game : games) {
-                var lastState = game.get(game.size() - 1).state();
-                float v_health = (float) (((double) lastState.player.health) / lastState.player.maxHealth);
-                float v_win = lastState.isTerminal() == 1 ? 1.0f : 0.0f;
-                for (int i = game.size() - 2; i >= 0; i--) {
-                    state = game.get(i).state();
-                    var x = state.getNNInput();
-                    for (int j = 0; j < x.length; j++) {
-                        writer.writeFloat(x[j]);
-                    }
-                    writer.writeFloat(v_health);
-                    writer.writeFloat(v_win);
-                    for (int j = 0; j < state.prop.totalNumOfActions; j++) {
-                        if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
-                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY || !state.isActionLegal(j)) {
-                                writer.writeFloat(-1);
-                            } else {
-                                if (state.terminal_action > 0) {
-                                    if (state.terminal_action == j) {
-                                        writer.writeFloat(1);
-                                    } else {
-                                        writer.writeFloat(0);
-                                    }
-                                } else {
-                                    writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
-                                }
-                            }
-                        } else {
-                            int action = j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                            if (state.actionCtx == GameActionCtx.SELECT_ENEMY && state.isActionLegal(action)) {
-                                if (state.terminal_action > 0) {
-                                    if (state.terminal_action == action) {
-                                        writer.writeFloat(1);
-                                    } else {
-                                        writer.writeFloat(0);
-                                    }
-                                } else {
-                                    writer.writeFloat((float) (((double) state.n[action]) / state.total_n));
-                                }
-                            } else {
-                                writer.writeFloat(-1);
-                            }
-                        }
-                    }
-                    if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
-                        var prevState = game.get(i - 1).state();
-                        var prevAction = game.get(i - 1).action();
-                        ChanceState cState = new ChanceState(state);
-                        for (int j = 1; j < 1000; j++) {
-                            cState.getNextState(prevState, prevAction);
-                        }
-                        double est_v_win = 0;
-                        double est_v_health = 0;
-                        double[] out = new double[2];
-                        for (ChanceState.Node node : cState.cache.values()) {
-                            if (node.state != state) {
-                                node.state.doEval(session.mcts.get(0).model);
-                                node.state.get_v(out);
-                                est_v_win += out[0] * node.n;
-                                est_v_health += out[1] * node.n;
-                            }
-                        }
-                        est_v_win /= cState.total_n;
-                        est_v_health /= cState.total_n;
-                        float p = ((float) cState.getCount(state)) / cState.total_n;
-//                         System.out.println(p + "/" + prevState.v_win + "/" + (v_win * p + est_v_win) + "/" + prevState.v_win * (1 - p) + "/" + est_v_win + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
-//                         System.out.println(p + "/" + prevState.v_health + "/" + (v_health * p + est_v_health) + "/" + prevState.v_health * (1 - p) + "/" + est_v_health + "/" + prevState.toStringReadable() + "/" + prevState.getActionString(prevAction));
-                        v_win = Math.min(v_win * p + (float) est_v_win, 1);
-                        v_health = Math.min(v_health * p + (float) est_v_health, 1);
-//                        v_win = v_win * p + (float) prevState.v_win * (1 - p);
-//                        v_health = v_health * p + (float) prevState.v_health * (1 - p);
-                    }
-                }
+            start = System.currentTimeMillis();
+            var writer = new BufferedOutputStream(new FileOutputStream(curIterationDir +  "/training_data.bin"));
+            writeTrainingData2(games, writer);
+            end = System.currentTimeMillis();
+            System.out.println("Time Taken: " + (end - start));
+            for (int i = 0; i < session.mcts.size(); i++) {
+                var m = session.mcts.get(i);
+                System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
+                System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
             }
+            System.out.print("--------------------");
             writer.flush();
         }
 
         session.flushFileWriters();
+    }
+
+    private static void writeTrainingData2(List<List<GameStep>> games, BufferedOutputStream fileWriter) throws IOException {
+        DataOutputStream writer = new DataOutputStream(fileWriter);
+        for (var game : games) {
+            for (int i = game.size() - 2; i >= 0; i--) {
+                var step = game.get(i);
+                if (!step.useForTraining) {
+                    continue;
+                }
+                var state = game.get(i).state();
+                var x = state.getNNInput();
+                for (int j = 0; j < x.length; j++) {
+                    writer.writeFloat(x[j]);
+                }
+                writer.writeFloat(step.v_health);
+                writer.writeFloat(step.v_win);
+                for (int j = 0; j < state.prop.totalNumOfActions; j++) {
+                    if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
+                        if (state.actionCtx == GameActionCtx.SELECT_ENEMY || !state.isActionLegal(j)) {
+                            writer.writeFloat(-1);
+                        } else {
+                            if (state.terminal_action > 0) {
+                                if (state.terminal_action == j) {
+                                    writer.writeFloat(1);
+                                } else {
+                                    writer.writeFloat(0);
+                                }
+                            } else {
+                                writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                            }
+                        }
+                    } else {
+                        int action = j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                        if (state.actionCtx == GameActionCtx.SELECT_ENEMY && state.isActionLegal(action)) {
+                            if (state.terminal_action > 0) {
+                                if (state.terminal_action == action) {
+                                    writer.writeFloat(1);
+                                } else {
+                                    writer.writeFloat(0);
+                                }
+                            } else {
+                                writer.writeFloat((float) (((double) state.n[action]) / state.total_n));
+                            }
+                        } else {
+                            writer.writeFloat(-1);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static void writeTrainingData(boolean SLOW_TRAINING_WINDOW, MatchSession session, List<List<GameStep>> games, BufferedOutputStream fileWriter) throws IOException {
+        var threadWriters = new ArrayList<ByteArrayOutputStream>();
+        var threads = new ArrayList<Thread>();
+        AtomicInteger gameIdx = new AtomicInteger(0);
+        for (int _i = 0; _i < session.mcts.size(); _i++) {
+            int _ii = _i;
+            threadWriters.add(new ByteArrayOutputStream());
+            threads.add(new Thread(() -> {
+                try {
+                    GameState state;
+                    DataOutputStream writer = new DataOutputStream(threadWriters.get(_ii));
+                    while (true) {
+                        int idx = gameIdx.getAndIncrement();
+                        if (idx >= games.size()) {
+                            break;
+                        }
+                        var game = games.get(idx);
+                        var lastState = game.get(game.size() - 1).state();
+//                        float v_health = (float) (((double) lastState.player.health) / lastState.player.maxHealth);
+//                        float v_win = lastState.isTerminal() == 1 ? 1.0f : 0.0f;
+                        for (int i = game.size() - 2; i >= 0; i--) {
+                            var step = game.get(i);
+                            state = game.get(i).state();
+                            if (step.useForTraining) {
+                                var x = state.getNNInput();
+                                for (int j = 0; j < x.length; j++) {
+                                    writer.writeFloat(x[j]);
+                                }
+                                writer.writeFloat(step.v_health);
+                                writer.writeFloat(step.v_win);
+                                for (int j = 0; j < state.prop.totalNumOfActions; j++) {
+                                    if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
+                                        if (state.actionCtx == GameActionCtx.SELECT_ENEMY || !state.isActionLegal(j)) {
+                                            writer.writeFloat(-1);
+                                        } else {
+                                            if (state.terminal_action > 0) {
+                                                if (state.terminal_action == j) {
+                                                    writer.writeFloat(1);
+                                                } else {
+                                                    writer.writeFloat(0);
+                                                }
+                                            } else {
+                                                writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                                            }
+                                        }
+                                    } else {
+                                        int action = j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                                        if (state.actionCtx == GameActionCtx.SELECT_ENEMY && state.isActionLegal(action)) {
+                                            if (state.terminal_action > 0) {
+                                                if (state.terminal_action == action) {
+                                                    writer.writeFloat(1);
+                                                } else {
+                                                    writer.writeFloat(0);
+                                                }
+                                            } else {
+                                                writer.writeFloat((float) (((double) state.n[action]) / state.total_n));
+                                            }
+                                        } else {
+                                            writer.writeFloat(-1);
+                                        }
+                                    }
+                                }
+                            }
+//                            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
+//                                var prevState = game.get(i - 1).state();
+//                                var prevAction = game.get(i - 1).action();
+//                                ChanceState cState = new ChanceState(state);
+//                                for (int j = 1; j < 1000 && cState.cache.size() < 100; j++) {
+//                                    cState.getNextState(prevState, prevAction);
+//                                }
+//                                double est_v_win = 0;
+//                                double est_v_health = 0;
+//                                double[] out = new double[3];
+//                                for (ChanceState.Node node : cState.cache.values()) {
+//                                    if (node.state != state) {
+//                                        node.state.doEval(session.mcts.get(_ii).model);
+//                                        node.state.get_v(out);
+//                                        est_v_win += out[0] * node.n;
+//                                        est_v_health += out[1] * node.n;
+//                                    }
+//                                }
+//                                est_v_win /= cState.total_n;
+//                                est_v_health /= cState.total_n;
+//                                float p = ((float) cState.getCount(state)) / cState.total_n;
+//                                v_win = Math.min(v_win * p + (float) est_v_win, 1);
+//                                v_health = Math.min(v_health * p + (float) est_v_health, 1);
+
+//                                var prevSize = cState.cache.size();
+//                                for (int j = 1; j < 900; j++) {
+//                                    cState.getNextState(prevState, prevAction);
+//                                }
+//                                est_v_win = 0;
+//                                est_v_health = 0;
+//                                for (ChanceState.Node node : cState.cache.values()) {
+//                                    if (node.state != state) {
+//                                        node.state.doEval(session.mcts.get(_ii).model);
+//                                        node.state.get_v(out);
+//                                        est_v_win += out[0] * node.n;
+//                                        est_v_health += out[1] * node.n;
+//                                    }
+//                                }
+//                                est_v_win /= cState.total_n;
+//                                est_v_health /= cState.total_n;
+//                                p = ((float) cState.getCount(state)) / cState.total_n;
+//                                var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
+//                                var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
+//                                if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
+//                                    System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
+//                                }
+//                            }
+                        }
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }));
+            threads.get(_i).start();
+        }
+
+        for (int i = 0; i < threadWriters.size(); i++) {
+            try {
+                threads.get(i).join();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            fileWriter.write(threadWriters.get(i).toByteArray());
+        }
+        fileWriter.flush();
     }
 }

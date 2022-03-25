@@ -5,7 +5,32 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
-record GameStep(GameState state, int action) {
+final class GameStep {
+    private final GameState state;
+    private final int action;
+    public boolean useForTraining;
+    public float v_win;
+    public float v_health;
+
+    GameStep(GameState state, int action) {
+        this.state = state;
+        this.action = action;
+    }
+
+    public GameState state() {
+        return state;
+    }
+
+    public int action() {
+        return action;
+    }
+
+    @Override public String toString() {
+        return "GameStep{" +
+                "state=" + state +
+                ", action=" + action +
+                '}';
+    }
 }
 
 public class MatchSession {
@@ -46,7 +71,7 @@ public class MatchSession {
 
             int action = MCTS.getActionWithMaxNodesOrTerminal(state);
             states.add(new GameStep(state, action));
-            state = getNextState(state, mcts, action);
+            state = getNextState(state, mcts, action, false);
             states.get(states.size() - 1).state().clearNextStates();
         }
         states.add(new GameStep(state, -1));
@@ -108,7 +133,7 @@ public class MatchSession {
             }
             if ((printProgress && game_i % 25 == 0) || game_i == numOfGames) {
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
-                System.out.println("Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) numOfGames).trim() + "%)");
+                System.out.println("Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) game_i).trim() + "%)");
                 System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
                 System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - state.player.origHealth * deathCount)) / (game_i - deathCount));
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
@@ -120,9 +145,12 @@ public class MatchSession {
 //                if (game_i == numOfGames && printProgress) {
 //                    System.out.println(damageCount.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).reduce("", (acc, x) -> acc + "\n" + x));
 //                }
-                System.out.println("--------------------");            }
+                System.out.println("--------------------");
+            }
         }
     }
+
+    boolean SLOW_TRAINING_WINDOW;
 
     private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
         var states = new ArrayList<GameStep>();
@@ -138,10 +166,16 @@ public class MatchSession {
         }
 
         state.doEval(mcts.model);
+//        boolean quickPass = state.prop.random.nextInt(4) > 0;
+        boolean quickPass = false;
         while (state.isTerminal() == 0) {
-            for (int i = 0; i < nodeCount; i++) {
-                mcts.search(state, true, -1);
+            int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
+            for (int i = 0; i < todo; i++) {
+                mcts.search(state, !quickPass, todo - i);
                 if (mcts.numberOfPossibleActions == 1) {
+                    if (!state.isStochastic && states.size() > 0) {
+                        state = getNextState(states.get(states.size() - 1).state(), mcts, states.get(states.size() - 1).action(), false);
+                    }
                     break;
                 }
             }
@@ -152,11 +186,77 @@ public class MatchSession {
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);
             }
-            states.add(new GameStep(state, action));
-            state = getNextState(state, mcts, action).clone(false);
-            states.get(states.size() - 1).state().clearNextStates();
+            var step = new GameStep(state, action) ;
+            step.useForTraining = !quickPass;
+            states.add(step);
+//            quickPass = state.prop.random.nextInt(4) > 0;
+            state = getNextState(state, mcts, action, !quickPass);
         }
         states.add(new GameStep(state, -1));
+
+        // do scoring here before clearing states to reuse nn eval if possible
+        float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
+        float v_health = (float) (((double) state.player.health) / state.player.maxHealth);
+        for (int i = states.size() - 1; i >= 0; i--) {
+            states.get(i).v_win = v_win;
+            states.get(i).v_health = v_health;
+            state = states.get(i).state();
+            state.clearNextStates();
+            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
+                var prevState = states.get(i - 1).state();
+                var prevAction = states.get(i - 1).action();
+                var cState = (ChanceState) prevState.ns[prevAction];
+                var stateActual = cState.addGeneratedState(state);
+                while (cState.total_n < 1000 && cState.cache.size() < 100) {
+                    cState.getNextState(prevState, prevAction);
+                }
+                double est_v_win = 0;
+                double est_v_health = 0;
+                double[] out = new double[3];
+                for (ChanceState.Node node : cState.cache.values()) {
+                    if (node.state != stateActual) {
+                        if (node.state.policy == null) {
+                            node.state.doEval(mcts.model);
+                        }
+                        node.state.get_v(out);
+                        est_v_win += out[0] * node.n;
+                        est_v_health += out[1] * node.n;
+                    }
+                }
+                est_v_win /= cState.total_n;
+                est_v_health /= cState.total_n;
+                float p = ((float) cState.getCount(stateActual)) / cState.total_n;
+                if (v_win * p + (float) est_v_win > 1.0001) {
+                    Integer.parseInt(null);
+                }
+                v_win = Math.min(v_win * p + (float) est_v_win, 1);
+                v_health = Math.min(v_health * p + (float) est_v_health, 1);
+
+                //  var prevSize = cState.cache.size();
+                //  for (int j = 1; j < 900; j++) {
+                //      cState.getNextState(prevState, prevAction);
+                //  }
+                //  est_v_win = 0;
+                //  est_v_health = 0;
+                //  for (ChanceState.Node node : cState.cache.values()) {
+                //      if (node.state != state) {
+                //          node.state.doEval(session.mcts.get(_ii).model);
+                //          node.state.get_v(out);
+                //          est_v_win += out[0] * node.n;
+                //          est_v_health += out[1] * node.n;
+                //      }
+                //  }
+                //  est_v_win /= cState.total_n;
+                //  est_v_health /= cState.total_n;
+                //  p = ((float) cState.getCount(state)) / cState.total_n;
+                //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
+                //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
+                //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
+                //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
+                //  }
+            }
+        }
+
         return states;
     }
 
@@ -190,7 +290,7 @@ public class MatchSession {
             result.add(steps);
             var state = steps.get(steps.size() - 1).state();
             trainingGame_i += 1;
-            if (trainingDataWriter != null) {
+            if (trainingDataWriter != null && numOfGames <= 200) {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
@@ -211,7 +311,7 @@ public class MatchSession {
         return result;
     }
 
-    private GameState getNextState(GameState state, MCTS mcts, int action) {
+    private GameState getNextState(GameState state, MCTS mcts, int action, boolean clone) {
         State nextState = state.ns[action];
         GameState newState;
         if (nextState instanceof ChanceState cState) {
@@ -219,8 +319,16 @@ public class MatchSession {
             if (newState.policy == null) {
                 newState.doEval(mcts.model);
             }
+            if (clone) {
+                boolean isStochastic = newState.isStochastic;
+                newState = newState.clone(false);
+                newState.isStochastic = isStochastic;
+            }
         } else {
             newState = (GameState) nextState;
+            if (clone) {
+                newState = newState.clone(false);
+            }
         }
         return newState;
     }

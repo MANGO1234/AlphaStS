@@ -1715,9 +1715,6 @@ class ChanceState implements State {
     GameState getNextState(GameState parentState, int action) {
         var state = parentState.clone(false);
         state.doAction(action);
-//        if (parentState.actionCtx == GameActionCtx.PLAY_CARD && parentState.getActionString(action).contains("End")) {
-//            System.out.println("!!!" + state.toStringReadable());
-//        }
         if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
@@ -1729,6 +1726,16 @@ class ChanceState implements State {
         }
         cache.put(state, new Node(state));
         return state;
+    }
+
+    public GameState addGeneratedState(GameState state) {
+        var node = cache.get(state);
+        if (node == null) {
+            cache.put(state, new Node(state));
+            total_n += 1;
+            return state;
+        }
+        return node.state;
     }
 
     @Override public String toString() {

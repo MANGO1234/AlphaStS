@@ -131,17 +131,17 @@ def get_training_samples(training_pool, iteration, file_path):
         return
     with open(file_path, 'rb') as f:
         content = f.read()
-        # technically N^2
-        while len(content) > 0:
+        offset = 0
+        while offset != len(content):
             x_fmt = '>' + ('f' * input_len)
-            x = struct.unpack(x_fmt, content[0: 4 * input_len])
-            [v_health, v_win] = struct.unpack('>ff', content[4 * input_len: 4 * (input_len + 2)])
+            x = struct.unpack(x_fmt, content[offset: offset + 4 * input_len])
+            [v_health, v_win] = struct.unpack('>ff', content[offset + 4 * input_len: offset + 4 * (input_len + 2)])
             p_fmt = '>' + ('f' * num_of_actions)
-            p = struct.unpack(p_fmt, content[4 * (input_len + 2): 4 * (input_len + 2 + num_of_actions)])
-            content = content[4 * (input_len + 2 + num_of_actions):]
+            p = struct.unpack(p_fmt, content[offset + 4 * (input_len + 2): offset + 4 * (input_len + 2 + num_of_actions)])
+            offset += 4 * (input_len + 2 + num_of_actions)
             training_pool.append((iteration, [list(x), [v_health], [v_win], list(p)]))
-        if len(content) != 0:
-            print(f'{len(content)} bytes remaining for decoding')
+        if len(content) != offset:
+            print(f'{len(content) - offset} bytes remaining for decoding')
             raise "agent error"
 
 
@@ -170,9 +170,10 @@ if training_info['iteration'] >= SLOW_WINDOW_END:
         print(f'loading data from {SAVES_DIR}/iteration{i}/training_data.bin')
         get_training_samples(training_pool, i, f'{SAVES_DIR}/iteration{i}/training_data.bin')
 
-
 if DO_TRAINING:
+    start = time.time()
     for _iterations in range(0, ITERATION_COUNT):
+        iter_start = time.time()
         agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
             if training_info["iteration"] < 15:
@@ -195,19 +196,25 @@ if DO_TRAINING:
 
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
             split = agent_output.find(b'--------------------')
-            print(agent_output[0: split + 20].decode('ascii'))
+            print(agent_output[1 if agent_output[0] == '\n' else 0: split + 20].decode('ascii'))
             agent_output = agent_output[split + 20:]
 
         print(f'Iteration {training_info["iteration"]}')
         split = agent_output.find(b'--------------------')
-        print(agent_output[0: split + 20].decode('ascii'))
+        print(agent_output[1 if agent_output[0] == '\n' else 0: split + 20].decode('ascii'))
         agent_output = agent_output[split + 20:]
+        split = agent_output.find(b'--------------------')
+        if split >= 0:
+            print(agent_output[1 if agent_output[0] == '\n' else 0: split + 20].decode('ascii'))
+            agent_output = agent_output[split + 20:]
 
         get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')
         training_pool = expire_training_samples(training_pool, training_info["iteration"])
 
+        print(f'agent time={time.time() - iter_start}')
         print(f'number of samples={len(training_pool)}')
         print(f'sample oldest iteration={training_pool[0][0]}')
+        iter_start = time.time()
         # for i in range(200 if training_info['iteration'] >= SLOW_WINDOW_END else 200):
         #     if training_info['iteration'] >= SLOW_WINDOW_END:
         #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
@@ -235,6 +242,8 @@ if DO_TRAINING:
         training_info['iteration'] += 1
         with open(f'{SAVES_DIR}/training.json', 'w') as f:
             json.dump(training_info, f)
+        print(f'training time={time.time() - iter_start}')
+        print(f'accumulated time={time.time() - start}')
 
         if _iterations == ITERATION_COUNT - 1:
             agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '10000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
