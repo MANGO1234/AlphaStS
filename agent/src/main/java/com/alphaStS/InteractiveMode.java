@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.alphaStS.GameStateUtils.formatFloat;
+
 public class InteractiveMode {
     public static void interactiveStart(GameState origState, String modelDir) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
@@ -294,14 +296,14 @@ public class InteractiveMode {
                     continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
-                        if (!l.equals("tree") && !l.startsWith("matches") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
+                        if (!l.equals("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
                             System.out.println(l);
                         }
                     }
                     skipPrint = true;
                     continue;
-                } else if (line.equals("tree")) {
-                    MCTS.printTree(state, new OutputStreamWriter(System.out), 3);
+                } else if (line.equals("tree") || line.startsWith("tree ")) {
+                    printTree(state, line);
                     skipPrint = true;
                     continue;
                 } else if (line.startsWith("n ")) {
@@ -318,10 +320,10 @@ public class InteractiveMode {
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                     skipPrint = true;
                     continue;
-                } else if (line.startsWith("matches")) {
+                } else if (line.equals("games") || line.startsWith("games ")) {
                     boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                     ((RandomGenInteractive) state.prop.random).rngOn = true;
-                    runMatches(modelDir, state, line);
+                    runGames(modelDir, state, line);
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                     skipPrint = true;
                     continue;
@@ -465,7 +467,7 @@ public class InteractiveMode {
         }
     }
 
-    private static void runMatches(String modelDir, GameState state, String line) {
+    private static void runGames(String modelDir, GameState state, String line) {
         String[] s = line.split(" ");
         int numberOfGames = 100;
         int numberOfThreads = 1;
@@ -500,6 +502,27 @@ public class InteractiveMode {
         session.playGames(state, numberOfGames, nodeCount, true);
     }
 
+    private static void printTree(GameState state, String line) {
+        String[] s = line.split(" ");
+        int depth = 4;
+        int action = -1;
+        if (s.length > 1) {
+            for (int i = 1; i < s.length; i++) {
+                if (s[i].startsWith("d=")) {
+                    depth = parseInt(s[i].substring(2), 4);
+                }
+                if (s[i].startsWith("a=")) {
+                    action = parseInt(s[i].substring(2), -1);
+                }
+            }
+        }
+        if (action >= 0 && action < state.ns.length && state.ns[action] != null) {
+            GameStateUtils.printTree2(state.ns[action], new OutputStreamWriter(System.out), depth);
+        } else {
+            GameStateUtils.printTree2(state, new OutputStreamWriter(System.out), depth);
+        }
+    }
+
     private static void runMCTS(GameState state, MCTS mcts, String line) {
         int count = Integer.parseInt(line.substring(2));
         for (int i = state.total_n; i < count; i++) {
@@ -522,8 +545,7 @@ public class InteractiveMode {
             }
             int max_n = s.n[action];
             System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                    " (" + max_n + ", " + GameState.calc_q(s.q_win[action] / max_n, s.q_health[action] / max_n) + ", "  +
-                    (s.q_win[action] / max_n) + ", " + (s.q_health[action] / max_n) + ")");
+                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.player.maxHealth + ")");
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
                 break;

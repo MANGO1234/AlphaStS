@@ -4,6 +4,8 @@ import com.alphaStS.utils.DrawOrder;
 
 import java.util.*;
 
+import static com.alphaStS.GameStateUtils.formatFloat;
+
 abstract class GameEventHandler {
     abstract void handle(GameState state);
 }
@@ -401,23 +403,28 @@ public class GameState implements State {
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().exhaustWhenPlayed && getCardEnergyCost(i) >= 0) {
                 l.add(i);
-            } else if (cards.get(i).card().cardType == Card.POWER) {
+            }
+            if (cards.get(i).card().cardType == Card.POWER) {
                 l.add(i);
-            } else if (cards.get(i).card().ethereal && getCardEnergyCost(i) >= 0) {
+            }
+            if (cards.get(i).card().ethereal && getCardEnergyCost(i) >= 0) {
                 l.add(i);
-            } else if (cards.get(i).card().exhaustNonAttacks) {
+            }
+            if (cards.get(i).card().exhaustNonAttacks) {
                 for (int j = 0; j < cards.size(); j++) {
                     if (cards.get(j).card().cardType != Card.ATTACK) {
                         l.add(j);
                     }
                 }
-            } else if (cards.get(i).card().exhaustSkill) {
+            }
+            if (cards.get(i).card().exhaustSkill) {
                 for (int j = 0; j < cards.size(); j++) {
                     if (cards.get(j).card().cardType == Card.SKILL) {
                         l.add(j);
                     }
                 }
-            } else if (cards.get(i).card().selectFromDiscard || cards.get(i).card().exhaustCardFromHand) {
+            }
+            if (cards.get(i).card().selectFromDiscard || cards.get(i).card().exhaustCardFromHand) {
                 for (int j = 0; j < cards.size(); j++) {
                     l.add(j);
                 }
@@ -838,16 +845,6 @@ public class GameState implements State {
             return -1;
         } else {
             return enemies.stream().allMatch((x) -> x.health <= 0) ? 1 : 0;
-        }
-    }
-
-    private String formatFloat(double f) {
-        if (f == 0) {
-            return "0";
-        } else if (f < 0.001) {
-            return String.format("%6.3e", f).trim();
-        } else {
-            return String.format("%6.3f", f).trim();
         }
     }
 

@@ -254,9 +254,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                MATCHES_COUNT = 1000;
-                NODE_COUNT = 500;
-                iteration = 35;
+                MATCHES_COUNT = 500;
+                NODE_COUNT = 5000;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {
@@ -291,6 +290,7 @@ public class Main {
         if (GEN_TRAINING_MATCHES) {
             session.setTrainingDataLogFile("training_data.txt");
             session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
+            session.POLICY_CAP_ON = false;
             long start = System.currentTimeMillis();
             var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
             long end = System.currentTimeMillis();

@@ -618,45 +618,4 @@ public class MCTS {
         }
         return actionToPropagate;
     }
-
-    static private void printTreeH(State s, int depth, Writer writer, String indent) throws IOException {
-        if (depth == 0) {
-            return;
-        }
-        if (s instanceof ChanceState state) {
-            for (ChanceState.Node node : state.cache.values()) {
-                writer.write(indent + "Chance Node (" + node.n + "/" + state.total_n + "): " + node.state.toStringReadable() + "\n");
-                for (int i = 0; i < node.state.prop.maxNumOfActions; i++) {
-                    if (node.state.ns[i] != null) {
-                        if (depth > 1) {
-                            writer.write(indent + "  - action=" + node.state.getActionString(i) + "(" + i + ")\n");
-                        }
-                    }
-                    printTreeH(node.state.ns[i], depth - 1, writer, indent + "    ");
-                }
-            }
-        } else if (s instanceof GameState state) {
-            writer.write(indent + "Normal Node: " + state.toStringReadable() + "\n");
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.ns[i] != null) {
-                    if (depth > 1) {
-                        writer.write(indent + "  - action=" + state.getActionString(i) + "(" + i + ")\n");
-                    }
-                }
-                printTreeH(state.ns[i], depth - 1, writer, indent + "    ");
-            }
-        }
-    }
-
-    static void printTree(State state, Writer writer, int depth) {
-        try {
-            if (writer == null) {
-                writer = new OutputStreamWriter(System.out);
-            }
-            printTreeH(state, depth, writer, "");
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-abstract class Card implements GameProperties.CounterRegistrant {
+public abstract class Card implements GameProperties.CounterRegistrant {
     public static int ATTACK = 0;
     public static int SKILL = 1;
     public static int POWER = 2;

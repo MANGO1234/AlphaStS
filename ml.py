@@ -196,16 +196,16 @@ if DO_TRAINING:
 
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
             split = agent_output.find(b'--------------------')
-            print(agent_output[1 if agent_output[0] == '\n' else 0: split + 20].decode('ascii'))
+            print(agent_output[2 if agent_output[0] == '\r' else 0: split + 20].decode('ascii'))
             agent_output = agent_output[split + 20:]
 
         print(f'Iteration {training_info["iteration"]}')
         split = agent_output.find(b'--------------------')
-        print(agent_output[1 if agent_output[0] == '\n' else 0: split + 20].decode('ascii'))
+        print(agent_output[2 if agent_output[0] == 13 else 0: split + 20].decode('ascii'))
         agent_output = agent_output[split + 20:]
         split = agent_output.find(b'--------------------')
         if split >= 0:
-            print(agent_output[1 if agent_output[0] == '\n' else 0: split + 20].decode('ascii'))
+            print(agent_output[2 if agent_output[0] == 13 else 0: split + 20].decode('ascii'))
             agent_output = agent_output[split + 20:]
 
         get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')

@@ -151,6 +151,7 @@ public class MatchSession {
     }
 
     boolean SLOW_TRAINING_WINDOW;
+    boolean POLICY_CAP_ON;
 
     private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
         var states = new ArrayList<GameStep>();
@@ -166,8 +167,7 @@ public class MatchSession {
         }
 
         state.doEval(mcts.model);
-//        boolean quickPass = state.prop.random.nextInt(4) > 0;
-        boolean quickPass = false;
+        boolean quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
             for (int i = 0; i < todo; i++) {
@@ -189,7 +189,7 @@ public class MatchSession {
             var step = new GameStep(state, action) ;
             step.useForTraining = !quickPass;
             states.add(step);
-//            quickPass = state.prop.random.nextInt(4) > 0;
+            quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
             state = getNextState(state, mcts, action, !quickPass);
         }
         states.add(new GameStep(state, -1));
