@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class GameStateUtils {
     public static String formatFloat(double f) {
@@ -56,8 +54,12 @@ public class GameStateUtils {
         first2 = true;
         for (var entry : cardMap.entrySet()) {
             var v = entry.getValue();
-            if (v.deck < 0 && v.hand > 0 && v.hand <= -v.deck) {
-                desc.append(first2 ? "Draw " : ", ").append(v.hand == 1 ? "" : v.hand + " ").append(entry.getKey().cardName);
+            int drawn = 0;
+            if (v.deck < 0) {
+                drawn = -v.deck;
+            }
+            if (drawn > 0) {
+                desc.append(first2 ? "Draw " : ", ").append(drawn == 1 ? "" : drawn + " ").append(entry.getKey().cardName);
                 first2 = false;
             }
         }
@@ -131,7 +133,7 @@ public class GameStateUtils {
 
 
     static private void printTreeH2(GameState parentState, int parentAction, State s, int depth, Writer writer, String indent) throws IOException {
-        if (depth == -1) {
+        if (depth < 0) {
             return;
         }
         if (s instanceof ChanceState cState) {

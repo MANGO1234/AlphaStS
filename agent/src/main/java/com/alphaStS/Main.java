@@ -97,6 +97,25 @@ public class Main {
         return new GameState(enemies, player, cards, relics);
     }
 
+    public static GameState BasicLagavulinState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.Impervious(), 1));
+        cards.add(new CardCount(new Card.SeeingRed(), 1));
+        cards.add(new CardCount(new Card.BattleTrance(), 1));
+        cards.add(new CardCount(new Card.PommelStrike(), 1));
+        cards.add(new CardCount(new Card.Shockwave(), 1));
+        cards.add(new CardCount(new Card.Inflame(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.Lagavulin());
+        var relics = new ArrayList<Relic>();
+        var player = new Player(60, 75);
+        return new GameState(enemies, player, cards, relics);
+    }
+
     public static GameState SlimeBossState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -199,7 +218,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = GuardianState2();
+        var state = BasicLagavulinState2();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -255,7 +274,7 @@ public class Main {
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
                 MATCHES_COUNT = 500;
-                NODE_COUNT = 5000;
+                NODE_COUNT = 500;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {

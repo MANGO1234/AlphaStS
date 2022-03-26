@@ -296,7 +296,7 @@ public class InteractiveMode {
                     continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
-                        if (!l.equals("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
+                        if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
                             System.out.println(l);
                         }
                     }
@@ -504,12 +504,12 @@ public class InteractiveMode {
 
     private static void printTree(GameState state, String line) {
         String[] s = line.split(" ");
-        int depth = 4;
+        int depth = 3;
         int action = -1;
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
                 if (s[i].startsWith("d=")) {
-                    depth = parseInt(s[i].substring(2), 4);
+                    depth = parseInt(s[i].substring(2), 3);
                 }
                 if (s[i].startsWith("a=")) {
                     action = parseInt(s[i].substring(2), -1);
