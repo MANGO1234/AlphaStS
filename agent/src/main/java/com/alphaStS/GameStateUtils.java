@@ -96,7 +96,7 @@ public class GameStateUtils {
         }
         if (s instanceof ChanceState state) {
             for (ChanceState.Node node : state.cache.values()) {
-                writer.write(indent + "Chance Node (" + node.n + "/" + state.total_real_n + "): " + node.state.toStringReadable() + "\n");
+                writer.write(indent + "Chance Node (" + node.n + "/" + state.total_n + "): " + node.state.toStringReadable() + "\n");
                 for (int i = 0; i < node.state.prop.maxNumOfActions; i++) {
                     if (node.state.ns[i] != null) {
                         if (depth > 1) {
@@ -139,7 +139,7 @@ public class GameStateUtils {
         if (s instanceof ChanceState cState) {
             writer.write(indent + parentState.toStringReadable() + "\n");
             for (ChanceState.Node node : cState.cache.values().stream().sorted((a, b) -> Long.compare(b.n, a.n)).toList()) {
-                writer.write(indent + "Chance Node (" + node.n + "/" + cState.total_real_n + "): " + diffGameState(parentState, node.state) + "\n");
+                writer.write(indent + "Chance Node (" + node.n + "/" + cState.total_n + "): " + diffGameState(parentState, node.state) + "\n");
                 var state = node.state;
                 var n = node.state.total_n + 1;
                 var q_comb = node.state.total_q_comb;
