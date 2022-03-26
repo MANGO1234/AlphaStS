@@ -1719,31 +1719,47 @@ class ChanceState implements State {
         cache = new Hashtable<>();
         cache.put(initState, new Node(initState));
         total_real_n = 1;
-        total_n = 1;
         this.parentState = parentState;
         this.parentAction = action;
-        for (int i = 1; i < 50; i++) {
-            queue.add(getNextState());
-        }
-        single_q_comb = parentState.total_q_comb;
-        single_q_win = parentState.total_q_win;
-        single_q_health = parentState.total_q_health;
+        var tmpQueue = new ArrayList<GameState>();
+//        for (int i = 1; i < 50; i++) {
+//            tmpQueue.add(getNextState());
+//        }
+        queue = tmpQueue;
+        var v = new double[3];
+        parentState.get_v(v);
+        single_q_win = v[0];
+        single_q_health = v[1];
+        single_q_comb = v[2];
         for (Node node : cache.values()) {
-            node.prev_q_comb = node.n / (double) total_real_n * single_q_comb;
-            node.prev_q_win = node.n / (double) total_real_n * single_q_win;
-            node.prev_q_health = node.n / (double) total_real_n * single_q_health;
+            node.prev_q_comb = single_q_comb;
+            node.prev_q_win = single_q_win;
+            node.prev_q_health = single_q_health;
         }
     }
 
-    public void normalizeV(GameState state2, double[] v) {
+    public void correctV(GameState state2, double[] v) {
         var node = cache.get(state2);
-        node.prev_q_comb = node.state.total_q_comb  / (node.state.total_n + 1);
-        node.prev_q_win = node.state.total_q_win  / (node.state.total_n + 1);
-        node.prev_q_health = node.state.total_q_health  / (node.state.total_n + 1);
+        if (queue.size() > 0) {
+            var cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
+            var cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
+            var cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
+//            System.out.println(single_q_win + "," + node.n / (double) total_real_n +"," + cur_q_win +"," +  node.prev_q_win);
+            single_q_comb += node.n / (double) total_real_n * (cur_q_comb - node.prev_q_comb);
+            single_q_win += node.n / (double) total_real_n * (cur_q_win - node.prev_q_win);
+            single_q_health += node.n / (double) total_real_n * (cur_q_health - node.prev_q_health);
+            node.prev_q_comb = cur_q_comb;
+            node.prev_q_win = cur_q_win;
+            node.prev_q_health = cur_q_health;
+            v[0] = single_q_win * (total_n + 1) - total_q_win;
+            v[1] = single_q_health * (total_n + 1) - total_q_health;
+            v[2] = single_q_comb * (total_n + 1) - total_q_comb;
+        }
         total_n += 1;
         total_q_win += v[0];
         total_q_health += v[1];
         total_q_comb += v[2];
+//        System.out.println(single_q_win + "," + total_q_win / total_n);
     }
 
     GameState getNextState() {
