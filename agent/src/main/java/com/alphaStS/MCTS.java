@@ -1,8 +1,5 @@
 package com.alphaStS;
 
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.io.IOException;
 import java.util.Arrays;
 
 import cc.mallet.types.Dirichlet;
@@ -95,8 +92,9 @@ public class MCTS {
                 state2.doAction(action);
                 while (true) {
                     if (state2.isStochastic) {
-                        state.ns[action] = new ChanceState(state2);
+                        state.ns[action] = new ChanceState(state2, state, action);
                         this.search1_r(state2, training, remainingCalls, false);
+                        ((ChanceState) (state.ns[action])).normalizeV(state2, v);
                         break;
                     } else {
                         if (state.transpositions.get(state2) == null) {
@@ -114,8 +112,9 @@ public class MCTS {
                 }
             } else {
                 if (nextState instanceof ChanceState cState) {
-                    state2 = cState.getNextState(state, action);
+                    state2 = cState.getNextState();
                     this.search1_r(state2, training, remainingCalls, false);
+                    cState.normalizeV(state2, v);
                 } else {
                     this.search1_r((GameState) nextState, training, remainingCalls, false);
                 }
@@ -213,24 +212,20 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                var cState = new ChanceState(state2);
-                state.ns[action] = cState;
+                state.ns[action] = new ChanceState(state2, state, action);
                 this.search2_r(state2, training, remainingCalls, false);
-                cState.total_q_win += v[0];
-                cState.total_q_health += v[1];
-                cState.total_q_comb += v[2];
+                ((ChanceState) (state.ns[action])).normalizeV(state2, v);
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                        var parentState = state2.clone(false);
                         state2.doAction(0);
-                        var cState = new ChanceState(state2);
+                        var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(state2, cState);
                         this.search2_r(state2, training, remainingCalls, false);
-                        cState.total_q_win += v[0];
-                        cState.total_q_health += v[1];
-                        cState.total_q_comb += v[2];
+                        cState.normalizeV(state2, v);
                     } else {
                         state.ns[action] = state2;
                         state.transpositions.put(state2, state2);
@@ -251,23 +246,16 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-                    state2 = cState.getNextState(state, action);
+                    state2 = cState.getNextState();
                     this.search2_r(state2, training, remainingCalls, false);
-                    cState.total_q_win += v[0];
-                    cState.total_q_health += v[1];
-                    cState.total_q_comb += v[2];
+                    cState.normalizeV(state2, v);
                     v[0] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[1] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     v[2] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
-                    if (state.n[action] + 1 < cState.total_n) {
-                        Integer.parseInt(null);
-                    }
                 } else {
-                    state2 = cState.getNextState(state, action);
+                    state2 = cState.getNextState();
                     this.search2_r(state2, training, remainingCalls, false);
-                    cState.total_q_win += v[0];
-                    cState.total_q_health += v[1];
-                    cState.total_q_comb += v[2];
+                    cState.normalizeV(state2, v);
                 }
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
@@ -362,24 +350,20 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                var cState = new ChanceState(state2);
-                state.ns[action] = cState;
+                state.ns[action] = new ChanceState(state2,state, action);
                 this.search3_r(state2, training, remainingCalls, false);
-                cState.total_q_win += v[0];
-                cState.total_q_health += v[1];
-                cState.total_q_comb += v[2];
+                ((ChanceState) state.ns[action]).normalizeV(state2, v);
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                        var parentState = state2.clone(false);
                         state2.doAction(0);
-                        var cState = new ChanceState(state2);
+                        var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(state2, cState);
                         this.search3_r(state2, training, remainingCalls, false);
-                        cState.total_q_win += v[0];
-                        cState.total_q_health += v[1];
-                        cState.total_q_comb += v[2];
+                        cState.normalizeV(state2, v);
                     } else {
                         state.ns[action] = state2;
                         state.transpositions.put(state2, state2);
@@ -400,23 +384,16 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-                    state2 = cState.getNextState(state, action);
+                    state2 = cState.getNextState();
                     this.search3_r(state2, training, remainingCalls, false);
-                    cState.total_q_win += v[0];
-                    cState.total_q_health += v[1];
-                    cState.total_q_comb += v[2];
+                    cState.normalizeV(state2, v);
                     v[0] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[1] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     v[2] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
-                    if (state.n[action] + 1 < cState.total_n) {
-                        Integer.parseInt(null);
-                    }
                 } else {
-                    state2 = cState.getNextState(state, action);
+                    state2 = cState.getNextState();
                     this.search3_r(state2, training, remainingCalls, false);
-                    cState.total_q_win += v[0];
-                    cState.total_q_health += v[1];
-                    cState.total_q_comb += v[2];
+                    cState.normalizeV(state2, v);
                 }
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
@@ -469,6 +446,9 @@ public class MCTS {
         if (state.policy == null) {
             state.doEval(model);
             state.get_v(v);
+            state.total_q_win = v[0];
+            state.total_q_health = v[1];
+            state.total_q_comb = v[2];
             return;
         }
 
@@ -495,21 +475,26 @@ public class MCTS {
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
+            var parentState = state;
+            var parentAction = action;
             if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                parentState = state2.clone(false);
+                parentAction = 0;
                 state2.doAction(0);
             }
             if (state2.isStochastic) {
-                var cState = new ChanceState(state2);
-                state.ns[action] = cState;
+                state.ns[action] = new ChanceState(state2, parentState, parentAction);
                 this.searchPlain_r(state2, training, remainingCalls, false);
+                ((ChanceState) (state.ns[action])).normalizeV(state2, v);
             } else {
                 state.ns[action] = state2;
                 this.searchPlain_r(state2, training, remainingCalls, false);
             }
         } else {
             if (nextState instanceof ChanceState cState) {
-                state2 = cState.getNextState(state, action);
+                state2 = cState.getNextState();
                 this.searchPlain_r(state2, training, remainingCalls, false);
+                cState.normalizeV(state2, v);
             } else if (nextState instanceof GameState nState) {
                 this.searchPlain_r(nState, training, remainingCalls, false);
             }
@@ -520,6 +505,9 @@ public class MCTS {
         state.q_comb[action] += v[2];
         state.n[action] += 1;
         state.total_n += 1;
+        state.total_q_win += v[0];
+        state.total_q_health += v[1];
+        state.total_q_comb += v[2];
         this.numberOfPossibleActions = numberOfActions;
     }
 

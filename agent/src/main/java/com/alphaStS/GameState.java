@@ -1685,6 +1685,9 @@ class ChanceState implements State {
     static class Node {
         GameState state;
         long n;
+        double prev_q_comb;
+        double prev_q_win;
+        double prev_q_health;
 
         public Node(GameState state) {
             this.state = state;
@@ -1693,29 +1696,66 @@ class ChanceState implements State {
     }
 
     Hashtable<GameState, Node> cache;
-    long total_n;
+    long total_real_n; // actual n, sum of cache entries' n
+    long total_n; // n called from parent
     double total_q_win;
     double total_q_health;
     double total_q_comb;
+    double single_q_comb;
+    double single_q_win;
+    double single_q_health;
+    List<GameState> queue = new ArrayList<>();
+    GameState parentState;
+    int parentAction;
+
+    // useless
     double v_health = -1;
 
     public ChanceState() {
         cache = new Hashtable<>();
     }
 
-    public ChanceState(GameState initState) {
+    public ChanceState(GameState initState, GameState parentState, int action) {
         cache = new Hashtable<>();
         cache.put(initState, new Node(initState));
+        total_real_n = 1;
         total_n = 1;
+        this.parentState = parentState;
+        this.parentAction = action;
+        for (int i = 1; i < 50; i++) {
+            queue.add(getNextState());
+        }
+        single_q_comb = parentState.total_q_comb;
+        single_q_win = parentState.total_q_win;
+        single_q_health = parentState.total_q_health;
+        for (Node node : cache.values()) {
+            node.prev_q_comb = node.n / (double) total_real_n * single_q_comb;
+            node.prev_q_win = node.n / (double) total_real_n * single_q_win;
+            node.prev_q_health = node.n / (double) total_real_n * single_q_health;
+        }
     }
 
-    GameState getNextState(GameState parentState, int action) {
+    public void normalizeV(GameState state2, double[] v) {
+        var node = cache.get(state2);
+        node.prev_q_comb = node.state.total_q_comb  / (node.state.total_n + 1);
+        node.prev_q_win = node.state.total_q_win  / (node.state.total_n + 1);
+        node.prev_q_health = node.state.total_q_health  / (node.state.total_n + 1);
+        total_n += 1;
+        total_q_win += v[0];
+        total_q_health += v[1];
+        total_q_comb += v[2];
+    }
+
+    GameState getNextState() {
+        if (queue.size() > 0) {
+            return queue.remove(queue.size() - 1);
+        }
         var state = parentState.clone(false);
-        state.doAction(action);
+        state.doAction(parentAction);
         if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
-        total_n += 1;
+        total_real_n += 1;
         var node = cache.get(state);
         if (node != null) {
             node.n += 1;
@@ -1729,7 +1769,7 @@ class ChanceState implements State {
         var node = cache.get(state);
         if (node == null) {
             cache.put(state, new Node(state));
-            total_n += 1;
+            total_real_n += 1;
             return state;
         }
         return node.state;
@@ -1738,7 +1778,7 @@ class ChanceState implements State {
     @Override public String toString() {
         String s = "";
         for (Node node : cache.values()) {
-            s += "- (" + node.n + "/" + total_n + ") " + node.state + "\n";
+            s += "- (" + node.n + "/" + total_real_n + ") " + node.state + "\n";
         }
         return s;
     }
