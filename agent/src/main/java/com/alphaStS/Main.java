@@ -168,23 +168,24 @@ public class Main {
     public static GameState GuardianState2() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.BashP(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Clash(), 1));
-        cards.add(new CardCount(new Card.Armanent(), 1));
-        cards.add(new CardCount(new Card.Carnage(), 1));
-        cards.add(new CardCount(new Card.Metallicize(), 1));
-        cards.add(new CardCount(new Card.Shockwave(), 1));
-        cards.add(new CardCount(new Card.ShrugItOff(), 1));
-        cards.add(new CardCount(new Card.PowerThrough(), 1));
+        cards.add(new CardCount(new Card.Dropkick(), 2));
+//        cards.add(new CardCount(new Card.Strike(), 4));
+//        cards.add(new CardCount(new Card.Defend(), 4));
+//        cards.add(new CardCount(new Card.AscendersBane(), 1));
+//        cards.add(new CardCount(new Card.Anger(), 1));
+//        cards.add(new CardCount(new Card.Clash(), 1));
+//        cards.add(new CardCount(new Card.Armanent(), 1));
+//        cards.add(new CardCount(new Card.Carnage(), 1));
+//        cards.add(new CardCount(new Card.Metallicize(), 1));
+//        cards.add(new CardCount(new Card.Shockwave(), 1));
+//        cards.add(new CardCount(new Card.ShrugItOff(), 1));
+//        cards.add(new CardCount(new Card.PowerThrough(), 1));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.TheGuardian());
         var relics = new ArrayList<Relic>();
-        relics.add(new Relic.AncientTeaSet());
-        relics.add(new Relic.DuVuDoll());
-        relics.add(new Relic.WarpedTongs());
+//        relics.add(new Relic.AncientTeaSet());
+//        relics.add(new Relic.DuVuDoll());
+//        relics.add(new Relic.WarpedTongs());
 //        return new GameState(enemies, new Player(19, 75), cards, relics);
         return new GameState(enemies, new Player(41, 75), cards, relics);
     }
@@ -233,6 +234,7 @@ public class Main {
         boolean CURRICULUM_TRAINING_ON = false;
         int MATCHES_COUNT = 5;
         int NODE_COUNT = 1000;
+        int NUMBER_OF_THREADS = 2;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-t")) {
@@ -296,7 +298,7 @@ public class Main {
             }
         }
 
-        MatchSession session = new MatchSession(2, curIterationDir);
+        MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir);
         if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
             if (TEST_AGENT_FITNESS && MATCHES_COUNT <= 100) {
                 session.setMatchLogFile("training_matches.txt");

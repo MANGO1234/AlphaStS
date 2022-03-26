@@ -172,7 +172,7 @@ public class MatchSession {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
             for (int i = 0; i < todo; i++) {
                 mcts.search(state, !quickPass, todo - i);
-                if (mcts.numberOfPossibleActions == 1) {
+                if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
                     if (!state.isStochastic && states.size() > 0) {
                         state = getNextState(states.get(states.size() - 1).state(), mcts, states.get(states.size() - 1).action(), false);
                     }

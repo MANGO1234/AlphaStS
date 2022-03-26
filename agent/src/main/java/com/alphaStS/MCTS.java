@@ -49,7 +49,7 @@ public class MCTS {
             state.total_q_comb = v[2];
             numberOfPossibleActions = 0;
             for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.policy[i] <= 0) {
+                if (state.policy[i] > 0) {
                     numberOfPossibleActions++;
                 }
             }
@@ -181,7 +181,7 @@ public class MCTS {
             state.total_q_comb = v[2];
             numberOfPossibleActions = 0;
             for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.policy[i] <= 0) {
+                if (state.policy[i] > 0) {
                     numberOfPossibleActions++;
                 }
             }
@@ -318,8 +318,8 @@ public class MCTS {
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
             numberOfPossibleActions = 0;
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.policy[i] <= 0) {
+             for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+                if (state.policy[i] > 0) {
                     numberOfPossibleActions++;
                 }
             }
