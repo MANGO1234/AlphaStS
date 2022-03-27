@@ -293,8 +293,8 @@ abstract class Enemy {
             if (move == ATTACK_1 || move == ATTACK_2) {
                 state.enemyDoDamageToPlayer(this, 20, 1);
             } else if (move == SIPHON_SOUL) {
-                state.player.applyDebuff(DebuffType.LOSE_DEXTERITY, -2);
-                state.player.applyDebuff(DebuffType.LOSE_STRENGTH, -2);
+                state.player.applyDebuff(state, DebuffType.LOSE_DEXTERITY, -2);
+                state.player.applyDebuff(state, DebuffType.LOSE_STRENGTH, -2);
             }
         }
 
@@ -563,8 +563,8 @@ abstract class Enemy {
             } else if (move == FIERCE_BASH) {
                 state.enemyDoDamageToPlayer(this, 36, 1);
             } else if (move == VENT_STEAM) {
-                state.player.applyDebuff(DebuffType.VULNERABLE, 2);
-                state.player.applyDebuff(DebuffType.WEAK, 2);
+                state.player.applyDebuff(state, DebuffType.VULNERABLE, 2);
+                state.player.applyDebuff(state, DebuffType.WEAK, 2);
             } else if (move == WHIRL_WIND) {
                 state.enemyDoDamageToPlayer(this, 5, 4);
             } else if (move == DEFENSIVE_MODE) {
@@ -787,7 +787,7 @@ abstract class Enemy {
                 state.addCardToDiscard(state.prop.slimeCardIdx);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.FRAIL, 4);
+                state.player.applyDebuff(state, DebuffType.FRAIL, 4);
             } else if (move == SPLIT) {
                 for (Enemy enemy : state.enemies) {
                     if (enemy instanceof Enemy.MediumSpikeSlime) {
@@ -875,7 +875,7 @@ abstract class Enemy {
                 state.enemyDoDamageToPlayer(this, 10, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.FRAIL, 2);
+                state.player.applyDebuff(state, DebuffType.FRAIL, 2);
             }
         }
 
@@ -1017,7 +1017,7 @@ abstract class Enemy {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.WEAK, 3);
+                state.player.applyDebuff(state, DebuffType.WEAK, 3);
             } else if (move == SPLIT) {
                 for (Enemy enemy : state.enemies) {
                     if (enemy instanceof Enemy.MediumAcidSlime) {
@@ -1117,7 +1117,7 @@ abstract class Enemy {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.WEAK, 2);
+                state.player.applyDebuff(state, DebuffType.WEAK, 2);
             }
         }
 
@@ -1191,7 +1191,7 @@ abstract class Enemy {
             if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 4, 1);
             } else if (move == LICK) {
-                state.player.applyDebuff(DebuffType.WEAK, 2);
+                state.player.applyDebuff(state, DebuffType.WEAK, 2);
             }
         }
 
@@ -1423,7 +1423,7 @@ abstract class Enemy {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == SPIT_WEB) {
-                state.player.applyDebuff(DebuffType.WEAK, 3);
+                state.player.applyDebuff(state, DebuffType.WEAK, 3);
             }
         }
 
@@ -1530,7 +1530,7 @@ abstract class Enemy {
             super.damage(n, state);
             if (!isDead && health <= 0) {
                 isDead = true;
-                state.player.applyDebuff(DebuffType.VULNERABLE, 3);
+                state.player.applyDebuff(state, DebuffType.VULNERABLE, 3);
             }
         }
 
@@ -1538,7 +1538,7 @@ abstract class Enemy {
             super.nonAttackDamage(n, blockable, state);
             if (!isDead && health <= 0) {
                 isDead = true;
-                state.player.applyDebuff(DebuffType.VULNERABLE, 3);
+                state.player.applyDebuff(state, DebuffType.VULNERABLE, 3);
             }
         }
 

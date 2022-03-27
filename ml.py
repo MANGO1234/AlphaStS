@@ -174,7 +174,7 @@ if DO_TRAINING:
     start = time.time()
     for _iterations in range(0, ITERATION_COUNT):
         iter_start = time.time()
-        agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-t', '-dir', SAVES_DIR]
+        agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-training', '-t', 2, '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iterations > 0:
             if training_info["iteration"] < 15:
                 matches_count = 1000

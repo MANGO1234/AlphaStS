@@ -1,6 +1,5 @@
 package com.alphaStS;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,7 +11,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public boolean healPlayer;
 
     public void startOfGameSetup(GameState state) {}
-    List<Card> getPossibleGeneratedCards(List<Card> cards) { return Arrays.asList(); }
+    List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
 
     int counterIdx = -1;
     @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -20,13 +19,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     private static boolean isEliteFight(GameState state) {
-        boolean isEliteFight = false;
-        for (Enemy enemy : state.enemies) {
-            if (enemy.isElite) {
-                isEliteFight = true;
-            }
-        }
-        return isEliteFight;
+        return state.enemies.stream().anyMatch((enemy) -> enemy.isElite);
     }
 
     // ************************************************************* Common Relics ******************************************************************
@@ -78,9 +71,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     public static class BagOfMarbles extends Relic {
-        public boolean vulnEnemy = true;
-
         @Override public void startOfGameSetup(GameState state) {
+            vulnEnemy = true;
             for (Enemy enemy : state.enemies) {
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
@@ -110,8 +102,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class CentennialPuzzle extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
-            state.addOnDamageHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+            state.addOnDamageHandler(new OnDamageHandler() {
+                @Override void handle(GameState state, Object source) {
                     if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
                         state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();
                         state.draw(3);
@@ -127,7 +119,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class HappyFlower extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("HappyFlower", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] == 0 ? 3 : counter[counterIdx]) / 3.0f;
                     return idx + 1;
@@ -163,7 +155,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class Nunchaku extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Nunchaku", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
                     return idx + 1;
@@ -191,7 +183,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class Orichalcum extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     if (state.player.block == 0) {
                         state.player.gainBlockNotFromCardPlay(6);
@@ -204,7 +196,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class PenNib extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("PenNib", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
                     return idx + 1;
@@ -291,7 +283,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class InkBottle extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("InkBottle", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
                     return idx + 1;
@@ -314,11 +306,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     public static class Kunai extends Relic {
-        public boolean playerDexterityCanChange = true;
-
         @Override public void startOfGameSetup(GameState state) {
+            changePlayerDexterity = true;
             state.prop.registerCounter("Kunai", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
                     return idx + 1;
@@ -348,11 +339,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     public static class LetterOpener extends Relic {
-        public boolean playerStrengthCanChange = true;
-
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("LetterOpener", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
                     return idx + 1;
@@ -404,11 +393,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // todo: Mummified Egg
 
     public static class OrnamentalFan extends Relic {
-        public boolean playerStrengthCanChange = true;
-
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("OrnamentalFan", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
                     return idx + 1;
@@ -424,7 +411,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.player.gainBlock(4);
+                            state.player.gainBlockNotFromCardPlay(4);
                         }
                     }
                 }
@@ -442,11 +429,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // Question Card: No need to implement
 
     public static class Shuriken extends Relic {
-        public boolean playerStrengthCanChange = true;
-
         @Override public void startOfGameSetup(GameState state) {
+            changePlayerStrength = true;
             state.prop.registerCounter("Shuriken", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
                     return idx + 1;
@@ -531,7 +517,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     // todo: Fossilized Helix
     // todo: Gambling Chip
-    // todo: Ginger
+
+    public static class Ginger extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasGinger = true;
+        }
+    }
 
     public static class Girya extends Relic {
         private final int strength;
@@ -563,7 +554,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // todo: Threadand Needle
     // todo: Torii
     // todo: Tungsten Rod
-    // todo: Turnip
+
+    public static class Turnip extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasTurnip = true;
+        }
+    }
+
     // todo: Unceasing Top
 
     // **********************************************************************************************************************************************
@@ -597,7 +594,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         }
     }
 
-    // todo: Strange Spoon
+    public static class StrangeSpoon extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasStrangeSpoon = true;
+        }
+    }
+
     // todo: The Abacus
     // todo: Toolbox
 
@@ -707,9 +709,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     public static class RedMask extends Relic {
-        public boolean weakEnemy = true;
-
         @Override public void startOfGameSetup(GameState state) {
+            weakEnemy = true;
             for (Enemy enemy : state.enemies) {
                 enemy.applyDebuff(DebuffType.WEAK, 1);
             }

@@ -6,23 +6,39 @@ import java.util.*;
 
 import static com.alphaStS.GameStateUtils.formatFloat;
 
-abstract class GameEventHandler {
+abstract class GameEventHandler implements Comparable<GameEventHandler> {
+    private int priority;
+
+    protected GameEventHandler(int priority) {
+        this.priority = priority;
+    }
+
+    protected GameEventHandler() {}
+
     abstract void handle(GameState state);
+
+    @Override public int compareTo(GameEventHandler other) {
+        return Integer.compare(other.priority, priority);
+    }
 }
 
 abstract class OnCardPlayedHandler {
     abstract void handle(GameState state, Card card);
 }
 
+abstract class OnDamageHandler {
+    abstract void handle(GameState state, Object source);
+}
+
 class GameProperties {
     boolean playerStrengthCanChange;
     boolean playerDexterityCanChange;
+    boolean playerStrengthEotCanChange;
+    boolean playerDexterityEotCanChange;
     boolean playerCanGetVuln;
     boolean playerCanGetWeakened;
     boolean playerCanGetFrailed;
-    boolean playerCanGetMetallicize;
     boolean playerCanHeal;
-    boolean playerThornCanChange;
     boolean enemyCanGetVuln;
     boolean enemyCanGetWeakened;
     long possibleBuffs;
@@ -49,26 +65,33 @@ class GameProperties {
     boolean hasBlueCandle;
     boolean hasBoot;
     boolean hasCaliper;
+    boolean hasGinger;
     boolean hasIceCream;
     boolean hasMedicalKit;
     boolean hasOddMushroom;
     boolean hasRunicPyramid;
+    boolean hasStrangeSpoon;
+    boolean hasTurnip;
 
     int penNibCounterIdx = -1;
 
     // cached game properties for generating NN input
     boolean battleTranceExist;
-    boolean feelNoPainExist;
-    boolean darkEmbraceExist;
     boolean energyRefillCanChange;
     int inputLen;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
-    List<GameEventHandler> startOfTurnHandlers;
-    List<GameEventHandler> preEndTurnHandlers;
-    List<GameEventHandler> onPlayerDamageHandlers;
-    List<GameEventHandler> onBlockHandlers;
-    List<OnCardPlayedHandler> onCardPlayedHandlers;
+    Set<String> gameEventHandlers = new HashSet<>();
+    List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
+    List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
+    List<GameEventHandler> onBlockHandlers = new ArrayList<>();
+    List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
+    List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
+    List<OnCardPlayedHandler> onCardPlayedHandlers = new ArrayList<>();
+
+    public GameProperties() {
+        random = new RandomGen();
+    }
 
     public int findCardIndex(Card card) {
         for (int i = 0; i < cardDict.length; i++) {
@@ -84,7 +107,7 @@ class GameProperties {
     }
 
     interface NetworkInputHandler {
-        int addToInput(float[] input, int idx);
+        int addToInput(GameState state, float[] input, int idx);
         int getInputLenDelta();
     }
 
@@ -173,10 +196,6 @@ public class GameState implements State {
     // various other buffs/debuffs
     long buffs;
     short thorn;
-    short thornLoseEOT;
-    short metallicize;
-    short feelNotPain;
-    short darkEmbrace;
 
     double v_win; // if terminal, 1.0 or -1.0, else from NN
     double v_health; // if terminal, player_health/player_max_health, else from NN
@@ -201,7 +220,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && (counter == gameState.counter || Arrays.equals(counter, gameState.counter)) && metallicize == gameState.metallicize && feelNotPain == gameState.feelNotPain && darkEmbrace == gameState.darkEmbrace && thorn == gameState.thorn && thornLoseEOT == gameState.thornLoseEOT && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && (counter == gameState.counter || Arrays.equals(counter, gameState.counter)) && thorn == gameState.thorn && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder);
     }
 
     @Override public int hashCode() {
@@ -217,11 +236,6 @@ public class GameState implements State {
     public GameState(List<Enemy> enemies, Player player, List<CardCount> cards, List<Relic> relics) {
         // game properties (shared)
         prop = new GameProperties();
-        prop.random = new RandomGen();
-        prop.startOfTurnHandlers = new ArrayList<>();
-        prop.preEndTurnHandlers = new ArrayList<>();
-        prop.onPlayerDamageHandlers = new ArrayList<>();
-        prop.onCardPlayedHandlers = new ArrayList<>();
 
         cards = collectAllPossibleCards(cards, enemies, relics);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
@@ -305,31 +319,6 @@ public class GameState implements State {
             }
         }
 
-        prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
-        prop.playerStrengthCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerStrength);
-        prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
-        prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
-        prop.playerDexterityCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerDexterity);
-        prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
-        prop.playerCanGetVuln = enemies.stream().anyMatch((x) -> x.canVulnerable);
-        prop.playerCanGetWeakened = enemies.stream().anyMatch((x) -> x.canWeaken);
-        prop.playerCanGetFrailed = enemies.stream().anyMatch((x) -> x.canFrail);
-        prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
-        prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy) || relics.stream().anyMatch((x) -> x.vulnEnemy);
-        prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy) || relics.stream().anyMatch((x) -> x.weakEnemy);;
-        prop.playerCanGetMetallicize = cards.stream().anyMatch((x) -> x.card().cardName.contains("Metallicize"));
-        prop.playerThornCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Flame Barrier"));
-        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
-        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
-        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
-        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
-        prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
-        prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
-        prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
-        prop.feelNoPainExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Feel No Pain"));
-        prop.darkEmbraceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Dark Embrace"));
-        prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
-
         // game state
         actionCtx = GameActionCtx.START_GAME;
         deck = new int[cards.size()];
@@ -360,10 +349,36 @@ public class GameState implements State {
             card.startOfGameSetup(this);
         }
         prop.compileCounterInfo();
-        prop.inputLen = getNNInputLen();
         if (prop.counterNames.length > 0) {
             counter = new int[prop.counterNames.length];
         }
+        Collections.sort(prop.startOfTurnHandlers);
+        Collections.sort(prop.preEndTurnHandlers);
+        Collections.sort(prop.onBlockHandlers);
+        Collections.sort(prop.onExhaustHandlers);
+
+        prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
+        prop.playerStrengthCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
+        prop.playerDexterityCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
+        prop.playerCanGetVuln = enemies.stream().anyMatch((x) -> x.canVulnerable);
+        prop.playerCanGetWeakened = enemies.stream().anyMatch((x) -> x.canWeaken);
+        prop.playerCanGetFrailed = enemies.stream().anyMatch((x) -> x.canFrail);
+        prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
+        prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy) || relics.stream().anyMatch((x) -> x.vulnEnemy);
+        prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy) || relics.stream().anyMatch((x) -> x.weakEnemy);;
+        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
+        prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
+        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
+        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
+        prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
+        prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
+        prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
+        prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
+        prop.inputLen = getNNInputLen();
 
         // mcts related fields
         policy = null;
@@ -378,8 +393,8 @@ public class GameState implements State {
     }
 
     private int[] findUpgradeIdxes(List<CardCount> cards, List<Relic> relics) {
-        if (!cards.stream().anyMatch((x) -> x.card().cardName.contains("Armanent")) &&
-            !relics.stream().anyMatch((x) -> x instanceof Relic.WarpedTongs)) {
+        if (cards.stream().noneMatch((x) -> x.card().cardName.contains("Armanent")) &&
+            relics.stream().noneMatch((x) -> x instanceof Relic.WarpedTongs)) {
             return null;
         }
         int[] r = new int[cards.size() - 1];
@@ -498,10 +513,6 @@ public class GameState implements State {
         buffs = other.buffs;
         counter = other.counter;
         thorn = other.thorn;
-        thornLoseEOT = other.thornLoseEOT;
-        metallicize = other.metallicize;
-        feelNotPain = other.feelNotPain;
-        darkEmbrace = other.darkEmbrace;
 
         policy = null;
         q_health = new double[prop.maxNumOfActions];
@@ -706,7 +717,6 @@ public class GameState implements State {
         for (GameEventHandler handler : prop.preEndTurnHandlers) {
             handler.handle(this);
         }
-        if (metallicize > 0) player.gainBlockNotFromCardPlay(metallicize);
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
                 if (prop.cardDict[i].ethereal) {
@@ -726,8 +736,6 @@ public class GameState implements State {
                 enemy.endTurn();
             }
         }
-        thorn -= thornLoseEOT;
-        thornLoseEOT = 0;
         player.endTurn(this);
         if (!prop.hasIceCream) {
             energy = 0;
@@ -922,15 +930,6 @@ public class GameState implements State {
             }
         }
         str.append("]");
-        if (metallicize > 0) {
-            str.append(", metal=").append(metallicize);
-        }
-        if (feelNotPain > 0) {
-            str.append(", fnp=").append(feelNotPain);
-        }
-        if (darkEmbrace > 0) {
-            str.append(", darkEmbr=").append(darkEmbrace);
-        }
         if (buffs > 0) {
             str.append(", buffs=[");
             first = true;
@@ -1012,6 +1011,12 @@ public class GameState implements State {
         if (prop.playerDexterityCanChange) {
             inputLen += 1; // player dexterity
         }
+        if (prop.playerStrengthEotCanChange) {
+            inputLen += 1; // player lose strength eot
+        }
+        if (prop.playerDexterityEotCanChange) {
+            inputLen += 1; // player lose dexterity eot
+        }
         if (prop.playerCanGetVuln) {
             inputLen += 1; // player vulnerable
         }
@@ -1021,20 +1026,8 @@ public class GameState implements State {
         if (prop.playerCanGetFrailed) {
             inputLen += 1; // player weak
         }
-        if (prop.playerCanGetMetallicize) {
-            inputLen += 1; // player metallicize
-        }
-        if (prop.playerThornCanChange) {
-            inputLen += 1; // player thorn
-        }
         if (prop.battleTranceExist) {
             inputLen += 1; // battle trance
-        }
-        if (prop.feelNoPainExist) {
-            inputLen += 1; // feel no pain
-        }
-        if (prop.darkEmbraceExist) {
-            inputLen += 1; // dark embrace
         }
         if (prop.energyRefillCanChange) {
             inputLen += 1; // berserk
@@ -1102,7 +1095,7 @@ public class GameState implements State {
         for (int discardIdx : prop.discardIdxes) {
             str += "    " + prop.cardDict[discardIdx].cardName + "\n";
         }
-        str += "Neural Network Input Breakdown:\n";
+        str += "Neural Network Input Breakdown (" + prop.inputLen + " parameters):\n";
         str += "    " + deck.length + " parameters for cards in deck\n";
         str += "    " + hand.length + " parameters for cards in hand\n";
         str += "    " + prop.discardIdxes.length + " parameters to keep track of cards in discard\n";
@@ -1126,6 +1119,12 @@ public class GameState implements State {
         if (prop.playerDexterityCanChange) {
             str += "    1 parameter to keep track of player dexterity\n";
         }
+        if (prop.playerStrengthEotCanChange) {
+            str += "    1 parameter to keep track of player lose strength eot debuff\n";
+        }
+        if (prop.playerDexterityEotCanChange) {
+            str += "    1 parameter to keep track of player lose dexterity eot debuff\n";
+        }
         if (prop.playerCanGetVuln) {
             str += "    1 parameter to keep track of player vulnerable\n";
         }
@@ -1135,20 +1134,8 @@ public class GameState implements State {
         if (prop.playerCanGetFrailed) {
             str += "    1 parameter to keep track of player frail\n";
         }
-        if (prop.playerCanGetMetallicize) {
-            str += "    1 parameter to keep track of metallicize\n";
-        }
-        if (prop.playerThornCanChange) {
-            str += "    1 parameter to keep track of thorn\n";
-        }
         if (prop.battleTranceExist) {
             str += "    1 parameter to keep track of battle trance cannot draw card debuff\n";
-        }
-        if (prop.feelNoPainExist) {
-            str += "    1 parameter to keep track of feel no pain\n";
-        }
-        if (prop.darkEmbraceExist) {
-            str += "    1 parameter to keep track of dark embrace\n";
         }
         if (prop.energyRefillCanChange) {
             str += "    1 parameter to keep track of berserk\n";
@@ -1160,7 +1147,7 @@ public class GameState implements State {
         }
         for (int i = 0; i < prop.counterHandlers.length; i++) {
             if (prop.counterHandlers[i] != null) {
-                str += "    " + prop.counterHandlers[i].getInputLenDelta() + " parameter to keep track of counter for  " + prop.counterNames[i] + "\n";
+                str += "    " + prop.counterHandlers[i].getInputLenDelta() + " parameter to keep track of counter for " + prop.counterNames[i] + "\n";
             }
         }
         // cards currently selecting enemies
@@ -1255,6 +1242,12 @@ public class GameState implements State {
         if (prop.playerDexterityCanChange) {
             x[idx++] = player.dexterity / (float) 10.0;
         }
+        if (prop.playerStrengthEotCanChange) {
+            x[idx++] = player.loseStrengthEot / (float) 10.0;
+        }
+        if (prop.playerDexterityEotCanChange) {
+            x[idx++] = player.loseDexterityEot / (float) 10.0;
+        }
         if (prop.playerCanGetVuln) {
             x[idx++] = player.vulnerable / (float) 10.0;
         }
@@ -1264,20 +1257,8 @@ public class GameState implements State {
         if (prop.playerCanGetFrailed) {
             x[idx++] = player.frail / (float) 10.0;
         }
-        if (prop.playerCanGetMetallicize) {
-            x[idx++] = metallicize / 10.0f;
-        }
-        if (prop.playerThornCanChange) {
-            x[idx++] = thorn / 10.0f;
-        }
         if (prop.battleTranceExist) {
             x[idx++] = player.cannotDrawCard ? 0.5f : -0.5f;
-        }
-        if (prop.feelNoPainExist) {
-            x[idx++] = (feelNotPain - 3) / 3.0f;
-        }
-        if (prop.darkEmbraceExist) {
-            x[idx++] = darkEmbrace / 2.0f;
         }
         if (prop.energyRefillCanChange) {
             x[idx++] = (energyRefill - 5) / 2f;
@@ -1288,7 +1269,7 @@ public class GameState implements State {
             }
         }
         for (var handler : prop.counterHandlersNonNull) {
-            idx = handler.addToInput(x, idx);
+            idx = handler.addToInput(this, x, idx);
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
                 prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
@@ -1392,13 +1373,14 @@ public class GameState implements State {
     }
 
     private void exhaustedCardHandle(int cardIdx) {
+        if (prop.hasStrangeSpoon && prop.random.nextBoolean()) {
+            discard[cardIdx] += 1;
+            return;
+        }
         prop.cardDict[cardIdx].onExhaust(this);
         exhaust[cardIdx] += 1;
-        if (feelNotPain > 0) {
-            player.gainBlockNotFromCardPlay(feelNotPain);
-        }
-        if (darkEmbrace > 0) {
-            draw(darkEmbrace);
+        for (int i = 0; i < prop.onExhaustHandlers.size(); i++) {
+            prop.onExhaustHandlers.get(i).handle(this);
         }
     }
 
@@ -1447,9 +1429,6 @@ public class GameState implements State {
 
     public void reshuffle() {
         for (int i = 0; i < discard.length; i++) {
-            //            System.out.println(Arrays.toString(deckArr));
-            //            System.out.println(Arrays.toString(deck));
-            //            System.out.println(deckLen);
             for (int j = 0; j < discard[i]; j++) {
                 deckArr[deckArrLen++] = i;
             }
@@ -1490,12 +1469,44 @@ public class GameState implements State {
         prop.startOfTurnHandlers.add(handler);
     }
 
+    public void addStartOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName)) {
+            prop.gameEventHandlers.add(handlerName);
+            prop.startOfTurnHandlers.add(handler);
+        }
+    }
+
     public void addPreEndOfTurnHandler(GameEventHandler handler) {
         prop.preEndTurnHandlers.add(handler);
     }
 
-    public void addOnDamageHandler(GameEventHandler handler) {
-        prop.onPlayerDamageHandlers.add(handler);
+    public void addPreEndOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName)) {
+            prop.gameEventHandlers.add(handlerName);
+            prop.preEndTurnHandlers.add(handler);
+        }
+    }
+
+    public void addOnExhaustHandler(GameEventHandler handler) {
+        prop.onExhaustHandlers.add(handler);
+    }
+
+    public void addOnExhaustHandler(String handlerName, GameEventHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName)) {
+            prop.gameEventHandlers.add(handlerName);
+            prop.onExhaustHandlers.add(handler);
+        }
+    }
+
+    public void addOnDamageHandler(OnDamageHandler handler) {
+        prop.onDamageHandlers.add(handler);
+    }
+
+    public void addOnDamageHandler(String handlerName, OnDamageHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName)) {
+            prop.gameEventHandlers.add(handlerName);
+            prop.onDamageHandlers.add(handler);
+        }
     }
 
     public void addOnCardPlayedHandler(OnCardPlayedHandler handler) {
@@ -1503,9 +1514,7 @@ public class GameState implements State {
     }
 
     public void clearNextStates() { // oom during training due to holding too many states
-        for (int i = 0; i < ns.length; i++) {
-            ns[i] = null;
-        }
+        Arrays.fill(ns, null);
         transpositions = new HashMap<>();
     }
 
@@ -1611,8 +1620,8 @@ public class GameState implements State {
                 enemy.nonAttackDamage(thorn, false, this);
             }
             if (dmg > 0) {
-                for (GameEventHandler handler : prop.onPlayerDamageHandlers) {
-                    handler.handle(this);
+                for (OnDamageHandler handler : prop.onDamageHandlers) {
+                    handler.handle(this, enemy);
                 }
             }
         }
@@ -1632,8 +1641,8 @@ public class GameState implements State {
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable) {
         player.nonAttackDamage(dmg, blockable);
         if (dmg > 0) {
-            for (GameEventHandler handler : prop.onPlayerDamageHandlers) {
-                handler.handle(this);
+            for (OnDamageHandler handler : prop.onDamageHandlers) {
+                handler.handle(this, null);
             }
         }
     }
@@ -1751,9 +1760,9 @@ class ChanceState implements State {
             node.prev_q_comb = cur_q_comb;
             node.prev_q_win = cur_q_win;
             node.prev_q_health = cur_q_health;
-            v[0] = single_q_win * (total_n + 1) - total_q_win;
-            v[1] = single_q_health * (total_n + 1) - total_q_health;
-            v[2] = single_q_comb * (total_n + 1) - total_q_comb;
+//            v[0] = single_q_win * (total_n + 1) - total_q_win;
+//            v[1] = single_q_health * (total_n + 1) - total_q_health;
+//            v[2] = single_q_comb * (total_n + 1) - total_q_comb;
         }
         total_n += 1;
         total_q_win += v[0];

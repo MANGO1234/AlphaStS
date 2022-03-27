@@ -101,6 +101,7 @@ public class MatchSession {
         var totalDamageTaken = 0;
         var damageCount = new HashMap<Integer, Integer>();
         var start = System.currentTimeMillis();
+        var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
         while (game_i < numOfGames) {
             List<GameStep> steps;
             try {
@@ -131,7 +132,7 @@ public class MatchSession {
                     throw new RuntimeException(e);
                 }
             }
-            if ((printProgress && game_i % 25 == 0) || game_i == numOfGames) {
+            if ((printProgress && game_i % progressInterval == 0) || game_i == numOfGames) {
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
                 System.out.println("Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) game_i).trim() + "%)");
                 System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);

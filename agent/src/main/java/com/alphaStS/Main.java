@@ -167,24 +167,23 @@ public class Main {
     public static GameState GuardianState2() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.BashP(), 1));
-        cards.add(new CardCount(new Card.Dropkick(), 2));
-//        cards.add(new CardCount(new Card.Strike(), 4));
-//        cards.add(new CardCount(new Card.Defend(), 4));
-//        cards.add(new CardCount(new Card.AscendersBane(), 1));
-//        cards.add(new CardCount(new Card.Anger(), 1));
-//        cards.add(new CardCount(new Card.Clash(), 1));
-//        cards.add(new CardCount(new Card.Armanent(), 1));
-//        cards.add(new CardCount(new Card.Carnage(), 1));
-//        cards.add(new CardCount(new Card.Metallicize(), 1));
-//        cards.add(new CardCount(new Card.Shockwave(), 1));
-//        cards.add(new CardCount(new Card.ShrugItOff(), 1));
-//        cards.add(new CardCount(new Card.PowerThrough(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.Clash(), 1));
+        cards.add(new CardCount(new Card.Armanent(), 1));
+        cards.add(new CardCount(new Card.Carnage(), 1));
+        cards.add(new CardCount(new Card.Metallicize(), 1));
+        cards.add(new CardCount(new Card.Shockwave(), 1));
+        cards.add(new CardCount(new Card.ShrugItOff(), 1));
+        cards.add(new CardCount(new Card.PowerThrough(), 1));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.TheGuardian());
         var relics = new ArrayList<Relic>();
-//        relics.add(new Relic.AncientTeaSet());
-//        relics.add(new Relic.DuVuDoll());
-//        relics.add(new Relic.WarpedTongs());
+        relics.add(new Relic.AncientTeaSet());
+        relics.add(new Relic.DuVuDoll());
+        relics.add(new Relic.WarpedTongs());
 //        return new GameState(enemies, new Player(19, 75), cards, relics);
         return new GameState(enemies, new Player(41, 75), cards, relics);
     }
@@ -199,7 +198,7 @@ public class Main {
         return new GameState(enemies, new Player(41, 75), cards, relics);
     }
 
-    private static GameState SlimeBossStateLC() {
+    public static GameState SlimeBossStateLC() {
         // https://youtu.be/wKbAoS80HA0?t=11397
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -287,8 +286,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 200;
-                NUMBER_OF_NODES_PER_TURN = 1000;
+                NUMBER_OF_GAMES_TO_PLAY = 500;
+                NUMBER_OF_NODES_PER_TURN = 500;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {

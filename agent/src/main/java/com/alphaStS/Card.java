@@ -1,6 +1,5 @@
 package com.alphaStS;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +26,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public boolean exhaustSkill;
     public boolean exhaustCardFromHand;
     public boolean changePlayerStrength;
+    public boolean changePlayerStrengthEot;
     public boolean changePlayerDexterity;
     public boolean vulnEnemy;
     public boolean weakEnemy;
@@ -51,7 +51,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
     GameActionCtx play(GameState state, int idx) { return GameActionCtx.PLAY_CARD; }
     void onExhaust(GameState state) {}
-    List<Card> getPossibleGeneratedCards(List<Card> cards) { return Arrays.asList(); }
+    List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
     public boolean canSelectFromHand(Card card) { return true; }
     public void startOfGameSetup(GameState state) {}
 
@@ -345,12 +345,12 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public Flex() {
             super("Flex", Card.ATTACK, 0);
             changePlayerStrength = true;
+            changePlayerStrengthEot = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainStrength(2);
-            // todo
-//            state.player.applyDebuff(DebuffType.LOSE_STRENGTH_EOT, 2);
+            state.player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -363,8 +363,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainStrength(4);
-            // todo
-//            state.player.applyDebuff(DebuffType.LOSE_STRENGTH_EOT, 4);
+            state.player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 4);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -641,8 +640,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(7);
             int c = 0;
+            int diffCards = 0;
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
                 c += state.hand[cardIdx];
+                diffCards += state.hand[cardIdx] > 0 ? 1 : 0;
             }
             int r = state.prop.random.nextInt(c);
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
@@ -650,6 +651,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                     state.exhaustCardFromHand(cardIdx);
                 }
                 r -= state.hand[cardIdx];
+            }
+            if (diffCards > 1) {
+                state.isStochastic = true;
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -748,7 +752,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Wound());
+            return List.of(new Wound());
         }
     }
 
@@ -765,7 +769,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Wound());
+            return List.of(new Wound());
         }
     }
 
@@ -776,7 +780,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.draw(3);
-            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
+            state.player.applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -788,7 +792,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.draw(4);
-            state.player.applyDebuff(DebuffType.NO_MORE_CARD_DRAW, 1);
+            state.player.applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -891,8 +895,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.darkEmbrace += 1;
+            state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("DarkEmbrace", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.draw(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 
@@ -902,8 +923,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.darkEmbrace += 1;
+            state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("DarkEmbrace", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.draw(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 
@@ -967,7 +1005,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
     }
 
-    // todo: need to keep track of discard
     public static class DualWield extends Card {
         public DualWield() {
             super("Dual Wield", Card.SKILL, 1);
@@ -981,6 +1018,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public boolean canSelectFromHand(Card card) {
             return card.cardType == Card.ATTACK;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
         }
     }
 
@@ -998,6 +1039,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public boolean canSelectFromHand(Card card) {
             return card.cardType == Card.ATTACK;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
         }
     }
 
@@ -1031,8 +1076,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.feelNotPain += 3;
+            state.getCounterForWrite()[counterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("FNP", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnExhaustHandler("FNP", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 
@@ -1042,8 +1104,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.feelNotPain += 4;
+            state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("FNP", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnExhaustHandler("FNP", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 
@@ -1056,9 +1135,32 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(12);
-            state.thorn += 4;
-            state.thornLoseEOT += 4;
+            state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("FlameBarrier", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 12.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnDamageHandler("FlameBarrier", new OnDamageHandler() {
+                @Override void handle(GameState state, Object source) {
+                    if (source instanceof Enemy enemy) {
+                        state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                    }
+                }
+            });
+            state.addStartOfTurnHandler("FlameBarrier", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
         }
     }
 
@@ -1069,9 +1171,33 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.player.gainBlock(16);
-            state.thorn += 6;
-            state.thornLoseEOT += 6;
+            state.getCounterForWrite()[counterIdx] += 6;
             return GameActionCtx.PLAY_CARD;
+        }
+
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("FlameBarrier", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 12.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnDamageHandler("FlameBarrier", new OnDamageHandler() {
+                @Override void handle(GameState state, Object source) {
+                    if (source instanceof Enemy enemy) {
+                        state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                    }
+                }
+            });
+            state.addStartOfTurnHandler("FlameBarrier", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
         }
     }
 
@@ -1159,7 +1285,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 1);
+                enemy.applyDebuff(DebuffType.WEAK, 1);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1173,7 +1299,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.enemies) {
-                state.enemies.get(idx).applyDebuff(DebuffType.WEAK, 2);
+                enemy.applyDebuff(DebuffType.WEAK, 2);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1185,8 +1311,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.metallicize += 3;
+            state.getCounterForWrite()[counterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 
@@ -1196,8 +1339,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.metallicize += 4;
+            state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 
@@ -1214,7 +1374,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Wound());
+            return List.of(new Wound());
         }
     }
 
@@ -1231,7 +1391,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Wound());
+            return List.of(new Wound());
         }
     }
 
@@ -1281,7 +1441,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Dazed());
+            return List.of(new Dazed());
         }
     }
 
@@ -1298,7 +1458,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Dazed());
+            return List.of(new Dazed());
         }
     }
 
@@ -1594,7 +1754,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.applyDebuff(DebuffType.VULNERABLE, 2);
+            state.player.applyDebuff(state, DebuffType.VULNERABLE, 2);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1606,7 +1766,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.applyDebuff(DebuffType.VULNERABLE, 1);
+            state.player.applyDebuff(state, DebuffType.VULNERABLE, 1);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1670,19 +1830,17 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("DemonForm", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
-                    var counter = state.getCounterForRead();
-                    input[idx] = (counter[counterIdx] == 0 ? 6 : counter[counterIdx]) / 6.0f;
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler(new GameEventHandler() {
+            state.addStartOfTurnHandler("DemonForm", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    var counter = state.getCounterForRead();
-                    state.player.gainStrength(counter[counterIdx]);
+                    state.player.gainStrength(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1701,19 +1859,17 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("DemonForm", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
-                    var counter = state.getCounterForRead();
-                    input[idx] = (counter[counterIdx] == 0 ? 6 : counter[counterIdx]) / 6.0f;
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler(new GameEventHandler() {
+            state.addStartOfTurnHandler("DemonForm", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    var counter = state.getCounterForRead();
-                    state.player.gainStrength(counter[counterIdx]);
+                    state.player.gainStrength(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1806,7 +1962,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Burn());
+            return List.of(new Burn());
         }
     }
 
@@ -1824,7 +1980,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return Arrays.asList(new Card.Burn());
+            return List.of(new Burn());
         }
     }
 
@@ -1859,9 +2015,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Juggernaut", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
-                    var counter = state.getCounterForRead();
-                    input[idx] = (counter[counterIdx] == 0 ? 14 : counter[counterIdx]) / 14.0f;
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 14.0f;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() {
@@ -1885,9 +2040,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Juggernaut", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(float[] input, int idx) {
-                    var counter = state.getCounterForRead();
-                    input[idx] = (counter[counterIdx] == 0 ? 14 : counter[counterIdx]) / 14.0f;
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 14.0f;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() {
@@ -2002,7 +2156,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(2, true);
@@ -2019,7 +2173,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(4, true);
@@ -2096,7 +2250,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(2, true);
@@ -2114,10 +2268,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
-                        state.player.applyDebuff(DebuffType.WEAK, 1);
+                        state.player.applyDebuff(state, DebuffType.WEAK, 1);
                     }
                 }
             });
@@ -2152,7 +2306,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     int numOfCards = 0;
                     for (int n : state.hand) {
@@ -2174,10 +2328,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
-                        state.player.applyDebuff(DebuffType.FRAIL, 1);
+                        state.player.applyDebuff(state, DebuffType.FRAIL, 1);
                     }
                 }
             });

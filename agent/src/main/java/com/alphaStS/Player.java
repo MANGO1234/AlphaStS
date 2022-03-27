@@ -14,6 +14,8 @@ public class Player {
     int frail;
     int artifact;
     boolean cannotDrawCard;
+    int loseStrengthEot;
+    int loseDexterityEot;
 
     public Player(int health, int maxHealth) {
         this.maxHealth = maxHealth;
@@ -33,6 +35,8 @@ public class Player {
         frail = other.frail;
         artifact = other.artifact;
         cannotDrawCard = other.cannotDrawCard;
+        loseStrengthEot = other.loseStrengthEot;
+        loseDexterityEot = other.loseDexterityEot;
     }
 
     public void damage(int n) {
@@ -85,7 +89,12 @@ public class Player {
         dexterity = Math.min(999, Math.max(-999, dexterity));
     }
 
-    public void applyDebuff(DebuffType type, int n) {
+    public void applyDebuff(GameState state, DebuffType type, int n) {
+        if (state.prop.hasGinger && type == DebuffType.WEAK) {
+            return;
+        } else if (state.prop.hasTurnip && type == DebuffType.FRAIL) {
+            return;
+        }
         if (artifact > 0) {
             artifact--;
             return;
@@ -94,8 +103,10 @@ public class Player {
         case VULNERABLE -> this.vulnerable += n;
         case WEAK -> this.weak += n;
         case FRAIL -> this.frail += n;
-        case LOSE_DEXTERITY -> this.gainDexterity(-2);
         case LOSE_STRENGTH -> this.gainStrength(-2);
+        case LOSE_DEXTERITY -> this.gainDexterity(-2);
+        case LOSE_STRENGTH_EOT -> this.loseStrengthEot = 2;
+        case LOSE_DEXTERITY_EOT -> this.loseDexterityEot = 2;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         }
     }
@@ -111,6 +122,12 @@ public class Player {
             frail -= 1;
         }
         cannotDrawCard = false;
+        if (loseStrengthEot > 0) {
+            applyDebuff(state, DebuffType.LOSE_STRENGTH, loseStrengthEot);
+        }
+        if (loseDexterityEot > 0) {
+            applyDebuff(state, DebuffType.LOSE_STRENGTH, loseDexterityEot);
+        }
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
         } else if (state.prop.hasCaliper) {
             block = Math.max(block - 15, 0);
@@ -145,6 +162,12 @@ public class Player {
         if (cannotDrawCard) {
             str += ", cannotDraw=true";
         }
+        if (loseStrengthEot > 0) {
+            str += ", loseStrEot=" + loseStrengthEot;
+        }
+        if (loseDexterityEot > 0) {
+            str += ", loseDexEot=" + loseDexterityEot;
+        }
         return str + '}';
     }
 
@@ -154,10 +177,10 @@ public class Player {
         if (o == null || getClass() != o.getClass())
             return false;
         Player player = (Player) o;
-        return origHealth == player.origHealth && maxHealth == player.maxHealth && health == player.health && block == player.block && strength == player.strength && dexterity == player.dexterity && vulnerable == player.vulnerable && weak == player.weak && frail == player.frail && artifact == player.artifact && cannotDrawCard == player.cannotDrawCard;
+        return origHealth == player.origHealth && maxHealth == player.maxHealth && health == player.health && block == player.block && strength == player.strength && dexterity == player.dexterity && vulnerable == player.vulnerable && weak == player.weak && frail == player.frail && artifact == player.artifact && cannotDrawCard == player.cannotDrawCard && loseStrengthEot == player.loseStrengthEot && loseDexterityEot == player.loseDexterityEot;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, cannotDrawCard);
+        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, cannotDrawCard, loseStrengthEot, loseDexterityEot);
     }
 }
