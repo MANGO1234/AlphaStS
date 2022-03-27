@@ -235,35 +235,38 @@ public class Main {
             return;
         }
 
-        boolean GEN_TRAINING_MATCHES = false;
-        boolean TEST_AGENT_FITNESS = false;
-        boolean PLAY_MATCHES = false;
+        boolean GENERATE_TRAINING_GAMES = false;
+        boolean TEST_TRAINING_AGENT = false;
+        boolean PLAY_GAMES = false;
         boolean PLAY_A_GAME = false;
         boolean SLOW_TRAINING_WINDOW = false;
         boolean CURRICULUM_TRAINING_ON = false;
-        int MATCHES_COUNT = 5;
-        int NODE_COUNT = 1000;
+        int NUMBER_OF_GAMES_TO_PLAY = 5;
+        int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
-            if (args[i].equals("-t")) {
-                GEN_TRAINING_MATCHES = true;
+            if (args[i].equals("-training")) {
+                GENERATE_TRAINING_GAMES = true;
             }
             if (args[i].equals("-tm")) {
-                TEST_AGENT_FITNESS = true;
+                TEST_TRAINING_AGENT = true;
             }
-            if (args[i].equals("-m")) {
-                PLAY_MATCHES = true;
+            if (args[i].equals("-t")) {
+                NUMBER_OF_THREADS = Integer.parseInt(args[i + 1]);
+            }
+            if (args[i].equals("-g")) {
+                PLAY_GAMES = true;
             }
             if (args[i].equals("-p")) {
                 PLAY_A_GAME = true;
             }
             if (args[i].equals("-c")) {
-                MATCHES_COUNT = Integer.parseInt(args[i + 1]);
+                NUMBER_OF_GAMES_TO_PLAY = Integer.parseInt(args[i + 1]);
                 i++;
             }
             if (args[i].equals("-n")) {
-                NODE_COUNT = Integer.parseInt(args[i + 1]);
+                NUMBER_OF_NODES_PER_TURN = Integer.parseInt(args[i + 1]);
                 i++;
             }
             if (args[i].equals("-dir")) {
@@ -284,8 +287,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                MATCHES_COUNT = 200;
-                NODE_COUNT = 1000;
+                NUMBER_OF_GAMES_TO_PLAY = 200;
+                NUMBER_OF_NODES_PER_TURN = 1000;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {
@@ -299,7 +302,7 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
-            for (GameStep step : session.playGame(state, session.mcts.get(0), NODE_COUNT)) {
+            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN)) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
@@ -308,26 +311,22 @@ public class Main {
         }
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir);
-        if (TEST_AGENT_FITNESS || PLAY_MATCHES) {
-            if (TEST_AGENT_FITNESS && MATCHES_COUNT <= 100) {
+        if (TEST_TRAINING_AGENT || PLAY_GAMES) {
+            if (TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("training_matches.txt");
-            } else if (MATCHES_COUNT <= 100) {
+            } else if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("matches.txt");
             }
-            session.playGames(state, MATCHES_COUNT, NODE_COUNT, !TEST_AGENT_FITNESS);
+            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
         }
 
-        if (GEN_TRAINING_MATCHES) {
+        if (GENERATE_TRAINING_GAMES) {
             session.setTrainingDataLogFile("training_data.txt");
             session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
             session.POLICY_CAP_ON = false;
             long start = System.currentTimeMillis();
             var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
-            File file = new File(curIterationDir +  "/training_data.bin");
-            file.delete();
-            var writer = new BufferedOutputStream(new FileOutputStream(curIterationDir +  "/training_data.bin"));
-            writeTrainingData(games, writer);
-            writer.flush();
+            writeTrainingData(games, curIterationDir +  "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {
@@ -341,8 +340,10 @@ public class Main {
         session.flushFileWriters();
     }
 
-    private static void writeTrainingData(List<List<GameStep>> games, BufferedOutputStream fileWriter) throws IOException {
-        DataOutputStream writer = new DataOutputStream(fileWriter);
+    private static void writeTrainingData(List<List<GameStep>> games, String path) throws IOException {
+        File file = new File(path);
+        file.delete();
+        var stream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(path)));
         for (var game : games) {
             for (int i = game.size() - 2; i >= 0; i--) {
                 var step = game.get(i);
@@ -352,23 +353,23 @@ public class Main {
                 var state = game.get(i).state();
                 var x = state.getNNInput();
                 for (int j = 0; j < x.length; j++) {
-                    writer.writeFloat(x[j]);
+                    stream.writeFloat(x[j]);
                 }
-                writer.writeFloat(step.v_health);
-                writer.writeFloat(step.v_win);
+                stream.writeFloat(step.v_health);
+                stream.writeFloat(step.v_win);
                 for (int j = 0; j < state.prop.totalNumOfActions; j++) {
                     if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
                         if (state.actionCtx == GameActionCtx.SELECT_ENEMY || !state.isActionLegal(j)) {
-                            writer.writeFloat(-1);
+                            stream.writeFloat(-1);
                         } else {
                             if (state.terminal_action > 0) {
                                 if (state.terminal_action == j) {
-                                    writer.writeFloat(1);
+                                    stream.writeFloat(1);
                                 } else {
-                                    writer.writeFloat(0);
+                                    stream.writeFloat(0);
                                 }
                             } else {
-                                writer.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                                stream.writeFloat((float) (((double) state.n[j]) / state.total_n));
                             }
                         }
                     } else {
@@ -376,19 +377,21 @@ public class Main {
                         if (state.actionCtx == GameActionCtx.SELECT_ENEMY && state.isActionLegal(action)) {
                             if (state.terminal_action > 0) {
                                 if (state.terminal_action == action) {
-                                    writer.writeFloat(1);
+                                    stream.writeFloat(1);
                                 } else {
-                                    writer.writeFloat(0);
+                                    stream.writeFloat(0);
                                 }
                             } else {
-                                writer.writeFloat((float) (((double) state.n[action]) / state.total_n));
+                                stream.writeFloat((float) (((double) state.n[action]) / state.total_n));
                             }
                         } else {
-                            writer.writeFloat(-1);
+                            stream.writeFloat(-1);
                         }
                     }
                 }
             }
         }
+        stream.flush();
+        stream.close();
     }
 }
