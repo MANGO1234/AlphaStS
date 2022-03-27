@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.alphaStS.InteractiveMode.interactiveStart;
 
@@ -190,6 +189,16 @@ public class Main {
         return new GameState(enemies, new Player(41, 75), cards, relics);
     }
 
+    public static GameState BasicInfiniteState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.BashP(), 1));
+        cards.add(new CardCount(new Card.Dropkick(), 2));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.TheGuardian());
+        var relics = new ArrayList<Relic>();
+        return new GameState(enemies, new Player(41, 75), cards, relics);
+    }
+
     private static GameState SlimeBossStateLC() {
         // https://youtu.be/wKbAoS80HA0?t=11397
         var cards = new ArrayList<CardCount>();
@@ -314,6 +323,11 @@ public class Main {
             session.POLICY_CAP_ON = false;
             long start = System.currentTimeMillis();
             var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
+            File file = new File(curIterationDir +  "/training_data.bin");
+            file.delete();
+            var writer = new BufferedOutputStream(new FileOutputStream(curIterationDir +  "/training_data.bin"));
+            writeTrainingData(games, writer);
+            writer.flush();
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {
@@ -322,20 +336,6 @@ public class Main {
                 System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
             }
             System.out.println("--------------------");
-            File file = new File(curIterationDir +  "/training_data.bin");
-            file.delete();
-            start = System.currentTimeMillis();
-            var writer = new BufferedOutputStream(new FileOutputStream(curIterationDir +  "/training_data.bin"));
-            writeTrainingData(games, writer);
-            end = System.currentTimeMillis();
-            System.out.println("Time Taken: " + (end - start));
-            for (int i = 0; i < session.mcts.size(); i++) {
-                var m = session.mcts.get(i);
-                System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
-                System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
-            }
-            System.out.print("--------------------");
-            writer.flush();
         }
 
         session.flushFileWriters();
