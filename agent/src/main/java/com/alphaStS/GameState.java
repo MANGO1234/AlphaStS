@@ -1714,6 +1714,7 @@ class ChanceState implements State {
     double single_q_win;
     double single_q_health;
     List<GameState> queue = new ArrayList<>();
+    boolean queueDone;
     GameState parentState;
     int parentAction;
 
@@ -1734,6 +1735,7 @@ class ChanceState implements State {
 //        for (int i = 1; i < 50; i++) {
 //            tmpQueue.add(getNextState());
 //        }
+        queueDone = true;
         queue = tmpQueue;
         var v = new double[3];
         parentState.get_v(v);
@@ -1749,20 +1751,28 @@ class ChanceState implements State {
 
     public void correctV(GameState state2, double[] v) {
         var node = cache.get(state2);
-        if (queue.size() > 0) {
+        if (!queueDone) {
             var cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
             var cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
             var cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
-//            System.out.println(single_q_win + "," + node.n / (double) total_real_n +"," + cur_q_win +"," +  node.prev_q_win);
             single_q_comb += node.n / (double) total_real_n * (cur_q_comb - node.prev_q_comb);
             single_q_win += node.n / (double) total_real_n * (cur_q_win - node.prev_q_win);
             single_q_health += node.n / (double) total_real_n * (cur_q_health - node.prev_q_health);
             node.prev_q_comb = cur_q_comb;
             node.prev_q_win = cur_q_win;
             node.prev_q_health = cur_q_health;
-//            v[0] = single_q_win * (total_n + 1) - total_q_win;
-//            v[1] = single_q_health * (total_n + 1) - total_q_health;
-//            v[2] = single_q_comb * (total_n + 1) - total_q_comb;
+            v[0] = single_q_win * (total_n + 1) - total_q_win;
+            v[1] = single_q_health * (total_n + 1) - total_q_health;
+            v[2] = single_q_comb * (total_n + 1) - total_q_comb;
+            if (queue.size() == 0) {
+                queueDone = true;
+            } else {
+//                var t = 0.0;
+//                for (Map.Entry<GameState, Node> en : cache.entrySet()) {
+//                    t += en.getValue().state.total_q_win;
+//                }
+//                System.out.println(t / (total_n + 1) + "," + single_q_win + "," + (total_n + 1));
+            }
         }
         total_n += 1;
         total_q_win += v[0];
