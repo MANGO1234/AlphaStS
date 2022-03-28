@@ -72,7 +72,7 @@ public class GameSolver {
     private double calcExpectedHealth(ChanceState cState) {
         double e = 0;
         for (ChanceState.Node node : cState.cache.values()) {
-            e += ((double) node.n) / cState.total_real_n * node.state.v_health;
+            e += ((double) node.n) / cState.total_n * node.state.v_health;
         }
         return e;
     }
@@ -108,7 +108,7 @@ public class GameSolver {
                 m_state.reshuffle();
             }
             var mm = m_state.clone(false);
-            cState.total_real_n = factorials[m_state.deckArrLen] / factorials[m_state.deckArrLen - toDraw] / factorials[toDraw];
+            cState.total_n = factorials[m_state.deckArrLen] / factorials[m_state.deckArrLen - toDraw] / factorials[toDraw];
             gen_draw(cState, state, m_state, toDraw, action, 0, 1);
             if (cState.cache.size() == 0) {
                 throw new RuntimeException();

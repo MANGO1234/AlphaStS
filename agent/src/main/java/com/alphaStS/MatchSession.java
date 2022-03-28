@@ -208,7 +208,7 @@ public class MatchSession {
                 var prevAction = states.get(i - 1).action();
                 var cState = (ChanceState) prevState.ns[prevAction];
                 var stateActual = cState.addGeneratedState(state);
-                while (cState.total_real_n < 1000 && cState.cache.size() < 100) {
+                while (cState.total_n < 1000 && cState.cache.size() < 100) {
                     cState.getNextState();
                 }
                 double est_v_win = 0;
@@ -224,9 +224,9 @@ public class MatchSession {
                         est_v_health += out[1] * node.n;
                     }
                 }
-                est_v_win /= cState.total_real_n;
-                est_v_health /= cState.total_real_n;
-                float p = ((float) cState.getCount(stateActual)) / cState.total_real_n;
+                est_v_win /= cState.total_node_n;
+                est_v_health /= cState.total_node_n;
+                float p = ((float) cState.getCount(stateActual)) / cState.total_node_n;
                 if (v_win * p + (float) est_v_win > 1.0001) {
                     Integer.parseInt(null);
                 }

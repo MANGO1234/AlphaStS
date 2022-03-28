@@ -303,7 +303,7 @@ public class InteractiveMode {
                     skipPrint = true;
                     continue;
                 } else if (line.equals("tree") || line.startsWith("tree ")) {
-                    printTree(state, line);
+                    printTree(state, line, modelDir);
                     skipPrint = true;
                     continue;
                 } else if (line.startsWith("n ")) {
@@ -502,10 +502,11 @@ public class InteractiveMode {
         session.playGames(state, numberOfGames, nodeCount, true);
     }
 
-    private static void printTree(GameState state, String line) {
+    private static void printTree(GameState state, String line, String modelDir) {
         String[] s = line.split(" ");
         int depth = 3;
         int action = -1;
+        boolean writeToFile = false;
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
                 if (s[i].startsWith("d=")) {
@@ -514,12 +515,21 @@ public class InteractiveMode {
                 if (s[i].startsWith("a=")) {
                     action = parseInt(s[i].substring(2), -1);
                 }
+                if (s[i].equals("f")) {
+                    writeToFile = true;
+                }
             }
         }
+        Writer writer = null;
+        try {
+            writer = writeToFile ? new BufferedWriter(new FileWriter(modelDir + "/tree.txt")) : new OutputStreamWriter(System.out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         if (action >= 0 && action < state.ns.length && state.ns[action] != null) {
-            GameStateUtils.printTree2(state.ns[action], new OutputStreamWriter(System.out), depth);
+            GameStateUtils.printTree2(state.ns[action], writer, depth);
         } else {
-            GameStateUtils.printTree2(state, new OutputStreamWriter(System.out), depth);
+            GameStateUtils.printTree2(state, writer, depth);
         }
     }
 
