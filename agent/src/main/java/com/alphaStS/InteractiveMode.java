@@ -96,7 +96,7 @@ public class InteractiveMode {
                     if (state.prop.counterHandlersNonNull.length > 0) {
                         System.out.println("  Other:");
                         for (int i = 0; i < state.prop.counterHandlers.length; i++) {
-                            if (state.prop.counterHandlers[i] != null) {
+                            if (state.prop.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
                                 System.out.println("    - " + state.prop.counterNames[i] + "=" + state.getCounterForRead()[i]);
                             }
                         }

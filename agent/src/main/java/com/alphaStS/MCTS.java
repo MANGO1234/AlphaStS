@@ -384,9 +384,9 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-                    state2 = cState.getNextState();
-                    this.search3_r(state2, training, remainingCalls, false);
-                    cState.correctV(state2, v);
+//                    state2 = cState.getNextState();
+//                    this.search3_r(state2, training, remainingCalls, false);
+//                    cState.correctV(state2, v);
                     v[0] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[1] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     v[2] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];

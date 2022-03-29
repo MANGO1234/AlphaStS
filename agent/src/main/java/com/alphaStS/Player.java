@@ -39,15 +39,18 @@ public class Player {
         loseDexterityEot = other.loseDexterityEot;
     }
 
-    public void damage(int n) {
+    public int damage(int n) {
+        int startHealth = health;
         health -= Math.max(0, n - block);
         block = Math.max(0, block - n);
         if (health < 0) {
             health = 0;
         }
+        return health - startHealth;
     }
 
-    public void nonAttackDamage(int n, boolean blockable) {
+    public int nonAttackDamage(int n, boolean blockable) {
+        int startHealth = health;
         if (blockable) {
             health -= Math.max(0, n - block);
             block = Math.max(0, block - n);
@@ -57,6 +60,7 @@ public class Player {
         if (health < 0) {
             health = 0;
         }
+        return health - startHealth;
     }
 
     public void heal(int n) {
@@ -65,7 +69,7 @@ public class Player {
 
     public void gainBlock(int n) {
         n += dexterity;
-        n = frail > 0? n * 3 / 4 : n;
+        n = frail > 0? (n - (n + 3) / 4) : n;
         block += n;
         if (block > 999) {
             block = 999;

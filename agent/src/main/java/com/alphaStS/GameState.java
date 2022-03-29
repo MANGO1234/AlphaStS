@@ -22,12 +22,16 @@ abstract class GameEventHandler implements Comparable<GameEventHandler> {
     }
 }
 
-abstract class OnCardPlayedHandler {
+abstract class GameEventCardHandler {
     abstract void handle(GameState state, Card card);
 }
 
 abstract class OnDamageHandler {
-    abstract void handle(GameState state, Object source);
+    abstract void handle(GameState state, Object source, boolean isAttack, int damageDealt);
+}
+
+interface GameEnvironmentAction {
+    void doAction(GameState state);
 }
 
 class GameProperties {
@@ -61,6 +65,9 @@ class GameProperties {
     int dazedCardIdx = -1;
     int slimeCardIdx = -1;
     int woundCardIdx = -1;
+    int[] bloodForBloodIndexes;
+    int[] bloodForBloodPIndexes;
+    int[] infernalBladeIndexes;
 
     boolean hasBlueCandle;
     boolean hasBoot;
@@ -73,6 +80,7 @@ class GameProperties {
     boolean hasStrangeSpoon;
     boolean hasTurnip;
 
+    int normalityCounterIdx = -1;
     int penNibCounterIdx = -1;
 
     // cached game properties for generating NN input
@@ -84,10 +92,11 @@ class GameProperties {
     Set<String> gameEventHandlers = new HashSet<>();
     List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
     List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
-    List<GameEventHandler> onBlockHandlers = new ArrayList<>();
     List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
+    List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
     List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
-    List<OnCardPlayedHandler> onCardPlayedHandlers = new ArrayList<>();
+    List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
+    List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
 
     public GameProperties() {
         random = new RandomGen();
@@ -192,10 +201,12 @@ public class GameState implements State {
     private DrawOrder drawOrder;
     private boolean counterCloned;
     private int[] counter; // copy on read/write
+    private Deque<GameEnvironmentAction> gameActionDeque;
 
     // various other buffs/debuffs
     long buffs;
     short thorn;
+    int lastEnemySelected;
 
     double v_win; // if terminal, 1.0 or -1.0, else from NN
     double v_health; // if terminal, player_health/player_max_health, else from NN
@@ -220,7 +231,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && (counter == gameState.counter || Arrays.equals(counter, gameState.counter)) && thorn == gameState.thorn && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && (counter == gameState.counter || Arrays.equals(counter, gameState.counter)) && thorn == gameState.thorn && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
     }
 
     @Override public int hashCode() {
@@ -341,6 +352,11 @@ public class GameState implements State {
         enemiesAlive = (int) enemies.stream().filter((x) -> x.health > 0).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
+        for (int i = 0; i < deck.length; i++) { // todo: edge case more innate than first turn draw
+            if (deck[i] > 0 && prop.cardDict[deck[i]].innate) {
+                drawOrder.pushOnTop(i);
+            }
+        }
 
         for (Relic relic : relics) {
             relic.startOfGameSetup(this);
@@ -356,6 +372,7 @@ public class GameState implements State {
         Collections.sort(prop.preEndTurnHandlers);
         Collections.sort(prop.onBlockHandlers);
         Collections.sort(prop.onExhaustHandlers);
+        Collections.sort(prop.onBlockHandlers);
 
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
         prop.playerStrengthCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerStrength);
@@ -439,7 +456,7 @@ public class GameState implements State {
                     }
                 }
             }
-            if (cards.get(i).card().selectFromDiscard || cards.get(i).card().exhaustCardFromHand) {
+            if (cards.get(i).card().selectFromDiscard || cards.get(i).card().canExhaustAnyCard) {
                 for (int j = 0; j < cards.size(); j++) {
                     l.add(j);
                 }
@@ -509,9 +526,13 @@ public class GameState implements State {
         previousCard = other.previousCard;
         previousCardIdx = other.previousCardIdx;
         drawOrder = new DrawOrder(other.drawOrder);
+        if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
+            gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
+        }
 
         buffs = other.buffs;
         counter = other.counter;
+        lastEnemySelected = other.lastEnemySelected;
         thorn = other.thorn;
 
         policy = null;
@@ -557,7 +578,7 @@ public class GameState implements State {
             if (drawOrder != null && drawOrder.size() > 0) {
                 i = drawOrder.drawTop();
                 assert deck[i] > 0;
-                drawCardByIdx(i);
+                drawCardByIdx(i, true);
             } else {
                 i = prop.random.nextInt(this.deckArrLen);
                 deck[deckArr[i]] -= 1;
@@ -566,6 +587,27 @@ public class GameState implements State {
                 deckArrLen -= 1;
             }
         }
+    }
+
+    int drawOneCardSpecial() {
+        isStochastic = true;
+        if (deckArrLen == 0) {
+            reshuffle();
+        }
+        if (deckArrLen == 0) {
+            return -1;
+        }
+        int i;
+        if (drawOrder != null && drawOrder.size() > 0) {
+            i = drawOrder.drawTop();
+            drawCardByIdx(i, false);
+        } else {
+            i = prop.random.nextInt(this.deckArrLen);
+            deck[deckArr[i]] -= 1;
+            deckArr[i] = deckArr[deckArrLen - 1];
+            deckArrLen -= 1;
+        }
+        return i;
     }
 
     private int getCardEnergyCost(int cardIdx) {
@@ -584,6 +626,7 @@ public class GameState implements State {
         case PLAY_CARD -> {
             previousCard = null;
             previousCardIdx = -1;
+            lastEnemySelected = -1;
             actionCtx = ctx;
         }
         case SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST -> {
@@ -596,10 +639,12 @@ public class GameState implements State {
         actionsCache = null;
     }
 
-    private void playCard(int cardIdx, int selectIdx) {
+    void playCard(int cardIdx, int selectIdx, boolean cloned, boolean useEnergy) {
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             hand[cardIdx] -= 1;
-            energy -= getCardEnergyCost(cardIdx);
+            if (useEnergy) {
+                energy -= getCardEnergyCost(cardIdx);
+            }
             if (prop.cardDict[cardIdx].selectEnemy) {
                 gotoActionCtx(GameActionCtx.SELECT_ENEMY, prop.cardDict[cardIdx], cardIdx);
             } else if (prop.cardDict[cardIdx].selectFromHand && !prop.cardDict[cardIdx].selectFromHandLater) {
@@ -616,10 +661,12 @@ public class GameState implements State {
                 if (enemiesAlive == 1) {
                     for (int i = 0; i < enemies.size(); i++) {
                         if (enemies.get(i).health > 0) {
+                            lastEnemySelected = i;
                             gotoActionCtx(prop.cardDict[cardIdx].play(this, i), prop.cardDict[cardIdx], cardIdx);
                         }
                     }
                 } else if (selectIdx >= 0) {
+                    lastEnemySelected = selectIdx;
                     gotoActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), prop.cardDict[cardIdx], cardIdx);
                     selectIdx = -1;
                 } else {
@@ -687,12 +734,19 @@ public class GameState implements State {
             for (var handler : prop.onCardPlayedHandlers) {
                 handler.handle(this, prop.cardDict[cardIdx]);
             }
-            if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
-                exhaustedCardHandle(cardIdx);
-            } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
-                exhaustedCardHandle(cardIdx);
-            } else if (prop.cardDict[cardIdx].cardType != Card.POWER) {
-                discard[cardIdx] += 1;
+            if (!cloned) {
+                if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
+                    exhaustedCardHandle(cardIdx, true);
+                } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                    exhaustedCardHandle(cardIdx, true);
+                } else if (prop.cardDict[cardIdx].cardType != Card.POWER) {
+                    discard[cardIdx] += 1;
+                }
+            }
+            if (prop.normalityCounterIdx < 0 || counter[prop.normalityCounterIdx] < 3) {
+                if (gameActionDeque != null && gameActionDeque.size() > 0) {
+                    gameActionDeque.pollFirst().doAction(this);
+                }
             }
         }
     }
@@ -721,7 +775,7 @@ public class GameState implements State {
             if (hand[i] > 0) {
                 if (prop.cardDict[i].ethereal) {
                     for (int count = 0; count < hand[i]; count++) {
-                        exhaustedCardHandle(i);
+                        exhaustedCardHandle(i, false);
                     }
                     hand[i] = 0;
                 } else if (!prop.hasRunicPyramid) {
@@ -752,15 +806,15 @@ public class GameState implements State {
 //            startTurn();
             gotoActionCtx(GameActionCtx.BEGIN_TURN, null, -1);
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action.cardIdx(), -1);
+            playCard(action.cardIdx(), -1, false, true);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
-            playCard(previousCardIdx, action.enemyIdx());
+            playCard(previousCardIdx, action.enemyIdx(), false, true);
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
-            playCard(previousCardIdx, action.cardIdx());
+            playCard(previousCardIdx, action.cardIdx(), false, true);
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
-            playCard(previousCardIdx, action.cardIdx());
+            playCard(previousCardIdx, action.cardIdx(), false, true);
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(previousCardIdx, action.cardIdx());
+            playCard(previousCardIdx, action.cardIdx(), false, true);
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             startTurn();
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
@@ -784,6 +838,9 @@ public class GameState implements State {
         if (actionCtx == GameActionCtx.START_GAME || actionCtx == GameActionCtx.BEGIN_TURN) {
             return action == 0;
         } else if (actionCtx == GameActionCtx.PLAY_CARD) {
+            if (prop.normalityCounterIdx >= 0 && counter[prop.normalityCounterIdx] >= 3) {
+                return false;
+            }
             boolean[] actions = new boolean[prop.maxNumOfActions];
             GameAction[] a = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -942,15 +999,17 @@ public class GameState implements State {
             str.append("]");
         }
         if (prop.counterHandlersNonNull.length > 0) {
-            str.append(", other=[");
+            StringBuilder tmp = new StringBuilder();
             first = true;
             for (int i = 0; i < prop.counterHandlers.length; i++) {
-                if (prop.counterHandlers[i] != null) {
-                    str.append(first ? "" : ", ").append(prop.counterNames[i]).append('=').append(getCounterForRead()[i]);
+                if (prop.counterHandlers[i] != null && getCounterForRead()[i] != 0) {
+                    tmp.append(first ? "" : ", ").append(prop.counterNames[i]).append('=').append(getCounterForRead()[i]);
                     first = false;
                 }
             }
-            str.append("]");
+            if (tmp.length() > 0) {
+                str.append(", other=[").append("tmp").append("]");
+            }
         }
         str.append(", v=(").append(formatFloat(v_win)).append(", ").append(formatFloat(v_health)).append("/").append(formatFloat(v_health * player.maxHealth)).append(")");
         str.append(", q/p/n=[");
@@ -1005,6 +1064,7 @@ public class GameState implements State {
         inputLen += 1; // energy
         inputLen += 1; // player health
         inputLen += 1; // player block
+        inputLen += 1; // player artifact
         if (prop.playerStrengthCanChange) {
             inputLen += 1; // player strength
         }
@@ -1236,6 +1296,7 @@ public class GameState implements State {
         x[idx++] = energy / (float) 10;
         x[idx++] = player.health / (float) player.maxHealth;
         x[idx++] = player.block / (float) 40.0;
+        x[idx++] = player.artifact / (float) 1.0;
         if (prop.playerStrengthCanChange) {
             x[idx++] = player.strength / (float) 10.0;
         }
@@ -1366,14 +1427,21 @@ public class GameState implements State {
         return x;
     }
 
+    void addGameActionToEndOfDeque(GameEnvironmentAction action) {
+        if (gameActionDeque == null) {
+            gameActionDeque = new ArrayDeque<>();
+        }
+        gameActionDeque.addLast(action);
+    }
+
     void exhaustCardFromHand(int cardIdx) {
         assert hand[cardIdx] > 0;
         hand[cardIdx] -= 1;
-        exhaustedCardHandle(cardIdx);
+        exhaustedCardHandle(cardIdx, false);
     }
 
-    private void exhaustedCardHandle(int cardIdx) {
-        if (prop.hasStrangeSpoon && prop.random.nextBoolean()) {
+    void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
+        if (fromCardPlay && prop.hasStrangeSpoon && prop.random.nextBoolean()) {
             discard[cardIdx] += 1;
             return;
         }
@@ -1388,10 +1456,10 @@ public class GameState implements State {
         return drawOrder;
     }
 
-    public boolean drawCardByIdx(int card_idx) {
+    public boolean drawCardByIdx(int card_idx, boolean addToHand) {
         if (deck[card_idx] > 0) {
             deck[card_idx] -= 1;
-            hand[card_idx] += 1;
+            if (addToHand) hand[card_idx] += 1;
             for (int i = 0; i < deckArrLen; i++) {
                 if (deckArr[i] == card_idx) {
                     deckArr[i] = deckArr[deckArrLen - 1];
@@ -1470,8 +1538,8 @@ public class GameState implements State {
     }
 
     public void addStartOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName)) {
-            prop.gameEventHandlers.add(handlerName);
+        if (!prop.gameEventHandlers.contains(handlerName + "StartOfTurn")) {
+            prop.gameEventHandlers.add(handlerName + "StartOfTurn");
             prop.startOfTurnHandlers.add(handler);
         }
     }
@@ -1481,8 +1549,8 @@ public class GameState implements State {
     }
 
     public void addPreEndOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName)) {
-            prop.gameEventHandlers.add(handlerName);
+        if (!prop.gameEventHandlers.contains(handlerName + "PreEndOfTurn")) {
+            prop.gameEventHandlers.add(handlerName + "PreEndOfTurn");
             prop.preEndTurnHandlers.add(handler);
         }
     }
@@ -1492,9 +1560,20 @@ public class GameState implements State {
     }
 
     public void addOnExhaustHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName)) {
-            prop.gameEventHandlers.add(handlerName);
+        if (!prop.gameEventHandlers.contains(handlerName + "OnExhaust")) {
+            prop.gameEventHandlers.add(handlerName + "OnExhaust");
             prop.onExhaustHandlers.add(handler);
+        }
+    }
+
+    public void addOnBlockHandler(GameEventHandler handler) {
+        prop.onBlockHandlers.add(handler);
+    }
+
+    public void addOnBlockHandler(String handlerName, GameEventHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName + "OnBlock")) {
+            prop.gameEventHandlers.add(handlerName + "OnBlock");
+            prop.onBlockHandlers.add(handler);
         }
     }
 
@@ -1503,14 +1582,32 @@ public class GameState implements State {
     }
 
     public void addOnDamageHandler(String handlerName, OnDamageHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName)) {
-            prop.gameEventHandlers.add(handlerName);
+        if (!prop.gameEventHandlers.contains(handlerName + "OnDamage")) {
+            prop.gameEventHandlers.add(handlerName + "OnDamage");
             prop.onDamageHandlers.add(handler);
         }
     }
 
-    public void addOnCardPlayedHandler(OnCardPlayedHandler handler) {
+    public void addOnCardPlayedHandler(GameEventCardHandler handler) {
         prop.onCardPlayedHandlers.add(handler);
+    }
+
+    public void addOnCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName + "OnCardPlayed")) {
+            prop.gameEventHandlers.add(handlerName + "OnCardPlayed");
+            prop.onCardPlayedHandlers.add(handler);
+        }
+    }
+
+    public void addOnCardDrawnHandler(GameEventCardHandler handler) {
+        prop.onCardDrawnHandlers.add(handler);
+    }
+
+    public void addOnCardDrawnHandler(String handlerName, GameEventCardHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName + "OnCardDrawn")) {
+            prop.gameEventHandlers.add(handlerName + "OnCardDrawn");
+            prop.onCardDrawnHandlers.add(handler);
+        }
     }
 
     public void clearNextStates() { // oom during training due to holding too many states
@@ -1615,13 +1712,13 @@ public class GameState implements State {
             if (enemy.weak > 0) {
                 dmg = dmg * 3 / 4;
             }
-            player.damage(dmg);
+            int dmgDealt = player.damage(dmg);
             if (thorn > 0) {
                 enemy.nonAttackDamage(thorn, false, this);
             }
             if (dmg > 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {
-                    handler.handle(this, enemy);
+                    handler.handle(this, enemy, true, dmgDealt);
                 }
             }
         }
@@ -1638,11 +1735,11 @@ public class GameState implements State {
         return d;
     }
 
-    public void doNonAttackDamageToPlayer(int dmg, boolean blockable) {
-        player.nonAttackDamage(dmg, blockable);
+    public void doNonAttackDamageToPlayer(int dmg, boolean blockable, Object source) {
+        var damageDealt = player.nonAttackDamage(dmg, blockable);
         if (dmg > 0) {
             for (OnDamageHandler handler : prop.onDamageHandlers) {
-                handler.handle(this, null);
+                handler.handle(this, source, false, damageDealt);
             }
         }
     }

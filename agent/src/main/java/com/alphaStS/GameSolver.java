@@ -145,7 +145,7 @@ public class GameSolver {
         int deck_i = m_state.deck[i];
         int start_len = m_state.deckArrLen;;
         for (int j = 1; j <= upto; j++) {
-            m_state.drawCardByIdx(i);
+            m_state.drawCardByIdx(i, true);
             gen_draw(cState, m_state, m_state, toDraw - j, action, i + 1, n * nCr(deck_i, j));
         }
         for (int j = 1; j <= upto; j++) {

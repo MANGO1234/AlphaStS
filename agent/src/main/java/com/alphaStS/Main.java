@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.*;
 
 import static com.alphaStS.InteractiveMode.interactiveStart;
@@ -223,14 +225,33 @@ public class Main {
         enemies.add(new Enemy.MediumAcidSlime(37, true));
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
-        return new GameState(enemies, new Player(47, 75), cards, relics);
+        var player = new Player(47, 75);
+        player.artifact = 1;
+        return new GameState(enemies, player, cards, relics);
     }
 
     public static void main(String[] args) throws IOException {
-        var state = GuardianState2();
+        var state = SlimeBossStateLC();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
+            return;
+        }
+
+        if (args.length > 0 && args[0].equals("--server")) {
+            ServerSocket serverSocket = new ServerSocket(4000);
+            Socket socket = serverSocket.accept();
+            System.out.println(socket.getInputStream().read());
+            System.out.println(socket.getInputStream().read());
+            socket.close();
+            return;
+        }
+
+        if (args.length > 0 && args[0].equals("--client")) {
+            Socket socket = new Socket("127.0.0.1", 4000);
+            socket.getOutputStream().write(10);
+            socket.getOutputStream().write(10);
+            socket.close();
             return;
         }
 
@@ -286,8 +307,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 20000;
-                NUMBER_OF_NODES_PER_TURN = 10;
+                NUMBER_OF_GAMES_TO_PLAY = 500;
+                NUMBER_OF_NODES_PER_TURN = 5000;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {

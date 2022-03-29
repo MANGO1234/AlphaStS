@@ -2,7 +2,6 @@ package com.alphaStS;
 
 import java.util.Arrays;
 import java.util.Objects;
-import java.util.Random;
 
 abstract class Enemy {
     int health;
@@ -617,7 +616,7 @@ abstract class Enemy {
 
         @Override public void react(GameState state, Card card) {
             if (card.cardType == Card.ATTACK && (move == ROLL_ATTACK || move == TWIN_SLAM)) {
-                state.doNonAttackDamageToPlayer(4, true);
+                state.doNonAttackDamageToPlayer(4, true, this);
             }
         }
 
@@ -1592,8 +1591,8 @@ abstract class Enemy {
                 state.enemyDoDamageToPlayer(this, 14, 1);
             } else if (move == SMOKE_BOMB) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
-            } else if (move == ESCAPE) { // simulate the pain of losing gold, todo: need to combine with mugger later
-                state.doNonAttackDamageToPlayer(Math.min(30, state.player.health - 1), false);
+            } else if (move == ESCAPE) { // simulate the pain of losing gold, todo: need to combine with mugger later, need to change due to onDamage effects
+                state.doNonAttackDamageToPlayer(Math.min(30, state.player.health - 1), false, this);
                 health = 0;
             }
         }
