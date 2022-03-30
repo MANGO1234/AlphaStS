@@ -112,7 +112,7 @@ public class MCTS {
                 }
             } else {
                 if (nextState instanceof ChanceState cState) {
-                    state2 = cState.getNextState();
+                    state2 = cState.getNextState(true);
                     this.search1_r(state2, training, remainingCalls, false);
                     cState.correctV(state2, v);
                 } else {
@@ -246,14 +246,14 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-                    state2 = cState.getNextState();
+                    state2 = cState.getNextState(true);
                     this.search2_r(state2, training, remainingCalls, false);
                     cState.correctV(state2, v);
                     v[0] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[1] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     v[2] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
                 } else {
-                    state2 = cState.getNextState();
+                    state2 = cState.getNextState(true);
                     this.search2_r(state2, training, remainingCalls, false);
                     cState.correctV(state2, v);
                 }
@@ -384,14 +384,14 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-//                    state2 = cState.getNextState();
+//                    state2 = cState.getNextState(true);
 //                    this.search3_r(state2, training, remainingCalls, false);
 //                    cState.correctV(state2, v);
                     v[0] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[1] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     v[2] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
                 } else {
-                    state2 = cState.getNextState();
+                    state2 = cState.getNextState(true);
                     this.search3_r(state2, training, remainingCalls, false);
                     cState.correctV(state2, v);
                 }
@@ -488,7 +488,7 @@ public class MCTS {
             }
         } else {
             if (nextState instanceof ChanceState cState) {
-                state2 = cState.getNextState();
+                state2 = cState.getNextState(true);
                 this.searchPlain_r(state2, training, remainingCalls, false);
                 cState.correctV(state2, v);
             } else if (nextState instanceof GameState nState) {

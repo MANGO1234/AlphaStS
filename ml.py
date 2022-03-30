@@ -256,7 +256,15 @@ if DO_TRAINING:
 
 
 if PLAY_A_GAME:
+    agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--server']
+    agent_output = subprocess.run(agent_args, capture_output=True)
+    print(agent_output.stdout.decode('ascii'))
+    print(agent_output.stderr.decode('ascii'))
     print(time.time() - start)
 
 if PLAY_MATCHES:
+    agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--client']
+    agent_output = subprocess.run(agent_args, capture_output=True)
+    print(agent_output.stdout.decode('ascii'))
+    print(agent_output.stderr.decode('ascii'))
     print(time.time() - start)

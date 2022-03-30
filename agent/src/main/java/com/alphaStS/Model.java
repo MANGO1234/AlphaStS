@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-record Output(float v_health, float v_win, float[] policy) {
+record NNOutput(float v_health, float v_win, float[] policy) {
 }
 
 public class Model {
@@ -29,7 +29,7 @@ public class Model {
     OrtEnvironment env;
     OrtSession session;
     String inputName;
-    LRUCache<InputHash, Output> cache;
+    LRUCache<InputHash, NNOutput> cache;
     int calls;
     int cache_hits;
     long time_taken;
@@ -75,7 +75,7 @@ public class Model {
         }
     }
 
-    Output eval(GameState state) {
+    NNOutput eval(GameState state) {
         //                for (NodeInfo i : session.getInputInfo().values()) {
         //                    System.out.println(i.toString());
         //                }
@@ -84,7 +84,7 @@ public class Model {
         //                }
         calls += 1;
         InputHash hash = new InputHash(state.getNNInput());
-        Output o = cache.get(hash);
+        NNOutput o = cache.get(hash);
         if (o != null) {
             cache_hits += 1;
             return o;
@@ -115,7 +115,7 @@ public class Model {
             state.v_health = v_health;
             state.v_win = v_win;
             state.policy = policy;
-            o = new Output(v_health, v_win, softmax(policy));
+            o = new NNOutput(v_health, v_win, softmax(policy));
             cache.put(hash, o);
             time_taken += System.currentTimeMillis() - start;
             return o;

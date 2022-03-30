@@ -209,7 +209,7 @@ public class MatchSession {
                 var cState = (ChanceState) prevState.ns[prevAction];
                 var stateActual = cState.addGeneratedState(state);
                 while (cState.total_n < 1000 && cState.cache.size() < 100) {
-                    cState.getNextState();
+                    cState.getNextState(false);
                 }
                 double est_v_win = 0;
                 double est_v_health = 0;
@@ -316,7 +316,7 @@ public class MatchSession {
         State nextState = state.ns[action];
         GameState newState;
         if (nextState instanceof ChanceState cState) {
-            newState = cState.getNextState();
+            newState = cState.getNextState(false);
             if (newState.policy == null) {
                 newState.doEval(mcts.model);
             }

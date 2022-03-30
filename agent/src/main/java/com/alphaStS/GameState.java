@@ -1039,7 +1039,7 @@ public class GameState implements State {
     }
 
     public void doEval(Model model) {
-        Output output = model.eval(this);
+        NNOutput output = model.eval(this);
         this.policy = output.policy();
         this.v_health = Math.min(output.v_health(), this.player.health / (float) this.player.maxHealth);
         this.v_win = output.v_win();
@@ -1794,6 +1794,7 @@ class ChanceState implements State {
         double prev_q_comb;
         double prev_q_win;
         double prev_q_health;
+        double c;
         boolean revisit = false;
 
         public Node(GameState state) {
@@ -1808,9 +1809,6 @@ class ChanceState implements State {
     double total_q_win;
     double total_q_health;
     double total_q_comb;
-    double single_q_comb;
-    double single_q_win;
-    double single_q_health;
     List<GameState> queue = new ArrayList<>();
     boolean queueDone;
     GameState parentState;
@@ -1830,78 +1828,108 @@ class ChanceState implements State {
         this.parentState = parentState;
         this.parentAction = action;
         var tmpQueue = new ArrayList<GameState>();
-//        for (int i = 1; i < 50; i++) {
-//            tmpQueue.add(getNextState());
+//        for (int i = 1; i < 20; i++) {
+//            tmpQueue.add(getNextState(false));
 //        }
         queueDone = true;
         total_n = 1;
         queue = tmpQueue;
-        var v = new double[3];
-        parentState.get_v(v);
-        single_q_win = v[0];
-        single_q_health = v[1];
-        single_q_comb = v[2];
-        for (Node node : cache.values()) {
-            node.prev_q_comb = single_q_comb;
-            node.prev_q_win = single_q_win;
-            node.prev_q_health = single_q_health;
-        }
     }
 
     public void correctV(GameState state2, double[] v) {
         var node = cache.get(state2);
-        if (!queueDone) {
-            var cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
-            var cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
-            var cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
-            single_q_comb += node.n / (double) total_node_n * (cur_q_comb - node.prev_q_comb);
-            single_q_win += node.n / (double) total_node_n * (cur_q_win - node.prev_q_win);
-            single_q_health += node.n / (double) total_node_n * (cur_q_health - node.prev_q_health);
-            node.prev_q_comb = cur_q_comb;
-            node.prev_q_win = cur_q_win;
-            node.prev_q_health = cur_q_health;
-            v[0] = single_q_win * total_n - total_q_win;
-            v[1] = single_q_health * total_n - total_q_health;
-            v[2] = single_q_comb * total_n - total_q_comb;
-            if (queue.size() == 0) {
-                queueDone = true;
-            } else {
-//               var t = 0.0;
-//               for (Map.Entry<GameState, Node> en : cache.entrySet()) {
-//                   t += en.getValue().state.total_q_win;
-//               }
-//               System.out.println(t / total_n + "," + single_q_win + "," + total_n + "," + total_node_n);
-            }
-        }
         if (node.revisit) {
-            var new_total_q_comb = 0.0;
-            var new_total_q_win = 0.0;
-            var new_total_q_health = 0.0;
-            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
-                new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-                new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-                new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-            }
-            new_total_q_comb = new_total_q_comb / total_node_n * total_n;
-            new_total_q_win = new_total_q_win / total_node_n * total_n;
-            new_total_q_health = new_total_q_health / total_node_n * total_n;
-            v[0] = new_total_q_win - total_q_win;
-            v[1] = new_total_q_health - total_q_health;
-            v[2] = new_total_q_comb - total_q_comb;
+//            var new_total_q_comb = 0.0;
+//            var new_total_q_win = 0.0;
+//            var new_total_q_health = 0.0;
+//            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+//                new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//            }
+//            new_total_q_comb = new_total_q_comb / total_node_n * total_n;
+//            new_total_q_win = new_total_q_win / total_node_n * total_n;
+//            new_total_q_health = new_total_q_health / total_node_n * total_n;
+//            v[0] = new_total_q_win - total_q_win;
+//            v[1] = new_total_q_health - total_q_health;
+//            v[2] = new_total_q_comb - total_q_comb;
+
+            var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
+            var node_cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
+            var node_cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
+            var prev_q_comb = total_q_comb / (total_n - 1);
+            var prev_q_win = total_q_win / (total_n - 1);
+            var prev_q_health = total_q_health / (total_n - 1);
+            var new_q_comb = prev_q_comb - node.prev_q_comb * node.n / total_node_n + node_cur_q_comb * node.n / total_node_n ;
+            var new_q_win = prev_q_win - node.prev_q_win * node.n / total_node_n + node_cur_q_win * node.n / total_node_n ;
+            var new_q_health = prev_q_health - node.prev_q_health * node.n / total_node_n +  node_cur_q_health * node.n / total_node_n ;
+            node.prev_q_comb = node_cur_q_comb;
+            node.prev_q_win = node_cur_q_win;
+            node.prev_q_health = node_cur_q_health;
+            v[0] = new_q_win * total_n - total_q_win;
+            v[1] = new_q_health * total_n - total_q_health;
+            v[2] = new_q_comb * total_n - total_q_comb;
+//            if (new_q_win * total_n - (total_q_win + v[0]) > 0.00000001) {
+//                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
+//            }
+        } else {
+//            var new_total_q_comb = 0.0;
+//            var new_total_q_win = 0.0;
+//            var new_total_q_health = 0.0;
+//            var nnn = 0;
+//            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+//                if (entry.getValue().state.policy != null) {
+//                    new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    nnn += entry.getValue().n;
+//                }
+//            }
+//            if (nnn == 0) {
+//                new_total_q_comb = 0;
+//                new_total_q_win = 0;
+//                new_total_q_health = 0;
+//            } else {
+//                new_total_q_comb = new_total_q_comb / nnn * total_n;
+//                new_total_q_win = new_total_q_win / nnn * total_n;
+//                new_total_q_health = new_total_q_health / nnn * total_n;
+//            }
+//            v[0] = new_total_q_win - total_q_win;
+//            v[1] = new_total_q_health - total_q_health;
+//            v[2] = new_total_q_comb - total_q_comb;
+
+//            var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
+//            var node_cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
+//            var node_cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
+//            var prev_q_comb = total_n == 1 ? 0 : total_q_comb / (total_n - 1);
+//            var prev_q_win = total_n == 1 ? 0 : total_q_win / (total_n - 1);
+//            var prev_q_health = total_n == 1 ? 0 :total_q_health / (total_n - 1);
+//            var new_q_comb = (prev_q_comb * (total_node_n - 1) - node.prev_q_comb * (node.n - 1))  / total_node_n + node_cur_q_comb * node.n / total_node_n;
+//            var new_q_win = (prev_q_win * (total_node_n - 1) - node.prev_q_win * (node.n - 1)) / total_node_n + node_cur_q_win * node.n / total_node_n;
+//            var new_q_health = (prev_q_health * (total_node_n - 1) - node.prev_q_health * (node.n - 1)) / total_node_n + node_cur_q_health * node.n / total_node_n;
+//            node.prev_q_comb = node_cur_q_comb;
+//            node.prev_q_win = node_cur_q_win;
+//            node.prev_q_health = node_cur_q_health;
+//            v[0] = new_q_win * total_n - total_q_win;
+//            v[1] = new_q_health * total_n - total_q_health;
+//            v[2] = new_q_comb * total_n - total_q_comb;
+//            if (new_q_win * total_n - (total_q_win + v[0]) > 0.00000001) {
+//                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
+//            }
         }
         total_q_win += v[0];
         total_q_health += v[1];
         total_q_comb += v[2];
     }
 
-    GameState getNextState() {
+    GameState getNextState(boolean calledFromMCTS) {
         total_n += 1;
         if (queue.size() > 0) {
             return queue.remove(queue.size() - 1);
         }
-        if (cache.size() > 20 && false) {
+        if (calledFromMCTS && cache.size() > 10 && false) {
             // instead of generating new nodes, revisit node, need testing
-            if (parentState.prop.random.nextBoolean()) {
+            if (parentState.prop.random.nextFloat() < 1.0 - 1.0 / (cache.size() - 10)) {
                 var r = (long) parentState.prop.random.nextInt((int) total_node_n);
                 var acc = 0;
                 for (Map.Entry<GameState, Node> entry : cache.entrySet()) {

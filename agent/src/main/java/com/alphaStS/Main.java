@@ -307,8 +307,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 500;
-                NUMBER_OF_NODES_PER_TURN = 5000;
+                NUMBER_OF_GAMES_TO_PLAY = 200;
+                NUMBER_OF_NODES_PER_TURN = 20000;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {
