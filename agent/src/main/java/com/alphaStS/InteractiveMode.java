@@ -102,13 +102,13 @@ public class InteractiveMode {
                         }
                     }
                     System.out.println();
-                    if (state.getDrawOrder().size() > 0) {
+                    if (state.getDrawOrderForRead().size() > 0) {
                         System.out.print("Draw Order: [");
-                        for (int i = state.getDrawOrder().size() - 1; i >= 0; i--) {
-                            if (i != state.getDrawOrder().size() - 1) {
+                        for (int i = state.getDrawOrderForRead().size() - 1; i >= 0; i--) {
+                            if (i != state.getDrawOrderForRead().size() - 1) {
                                 System.out.print(", ");
                             }
-                            System.out.print(state.prop.cardDict[state.getDrawOrder().ithCardFromTop(i)].cardName);
+                            System.out.print(state.prop.cardDict[state.getDrawOrderForRead().ithCardFromTop(i)].cardName);
                         }
                         System.out.println("]");
                     }
@@ -364,10 +364,10 @@ public class InteractiveMode {
                     }
                     continue;
                 } else if (line.equals("clear")) {
-                    state.getDrawOrder().clear();
+                    state.getDrawOrderForWrite().clear();
                 } else if (line.equals("e")) {
                     for (int i = drawOrder.size() - 1; i >= 0; i--) {
-                        state.getDrawOrder().pushOnTop(drawOrder.get(i));
+                        state.getDrawOrderForWrite().pushOnTop(drawOrder.get(i));
                     }
                     mode = 0;
                     continue;

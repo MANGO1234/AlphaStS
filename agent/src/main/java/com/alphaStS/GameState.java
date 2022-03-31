@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.DrawOrder;
+import com.alphaStS.utils.DrawOrderReadOnly;
 
 import java.util.*;
 
@@ -77,20 +78,22 @@ public class GameState implements State {
     int[] exhaust;
     int[] deckArr;
     int deckArrLen;
-    int energy;
-    int energyRefill;
     List<Enemy> enemies;
     int enemiesAlive;
     private boolean playerCloned;
     Player player;
+    private boolean drawOrderCloned;
+    private DrawOrder drawOrder;
+    private boolean counterCloned;
+    private int[] counter;
+
+    private Deque<GameEnvironmentAction> gameActionDeque;
+    int energy;
+    int energyRefill;
     Card previousCard;
     int previousCardIdx;
     short turnNum;
     int playerTurnStartHealth;
-    private DrawOrder drawOrder;
-    private boolean counterCloned;
-    private int[] counter; // copy on read/write
-    private Deque<GameEnvironmentAction> gameActionDeque;
 
     // various other buffs/debuffs
     public long buffs;
@@ -414,7 +417,7 @@ public class GameState implements State {
         enemiesAlive = other.enemiesAlive;
         previousCard = other.previousCard;
         previousCardIdx = other.previousCardIdx;
-        drawOrder = new DrawOrder(other.drawOrder);
+        drawOrder = other.drawOrder;
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
             gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
         }
@@ -464,8 +467,8 @@ public class GameState implements State {
                 return;
             }
             int i;
-            if (drawOrder != null && drawOrder.size() > 0) {
-                i = drawOrder.drawTop();
+            if (drawOrder.size() > 0) {
+                i = getDrawOrderForWrite().drawTop();
                 assert deck[i] > 0;
                 drawCardByIdx(i, true);
             } else {
@@ -487,8 +490,8 @@ public class GameState implements State {
             return -1;
         }
         int i;
-        if (drawOrder != null && drawOrder.size() > 0) {
-            i = drawOrder.drawTop();
+        if (drawOrder.size() > 0) {
+            i = getDrawOrderForWrite().drawTop();
             drawCardByIdx(i, false);
         } else {
             i = prop.random.nextInt(this.deckArrLen);
@@ -1343,10 +1346,6 @@ public class GameState implements State {
         }
     }
 
-    public DrawOrder getDrawOrder() {
-        return drawOrder;
-    }
-
     public boolean drawCardByIdx(int card_idx, boolean addToHand) {
         if (deck[card_idx] > 0) {
             deck[card_idx] -= 1;
@@ -1559,7 +1558,7 @@ public class GameState implements State {
     public void putCardOnTopOfDeck(int idx) {
         deck[idx]++;
         deckArr[deckArrLen++] = idx;
-        drawOrder.pushOnTop(idx);
+        getDrawOrderForWrite().pushOnTop(idx);
     }
 
     public void playerDoDamageToEnemy(Enemy enemy, int dmg) {
@@ -1659,6 +1658,18 @@ public class GameState implements State {
             playerCloned = true;
         }
         return player;
+    }
+
+    public DrawOrderReadOnly getDrawOrderForRead() {
+        return drawOrder;
+    }
+
+    public DrawOrder getDrawOrderForWrite() {
+        if (!drawOrderCloned) {
+            drawOrder = new DrawOrder(drawOrder);
+            drawOrderCloned = true;
+        }
+        return drawOrder;
     }
 }
 
