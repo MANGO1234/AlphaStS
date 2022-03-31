@@ -46,9 +46,9 @@ public class GameStateUtils {
                 cardMap.get(from.prop.cardDict[i]).discard = to.discard[i] - from.discard[i];
             }
         }
-        for (int i = 0; i < from.exhaust.length; i++) {
-            if (from.exhaust[i] != to.exhaust[i]) {
-                cardMap.get(from.prop.cardDict[i]).exhaust = to.exhaust[i] - from.exhaust[i];
+        for (int i = 0; i < from.getExhaustForRead().length; i++) {
+            if (from.getExhaustForRead()[i] != to.getExhaustForRead()[i]) {
+                cardMap.get(from.prop.cardDict[i]).exhaust = to.getExhaustForRead()[i] - from.getExhaustForRead()[i];
             }
         }
         first2 = true;

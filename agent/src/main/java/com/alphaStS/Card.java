@@ -863,8 +863,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                         state.hand[state.prop.bloodForBloodIndexes[i + 1]] = 0;
                         state.discard[state.prop.bloodForBloodIndexes[i]] += state.discard[state.prop.bloodForBloodIndexes[i + 1]];
                         state.discard[state.prop.bloodForBloodIndexes[i + 1]] = 0;
-                        state.exhaust[state.prop.bloodForBloodIndexes[i]] += state.exhaust[state.prop.bloodForBloodIndexes[i + 1]];
-                        state.exhaust[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        var exhaust = state.getExhaustForWrite();
+                        exhaust[state.prop.bloodForBloodIndexes[i]] += exhaust[state.prop.bloodForBloodIndexes[i + 1]];
+                        exhaust[state.prop.bloodForBloodIndexes[i + 1]] = 0;
                     }
                 }
             });
@@ -905,8 +906,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                         state.hand[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
                         state.discard[state.prop.bloodForBloodPIndexes[i]] += state.discard[state.prop.bloodForBloodPIndexes[i + 1]];
                         state.discard[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
-                        state.exhaust[state.prop.bloodForBloodPIndexes[i]] += state.exhaust[state.prop.bloodForBloodPIndexes[i + 1]];
-                        state.exhaust[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        var exhaust = state.getExhaustForWrite();
+                        exhaust[state.prop.bloodForBloodPIndexes[i]] += exhaust[state.prop.bloodForBloodPIndexes[i + 1]];
+                        exhaust[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
                     }
                 }
             });
@@ -2424,7 +2426,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.exhaust[idx] -= 1;
+            state.getExhaustForWrite()[idx] -= 1;
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2438,7 +2440,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.exhaust[idx] -= 1;
+            state.getExhaustForWrite()[idx] -= 1;
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }

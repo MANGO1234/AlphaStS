@@ -75,13 +75,14 @@ public class GameState implements State {
     int[] deck;
     int[] hand;
     int[] discard;
-    int[] exhaust;
+    private boolean exhaustCloned;
+    private int[] exhaust;
     int[] deckArr;
     int deckArrLen;
     List<Enemy> enemies;
     int enemiesAlive;
     private boolean playerCloned;
-    Player player;
+    private Player player;
     private boolean drawOrderCloned;
     private DrawOrder drawOrder;
     private boolean counterCloned;
@@ -402,7 +403,7 @@ public class GameState implements State {
         deck = Arrays.copyOf(other.deck, other.deck.length);
         hand = Arrays.copyOf(other.hand, other.hand.length);
         discard = Arrays.copyOf(other.discard, other.discard.length);
-        exhaust = Arrays.copyOf(other.exhaust, other.exhaust.length);
+        exhaust = other.exhaust;
         deckArr = Arrays.copyOf(other.deckArr, other.deckArr.length);
         deckArrLen = other.deckArrLen;
         energy = other.energy;
@@ -1340,7 +1341,7 @@ public class GameState implements State {
             return;
         }
         prop.cardDict[cardIdx].onExhaust(this);
-        exhaust[cardIdx] += 1;
+        getExhaustForWrite()[cardIdx] += 1;
         for (int i = 0; i < prop.onExhaustHandlers.size(); i++) {
             prop.onExhaustHandlers.get(i).handle(this);
         }
@@ -1367,14 +1368,6 @@ public class GameState implements State {
             hand[card_idx] -= 1;
             deckArr[deckArrLen] = card_idx;
             deckArrLen += 1;
-        }
-    }
-
-    public void undrawAll() {
-        for (int i = 0; i < hand.length; i++) {
-            while (hand[i] != 0) {
-                undrawCardByIdx(i);
-            }
         }
     }
 
@@ -1636,6 +1629,18 @@ public class GameState implements State {
         }
     }
 
+    public int[] getExhaustForRead() {
+        return exhaust;
+    }
+
+    public int[] getExhaustForWrite() {
+        if (!exhaustCloned) {
+            exhaust = Arrays.copyOf(exhaust, exhaust.length);
+            exhaustCloned = true;
+        }
+        return exhaust;
+    }
+
     public int[] getCounterForRead() {
         return counter;
     }
@@ -1710,7 +1715,6 @@ class ChanceState implements State {
         double prev_q_comb;
         double prev_q_win;
         double prev_q_health;
-        double c;
         boolean revisit = false;
 
         public Node(GameState state) {
