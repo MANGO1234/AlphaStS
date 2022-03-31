@@ -111,7 +111,7 @@ public class MatchSession {
             }
             var state = steps.get(steps.size() - 1).state();
             deathCount += state.isTerminal() == -1 ? 1 : 0;
-            int damageTaken = state.player.origHealth - state.player.health;
+            int damageTaken = state.getPlayeForRead().origHealth - state.getPlayeForRead().getHealth();
             damageCount.put(damageTaken, damageCount.getOrDefault(damageTaken, 0) + 1);
             totalDamageTaken += damageTaken;
             game_i += 1;
@@ -136,7 +136,7 @@ public class MatchSession {
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
                 System.out.println("Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) game_i).trim() + "%)");
                 System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
-                System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - state.player.origHealth * deathCount)) / (game_i - deathCount));
+                System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - state.getPlayeForRead().origHealth * deathCount)) / (game_i - deathCount));
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);
@@ -197,7 +197,7 @@ public class MatchSession {
 
         // do scoring here before clearing states to reuse nn eval if possible
         float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
-        float v_health = (float) (((double) state.player.health) / state.player.maxHealth);
+        float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
         for (int i = states.size() - 1; i >= 0; i--) {
             states.get(i).v_win = v_win;
             states.get(i).v_health = v_health;
@@ -295,7 +295,7 @@ public class MatchSession {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                    trainingDataWriter.write("Damage Taken: " + (origState.player.origHealth - state.player.health) + "\n");
+                    trainingDataWriter.write("Damage Taken: " + (origState.getPlayeForRead().origHealth - state.getPlayeForRead().getHealth()) + "\n");
                     for (GameStep step : steps) {
                         trainingDataWriter.write(step.state().toStringReadable() + "\n");
                         if (step.action() >= 0) {

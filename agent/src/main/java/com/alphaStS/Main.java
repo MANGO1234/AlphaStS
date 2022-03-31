@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.player.Player;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -94,7 +95,7 @@ public class Main {
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.HappyFlower());
         var player = new Player(73, 75);
-        player.dexterity = 2;
+        player.gainDexterity(2);
         return new GameState(enemies, player, cards, relics);
     }
 
@@ -226,7 +227,7 @@ public class Main {
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
         var player = new Player(47, 75);
-        player.artifact = 1;
+        player.gainArtifact(1);
         return new GameState(enemies, player, cards, relics);
     }
 

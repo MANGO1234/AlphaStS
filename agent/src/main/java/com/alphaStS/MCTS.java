@@ -36,7 +36,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health && !state.prop.playerCanHeal) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
                 terminal_v_win = v[0];
             }
             return;
@@ -168,7 +168,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health && !state.prop.playerCanHeal) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
                 terminal_v_win = v[0];
             }
             return;
@@ -306,7 +306,7 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.player.health && !state.prop.playerCanHeal) {
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
                 terminal_v_win = v[0];
             }
             return;

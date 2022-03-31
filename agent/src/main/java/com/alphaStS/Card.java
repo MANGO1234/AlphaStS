@@ -134,7 +134,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(5);
+            state.getPlayerForWrite().gainBlock(5);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -146,7 +146,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(8);
+            state.getPlayerForWrite().gainBlock(8);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -184,7 +184,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(5);
+            state.getPlayerForWrite().gainBlock(5);
             if (idx >= 0) {
                 state.removeCardFromHand(idx);
                 state.addCardToHand(state.prop.upgradeIdxes[idx]);
@@ -207,7 +207,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(5);
+            state.getPlayerForWrite().gainBlock(5);
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                 if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
@@ -229,7 +229,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.playerDoDamageToEnemy(state.enemies.get(idx), state.player.block);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), state.getPlayeForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -241,7 +241,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.playerDoDamageToEnemy(state.enemies.get(idx), state.player.block);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), state.getPlayeForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -350,8 +350,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainStrength(2);
-            state.player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 2);
+            var player = state.getPlayerForWrite();
+            player.gainStrength(2);
+            player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -363,8 +364,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainStrength(4);
-            state.player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 4);
+            var player = state.getPlayerForWrite();
+            player.gainStrength(4);
+            player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 4);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -450,7 +452,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.playerDoDamageToEnemy(state.enemies.get(idx), 14 + state.player.strength * 2);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 14 + state.getPlayeForRead().getStrength() * 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -462,7 +464,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.playerDoDamageToEnemy(state.enemies.get(idx), 14 + state.player.strength * 4);
+            state.playerDoDamageToEnemy(state.enemies.get(idx), 14 + state.getPlayeForRead().getStrength() * 4);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -475,7 +477,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
-            state.player.gainBlock(5);
+            state.getPlayerForWrite().gainBlock(5);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -488,7 +490,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.enemies.get(idx), 7);
-            state.player.gainBlock(7);
+            state.getPlayerForWrite().gainBlock(7);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -561,7 +563,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(8);
+            state.getPlayerForWrite().gainBlock(8);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -573,7 +575,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(11);
+            state.getPlayerForWrite().gainBlock(11);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -668,7 +670,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(7);
+            state.getPlayerForWrite().gainBlock(7);
             int c = 0;
             int diffCards = 0;
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
@@ -697,7 +699,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(9);
+            state.getPlayerForWrite().gainBlock(9);
             state.exhaustCardFromHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -810,7 +812,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.draw(3);
-            state.player.applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -822,7 +824,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.draw(4);
-            state.player.applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1216,7 +1218,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlockNotFromCardPlay(state.player.block);
+            var player = state.getPlayerForWrite();
+            player.gainBlockNotFromCardPlay(player.getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1227,7 +1230,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlockNotFromCardPlay(state.player.block);
+            var player = state.getPlayerForWrite();
+            player.gainBlockNotFromCardPlay(player.getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1299,7 +1303,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             state.addOnExhaustHandler("FNP", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1327,7 +1331,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             state.addOnExhaustHandler("FNP", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1387,7 +1391,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(12);
+            state.getPlayerForWrite().gainBlock(12);
             state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1423,7 +1427,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(16);
+            state.getPlayerForWrite().gainBlock(16);
             state.getCounterForWrite()[counterIdx] += 6;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1460,7 +1464,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(10);
+            state.getPlayerForWrite().gainBlock(10);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1472,7 +1476,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(13);
+            state.getPlayerForWrite().gainBlock(13);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1579,7 +1583,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainStrength(2);
+            state.getPlayerForWrite().gainStrength(2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1591,7 +1595,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainStrength(3);
+            state.getPlayerForWrite().gainStrength(3);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1646,7 +1650,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1674,7 +1678,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    state.player.gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1686,7 +1690,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(15);
+            state.getPlayerForWrite().gainBlock(15);
             state.addCardToHand(state.prop.woundCardIdx);
             state.addCardToHand(state.prop.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1703,7 +1707,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(20);
+            state.getPlayerForWrite().gainBlock(20);
             state.addCardToHand(state.prop.woundCardIdx);
             state.addCardToHand(state.prop.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1770,7 +1774,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             state.addOnCardPlayedHandler("Rage", new GameEventCardHandler() {
                 @Override void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
-                        state.player.gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1876,7 +1880,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             state.addOnDamageHandler("Rupture", new OnDamageHandler() {
                 @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0 && source instanceof Card) {
-                        state.player.gainStrength(state.getCounterForRead()[counterIdx]);
+                        state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1921,7 +1925,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
                         state.exhaustCardFromHand(i);
-                        state.player.gainBlock(5);
+                        state.getPlayerForWrite().gainBlock(5);
                     }
                 }
             }
@@ -1939,7 +1943,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
                         state.exhaustCardFromHand(i);
-                        state.player.gainBlock(5);
+                        state.getPlayerForWrite().gainBlock(5);
                     }
                 }
             }
@@ -1977,7 +1981,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(5);
+            state.getPlayerForWrite().gainBlock(5);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1993,7 +1997,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(8);
+            state.getPlayerForWrite().gainBlock(8);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2084,7 +2088,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             if (state.enemies.get(idx).getMoveString(state).contains("Attack")) {
-                state.player.gainStrength(3);
+                state.getPlayerForWrite().gainStrength(3);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2099,7 +2103,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             if (state.enemies.get(idx).getMoveString(state).contains("Attack")) {
-                state.player.gainStrength(4);
+                state.getPlayerForWrite().gainStrength(4);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2199,7 +2203,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.applyDebuff(state, DebuffType.VULNERABLE, 2);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2211,7 +2215,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.applyDebuff(state, DebuffType.VULNERABLE, 1);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2335,7 +2339,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             state.addStartOfTurnHandler("DemonForm", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    state.player.gainStrength(state.getCounterForRead()[counterIdx]);
+                    state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -2546,7 +2550,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(30);
+            state.getPlayerForWrite().gainBlock(30);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2558,7 +2562,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainBlock(40);
+            state.getPlayerForWrite().gainBlock(40);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2618,7 +2622,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainStrength(state.player.strength);
+            var player = state.getPlayerForWrite();
+            player.gainStrength(player.getStrength());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2630,7 +2635,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.player.gainStrength(state.player.strength);
+            var player = state.getPlayerForWrite();
+            player.gainStrength(player.getStrength());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2675,7 +2681,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 state.playerDoDamageToEnemy(enemy, 4);
                 amount += enemy.health - prevHp;
             }
-            state.player.heal(amount);
+            state.getPlayerForWrite().heal(amount);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2694,7 +2700,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 state.playerDoDamageToEnemy(enemy, 5);
                 amount += enemy.health - prevHp;
             }
-            state.player.heal(amount);
+            state.getPlayerForWrite().heal(amount);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2842,7 +2848,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
-                        state.player.applyDebuff(state, DebuffType.WEAK, 1);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
                     }
                 }
             });
@@ -2936,7 +2942,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
-                        state.player.applyDebuff(state, DebuffType.FRAIL, 1);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
                     }
                 }
             });

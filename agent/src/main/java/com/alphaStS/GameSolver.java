@@ -19,7 +19,7 @@ public class GameSolver {
             return node;
         }
         if (state.isTerminal() != 0) {
-            state.v_health = state.player.health;
+            state.v_health = state.getPlayeForRead().getHealth();
             return state;
         }
         if (state.actionCtx == GameActionCtx.START_GAME) {

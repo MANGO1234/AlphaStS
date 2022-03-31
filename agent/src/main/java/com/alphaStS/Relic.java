@@ -40,7 +40,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class Anchor extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.player.gainBlockNotFromCardPlay(10);
+            state.getPlayerForWrite().gainBlockNotFromCardPlay(10);
         }
     }
 
@@ -186,8 +186,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
-                    if (state.player.block == 0) {
-                        state.player.gainBlockNotFromCardPlay(6);
+                    if (state.getPlayeForRead().getBlock() == 0) {
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
                     }
                 }
             });
@@ -253,7 +253,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class Vajira extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.player.gainStrength(1);
+            state.getPlayerForWrite().gainStrength(1);
         }
     }
 
@@ -326,7 +326,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.player.gainDexterity(1);
+                            state.getPlayerForWrite().gainDexterity(1);
                         }
                     }
                 }
@@ -412,7 +412,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.player.gainBlockNotFromCardPlay(4);
+                            state.getPlayerForWrite().gainBlockNotFromCardPlay(4);
                         }
                     }
                 }
@@ -449,7 +449,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.player.gainStrength(1);
+                            state.getPlayerForWrite().gainStrength(1);
                         }
                     }
                 }
@@ -484,7 +484,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override void handle(GameState state, Card card) {
                     if (card.cardType == Card.POWER) {
-                        state.player.heal(2);
+                        state.getPlayerForWrite().heal(2);
                     }
                 }
             });
@@ -499,7 +499,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class OddlySmoothStone extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.player.gainDexterity(1);
+            state.getPlayerForWrite().gainDexterity(1);
         }
     }
 
@@ -510,7 +510,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             for (int i : state.deckArr) {
                 if (state.prop.cardDict[i].cardType == Card.CURSE) {
-                    state.player.gainStrength(1);
+                    state.getPlayerForWrite().gainStrength(1);
                 }
             }
         }
@@ -533,7 +533,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         }
 
         @Override public void startOfGameSetup(GameState state) {
-            state.player.gainStrength(strength);
+            state.getPlayerForWrite().gainStrength(strength);
         }
     }
 
@@ -590,7 +590,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class SlingOfCourage extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             if (isEliteFight(state)) {
-                state.player.gainStrength(2);
+                state.getPlayerForWrite().gainStrength(2);
             }
         }
     }

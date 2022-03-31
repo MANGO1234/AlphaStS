@@ -30,11 +30,11 @@ public abstract class Potion {
         }
 
         @Override public void use(GameState state, int enemyIdx) {
-            state.player.gainStrength(2);
+            state.getPlayerForWrite().gainStrength(2);
         }
 
         @Override public void useDouble(GameState state, int enemyIdx) {
-            state.player.gainStrength(4);
+            state.getPlayerForWrite().gainStrength(4);
         }
     }
 
@@ -44,11 +44,11 @@ public abstract class Potion {
         }
 
         @Override public void use(GameState state, int enemyIdx) {
-            state.player.gainDexterity(2);
+            state.getPlayerForWrite().gainDexterity(2);
         }
 
         @Override public void useDouble(GameState state, int enemyIdx) {
-            state.player.gainDexterity(4);
+            state.getPlayerForWrite().gainDexterity(4);
         }
     }
 }

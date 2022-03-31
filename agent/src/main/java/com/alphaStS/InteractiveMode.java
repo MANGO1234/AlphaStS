@@ -69,18 +69,18 @@ public class InteractiveMode {
                     }
                     System.out.println("Player");
                     System.out.println("  Energy: " + state.energy);
-                    System.out.println("  HP: " + state.player.health);
-                    if (state.player.block > 0) {
-                        System.out.println("  Block: " + state.player.block);
+                    System.out.println("  HP: " + state.getPlayeForRead().getHealth());
+                    if (state.getPlayeForRead().getBlock() > 0) {
+                        System.out.println("  Block: " + state.getPlayeForRead().getBlock());
                     }
-                    if (state.player.vulnerable > 0) {
-                        System.out.println("  Vulnerable: " + state.player.vulnerable);
+                    if (state.getPlayeForRead().getVulnerable() > 0) {
+                        System.out.println("  Vulnerable: " + state.getPlayeForRead().getVulnerable());
                     }
-                    if (state.player.weak > 0) {
-                        System.out.println("  Weak: " + state.player.weak);
+                    if (state.getPlayeForRead().getWeak() > 0) {
+                        System.out.println("  Weak: " + state.getPlayeForRead().getWeak());
                     }
-                    if (state.player.frail > 0) {
-                        System.out.println("  Frail: " + state.player.frail);
+                    if (state.getPlayeForRead().getFrail() > 0) {
+                        System.out.println("  Frail: " + state.getPlayeForRead().getFrail());
                     }
                     if (state.thorn > 0) {
                         System.out.println("  Thorn: " + state.thorn);
@@ -274,7 +274,7 @@ public class InteractiveMode {
                 } else if (line.startsWith("ph ")) {
                     int hp = parseInt(line.substring(3), -1);
                     if (hp >= 0) {
-                        state.player.health = hp;
+                        state.getPlayerForWrite().setHealth(hp);
                     }
                     continue;
                 } else if (line.equals("b")) {
@@ -555,7 +555,7 @@ public class InteractiveMode {
             }
             int max_n = s.n[action];
             System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.player.maxHealth + ")");
+                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
                 break;
