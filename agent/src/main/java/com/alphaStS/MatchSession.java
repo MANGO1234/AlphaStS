@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -72,6 +74,9 @@ public class MatchSession {
             int action = MCTS.getActionWithMaxNodesOrTerminal(state);
             states.add(new GameStep(state, action));
             state = getNextState(state, mcts, action, false);
+            if (state == null) {
+                System.out.println(states.get(states.size() - 1).state());
+            }
             states.get(states.size() - 1).state().clearNextStates();
         }
         states.add(new GameStep(state, -1));
@@ -162,7 +167,7 @@ public class MatchSession {
         }
         RandomGen random = state.prop.random;
         for (Enemy enemy : state.enemies) {
-            if (enemy.health > 0) {
+            if (enemy.getHealth() > 0) {
                 enemy.randomize(random, curriculumTraining);
             }
         }

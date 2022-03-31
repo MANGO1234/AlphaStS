@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -231,7 +233,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             if (isEliteFight(state)) {
                 for (Enemy enemy : state.enemies) {
-                    enemy.health = enemy.health * 3 / 4;
+                    enemy.setHealth(enemy.getHealth() * 3 / 4);
                 }
             }
         }
@@ -651,7 +653,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
             for (Enemy enemy : state.enemies) {
-                enemy.strength += 1;
+                enemy.gainStrength(1);
             }
         }
     }

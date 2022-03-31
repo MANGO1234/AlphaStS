@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -10,7 +12,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public static int CURSE = 3;
     public static int STATUS = 4;
 
-    int cardType;
+    public final int cardType;
     String cardName;
     int energyCost;
     public GameActionCtx secondActionCtx;
@@ -591,7 +593,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 int enemy_j = state.prop.random.nextInt(state.enemiesAlive);
                 int j = 0;
                 for (Enemy enemy : state.enemies) {
-                    if (enemy.health >= 0) {
+                    if (enemy.getHealth() >= 0) {
                         if (j == enemy_j) {
                             state.playerDoDamageToEnemy(enemy, 3);
                             break;
@@ -617,7 +619,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 int enemy_j = state.prop.random.nextInt(state.enemiesAlive);
                 int j = 0;
                 for (Enemy enemy : state.enemies) {
-                    if (enemy.health >= 0) {
+                    if (enemy.getHealth() >= 0) {
                         if (j == enemy_j) {
                             state.playerDoDamageToEnemy(enemy, 3);
                             break;
@@ -1122,7 +1124,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.enemies.get(idx).strength -= 2;
+            state.enemies.get(idx).applyDebuff(DebuffType.LOSE_STRENGTH, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1136,7 +1138,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.enemies.get(idx).strength -= 2;
+            state.enemies.get(idx).applyDebuff(DebuffType.LOSE_STRENGTH, 3);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1149,7 +1151,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.enemies.get(idx), 5);
-            if (state.enemies.get(idx).vulnerable > 0) {
+            if (state.enemies.get(idx).getVulnerable() > 0) {
                 state.energy += 1;
                 state.draw(1);
             }
@@ -1165,7 +1167,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.enemies.get(idx), 8);
-            if (state.enemies.get(idx).vulnerable > 0) {
+            if (state.enemies.get(idx).getVulnerable() > 0) {
                 state.energy += 1;
                 state.draw(1);
             }
@@ -2679,9 +2681,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             int amount = 0;
             for (Enemy enemy : state.enemies) {
-                int prevHp = enemy.health;
+                int prevHp = enemy.getHealth();
                 state.playerDoDamageToEnemy(enemy, 4);
-                amount += enemy.health - prevHp;
+                amount += enemy.getHealth() - prevHp;
             }
             state.getPlayerForWrite().heal(amount);
             return GameActionCtx.PLAY_CARD;
@@ -2698,9 +2700,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             int amount = 0;
             for (Enemy enemy : state.enemies) {
-                int prevHp = enemy.health;
+                int prevHp = enemy.getHealth();
                 state.playerDoDamageToEnemy(enemy, 5);
-                amount += enemy.health - prevHp;
+                amount += enemy.getHealth() - prevHp;
             }
             state.getPlayerForWrite().heal(amount);
             return GameActionCtx.PLAY_CARD;

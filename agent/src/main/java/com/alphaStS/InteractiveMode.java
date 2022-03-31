@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
+
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,36 +35,36 @@ public class InteractiveMode {
                 if (!skipPrint) {
                     for (int i = 0; i < state.enemies.size(); i++) {
                         var enemy = state.enemies.get(i);
-                        if (enemy.health <= 0) {
+                        if (enemy.getHealth() <= 0) {
                             continue;
                         }
                         System.out.println("Enemy " + i + ": " + enemy.getName());
-                        System.out.println("  HP: " + enemy.health);
-                        if (enemy.strength > 0) {
-                            System.out.println("  Strength: " + enemy.strength);
+                        System.out.println("  HP: " + enemy.getHealth());
+                        if (enemy.getStrength() > 0) {
+                            System.out.println("  Strength: " + enemy.getStrength());
                         }
-                        if (enemy.block > 0) {
-                            System.out.println("  Block: " + enemy.block);
+                        if (enemy.getBlock() > 0) {
+                            System.out.println("  Block: " + enemy.getBlock());
                         }
-                        if (enemy.artifact > 0) {
-                            System.out.println("  Artifact: " + enemy.artifact);
+                        if (enemy.getArtifact() > 0) {
+                            System.out.println("  Artifact: " + enemy.getArtifact());
                         }
-                        if (enemy.vulnerable > 0) {
-                            System.out.println("  Vulnerable: " + enemy.vulnerable);
+                        if (enemy.getVulnerable() > 0) {
+                            System.out.println("  Vulnerable: " + enemy.getVulnerable());
                         }
-                        if (enemy.weak > 0) {
-                            System.out.println("  Weak: " + enemy.weak);
+                        if (enemy.getWeak() > 0) {
+                            System.out.println("  Weak: " + enemy.getWeak());
                         }
                         if (enemy instanceof Enemy.RedLouse louse) {
-                            if (!louse.hasCurledUp) {
-                                System.out.println("  Curl Up: " + louse.curlUpAmount);
+                            if (!louse.hasCurledUp()) {
+                                System.out.println("  Curl Up: " + louse.getCurlUpAmount());
                             }
                         } else if (enemy instanceof Enemy.GreenLouse louse) {
-                            if (!louse.hasCurledUp) {
-                                System.out.println("  Curl Up: " + louse.curlUpAmount);
+                            if (!louse.hasCurledUp()) {
+                                System.out.println("  Curl Up: " + louse.getCurlUpAmount());
                             }
                         } else if (enemy instanceof Enemy.TheGuardian guardian) {
-                            System.out.println("  Mode Shift Damage: " + guardian.modeShiftDmg + "/" + guardian.maxModeShiftDmg);
+                            System.out.println("  Mode Shift Damage: " + guardian.getModeShiftDmg() + "/" + guardian.getMaxModeShiftDmg());
                         }
                         System.out.println("  Move: " + enemy.getMoveString(state));
                         System.out.println();
@@ -150,12 +152,10 @@ public class InteractiveMode {
                 }
                 System.out.println("]");
             } else if (mode == 2) {
-                int prevMove = curEnemy.move;
+                int prevMove = curEnemy.getMove();
                 for (int i = 0; i < curEnemy.numOfMoves; i++) {
-                    curEnemy.move = i;
-                    System.out.println(i + ". " + curEnemy.getMoveString(state));
+                    System.out.println(i + ". " + curEnemy.getMoveString(state, i));
                 }
-                curEnemy.move = prevMove;
             }
 
             System.out.print("> ");
@@ -214,8 +214,8 @@ public class InteractiveMode {
                             int hp = Integer.parseInt(line.substring(3));
                             if (hp > 0) {
                                 for (Enemy enemy : state.enemies) {
-                                    if (enemy.health > 0) {
-                                        enemy.health = hp;
+                                    if (enemy.getHealth() > 0) {
+                                        enemy.setHealth(hp);
                                     }
                                 }
                             }
@@ -223,7 +223,7 @@ public class InteractiveMode {
                             int enemyIdx = Integer.parseInt(s[1]);
                             int hp = Integer.parseInt(s[2]);
                             if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && hp >= 0) {
-                                state.enemies.get(enemyIdx).health = hp;
+                                state.enemies.get(enemyIdx).setHealth(hp);
                             }
                         }
                         continue;
@@ -237,12 +237,12 @@ public class InteractiveMode {
                         int n = parseInt(s[2], -1);
                         if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
                             if (state.enemies.get(enemyIdx) instanceof Enemy.RedLouse louse) {
-                                louse.curlUpAmount = n;
+                                louse.setCurlUpAmount(n);
                             }
                         }
                         if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
                             if (state.enemies.get(enemyIdx) instanceof Enemy.GreenLouse louse) {
-                                louse.curlUpAmount = n;
+                                louse.setCurlUpAmount(n);
                             }
                         }
                     }
@@ -254,12 +254,12 @@ public class InteractiveMode {
                         int n = Integer.parseInt(s[2], -1);
                         if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
                             if (state.enemies.get(enemyIdx) instanceof Enemy.RedLouse louse) {
-                                louse.d = n;
+                                louse.setD(n);
                             }
                         }
                         if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
                             if (state.enemies.get(enemyIdx) instanceof Enemy.GreenLouse louse) {
-                                louse.d = n;
+                                louse.setD(n);
                             }
                         }
                     }
@@ -393,7 +393,7 @@ public class InteractiveMode {
                 try {
                     int moveIdx = Integer.parseInt(line);
                     if (moveIdx >= 0 && moveIdx < curEnemy.numOfMoves) {
-                        curEnemy.move = moveIdx;
+                        curEnemy.setMove(moveIdx);
                         mode = 0;
                         continue;
                     }

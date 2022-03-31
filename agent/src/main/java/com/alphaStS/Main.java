@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.player.Player;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -19,7 +20,7 @@ public class Main {
         cards.add(new CardCount(new Card.Defend(), 4));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.GremlinNob());
-        enemies.get(0).health = 85;
+        enemies.get(0).setHealth(85);
         var relics = new ArrayList<Relic>();
         return new GameState(enemies, new Player(75, 75), cards, relics);
     }
@@ -51,7 +52,7 @@ public class Main {
         cards.add(new CardCount(new Card.Defend(), 4));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.GremlinNob());
-        enemies.get(0).health = 85;
+        enemies.get(0).setHealth(85);
         var relics = new ArrayList<Relic>();
         return new GameState(enemies, new Player(75, 75), cards, relics);
     }

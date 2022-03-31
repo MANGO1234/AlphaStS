@@ -1,54 +1,61 @@
-package com.alphaStS;
+package com.alphaStS.enemy;
+
+import com.alphaStS.Card;
+import com.alphaStS.DebuffType;
+import com.alphaStS.GameState;
+import com.alphaStS.RandomGen;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-abstract class Enemy {
-    int health;
-    int maxHealth;
-    int block;
-    int strength;
-    int vulnerable;
-    int weak;
-    int artifact;
-    int numOfMoves;
-    int move;
-    int[] moveHistory;
-    boolean isElite;
-    boolean canVulnerable;
-    boolean canWeaken;
-    boolean canFrail;
-    boolean canSlime;
-    boolean canDaze;
-    boolean canGainStrength;
-    boolean canGainBlock;
-    boolean changePlayerStrength;
-    boolean changePlayerDexterity;
-    boolean hasArtifact;
+abstract class EnemyReadOnly {
+    protected int health;
+    protected int block;
+    protected int strength;
+    protected int vulnerable;
+    protected int weak;
+    protected int artifact;
+    protected int move;
+    protected int[] moveHistory;
+    public int maxHealth;
+    public int numOfMoves;
+    public boolean isElite = false;
+    public boolean canVulnerable = false;
+    public boolean canWeaken = false;
+    public boolean canFrail = false;
+    public boolean canSlime = false;
+    public boolean canDaze = false;
+    public boolean canGainStrength = false;
+    public boolean canGainBlock = false;
+    public boolean changePlayerStrength = false;
+    public boolean changePlayerDexterity = false;
+    public boolean hasArtifact = false;
 
-    public abstract void doMove(GameState state);
-    public abstract void nextMove(RandomGen random);
-    public abstract Enemy copy();
-    public abstract String getMoveString(GameState state);
-    public abstract String getName();
-
-    public Enemy(int health, int numOfMoves) {
+    public EnemyReadOnly(int health, int numOfMoves) {
         this.health = health;
         maxHealth = health;
         this.numOfMoves = numOfMoves;
         move = -1;
     }
 
-    public void setSharedFields(Enemy other) {
+    public abstract void doMove(GameState state);
+    public abstract Enemy copy();
+    public abstract String getMoveString(GameState state, int move);
+    public String getMoveString(GameState state) {
+        return getMoveString(state, this.move);
+    }
+    public abstract String getName();
+
+    protected void setSharedFields(Enemy other) {
         health = other.health;
-        maxHealth = other.maxHealth;
         block = other.block;
         strength = other.strength;
         vulnerable = other.vulnerable;
         weak = other.weak;
         artifact = other.artifact;
-        numOfMoves = other.numOfMoves;
         move = other.move;
+        numOfMoves = other.numOfMoves;
+        maxHealth = other.maxHealth;
         if (other.moveHistory != null) {
             for (int i = 0; i < other.moveHistory.length; i++) {
                 moveHistory[i] = other.moveHistory[i];
@@ -56,51 +63,36 @@ abstract class Enemy {
         }
     }
 
-    void damage(int n, GameState state) {
-        if (health <= 0) {
-            return;
-        }
-        health -= Math.max(0, n - block);
-        block = Math.max(0, block - n);
-        if (health <= 0) {
-            health = 0;
-            state.enemiesAlive -= 1;
-        }
+    public int getHealth() {
+        return health;
     }
 
-    void nonAttackDamage(int n, boolean blockable, GameState state) {
-        if (health <= 0) {
-            return;
-        }
-        if (blockable) {
-            health -= Math.max(0, n - block);
-            block = Math.max(0, block - n);
-        } else {
-            health -= n;
-        }
-        if (health <= 0) {
-            health = 0;
-            state.enemiesAlive -= 1;
-        }
+    public int getBlock() {
+        return block;
     }
 
-    void gainBlock(int n) {
-        block += n;
-        if (block > 999) {
-            block = 999;
-        }
+    public int getStrength() {
+        return strength;
     }
 
-    public void startTurn() {}
+    public int getVulnerable() {
+        return vulnerable;
+    }
 
-    void endTurn() {
-        if (vulnerable > 0) {
-            vulnerable -= 1;
-        }
-        if (weak > 0) {
-            weak -= 1;
-        }
-        block = 0;
+    public int getWeak() {
+        return weak;
+    }
+
+    public int getArtifact() {
+        return artifact;
+    }
+
+    public int getMove() {
+        return move;
+    }
+
+    public int[] getMoveHistory() {
+        return moveHistory;
     }
 
     public String toString(GameState state) {
@@ -123,6 +115,88 @@ abstract class Enemy {
         return str + '}';
     }
 
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        Enemy enemy = (Enemy) o;
+        return health == enemy.health && maxHealth == enemy.maxHealth && block == enemy.block && strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact && move == enemy.move && Arrays.equals(moveHistory, enemy.moveHistory);
+    }
+
+    @Override public int hashCode() {
+        int result = Objects.hash(health, maxHealth, block, strength, vulnerable, weak, artifact, move);
+        result = 31 * result + Arrays.hashCode(moveHistory);
+        return result;
+    }
+}
+
+public abstract class Enemy extends EnemyReadOnly {
+    public Enemy(int health, int numOfMoves) {
+        super(health, numOfMoves);
+    }
+
+    public abstract void nextMove(RandomGen random);
+
+    public void damage(int n, GameState state) {
+        if (health <= 0) {
+            return;
+        }
+        health -= Math.max(0, n - block);
+        block = Math.max(0, block - n);
+        if (health <= 0) {
+            health = 0;
+            state.enemiesAlive -= 1;
+        }
+    }
+
+    public void nonAttackDamage(int n, boolean blockable, GameState state) {
+        if (health <= 0) {
+            return;
+        }
+        if (blockable) {
+            health -= Math.max(0, n - block);
+            block = Math.max(0, block - n);
+        } else {
+            health -= n;
+        }
+        if (health <= 0) {
+            health = 0;
+            state.enemiesAlive -= 1;
+        }
+    }
+
+    public void gainBlock(int n) {
+        block += n;
+        if (block > 999) {
+            block = 999;
+        }
+    }
+
+    public void gainStrength(int n) {
+        strength += 2;
+    }
+
+    public void setHealth(int hp) {
+        health = hp;
+    }
+
+    public void setMove(int move) {
+        this.move = move;
+    }
+
+    public void startTurn() {}
+
+    public void endTurn() {
+        if (vulnerable > 0) {
+            vulnerable -= 1;
+        }
+        if (weak > 0) {
+            weak -= 1;
+        }
+        block = 0;
+    }
+
     public void react(GameState state, Card card) {
     }
 
@@ -141,21 +215,6 @@ abstract class Enemy {
     }
 
     public void randomize(RandomGen random, boolean training) {
-    }
-
-    @Override public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        Enemy enemy = (Enemy) o;
-        return health == enemy.health && maxHealth == enemy.maxHealth && block == enemy.block && strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact && move == enemy.move && Arrays.equals(moveHistory, enemy.moveHistory);
-    }
-
-    @Override public int hashCode() {
-        int result = Objects.hash(health, maxHealth, block, strength, vulnerable, weak, artifact, move);
-        result = 31 * result + Arrays.hashCode(moveHistory);
-        return result;
     }
 
     // ******************************************************************************************
@@ -211,7 +270,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == 0) {
                 return "Buff";
             } else if (move == 1) {
@@ -268,14 +327,14 @@ abstract class Enemy {
             return new Lagavulin(this);
         }
 
-        @Override void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             super.damage(n, state);
             if (!tookDamage && health < maxHealth) {
                 tookDamage = true;
             }
         }
 
-        @Override void nonAttackDamage(int n, boolean blockable, GameState state) {
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
             if (!tookDamage && health < maxHealth) {
                 tookDamage = true;
@@ -310,7 +369,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == WAIT_1 || move == WAIT_2 || move == WAIT_3) {
                 return "Asleep";
             } else if (move == ATTACK_1 || move == ATTACK_2) {
@@ -336,8 +395,8 @@ abstract class Enemy {
     }
 
     public static class Sentry extends Enemy {
-        static int BEAM = 0;
-        static int BOLT = 1;
+        public final static int BEAM = 0;
+        public final static int BOLT = 1;
 
         int startMove;
 
@@ -380,7 +439,7 @@ abstract class Enemy {
             move = move == BEAM ? BOLT : BEAM;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == BEAM) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 10);
             } else if (move == BOLT) {
@@ -463,7 +522,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == ACTIVATE) {
                 return "Activate";
             } else if (move == DIVIDER) {
@@ -503,6 +562,14 @@ abstract class Enemy {
         int modeShiftDmg;
         int maxModeShiftDmg;
 
+        public int getModeShiftDmg() {
+            return modeShiftDmg;
+        }
+
+        public int getMaxModeShiftDmg() {
+            return maxModeShiftDmg;
+        }
+
         public TheGuardian() {
             this(250);
         }
@@ -528,7 +595,7 @@ abstract class Enemy {
             return new TheGuardian(this);
         }
 
-        void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             int oldHealth = health;
             super.damage(n, state);
             if (move != DEFENSIVE_MODE && move != ROLL_ATTACK && move != TWIN_SLAM) {
@@ -540,7 +607,7 @@ abstract class Enemy {
             }
         }
 
-        void nonAttackDamage(int n, boolean blockable, GameState state) {
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             int oldHealth = health;
             super.nonAttackDamage(n, blockable, state);
             if (move != DEFENSIVE_MODE && move != ROLL_ATTACK && move != TWIN_SLAM) {
@@ -592,7 +659,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == CHARGING_UP) {
                 return "Charging Up";
             } else if (move == FIERCE_BASH) {
@@ -660,14 +727,14 @@ abstract class Enemy {
             return new SlimeBoss(this);
         }
 
-        @Override void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             super.damage(n, state);
             if (health <= maxHealth / 2) {
                 move = SPLIT;
             }
         }
 
-        @Override void nonAttackDamage(int n, boolean blockable, GameState state) {
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
             if (health <= maxHealth / 2) {
                 move = SPLIT;
@@ -708,7 +775,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == GOOP_SPRAY) {
                 return "Slimed 5";
             } else if (move == PREPARING) {
@@ -768,14 +835,14 @@ abstract class Enemy {
             return new LargeSpikeSlime(this);
         }
 
-        @Override void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             super.damage(n, state);
             if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
         }
 
-        @Override void nonAttackDamage(int n, boolean blockable, GameState state) {
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
             if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
@@ -822,7 +889,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == FLAME_TACKLE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 18) + "+Slimed 2";
             } else if (move == LICK) {
@@ -898,7 +965,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == FLAME_TACKLE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 10) + "+Slimed 1";
             } else if (move == LICK) {
@@ -944,7 +1011,7 @@ abstract class Enemy {
             move = TACKLE;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == TACKLE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
             }
@@ -996,14 +1063,14 @@ abstract class Enemy {
             return new LargeAcidSlime(this);
         }
 
-        @Override void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             super.damage(n, state);
             if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
         }
 
-        @Override void nonAttackDamage(int n, boolean blockable, GameState state) {
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
             if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
@@ -1058,7 +1125,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == CORROSIVE_SPIT) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 12) + "+Slimed 2";
             } else if (move == TACKLE) {
@@ -1146,7 +1213,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == CORROSIVE_SPIT) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "+Slimed 1";
             } else if (move == TACKLE) {
@@ -1204,7 +1271,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == TACKLE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 4);
             } else if (move == LICK) {
@@ -1283,7 +1350,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == 0) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 12);
             } else if (move == 1) {
@@ -1311,6 +1378,26 @@ abstract class Enemy {
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
         boolean tookAttackDamage = false;
+
+        public boolean hasCurledUp() {
+            return hasCurledUp;
+        }
+
+        public int getD() {
+            return d;
+        }
+
+        public int getCurlUpAmount() {
+            return curlUpAmount;
+        }
+
+        public void setD(int d) {
+            this.d = d;
+        }
+
+        public void setCurlUpAmount(int curlUpAmount) {
+            this.curlUpAmount = curlUpAmount;
+        }
 
         public RedLouse() {
             this(16);
@@ -1357,7 +1444,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             tookAttackDamage = true;
             super.damage(n, state);
         }
@@ -1369,7 +1456,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == BITE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, d);
             } else if (move == GROW) {
@@ -1397,6 +1484,26 @@ abstract class Enemy {
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
         boolean tookAttackDamage = false;
+
+        public boolean hasCurledUp() {
+            return hasCurledUp;
+        }
+
+        public int getD() {
+            return d;
+        }
+
+        public int getCurlUpAmount() {
+            return curlUpAmount;
+        }
+
+        public void setD(int d) {
+            this.d = d;
+        }
+
+        public void setCurlUpAmount(int curlUpAmount) {
+            this.curlUpAmount = curlUpAmount;
+        }
 
         public GreenLouse() {
             this(18);
@@ -1442,7 +1549,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             tookAttackDamage = true;
             super.damage(n, state);
         }
@@ -1454,7 +1561,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == BITE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, d);
             } else if (move == SPIT_WEB) {
@@ -1527,7 +1634,7 @@ abstract class Enemy {
             move = newMove;
         }
 
-        void damage(int n, GameState state) {
+        @Override public void damage(int n, GameState state) {
             super.damage(n, state);
             if (!isDead && health <= 0) {
                 isDead = true;
@@ -1535,7 +1642,7 @@ abstract class Enemy {
             }
         }
 
-        void nonAttackDamage(int n, boolean blockable, GameState state) {
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
             if (!isDead && health <= 0) {
                 isDead = true;
@@ -1543,7 +1650,7 @@ abstract class Enemy {
             }
         }
 
-        public String getMoveString(GameState state) {
+        @Override public String getMoveString(GameState state, int move) {
             if (move == BITE) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
             } else if (move == GROW) {
@@ -1614,7 +1721,8 @@ abstract class Enemy {
             }
             move = newMove;
         }
-        public String getMoveString(GameState state) {
+
+        @Override public String getMoveString(GameState state, int move) {
             if (move == MUG_1 || move == MUG_2) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 11);
             } else if (move == LUNGE) {

@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.DrawOrder;
@@ -79,8 +80,8 @@ public class GameState implements State {
     private int[] exhaust;
     int[] deckArr;
     int deckArrLen;
-    List<Enemy> enemies;
-    int enemiesAlive;
+    public List<Enemy> enemies;
+    public int enemiesAlive;
     private boolean playerCloned;
     private Player player;
     private boolean drawOrderCloned;
@@ -131,7 +132,7 @@ public class GameState implements State {
         // actionCtx, energy, energyRefill, hand, enemies health, previousCardIdx, drawOrder, buffs should cover most
         int result = Objects.hash(actionCtx, energy, energyRefill, previousCardIdx, drawOrder, buffs);
         for (Enemy enemy : enemies) {
-            result = 31 * result + enemy.health;
+            result = 31 * result + enemy.getHealth();
         }
         result = 31 * result + Arrays.hashCode(hand);
         return result;
@@ -242,7 +243,7 @@ public class GameState implements State {
         }
         energyRefill = 3;
         this.enemies = enemies;
-        enemiesAlive = (int) enemies.stream().filter((x) -> x.health > 0).count();
+        enemiesAlive = (int) enemies.stream().filter((x) -> x.getHealth() > 0).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
         for (int i = 0; i < deck.length; i++) { // todo: edge case more innate than first turn draw
@@ -553,7 +554,7 @@ public class GameState implements State {
             if (actionCtx == GameActionCtx.SELECT_ENEMY) {
                 if (enemiesAlive == 1) {
                     for (int i = 0; i < enemies.size(); i++) {
-                        if (enemies.get(i).health > 0) {
+                        if (enemies.get(i).getHealth() > 0) {
                             lastEnemySelected = i;
                             gotoActionCtx(prop.cardDict[cardIdx].play(this, i), prop.cardDict[cardIdx], cardIdx);
                         }
@@ -649,7 +650,7 @@ public class GameState implements State {
         playerTurnStartHealth = getPlayeForRead().getHealth();
         gainEnergy(energyRefill);
         for (Enemy enemy : enemies) {
-            if (enemy.health > 0) {
+            if (enemy.getHealth() > 0) {
                 enemy.nextMove(prop.random);
             }
             enemy.startTurn();
@@ -678,7 +679,7 @@ public class GameState implements State {
             }
         }
         for (Enemy enemy : enemies) {
-            if (enemy.health > 0) {
+            if (enemy.getHealth() > 0) {
                 enemy.doMove(this);
                 enemy.endTurn();
             }
@@ -756,7 +757,7 @@ public class GameState implements State {
             if (action < 0 || action >= a.length) {
                 return false;
             }
-            return enemies.get(a[action].enemyIdx()).health > 0;
+            return enemies.get(a[action].enemyIdx()).getHealth() > 0;
         } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -787,7 +788,7 @@ public class GameState implements State {
             out[2] = 0;
             return;
         } else {
-            if (enemies.stream().allMatch((x) -> x.health <= 0)) {
+            if (enemies.stream().allMatch((x) -> x.getHealth() <= 0)) {
                 out[0] = 1;
                 out[1] = ((double) player.getHealth()) / player.getMaxHealth();
                 out[2] = calc_q(out[0], out[1]);
@@ -803,7 +804,7 @@ public class GameState implements State {
         if (getPlayeForRead().getHealth() <= 0 || turnNum > 30) {
             return -1;
         } else {
-            return enemies.stream().allMatch((x) -> x.health <= 0) ? 1 : 0;
+            return enemies.stream().allMatch((x) -> x.getHealth() <= 0) ? 1 : 0;
         }
     }
 
@@ -873,7 +874,7 @@ public class GameState implements State {
         str.append(", [");
         int eAlive = 0;
         for (Enemy enemy : enemies) {
-            if (enemy.health > 0) {
+            if (enemy.getHealth() > 0) {
                 str.append(enemy.toString(this));
                 if (++eAlive < enemiesAlive) {
                     str.append(", ");
@@ -1026,8 +1027,8 @@ public class GameState implements State {
                 inputLen += 1; // enemy artifact
             }
             inputLen += enemy.numOfMoves; // enemy moves
-            if (enemy.moveHistory != null) {
-                for (int move : enemy.moveHistory) {
+            if (enemy.getMoveHistory() != null) {
+                for (int move : enemy.getMoveHistory()) {
                     inputLen += enemy.numOfMoves;
                 }
             }
@@ -1137,8 +1138,8 @@ public class GameState implements State {
                 str += "        1 parameter to keep track of artifact\n";
             }
             str += "        " + enemy.numOfMoves + " parameters to keep track of current move from enemy\n";
-            if (enemy.moveHistory != null) {
-                str += "        " + enemy.numOfMoves + "*" + enemy.moveHistory.length + " parameters to keep track of move history from enemy\n";
+            if (enemy.getMoveHistory() != null) {
+                str += "        " + enemy.numOfMoves + "*" + enemy.getMoveHistory().length + " parameters to keep track of move history from enemy\n";
             }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 str += "        1 parameter to keep track of louse damage\n";
@@ -1241,32 +1242,32 @@ public class GameState implements State {
             }
         }
         for (Enemy enemy : enemies) {
-            if (enemy.health > 0) {
-                x[idx++] = enemy.health / (float) enemy.maxHealth;
+            if (enemy.getHealth() > 0) {
+                x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
                 if (prop.enemyCanGetVuln) {
-                    x[idx++] = enemy.vulnerable / (float) 10.0;
+                    x[idx++] = enemy.getVulnerable() / (float) 10.0;
                 }
                 if (prop.enemyCanGetWeakened) {
-                    x[idx++] = enemy.weak / (float) 10.0;
+                    x[idx++] = enemy.getWeak() / (float) 10.0;
                 }
                 if (enemy.canGainStrength) {
-                    x[idx++] = enemy.strength / (float) 20.0;
+                    x[idx++] = enemy.getStrength() / (float) 20.0;
                 }
                 if (enemy.canGainBlock) {
-                    x[idx++] = enemy.block / (float) 20.0;
+                    x[idx++] = enemy.getBlock() / (float) 20.0;
                 }
                 if (enemy.hasArtifact) {
-                    x[idx++] = enemy.artifact / 3.0f;
+                    x[idx++] = enemy.getArtifact() / 3.0f;
                 }
                 for (int i = 0; i < enemy.numOfMoves; i++) {
-                    if (enemy.move == i) {
+                    if (enemy.getMove() == i) {
                         x[idx++] = 0.5f;
                     } else {
                         x[idx++] = -0.5f;
                     }
                 }
-                if (enemy.moveHistory != null) {
-                    for (int move : enemy.moveHistory) {
+                if (enemy.getMoveHistory() != null) {
+                    for (int move : enemy.getMoveHistory()) {
                         for (int i = 0; i < enemy.numOfMoves; i++) {
                             if (move == i) {
                                 x[idx++] = 0.5f;
@@ -1277,15 +1278,15 @@ public class GameState implements State {
                     }
                 }
                 if (enemy instanceof Enemy.RedLouse louse) {
-                    x[idx++] = (louse.curlUpAmount - 10) / 2.0f;
+                    x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
                 } else if (enemy instanceof Enemy.GreenLouse louse) {
-                    x[idx++] = (louse.curlUpAmount - 10) / 2.0f;
+                    x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
                 } else if (enemy instanceof Enemy.TheGuardian guardian) {
-                    x[idx++] = (guardian.modeShiftDmg - 50) / 20f;
-                    x[idx++] = (guardian.maxModeShiftDmg - 50) / 20f;
+                    x[idx++] = (guardian.getModeShiftDmg() - 50) / 20f;
+                    x[idx++] = (guardian.getMaxModeShiftDmg() - 50) / 20f;
                 }
             } else {
-                x[idx++] = enemy.health / (float) enemy.maxHealth;
+                x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
                 if (prop.enemyCanGetVuln) {
                     x[idx++] = -0.1f;
                 }
@@ -1304,8 +1305,8 @@ public class GameState implements State {
                 for (int i = 0; i < enemy.numOfMoves; i++) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.moveHistory != null) {
-                    for (int move : enemy.moveHistory) {
+                if (enemy.getMoveHistory() != null) {
+                    for (int move : enemy.getMoveHistory()) {
                         for (int i = 0; i < enemy.numOfMoves; i++) {
                             x[idx++] = -0.1f;
                         }
@@ -1563,7 +1564,7 @@ public class GameState implements State {
         if (prop.penNibCounterIdx >= 0 && counter[prop.penNibCounterIdx] == 9) {
             dmg *= 2;
         }
-        if (enemy.vulnerable > 0) {
+        if (enemy.getVulnerable() > 0) {
             dmg = dmg + dmg / 2;
         }
         if (player.getWeak() > 0) {
@@ -1572,29 +1573,29 @@ public class GameState implements State {
         if (prop.hasBoot && dmg < 5) {
             dmg = 5;
         }
-        if (enemy.health > 0) {
+        if (enemy.getHealth() > 0) {
             enemy.damage(dmg, this);
         }
     }
 
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
-        if (enemy.health > 0) {
+        if (enemy.getHealth() > 0) {
             enemy.nonAttackDamage(dmg, blockable, this);
         }
     }
 
     public void enemyDoDamageToPlayer(Enemy enemy, int dmg, int times) {
-        int move = enemy.move;
+        int move = enemy.getMove();
         var player = getPlayerForWrite();
         for (int i = 0; i < times; i++) {
-            if (enemy.health <= 0 || enemy.move != move) { // dead or interrupted
+            if (enemy.getHealth() <= 0 || enemy.getMove() != move) { // dead or interrupted
                 return;
             }
-            dmg += enemy.strength;
+            dmg += enemy.getStrength();
             if (player.getVulnerable() > 0) {
                 dmg = dmg + dmg / (prop.hasOddMushroom ? 4 : 2);
             }
-            if (enemy.weak > 0) {
+            if (enemy.getWeak() > 0) {
                 dmg = dmg * 3 / 4;
             }
             int dmgDealt = player.damage(dmg);
@@ -1610,8 +1611,8 @@ public class GameState implements State {
     }
 
     public int enemyCalcDamageToPlayer(Enemy enemy, int d) {
-        d += enemy.strength;
-        if (enemy.weak > 0) {
+        d += enemy.getStrength();
+        if (enemy.getWeak() > 0) {
             d = d * 3 / 4;
         }
         if (getPlayeForRead().getVulnerable() > 0) {
