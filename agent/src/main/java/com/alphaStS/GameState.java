@@ -1,6 +1,9 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyList;
+import com.alphaStS.enemy.EnemyListReadOnly;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.DrawOrder;
@@ -26,8 +29,20 @@ abstract class GameEventHandler implements Comparable<GameEventHandler> {
     }
 }
 
-abstract class GameEventCardHandler {
+abstract class GameEventCardHandler  implements Comparable<GameEventCardHandler> {
+    private int priority;
+
+    GameEventCardHandler(int priority) {
+        this.priority = priority;
+    }
+
+    GameEventCardHandler() {}
+
     abstract void handle(GameState state, Card card);
+
+    @Override public int compareTo(GameEventCardHandler other) {
+        return Integer.compare(other.priority, priority);
+    }
 }
 
 abstract class OnDamageHandler {
@@ -80,7 +95,8 @@ public class GameState implements State {
     private int[] exhaust;
     int[] deckArr;
     int deckArrLen;
-    public List<Enemy> enemies;
+    private boolean enemiesCloned;
+    private EnemyList enemies;
     public int enemiesAlive;
     private boolean playerCloned;
     private Player player;
@@ -131,18 +147,18 @@ public class GameState implements State {
     @Override public int hashCode() {
         // actionCtx, energy, energyRefill, hand, enemies health, previousCardIdx, drawOrder, buffs should cover most
         int result = Objects.hash(actionCtx, energy, energyRefill, previousCardIdx, drawOrder, buffs);
-        for (Enemy enemy : enemies) {
+        for (var enemy : enemies) {
             result = 31 * result + enemy.getHealth();
         }
         result = 31 * result + Arrays.hashCode(hand);
         return result;
     }
 
-    public GameState(List<Enemy> enemies, Player player, List<CardCount> cards, List<Relic> relics) {
+    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics) {
         // game properties (shared)
         prop = new GameProperties();
 
-        cards = collectAllPossibleCards(cards, enemies, relics);
+        cards = collectAllPossibleCards(cards, enemiesArg, relics);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
         prop.cardDict = new Card[cards.size()];
         for (int i = 0; i < cards.size(); i++) {
@@ -169,7 +185,7 @@ public class GameState implements State {
         }
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
         prop.upgradeIdxes = findUpgradeIdxes(cards, relics);
-        prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemies);
+        prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
 
         // start of game actions
         prop.actionsByCtx = new GameAction[GameActionCtx.values().length][];
@@ -184,9 +200,9 @@ public class GameState implements State {
         prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cards.size()] = new GameAction(GameActionType.END_TURN, 0, 0);
 
         // select enemy actions
-        if (enemies.size() > 1) {
-            prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] = new GameAction[enemies.size()];
-            for (int i = 0; i < enemies.size(); i++) {
+        if (enemiesArg.size() > 1) {
+            prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] = new GameAction[enemiesArg.size()];
+            for (int i = 0; i < enemiesArg.size(); i++) {
                 prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()][i] = new GameAction(GameActionType.SELECT_ENEMY, 0, i);
             }
         }
@@ -242,8 +258,8 @@ public class GameState implements State {
             }
         }
         energyRefill = 3;
-        this.enemies = enemies;
-        enemiesAlive = (int) enemies.stream().filter((x) -> x.getHealth() > 0).count();
+        this.enemies = new EnemyList(enemiesArg);
+        enemiesAlive = (int) enemiesArg.stream().filter((x) -> x.getHealth() > 0).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
         for (int i = 0; i < deck.length; i++) { // todo: edge case more innate than first turn draw
@@ -267,17 +283,19 @@ public class GameState implements State {
         Collections.sort(prop.onBlockHandlers);
         Collections.sort(prop.onExhaustHandlers);
         Collections.sort(prop.onBlockHandlers);
+        Collections.sort(prop.onCardPlayedHandlers);
+        Collections.sort(prop.onCardDrawnHandlers);
 
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
-        prop.playerStrengthCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
-        prop.playerDexterityCanChange |= enemies.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerDexterityCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
-        prop.playerCanGetVuln = enemies.stream().anyMatch((x) -> x.canVulnerable);
-        prop.playerCanGetWeakened = enemies.stream().anyMatch((x) -> x.canWeaken);
-        prop.playerCanGetFrailed = enemies.stream().anyMatch((x) -> x.canFrail);
+        prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
+        prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
+        prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
         prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy) || relics.stream().anyMatch((x) -> x.vulnEnemy);
         prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy) || relics.stream().anyMatch((x) -> x.weakEnemy);;
@@ -412,10 +430,7 @@ public class GameState implements State {
         playerTurnStartHealth = other.playerTurnStartHealth;
         energyRefill = other.energyRefill;
         player = other.player;
-        enemies = new ArrayList<>();
-        for (int i = 0; i < other.enemies.size(); i++) {
-            enemies.add(other.enemies.get(i).copy());
-        }
+        enemies = other.enemies;
         enemiesAlive = other.enemiesAlive;
         previousCard = other.previousCard;
         previousCardIdx = other.previousCardIdx;
@@ -423,6 +438,11 @@ public class GameState implements State {
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
             gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
         }
+        other.enemiesCloned = false;
+        other.counterCloned = false;
+        other.playerCloned = false;
+        other.exhaustCloned = false;
+        other.drawOrderCloned = false;
 
         buffs = other.buffs;
         counter = other.counter;
@@ -622,9 +642,6 @@ public class GameState implements State {
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
         if (actionCtx == GameActionCtx.PLAY_CARD) {
-            for (Enemy enemy : enemies) {
-                enemy.react(this, prop.cardDict[cardIdx]);
-            }
             for (var handler : prop.onCardPlayedHandlers) {
                 handler.handle(this, prop.cardDict[cardIdx]);
             }
@@ -649,11 +666,14 @@ public class GameState implements State {
         turnNum++;
         playerTurnStartHealth = getPlayeForRead().getHealth();
         gainEnergy(energyRefill);
-        for (Enemy enemy : enemies) {
+        var enemies = getEnemiesForWrite();
+        for (int i = 0; i < enemies.size(); i++) {
+            var enemy = enemies.get(i);
             if (enemy.getHealth() > 0) {
-                enemy.nextMove(prop.random);
+                var enemy2 = enemies.getForWrite(i);
+                enemy2.nextMove(prop.random);
+                enemy2.startTurn();
             }
-            enemy.startTurn();
         }
         draw(5);
         for (GameEventHandler handler : prop.startOfTurnHandlers) {
@@ -678,10 +698,13 @@ public class GameState implements State {
                 }
             }
         }
-        for (Enemy enemy : enemies) {
+        var enemies = getEnemiesForWrite();
+        for (int i = 0; i < enemies.size(); i++) {
+            var enemy = enemies.get(i);
             if (enemy.getHealth() > 0) {
-                enemy.doMove(this);
-                enemy.endTurn();
+                var enemy2 = enemies.getForWrite(i);
+                enemy2.doMove(this);
+                enemy2.endTurn();
             }
         }
         getPlayerForWrite().endTurn(this);
@@ -788,7 +811,14 @@ public class GameState implements State {
             out[2] = 0;
             return;
         } else {
-            if (enemies.stream().allMatch((x) -> x.getHealth() <= 0)) {
+            boolean allDead = true;
+            for (var enemy : enemies) {
+                if (enemy.getHealth() > 0) {
+                    allDead = false;
+                    break;
+                }
+            }
+            if (allDead) {
                 out[0] = 1;
                 out[1] = ((double) player.getHealth()) / player.getMaxHealth();
                 out[2] = calc_q(out[0], out[1]);
@@ -804,7 +834,12 @@ public class GameState implements State {
         if (getPlayeForRead().getHealth() <= 0 || turnNum > 30) {
             return -1;
         } else {
-            return enemies.stream().allMatch((x) -> x.getHealth() <= 0) ? 1 : 0;
+            for (var enemy : enemies) {
+                if (enemy.getHealth() > 0) {
+                    return 0;
+                }
+            }
+            return 1;
         }
     }
 
@@ -873,7 +908,7 @@ public class GameState implements State {
         str.append(", energy=").append(energy).append(", ctx=").append(actionCtx).append(", ").append(getPlayeForRead());
         str.append(", [");
         int eAlive = 0;
-        for (Enemy enemy : enemies) {
+        for (var enemy : enemies) {
             if (enemy.getHealth() > 0) {
                 str.append(enemy.toString(this));
                 if (++eAlive < enemiesAlive) {
@@ -1009,7 +1044,7 @@ public class GameState implements State {
                 }
             }
         }
-        for (Enemy enemy : enemies) {
+        for (var enemy : enemies) {
             inputLen += 1; // enemy health
             if (prop.enemyCanGetVuln) {
                 inputLen += 1; // enemy vulnerable
@@ -1119,7 +1154,7 @@ public class GameState implements State {
                 }
             }
         }
-        for (Enemy enemy : enemies) {
+        for (var enemy : enemies) {
             str += "    *** " + enemy.getName() + " ***\n";
             str += "        1 parameter to keep track of health\n";
             if (prop.enemyCanGetVuln) {
@@ -1241,7 +1276,7 @@ public class GameState implements State {
                 }
             }
         }
-        for (Enemy enemy : enemies) {
+        for (var enemy : enemies) {
             if (enemy.getHealth() > 0) {
                 x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
                 if (prop.enemyCanGetVuln) {
@@ -1652,6 +1687,22 @@ public class GameState implements State {
             counterCloned = true;
         }
         return counter;
+    }
+
+    public EnemyListReadOnly getEnemiesForRead() {
+        if (!enemiesCloned) {
+            enemies = new EnemyList(enemies);
+            enemiesCloned = true;
+        }
+        return enemies;
+    }
+
+    public EnemyList getEnemiesForWrite() {
+        if (!enemiesCloned) {
+            enemies = new EnemyList(enemies);
+            enemiesCloned = true;
+        }
+        return enemies;
     }
 
     public PlayerReadOnly getPlayeForRead() {

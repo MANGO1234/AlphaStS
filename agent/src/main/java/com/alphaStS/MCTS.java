@@ -219,7 +219,8 @@ public class MCTS {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                        var parentState = state2.clone(false);
+                        var parentState = state2;
+                        state2 = parentState.clone(false);
                         state2.doAction(0);
                         var cState = new ChanceState(state2, state, action);
                         state.ns[action] = cState;
@@ -357,7 +358,8 @@ public class MCTS {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                        var parentState = state2.clone(false);
+                        var parentState = state2;
+                        state2 = parentState.clone(false);
                         state2.doAction(0);
                         var cState = new ChanceState(state2, state, action);
                         state.ns[action] = cState;

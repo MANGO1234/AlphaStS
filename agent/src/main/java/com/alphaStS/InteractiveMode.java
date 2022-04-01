@@ -33,12 +33,12 @@ public class InteractiveMode {
                     System.out.println("Game finished. Result " + (state.isTerminal() == 1 ? "Win" : "Loss"));
                 }
                 if (!skipPrint) {
-                    for (int i = 0; i < state.enemies.size(); i++) {
-                        var enemy = state.enemies.get(i);
+                    int enemyIdx = 0;
+                    for (var enemy : state.getEnemiesForRead()) {
                         if (enemy.getHealth() <= 0) {
                             continue;
                         }
-                        System.out.println("Enemy " + i + ": " + enemy.getName());
+                        System.out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
                         System.out.println("  HP: " + enemy.getHealth());
                         if (enemy.getStrength() > 0) {
                             System.out.println("  Strength: " + enemy.getStrength());
@@ -213,17 +213,15 @@ public class InteractiveMode {
                         if (s.length == 2 || state.enemiesAlive == 1) {
                             int hp = Integer.parseInt(line.substring(3));
                             if (hp > 0) {
-                                for (Enemy enemy : state.enemies) {
-                                    if (enemy.getHealth() > 0) {
-                                        enemy.setHealth(hp);
-                                    }
+                                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                                    enemy.setHealth(hp);
                                 }
                             }
                         } else if (s.length == 3) {
                             int enemyIdx = Integer.parseInt(s[1]);
                             int hp = Integer.parseInt(s[2]);
-                            if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && hp >= 0) {
-                                state.enemies.get(enemyIdx).setHealth(hp);
+                            if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForRead().size() && hp >= 0) {
+                                state.getEnemiesForWrite().getForWrite(enemyIdx).setHealth(hp);
                             }
                         }
                         continue;
@@ -235,13 +233,13 @@ public class InteractiveMode {
                     if (s.length == 3) {
                         int enemyIdx = parseInt(s[1], -1);
                         int n = parseInt(s[2], -1);
-                        if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
-                            if (state.enemies.get(enemyIdx) instanceof Enemy.RedLouse louse) {
+                        if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
+                            if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.RedLouse louse) {
                                 louse.setCurlUpAmount(n);
                             }
                         }
-                        if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
-                            if (state.enemies.get(enemyIdx) instanceof Enemy.GreenLouse louse) {
+                        if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
+                            if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.GreenLouse louse) {
                                 louse.setCurlUpAmount(n);
                             }
                         }
@@ -252,13 +250,13 @@ public class InteractiveMode {
                     if (s.length == 3) {
                         int enemyIdx = parseInt(s[1], -1);
                         int n = Integer.parseInt(s[2], -1);
-                        if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
-                            if (state.enemies.get(enemyIdx) instanceof Enemy.RedLouse louse) {
+                        if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
+                            if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.RedLouse louse) {
                                 louse.setD(n);
                             }
                         }
-                        if (enemyIdx >= 0 && enemyIdx < state.enemies.size() && n >= 0) {
-                            if (state.enemies.get(enemyIdx) instanceof Enemy.GreenLouse louse) {
+                        if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
+                            if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.GreenLouse louse) {
                                 louse.setD(n);
                             }
                         }
@@ -266,8 +264,8 @@ public class InteractiveMode {
                     continue;
                 } else if (line.startsWith("em ")) {
                     int enemyIdx = parseInt(line.substring(3), -1);
-                    if (0 <= enemyIdx && enemyIdx < state.enemies.size()) {
-                        curEnemy = state.enemies.get(enemyIdx);
+                    if (0 <= enemyIdx && enemyIdx < state.getEnemiesForRead().size()) {
+                        curEnemy = state.getEnemiesForWrite().getForWrite(enemyIdx);
                         mode = 2;
                         continue;
                     }

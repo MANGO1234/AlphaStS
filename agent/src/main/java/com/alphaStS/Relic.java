@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,7 +22,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     }
 
     private static boolean isEliteFight(GameState state) {
-        return state.enemies.stream().anyMatch((enemy) -> enemy.isElite);
+        for (var enemy : state.getEnemiesForRead()) {
+            if (enemy.isElite) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // ************************************************************* Common Relics ******************************************************************
@@ -75,7 +81,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class BagOfMarbles extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             vulnEnemy = true;
-            for (Enemy enemy : state.enemies) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(DebuffType.VULNERABLE, 1);
             }
         }
@@ -232,7 +238,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class PreservedInsect extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             if (isEliteFight(state)) {
-                for (Enemy enemy : state.enemies) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     enemy.setHealth(enemy.getHealth() * 3 / 4);
                 }
             }
@@ -360,7 +366,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            for (Enemy enemy : state.enemies) {
+                            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                                 state.playerDoNonAttackDamageToEnemy(enemy, 5, true);
                             }
                         }
@@ -383,8 +389,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    for (Enemy enemy : state.enemies) {
-                        enemy.nonAttackDamage(3, true, state);
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        state.playerDoNonAttackDamageToEnemy(enemy, 3, true);
                     }
                 }
             });
@@ -652,8 +658,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class PhilosophersStone extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
-            for (Enemy enemy : state.enemies) {
-                enemy.gainStrength(1);
+            var enemies = state.getEnemiesForWrite();
+            for (int i = 0; i < enemies.size(); i++) {
+                enemies.getForWrite(i).gainStrength(1);
             }
         }
     }
@@ -714,7 +721,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class RedMask extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             weakEnemy = true;
-            for (Enemy enemy : state.enemies) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(DebuffType.WEAK, 1);
             }
         }

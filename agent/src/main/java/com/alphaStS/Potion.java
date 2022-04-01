@@ -16,11 +16,11 @@ public abstract class Potion {
         }
 
         @Override public void use(GameState state, int enemyIdx) {
-            state.enemies.get(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 3);
+            state.getEnemiesForWrite().getForWrite(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 3);
         }
 
         @Override public void useDouble(GameState state, int enemyIdx) {
-            state.enemies.get(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 6);
+            state.getEnemiesForWrite().getForWrite(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 6);
         }
     }
 

@@ -74,9 +74,6 @@ public class MatchSession {
             int action = MCTS.getActionWithMaxNodesOrTerminal(state);
             states.add(new GameStep(state, action));
             state = getNextState(state, mcts, action, false);
-            if (state == null) {
-                System.out.println(states.get(states.size() - 1).state());
-            }
             states.get(states.size() - 1).state().clearNextStates();
         }
         states.add(new GameStep(state, -1));
@@ -166,10 +163,8 @@ public class MatchSession {
             state.doAction(0);
         }
         RandomGen random = state.prop.random;
-        for (Enemy enemy : state.enemies) {
-            if (enemy.getHealth() > 0) {
-                enemy.randomize(random, curriculumTraining);
-            }
+        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+            enemy.randomize(random, curriculumTraining);
         }
 
         state.doEval(mcts.model);
