@@ -88,12 +88,12 @@ public class GameState implements State {
     private boolean[] actionsCache;
     GameActionCtx actionCtx;
 
-    int[] deck;
-    int[] hand;
-    int[] discard;
+    byte[] deck;
+    byte[] hand;
+    byte[] discard;
     private boolean exhaustCloned;
-    private int[] exhaust;
-    int[] deckArr;
+    private byte[] exhaust;
+    short[] deckArr;
     int deckArrLen;
     private boolean enemiesCloned;
     private EnemyList enemies;
@@ -242,17 +242,17 @@ public class GameState implements State {
 
         // game state
         actionCtx = GameActionCtx.START_GAME;
-        deck = new int[cards.size()];
-        hand = new int[cards.size()];
-        discard = new int[cards.size()];
-        exhaust = new int[cards.size()];
+        deck = new byte[cards.size()];
+        hand = new byte[cards.size()];
+        discard = new byte[cards.size()];
+        exhaust = new byte[cards.size()];
         for (int i = 0; i < cards.size(); i++) {
-            deck[i] = cards.get(i).count();
+            deck[i] = (byte) cards.get(i).count();
             deckArrLen += deck[i];
         }
-        deckArr = new int[deckArrLen + 60];
+        deckArr = new short[deckArrLen + 60];
         int idx = 0;
-        for (int i = 0; i < cards.size(); i++) {
+        for (short i = 0; i < cards.size(); i++) {
             for (int j = 0; j < cards.get(i).count(); j++) {
                 deckArr[idx++] = i;
             }
@@ -1402,7 +1402,7 @@ public class GameState implements State {
         if (hand[card_idx] > 0) {
             deck[card_idx] += 1;
             hand[card_idx] -= 1;
-            deckArr[deckArrLen] = card_idx;
+            deckArr[deckArrLen] = (short) card_idx;
             deckArrLen += 1;
         }
     }
@@ -1415,7 +1415,7 @@ public class GameState implements State {
     }
 
     public void reshuffle() {
-        for (int i = 0; i < discard.length; i++) {
+        for (short i = 0; i < discard.length; i++) {
             for (int j = 0; j < discard[i]; j++) {
                 deckArr[deckArrLen++] = i;
             }
@@ -1575,7 +1575,7 @@ public class GameState implements State {
 
     public void addCardToDeck(int idx) {
         deck[idx]++;
-        deckArr[deckArrLen++] = idx;
+        deckArr[deckArrLen++] = (short) idx;
     }
 
     public void removeCardFromHand(int idx) {
@@ -1586,7 +1586,7 @@ public class GameState implements State {
 
     public void putCardOnTopOfDeck(int idx) {
         deck[idx]++;
-        deckArr[deckArrLen++] = idx;
+        deckArr[deckArrLen++] = (short) idx;
         getDrawOrderForWrite().pushOnTop(idx);
     }
 
@@ -1665,11 +1665,11 @@ public class GameState implements State {
         }
     }
 
-    public int[] getExhaustForRead() {
+    public byte[] getExhaustForRead() {
         return exhaust;
     }
 
-    public int[] getExhaustForWrite() {
+    public byte[] getExhaustForWrite() {
         if (!exhaustCloned) {
             exhaust = Arrays.copyOf(exhaust, exhaust.length);
             exhaustCloned = true;
