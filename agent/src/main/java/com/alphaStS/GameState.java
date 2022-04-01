@@ -3,7 +3,6 @@ package com.alphaStS;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyListReadOnly;
-import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.DrawOrder;
@@ -307,6 +306,7 @@ public class GameState implements State {
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
+        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);
         prop.inputLen = getNNInputLen();
 
         // mcts related fields
@@ -1071,6 +1071,8 @@ public class GameState implements State {
                 inputLen += 1;
             } else if (enemy instanceof Enemy.TheGuardian guardian) {
                 inputLen += 2;
+            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
+                inputLen += 1;
             }
         }
         return inputLen;
@@ -1180,6 +1182,8 @@ public class GameState implements State {
                 str += "        1 parameter to keep track of louse damage\n";
             } else if (enemy instanceof Enemy.TheGuardian guardian) {
                 str += "        2 parameter to keep track of current and max guardian mode shift damage\n";
+            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
+                str += "        1 parameter to keep track of health slime boss split at\n";
             }
         }
         return str;
@@ -1319,6 +1323,8 @@ public class GameState implements State {
                 } else if (enemy instanceof Enemy.TheGuardian guardian) {
                     x[idx++] = (guardian.getModeShiftDmg() - 50) / 20f;
                     x[idx++] = (guardian.getMaxModeShiftDmg() - 50) / 20f;
+                } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
+                    x[idx++] = slime.splitMaxHealth / (float) slime.maxHealth;
                 }
             } else {
                 x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
@@ -1352,6 +1358,8 @@ public class GameState implements State {
                 } else if (enemy instanceof Enemy.TheGuardian) {
                     x[idx++] = -0.1f;
                     x[idx++] = -0.1f;
+                } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
+                    x[idx++] = slime.splitMaxHealth / (float) slime.maxHealth;
                 }
             }
         }

@@ -631,13 +631,11 @@ public abstract class Enemy extends EnemyReadOnly {
                     if (enemies.get(i) instanceof Enemy.LargeAcidSlime) {
                         var enemy = enemies.getForWrite(i);
                         enemy.health = health;
-                        // todo: actually this need to be part of nn input
                         ((Enemy.LargeAcidSlime) enemy).splitMaxHealth = health;
                         state.enemiesAlive += 1;
                     } else if (enemies.get(i) instanceof Enemy.LargeSpikeSlime) {
                         var enemy = enemies.getForWrite(i);
                         enemy.health = health;
-                        // todo: actually this need to be part of nn input
                         ((Enemy.LargeSpikeSlime) enemy).splitMaxHealth = health;
                         state.enemiesAlive += 1;
                     }
@@ -688,7 +686,7 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 1;
         private static final int SPLIT = 2;
 
-        private int splitMaxHealth;
+        public int splitMaxHealth;
 
         public LargeSpikeSlime() {
             this(73);
@@ -917,7 +915,7 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 2;
         private static final int SPLIT = 3;
 
-        private int splitMaxHealth;
+        public int splitMaxHealth;
 
         public LargeAcidSlime() {
             this(72);

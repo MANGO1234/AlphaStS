@@ -54,6 +54,7 @@ public class GameProperties {
     // cached game properties for generating NN input
     public boolean battleTranceExist;
     public boolean energyRefillCanChange;
+    public boolean isSlimeBossFight;
     public int inputLen;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
