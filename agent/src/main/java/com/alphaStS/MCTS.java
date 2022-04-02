@@ -47,12 +47,7 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
-            numberOfPossibleActions = 0;
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.policy[i] > 0) {
-                    numberOfPossibleActions++;
-                }
-            }
+            numberOfPossibleActions = state.getLegalActions().length;
             return;
         }
 
@@ -66,7 +61,7 @@ public class MCTS {
             double maxU = -1000000;
             v[0] = -1000000;
 
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+            for (int i = 0; i < state.getLegalActions().length; i++) {
                 if (policy[i] <= 0 || state.transpositionsPolicyMask[i]) {
                     continue;
                 }
@@ -179,12 +174,7 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
-            numberOfPossibleActions = 0;
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.policy[i] > 0) {
-                    numberOfPossibleActions++;
-                }
-            }
+            numberOfPossibleActions = state.getLegalActions().length;
             return;
         }
 
@@ -192,7 +182,7 @@ public class MCTS {
         int action = 0;
         int numberOfActions = 0;
         double maxU = -1000000;
-        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+        for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
@@ -318,12 +308,7 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
-            numberOfPossibleActions = 0;
-             for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (state.policy[i] > 0) {
-                    numberOfPossibleActions++;
-                }
-            }
+            numberOfPossibleActions = state.getLegalActions().length;
             return;
         }
 
@@ -331,7 +316,7 @@ public class MCTS {
         int action = 0;
         int numberOfActions = 0;
         double maxU = -1000000;
-        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+        for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
@@ -458,7 +443,7 @@ public class MCTS {
         int action = 0;
         int numberOfActions = 0;
         double maxU = -1000000;
-        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
+        for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
@@ -514,7 +499,7 @@ public class MCTS {
         if (training) {
             if (state.policyMod == null) {
                 if (isRoot) {
-                    state.policyMod = applyDirichletNoiseToPolicy(state, state.policy);
+                    state.policyMod = applyDirichletNoiseToPolicy(state.policy);
                 } else {
                     state.policyMod = state.policy;
                 }
@@ -543,26 +528,14 @@ public class MCTS {
         return newPolicy;
     }
 
-    private float[] applyDirichletNoiseToPolicy(GameState state, float[] policy) {
-        int actionCount = 0;
+    private float[] applyDirichletNoiseToPolicy(float[] policy) {
+        policy = Arrays.copyOf(policy, policy.length);
+        var param = new double[policy.length];
+        Arrays.fill(param, 2);
+        var noiseGen = new Dirichlet(param);
+        var noise = noiseGen.nextDistribution(); // todo move out
         for (int i = 0; i < policy.length; i++) {
-            if (policy[i] > 0) {
-                actionCount += 1;
-            }
-        }
-        if (actionCount > 1) {
-            policy = Arrays.copyOf(policy, policy.length);
-            var param = new double[actionCount];
-            Arrays.fill(param, 2);
-            var noiseGen = new Dirichlet(param);
-            var noise = noiseGen.nextDistribution(); // todo move out
-            int k = 0;
-            for (int i = 0; i < policy.length; i++) {
-                if (state.isActionLegal(i)) {
-                    policy[i] = (float) noise[k] * 0.25f + policy[i] * 0.75f;
-                    k += 1;
-                }
-            }
+            policy[i] = (float) noise[i] * 0.25f + policy[i] * 0.75f;
         }
         return policy;
     }
@@ -590,8 +563,8 @@ public class MCTS {
         }
         int actionToPropagate = -1;
         float max_n = -1000;
-        for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-            if (state.isActionLegal(i) && !state.transpositionsPolicyMask[i]) {
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (!state.transpositionsPolicyMask[i]) {
                 if (state.n[i] > max_n) {
                     max_n = state.n[i];
                     actionToPropagate = i;

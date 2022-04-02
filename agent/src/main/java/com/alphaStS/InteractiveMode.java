@@ -122,21 +122,19 @@ public class InteractiveMode {
                     }
                 }
                 skipPrint = false;
-                for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                    if (state.isActionLegal(i)) {
-                        if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
-                                state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
-                                state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST) {
-                            System.out.println(i + ". " + state.getActionString(i));
-                        } else if (state.getAction(i).type() == GameActionType.END_TURN) {
-                            System.out.println("e. End Turn");
-                        } else if (state.getAction(i).type() == GameActionType.START_GAME) {
-                            System.out.println(i + ". Start Game");
-                        } else {
-                            throw new RuntimeException();
-                        }
+                for (int i = 0; i < state.getLegalActions().length; i++) {
+                    if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
+                            state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
+                            state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
+                            state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
+                            state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST) {
+                        System.out.println(i + ". " + state.getActionString(i));
+                    } else if (state.getAction(i).type() == GameActionType.END_TURN) {
+                        System.out.println("e. End Turn");
+                    } else if (state.getAction(i).type() == GameActionType.START_GAME) {
+                        System.out.println(i + ". Start Game");
+                    } else {
+                        throw new RuntimeException();
                     }
                 }
                 System.out.println("a. Show Deck");
@@ -170,13 +168,13 @@ public class InteractiveMode {
                     states.add(state);
                     state.clearAllSearchInfo();
                     state = state.clone(false);
-                    for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                        if (state.isActionLegal(i) && state.getAction(i).type() == GameActionType.END_TURN) {
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (state.getAction(i).type() == GameActionType.END_TURN) {
                             state.doAction(i);
                         }
                     }
-                    for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                        if (state.isActionLegal(i) && state.getAction(i).type() == GameActionType.BEGIN_TURN) {
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
                             state.doAction(i);
                         }
                     }
@@ -342,7 +340,7 @@ public class InteractiveMode {
                 }
 
                 int action = parseInt(line, -1);
-                if (action >= 0 && state.isActionLegal(action)) {
+                if (action >= 0 && action <= state.getLegalActions().length) {
                     states.add(state);
                     state.clearAllSearchInfo();
                     state = state.clone(false);
@@ -468,8 +466,8 @@ public class InteractiveMode {
     private static void runGames(String modelDir, GameState state, String line) {
         String[] s = line.split(" ");
         int numberOfGames = 100;
-        int numberOfThreads = 1;
-        int nodeCount = 1000;
+        int numberOfThreads = 2;
+        int nodeCount = 500;
         int startingAction = -1;
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
@@ -477,10 +475,10 @@ public class InteractiveMode {
                     numberOfGames = parseInt(s[i].substring(2), 0);
                 }
                 if (s[i].startsWith("t=")) {
-                    numberOfThreads = parseInt(s[i].substring(2), 1);
+                    numberOfThreads = parseInt(s[i].substring(2), 2);
                 }
                 if (s[i].startsWith("n=")) {
-                    nodeCount = parseInt(s[i].substring(2), 1000);
+                    nodeCount = parseInt(s[i].substring(2), 500);
                 }
                 if (s[i].startsWith("a=")) {
                     if (s[i].substring(2).equals("e")) {
@@ -488,7 +486,7 @@ public class InteractiveMode {
                     } else {
                         startingAction = parseInt(s[i].substring(2), -1);
                     }
-                    if (!state.isActionLegal(startingAction)) {
+                    if (startingAction < 0 || startingAction >= state.getLegalActions().length) {
                         System.out.println("Unknown action.");
                         numberOfGames = 0;
                     }

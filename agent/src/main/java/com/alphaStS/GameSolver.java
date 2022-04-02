@@ -31,10 +31,7 @@ public class GameSolver {
         } else {
             double maxHealth = 0;
             boolean hasOtherAction = false;
-            for (int i = 0; i < state.prop.maxNumOfActions; i++) {
-                if (!state.isActionLegal(i)) {
-                    continue;
-                }
+            for (int i = 0; i < state.getLegalActions().length; i++) {
                 var action = state.getAction(i);
                 if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.cardIdx()].cardType == Card.ATTACK) {
                     hasOtherAction = true;

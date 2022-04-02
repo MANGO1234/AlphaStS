@@ -310,7 +310,7 @@ public class Main {
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
                 NUMBER_OF_GAMES_TO_PLAY = 200;
-                NUMBER_OF_NODES_PER_TURN = 20000;
+                NUMBER_OF_NODES_PER_TURN = 200;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
         } catch (FileNotFoundException e) {
@@ -379,32 +379,41 @@ public class Main {
                 }
                 stream.writeFloat(step.v_health);
                 stream.writeFloat(step.v_win);
+                int idx = 0;
                 for (int j = 0; j < state.prop.totalNumOfActions; j++) {
                     if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {
                         if (state.actionCtx == GameActionCtx.SELECT_ENEMY || !state.isActionLegal(j)) {
                             stream.writeFloat(-1);
                         } else {
-                            if (state.terminal_action > 0) {
-                                if (state.terminal_action == j) {
+                            if (state.terminal_action >= 0) {
+                                if (state.getLegalActions()[state.terminal_action] == j) {
                                     stream.writeFloat(1);
                                 } else {
                                     stream.writeFloat(0);
                                 }
                             } else {
-                                stream.writeFloat((float) (((double) state.n[j]) / state.total_n));
+                                if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == j) {
+                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                } else {
+                                    Integer.parseInt(null);
+                                }
                             }
                         }
                     } else {
                         int action = j - state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
                         if (state.actionCtx == GameActionCtx.SELECT_ENEMY && state.isActionLegal(action)) {
-                            if (state.terminal_action > 0) {
-                                if (state.terminal_action == action) {
+                            if (state.terminal_action >= 0) {
+                                if (state.getLegalActions()[state.terminal_action] == action) {
                                     stream.writeFloat(1);
                                 } else {
-                                    stream.writeFloat(0);
+                                    stream.writeFloat( 0);
                                 }
                             } else {
-                                stream.writeFloat((float) (((double) state.n[action]) / state.total_n));
+                                if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                } else {
+                                    Integer.parseInt(null);
+                                }
                             }
                         } else {
                             stream.writeFloat(-1);

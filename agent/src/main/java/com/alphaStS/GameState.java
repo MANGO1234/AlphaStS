@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyListReadOnly;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.DrawOrder;
@@ -68,7 +69,6 @@ public class GameState implements State {
 
     boolean isStochastic;
     public GameProperties prop;
-    private boolean[] actionsCache;
     GameActionCtx actionCtx;
 
     byte[] deck;
@@ -101,6 +101,7 @@ public class GameState implements State {
     short thorn;
     int lastEnemySelected;
 
+    private int[] legalActions;
     double v_win; // if terminal, 1.0 or -1.0, else from NN
     double v_health; // if terminal, player_health/player_max_health, else from NN
     double[] q_win; // total v_win value propagated from each child
@@ -297,13 +298,6 @@ public class GameState implements State {
         prop.inputLen = getNNInputLen();
 
         // mcts related fields
-        policy = null;
-        q_win = new double[prop.maxNumOfActions];
-        q_health = new double[prop.maxNumOfActions];
-        q_comb = new double[prop.maxNumOfActions];
-        n = new int[prop.maxNumOfActions];
-        ns = new State[prop.maxNumOfActions];
-        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
         terminal_action = -100;
         transpositions = new HashMap<>();
     }
@@ -436,13 +430,7 @@ public class GameState implements State {
         lastEnemySelected = other.lastEnemySelected;
         thorn = other.thorn;
 
-        policy = null;
-        q_health = new double[prop.maxNumOfActions];
-        q_comb = new double[prop.maxNumOfActions];
-        q_win = new double[prop.maxNumOfActions];
-        n = new int[prop.maxNumOfActions];
-        ns = new State[prop.maxNumOfActions];
-        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
+        legalActions = other.legalActions;
         terminal_action = -100;
     }
 
@@ -537,7 +525,6 @@ public class GameState implements State {
         }
         case BEGIN_TURN -> actionCtx = ctx;
         }
-        actionsCache = null;
     }
 
     void playCard(int cardIdx, int selectIdx, boolean cloned, boolean useEnergy) {
@@ -701,7 +688,7 @@ public class GameState implements State {
     }
 
     void doAction(int actionIdx) {
-        GameAction action = prop.actionsByCtx[actionCtx.ordinal()][actionIdx];
+        GameAction action = prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         if (action.type() == GameActionType.START_GAME) {
             startTurn();
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
@@ -723,8 +710,8 @@ public class GameState implements State {
             startTurn();
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
         }
-        actionsCache = null;
         policy = null;
+        legalActions = null;
         v_win = 0;
         v_health = 0;
         if (isStochastic) {
@@ -733,35 +720,41 @@ public class GameState implements State {
     }
 
     boolean isActionLegal(int action) {
-        if (actionsCache != null) {
-            if (action >=0 && action < actionsCache.length) {
-                return actionsCache[action];
-            }
-            return false;
-        }
         if (actionCtx == GameActionCtx.START_GAME || actionCtx == GameActionCtx.BEGIN_TURN) {
             return action == 0;
         } else if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (prop.normalityCounterIdx >= 0 && counter[prop.normalityCounterIdx] >= 3) {
                 return false;
             }
-            boolean[] actions = new boolean[prop.maxNumOfActions];
             GameAction[] a = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()];
             if (action < 0 || action >= a.length) {
                 return false;
             }
-            for (int i = 0; i < a.length; i++) {
-                if (a[i].type() == GameActionType.END_TURN) {
-                    actions[i] = true;
-                } else if (hand[a[i].cardIdx()] > 0) {
-                    int cost = getCardEnergyCost(a[i].cardIdx());
-                    if (cost >= 0 && cost <= energy) {
-                        actions[i] = true;
-                    }
+            if (a[action].type() == GameActionType.END_TURN) {
+                return true;
+            } else if (hand[a[action].cardIdx()] > 0) {
+                int cost = getCardEnergyCost(a[action].cardIdx());
+                if (cost >= 0 && cost <= energy) {
+//                    if (prop.cardDict[a[action].cardIdx()].cardName.equals("Defend")) {
+//                        var dmg = 0;
+//                        for (var enemy : enemies) {
+//                            if (enemy.getHealth() > 0 && enemy.getMoveString(this).startsWith("Attack ")) {
+//                                var str = enemy.getMoveString(this);
+//                                var start = 7;
+//                                while (start < str.length() && str.charAt(start) <= '9' && str.charAt(start) >= '0') {
+//                                    start++;
+//                                }
+//                                dmg += Integer.parseInt(str.substring(7, start));
+//                            }
+//                        }
+//                        if (player.getBlock() >= dmg) {
+//                            return false;
+//                        }
+//                    }
+                    return true;
                 }
             }
-            actionsCache = actions;
-            return actions[action];
+            return false;
         } else if (actionCtx == GameActionCtx.SELECT_ENEMY) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -929,15 +922,15 @@ public class GameState implements State {
             }
         }
         str.append(", v=(").append(formatFloat(v_win)).append(", ").append(formatFloat(v_health)).append("/").append(formatFloat(v_health * getPlayeForRead().getMaxHealth())).append(")");
-        str.append(", q/p/n=[");
-        first = true;
-        for (int i = 0; i < q_win.length; i++) {
-            var p_str = policy != null ? formatFloat(policy[i]) : "0";
-            var p_str2 = policyMod != null ? formatFloat(policyMod[i]) : null;
-            var q_win_str = formatFloat(n[i] == 0 ? 0 : q_win[i] / n[i]);
-            var q_health_str = formatFloat(n[i] == 0 ? 0 : q_health[i] / n[i]);
-            var q_str = formatFloat(n[i] == 0 ? 0 : q_comb[i] / n[i]);
-            if (isActionLegal(i)) {
+        if (policy != null) {
+            str.append(", q/p/n=[");
+            first = true;
+            for (int i = 0; i < getLegalActions().length; i++) {
+                var p_str = policy != null ? formatFloat(policy[i]) : "0";
+                var p_str2 = policyMod != null ? formatFloat(policyMod[i]) : null;
+                var q_win_str = formatFloat(n[i] == 0 ? 0 : q_win[i] / n[i]);
+                var q_health_str = formatFloat(n[i] == 0 ? 0 : q_health[i] / n[i]);
+                var q_str = formatFloat(n[i] == 0 ? 0 : q_comb[i] / n[i]);
                 if (!first) {
                     str.append(", ");
                 }
@@ -949,17 +942,43 @@ public class GameState implements State {
                 }
                 str.append(" (").append(getActionString(i)).append(")");
             }
+            str.append(']');
         }
-        str.append(']');
         str.append('}');
         return str.toString();
     }
 
+    public int[] getLegalActions() {
+        if (legalActions == null) {
+            int count = 0;
+            for (int i = 0; i < prop.maxNumOfActions; i++) {
+                if (isActionLegal(i)) {
+                    count += 1;
+                }
+            }
+            legalActions = new int[count];
+            int idx = 0;
+            for (int i = 0; i < prop.maxNumOfActions; i++) {
+                if (isActionLegal(i)) {
+                    legalActions[idx++] = i;
+                }
+            }
+        }
+        return legalActions;
+    }
+
     public void doEval(Model model) {
+        getLegalActions();
         NNOutput output = model.eval(this);
-        this.policy = output.policy();
-        this.v_health = Math.min(output.v_health(), getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
-        this.v_win = output.v_win();
+        policy = output.policy();
+        v_health = Math.min(output.v_health(), getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
+        v_win = output.v_win();
+        q_health = new double[policy.length];
+        q_comb = new double[policy.length];
+        q_win = new double[policy.length];
+        n = new int[policy.length];
+        ns = new State[policy.length];
+        transpositionsPolicyMask = new boolean[policy.length];
     }
 
     private int getNNInputLen() {
@@ -1444,7 +1463,7 @@ public class GameState implements State {
     }
 
     public GameAction getAction(int i) {
-        return prop.actionsByCtx[actionCtx.ordinal()][i];
+        return prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[i]];
     }
 
     public void addStartOfTurnHandler(GameEventHandler handler) {
@@ -1525,18 +1544,20 @@ public class GameState implements State {
     }
 
     public void clearNextStates() { // oom during training due to holding too many states
-        Arrays.fill(ns, null);
+        if (ns != null) {
+            Arrays.fill(ns, null);
+        }
         transpositions = new HashMap<>();
     }
 
     public void clearAllSearchInfo() {
         policy = null;
-        q_health = new double[prop.maxNumOfActions];
-        q_comb = new double[prop.maxNumOfActions];
-        q_win = new double[prop.maxNumOfActions];
-        n = new int[prop.maxNumOfActions];
-        ns = new State[prop.maxNumOfActions];
-        transpositionsPolicyMask = new boolean[prop.maxNumOfActions];
+        q_health = null;
+        q_comb = null;
+        q_win = null;
+        n = null;
+        ns = null;
+        transpositionsPolicyMask = null;
         transpositions = new HashMap<>();
         terminal_action = -100;
         total_n = 0;
@@ -1545,7 +1566,6 @@ public class GameState implements State {
         total_q_comb = 0;
         v_health = 0;
         v_win = 0;
-        actionsCache = null;
     }
 
     public void gainEnergy(int n) {

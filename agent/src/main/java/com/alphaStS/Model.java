@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-record NNOutput(float v_health, float v_win, float[] policy) {
+record NNOutput(float v_health, float v_win, float[] policy, int[] legalActions) {
 }
 
 public class Model {
@@ -86,6 +86,9 @@ public class Model {
         InputHash hash = new InputHash(state.getNNInput());
         NNOutput o = cache.get(hash);
         if (o != null) {
+            if (!Arrays.equals(o.legalActions(), state.getLegalActions())) {
+                Integer.parseInt(null);
+            }
             cache_hits += 1;
             return o;
         }
@@ -107,15 +110,15 @@ public class Model {
                     policy = Arrays.copyOf(policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
                 }
             }
-            for (int i = 0; i < policy.length; i++) {
-                if (!state.isActionLegal(i)) {
-                    policy[i] = -1000;
-                }
+            var legalActions = state.getLegalActions();
+            float[] policyCompressed = new float[legalActions.length];
+            for (int i = 0; i < legalActions.length; i++) {
+                policyCompressed[i] = policy[legalActions[i]];
             }
             state.v_health = v_health;
             state.v_win = v_win;
             state.policy = policy;
-            o = new NNOutput(v_health, v_win, softmax(policy));
+            o = new NNOutput(v_health, v_win, softmax(policyCompressed), legalActions);
             cache.put(hash, o);
             time_taken += System.currentTimeMillis() - start;
             return o;
