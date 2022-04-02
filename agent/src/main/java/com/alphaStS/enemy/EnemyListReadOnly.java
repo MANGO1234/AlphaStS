@@ -1,5 +1,7 @@
 package com.alphaStS.enemy;
 
+import com.alphaStS.GameState;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -38,6 +40,15 @@ public class EnemyListReadOnly implements Iterable<EnemyReadOnly> {
 
     public int size() {
         return enemies.length;
+    }
+
+    public int find(Enemy enemy) {
+        for (int i = 0; i < enemies.length; i++) {
+            if (enemies[i].equals(enemy)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private static class EnemyListIterator implements Iterator<EnemyReadOnly> {

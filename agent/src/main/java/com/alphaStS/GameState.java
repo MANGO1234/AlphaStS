@@ -28,22 +28,6 @@ abstract class GameEventHandler implements Comparable<GameEventHandler> {
     }
 }
 
-abstract class GameEventCardHandler  implements Comparable<GameEventCardHandler> {
-    private int priority;
-
-    GameEventCardHandler(int priority) {
-        this.priority = priority;
-    }
-
-    GameEventCardHandler() {}
-
-    abstract void handle(GameState state, Card card);
-
-    @Override public int compareTo(GameEventCardHandler other) {
-        return Integer.compare(other.priority, priority);
-    }
-}
-
 abstract class OnDamageHandler {
     abstract void handle(GameState state, Object source, boolean isAttack, int damageDealt);
 }
@@ -273,6 +257,9 @@ public class GameState implements State {
         for (Card card : prop.cardDict) {
             card.startOfGameSetup(this);
         }
+        for (var enemy : enemies) {
+            enemy.startOfGameSetup(this);
+        }
         prop.compileCounterInfo();
         if (prop.counterNames.length > 0) {
             counter = new int[prop.counterNames.length];
@@ -306,7 +293,7 @@ public class GameState implements State {
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
-        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);
+//        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);
         prop.inputLen = getNNInputLen();
 
         // mcts related fields

@@ -1,9 +1,6 @@
 package com.alphaStS.enemy;
 
-import com.alphaStS.Card;
-import com.alphaStS.DebuffType;
-import com.alphaStS.GameState;
-import com.alphaStS.RandomGen;
+import com.alphaStS.*;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -560,10 +557,18 @@ public abstract class Enemy extends EnemyReadOnly {
             health = 250 * b / 25;
         }
 
-        @Override public void react(GameState state, Card card) {
-            if (card.cardType == Card.ATTACK && (move == ROLL_ATTACK || move == TWIN_SLAM)) {
-                state.doNonAttackDamageToPlayer(4, true, this);
-            }
+        @Override public void startOfGameSetup(GameState state) {
+            var idx = state.getEnemiesForRead().find(this);
+            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card) {
+                    if (card.cardType == Card.ATTACK) {
+                        var move = state.getEnemiesForRead().get(idx).move;
+                        if (move == ROLL_ATTACK || move == TWIN_SLAM) {
+                            state.doNonAttackDamageToPlayer(4, true, this);
+                        }
+                    }
+                }
+            });
         }
 
         public String getName() {

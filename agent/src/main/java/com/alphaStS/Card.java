@@ -1259,7 +1259,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardDrawnHandler("Evolve", new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.STATUS) {
                         state.draw(state.getCounterForRead()[counterIdx]);
                     }
@@ -1360,7 +1360,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardDrawnHandler("FireBreathing", new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.STATUS || card.cardType == Card.CURSE) {
                         int dmg = state.getCounterForRead()[counterIdx];
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -1771,7 +1771,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler("Rage", new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
                     }
@@ -2386,7 +2386,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler("DoubleTap", new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType != Card.ATTACK) {
                         return;
                     } else if (state.getCounterForRead()[counterIdx] == 0) {
@@ -2783,7 +2783,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.addOnCardDrawnHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card instanceof Card.Void) {
                         state.gainEnergy(-1);
                     }
@@ -2883,7 +2883,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler("Normality", new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     state.getCounterForWrite()[counterIdx] += 1;
                 }
             });
@@ -2910,7 +2910,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             var cardIndex = state.prop.findCardIndex(this);
             var _this = this;
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(1, false, _this);
                     }

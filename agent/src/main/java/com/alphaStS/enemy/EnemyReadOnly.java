@@ -35,6 +35,7 @@ public abstract class EnemyReadOnly {
         move = -1;
     }
 
+    public void startOfGameSetup(GameState state) {}
     public abstract void doMove(GameState state);
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);

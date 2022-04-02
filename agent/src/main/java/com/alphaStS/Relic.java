@@ -37,7 +37,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuff.AKABEKO.mask();
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.AKABEKO.mask();
                     }
@@ -61,7 +61,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class ArtOfWar extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.ART_OF_WAR.mask();
                     }
@@ -174,7 +174,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -215,7 +215,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -302,7 +302,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
                     if (counter[counterIdx] == 10) {
@@ -328,7 +328,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -360,7 +360,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.SKILL) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -414,7 +414,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -451,7 +451,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -490,7 +490,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.POWER) {
                         state.getPlayerForWrite().heal(2);
                     }
