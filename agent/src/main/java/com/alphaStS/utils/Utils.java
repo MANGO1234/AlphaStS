@@ -34,4 +34,14 @@ public class Utils {
             to[i] = from[start + i];
         }
     }
+
+    public static String formatFloat(double f) {
+        if (f == 0) {
+            return "0";
+        } else if (f < 0.001) {
+            return String.format("%6.3e", f).trim();
+        } else {
+            return String.format("%6.3f", f).trim();
+        }
+    }
 }

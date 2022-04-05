@@ -2,9 +2,6 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 
-import java.util.Arrays;
-import java.util.Objects;
-
 public abstract class Enemy extends EnemyReadOnly {
     public Enemy(int health, int numOfMoves) {
         super(health, numOfMoves);
@@ -48,7 +45,7 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public void gainStrength(int n) {
-        strength += 2;
+        strength += n;
     }
 
     public void setHealth(int hp) {
@@ -96,7 +93,10 @@ public abstract class Enemy extends EnemyReadOnly {
     // ******************************************************************************************
 
     public static class GremlinNob extends Enemy {
-        int turn;
+        public static int BELLOW = 0;
+        public static int SKULL_BASH = 1;
+        public static int RUSH_1 = 2;
+        public static int RUSH_2 = 3;
 
         public GremlinNob() {
             this(90);
@@ -112,7 +112,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public GremlinNob(GremlinNob other) {
             this(other.health);
             setSharedFields(other);
-            turn = other.turn;
         }
 
         @Override public Enemy copy() {
@@ -120,36 +119,42 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void doMove(GameState state) {
-            if (move == 1) {
+            if (move == SKULL_BASH) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 3);
-            } else if (move == 2 || move == 3) {
+            } else if (move == RUSH_1 || move == RUSH_2) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
             }
         }
 
         @Override public void nextMove(RandomGen random) {
-            if (turn == 0) {
-                move = 0;
-                turn = 1;
-                return;
+            if (move == -1) {
+                move = BELLOW;
+            } else {
+                move++;
+                if (move == 4) {
+                    move = SKULL_BASH;
+                }
             }
-            move = (turn - 1) % 3 + 1;
-            turn += 1;
         }
 
-        @Override public void react(GameState state, Card card) {
-            if (card.cardType == Card.SKILL && turn > 1) {
-                strength += 3;
-            }
+        @Override public void startOfGameSetup(GameState state) {
+            var idx = state.getEnemiesForRead().find(this);
+            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card) {
+                    if (card.cardType == Card.SKILL && state.getEnemiesForRead().get(idx).getMove() > 0) {
+                        state.getEnemiesForWrite().getForWrite(idx).gainStrength(3);
+                    }
+                }
+            });
         }
 
         @Override public String getMoveString(GameState state, int move) {
-            if (move == 0) {
+            if (move == BELLOW) {
                 return "Buff";
-            } else if (move == 1) {
+            } else if (move == SKULL_BASH) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this,8);
-            } else if (move == 2 || move == 3) {
+            } else if (move == RUSH_1 || move == RUSH_2) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this,16);
             }
             return "Unknown";

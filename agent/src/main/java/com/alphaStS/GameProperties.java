@@ -3,6 +3,7 @@ package com.alphaStS;
 import java.util.*;
 
 public class GameProperties {
+    public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
     public boolean playerStrengthEotCanChange;
@@ -66,6 +67,7 @@ public class GameProperties {
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
+    public GameStateRandomization randomization;
 
     public GameProperties() {
         random = new RandomGen();

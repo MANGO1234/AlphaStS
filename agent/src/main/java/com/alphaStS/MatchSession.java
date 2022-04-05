@@ -36,6 +36,7 @@ final class GameStep {
 }
 
 public class MatchSession {
+    public boolean training;
     Writer matchLogWriter;
     Writer trainingDataWriter;
     int startingAction = -1;
@@ -52,10 +53,19 @@ public class MatchSession {
         }
     }
 
-    public List<GameStep> playGame(GameState origState, MCTS mcts, int nodeCount) {
+    public Game playGame(GameState origState, MCTS mcts, int nodeCount, int r) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
+            if (state.prop.randomization != null) {
+                if (r >= 0) {
+                    state.prop.randomization.randomize(state, r);
+                } else {
+                    r = state.prop.randomization.randomize(state);
+                }
+            } else {
+                r = 0;
+            }
             state.doAction(0);
         } else if (startingAction >= 0) {
             state.doAction(startingAction);
@@ -77,11 +87,13 @@ public class MatchSession {
             states.get(states.size() - 1).state().clearNextStates();
         }
         states.add(new GameStep(state, -1));
-        return states;
+        return new Game(states, r);
     }
 
-    public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
-        var deq = new LinkedBlockingDeque<List<GameStep>>();
+    public static record Game(List<GameStep> steps, int r) {};
+
+    public void playGames(GameState origState, int numOfGames, int nodeCount, int r, boolean printProgress) {
+        var deq = new LinkedBlockingDeque<Game>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
         for (int i = 0; i < mcts.size(); i++) {
@@ -90,7 +102,7 @@ public class MatchSession {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount));
+                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount, r));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -99,23 +111,30 @@ public class MatchSession {
         }
 
         var game_i = 0;
-        var deathCount = 0;
-        var totalDamageTaken = 0;
+        var deathCount = new HashMap<Integer, Integer>();
+        var totalDamageTaken = new HashMap<Integer, Integer>();
+        var numOfGamesByR = new HashMap<Integer, Integer>();
         var damageCount = new HashMap<Integer, Integer>();
         var start = System.currentTimeMillis();
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
         while (game_i < numOfGames) {
+            Game game;
             List<GameStep> steps;
             try {
-                steps = deq.takeFirst();
+                game = deq.takeFirst();
+                steps = game.steps;
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
             var state = steps.get(steps.size() - 1).state();
-            deathCount += state.isTerminal() == -1 ? 1 : 0;
             int damageTaken = state.getPlayeForRead().origHealth - state.getPlayeForRead().getHealth();
+            deathCount.putIfAbsent(game.r, 0);
+            deathCount.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == -1 ? 1 : 0));
+            numOfGamesByR.putIfAbsent(game.r, 0);
+            numOfGamesByR.computeIfPresent(game.r, (k, x) -> x + 1);
+            totalDamageTaken.putIfAbsent(game.r, 0);
+            totalDamageTaken.computeIfPresent(game.r, (k, x) -> x + damageTaken);
             damageCount.put(damageTaken, damageCount.getOrDefault(damageTaken, 0) + 1);
-            totalDamageTaken += damageTaken;
             game_i += 1;
             if (matchLogWriter != null) {
                 try {
@@ -136,9 +155,20 @@ public class MatchSession {
             }
             if ((printProgress && game_i % progressInterval == 0) || game_i == numOfGames) {
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
-                System.out.println("Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) game_i).trim() + "%)");
-                System.out.println("Avg Damage: " + ((double) totalDamageTaken) / game_i);
-                System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken - state.getPlayeForRead().origHealth * deathCount)) / (game_i - deathCount));
+                if (deathCount.size() == 1) {
+                    var i = deathCount.keySet().stream().toList().get(0);
+                    System.out.println("Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
+                    System.out.println("Avg Damage: " + ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i));
+                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken.get(i) - state.getPlayeForRead().origHealth * deathCount.get(i))) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                } else {
+                    for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
+                        var i = info.getKey();
+                        System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
+                        System.out.println("    Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
+                        System.out.println("    Avg Damage: " + ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i));
+                        System.out.println("    Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken.get(i) - state.getPlayeForRead().origHealth * deathCount.get(i))) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                    }
+                }
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);
@@ -165,6 +195,9 @@ public class MatchSession {
         RandomGen random = state.prop.random;
         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
             enemy.randomize(random, curriculumTraining);
+        }
+        if (state.prop.randomization != null) {
+            state.prop.randomization.randomize(state);
         }
 
         state.doEval(mcts.model);

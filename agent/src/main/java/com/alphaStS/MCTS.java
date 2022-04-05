@@ -321,7 +321,7 @@ public class MCTS {
                 continue;
             }
             numberOfActions += 1;
-            //                double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : GameState.calc_q(state.total_q_win / (state.total_n + 1), state.total_q_health / (state.total_n + 1));
+//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
             double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (u > maxU) {
@@ -563,6 +563,9 @@ public class MCTS {
         }
         int actionToPropagate = -1;
         float max_n = -1000;
+        if (state.transpositionsPolicyMask == null) {
+            System.out.println(state);
+        }
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (!state.transpositionsPolicyMask[i]) {
                 if (state.n[i] > max_n) {

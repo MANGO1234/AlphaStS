@@ -42,7 +42,7 @@ public class EnemyListReadOnly implements Iterable<EnemyReadOnly> {
         return enemies.length;
     }
 
-    public int find(Enemy enemy) {
+    public int find(EnemyReadOnly enemy) {
         for (int i = 0; i < enemies.length; i++) {
             if (enemies[i].equals(enemy)) {
                 return i;

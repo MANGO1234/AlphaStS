@@ -11,7 +11,7 @@ import com.alphaStS.utils.DrawOrderReadOnly;
 
 import java.util.*;
 
-import static com.alphaStS.GameStateUtils.formatFloat;
+import static com.alphaStS.utils.Utils.formatFloat;
 
 abstract class GameEventHandler implements Comparable<GameEventHandler> {
     private int priority;
@@ -139,8 +139,13 @@ public class GameState implements State {
     }
 
     public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics) {
+        this(enemiesArg, player, cards, relics, null);
+    }
+
+    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics, GameStateRandomization randomization) {
         // game properties (shared)
         prop = new GameProperties();
+        prop.randomization = randomization;
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
@@ -148,28 +153,6 @@ public class GameState implements State {
         for (int i = 0; i < cards.size(); i++) {
             prop.cardDict[i] = cards.get(i).card();
         }
-
-        List<Integer> strikeIdxes = new ArrayList<>();
-        for (int i = 0; i < cards.size(); i++) {
-            if (cards.get(i).card().cardName.equals("Burn")) {
-                prop.burnCardIdx = i;
-            } else if (cards.get(i).card().cardName.equals("Dazed")) {
-                prop.dazedCardIdx = i;
-            } if (cards.get(i).card().cardName.equals("Slime")) {
-                prop.slimeCardIdx = i;
-            } else if (cards.get(i).card().cardName.equals("Wound")) {
-                prop.woundCardIdx = i;
-            } else if (cards.get(i).card().cardName.equals("Anger")) {
-                prop.angerCardIdx = i;
-            } else if (cards.get(i).card().cardName.equals("Anger+")) {
-                prop.angerPCardIdx = i;
-            } else if (cards.get(i).card().cardName.contains("Strike")) {
-                strikeIdxes.add(i);
-            }
-        }
-        prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
-        prop.upgradeIdxes = findUpgradeIdxes(cards, relics);
-        prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
 
         // start of game actions
         prop.actionsByCtx = new GameAction[GameActionCtx.values().length][];
@@ -252,6 +235,27 @@ public class GameState implements State {
             }
         }
 
+        List<Integer> strikeIdxes = new ArrayList<>();
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).card().cardName.equals("Burn")) {
+                prop.burnCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Dazed")) {
+                prop.dazedCardIdx = i;
+            } if (cards.get(i).card().cardName.equals("Slime")) {
+                prop.slimeCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Wound")) {
+                prop.woundCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Anger")) {
+                prop.angerCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Anger+")) {
+                prop.angerPCardIdx = i;
+            } else if (cards.get(i).card().cardName.contains("Strike")) {
+                strikeIdxes.add(i);
+            }
+        }
+        prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
+        prop.upgradeIdxes = findUpgradeIdxes(cards, relics);
+        prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
         for (Relic relic : relics) {
             relic.startOfGameSetup(this);
         }
@@ -273,6 +277,7 @@ public class GameState implements State {
         Collections.sort(prop.onCardPlayedHandlers);
         Collections.sort(prop.onCardDrawnHandlers);
 
+        prop.playerArtifactCanChange = getPlayeForRead().getArtifact() > 0;
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
         prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
@@ -362,6 +367,18 @@ public class GameState implements State {
                 if (prop.upgradeIdxes[i] >= 0) {
                     l.add(i);
                     l.add(prop.upgradeIdxes[i]);
+                }
+            }
+        }
+        if (prop.randomization != null) {
+            for (var r : prop.randomization.listRandomizations(this).keySet()) {
+                prop.randomization.reset(this);
+                var deckCopy = Arrays.copyOf(deck, deck.length);
+                prop.randomization.randomize(this, r);
+                for (int i = 0; i < deck.length; i++) {
+                    if (deckCopy[i] != deck[i]) {
+                        l.add(i);
+                    }
                 }
             }
         }
@@ -806,7 +823,7 @@ public class GameState implements State {
             }
         }
         out[0] = v_win;
-        out[1] = v_health;
+        out[1] = prop.playerCanHeal ? v_health : Math.min(v_health, getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
         out[2] = calc_q(out[0], out[1]);
     }
 
@@ -829,7 +846,6 @@ public class GameState implements State {
 
     public static double calc_q(double q_win, double q_health) {
         return q_win * 0.5 + q_win * q_win * q_health * 0.5;
-//        return q_win * 0.5 + q_health * 0.5;
     }
 
     public String toStringReadable() {
@@ -971,7 +987,7 @@ public class GameState implements State {
         getLegalActions();
         NNOutput output = model.eval(this);
         policy = output.policy();
-        v_health = Math.min(output.v_health(), getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
+        v_health = output.v_health();
         v_win = output.v_win();
         q_health = new double[policy.length];
         q_comb = new double[policy.length];
@@ -1000,7 +1016,9 @@ public class GameState implements State {
         inputLen += 1; // energy
         inputLen += 1; // player health
         inputLen += 1; // player block
-        inputLen += 1; // player artifact
+        if (prop.playerArtifactCanChange) {
+            inputLen += 1; // player artifact
+        }
         if (prop.playerStrengthCanChange) {
             inputLen += 1; // player strength
         }
@@ -1111,6 +1129,9 @@ public class GameState implements State {
         str += "    1 parameter to keep track of energy\n";
         str += "    1 parameter to keep track of player health\n";
         str += "    1 parameter to keep track of player block\n";
+        if (prop.playerArtifactCanChange) {
+            str += "    1 parameter to keep track of player artifact\n";
+        }
         if (prop.playerStrengthCanChange) {
             str += "    1 parameter to keep track of player strength\n";
         }
@@ -1237,7 +1258,9 @@ public class GameState implements State {
         x[idx++] = energy / (float) 10;
         x[idx++] = player.getHealth() / (float) player.getMaxHealth();
         x[idx++] = player.getBlock() / (float) 40.0;
-        x[idx++] = player.getArtifact() / (float) 1.0;
+        if (prop.playerArtifactCanChange) {
+            x[idx++] = player.getArtifact() / (float) 3.0;
+        }
         if (prop.playerStrengthCanChange) {
             x[idx++] = player.getStrength() / (float) 10.0;
         }
@@ -1584,6 +1607,12 @@ public class GameState implements State {
         }
     }
 
+    public void removeCardFromHand(int cardIndex) {
+        if (hand[cardIndex] > 0) {
+            hand[cardIndex]--;
+        }
+    }
+
     public void addCardToDiscard(int idx) {
         discard[idx]++;
     }
@@ -1593,9 +1622,30 @@ public class GameState implements State {
         deckArr[deckArrLen++] = (short) idx;
     }
 
-    public void removeCardFromHand(int idx) {
-        if (hand[idx] > 0) {
-            hand[idx]--;
+    public void removeCardFromDeck(int cardIndex) {
+        if (deck[cardIndex] > 0) {
+            deck[cardIndex]--;
+            for (int i = 0; i < deckArrLen; i++) {
+                if (deckArr[i] == cardIndex) {
+                    var tmp = deckArr[i];
+                    deckArr[i] = deckArr[deckArrLen - 1];
+                    deckArr[deckArrLen - 1] = tmp;
+                    deckArrLen -= 1;
+                    break;
+                }
+            }
+        }
+    }
+
+    public void setCardCountInDeck(int cardIndex, int count) {
+        if (deck[cardIndex] > count) {
+            for (int i = deck[cardIndex]; i > count ; i--) {
+                removeCardFromDeck(cardIndex);
+            }
+        } else {
+            for (int i = deck[cardIndex]; i < count ; i++) {
+                addCardToDeck(cardIndex);
+            }
         }
     }
 
@@ -1634,9 +1684,10 @@ public class GameState implements State {
         }
     }
 
-    public void enemyDoDamageToPlayer(Enemy enemy, int dmg, int times) {
+    public void enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmg, int times) {
         int move = enemy.getMove();
         var player = getPlayerForWrite();
+        var enemyIdx = -1;
         for (int i = 0; i < times; i++) {
             if (enemy.getHealth() <= 0 || enemy.getMove() != move) { // dead or interrupted
                 return;
@@ -1650,7 +1701,12 @@ public class GameState implements State {
             }
             int dmgDealt = player.damage(dmg);
             if (thorn > 0) {
-                enemy.nonAttackDamage(thorn, false, this);
+                if (enemyIdx < 0) {
+                    enemyIdx = enemies.find(enemy);
+                } else {
+                    Integer.parseInt(null);
+                }
+                getEnemiesForWrite().getForWrite(enemyIdx).nonAttackDamage(thorn, false, this);
             }
             if (dmg > 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {

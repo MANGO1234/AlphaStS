@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.alphaStS.GameStateUtils.formatFloat;
+import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
     public static void interactiveStart(GameState origState, String modelDir) throws IOException {
@@ -134,6 +134,7 @@ public class InteractiveMode {
                     } else if (state.getAction(i).type() == GameActionType.START_GAME) {
                         System.out.println(i + ". Start Game");
                     } else {
+                        System.out.println(state.getAction(i));
                         throw new RuntimeException();
                     }
                 }
@@ -290,6 +291,10 @@ public class InteractiveMode {
                     addCardToHandSelectScreen(reader, state, history);
                     state.clearAllSearchInfo();
                     continue;
+                } else if (line.equals("rand")) {
+                    selectRandomization(reader, state, history);
+                    state.clearAllSearchInfo();
+                    continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
                         if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
@@ -443,6 +448,27 @@ public class InteractiveMode {
         }
     }
 
+    static void selectRandomization(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        if (state.prop.randomization == null) {
+            return ;
+        }
+        var randomizations = state.prop.randomization.listRandomizations(state);
+        while (true) {
+            for (var info : randomizations.entrySet()) {
+                System.out.println(info.getKey() + ". " + info.getValue().desc());
+            }
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < randomizations.size()) {
+                state.prop.randomization.randomize(state, r);
+                return;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
     static int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int nonUpgradedCardCount = 0;
         for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
@@ -469,6 +495,7 @@ public class InteractiveMode {
         int numberOfThreads = 2;
         int nodeCount = 500;
         int startingAction = -1;
+        int randomizationScenario = -1;
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
                 if (s[i].startsWith("c=")) {
@@ -479,6 +506,9 @@ public class InteractiveMode {
                 }
                 if (s[i].startsWith("n=")) {
                     nodeCount = parseInt(s[i].substring(2), 500);
+                }
+                if (s[i].startsWith("r=")) {
+                    randomizationScenario = parseInt(s[i].substring(2), -1);
                 }
                 if (s[i].startsWith("a=")) {
                     if (s[i].substring(2).equals("e")) {
@@ -495,7 +525,7 @@ public class InteractiveMode {
         }
         MatchSession session = new MatchSession(numberOfThreads, modelDir);
         session.startingAction = startingAction;
-        session.playGames(state, numberOfGames, nodeCount, true);
+        session.playGames(state, numberOfGames, nodeCount, randomizationScenario, true);
     }
 
     private static void printTree(GameState state, String line, String modelDir) {

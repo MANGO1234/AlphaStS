@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.utils.Utils;
+
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -7,15 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GameStateUtils {
-    public static String formatFloat(double f) {
-        if (f == 0) {
-            return "0";
-        } else if (f < 0.001) {
-            return String.format("%6.3e", f).trim();
-        } else {
-            return String.format("%6.3f", f).trim();
-        }
-    }
 
     private static class CardChanges {
         int discard;
@@ -145,7 +138,7 @@ public class GameStateUtils {
                 var q_comb = node.state.total_q_comb;
                 var q_win = node.state.total_q_win;
                 var q_health = node.state.total_q_health;
-                writer.write(indent + "n=" + n + ", q=" + formatFloat(q_comb / n) + ", q_win=" + formatFloat(q_win / n) + ", q_health=" + formatFloat(q_health / n) + " (" + formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + formatFloat(state.v_win) + "/" + formatFloat(state.v_health) + "(" + formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
+                writer.write(indent + "n=" + n + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
                 printTreeH2(parentState, parentAction, node.state, depth, writer, indent);
             }
         } else if (s instanceof GameState state) {
@@ -166,7 +159,7 @@ public class GameStateUtils {
                     for (int j = 0; j < 24 - l; j++) {
                         writer.write(' ');
                     }
-                    writer.write("n=" + n + " p=" + formatFloat(state.policy[i]) + ", q=" + formatFloat(q_comb / n) + ", q_win=" + formatFloat(q_win / n) + ", q_health=" + formatFloat(q_health / n) + " (" + formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + formatFloat(state.v_win) + "/" + formatFloat(state.v_health) + "(" + formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
+                    writer.write("n=" + n + " p=" + Utils.formatFloat(state.policy[i]) + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
                 }
                 printTreeH2(state, i, state.ns[i], depth - 1, writer, indent + "    ");
             }
