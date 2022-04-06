@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.utils.Utils;
 
+import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -90,22 +91,36 @@ public class GameStateUtils {
         if (s instanceof ChanceState state) {
             for (ChanceState.Node node : state.cache.values()) {
                 writer.write(indent + "Chance Node (" + node.n + "/" + state.total_node_n + "): " + node.state.toStringReadable() + "\n");
-                for (int i = 0; i < node.state.getLegalActions().length; i++) {
-                    if (node.state.ns[i] != null) {
-                        if (depth > 1) {
-                            writer.write(indent + "  - action=" + node.state.getActionString(i) + "(" + i + ")\n");
-                        }
+                if (node.state.n == null) {
+                    return;
+                }
+                var list = new ArrayList<int[]>();
+                for (int i = 0; i < node.state.n.length; i++) {
+                    list.add(new int[] { node.state.n[i], i });
+                }
+                list.sort((a, b) -> b[0] != a[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
+                for (var x : list) {
+                    int i = x[1];
+                    if (node.state.ns[i] != null && depth > 1) {
+                        writer.write(indent + "  - action=" + node.state.getActionString(i) + "(" + i + ")\n");
                     }
                     printTreeH(node.state.ns[i], depth - 1, writer, indent + "    ");
                 }
             }
         } else if (s instanceof GameState state) {
             writer.write(indent + "Normal Node: " + state.toStringReadable() + "\n");
-            for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (state.ns[i] != null) {
-                    if (depth > 1) {
-                        writer.write(indent + "  - action=" + state.getActionString(i) + "(" + i + ")\n");
-                    }
+            if (state.n == null) {
+                return;
+            }
+            var list = new ArrayList<int[]>();
+            for (int i = 0; i < state.n.length; i++) {
+                list.add(new int[] { state.n[i], i });
+            }
+            list.sort((a, b) -> b[0] != a[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
+            for (var x : list) {
+                int i = x[1];
+                if (state.ns[i] != null && depth > 1) {
+                    writer.write(indent + "  - action=" + state.getActionString(i) + "(" + i + ")\n");
                 }
                 printTreeH(state.ns[i], depth - 1, writer, indent + "    ");
             }

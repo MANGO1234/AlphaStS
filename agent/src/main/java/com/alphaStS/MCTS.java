@@ -321,8 +321,8 @@ public class MCTS {
                 continue;
             }
             numberOfActions += 1;
-//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
-            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
+            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
+//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
             double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (u > maxU) {
                 action = i;
@@ -562,7 +562,7 @@ public class MCTS {
             return state.terminal_action;
         }
         int actionToPropagate = -1;
-        float max_n = -1000;
+        int max_n = -1000;
         if (state.transpositionsPolicyMask == null) {
             System.out.println(state);
         }
@@ -580,4 +580,29 @@ public class MCTS {
         }
         return actionToPropagate;
     }
+
+    public static int getActionWithMaxNodesOrTerminal2(GameState state) {
+        if (state.terminal_action >= 0) {
+            return state.terminal_action;
+        }
+        int actionToPropagate = -1;
+        double max_n = -1000;
+        if (state.transpositionsPolicyMask == null) {
+            System.out.println(state);
+        }
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (!state.transpositionsPolicyMask[i]) {
+                if (state.q_comb[i] / state.n[i] > max_n) {
+                    max_n = state.q_comb[i] / state.n[i];
+                    actionToPropagate = i;
+                }
+            }
+        }
+        if (actionToPropagate == -1) {
+            System.out.println("!!!!!!!|| " + state.toStringReadable());
+            System.out.println(Arrays.toString(state.transpositionsPolicyMask));
+        }
+        return actionToPropagate;
+    }
+
 }

@@ -42,6 +42,7 @@ public class MatchSession {
     int startingAction = -1;
     String logDir;
     List<MCTS> mcts = new ArrayList<>();
+    public GameSolver solver;
 
     public MatchSession(int numberOfThreads, String dir) {
         logDir = dir;
@@ -83,6 +84,9 @@ public class MatchSession {
 
             int action = MCTS.getActionWithMaxNodesOrTerminal(state);
             states.add(new GameStep(state, action));
+            if (!training && solver != null) {
+                solver.checkForError(state, action, true);
+            }
             state = getNextState(state, mcts, action, false);
             states.get(states.size() - 1).state().clearNextStates();
         }
@@ -116,6 +120,7 @@ public class MatchSession {
         var numOfGamesByR = new HashMap<Integer, Integer>();
         var damageCount = new HashMap<Integer, Integer>();
         var start = System.currentTimeMillis();
+        var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
         while (game_i < numOfGames) {
             Game game;
@@ -127,6 +132,9 @@ public class MatchSession {
                 throw new RuntimeException(e);
             }
             var state = steps.get(steps.size() - 1).state();
+            if (!training && solver != null) {
+                solverErrorCount += solver.checkForError(game);
+            }
             int damageTaken = state.getPlayeForRead().origHealth - state.getPlayeForRead().getHealth();
             deathCount.putIfAbsent(game.r, 0);
             deathCount.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == -1 ? 1 : 0));
@@ -155,6 +163,9 @@ public class MatchSession {
             }
             if ((printProgress && game_i % progressInterval == 0) || game_i == numOfGames) {
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
+                if (!training && solver != null) {
+                    System.out.println("Error Count: " + solverErrorCount);
+                }
                 if (deathCount.size() == 1) {
                     var i = deathCount.keySet().stream().toList().get(0);
                     System.out.println("Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
@@ -207,15 +218,15 @@ public class MatchSession {
             for (int i = 0; i < todo; i++) {
                 mcts.search(state, !quickPass, todo - i);
                 if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
-                    if (!state.isStochastic && states.size() > 0) {
-                        state = getNextState(states.get(states.size() - 1).state(), mcts, states.get(states.size() - 1).action(), false);
-                    }
+//                    if (state.isStochastic && states.size() > 0) {
+//                        state = getNextState(states.get(states.size() - 1).state(), mcts, states.get(states.size() - 1).action(), false);
+//                    }
                     break;
                 }
             }
 
             int action;
-            if (state.turnNum >= 0) {
+            if (state.turnNum >= 3) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);

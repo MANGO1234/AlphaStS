@@ -68,7 +68,18 @@ public class Main {
                 return map;
             }
         };
-        return new GameState(enemies, new Player(75, 75), cards, relics, randomization);
+        return new GameState(enemies, new Player(80, 80), cards, relics, randomization);
+    }
+
+    public static GameState BasicGremlinNobState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.BashP(), 1));
+        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.GremlinNob());
+        var relics = new ArrayList<Relic>();
+        return new GameState(enemies, new Player(80, 80), cards, relics);
     }
 
     public static GameState BasicSentriesState() {
@@ -284,7 +295,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = BasicGremlinNobState();
+        var state = BasicGremlinNobState2();
         state.getEnemiesForWrite().getForWrite(0).setHealth(85);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
@@ -366,9 +377,9 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 50000;
-                NUMBER_OF_NODES_PER_TURN = 1000;
-//                RANDOMIZATION_SCENARIO = 0;
+                NUMBER_OF_GAMES_TO_PLAY = 5000;
+                NUMBER_OF_NODES_PER_TURN = 50000;
+                RANDOMIZATION_SCENARIO = 3;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");
@@ -396,6 +407,14 @@ public class Main {
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir);
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
+            if (!TEST_TRAINING_AGENT) {
+                if (state.prop.randomization != null) {
+                    state.prop.randomization.randomize(state, RANDOMIZATION_SCENARIO);
+                }
+                GameSolver solver = new GameSolver(state);
+                solver.solve();
+                session.solver = solver;
+            }
             session.training = TEST_TRAINING_AGENT;
             if (TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("training_matches.txt");
@@ -410,7 +429,7 @@ public class Main {
             session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
             session.POLICY_CAP_ON = false;
             long start = System.currentTimeMillis();
-            var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
+            var games = session.playTrainingGames(state, 2000, 10, CURRICULUM_TRAINING_ON);
             writeTrainingData(games, curIterationDir +  "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

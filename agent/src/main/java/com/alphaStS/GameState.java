@@ -6,6 +6,7 @@ import com.alphaStS.enemy.EnemyListReadOnly;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
+import com.alphaStS.utils.BigRational;
 import com.alphaStS.utils.DrawOrder;
 import com.alphaStS.utils.DrawOrderReadOnly;
 
@@ -119,6 +120,10 @@ public class GameState implements State {
     boolean[] transpositionsPolicyMask; // true if the associated action is a transposition
     int terminal_action; // detected a win from child, no need to waste more time search
 
+    // Solver only
+    BigRational e_health;
+    BigRational e_win;
+
     @Override public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -230,7 +235,7 @@ public class GameState implements State {
         this.player = player;
         drawOrder = new DrawOrder(10);
         for (int i = 0; i < deck.length; i++) { // todo: edge case more innate than first turn draw
-            if (deck[i] > 0 && prop.cardDict[deck[i]].innate) {
+            if (deck[i] > 0 && prop.cardDict[i].innate) {
                 drawOrder.pushOnTop(i);
             }
         }
@@ -1857,17 +1862,16 @@ class ChanceState implements State {
     GameState parentState;
     int parentAction;
 
-    // useless
-    double v_health = -1;
-
-    public ChanceState() {
-        cache = new Hashtable<>();
-    }
+    // GameSolver only
+    BigRational e_health = BigRational.ZERO;
+    BigRational e_win = BigRational.ZERO;
 
     public ChanceState(GameState initState, GameState parentState, int action) {
         cache = new Hashtable<>();
-        cache.put(initState, new Node(initState));
-        total_node_n = 1;
+        if (initState != null) {
+            cache.put(initState, new Node(initState));
+            total_node_n = 1;
+        }
         this.parentState = parentState;
         this.parentAction = action;
         var tmpQueue = new ArrayList<GameState>();
@@ -1875,7 +1879,9 @@ class ChanceState implements State {
 //            tmpQueue.add(getNextState(false));
 //        }
         queueDone = true;
-        total_n = 1;
+        if (initState != null) {
+            total_n = 1;
+        }
         queue = tmpQueue;
     }
 

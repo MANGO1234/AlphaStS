@@ -1,11 +1,13 @@
 package com.alphaStS;
 
-import java.util.Arrays;
-import java.util.HashMap;
+import com.alphaStS.utils.BigRational;
+import com.alphaStS.utils.Utils;
+
+import java.util.*;
 
 public class GameSolver {
     GameState origState;
-    HashMap<InputHash, GameState> nodes;
+    HashMap<GameState, GameState> nodes;
 
     public GameSolver(GameState origState) {
         this.origState = origState.clone(false);
@@ -13,23 +15,26 @@ public class GameSolver {
     }
 
     private GameState solveH(GameState state) {
-        InputHash hash = new InputHash(state.getNNInput());
-        GameState node = nodes.get(hash);
-        if (node != null) {
-            return node;
+        var cachedState = nodes.get(state);
+        if (cachedState != null) {
+            return cachedState;
         }
         if (state.isTerminal() != 0) {
-            state.v_health = state.getPlayeForRead().getHealth();
+            state.e_health = BigRational.valueOf(state.getPlayeForRead().getHealth());
+            state.e_win = state.isTerminal() == 1 ? BigRational.ONE : BigRational.ZERO;
+            nodes.put(state, state);
             return state;
         }
         if (state.actionCtx == GameActionCtx.START_GAME) {
-            ChanceState cState = new ChanceState();
-            generateAllPossibilities(cState, state, 0);
-            state.v_health = calcExpectedHealth(cState);
-            cState.v_health = state.v_health;
+            ChanceState cState = new ChanceState(null, state, 0);
+            generateAllPossibilities(cState);
+            calcExpectedHealth(cState);
+            state.e_health = cState.e_health;
+            state.e_win = cState.e_win;
+            state.ns = new State[1];
             state.ns[0] = cState;
         } else {
-            double maxHealth = 0;
+            BigRational maxHealth = BigRational.ZERO, maxWin = BigRational.ZERO;
             boolean hasOtherAction = false;
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 var action = state.getAction(i);
@@ -43,35 +48,48 @@ public class GameSolver {
                 GameState s = state.clone(false);
                 s.doAction(i);
                 if (s.isStochastic) {
-                    ChanceState cState = new ChanceState();
-                    generateAllPossibilities(cState, state, i);
-                    cState.v_health = calcExpectedHealth(cState);
-                    maxHealth = Math.max(maxHealth, cState.v_health);
+                    ChanceState cState = new ChanceState(null, state, i);
+                    generateAllPossibilities(cState);
+                    calcExpectedHealth(cState);
+                    int c = cState.e_win.compareTo(maxWin) ;
+                    if (c > 0) {
+                        maxWin = cState.e_win;
+                        maxHealth = cState.e_health;
+                    } else if (c == 0 && cState.e_health.compareTo(maxHealth) > 0) {
+                        maxHealth = cState.e_health;
+                    }
+                    state.ns = new State[state.getLegalActions().length];
                     state.ns[i] = cState;
                 } else {
                     s = solveH(s);
-                    maxHealth = Math.max(maxHealth, s.v_health);
-//                    if (s.isTerminal && s.player.health == state.player.health) {
-//                        state.isTerminal = true;
-//                        state.v_health = state.player.health;
-//                        nodes.put(hash, state);
-//                        return state;
-//                    }
+                    int c = s.e_win.compareTo(maxWin);
+                    if (c > 0) {
+                        maxWin = s.e_win;
+                        maxHealth = s.e_health;
+                    } else if (c == 0 && s.e_health.compareTo(maxHealth) > 0) {
+                        maxHealth = s.e_health;
+                    }
+                    if (state.ns == null) {
+                        state.ns = new State[state.getLegalActions().length];
+                    }
                     state.ns[i] = s;
                 }
             }
-            state.v_health = maxHealth;
+            state.e_health = maxHealth;
+            state.e_win = maxWin;
         }
-        nodes.put(hash, state);
+        nodes.put(state, state);
         return state;
     }
 
-    private double calcExpectedHealth(ChanceState cState) {
-        double e = 0;
+    private void calcExpectedHealth(ChanceState cState) {
+        BigRational e_health = BigRational.ZERO, e_win = BigRational.ZERO;
         for (ChanceState.Node node : cState.cache.values()) {
-            e += ((double) node.n) / cState.total_n * node.state.v_health;
+            e_health = e_health.add(new BigRational(node.n, cState.total_node_n).multiply(node.state.e_health));
+            e_win = e_win.add(new BigRational(node.n, cState.total_node_n).multiply(node.state.e_win));
         }
-        return e;
+        cState.e_health = e_health;
+        cState.e_win = e_win;
     }
 
     //cache of the factorials from 1 to 20 (20! is the maximum a long can hold)
@@ -94,61 +112,70 @@ public class GameSolver {
         return product;
     }
 
-    private void generateAllPossibilities(ChanceState cState, GameState state, int action) {
-        if (state.getAction(action).type() == GameActionType.END_TURN || state.actionCtx == GameActionCtx.START_GAME) {
-            var m_state = state.clone(false);
-            m_state.discardHand();
+    private void generateAllPossibilities(ChanceState cState) {
+        var state = cState.parentState;
+        var action = cState.parentAction;
+        if (state.getAction(action).type() == GameActionType.BEGIN_TURN || state.actionCtx == GameActionCtx.START_GAME) {
+            var modState = state.clone(false);
+            modState.discardHand();
             int toDraw = 5;
-            if (m_state.deckArrLen < toDraw) {
-                m_state.draw(m_state.deckArrLen);
-                toDraw -= m_state.deckArrLen;
-                m_state.reshuffle();
+            if (modState.deckArrLen < toDraw) {
+                modState.draw(modState.deckArrLen);
+                toDraw -= modState.deckArrLen;
+                modState.reshuffle();
             }
-            var mm = m_state.clone(false);
-            cState.total_n = factorials[m_state.deckArrLen] / factorials[m_state.deckArrLen - toDraw] / factorials[toDraw];
-            gen_draw(cState, state, m_state, toDraw, action, 0, 1);
+            cState.total_node_n = factorials[modState.deckArrLen] / factorials[modState.deckArrLen - toDraw] / factorials[toDraw];
+            generateDraw(cState, modState, toDraw, 0, 1);
+            var n = 0;
+            for (var e : cState.cache.entrySet()) {
+                n += e.getValue().n;
+            }
+            if (n != cState.total_node_n) {
+                System.out.println(n + "," + cState);
+                throw new RuntimeException();
+            }
             if (cState.cache.size() == 0) {
                 throw new RuntimeException();
             }
         } else {
             throw new RuntimeException();
         }
-//        for (int i = 0; i < 5000; i++) {
-//            var nextState = cState.getNextState(state, action);
+//        for (int i = 0; i < 100; i++) {
+//            var nextState = cState.getNextState(false);
 //            solveH(nextState);
 //        }
     }
 
-    private void gen_draw(ChanceState cState, GameState state, GameState m_state, int toDraw, int action, int i, long n) {
+    private void generateDraw(ChanceState cState, GameState modState, int toDraw, int i, long n) {
         if (toDraw == 0) {
-            var newState = state.clone(false);
-            newState.doAction(action);
-            newState.hand = Arrays.copyOf(m_state.hand, m_state.hand.length);
-            newState.deck = Arrays.copyOf(m_state.deck, m_state.deck.length);
-            newState.discard = Arrays.copyOf(m_state.discard, m_state.discard.length);
-            newState.deckArr = Arrays.copyOf(m_state.deckArr, m_state.deckArr.length);
-            newState.deckArrLen = m_state.deckArrLen;
+            var newState = cState.parentState.clone(false);
+            newState.doAction(cState.parentAction);
+            newState.hand = Arrays.copyOf(modState.hand, modState.hand.length);
+            newState.deck = Arrays.copyOf(modState.deck, modState.deck.length);
+            newState.discard = Arrays.copyOf(modState.discard, modState.discard.length);
+            newState.deckArr = Arrays.copyOf(modState.deckArr, modState.deckArr.length);
+            newState.deckArrLen = modState.deckArrLen;
             newState = solveH(newState);
             var node = new ChanceState.Node(newState);
             node.n = n;
             cState.cache.put(newState, node);
             return;
         }
-        if (i >= m_state.deck.length) {
+        if (i >= modState.deck.length) {
             return;
         }
-        gen_draw(cState, m_state, m_state, toDraw, action, i + 1, n);
-        int upto = Math.min(toDraw, m_state.deck[i]);
-        int deck_i = m_state.deck[i];
-        int start_len = m_state.deckArrLen;;
+        generateDraw(cState, modState, toDraw, i + 1, n);
+        int upto = Math.min(toDraw, modState.deck[i]);
+        int deck_i = modState.deck[i];
+        int start_len = modState.deckArrLen;;
         for (int j = 1; j <= upto; j++) {
-            m_state.drawCardByIdx(i, true);
-            gen_draw(cState, m_state, m_state, toDraw - j, action, i + 1, n * nCr(deck_i, j));
+            modState.drawCardByIdx(i, true);
+            generateDraw(cState, modState, toDraw - j, i + 1, n * nCr(deck_i, j));
         }
         for (int j = 1; j <= upto; j++) {
-            m_state.undrawCardByIdx(i);
+            modState.undrawCardByIdx(i);
         }
-        if (m_state.deckArrLen != start_len) {
+        if (modState.deckArrLen != start_len) {
             throw new RuntimeException();
         }
     }
@@ -156,5 +183,128 @@ public class GameSolver {
 
     public void solve() {
         solveH(origState);
+    }
+
+    public void printResult() {
+        var e_win = origState.e_win.toDouble();
+        var e_health = origState.e_health.toDouble();
+        var e_winString = origState.e_win.getNumerator() + "/" + origState.e_win.getDenominator();
+        var e_healthString = origState.e_health.getNumerator() + "/" + origState.e_health.getDenominator();
+        System.out.println(origState + ": " + Utils.formatFloat(e_win) + " (" + e_winString + "), " + Utils.formatFloat(e_health) + " (" + e_healthString + ")");
+    }
+
+    public List<Integer> isBestAction(GameState state, int action) {
+        state = nodes.get(state);
+        BigRational maxWin = BigRational.ZERO, maxHealth = BigRational.ZERO;
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.ns[i] instanceof GameState state2) {
+                int c = state2.e_win.compareTo(maxWin);
+                if (c > 0) {
+                    maxWin = state2.e_win;
+                    maxHealth = state2.e_health;
+                } else if (c == 0 && state2.e_health.compareTo(maxHealth) > 0) {
+                    maxWin = state2.e_win;
+                    maxHealth = state2.e_health;
+                }
+            } else if (state.ns[i] instanceof ChanceState cState) {
+                int c = cState.e_win.compareTo(maxWin);
+                if (c > 0) {
+                    maxWin = cState.e_win;
+                    maxHealth = cState.e_health;
+                } else if (c == 0 && cState.e_health.compareTo(maxHealth) > 0) {
+                    maxWin = cState.e_win;
+                    maxHealth = cState.e_health;
+                }
+            } else if (state.getAction(i).type() != GameActionType.END_TURN) {
+                throw new RuntimeException();
+            }
+        }
+
+        BigRational e_win = BigRational.ZERO, e_health = BigRational.ZERO;
+        if (state.ns[action] instanceof GameState state2) {
+            e_win = state2.e_win;
+            e_health = state2.e_health;
+        } else if (state.ns[action] instanceof ChanceState cState) {
+            e_win = cState.e_win;
+            e_health = cState.e_health;
+        } else {
+            throw new RuntimeException();
+        }
+        if (e_win.compareTo(maxWin) == 0 && e_health.compareTo(maxHealth) == 0) {
+            return null;
+        }
+
+        var ls = new ArrayList<Integer>();
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.ns[i] instanceof GameState state2) {
+                if (state2.e_win.compareTo(maxWin) == 0 && state2.e_health.compareTo(maxHealth) == 0) {
+                    ls.add(i);
+                }
+            } else if (state.ns[i] instanceof ChanceState cState) {
+                if (cState.e_win.compareTo(maxWin) == 0 && cState.e_health.compareTo(maxHealth) == 0) {
+                    ls.add(i);
+                }
+            } else if (state.getAction(i).type() != GameActionType.END_TURN) {
+                throw new RuntimeException();
+            }
+        }
+        return ls;
+    }
+
+    public int checkForError(MatchSession.Game game) {
+        int count = 0;
+        for (int i = 0; i < game.steps().size() - 1; i++) {
+            count += checkForError(game.steps().get(i).state(), game.steps().get(i).action(), false) ? 0 : 1;
+        }
+        return count;
+    }
+
+    public boolean checkForError(GameState state, int action, boolean print) {
+        var optimalAction = isBestAction(state, action);
+        if (optimalAction == null) {
+            return true;
+        }
+        if (print) {
+            System.out.println(state);
+            System.out.println("Chosen Action=" + state.getActionString(action));
+            var s = optimalAction.stream().map(state::getActionString).toList();
+            System.out.println("Optimal Action(s)=" + String.join(", ", s));
+
+            var cachedState = nodes.get(state);
+            var child = cachedState.ns[action];
+            BigRational e_win, e_health;
+            if (child instanceof GameState state2) {
+                e_win = state2.e_win;
+                e_health = state2.e_health;
+            } else if (child instanceof ChanceState cState) {
+                e_win = cState.e_win;
+                e_health = cState.e_health;
+            } else {
+                throw new RuntimeException();
+            }
+            var e_winString = e_win.getNumerator() + "/" + e_win.getDenominator();
+            var e_healthString = e_health.getNumerator() + "/" + e_health.getDenominator();
+            System.out.println("Chosen Action E: " + Utils.formatFloat(e_win.toDouble()) + " (" + e_winString + "), " + Utils.formatFloat(e_health.toDouble()) + " (" + e_healthString + ")");
+
+            child = cachedState.ns[optimalAction.get(0)];
+            if (child instanceof GameState state2) {
+                e_win = state2.e_win;
+                e_health = state2.e_health;
+            } else if (child instanceof ChanceState cState) {
+                e_win = cState.e_win;
+                e_health = cState.e_health;
+            } else {
+                throw new RuntimeException();
+            }
+            e_winString = e_win.getNumerator() + "/" + e_win.getDenominator();
+            e_healthString = e_health.getNumerator() + "/" + e_health.getDenominator();
+            System.out.println("Optimal Action E: " + Utils.formatFloat(e_win.toDouble()) + " (" + e_winString + "), " + Utils.formatFloat(e_health.toDouble()) + " (" + e_healthString + ")");
+
+//            if (e_healthString.equals("20/1")) {
+//                GameStateUtils.printTree(state, null, 5);
+//                Integer.parseInt(null);
+//            }
+        }
+        return false;
     }
 }
