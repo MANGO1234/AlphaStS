@@ -162,7 +162,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(10) + 1;
-            if (b < 10) {
+            if (b < 10 && training) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
                 health = 85 + random.nextInt(6);

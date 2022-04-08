@@ -227,7 +227,7 @@ public class GameSolver {
         } else if (state.ns[action] instanceof ChanceState cState) {
             e_win = cState.e_win;
             e_health = cState.e_health;
-        } else {
+        } else if (state.getAction(action).type() != GameActionType.END_TURN) {
             throw new RuntimeException();
         }
         if (e_win.compareTo(maxWin) == 0 && e_health.compareTo(maxHealth) == 0) {
@@ -272,14 +272,14 @@ public class GameSolver {
 
             var cachedState = nodes.get(state);
             var child = cachedState.ns[action];
-            BigRational e_win, e_health;
+            BigRational e_win = BigRational.ZERO, e_health = BigRational.ZERO;
             if (child instanceof GameState state2) {
                 e_win = state2.e_win;
                 e_health = state2.e_health;
             } else if (child instanceof ChanceState cState) {
                 e_win = cState.e_win;
                 e_health = cState.e_health;
-            } else {
+            } else if (cachedState.getAction(action).type() != GameActionType.END_TURN){
                 throw new RuntimeException();
             }
             var e_winString = e_win.getNumerator() + "/" + e_win.getDenominator();
@@ -300,10 +300,12 @@ public class GameSolver {
             e_healthString = e_health.getNumerator() + "/" + e_health.getDenominator();
             System.out.println("Optimal Action E: " + Utils.formatFloat(e_win.toDouble()) + " (" + e_winString + "), " + Utils.formatFloat(e_health.toDouble()) + " (" + e_healthString + ")");
 
-//            if (e_healthString.equals("20/1")) {
+
+            if (e_healthString.equals("20/1")) {
+//                System.out.println(state.searchFrontier);
 //                GameStateUtils.printTree(state, null, 5);
 //                Integer.parseInt(null);
-//            }
+            }
         }
         return false;
     }

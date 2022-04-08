@@ -172,11 +172,13 @@ public class InteractiveMode {
                     for (int i = 0; i < state.getLegalActions().length; i++) {
                         if (state.getAction(i).type() == GameActionType.END_TURN) {
                             state.doAction(i);
+                            break;
                         }
                     }
                     for (int i = 0; i < state.getLegalActions().length; i++) {
                         if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
                             state.doAction(i);
+                            break;
                         }
                     }
                     continue;
@@ -318,6 +320,13 @@ public class InteractiveMode {
                     boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                     ((RandomGenInteractive) state.prop.random).rngOn = true;
                     runNNPV(state, mcts, line);
+                    ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                    skipPrint = true;
+                    continue;
+                } else if (line.startsWith("nnn ")) {
+                    boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                    ((RandomGenInteractive) state.prop.random).rngOn = true;
+                    runNNPV2(state, mcts, line);
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                     skipPrint = true;
                     continue;
@@ -598,6 +607,34 @@ public class InteractiveMode {
                 break;
             }
         } while (true);
+    }
+
+    private static void runNNPV2(GameState state, MCTS mcts, String line) {
+        int count = parseInt(line.substring(4), 1);
+        GameState s = state;
+        for (int i = s.total_n; i < count; i++) {
+            mcts.searchLine(s, false, true, -1);
+        }
+        s.searchFrontier.lines.values().stream().filter((x) -> {
+            return x.state instanceof ChanceState || x.numberOfActions == ((GameState) x.state).getLegalActions().length;
+        }).sorted((a, b) -> {
+            if (a.internal == b.internal) {
+                return -Integer.compare(a.n, b.n);
+            } else if (a.internal) {
+                return 1;
+            } else {
+                return -1;
+            }
+        }).map((x) -> {
+            var tmpS = state.clone(false);
+            var a = x.getActions();
+            var strings = new ArrayList<String>();
+            for (int i = 0; i < a.size(); i++) {
+                strings.add(tmpS.getActionString(a.get(i)));
+                tmpS.doAction(a.get(i));
+            }
+            return String.join(", ", strings) + ": n=" + x.n + ", p=" + x.p_cur + ", q_comb=" + (x.q_comb / x.n);
+        }).forEach(System.out::println);
     }
 
     private static int parseInt(String s, int default_v) {

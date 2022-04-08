@@ -321,8 +321,8 @@ public class MCTS {
                 continue;
             }
             numberOfActions += 1;
-            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
-//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
+//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
+            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
             double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (u > maxU) {
                 action = i;
@@ -494,12 +494,207 @@ public class MCTS {
         this.numberOfPossibleActions = numberOfActions;
     }
 
+    void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
+        if (state.searchFrontier == null) {
+            state.searchFrontier = new SearchFrontier();
+            state.searchFrontier.addLine(new LineOfPlay(state, 1, null, 0));
+        }
+
+        int max_n = 0;
+        var lines = state.searchFrontier.lines.values();
+        if (!training) {
+            for (var line : lines) {
+                if (line.numberOfActions == 0) {
+                    continue;
+                }
+                if (line.n > max_n) {
+                    max_n = line.n;
+                }
+            }
+        }
+
+        LineOfPlay maxLine = null;
+        double maxU = 0.0;
+        if (isRoot) numberOfPossibleActions = 0;
+        for (var line : lines) {
+            if (line.numberOfActions == 0) {
+                continue;
+            }
+            if (remainingCalls > 0 && max_n - line.n > remainingCalls) {
+                continue;
+            }
+            if (isRoot) numberOfPossibleActions += 1;
+            if (isRoot && remainingCalls > 0 && max_n < remainingCalls) {
+                numberOfPossibleActions += line.numberOfActions;
+            }
+            double q = line.n > 0 ? line.q_comb / line.n : 0;
+//            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+            if (u > maxU) {
+                maxU = u;
+                maxLine = line;
+            }
+        }
+        assert maxLine != null;
+        searchLine_r(state, maxLine, training, isRoot);
+        searchLinePropagate(state, maxLine);
+    }
+
+    private void searchLinePropagate(GameState parentState, LineOfPlay line) {
+        while (line.parentLines != null) {
+            LineOfPlay.Edge edge;
+            if (line.parentLines.size() == 1) {
+                edge = line.parentLines.get(0);
+            } else {
+                edge = line.parentLines.get(parentState.prop.random.nextInt(line.parentLines.size()));
+            }
+            GameState state = (GameState) edge.line().state;
+            state.n[edge.action()] += 1;
+            state.q_win[edge.action()] += v[0];
+            state.q_health[edge.action()] += v[1];
+            state.q_comb[edge.action()] += v[2];
+            state.total_n += 1;
+            line = edge.line();
+        }
+    }
+
+    private void searchLine_r(GameState parentState, LineOfPlay curLine, boolean training, boolean isRoot) {
+        if (curLine.state instanceof ChanceState cState) {
+            var nextState = cState.getNextState(true);
+            searchLine(nextState, training, false, -1);
+            cState.correctV(nextState, v);
+            curLine.n += 1;
+            curLine.q_comb += v[2];
+            parentState.searchFrontier.total_n += 1;
+            return;
+        }
+        GameState state = (GameState) curLine.state;
+        if (state.isTerminal() != 0) {
+            state.get_v(v);
+            curLine.n += 1;
+            curLine.q_comb += v[2];
+            parentState.searchFrontier.total_n += 1;
+            if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
+                terminal_v_win = v[0];
+            }
+            return;
+        }
+        if (state.policy == null) {
+            state.doEval(model);
+            state.get_v(v);
+            if (training) {
+                state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.5f);
+            } else {
+                state.policyMod = state.policy;
+            }
+            curLine.n = 1;
+            curLine.q_comb = v[2];
+            parentState.searchFrontier.total_n += 1;
+            return;
+        }
+
+        float[] policy = state.policyMod;
+        int action = 0;
+        int numberOfActions = 0;
+        double maxU = -1000000;
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.n[i] > 0) {
+                continue;
+            }
+            numberOfActions += 1;
+            double u = policy[i];
+            if (u > maxU) {
+                action = i;
+                maxU = u;
+            }
+        }
+        curLine.internal = true;
+        if (numberOfActions == 1) {
+            curLine.q_comb = 0;
+        } else if (numberOfActions == 0) {
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                var line = parentState.searchFrontier.getLine(state.ns[i]);
+                if (line == null) {
+                    continue;
+                }
+                double u = line.q_comb / line.n;
+                if (u > maxU) {
+                    action = i;
+                    maxU = u;
+                }
+            }
+        }
+
+        var nextState = state.clone(true);
+        nextState.doAction(action);
+        if (nextState.actionCtx == GameActionCtx.BEGIN_TURN) {
+            nextState.doAction(0);
+        }
+        if (nextState.isStochastic) {
+            var cState = new ChanceState(nextState, state, action);
+            var transposedLine = parentState.searchFrontier.getLine(cState);
+            if (transposedLine == null) {
+                cState.addToQueue(nextState);
+                var newLine = new LineOfPlay(cState, curLine.p_total * policy[action], curLine, action);
+                curLine.p_cur -= curLine.p_total * policy[action];
+                parentState.searchFrontier.addLine(newLine);
+                searchLine_r(parentState, newLine, training, false);
+                if (state.n[action] == 0) {
+                    state.ns[action] = newLine.state;
+                }
+            } else {
+                if (state.n[action] == 0) {
+                    searchLineTransposePropagatePolicy(parentState, transposedLine, curLine.p_total * policy[action]);
+                    curLine.p_cur -= curLine.p_total * policy[action];
+                    state.ns[action] = transposedLine.state;
+                }
+                searchLine_r(parentState, transposedLine, training, false);
+            }
+        } else {
+            var transposedLine = parentState.searchFrontier.getLine(nextState);
+            if (transposedLine == null) {
+                var newLine = new LineOfPlay(nextState, curLine.p_total * policy[action], curLine, action);
+                curLine.p_cur -= curLine.p_total * policy[action];
+                parentState.searchFrontier.addLine(newLine);
+                searchLine_r(parentState, newLine, training, false);
+                if (state.n[action] == 0) {
+                    state.ns[action] = newLine.state;
+                }
+            } else {
+                if (state.n[action] == 0) {
+                    searchLineTransposePropagatePolicy(parentState, transposedLine, curLine.p_total * policy[action]);
+                    curLine.p_cur -= curLine.p_total * policy[action];
+                    state.ns[action] = transposedLine.state;
+                }
+                searchLine_r(parentState, transposedLine, training, false);
+            }
+        }
+        state.n[action] += 1;
+        state.total_n += 1;
+        curLine.numberOfActions -= 1;
+    }
+
+    private void searchLineTransposePropagatePolicy(GameState parentState, LineOfPlay line, double p) {
+        if (line.state instanceof GameState state) {
+            if (state.isTerminal() == 0) {
+                for (int i = 0; i < state.n.length; i++) {
+                    if (state.n[i] > 0) {
+                        var nextLine = parentState.searchFrontier.getLine(state.ns[i]);
+                        searchLineTransposePropagatePolicy(parentState, nextLine, p * state.policyMod[i]);
+                    }
+                }
+            }
+        }
+        line.p_cur += p * (line.p_cur / line.p_total);
+        line.p_total += p;
+    }
+
     private float[] getPolicy(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         float[] policy;
         if (training) {
             if (state.policyMod == null) {
                 if (isRoot) {
-                    state.policyMod = applyDirichletNoiseToPolicy(state.policy);
+                    state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
                 } else {
                     state.policyMod = state.policy;
                 }
@@ -528,14 +723,14 @@ public class MCTS {
         return newPolicy;
     }
 
-    private float[] applyDirichletNoiseToPolicy(float[] policy) {
+    private float[] applyDirichletNoiseToPolicy(float[] policy, float proportion) {
         policy = Arrays.copyOf(policy, policy.length);
         var param = new double[policy.length];
         Arrays.fill(param, 2);
         var noiseGen = new Dirichlet(param);
         var noise = noiseGen.nextDistribution(); // todo move out
         for (int i = 0; i < policy.length; i++) {
-            policy[i] = (float) noise[i] * 0.25f + policy[i] * 0.75f;
+            policy[i] = (float) noise[i] * proportion + policy[i] * (1 - proportion);
         }
         return policy;
     }

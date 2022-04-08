@@ -94,6 +94,58 @@ public class MatchSession {
         return new Game(states, r);
     }
 
+    public Game playGame2(GameState origState, MCTS mcts, int nodeCount, int r) {
+        var states = new ArrayList<GameStep>();
+        var state = origState.clone(false);
+        if (state.actionCtx == GameActionCtx.START_GAME) {
+            if (state.prop.randomization != null) {
+                if (r >= 0) {
+                    state.prop.randomization.randomize(state, r);
+                } else {
+                    r = state.prop.randomization.randomize(state);
+                }
+            } else {
+                r = 0;
+            }
+            state.doAction(0);
+        } else if (startingAction >= 0) {
+            state.doAction(startingAction);
+        }
+
+        while (state.isTerminal() == 0) {
+            int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
+//            System.out.println(state);
+            for (int i = 0; i < upto; i++) {
+                mcts.searchLine(state, false, true, upto - i);
+                if (mcts.numberOfPossibleActions == 1) {
+                    break;
+                }
+            }
+//            System.out.println(state + "," + upto + "," + state.total_n);
+//            System.out.println(state.searchFrontier);
+//            System.out.println(state.searchFrontier.getBestLine());
+//            System.out.println(state.searchFrontier.getBestLine().getActions());
+            for (int action : state.searchFrontier.getBestLine().getActions()) {
+//                System.out.println(state.getActionString(action));
+                states.add(new GameStep(state, action));
+                if (!training && solver != null) {
+                    solver.checkForError(state, action, true);
+                }
+                if (nodeCount == 1) {
+                    state = state.clone(false);
+                    state.doAction(action);
+                } else {
+                    state = getNextState(state, mcts, action, false);
+                }
+                states.get(states.size() - 1).state().clearNextStates();
+            }
+//            Integer.parseInt(null);
+            state.clearAllSearchInfo();
+        }
+        states.add(new GameStep(state, -1));
+        return new Game(states, r);
+    }
+
     public static record Game(List<GameStep> steps, int r) {};
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, int r, boolean printProgress) {
@@ -197,9 +249,12 @@ public class MatchSession {
     boolean SLOW_TRAINING_WINDOW;
     boolean POLICY_CAP_ON;
 
-    private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
+    private List<GameStep> playTrainingGame2(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
+        if (state.prop.randomization != null) {
+            state.prop.randomization.randomize(state);
+        }
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
         }
@@ -207,8 +262,80 @@ public class MatchSession {
         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
             enemy.randomize(random, curriculumTraining);
         }
+
+        while (state.isTerminal() == 0) {
+            int todo = nodeCount - state.total_n;
+            for (int i = 0; i < todo; i++) {
+                mcts.searchLine(state, true, true, todo - i);
+            }
+            if (state.searchFrontier.getBestLine() == null) {
+                System.out.println(state.searchFrontier);
+                System.out.println(state);
+                Integer.parseInt(null);
+            }
+            int action = state.searchFrontier.getBestLine().getActions().get(0);
+            var step = new GameStep(state, action);
+            step.useForTraining = true;
+            states.add(step);
+            state = getNextState(state, mcts, action, true);
+        }
+        states.add(new GameStep(state, -1));
+
+        // do scoring here before clearing states to reuse nn eval if possible
+        float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
+        float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
+        for (int i = states.size() - 1; i >= 0; i--) {
+            states.get(i).v_win = v_win;
+            states.get(i).v_health = v_health;
+            state = states.get(i).state();
+            state.clearNextStates();
+            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
+                var prevState = states.get(i - 1).state();
+                var prevAction = states.get(i - 1).action();
+                var cState = (ChanceState) prevState.ns[prevAction];
+                var stateActual = cState.addGeneratedState(state);
+                while (cState.total_n < 1000 && cState.cache.size() < 100) {
+                    cState.getNextState(false);
+                }
+                double est_v_win = 0;
+                double est_v_health = 0;
+                double[] out = new double[3];
+                for (ChanceState.Node node : cState.cache.values()) {
+                    if (node.state != stateActual) {
+                        if (node.state.policy == null) {
+                            node.state.doEval(mcts.model);
+                        }
+                        node.state.get_v(out);
+                        est_v_win += out[0] * node.n;
+                        est_v_health += out[1] * node.n;
+                    }
+                }
+                est_v_win /= cState.total_node_n;
+                est_v_health /= cState.total_node_n;
+                float p = ((float) cState.getCount(stateActual)) / cState.total_node_n;
+                if (v_win * p + (float) est_v_win > 1.0001) {
+                    Integer.parseInt(null);
+                }
+                v_win = Math.min(v_win * p + (float) est_v_win, 1);
+                v_health = Math.min(v_health * p + (float) est_v_health, 1);
+            }
+        }
+
+        return states;
+    }
+
+    private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
+        var states = new ArrayList<GameStep>();
+        var state = origState.clone(false);
         if (state.prop.randomization != null) {
             state.prop.randomization.randomize(state);
+        }
+        if (state.actionCtx == GameActionCtx.START_GAME) {
+            state.doAction(0);
+        }
+        RandomGen random = state.prop.random;
+        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+            enemy.randomize(random, curriculumTraining);
         }
 
         state.doEval(mcts.model);
@@ -226,7 +353,7 @@ public class MatchSession {
             }
 
             int action;
-            if (state.turnNum >= 3) {
+            if (state.turnNum >= 0) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);
@@ -368,11 +495,13 @@ public class MatchSession {
                 boolean isStochastic = newState.isStochastic;
                 newState = newState.clone(false);
                 newState.isStochastic = isStochastic;
+                newState.searchFrontier = null;
             }
         } else {
             newState = (GameState) nextState;
             if (clone) {
                 newState = newState.clone(false);
+                newState.searchFrontier = null;
             }
         }
         return newState;

@@ -217,9 +217,11 @@ public class Main {
         relics.add(new Relic.WarpedTongs());
         var randomization = new GameStateRandomization() {
             @Override public int randomize(GameState state) {
-                int r = state.prop.random.nextInt(3);
-                randomize(state, r);
-                return r;
+//                int r = state.prop.random.nextInt(3);
+//                randomize(state, r);
+//                return r;
+                randomize(state, 0);
+                return 0;
             }
 
             @Override public void reset(GameState state) {
@@ -295,8 +297,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = BasicGremlinNobState2();
-        state.getEnemiesForWrite().getForWrite(0).setHealth(85);
+        var state = SlimeBossStateLC();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -377,8 +378,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 5000;
-                NUMBER_OF_NODES_PER_TURN = 50000;
+                NUMBER_OF_GAMES_TO_PLAY = 1000;
+                NUMBER_OF_NODES_PER_TURN = 5000;
                 RANDOMIZATION_SCENARIO = 3;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
@@ -397,7 +398,7 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
-            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, RANDOMIZATION_SCENARIO).steps()) {
+            for (GameStep step : session.playGame2(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, RANDOMIZATION_SCENARIO).steps()) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
@@ -411,9 +412,9 @@ public class Main {
                 if (state.prop.randomization != null) {
                     state.prop.randomization.randomize(state, RANDOMIZATION_SCENARIO);
                 }
-                GameSolver solver = new GameSolver(state);
-                solver.solve();
-                session.solver = solver;
+//                GameSolver solver = new GameSolver(state);
+//                solver.solve();
+//                session.solver = solver;
             }
             session.training = TEST_TRAINING_AGENT;
             if (TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
@@ -429,7 +430,7 @@ public class Main {
             session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
             session.POLICY_CAP_ON = false;
             long start = System.currentTimeMillis();
-            var games = session.playTrainingGames(state, 2000, 10, CURRICULUM_TRAINING_ON);
+            var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
             writeTrainingData(games, curIterationDir +  "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
@@ -523,7 +524,7 @@ public class Main {
         writer.write("\n************************** Other **************************\n");
         var i = 1;
         for (var enemy : state.getEnemiesForRead()) {
-            writer.write("Enemy " + (i++) + ". " + enemy + "\n");
+            writer.write("Enemy " + (i++) + ": " + enemy.toString(state) + "\n");
         }
         writer.flush();
         writer.close();

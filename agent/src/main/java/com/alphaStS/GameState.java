@@ -119,6 +119,7 @@ public class GameState implements State {
     Map<GameState, State> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
     boolean[] transpositionsPolicyMask; // true if the associated action is a transposition
     int terminal_action; // detected a win from child, no need to waste more time search
+    SearchFrontier searchFrontier;
 
     // Solver only
     BigRational e_health;
@@ -716,8 +717,8 @@ public class GameState implements State {
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
-//            startTurn();
-            gotoActionCtx(GameActionCtx.BEGIN_TURN, null, -1);
+            startTurn();
+//            gotoActionCtx(GameActionCtx.BEGIN_TURN, null, -1);
         } else if (action.type() == GameActionType.PLAY_CARD) {
             playCard(action.cardIdx(), -1, false, true);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
@@ -738,6 +739,7 @@ public class GameState implements State {
         v_health = 0;
         if (isStochastic) {
             transpositions = new HashMap<>();
+            searchFrontier = null;
         }
     }
 
@@ -939,7 +941,7 @@ public class GameState implements State {
                 }
             }
             if (tmp.length() > 0) {
-                str.append(", other=[").append("tmp").append("]");
+                str.append(", other=[").append(tmp).append("]");
             }
         }
         str.append(", v=(").append(formatFloat(v_win)).append(", ").append(formatFloat(v_health)).append("/").append(formatFloat(v_health * getPlayeForRead().getMaxHealth())).append(")");
@@ -1576,6 +1578,7 @@ public class GameState implements State {
             Arrays.fill(ns, null);
         }
         transpositions = new HashMap<>();
+        searchFrontier = null;
     }
 
     public void clearAllSearchInfo() {
@@ -1587,6 +1590,7 @@ public class GameState implements State {
         ns = null;
         transpositionsPolicyMask = null;
         transpositions = new HashMap<>();
+        searchFrontier = null;
         terminal_action = -100;
         total_n = 0;
         total_q_win = 0;
@@ -1885,6 +1889,10 @@ class ChanceState implements State {
         queue = tmpQueue;
     }
 
+    public void addToQueue(GameState state) {
+        queue.add(state);
+    }
+
     public void correctV(GameState state2, double[] v) {
         var node = cache.get(state2);
         if (node.revisit) {
@@ -2019,11 +2027,20 @@ class ChanceState implements State {
     }
 
     @Override public String toString() {
-        String s = "";
-        for (Node node : cache.values()) {
-            s += "- (" + node.n + "/" + total_node_n + ") " + node.state + "\n";
-        }
-        return s;
+        return "ChanceState{state=" + parentState + ", action=" + parentAction + "}";
+    }
+
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+        ChanceState that = (ChanceState) o;
+        return parentAction == that.parentAction && Objects.equals(parentState, that.parentState);
+    }
+
+    @Override public int hashCode() {
+        return Objects.hash(parentState, parentAction);
     }
 }
 

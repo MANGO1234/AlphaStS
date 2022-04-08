@@ -87,6 +87,8 @@ public class Model {
         NNOutput o = cache.get(hash);
         if (o != null) {
             if (!Arrays.equals(o.legalActions(), state.getLegalActions())) {
+                System.err.println(Arrays.toString(o.legalActions()));
+                System.err.println(state);
                 Integer.parseInt(null);
             }
             cache_hits += 1;
