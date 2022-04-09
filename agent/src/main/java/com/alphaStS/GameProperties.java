@@ -60,6 +60,7 @@ public class GameProperties {
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Set<String> gameEventHandlers = new HashSet<>();
+    public List<GameEventHandler> startOfGameHandlers = new ArrayList<>();
     public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();

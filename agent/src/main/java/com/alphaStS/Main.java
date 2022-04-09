@@ -215,6 +215,7 @@ public class Main {
         relics.add(new Relic.AncientTeaSet());
         relics.add(new Relic.DuVuDoll());
         relics.add(new Relic.WarpedTongs());
+        relics.add(new Relic.BronzeScales());
         var randomization = new GameStateRandomization() {
             @Override public int randomize(GameState state) {
 //                int r = state.prop.random.nextInt(3);

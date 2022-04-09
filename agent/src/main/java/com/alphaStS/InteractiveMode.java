@@ -85,9 +85,6 @@ public class InteractiveMode {
                     if (state.getPlayeForRead().getFrail() > 0) {
                         System.out.println("  Frail: " + state.getPlayeForRead().getFrail());
                     }
-                    if (state.thorn > 0) {
-                        System.out.println("  Thorn: " + state.thorn);
-                    }
                     if (state.buffs != 0) {
                         System.out.println("  Buffs:");
                         for (PlayerBuff buff : PlayerBuff.BUFFS) {

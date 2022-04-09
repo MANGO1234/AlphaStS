@@ -10,4 +10,3 @@ public interface GameStateRandomization {
 
     record Info(double chance, String desc) {};
 }
-

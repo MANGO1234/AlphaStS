@@ -103,7 +103,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class BronzeScales extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.thorn += 3;
+            state.prop.registerCounter("Thorn", this, null);
+            state.addStartOfGameHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] += 3;
+                }
+            });
+            state.addOnDamageHandler(new OnDamageHandler() {
+                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (isAttack && source instanceof EnemyReadOnly enemy2) {
+                        var idx = state.getEnemiesForRead().find(enemy2);
+                        var enemy = state.getEnemiesForWrite().getForWrite(idx);
+                        state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                    }
+                }
+            });
         }
     }
 

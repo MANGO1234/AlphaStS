@@ -100,7 +100,6 @@ public class GameState implements State {
 
     // various other buffs/debuffs
     public long buffs;
-    short thorn;
     int lastEnemySelected;
 
     private int[] legalActions;
@@ -132,7 +131,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && thorn == gameState.thorn && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
     }
 
     @Override public int hashCode() {
@@ -276,6 +275,7 @@ public class GameState implements State {
         if (prop.counterNames.length > 0) {
             counter = new int[prop.counterNames.length];
         }
+        Collections.sort(prop.startOfGameHandlers);
         Collections.sort(prop.startOfTurnHandlers);
         Collections.sort(prop.preEndTurnHandlers);
         Collections.sort(prop.onBlockHandlers);
@@ -452,7 +452,6 @@ public class GameState implements State {
         buffs = other.buffs;
         counter = other.counter;
         lastEnemySelected = other.lastEnemySelected;
-        thorn = other.thorn;
 
         legalActions = other.legalActions;
         terminal_action = -100;
@@ -714,6 +713,9 @@ public class GameState implements State {
     void doAction(int actionIdx) {
         GameAction action = prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         if (action.type() == GameActionType.START_GAME) {
+            for (GameEventHandler handler : prop.startOfGameHandlers) {
+                handler.handle(this);
+            }
             startTurn();
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
         } else if (action.type() == GameActionType.END_TURN) {
@@ -1591,6 +1593,17 @@ public class GameState implements State {
         return prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[i]];
     }
 
+    public void addStartOfGameHandler(GameEventHandler handler) {
+        prop.startOfGameHandlers.add(handler);
+    }
+
+    public void addStartOfGameHandler(String handlerName, GameEventHandler handler) {
+        if (!prop.gameEventHandlers.contains(handlerName + "StartOfGame")) {
+            prop.gameEventHandlers.add(handlerName + "StartOfGame");
+            prop.startOfGameHandlers.add(handler);
+        }
+    }
+
     public void addStartOfTurnHandler(GameEventHandler handler) {
         prop.startOfTurnHandlers.add(handler);
     }
@@ -1791,7 +1804,6 @@ public class GameState implements State {
     public void enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmg, int times) {
         int move = enemy.getMove();
         var player = getPlayerForWrite();
-        var enemyIdx = -1;
         for (int i = 0; i < times; i++) {
             if (enemy.getHealth() <= 0 || enemy.getMove() != move) { // dead or interrupted
                 return;
@@ -1804,14 +1816,6 @@ public class GameState implements State {
                 dmg = dmg * 3 / 4;
             }
             int dmgDealt = player.damage(dmg);
-            if (thorn > 0) {
-                if (enemyIdx < 0) {
-                    enemyIdx = enemies.find(enemy);
-                } else {
-                    Integer.parseInt(null);
-                }
-                getEnemiesForWrite().getForWrite(enemyIdx).nonAttackDamage(thorn, false, this);
-            }
             if (dmg > 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {
                     handler.handle(this, enemy, true, dmgDealt);
