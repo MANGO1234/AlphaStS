@@ -158,7 +158,7 @@ public class MatchSession {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount, r));
+                        deq.putLast(session.playGame2(state, mcts.get(ii), nodeCount, r));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -273,11 +273,24 @@ public class MatchSession {
                 System.out.println(state);
                 Integer.parseInt(null);
             }
-            int action = state.searchFrontier.getBestLine().getActions().get(0);
-            var step = new GameStep(state, action);
-            step.useForTraining = true;
-            states.add(step);
-            state = getNextState(state, mcts, action, true);
+
+            for (int action : state.searchFrontier.getBestLine().getActions()) {
+                var step = new GameStep(state, action);
+                step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
+                states.add(step);
+                if (nodeCount == 1) {
+                    state = state.clone(false);
+                    state.doAction(action);
+                } else {
+                    state = getNextState(state, mcts, action, false);
+                }
+            }
+
+//            int action = state.searchFrontier.getBestLine().getActions().get(0);
+//            var step = new GameStep(state, action);
+//            step.useForTraining = true;
+//            states.add(step);
+//            state = getNextState(state, mcts, action, true);
         }
         states.add(new GameStep(state, -1));
 

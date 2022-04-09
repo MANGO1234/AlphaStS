@@ -67,6 +67,7 @@ record GameAction(GameActionType type, int cardIdx, int enemyIdx) {
 public class GameState implements State {
     private static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
+    private static final boolean USE_BUGGED_VERSION = true;
 
     boolean isStochastic;
     public GameProperties prop;
@@ -717,8 +718,8 @@ public class GameState implements State {
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
-            startTurn();
-//            gotoActionCtx(GameActionCtx.BEGIN_TURN, null, -1);
+//            startTurn();
+            gotoActionCtx(GameActionCtx.BEGIN_TURN, null, -1);
         } else if (action.type() == GameActionType.PLAY_CARD) {
             playCard(action.cardIdx(), -1, false, true);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
@@ -950,7 +951,7 @@ public class GameState implements State {
             first = true;
             for (int i = 0; i < getLegalActions().length; i++) {
                 var p_str = policy != null ? formatFloat(policy[i]) : "0";
-                var p_str2 = policyMod != null ? formatFloat(policyMod[i]) : null;
+                var p_str2 = policyMod != null && policyMod != policy ? formatFloat(policyMod[i]) : null;
                 var q_win_str = formatFloat(n[i] == 0 ? 0 : q_win[i] / n[i]);
                 var q_health_str = formatFloat(n[i] == 0 ? 0 : q_health[i] / n[i]);
                 var q_str = formatFloat(n[i] == 0 ? 0 : q_comb[i] / n[i]);
@@ -1062,16 +1063,47 @@ public class GameState implements State {
             inputLen += handler.getInputLenDelta();
         }
         // cards currently selecting enemies
-        if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectEnemy ||
-                        prop.cardDict[action.cardIdx()].selectFromHand ||
-                        prop.cardDict[action.cardIdx()].selectFromDiscard ||
-                        prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                    inputLen += 1;
+        if (USE_BUGGED_VERSION) {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectEnemy ||
+                            prop.cardDict[action.cardIdx()].selectFromHand ||
+                            prop.cardDict[action.cardIdx()].selectFromDiscard ||
+                            prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                        inputLen += 1;
+                    }
+                }
+            }
+        } else {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                        inputLen += 1;
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                        inputLen += 1;
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                        inputLen += 1;
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                        inputLen += 1;
+                    }
                 }
             }
         }
@@ -1176,17 +1208,47 @@ public class GameState implements State {
                 str += "    " + prop.counterHandlers[i].getInputLenDelta() + " parameter to keep track of counter for " + prop.counterNames[i] + "\n";
             }
         }
-        // cards currently selecting enemies
-        if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectEnemy ||
-                        prop.cardDict[action.cardIdx()].selectFromHand ||
-                        prop.cardDict[action.cardIdx()].selectFromDiscard ||
-                        prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                    str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + "\n";
+        if (USE_BUGGED_VERSION) {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectEnemy ||
+                            prop.cardDict[action.cardIdx()].selectFromHand ||
+                            prop.cardDict[action.cardIdx()].selectFromDiscard ||
+                            prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + "\n";
+                    }
+                }
+            }
+        } else {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from hand\n";
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from discard\n";
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from exhaust\n";
+                    }
                 }
             }
         }
@@ -1303,16 +1365,47 @@ public class GameState implements State {
         for (var handler : prop.counterHandlersNonNull) {
             idx = handler.addToInput(this, x, idx);
         }
-        if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
-                prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectEnemy ||
-                        prop.cardDict[action.cardIdx()].selectFromHand ||
-                        prop.cardDict[action.cardIdx()].selectFromDiscard ||
-                        prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
+        if (USE_BUGGED_VERSION) {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
+                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectEnemy ||
+                            prop.cardDict[action.cardIdx()].selectFromHand ||
+                            prop.cardDict[action.cardIdx()].selectFromDiscard ||
+                            prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
+                    }
+                }
+            }
+        } else {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
+                    }
+                }
+            }
+            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
+                    }
                 }
             }
         }
@@ -1488,6 +1581,8 @@ public class GameState implements State {
             return "Select " + prop.cardDict[action.cardIdx()].cardName + " From Discard";
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
             return "Select " + prop.cardDict[action.cardIdx()].cardName + " From Exhaust";
+        } else if (action.type() == GameActionType.BEGIN_TURN) {
+            return "Begin Turn";
         }
         return "Unknown";
     }

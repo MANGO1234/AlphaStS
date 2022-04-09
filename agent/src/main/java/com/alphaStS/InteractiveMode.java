@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static com.alphaStS.utils.Utils.formatFloat;
 
@@ -603,7 +604,7 @@ public class InteractiveMode {
             } else {
                 System.out.println("Unknown ns: " + state.toStringReadable());
                 System.out.println("Unknown ns: " + Arrays.toString(state.transpositionsPolicyMask));
-                System.out.println("Unknown ns: " + Arrays.asList(state.ns).stream().map((x) -> x == null).toList());
+                System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
                 break;
             }
         } while (true);
@@ -627,13 +628,18 @@ public class InteractiveMode {
             }
         }).map((x) -> {
             var tmpS = state.clone(false);
-            var a = x.getActions();
+            var actions = x.getActions();
             var strings = new ArrayList<String>();
-            for (int i = 0; i < a.size(); i++) {
-                strings.add(tmpS.getActionString(a.get(i)));
-                tmpS.doAction(a.get(i));
+            for (var action : actions) {
+                if (tmpS.getActionString(action).equals("Begin Turn")) {
+                    continue;
+                }
+                strings.add(tmpS.getActionString(action));
+                tmpS.doAction(action);
             }
-            return String.join(", ", strings) + ": n=" + x.n + ", p=" + x.p_cur + ", q_comb=" + (x.q_comb / x.n);
+            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
+                    ", q_win=" + formatFloat(x.q_health / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
+                    " (" + x.q_health / x.n * s.getPlayeForRead().getMaxHealth() + ")";
         }).forEach(System.out::println);
     }
 

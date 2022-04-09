@@ -321,9 +321,9 @@ public class MCTS {
                 continue;
             }
             numberOfActions += 1;
-//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
-            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
-            double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
+//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
+            double u = state.total_n > 0 ? q + 0.1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (u > maxU) {
                 action = i;
                 maxU = u;
@@ -553,6 +553,9 @@ public class MCTS {
             state.q_win[edge.action()] += v[0];
             state.q_health[edge.action()] += v[1];
             state.q_comb[edge.action()] += v[2];
+            state.total_q_win += v[0];
+            state.total_q_health += v[1];
+            state.total_q_comb += v[2];
             state.total_n += 1;
             line = edge.line();
         }
@@ -564,6 +567,8 @@ public class MCTS {
             searchLine(nextState, training, false, -1);
             cState.correctV(nextState, v);
             curLine.n += 1;
+            curLine.q_win += v[0];
+            curLine.q_health += v[1];
             curLine.q_comb += v[2];
             parentState.searchFrontier.total_n += 1;
             return;
@@ -571,7 +576,12 @@ public class MCTS {
         GameState state = (GameState) curLine.state;
         if (state.isTerminal() != 0) {
             state.get_v(v);
+            state.total_q_win += v[0];
+            state.total_q_health += v[1];
+            state.total_q_comb += v[2];
             curLine.n += 1;
+            curLine.q_win += v[0];
+            curLine.q_health += v[1];
             curLine.q_comb += v[2];
             parentState.searchFrontier.total_n += 1;
             if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
@@ -579,9 +589,12 @@ public class MCTS {
             }
             return;
         }
-        if (state.policy == null) {
+        if (state.policy == null && state.actionCtx != GameActionCtx.BEGIN_TURN) {
             state.doEval(model);
             state.get_v(v);
+            state.total_q_win += v[0];
+            state.total_q_health += v[1];
+            state.total_q_comb += v[2];
             if (training) {
                 state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.5f);
             } else {
@@ -591,6 +604,17 @@ public class MCTS {
             curLine.q_comb = v[2];
             parentState.searchFrontier.total_n += 1;
             return;
+        }
+        if (state.policy == null && state.actionCtx == GameActionCtx.BEGIN_TURN) {
+            state.policy = new float[] {1};
+            state.policyMod = state.policy;
+            state.n = new int[] {0};
+            state.ns = new State[] {null};
+            state.q_win = new double[] {0};
+            state.q_health = new double[] {0};
+            state.q_comb = new double[] {0};
+            curLine.n = 1;
+            curLine.q_comb = 0;
         }
 
         float[] policy = state.policyMod;
@@ -627,9 +651,6 @@ public class MCTS {
 
         var nextState = state.clone(true);
         nextState.doAction(action);
-        if (nextState.actionCtx == GameActionCtx.BEGIN_TURN) {
-            nextState.doAction(0);
-        }
         if (nextState.isStochastic) {
             var cState = new ChanceState(nextState, state, action);
             var transposedLine = parentState.searchFrontier.getLine(cState);
@@ -671,6 +692,9 @@ public class MCTS {
         }
         state.n[action] += 1;
         state.total_n += 1;
+        state.total_q_win += v[0];
+        state.total_q_health += v[1];
+        state.total_q_comb += v[2];
         curLine.numberOfActions -= 1;
     }
 
@@ -692,14 +716,14 @@ public class MCTS {
     private float[] getPolicy(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         float[] policy;
         if (training) {
-            if (state.policyMod == null) {
-                if (isRoot) {
+            if (isRoot) {
+                if (state.policyMod == null) {
                     state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
-                } else {
-                    state.policyMod = state.policy;
                 }
+                policy = state.policyMod;
+            } else {
+                policy = state.policy;
             }
-            policy = state.policyMod;
         } else {
             policy = applyFutileSearchPruning(state, state.policy, remainingCalls);
         }

@@ -297,7 +297,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = SlimeBossStateLC();
+        var state = GuardianState2();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -378,8 +378,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 1000;
-                NUMBER_OF_NODES_PER_TURN = 5000;
+                NUMBER_OF_GAMES_TO_PLAY = 10000;
+                NUMBER_OF_NODES_PER_TURN = 50;
                 RANDOMIZATION_SCENARIO = 3;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

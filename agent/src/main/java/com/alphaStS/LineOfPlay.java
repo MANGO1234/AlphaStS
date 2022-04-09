@@ -11,6 +11,8 @@ public class LineOfPlay {
     int n;
     double p_total;
     double p_cur;
+    double q_win;
+    double q_health;
     double q_comb;
     boolean internal;
     int numberOfActions;
