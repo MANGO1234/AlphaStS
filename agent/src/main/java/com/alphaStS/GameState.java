@@ -117,7 +117,6 @@ public class GameState implements State {
     float[] policy; // policy from NN
     float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
     Map<GameState, State> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
-    boolean[] transpositionsPolicyMask; // true if the associated action is a transposition
     int terminal_action; // detected a win from child, no need to waste more time search
     SearchFrontier searchFrontier;
 
@@ -1005,7 +1004,6 @@ public class GameState implements State {
         q_win = new double[policy.length];
         n = new int[policy.length];
         ns = new State[policy.length];
-        transpositionsPolicyMask = new boolean[policy.length];
     }
 
     private int getNNInputLen() {
@@ -1697,7 +1695,6 @@ public class GameState implements State {
         q_win = null;
         n = null;
         ns = null;
-        transpositionsPolicyMask = null;
         transpositions = new HashMap<>();
         searchFrontier = null;
         terminal_action = -100;

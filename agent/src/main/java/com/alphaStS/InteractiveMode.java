@@ -600,7 +600,6 @@ public class InteractiveMode {
                 }
             } else {
                 System.out.println("Unknown ns: " + state.toStringReadable());
-                System.out.println("Unknown ns: " + Arrays.toString(state.transpositionsPolicyMask));
                 System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
                 break;
             }

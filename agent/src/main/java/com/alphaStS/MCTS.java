@@ -22,133 +22,6 @@ public class MCTS {
         search3(state, training, remainingCalls);
     }
 
-    void search1(GameState state, boolean training, int remainingCalls) {
-        terminal_v_win = -100;
-        search1_r(state, training, remainingCalls, true);
-    }
-
-    void search1_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
-        if (state.terminal_action >= 0) {
-            v[0] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
-            v[1] = state.q_health[state.terminal_action] / state.n[state.terminal_action];
-            v[2] = state.q_comb[state.terminal_action] / state.n[state.terminal_action];
-            return;
-        }
-        if (state.isTerminal() != 0) {
-            state.get_v(v);
-            if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
-                terminal_v_win = v[0];
-            }
-            return;
-        }
-        if (state.policy == null) {
-            state.doEval(model);
-            state.get_v(v);
-            state.total_q_win = v[0];
-            state.total_q_health = v[1];
-            state.total_q_comb = v[2];
-            numberOfPossibleActions = state.getLegalActions().length;
-            return;
-        }
-
-        float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-
-        int numberOfActions;
-        int action;
-        do {
-            numberOfActions = 0;
-            action = -1;
-            double maxU = -1000000;
-            v[0] = -1000000;
-
-            for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (policy[i] <= 0 || state.transpositionsPolicyMask[i]) {
-                    continue;
-                }
-                numberOfActions += 1;
-//                double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : GameState.calc_q(state.total_q_win / (state.total_n + 1), state.total_q_health / (state.total_n + 1));
-                double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
-                double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-//                double u = state.total_n > 0 ? q + (Math.log((state.total_n + 18000 + 1) / 18000) + 1) * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-                if (u > maxU) {
-                    action = i;
-                    maxU = u;
-                }
-            }
-
-            if (numberOfActions == 0) {
-                return;
-            }
-
-            State nextState = state.ns[action];
-            GameState state2;
-            if (nextState == null) {
-                state2 = state.clone(true);
-                state2.doAction(action);
-                while (true) {
-                    if (state2.isStochastic) {
-                        state.ns[action] = new ChanceState(state2, state, action);
-                        this.search1_r(state2, training, remainingCalls, false);
-                        ((ChanceState) (state.ns[action])).correctV(state2, v);
-                        break;
-                    } else {
-                        if (state.transpositions.get(state2) == null) {
-                            state.transpositions.put(state2, state2);
-                            if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                                state2 = state2.clone(true);
-                                state2.doAction(0);
-                                continue;
-                            }
-                            state.ns[action] = state2;
-                            this.search1_r(state2, training, remainingCalls, false);
-                        }
-                        break;
-                    }
-                }
-            } else {
-                if (nextState instanceof ChanceState cState) {
-                    state2 = cState.getNextState(true);
-                    this.search1_r(state2, training, remainingCalls, false);
-                    cState.correctV(state2, v);
-                } else {
-                    this.search1_r((GameState) nextState, training, remainingCalls, false);
-                }
-            }
-
-            if (v[0] > -1000000) {
-                break;
-            } else {
-                state.transpositionsPolicyMask[action] = true;
-            }
-        } while (true);
-
-        state.q_win[action] += v[0];
-        state.q_health[action] += v[1];
-        state.q_comb[action] += v[2];
-        state.n[action] += 1;
-        state.total_n += 1;
-        int actionToPropagate;
-        if (terminal_v_win > 0.5) {
-            state.terminal_action = action;
-            if (state.isStochastic) {
-                terminal_v_win = -100;
-            }
-            actionToPropagate = action;
-        } else {
-            actionToPropagate = getActionWithMaxNodesOrTerminal(state);
-        }
-        double q_win_total = state.q_win[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
-        double q_health_total = state.q_health[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
-        double q_comb_total = state.q_comb[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
-        v[0] = q_win_total - state.total_q_win;
-        v[1] = q_health_total - state.total_q_health;
-        v[2] = q_comb_total - state.total_q_comb;
-        state.total_q_win += v[0];
-        state.total_q_health += v[1];
-        state.total_q_comb += v[2];
-        this.numberOfPossibleActions = numberOfActions;
-    }
-
     void search2(GameState state, boolean training, int remainingCalls) {
         terminal_v_win = -100;
         search2_r(state, training, remainingCalls, true);
@@ -316,6 +189,8 @@ public class MCTS {
         int action = 0;
         int numberOfActions = 0;
         double maxU = -1000000;
+        var forceN = new boolean[state.getLegalActions().length];
+        var forceNCount = 0;
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
@@ -324,9 +199,29 @@ public class MCTS {
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
 //            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
             double u = state.total_n > 0 ? q + 0.1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+            if (training && isRoot) {
+                var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
+                if (state.n[i] < force_n) {
+//                    forceN[i] = true;
+//                    forceNCount += 1;
+                    action = i;
+                    maxU = Integer.MAX_VALUE;
+                    continue;
+                }
+            }
             if (u > maxU) {
                 action = i;
                 maxU = u;
+            }
+        }
+        if (!forceN[action] && forceNCount > 0) {
+            int forced = state.prop.random.nextInt(forceNCount);
+            int k = 0;
+            for (int i = 0; i < forceN.length; i++) {
+                if (forceN[i] && k++ == forced) {
+                    action = i;
+                    break;
+                }
             }
         }
 
@@ -384,7 +279,7 @@ public class MCTS {
                 }
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
-                    this.search3_r(nState, training, remainingCalls, false);
+//                    this.search3_r(nState, training, remainingCalls, false);
                     v[0] = nState.total_q_win / (nState.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
                     v[1] = nState.total_q_health / (nState.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
                     v[2] = nState.total_q_comb / (nState.total_n + 1) * (state.n[action] + 1) - state.q_comb[action];
@@ -724,6 +619,10 @@ public class MCTS {
                 }
                 policy = state.policyMod;
             } else {
+//               if (state.policyMod == null) {
+//                   state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
+//               }
+//               policy = state.policyMod;
                 policy = state.policy;
             }
         } else {
@@ -784,46 +683,12 @@ public class MCTS {
         }
         int actionToPropagate = -1;
         int max_n = -1000;
-        if (state.transpositionsPolicyMask == null) {
-            System.out.println(state);
-        }
         for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (!state.transpositionsPolicyMask[i]) {
-                if (state.n[i] > max_n) {
-                    max_n = state.n[i];
-                    actionToPropagate = i;
-                }
+            if (state.n[i] > max_n) {
+                max_n = state.n[i];
+                actionToPropagate = i;
             }
-        }
-        if (actionToPropagate == -1) {
-            System.out.println("!!!!!!!|| " + state.toStringReadable());
-            System.out.println(Arrays.toString(state.transpositionsPolicyMask));
         }
         return actionToPropagate;
     }
-
-    public static int getActionWithMaxNodesOrTerminal2(GameState state) {
-        if (state.terminal_action >= 0) {
-            return state.terminal_action;
-        }
-        int actionToPropagate = -1;
-        double max_n = -1000;
-        if (state.transpositionsPolicyMask == null) {
-            System.out.println(state);
-        }
-        for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (!state.transpositionsPolicyMask[i]) {
-                if (state.q_comb[i] / state.n[i] > max_n) {
-                    max_n = state.q_comb[i] / state.n[i];
-                    actionToPropagate = i;
-                }
-            }
-        }
-        if (actionToPropagate == -1) {
-            System.out.println("!!!!!!!|| " + state.toStringReadable());
-            System.out.println(Arrays.toString(state.transpositionsPolicyMask));
-        }
-        return actionToPropagate;
-    }
-
 }

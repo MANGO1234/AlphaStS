@@ -75,8 +75,8 @@ else:
     x = layers.Dense(input_len, activation="linear", name="layer1")(inputs)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
-    x = layers.Dense(input_len, activation="linear", use_bias=True, name="layer1.1")(x)
-    # x = layers.BatchNormalization(axis=1)(x)
+    x = layers.Dense(input_len, activation="linear", name="layer1.1")(x)
+    x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
     # x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
     # x = layers.BatchNormalization(axis=1)(x)
@@ -209,8 +209,8 @@ if DO_TRAINING:
         #     else:
         #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
         #         # minibatch = training_pool
-        # train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
-        for i in range(10):
+        train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
+        for i in range(train_iter):
             minibatch = training_pool
             x_train = []
             exp_health_head_train = []

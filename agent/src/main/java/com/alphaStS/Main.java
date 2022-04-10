@@ -345,9 +345,9 @@ public class Main {
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
                 NUMBER_OF_GAMES_TO_PLAY = 10000;
-                NUMBER_OF_NODES_PER_TURN = 400;
+                NUMBER_OF_NODES_PER_TURN = 200;
 //                RANDOMIZATION_SCENARIO = 3;
-                iteration = 1;
+//                iteration = 1;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");
@@ -427,8 +427,8 @@ public class Main {
                 for (int j = 0; j < x.length; j++) {
                     stream.writeFloat(x[j]);
                 }
-                stream.writeFloat(step.v_health);
-                stream.writeFloat(step.v_win);
+                stream.writeFloat((step.v_health * 2) - 1);
+                stream.writeFloat((step.v_win * 2) - 1);
                 int idx = 0;
                 for (int j = 0; j < state.prop.totalNumOfActions; j++) {
                     if (j < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length) {

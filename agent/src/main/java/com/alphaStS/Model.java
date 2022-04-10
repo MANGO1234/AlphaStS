@@ -117,10 +117,12 @@ public class Model {
             for (int i = 0; i < legalActions.length; i++) {
                 policyCompressed[i] = policy[legalActions[i]];
             }
-            state.v_health = v_health;
-            state.v_win = v_win;
+            state.v_health = (v_health + 1) / 2;
+            state.v_win = (v_win + 1) / 2;
+//            state.v_health = v_health;
+//            state.v_win = v_win;
             state.policy = policy;
-            o = new NNOutput(v_health, v_win, softmax(policyCompressed), legalActions);
+            o = new NNOutput((float) state.v_health, (float) state.v_win, softmax(policyCompressed), legalActions);
             cache.put(hash, o);
             time_taken += System.currentTimeMillis() - start;
             return o;

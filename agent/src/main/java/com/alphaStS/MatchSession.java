@@ -7,6 +7,8 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static java.lang.Math.sqrt;
+
 final class GameStep {
     private final GameState state;
     private final int action;
@@ -346,7 +348,7 @@ public class MatchSession {
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);
             }
-            var step = new GameStep(state, action) ;
+            var step = new GameStep(state, action);
             step.useForTraining = !quickPass;
             states.add(step);
             quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
@@ -467,6 +469,64 @@ public class MatchSession {
                     throw new RuntimeException(e);
                 }
             }
+
+           for (GameStep step : steps) {
+               if (step.action() < 0 || step.state().terminal_action >= 0) {
+                   break;
+               }
+               state = step.state();
+               var max_i = -1;
+               var max_n = 0;
+               for (int i = 0; i < state.getLegalActions().length; i++) {
+                   if (state.n[i] > max_n) {
+                       max_n = state.n[i];
+                       max_i = i;
+                   }
+               }
+               if (max_i != step.action()) {
+                   if (state.n[max_i] == state.n[step.action()]) {
+                       max_i = step.action();
+                   } else {
+                       System.out.println(step.state());
+                       System.out.println(step.state().getActionString(max_i));
+                       System.out.println(step.state().getActionString(step.action()));
+                       Integer.parseInt(null);
+                   }
+               }
+               double q = state.q_comb[max_i] / state.n[max_i];
+               double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
+               var max_puct = q + u;
+               var del_n = 0;
+               for (int i = 0; i < state.getLegalActions().length; i++) {
+                   if (i == max_i) {
+                       continue;
+                   }
+                   q = state.q_comb[i] / state.n[i];
+                   var new_n = (int) Math.ceil(0.1 * state.policyMod[i] * sqrt(state.total_n) / (max_puct - q) - 1);
+                   if (new_n < 0 || state.n[i] == 1) {
+                       continue;
+                   }
+                   var force_n = (int) Math.sqrt(0.5 * state.policyMod[i] * state.total_n);
+                   new_n = Math.max(state.n[i] - force_n, new_n);
+                   if (state.n[i] > new_n) {
+//                        System.out.println(state);
+//                        System.out.println(q);
+//                        System.out.println(state.q_comb[max_i] / state.n[max_i]);
+//                        System.out.println(0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i]));
+//                        System.out.println(0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]));
+//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i]));
+//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i] - 1));
+//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i] - 2));
+//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + new_n));
+//                        System.out.println(max_puct);
+//                        System.out.println("Prune " + state.n[i] + " to " + new_n + ":" + force_n);
+                       del_n += state.n[i] - new_n;
+                       state.n[i] = new_n;
+//                        Integer.parseInt(null);
+                   }
+               }
+               state.total_n -= del_n;
+           }
         }
         return result;
     }
