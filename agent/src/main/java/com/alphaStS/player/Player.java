@@ -121,4 +121,9 @@ public class Player extends PlayerReadOnly {
     public void setHealth(int hp) {
         health = hp;
     }
+
+    public void setOrigHealth(int hp) {
+        origHealth = hp;
+        health = hp;
+    }
 }

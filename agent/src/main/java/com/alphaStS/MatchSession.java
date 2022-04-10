@@ -55,6 +55,7 @@ public class MatchSession {
     }
 
     public Game playGame(GameState origState, MCTS mcts, int nodeCount, int r) {
+        var useNewSearch = true;
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
@@ -72,75 +73,49 @@ public class MatchSession {
             state.doAction(startingAction);
         }
 
-        state.doEval(mcts.model);
-        while (state.isTerminal() == 0) {
-            int upto = nodeCount - state.total_n;
-            for (int i = 0; i < upto; i++) {
-                mcts.search(state, false, upto - i);
-                if (mcts.numberOfPossibleActions == 1) {
-                    break;
+        if (useNewSearch) {
+            while (state.isTerminal() == 0) {
+                int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
+                for (int i = 0; i < upto; i++) {
+                    mcts.searchLine(state, false, true, upto - i);
+                    if (mcts.numberOfPossibleActions == 1) {
+                        break;
+                    }
                 }
-            }
-
-            int action = MCTS.getActionWithMaxNodesOrTerminal(state);
-            states.add(new GameStep(state, action));
-            if (!training && solver != null) {
-                solver.checkForError(state, action, true);
-            }
-            state = getNextState(state, mcts, action, false);
-            states.get(states.size() - 1).state().clearNextStates();
-        }
-        states.add(new GameStep(state, -1));
-        return new Game(states, r);
-    }
-
-    public Game playGame2(GameState origState, MCTS mcts, int nodeCount, int r) {
-        var states = new ArrayList<GameStep>();
-        var state = origState.clone(false);
-        if (state.actionCtx == GameActionCtx.START_GAME) {
-            if (state.prop.randomization != null) {
-                if (r >= 0) {
-                    state.prop.randomization.randomize(state, r);
-                } else {
-                    r = state.prop.randomization.randomize(state);
+                for (int action : state.searchFrontier.getBestLine().getActions()) {
+                    states.add(new GameStep(state, action));
+                    if (!training && solver != null) {
+                        solver.checkForError(state, action, true);
+                    }
+                    if (nodeCount == 1) {
+                        state = state.clone(false);
+                        state.doAction(action);
+                    } else {
+                        state = getNextState(state, mcts, action, false);
+                    }
+                    states.get(states.size() - 1).state().clearNextStates();
                 }
-            } else {
-                r = 0;
+                state.clearAllSearchInfo();
             }
-            state.doAction(0);
-        } else if (startingAction >= 0) {
-            state.doAction(startingAction);
-        }
-
-        while (state.isTerminal() == 0) {
-            int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
-//            System.out.println(state);
-            for (int i = 0; i < upto; i++) {
-                mcts.searchLine(state, false, true, upto - i);
-                if (mcts.numberOfPossibleActions == 1) {
-                    break;
+        } else{
+            state.doEval(mcts.model);
+            while (state.isTerminal() == 0) {
+                int upto = nodeCount - state.total_n;
+                for (int i = 0; i < upto; i++) {
+                    mcts.search(state, false, upto - i);
+                    if (mcts.numberOfPossibleActions == 1) {
+                        break;
+                    }
                 }
-            }
-//            System.out.println(state + "," + upto + "," + state.total_n);
-//            System.out.println(state.searchFrontier);
-//            System.out.println(state.searchFrontier.getBestLine());
-//            System.out.println(state.searchFrontier.getBestLine().getActions());
-            for (int action : state.searchFrontier.getBestLine().getActions()) {
-//                System.out.println(state.getActionString(action));
+
+                int action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 states.add(new GameStep(state, action));
                 if (!training && solver != null) {
                     solver.checkForError(state, action, true);
                 }
-                if (nodeCount == 1) {
-                    state = state.clone(false);
-                    state.doAction(action);
-                } else {
-                    state = getNextState(state, mcts, action, false);
-                }
+                state = getNextState(state, mcts, action, false);
                 states.get(states.size() - 1).state().clearNextStates();
             }
-//            Integer.parseInt(null);
-            state.clearAllSearchInfo();
         }
         states.add(new GameStep(state, -1));
         return new Game(states, r);
@@ -158,7 +133,7 @@ public class MatchSession {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        deq.putLast(session.playGame2(state, mcts.get(ii), nodeCount, r));
+                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount, r));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -169,6 +144,7 @@ public class MatchSession {
         var game_i = 0;
         var deathCount = new HashMap<Integer, Integer>();
         var totalDamageTaken = new HashMap<Integer, Integer>();
+        var totalDamageTakenNoDeath = new HashMap<Integer, Integer>();
         var numOfGamesByR = new HashMap<Integer, Integer>();
         var damageCount = new HashMap<Integer, Integer>();
         var start = System.currentTimeMillis();
@@ -187,13 +163,15 @@ public class MatchSession {
             if (!training && solver != null) {
                 solverErrorCount += solver.checkForError(game);
             }
-            int damageTaken = state.getPlayeForRead().origHealth - state.getPlayeForRead().getHealth();
+            int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
             deathCount.putIfAbsent(game.r, 0);
             deathCount.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == -1 ? 1 : 0));
             numOfGamesByR.putIfAbsent(game.r, 0);
             numOfGamesByR.computeIfPresent(game.r, (k, x) -> x + 1);
             totalDamageTaken.putIfAbsent(game.r, 0);
             totalDamageTaken.computeIfPresent(game.r, (k, x) -> x + damageTaken);
+            totalDamageTakenNoDeath.putIfAbsent(game.r, 0);
+            totalDamageTakenNoDeath.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
             damageCount.put(damageTaken, damageCount.getOrDefault(damageTaken, 0) + 1);
             game_i += 1;
             if (matchLogWriter != null) {
@@ -222,14 +200,17 @@ public class MatchSession {
                     var i = deathCount.keySet().stream().toList().get(0);
                     System.out.println("Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
                     System.out.println("Avg Damage: " + ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i));
-                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken.get(i) - state.getPlayeForRead().origHealth * deathCount.get(i))) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
                 } else {
                     for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
                         var i = info.getKey();
+                        if (deathCount.get(i) == null) {
+                            continue;
+                        }
                         System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
                         System.out.println("    Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
                         System.out.println("    Avg Damage: " + ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i));
-                        System.out.println("    Avg Damage (Not Including Deaths): " + ((double) (totalDamageTaken.get(i) - state.getPlayeForRead().origHealth * deathCount.get(i))) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                        System.out.println("    Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
                     }
                 }
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
@@ -268,12 +249,6 @@ public class MatchSession {
             for (int i = 0; i < todo; i++) {
                 mcts.searchLine(state, true, true, todo - i);
             }
-            if (state.searchFrontier.getBestLine() == null) {
-                System.out.println(state.searchFrontier);
-                System.out.println(state);
-                Integer.parseInt(null);
-            }
-
             for (int action : state.searchFrontier.getBestLine().getActions()) {
                 var step = new GameStep(state, action);
                 step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
@@ -479,7 +454,7 @@ public class MatchSession {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                    trainingDataWriter.write("Damage Taken: " + (origState.getPlayeForRead().origHealth - state.getPlayeForRead().getHealth()) + "\n");
+                    trainingDataWriter.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");
                     for (GameStep step : steps) {
                         trainingDataWriter.write(step.state().toStringReadable() + "\n");
                         if (step.action() >= 0) {

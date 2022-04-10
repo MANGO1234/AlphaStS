@@ -388,6 +388,7 @@ public class GameState implements State {
                     }
                 }
             }
+            prop.randomization.reset(this);
         }
         return l.stream().sorted().mapToInt(Integer::intValue).toArray();
     }

@@ -601,6 +601,8 @@ public class MCTS {
                 state.policyMod = state.policy;
             }
             curLine.n = 1;
+            curLine.q_win = v[0];
+            curLine.q_health = v[1];
             curLine.q_comb = v[2];
             parentState.searchFrontier.total_n += 1;
             return;

@@ -71,17 +71,6 @@ public class Main {
         return new GameState(enemies, new Player(80, 80), cards, relics, randomization);
     }
 
-    public static GameState BasicGremlinNobState2() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.BashP(), 1));
-        cards.add(new CardCount(new Card.Strike(), 5));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.GremlinNob());
-        var relics = new ArrayList<Relic>();
-        return new GameState(enemies, new Player(80, 80), cards, relics);
-    }
-
     public static GameState BasicSentriesState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -144,35 +133,6 @@ public class Main {
         return new GameState(enemies, player, cards, relics);
     }
 
-    public static GameState SlimeBossState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.SeverSoul(), 1));
-        cards.add(new CardCount(new Card.Clash(), 1));
-        cards.add(new CardCount(new Card.Headbutt(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Disarm(), 1));
-        cards.add(new CardCount(new Card.ArmanentP(), 1));
-        cards.add(new CardCount(new Card.PommelStrike(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.SlimeBoss());
-        enemies.add(new Enemy.LargeSpikeSlime(75, true));
-        enemies.add(new Enemy.LargeAcidSlime(75, true));
-        enemies.add(new Enemy.MediumSpikeSlime(37, true));
-        enemies.add(new Enemy.MediumSpikeSlime(37, true));
-        enemies.add(new Enemy.MediumAcidSlime(37, true));
-        enemies.add(new Enemy.MediumAcidSlime(37, true));
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.Orichalcum());
-        relics.add(new Relic.BronzeScales());
-        relics.add(new Relic.Vajira());
-        relics.add(new Relic.Anchor());
-        return new GameState(enemies, new Player(45, 85), cards, relics);
-    }
-
     public static GameState GuardianState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -215,10 +175,10 @@ public class Main {
         relics.add(new Relic.AncientTeaSet());
         relics.add(new Relic.DuVuDoll());
         relics.add(new Relic.WarpedTongs());
-        relics.add(new Relic.BronzeScales());
         var randomization = new GameStateRandomization() {
             @Override public int randomize(GameState state) {
-//                int r = state.prop.random.nextInt(3);
+//                int r = state.prop.random.nextInt(4);
+//                int r = state.prop.random.nextInt(2) + 1;
 //                randomize(state, r);
 //                return r;
                 randomize(state, 0);
@@ -226,31 +186,36 @@ public class Main {
             }
 
             @Override public void reset(GameState state) {
-                state.getPlayerForWrite().setHealth(41);
+                state.getPlayerForWrite().setOrigHealth(41);
                 state.setCardCountInDeck(state.prop.findCardIndex(new Card.Carnage()), 1);
                 state.setCardCountInDeck(state.prop.findCardIndex(new Card.CarnageP()), 0);
                 state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOff()), 1);
                 state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOffP()), 0);
+                state.setCardCountInDeck(state.prop.findCardIndex(new Card.PowerThrough()), 1);
             }
 
             @Override public void randomize(GameState state, int r) {
                 reset(state);
                 if (r == 1) {
-                    state.getPlayerForWrite().setHealth(19);
+                    state.getPlayerForWrite().setOrigHealth(19);
                     state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOff()), 0);
                     state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOffP()), 1);
                 } else if (r == 2) {
-                    state.getPlayerForWrite().setHealth(19);
+                    state.getPlayerForWrite().setOrigHealth(19);
                     state.setCardCountInDeck(state.prop.findCardIndex(new Card.Carnage()), 0);
                     state.setCardCountInDeck(state.prop.findCardIndex(new Card.CarnageP()), 1);
+                } else if (r == 3) {
+                    state.getPlayerForWrite().setOrigHealth(41);
+                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.PowerThrough()), 0);
                 }
             }
 
             @Override public Map<Integer, Info> listRandomizations(GameState state) {
                 var map = new HashMap<Integer, Info>();
-                map.put(0, new Info(1f / 3, "Health 41"));
-                map.put(1, new Info(1f / 3,"Health 19, Upgrade Shrug It Off"));
-                map.put(2, new Info(1f / 3,"Health 19, Upgrade Carnage"));
+                map.put(0, new Info(1f / 4, "Health 41"));
+                map.put(1, new Info(1f / 4,"Health 19, Upgrade Shrug It Off"));
+                map.put(2, new Info(1f / 4,"Health 19, Upgrade Carnage"));
+                map.put(3, new Info(1f / 4, "Health 41, No Power Through"));
                 return map;
             }
         };
@@ -380,8 +345,9 @@ public class Main {
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
                 NUMBER_OF_GAMES_TO_PLAY = 10000;
-                NUMBER_OF_NODES_PER_TURN = 50;
-                RANDOMIZATION_SCENARIO = 3;
+                NUMBER_OF_NODES_PER_TURN = 400;
+//                RANDOMIZATION_SCENARIO = 3;
+                iteration = 1;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");
@@ -399,7 +365,7 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
-            for (GameStep step : session.playGame2(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, RANDOMIZATION_SCENARIO).steps()) {
+            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, RANDOMIZATION_SCENARIO).steps()) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");

@@ -635,7 +635,7 @@ public class InteractiveMode {
                 tmpS.doAction(action);
             }
             return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
-                    ", q_win=" + formatFloat(x.q_health / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
+                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
                     " (" + x.q_health / x.n * s.getPlayeForRead().getMaxHealth() + ")";
         }).forEach(System.out::println);
     }

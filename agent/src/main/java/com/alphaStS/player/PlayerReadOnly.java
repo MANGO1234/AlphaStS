@@ -3,7 +3,7 @@ package com.alphaStS.player;
 import java.util.Objects;
 
 public class PlayerReadOnly {
-    public final int origHealth;
+    protected int origHealth;
     protected int maxHealth;
     protected int health;
     protected int block;
@@ -41,6 +41,10 @@ public class PlayerReadOnly {
 
     public int getMaxHealth() {
         return maxHealth;
+    }
+
+    public int getOrigHealth() {
+        return origHealth;
     }
 
     public int getHealth() {

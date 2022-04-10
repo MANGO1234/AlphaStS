@@ -69,14 +69,14 @@ if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
     custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits}
     with keras.utils.custom_object_scope(custom_objects):
         model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
-        model.optimizer.lr.assign(0.01)
+        # model.optimizer.lr.assign(0.01)
 else:
     inputs = keras.Input(shape=(input_len,))
-    x = layers.Dense(input_len, activation="linear", use_bias=True, name="layer1")(inputs)
+    x = layers.Dense(input_len, activation="linear", name="layer1")(inputs)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
     x = layers.Dense(input_len, activation="linear", use_bias=True, name="layer1.1")(x)
-    x = layers.BatchNormalization(axis=1)(x)
+    # x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
     # x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
     # x = layers.BatchNormalization(axis=1)(x)
@@ -87,8 +87,8 @@ else:
     # x2 = layers.Dense((input_len + 1) // 4, activation="linear", use_bias=True, name="layer4")(x)
     # x2 = layers.BatchNormalization(axis=1)(x2)
     # x2 = layers.LeakyReLU()(x2)
-    exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='sigmoid')(x)
-    exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='sigmoid')(x)
+    exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='tanh')(x)
+    exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='tanh')(x)
     policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
     # x = layers.Dense(math.floor((input_len + 1) / 2), activation="linear", use_bias=True, name="layer1")(inputs)
     # x = layers.BatchNormalization(axis=1)(x)
@@ -103,8 +103,6 @@ else:
         'policy_head': softmax_cross_entropy_with_logits
     },
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
-        # optimizer='adam',
-        # loss_weights={'exp_health_head': 0.5, 'policy_head': 0.5}
         loss_weights={'exp_health_head': 1 / 3, 'policy_head': 1 / 3, 'exp_win_head': 1 / 3}
     )
     model.save(f'{SAVES_DIR}/iteration0')
@@ -211,6 +209,7 @@ if DO_TRAINING:
         #     else:
         #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
         #         # minibatch = training_pool
+        # train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
         for i in range(10):
             minibatch = training_pool
             x_train = []
