@@ -166,6 +166,7 @@ public class MCTS {
             v[0] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
             v[1] = state.q_health[state.terminal_action] / state.n[state.terminal_action];
             v[2] = state.q_comb[state.terminal_action] / state.n[state.terminal_action];
+            numberOfPossibleActions = 1;
             return;
         }
         if (state.isTerminal() != 0) {
@@ -390,10 +391,17 @@ public class MCTS {
     }
 
     void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
+        if (state.terminal_action >= 0) {
+            v[0] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
+            v[1] = state.q_health[state.terminal_action] / state.n[state.terminal_action];
+            v[2] = state.q_comb[state.terminal_action] / state.n[state.terminal_action];
+            return;
+        }
         if (state.searchFrontier == null) {
             state.searchFrontier = new SearchFrontier();
             state.searchFrontier.addLine(new LineOfPlay(state, 1, null, 0));
         }
+        terminal_v_win = -100;
 
         int max_n = 0;
         var lines = state.searchFrontier.lines.values();
@@ -425,6 +433,14 @@ public class MCTS {
             double q = line.n > 0 ? line.q_comb / line.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
             double u = state.searchFrontier.total_n > 0 ? q + 0.125 * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+//            if (training && isRoot) {
+//                var force_n = (int) Math.sqrt(0.5 * line.p_cur * state.searchFrontier.total_n);
+//                if (line.n < force_n) {
+//                    maxU = Integer.MAX_VALUE;
+//                    maxLine = line;
+//                    continue;
+//                }
+//            }
             if (u > maxU) {
                 maxU = u;
                 maxLine = line;
@@ -433,6 +449,7 @@ public class MCTS {
         assert maxLine != null;
         searchLine_r(state, maxLine, training, isRoot);
         searchLinePropagate(state, maxLine);
+        terminal_v_win = -100;
     }
 
     private void searchLinePropagate(GameState parentState, LineOfPlay line) {
@@ -448,10 +465,19 @@ public class MCTS {
             state.q_win[edge.action()] += v[0];
             state.q_health[edge.action()] += v[1];
             state.q_comb[edge.action()] += v[2];
+            state.total_n += 1;
+            if (line.state instanceof GameState childState && childState.terminal_action >= 0) {
+                state.terminal_action = edge.action();
+                double q_win_total = childState.total_q_win / (childState.total_n + 1) * (state.total_n + 1);
+                double q_health_total = childState.total_q_health / (childState.total_n + 1) * (state.total_n + 1);
+                double q_comb_total = childState.total_q_comb / (childState.total_n + 1) * (state.total_n + 1);
+                v[0] = q_win_total - state.total_q_win;
+                v[1] = q_health_total - state.total_q_health;
+                v[2] = q_comb_total - state.total_q_comb;
+            }
             state.total_q_win += v[0];
             state.total_q_health += v[1];
             state.total_q_comb += v[2];
-            state.total_n += 1;
             line = edge.line();
         }
     }
@@ -480,7 +506,7 @@ public class MCTS {
             curLine.q_comb += v[2];
             parentState.searchFrontier.total_n += 1;
             if (v[0] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
-                terminal_v_win = v[0];
+//                terminal_v_win = v[0];
             }
             return;
         }
@@ -549,7 +575,7 @@ public class MCTS {
         var nextState = state.clone(true);
         nextState.doAction(action);
         if (nextState.isStochastic) {
-            var cState = new ChanceState(nextState, state, action);
+            var cState = new ChanceState(null, state, action);
             var transposedLine = parentState.searchFrontier.getLine(cState);
             if (transposedLine == null) {
                 cState.addToQueue(nextState);
@@ -565,6 +591,7 @@ public class MCTS {
                     searchLineTransposePropagatePolicy(parentState, transposedLine, curLine.p_total * policy[action]);
                     curLine.p_cur -= curLine.p_total * policy[action];
                     state.ns[action] = transposedLine.state;
+                    transposedLine.parentLines.add(new LineOfPlay.Edge(curLine, action));
                 }
                 searchLine_r(parentState, transposedLine, training, false);
             }
@@ -583,12 +610,31 @@ public class MCTS {
                     searchLineTransposePropagatePolicy(parentState, transposedLine, curLine.p_total * policy[action]);
                     curLine.p_cur -= curLine.p_total * policy[action];
                     state.ns[action] = transposedLine.state;
+                    transposedLine.parentLines.add(new LineOfPlay.Edge(curLine, action));
                 }
                 searchLine_r(parentState, transposedLine, training, false);
             }
         }
         state.n[action] += 1;
+        state.q_win[action] += v[0];
+        state.q_health[action] += v[1];
+        state.q_comb[action] += v[2];
         state.total_n += 1;
+        if (terminal_v_win > 0.5) {
+            state.terminal_action = action;
+//            System.out.println(state);
+//            System.out.println(state.q_win[action]);
+//            System.out.println(state.n[action]);
+//            System.out.println(state.total_n);
+//            System.out.println(state.total_q_win);
+//            System.out.println(Arrays.toString(v));
+            double q_win_total = state.q_win[action] / state.n[action] * (state.total_n + 1);
+            double q_health_total = state.q_health[action] / state.n[action] * (state.total_n + 1);
+            double q_comb_total = state.q_comb[action] / state.n[action] * (state.total_n + 1);
+            v[0] = q_win_total - state.total_q_win;
+            v[1] = q_health_total - state.total_q_health;
+            v[2] = q_comb_total - state.total_q_comb;
+        }
         state.total_q_win += v[0];
         state.total_q_health += v[1];
         state.total_q_comb += v[2];

@@ -576,39 +576,69 @@ public class InteractiveMode {
 
     private static void runNNPV(GameState state, MCTS mcts, String line) {
         int count = parseInt(line.substring(3), 1);
-        GameState s = state;
-        int move_i = 0;
-        do {
-            for (int i = s.total_n; i < count; i++) {
-                mcts.search(s, false, -1);
-            }
-            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
-            if (action < 0) {
-                break;
-            }
-            int max_n = s.n[action];
-            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
-            State ns = s.ns[action];
-            if (ns instanceof ChanceState) {
-                break;
-            } else if (ns instanceof GameState ns2) {
-                if (ns2.isTerminal() != 0) {
-                    break;
-                } else {
-                    s = ns2;
+        state.clearAllSearchInfo();
+        double[] policySnapshot = null;
+        var next = 20;
+        for (int i = 0; i < count; i++) {
+            mcts.search(state, false, -1);
+            if (i == next) {
+                var nextSnapshot = new double[state.n.length];
+                for (int j = 0; j < state.n.length; j++) {
+                    nextSnapshot[j] = state.n[j] / (double) state.total_n;
                 }
-            } else {
-                System.out.println("Unknown ns: " + state.toStringReadable());
-                System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
-                break;
+                if (policySnapshot != null) {
+                    var kld = 0.0;
+                    for (int j = 0; j < nextSnapshot.length; j++) {
+                        if (policySnapshot[j] > 0) {
+                            kld += policySnapshot[j] * Math.log(policySnapshot[j] / nextSnapshot[j]);
+                        }
+                    }
+                    if (Math.abs(kld) > 0.01) {
+                        System.out.println(state);
+                    }
+                    System.out.println("KLD at " + i + ": " + kld);
+                }
+                policySnapshot = nextSnapshot;
+                next += 20;
             }
-        } while (true);
+        }
+        return;
+//        GameState s = state;
+//        int move_i = 0;
+//        do {
+//            for (int i = s.total_n; i < count; i++) {
+//                mcts.search(s, false, -1);
+//            }
+//            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
+//            if (action < 0) {
+//                break;
+//            }
+//            int max_n = s.n[action];
+//            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
+//                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
+//            State ns = s.ns[action];
+//            if (ns instanceof ChanceState) {
+//                break;
+//            } else if (ns instanceof GameState ns2) {
+//                if (ns2.isTerminal() != 0) {
+//                    break;
+//                } else {
+//                    s = ns2;
+//                }
+//            } else {
+//                System.out.println("Unknown ns: " + state.toStringReadable());
+//                System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
+//                break;
+//            }
+//        } while (true);
     }
 
     private static void runNNPV2(GameState state, MCTS mcts, String line) {
         int count = parseInt(line.substring(4), 1);
         GameState s = state;
+        if (s.searchFrontier != null && s.searchFrontier.total_n != s.total_n) {
+            s.clearAllSearchInfo();
+        }
         for (int i = s.total_n; i < count; i++) {
             mcts.searchLine(s, false, true, -1);
         }
@@ -624,7 +654,7 @@ public class InteractiveMode {
             }
         }).map((x) -> {
             var tmpS = state.clone(false);
-            var actions = x.getActions();
+            var actions = x.getActions(tmpS);
             var strings = new ArrayList<String>();
             for (var action : actions) {
                 if (tmpS.getActionString(action).equals("Begin Turn")) {
@@ -635,7 +665,7 @@ public class InteractiveMode {
             }
             return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
                     ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
-                    " (" + x.q_health / x.n * s.getPlayeForRead().getMaxHealth() + ")";
+                    " (" + formatFloat(x.q_health / x.n * s.getPlayeForRead().getMaxHealth()) + ")";
         }).forEach(System.out::println);
     }
 

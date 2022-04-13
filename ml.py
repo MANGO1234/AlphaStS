@@ -75,7 +75,7 @@ else:
     x = layers.Dense(input_len, activation="linear", name="layer1")(inputs)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
-    x = layers.Dense(input_len, activation="linear", name="layer1.1")(x)
+    x = layers.Dense(input_len, activation="linear", name="layer2")(x)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
     # x = layers.Dense((input_len + 1) // 2, activation="linear", use_bias=True, name="layer2")(x)
@@ -90,12 +90,6 @@ else:
     exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='tanh')(x)
     exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='tanh')(x)
     policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
-    # x = layers.Dense(math.floor((input_len + 1) / 2), activation="linear", use_bias=True, name="layer1")(inputs)
-    # x = layers.BatchNormalization(axis=1)(x)
-    # x = layers.LeakyReLU()(x)
-    # exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='sigmoid')(x)
-    # exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='sigmoid')(x)
-    # policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
     model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head])
     model.compile(loss={
         'exp_health_head': 'mean_squared_error',

@@ -1987,6 +1987,8 @@ class ChanceState implements State {
     }
 
     public void addToQueue(GameState state) {
+        addGeneratedState(state);
+        total_n -= 1;
         queue.add(state);
     }
 

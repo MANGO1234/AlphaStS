@@ -7,6 +7,7 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static com.alphaStS.utils.Utils.formatFloat;
 import static java.lang.Math.sqrt;
 
 final class GameStep {
@@ -15,6 +16,7 @@ final class GameStep {
     public boolean useForTraining;
     public float v_win;
     public float v_health;
+    public List<String> lines;
 
     GameStep(GameState state, int action) {
         this.state = state;
@@ -38,6 +40,8 @@ final class GameStep {
 }
 
 public class MatchSession {
+    private static boolean LOG_GAME_USING_LINES_FORMAT = true;
+
     public boolean training;
     Writer matchLogWriter;
     Writer trainingDataWriter;
@@ -84,8 +88,34 @@ public class MatchSession {
                         break;
                     }
                 }
-                for (int action : state.searchFrontier.getBestLine().getActions()) {
+                for (int action : state.searchFrontier.getBestLine().getActions(state)) {
                     states.add(new GameStep(state, action));
+                    if (state.searchFrontier != null) {
+                        var _state = state;
+                        states.get(states.size() - 1).lines = state.searchFrontier.lines.values().stream().sorted((a, b) -> {
+                            if (a.internal == b.internal) {
+                                return -Integer.compare(a.n, b.n);
+                            } else if (a.internal) {
+                                return 1;
+                            } else {
+                                return -1;
+                            }
+                        }).limit(5).map((x) -> {
+                            var tmpS = _state.clone(false);
+                            var actions = x.getActions(tmpS);
+                            var strings = new ArrayList<String>();
+                            for (var _action : actions) {
+                                if (tmpS.getActionString(_action).equals("Begin Turn")) {
+                                    continue;
+                                }
+                                strings.add(tmpS.getActionString(_action));
+                                tmpS.doAction(_action);
+                            }
+                            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
+                                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
+                                    " (" + formatFloat(x.q_health / x.n * _state.getPlayeForRead().getMaxHealth()) + ")";
+                        }).toList();
+                    }
                     if (!training && solver != null) {
                         solver.checkForError(state, action, true);
                     }
@@ -181,10 +211,24 @@ public class MatchSession {
                     matchLogWriter.write("*** Match " + game_i + " ***\n");
                     matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
                     matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
-                    for (GameStep step : steps) {
-                        matchLogWriter.write(step.state().toStringReadable() + "\n");
-                        if (step.action() >= 0) {
-                            matchLogWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+                    boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
+                    if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
+                        for (GameStep step : steps) {
+                            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
+                            if (step.lines != null) {
+                                matchLogWriter.write(step.state().toStringReadable() + "\n");
+                                for (int i = 0; i < step.lines.size(); i++) {
+                                    matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
+                                }
+                            }
+                        }
+                    } else {
+                        for (GameStep step : steps) {
+                            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
+                            matchLogWriter.write(step.state().toStringReadable() + "\n");
+                            if (step.action() >= 0) {
+                                matchLogWriter.write("action=" + step.state().getActionString(step.action()) + "\n");
+                            }
                         }
                     }
                     matchLogWriter.write("\n");
@@ -231,88 +275,6 @@ public class MatchSession {
 
     boolean SLOW_TRAINING_WINDOW;
     boolean POLICY_CAP_ON;
-
-    private List<GameStep> playTrainingGame2(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
-        var states = new ArrayList<GameStep>();
-        var state = origState.clone(false);
-        if (state.prop.randomization != null) {
-            state.prop.randomization.randomize(state);
-        }
-        if (state.actionCtx == GameActionCtx.START_GAME) {
-            state.doAction(0);
-        }
-        RandomGen random = state.prop.random;
-        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-            enemy.randomize(random, curriculumTraining);
-        }
-
-        while (state.isTerminal() == 0) {
-            int todo = nodeCount - state.total_n;
-            for (int i = 0; i < todo; i++) {
-                mcts.searchLine(state, true, true, todo - i);
-            }
-            for (int action : state.searchFrontier.getBestLine().getActions()) {
-                var step = new GameStep(state, action);
-                step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
-                states.add(step);
-                if (nodeCount == 1) {
-                    state = state.clone(false);
-                    state.doAction(action);
-                } else {
-                    state = getNextState(state, mcts, action, false);
-                }
-            }
-
-//            int action = state.searchFrontier.getBestLine().getActions().get(0);
-//            var step = new GameStep(state, action);
-//            step.useForTraining = true;
-//            states.add(step);
-//            state = getNextState(state, mcts, action, true);
-        }
-        states.add(new GameStep(state, -1));
-
-        // do scoring here before clearing states to reuse nn eval if possible
-        float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
-        float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
-        for (int i = states.size() - 1; i >= 0; i--) {
-            states.get(i).v_win = v_win;
-            states.get(i).v_health = v_health;
-            state = states.get(i).state();
-            state.clearNextStates();
-            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
-                var prevState = states.get(i - 1).state();
-                var prevAction = states.get(i - 1).action();
-                var cState = (ChanceState) prevState.ns[prevAction];
-                var stateActual = cState.addGeneratedState(state);
-                while (cState.total_n < 1000 && cState.cache.size() < 100) {
-                    cState.getNextState(false);
-                }
-                double est_v_win = 0;
-                double est_v_health = 0;
-                double[] out = new double[3];
-                for (ChanceState.Node node : cState.cache.values()) {
-                    if (node.state != stateActual) {
-                        if (node.state.policy == null) {
-                            node.state.doEval(mcts.model);
-                        }
-                        node.state.get_v(out);
-                        est_v_win += out[0] * node.n;
-                        est_v_health += out[1] * node.n;
-                    }
-                }
-                est_v_win /= cState.total_node_n;
-                est_v_health /= cState.total_node_n;
-                float p = ((float) cState.getCount(stateActual)) / cState.total_node_n;
-                if (v_win * p + (float) est_v_win > 1.0001) {
-                    Integer.parseInt(null);
-                }
-                v_win = Math.min(v_win * p + (float) est_v_win, 1);
-                v_health = Math.min(v_health * p + (float) est_v_health, 1);
-            }
-        }
-
-        return states;
-    }
 
     private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
         var states = new ArrayList<GameStep>();

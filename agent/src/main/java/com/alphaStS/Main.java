@@ -345,9 +345,9 @@ public class Main {
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
                 NUMBER_OF_GAMES_TO_PLAY = 10000;
-                NUMBER_OF_NODES_PER_TURN = 200;
+                NUMBER_OF_NODES_PER_TURN = 50;
 //                RANDOMIZATION_SCENARIO = 3;
-//                iteration = 1;
+                iteration = 22;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");

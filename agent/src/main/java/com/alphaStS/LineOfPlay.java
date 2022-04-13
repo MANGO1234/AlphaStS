@@ -33,7 +33,8 @@ public class LineOfPlay {
         }
     }
 
-    public List<Integer> getActions() {
+    public List<Integer> getActions(GameState s) {
+        var rand = s.prop.random;
         var actions = new ArrayList<Integer>();
         var line = this;
         if (line.parentLines == null) {
@@ -50,8 +51,9 @@ public class LineOfPlay {
             return actions;
         }
         while (line.parentLines != null) {
-            actions.add(line.parentLines.get(0).action);
-            line = line.parentLines.get(0).line;
+            var r = line.parentLines.size() == 1 ? 0 : rand.nextInt(line.parentLines.size());
+            actions.add(line.parentLines.get(r).action);
+            line = line.parentLines.get(r).line;
         }
         Collections.reverse(actions);
         return actions;
