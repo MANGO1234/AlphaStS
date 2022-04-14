@@ -68,7 +68,59 @@ public class Main {
                 return map;
             }
         };
-        return new GameState(enemies, new Player(80, 80), cards, relics, randomization);
+        return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
+    }
+
+    public static GameState BasicJawWormState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new CardSilent.Neutralize(), 0));
+        cards.add(new CardCount(new CardSilent.Survivor(), 0));
+        cards.add(new CardCount(new CardSilent.Acrobatics(), 0));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.JawWorm());
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.BagOfPreparation());
+        var randomization = new GameStateRandomization() {
+            @Override public int randomize(GameState state) {
+                int r = state.prop.random.nextInt(3);
+                randomize(state, r);
+                return r;
+            }
+
+            @Override public void reset(GameState state) {
+                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Bash()), 1);
+                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Defend()), 4);
+                state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Neutralize()), 0);
+                state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Survivor()), 0);
+                state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Acrobatics()), 0);
+            }
+
+            @Override public void randomize(GameState state, int r) {
+                reset(state);
+                if (r == 1 || r == 2) {
+                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Bash()), 0);
+                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Defend()), 5);
+                    state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Neutralize()), 1);
+                    state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Survivor()), 1);
+                    if (r == 2) {
+                        state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Acrobatics()), 1);
+                    }
+                }
+            }
+
+            @Override public Map<Integer, Info> listRandomizations(GameState state) {
+                var map = new HashMap<Integer, Info>();
+                map.put(0, new Info(1f / 3,"Ironclad Starter Deck"));
+                map.put(1, new Info(1f / 3,"Silent Starter Deck"));
+                map.put(2, new Info(1f / 3,"Silent Starter Deck With Acrobatics"));
+                return map;
+            }
+        };
+        return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
     }
 
     public static GameState BasicSentriesState() {
@@ -219,7 +271,7 @@ public class Main {
                 return map;
             }
         };
-        return new GameState(enemies, new Player(41, 75), cards, relics, randomization);
+        return new GameState(enemies, new Player(41, 75), cards, relics, null, randomization);
     }
 
     public static GameState BasicInfiniteState() {
@@ -263,7 +315,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = GuardianState2();
+        var state = BasicJawWormState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -345,9 +397,8 @@ public class Main {
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
                 NUMBER_OF_GAMES_TO_PLAY = 10000;
-                NUMBER_OF_NODES_PER_TURN = 50;
-//                RANDOMIZATION_SCENARIO = 3;
-                iteration = 22;
+                NUMBER_OF_NODES_PER_TURN = 5000;
+//                RANDOMIZATION_SCENARIO = 1;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");

@@ -127,8 +127,8 @@ def get_training_samples(training_pool, iteration, file_path):
             raise "agent error"
 
 
-SLOW_WINDOW_END = 4
-TRAINING_WINDOW_SIZE = 6
+SLOW_WINDOW_END = 3
+TRAINING_WINDOW_SIZE = 4
 
 
 def expire_training_samples(training_pool, iteration):

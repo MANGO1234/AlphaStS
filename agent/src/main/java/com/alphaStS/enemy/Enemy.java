@@ -56,7 +56,9 @@ public abstract class Enemy extends EnemyReadOnly {
         this.move = move;
     }
 
-    public void startTurn() {}
+    public void startTurn() {
+        block = 0;
+    }
 
     public void endTurn() {
         if (vulnerable > 0) {
@@ -65,7 +67,6 @@ public abstract class Enemy extends EnemyReadOnly {
         if (weak > 0) {
             weak -= 1;
         }
-        block = 0;
     }
 
     public void react(GameState state, Card card) {
@@ -220,7 +221,8 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void startTurn() {
+        @Override public void endTurn() {
+            super.endTurn();
             if (move <= WAIT_3) {
                 gainBlock(8);
             }
@@ -498,14 +500,9 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void startTurn() {
-            if (move == FIERCE_BASH) {
-                gainBlock(9);
-            }
-        }
-
         @Override public void doMove(GameState state) {
             if (move == CHARGING_UP) {
+                gainBlock(9);
             } else if (move == FIERCE_BASH) {
                 state.enemyDoDamageToPlayer(this, 36, 1);
             } else if (move == VENT_STEAM) {

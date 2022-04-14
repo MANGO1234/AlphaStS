@@ -45,7 +45,6 @@ enum GameActionCtx {
     SELECT_CARD_DISCARD,
     SELECT_CARD_HAND,
     SELECT_CARD_EXHAUST,
-    SELECT_POTION,
     BEGIN_TURN,
 }
 
@@ -57,7 +56,7 @@ enum GameActionType {
     SELECT_CARD_HAND,
     SELECT_CARD_EXHAUST,
     END_TURN,
-    SELECT_POTION,
+    USE_POTION,
     BEGIN_TURN,
 }
 
@@ -67,7 +66,7 @@ record GameAction(GameActionType type, int cardIdx, int enemyIdx) {
 public class GameState implements State {
     private static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
-    private static final boolean USE_BUGGED_VERSION = true;
+    private static final boolean USE_BUGGED_VERSION = false;
 
     boolean isStochastic;
     public GameProperties prop;
@@ -89,6 +88,7 @@ public class GameState implements State {
     private DrawOrder drawOrder;
     private boolean counterCloned;
     private int[] counter;
+    private int[] potions;
 
     private Deque<GameEnvironmentAction> gameActionDeque;
     int energy;
@@ -144,10 +144,15 @@ public class GameState implements State {
     }
 
     public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics) {
-        this(enemiesArg, player, cards, relics, null);
+        this(enemiesArg, player, cards, relics, null, null);
     }
 
-    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics, GameStateRandomization randomization) {
+    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Potion> potions, List<Relic> relics) {
+        this(enemiesArg, player, cards, relics, potions, null);
+    }
+
+    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics,
+            List<Potion> potions, GameStateRandomization randomization) {
         // game properties (shared)
         prop = new GameProperties();
         prop.randomization = randomization;
@@ -669,7 +674,7 @@ public class GameState implements State {
             if (enemy.getHealth() > 0) {
                 var enemy2 = enemies.getForWrite(i);
                 enemy2.nextMove(prop.random);
-                enemy2.startTurn();
+                enemy2.endTurn();
             }
         }
         draw(5);
@@ -700,8 +705,8 @@ public class GameState implements State {
             var enemy = enemies.get(i);
             if (enemy.getHealth() > 0) {
                 var enemy2 = enemies.getForWrite(i);
+                enemy2.startTurn();
                 enemy2.doMove(this);
-                enemy2.endTurn();
             }
         }
         getPlayerForWrite().endTurn(this);
@@ -1079,7 +1084,7 @@ public class GameState implements State {
                 }
             }
         } else {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectEnemy) {
                         inputLen += 1;
@@ -1224,7 +1229,7 @@ public class GameState implements State {
                 }
             }
         } else {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectEnemy) {
                         str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
@@ -1381,7 +1386,7 @@ public class GameState implements State {
                 }
             }
         } else {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectEnemy) {
                         x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
@@ -1597,8 +1602,8 @@ public class GameState implements State {
     }
 
     public void addStartOfGameHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "StartOfGame")) {
-            prop.gameEventHandlers.add(handlerName + "StartOfGame");
+        if (prop.gameEventHandlers.get(handlerName + "StartOfGame") == null) {
+            prop.gameEventHandlers.put(handlerName + "StartOfGame", handler);
             prop.startOfGameHandlers.add(handler);
         }
     }
@@ -1608,8 +1613,8 @@ public class GameState implements State {
     }
 
     public void addStartOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "StartOfTurn")) {
-            prop.gameEventHandlers.add(handlerName + "StartOfTurn");
+        if (prop.gameEventHandlers.get(handlerName + "StartOfTurn") == null) {
+            prop.gameEventHandlers.put(handlerName + "StartOfTurn", handler);
             prop.startOfTurnHandlers.add(handler);
         }
     }
@@ -1619,8 +1624,8 @@ public class GameState implements State {
     }
 
     public void addPreEndOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "PreEndOfTurn")) {
-            prop.gameEventHandlers.add(handlerName + "PreEndOfTurn");
+        if (prop.gameEventHandlers.get(handlerName + "PreEndOfTurn") == null) {
+            prop.gameEventHandlers.put(handlerName + "PreEndOfTurn", handler);
             prop.preEndTurnHandlers.add(handler);
         }
     }
@@ -1630,8 +1635,8 @@ public class GameState implements State {
     }
 
     public void addOnExhaustHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "OnExhaust")) {
-            prop.gameEventHandlers.add(handlerName + "OnExhaust");
+        if (prop.gameEventHandlers.get(handlerName + "OnExhaust") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnExhaust", handler);
             prop.onExhaustHandlers.add(handler);
         }
     }
@@ -1641,8 +1646,8 @@ public class GameState implements State {
     }
 
     public void addOnBlockHandler(String handlerName, GameEventHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "OnBlock")) {
-            prop.gameEventHandlers.add(handlerName + "OnBlock");
+        if (prop.gameEventHandlers.get(handlerName + "OnBlock") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnBlock", handler);
             prop.onBlockHandlers.add(handler);
         }
     }
@@ -1652,8 +1657,8 @@ public class GameState implements State {
     }
 
     public void addOnDamageHandler(String handlerName, OnDamageHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "OnDamage")) {
-            prop.gameEventHandlers.add(handlerName + "OnDamage");
+        if (prop.gameEventHandlers.get(handlerName + "OnDamage") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnDamage", handler);
             prop.onDamageHandlers.add(handler);
         }
     }
@@ -1663,8 +1668,8 @@ public class GameState implements State {
     }
 
     public void addOnCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "OnCardPlayed")) {
-            prop.gameEventHandlers.add(handlerName + "OnCardPlayed");
+        if (prop.gameEventHandlers.get(handlerName + "OnCardPlayed") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnCardPlayed", handler);
             prop.onCardPlayedHandlers.add(handler);
         }
     }
@@ -1674,8 +1679,8 @@ public class GameState implements State {
     }
 
     public void addOnCardDrawnHandler(String handlerName, GameEventCardHandler handler) {
-        if (!prop.gameEventHandlers.contains(handlerName + "OnCardDrawn")) {
-            prop.gameEventHandlers.add(handlerName + "OnCardDrawn");
+        if (prop.gameEventHandlers.get(handlerName + "OnCardDrawn") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnCardDrawn", handler);
             prop.onCardDrawnHandlers.add(handler);
         }
     }

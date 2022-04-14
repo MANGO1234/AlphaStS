@@ -178,7 +178,7 @@ public class MatchSession {
         var totalDamageTaken = new HashMap<Integer, Integer>();
         var totalDamageTakenNoDeath = new HashMap<Integer, Integer>();
         var numOfGamesByR = new HashMap<Integer, Integer>();
-        var damageCount = new HashMap<Integer, Integer>();
+        var damageCount = new HashMap<Integer, HashMap<Integer, Integer>>();
         var start = System.currentTimeMillis();
         var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
@@ -204,7 +204,8 @@ public class MatchSession {
             totalDamageTaken.computeIfPresent(game.r, (k, x) -> x + damageTaken);
             totalDamageTakenNoDeath.putIfAbsent(game.r, 0);
             totalDamageTakenNoDeath.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
-            damageCount.put(damageTaken, damageCount.getOrDefault(damageTaken, 0) + 1);
+            damageCount.computeIfAbsent(game.r, (x) -> new HashMap<Integer, Integer>());
+            damageCount.compute(game.r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
             game_i += 1;
             if (matchLogWriter != null) {
                 try {
@@ -265,9 +266,15 @@ public class MatchSession {
                     System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
                     System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
                 }
-//                if (game_i == numOfGames && printProgress) {
-//                    System.out.println(damageCount.entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).reduce("", (acc, x) -> acc + "\n" + x));
-//                }
+                if (game_i == numOfGames && printProgress) {
+                    for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
+                        if (damageCount.get(info.getKey()) == null) {
+                            continue;
+                        }
+                        System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
+                        System.out.println(String.join("\n", damageCount.get(info.getKey()).entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).toList()));
+                    }
+                }
                 System.out.println("--------------------");
             }
         }

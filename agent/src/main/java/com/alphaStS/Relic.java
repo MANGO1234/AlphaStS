@@ -89,10 +89,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class BagOfPreparation extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addStartOfTurnHandler(new GameEventHandler() {
+            state.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
                 @Override void handle(GameState state) {
                     if (state.turnNum == 1) {
-                        state.draw(2);
+                        var idx = state.prop.findCardIndex(new CardSilent.Survivor());
+                        if (state.hand[idx] > 0 || state.deck[idx] > 0) {
+                            state.draw(2);
+                        }
                     }
                 }
             });

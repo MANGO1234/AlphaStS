@@ -38,7 +38,8 @@ public class GameSolver {
             boolean hasOtherAction = false;
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 var action = state.getAction(i);
-                if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.cardIdx()].cardType == Card.ATTACK) {
+//                if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.cardIdx()].cardType == Card.ATTACK) {
+                if (action.type() == GameActionType.PLAY_CARD) {
                     hasOtherAction = true;
                 } else if (action.type() == GameActionType.END_TURN) {
                     if (hasOtherAction) {
@@ -119,6 +120,9 @@ public class GameSolver {
             var modState = state.clone(false);
             modState.discardHand();
             int toDraw = 5;
+            if (state.actionCtx == GameActionCtx.START_GAME && (state.deck[state.prop.findCardIndex(new CardSilent.Survivor())] > 0)) {
+                toDraw = 7;
+            }
             if (modState.deckArrLen < toDraw) {
                 modState.draw(modState.deckArrLen);
                 toDraw -= modState.deckArrLen;
@@ -193,8 +197,12 @@ public class GameSolver {
         System.out.println(origState + ": " + Utils.formatFloat(e_win) + " (" + e_winString + "), " + Utils.formatFloat(e_health) + " (" + e_healthString + ")");
     }
 
-    public List<Integer> isBestAction(GameState state, int action) {
-        state = nodes.get(state);
+    public List<Integer> isBestAction(GameState stateArg, int action) {
+        var state = nodes.get(stateArg);
+        if (state == null) {
+//            System.out.println(stateArg + ": " + stateArg.getActionString(action));
+            return null;
+        }
         BigRational maxWin = BigRational.ZERO, maxHealth = BigRational.ZERO;
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (state.ns[i] instanceof GameState state2) {
