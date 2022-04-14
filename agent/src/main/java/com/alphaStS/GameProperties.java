@@ -19,6 +19,7 @@ public class GameProperties {
     public boolean selectFromExhaust;
     public RandomGen random;
     public Card[] cardDict;
+    public List<Potion> potions;
     public int maxNumOfActions;
     public int totalNumOfActions;
     public GameAction[][] actionsByCtx;

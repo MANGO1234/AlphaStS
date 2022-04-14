@@ -161,9 +161,10 @@ public class Main {
         enemies.add(new Enemy.Lagavulin());
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.HappyFlower());
+        var potions = new ArrayList<Potion>();
+        potions.add(new Potion.DexterityPotion());
         var player = new Player(73, 75);
-        player.gainDexterity(2);
-        return new GameState(enemies, player, cards, relics);
+        return new GameState(enemies, player, cards, relics, potions);
     }
 
     public static GameState BasicLagavulinState2() {
@@ -315,7 +316,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = BasicJawWormState();
+        var state = BasicLagavulinState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -396,8 +397,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 10000;
-                NUMBER_OF_NODES_PER_TURN = 5000;
+                NUMBER_OF_GAMES_TO_PLAY = 100;
+                NUMBER_OF_NODES_PER_TURN = 500;
 //                RANDOMIZATION_SCENARIO = 1;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

@@ -2,8 +2,8 @@ package com.alphaStS;
 
 public abstract class Potion {
     boolean canVulnerable;
-    boolean canAffectPlayerStrength;
-    boolean canAffectPlayerDexterity;
+    boolean changePlayerStrength;
+    boolean changePlayerDexterity;
     boolean selectEnemy;
 
     public abstract void use(GameState state, int enemyIdx);
@@ -26,7 +26,7 @@ public abstract class Potion {
 
     public static class StrengthPotion extends Potion {
         public StrengthPotion() {
-            canAffectPlayerStrength = true;
+            changePlayerStrength = true;
         }
 
         @Override public void use(GameState state, int enemyIdx) {
@@ -36,11 +36,15 @@ public abstract class Potion {
         @Override public void useDouble(GameState state, int enemyIdx) {
             state.getPlayerForWrite().gainStrength(4);
         }
+
+        @Override public String toString() {
+            return "Strength Potion";
+        }
     }
 
     public static class DexterityPotion extends Potion {
         public DexterityPotion() {
-            canAffectPlayerDexterity = true;
+            changePlayerDexterity = true;
         }
 
         @Override public void use(GameState state, int enemyIdx) {
@@ -49,6 +53,10 @@ public abstract class Potion {
 
         @Override public void useDouble(GameState state, int enemyIdx) {
             state.getPlayerForWrite().gainDexterity(4);
+        }
+
+        @Override public String toString() {
+            return "Dexterity Potion";
         }
     }
 }

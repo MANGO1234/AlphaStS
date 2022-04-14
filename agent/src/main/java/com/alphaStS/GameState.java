@@ -88,7 +88,7 @@ public class GameState implements State {
     private DrawOrder drawOrder;
     private boolean counterCloned;
     private int[] counter;
-    private int[] potions;
+    int[] potionsState;
 
     private Deque<GameEnvironmentAction> gameActionDeque;
     int energy;
@@ -130,7 +130,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Objects.equals(potionsState, gameState.potionsState) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
     }
 
     @Override public int hashCode() {
@@ -147,7 +147,7 @@ public class GameState implements State {
         this(enemiesArg, player, cards, relics, null, null);
     }
 
-    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Potion> potions, List<Relic> relics) {
+    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics, List<Potion> potions) {
         this(enemiesArg, player, cards, relics, potions, null);
     }
 
@@ -156,6 +156,7 @@ public class GameState implements State {
         // game properties (shared)
         prop = new GameProperties();
         prop.randomization = randomization;
+        prop.potions = potions;
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
@@ -170,11 +171,17 @@ public class GameState implements State {
         prop.actionsByCtx[GameActionCtx.BEGIN_TURN.ordinal()] = new GameAction[] { new GameAction(GameActionType.BEGIN_TURN, 0, 0) };
 
         // play card actions
-        prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()] = new GameAction[cards.size() + 1];
+        var l = cards.size() + 1 + (potions == null ? 0 : potions.size());
+        prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()] = new GameAction[l];
         for (int i = 0; i < cards.size(); i++) {
             prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][i] = new GameAction(GameActionType.PLAY_CARD, i, 0);
         }
-        prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cards.size()] = new GameAction(GameActionType.END_TURN, 0, 0);
+        if (potions != null) {
+            for (int i = 0; i < potions.size(); i++) {
+                prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cards.size() + i] = new GameAction(GameActionType.USE_POTION, i, 0);
+            }
+        }
+        prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][l - 1] = new GameAction(GameActionType.END_TURN, 0, 0);
 
         // select enemy actions
         if (enemiesArg.size() > 1) {
@@ -244,6 +251,13 @@ public class GameState implements State {
                 drawOrder.pushOnTop(i);
             }
         }
+        if (potions != null) {
+            potionsState = new int[potions.size() * 3];
+            for (int i = 0; i < potionsState.length; i += 3) {
+                potionsState[i] = 1;
+                potionsState[i + 1] = 50;
+            }
+        }
 
         List<Integer> strikeIdxes = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
@@ -292,9 +306,11 @@ public class GameState implements State {
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
         prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerStrengthCanChange |= potions != null && potions.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
         prop.playerDexterityCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerDexterityCanChange |= potions != null && potions.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
@@ -448,6 +464,7 @@ public class GameState implements State {
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
             gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
         }
+        potionsState = Arrays.copyOf(other.potionsState, other.potionsState.length);
         other.enemiesCloned = false;
         other.counterCloned = false;
         other.playerCloned = false;
@@ -737,6 +754,9 @@ public class GameState implements State {
             playCard(previousCardIdx, action.cardIdx(), false, true);
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
             playCard(previousCardIdx, action.cardIdx(), false, true);
+        } else if (action.type() == GameActionType.USE_POTION) {
+            prop.potions.get(action.cardIdx()).use(this, -1);
+            potionsState[action.cardIdx() * 3] = 0;
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             startTurn();
             gotoActionCtx(GameActionCtx.PLAY_CARD, null, -1);
@@ -764,6 +784,8 @@ public class GameState implements State {
             }
             if (a[action].type() == GameActionType.END_TURN) {
                 return true;
+            } else if (a[action].type() == GameActionType.USE_POTION) {
+                return potionsState[a[action].cardIdx() * 3] == 1;
             } else if (hand[a[action].cardIdx()] > 0) {
                 int cost = getCardEnergyCost(a[action].cardIdx());
                 if (cost >= 0 && cost <= energy) {
@@ -859,8 +881,14 @@ public class GameState implements State {
         return toStringReadable();
     }
 
-    public static double calc_q(double q_win, double q_health) {
-        return q_win * 0.5 + q_win * q_win * q_health * 0.5;
+    public double calc_q(double q_win, double q_health) {
+        double base = q_win * 0.5 + q_win * q_win * q_health * 0.5;
+        if (prop.potions != null) {
+            for (int i = 0; i < prop.potions.size(); i++) {
+                base *= potionsState[i * 3 + 1] / 100.0;
+            }
+        }
+        return base;
     }
 
     public String toStringReadable() {
@@ -1068,6 +1096,9 @@ public class GameState implements State {
         for (var handler : prop.counterHandlersNonNull) {
             inputLen += handler.getInputLenDelta();
         }
+        if (prop.potions != null) {
+            inputLen += prop.potions.size() * 2;
+        }
         // cards currently selecting enemies
         if (USE_BUGGED_VERSION) {
             if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
@@ -1075,6 +1106,9 @@ public class GameState implements State {
                     prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
                     prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                    if (action.type() != GameActionType.PLAY_CARD) {
+                        continue;
+                    }
                     if (prop.cardDict[action.cardIdx()].selectEnemy ||
                             prop.cardDict[action.cardIdx()].selectFromHand ||
                             prop.cardDict[action.cardIdx()].selectFromDiscard ||
@@ -1156,62 +1190,67 @@ public class GameState implements State {
         for (int discardIdx : prop.discardIdxes) {
             str += "    " + prop.cardDict[discardIdx].cardName + "\n";
         }
-        str += "Neural Network Input Breakdown (" + prop.inputLen + " parameters):\n";
-        str += "    " + deck.length + " parameters for cards in deck\n";
-        str += "    " + hand.length + " parameters for cards in hand\n";
-        str += "    " + prop.discardIdxes.length + " parameters to keep track of cards in discard\n";
+        str += "Neural Network Input Breakdown (" + prop.inputLen + " inputs):\n";
+        str += "    " + deck.length + " inputs for cards in deck\n";
+        str += "    " + hand.length + " inputs for cards in hand\n";
+        str += "    " + prop.discardIdxes.length + " inputs to keep track of cards in discard\n";
         if (prop.selectFromExhaust) {
-            str += "    " + exhaust.length + " parameters for cards in exhaust\n";
+            str += "    " + exhaust.length + " inputs for cards in exhaust\n";
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && prop.needDeckOrderMemory) {
-            str += "    " + hand.length * MAX_AGENT_DECK_ORDER_MEMORY + " parameters to keep track of known card at top of deck\n";
+            str += "    " + hand.length * MAX_AGENT_DECK_ORDER_MEMORY + " inputs to keep track of known card at top of deck\n";
         }
         for (int i = 2; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null && i != GameActionCtx.BEGIN_TURN.ordinal()) {
-                str += "    1 parameter to keep track of ctx " + GameActionCtx.values()[i] + "\n";
+                str += "    1 input to keep track of ctx " + GameActionCtx.values()[i] + "\n";
             }
         }
-        str += "    1 parameter to keep track of energy\n";
-        str += "    1 parameter to keep track of player health\n";
-        str += "    1 parameter to keep track of player block\n";
+        str += "    1 input to keep track of energy\n";
+        str += "    1 input to keep track of player health\n";
+        str += "    1 input to keep track of player block\n";
         if (prop.playerArtifactCanChange) {
-            str += "    1 parameter to keep track of player artifact\n";
+            str += "    1 input to keep track of player artifact\n";
         }
         if (prop.playerStrengthCanChange) {
-            str += "    1 parameter to keep track of player strength\n";
+            str += "    1 input to keep track of player strength\n";
         }
         if (prop.playerDexterityCanChange) {
-            str += "    1 parameter to keep track of player dexterity\n";
+            str += "    1 input to keep track of player dexterity\n";
         }
         if (prop.playerStrengthEotCanChange) {
-            str += "    1 parameter to keep track of player lose strength eot debuff\n";
+            str += "    1 input to keep track of player lose strength eot debuff\n";
         }
         if (prop.playerDexterityEotCanChange) {
-            str += "    1 parameter to keep track of player lose dexterity eot debuff\n";
+            str += "    1 input to keep track of player lose dexterity eot debuff\n";
         }
         if (prop.playerCanGetVuln) {
-            str += "    1 parameter to keep track of player vulnerable\n";
+            str += "    1 input to keep track of player vulnerable\n";
         }
         if (prop.playerCanGetWeakened) {
-            str += "    1 parameter to keep track of player weak\n";
+            str += "    1 input to keep track of player weak\n";
         }
         if (prop.playerCanGetFrailed) {
-            str += "    1 parameter to keep track of player frail\n";
+            str += "    1 input to keep track of player frail\n";
         }
         if (prop.battleTranceExist) {
-            str += "    1 parameter to keep track of battle trance cannot draw card debuff\n";
+            str += "    1 input to keep track of battle trance cannot draw card debuff\n";
         }
         if (prop.energyRefillCanChange) {
-            str += "    1 parameter to keep track of berserk\n";
+            str += "    1 input to keep track of berserk\n";
         }
         for (PlayerBuff buff : PlayerBuff.BUFFS) {
             if ((prop.possibleBuffs & buff.mask()) != 0) {
-                str += "    1 parameter to keep track of buff " + buff.name() + "\n";
+                str += "    1 input to keep track of buff " + buff.name() + "\n";
             }
         }
         for (int i = 0; i < prop.counterHandlers.length; i++) {
             if (prop.counterHandlers[i] != null) {
-                str += "    " + prop.counterHandlers[i].getInputLenDelta() + " parameter to keep track of counter for " + prop.counterNames[i] + "\n";
+                str += "    " + prop.counterHandlers[i].getInputLenDelta() + " input to keep track of counter for " + prop.counterNames[i] + "\n";
+            }
+        }
+        if (prop.potions != null) {
+            for (int i = 0; i < prop.potions.size(); i++) {
+                str += "    1 input to keep track of " + prop.potions.get(i) + " usage\n";
             }
         }
         if (USE_BUGGED_VERSION) {
@@ -1224,7 +1263,7 @@ public class GameState implements State {
                             prop.cardDict[action.cardIdx()].selectFromHand ||
                             prop.cardDict[action.cardIdx()].selectFromDiscard ||
                             prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + "\n";
+                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + "\n";
                     }
                 }
             }
@@ -1232,60 +1271,60 @@ public class GameState implements State {
             if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectEnemy) {
-                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
+                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
                     }
                 }
             }
             if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectFromHand) {
-                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from hand\n";
+                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from hand\n";
                     }
                 }
             }
             if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
-                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from discard\n";
+                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from discard\n";
                     }
                 }
             }
             if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                     if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        str += "    1 parameter to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from exhaust\n";
+                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from exhaust\n";
                     }
                 }
             }
         }
         for (var enemy : enemies) {
             str += "    *** " + enemy.getName() + " ***\n";
-            str += "        1 parameter to keep track of health\n";
+            str += "        1 input to keep track of health\n";
             if (prop.enemyCanGetVuln) {
-                str += "        1 parameter to keep track of vulnerable\n";
+                str += "        1 input to keep track of vulnerable\n";
             }
             if (prop.enemyCanGetWeakened) {
-                str += "        1 parameter to keep track of weak\n";
+                str += "        1 input to keep track of weak\n";
             }
             if (enemy.canGainBlock) {
-                str += "        1 parameter to keep track of block\n";
+                str += "        1 input to keep track of block\n";
             }
             if (enemy.canGainStrength) {
-                str += "        1 parameter to keep track of strength\n";
+                str += "        1 input to keep track of strength\n";
             }
             if (enemy.hasArtifact) {
-                str += "        1 parameter to keep track of artifact\n";
+                str += "        1 input to keep track of artifact\n";
             }
-            str += "        " + enemy.numOfMoves + " parameters to keep track of current move from enemy\n";
+            str += "        " + enemy.numOfMoves + " inputs to keep track of current move from enemy\n";
             if (enemy.getMoveHistory() != null) {
-                str += "        " + enemy.numOfMoves + "*" + enemy.getMoveHistory().length + " parameters to keep track of move history from enemy\n";
+                str += "        " + enemy.numOfMoves + "*" + enemy.getMoveHistory().length + " inputs to keep track of move history from enemy\n";
             }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
-                str += "        1 parameter to keep track of louse damage\n";
+                str += "        1 input to keep track of louse damage\n";
             } else if (enemy instanceof Enemy.TheGuardian guardian) {
-                str += "        2 parameter to keep track of current and max guardian mode shift damage\n";
+                str += "        2 input to keep track of current and max guardian mode shift damage\n";
             } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
-                str += "        1 parameter to keep track of health slime boss split at\n";
+                str += "        1 input to keep track of health slime boss split at\n";
             }
         }
         return str;
@@ -1370,6 +1409,12 @@ public class GameState implements State {
         }
         for (var handler : prop.counterHandlersNonNull) {
             idx = handler.addToInput(this, x, idx);
+        }
+        if (prop.potions != null) {
+            for (int i = 0; i < prop.potions.size(); i++) {
+                x[idx++] = potionsState[i * 3] == 1 ? 0.5f : -0.5f;
+                x[idx++] = potionsState[i * 3 + 1] / 100f;
+            }
         }
         if (USE_BUGGED_VERSION) {
             if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
@@ -1577,9 +1622,9 @@ public class GameState implements State {
             return "End Turn";
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (enemiesAlive > 1) {
-                return "Attack " + enemies.get(action.enemyIdx()).getName() + "(" + action.enemyIdx() + ")";
+                return "Select " + enemies.get(action.enemyIdx()).getName() + "(" + action.enemyIdx() + ")";
             } else {
-                return "Attack " + enemies.get(action.enemyIdx()).getName();
+                return "Select " + enemies.get(action.enemyIdx()).getName();
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             return "Select " + prop.cardDict[action.cardIdx()].cardName + " From Hand";
@@ -1587,6 +1632,8 @@ public class GameState implements State {
             return "Select " + prop.cardDict[action.cardIdx()].cardName + " From Discard";
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
             return "Select " + prop.cardDict[action.cardIdx()].cardName + " From Exhaust";
+        } else if (action.type() == GameActionType.USE_POTION) {
+            return "Use " + prop.potions.get(action.cardIdx());
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             return "Begin Turn";
         }

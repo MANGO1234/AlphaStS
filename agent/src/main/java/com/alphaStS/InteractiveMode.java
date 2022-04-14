@@ -6,7 +6,6 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static com.alphaStS.utils.Utils.formatFloat;
 
@@ -76,6 +75,12 @@ public class InteractiveMode {
                     if (state.getPlayeForRead().getBlock() > 0) {
                         System.out.println("  Block: " + state.getPlayeForRead().getBlock());
                     }
+                    if (state.getPlayeForRead().getStrength() > 0) {
+                        System.out.println("  Strength: " + state.getPlayeForRead().getStrength());
+                    }
+                    if (state.getPlayeForRead().getDexterity() > 0) {
+                        System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
+                    }
                     if (state.getPlayeForRead().getVulnerable() > 0) {
                         System.out.println("  Vulnerable: " + state.getPlayeForRead().getVulnerable());
                     }
@@ -125,7 +130,8 @@ public class InteractiveMode {
                             state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
                             state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
                             state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
-                            state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST) {
+                            state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                            state.getAction(i).type() == GameActionType.USE_POTION) {
                         System.out.println(i + ". " + state.getActionString(i));
                     } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                         System.out.println("e. End Turn");

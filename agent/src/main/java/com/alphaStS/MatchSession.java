@@ -267,12 +267,14 @@ public class MatchSession {
                     System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
                 }
                 if (game_i == numOfGames && printProgress) {
-                    for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
-                        if (damageCount.get(info.getKey()) == null) {
-                            continue;
+                    if (state.prop.randomization != null) {
+                        for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
+                            if (damageCount.get(info.getKey()) == null) {
+                                continue;
+                            }
+                            System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
+                            System.out.println(String.join("\n", damageCount.get(info.getKey()).entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).toList()));
                         }
-                        System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
-                        System.out.println(String.join("\n", damageCount.get(info.getKey()).entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).toList()));
                     }
                 }
                 System.out.println("--------------------");
@@ -295,6 +297,12 @@ public class MatchSession {
         RandomGen random = state.prop.random;
         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
             enemy.randomize(random, curriculumTraining);
+        }
+        if (state.prop.potions != null) {
+            var r = random.nextInt(11);
+            for (int i = 0; i < state.prop.potions.size(); i++) {
+                state.potionsState[i * 3 + 1] = r == 0 ? 0 : 50 + 5 * r;
+            }
         }
 
         state.doEval(mcts.model);
