@@ -130,7 +130,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Objects.equals(potionsState, gameState.potionsState) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(previousCard, gameState.previousCard) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
     }
 
     @Override public int hashCode() {
@@ -254,8 +254,9 @@ public class GameState implements State {
         if (potions != null) {
             potionsState = new int[potions.size() * 3];
             for (int i = 0; i < potionsState.length; i += 3) {
-                potionsState[i] = 1;
-                potionsState[i + 1] = 50;
+                potionsState[i * 3] = 1;
+                potionsState[i * 3 + 1] = 100;
+                potionsState[i * 3 + 2] = 1;
             }
         }
 
@@ -464,7 +465,7 @@ public class GameState implements State {
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
             gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
         }
-        potionsState = Arrays.copyOf(other.potionsState, other.potionsState.length);
+        potionsState = other.potionsState != null ? Arrays.copyOf(other.potionsState, other.potionsState.length) : null;
         other.enemiesCloned = false;
         other.counterCloned = false;
         other.playerCloned = false;
@@ -885,7 +886,9 @@ public class GameState implements State {
         double base = q_win * 0.5 + q_win * q_win * q_health * 0.5;
         if (prop.potions != null) {
             for (int i = 0; i < prop.potions.size(); i++) {
-                base *= potionsState[i * 3 + 1] / 100.0;
+                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1) {
+                    base *= potionsState[i * 3 + 1] / 100.0;
+                }
             }
         }
         return base;
@@ -1097,7 +1100,7 @@ public class GameState implements State {
             inputLen += handler.getInputLenDelta();
         }
         if (prop.potions != null) {
-            inputLen += prop.potions.size() * 2;
+            inputLen += prop.potions.size() * 3;
         }
         // cards currently selecting enemies
         if (USE_BUGGED_VERSION) {
@@ -1106,9 +1109,6 @@ public class GameState implements State {
                     prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
                     prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
                 for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (action.type() != GameActionType.PLAY_CARD) {
-                        continue;
-                    }
                     if (prop.cardDict[action.cardIdx()].selectEnemy ||
                             prop.cardDict[action.cardIdx()].selectFromHand ||
                             prop.cardDict[action.cardIdx()].selectFromDiscard ||
@@ -1250,7 +1250,7 @@ public class GameState implements State {
         }
         if (prop.potions != null) {
             for (int i = 0; i < prop.potions.size(); i++) {
-                str += "    1 input to keep track of " + prop.potions.get(i) + " usage\n";
+                str += "    3 inputs to keep track of " + prop.potions.get(i) + " usage\n";
             }
         }
         if (USE_BUGGED_VERSION) {
@@ -1414,6 +1414,7 @@ public class GameState implements State {
             for (int i = 0; i < prop.potions.size(); i++) {
                 x[idx++] = potionsState[i * 3] == 1 ? 0.5f : -0.5f;
                 x[idx++] = potionsState[i * 3 + 1] / 100f;
+                x[idx++] = potionsState[i * 3 + 2] == 1 ? 0.5f : -0.5f;
             }
         }
         if (USE_BUGGED_VERSION) {

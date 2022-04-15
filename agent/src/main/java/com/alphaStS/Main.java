@@ -146,6 +146,7 @@ public class Main {
     }
 
     public static GameState BasicLagavulinState() {
+        // https://www.youtube.com/watch?v=1CELexRf5ZE
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
         cards.add(new CardCount(new Card.Strike(), 2));
@@ -397,8 +398,8 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
-                NUMBER_OF_GAMES_TO_PLAY = 100;
-                NUMBER_OF_NODES_PER_TURN = 500;
+                NUMBER_OF_GAMES_TO_PLAY = 1000;
+                NUMBER_OF_NODES_PER_TURN = 5000;
 //                RANDOMIZATION_SCENARIO = 1;
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);

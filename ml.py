@@ -4,6 +4,7 @@ import random as rand
 import time
 import math
 import json
+import re
 import os
 import subprocess
 import struct
@@ -61,7 +62,7 @@ else:
         os.mkdir(SAVES_DIR)
     except:
         pass
-    training_info = {'iteration': 1}
+    training_info = {'iteration': 1, 'iteration_info': {}}
     with open(f'{SAVES_DIR}/training.json', 'w') as f:
         json.dump(training_info, f)
 
@@ -144,6 +145,15 @@ def expire_training_samples(training_pool, iteration):
     return training_pool[i:]
 
 
+def save_stats(training_info, iteration, out):
+    death_rate = float(re.findall('Deaths: \d+/\d+ \((\d+\.\d+)\%\)', out)[0])
+    avg_dmg = float(re.findall('Avg Damage: (\d+\.\d+)', out)[0])
+    avg_dmg_tmp = re.findall('Avg Damage \(Not Including Deaths\): (\d+\.\d+)', out)
+    avg_dmg_no_death = float(avg_dmg if len(avg_dmg_tmp) == 0 else avg_dmg_tmp[0])
+    training_info['iteration_info'][str(iteration)]['death_rate'] = death_rate
+    training_info['iteration_info'][str(iteration)]['avg_dmg'] = avg_dmg
+    training_info['iteration_info'][str(iteration)]['avg_dmg_no_death'] = avg_dmg_no_death
+
 training_pool = []
 start_window = 0
 if training_info['iteration'] >= SLOW_WINDOW_END:
@@ -154,16 +164,19 @@ if training_info['iteration'] >= SLOW_WINDOW_END:
 
 if DO_TRAINING:
     start = time.time()
-    for _iterations in range(0, ITERATION_COUNT):
+    for _iteration in range(training_info["iteration"], ITERATION_COUNT + 1):
+        training_info['iteration_info'][str(_iteration)] = {}
+        iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
+
         agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-training', '-t', '2', '-dir', SAVES_DIR]
-        if not SKIP_TRAINING_MATCHES and _iterations > 0:
-            if training_info["iteration"] < 15:
+        if not SKIP_TRAINING_MATCHES and _iteration > 1:
+            if training_info["iteration"] < 17:
                 matches_count = 1000
             elif training_info["iteration"] < 25:
-                matches_count = 1000 * (training_info["iteration"] - 14)
+                matches_count = 1000 + 500 * (training_info["iteration"] - 17)
             else:
-                matches_count = 10000
+                matches_count = 5000
             agent_args += ['-tm', '-c', str(matches_count), '-n', '1']
         if training_info['iteration'] < SLOW_WINDOW_END:
             agent_args += ['-slow']
@@ -176,9 +189,11 @@ if DO_TRAINING:
             raise "agent error"
         agent_output = agent_output.stdout
 
-        if not SKIP_TRAINING_MATCHES and _iterations > 0:
+        if not SKIP_TRAINING_MATCHES and _iteration > 1:
             split = agent_output.find(b'--------------------')
-            print(agent_output[2 if agent_output[0] == '\r' else 0: split + 20].decode('ascii'))
+            out = agent_output[2 if agent_output[0] == '\r' else 0: split + 20].decode('ascii')
+            save_stats(training_info, _iteration - 1, out)
+            print(out)
             agent_output = agent_output[split + 20:]
 
         print(f'Iteration {training_info["iteration"]}')
@@ -192,10 +207,12 @@ if DO_TRAINING:
 
         get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')
         training_pool = expire_training_samples(training_pool, training_info["iteration"])
-
-        print(f'agent time={time.time() - iter_start}')
+        iteration_info['agent_time'] = round(time.time() - iter_start, 2)
+        iteration_info['num_of_samples'] = len(training_pool)
+        print(f'agent time={iteration_info["agent_time"]}')
         print(f'number of samples={len(training_pool)}')
         print(f'sample oldest iteration={training_pool[0][0]}')
+
         iter_start = time.time()
         # for i in range(200 if training_info['iteration'] >= SLOW_WINDOW_END else 200):
         #     if training_info['iteration'] >= SLOW_WINDOW_END:
@@ -219,23 +236,31 @@ if DO_TRAINING:
             exp_health_head_train = np.asarray(exp_health_head_train)
             exp_win_head_train = np.asarray(exp_win_head_train)
             policy_head_train = np.asarray(policy_head_train)
-            model.fit(np.asarray(x_train), [exp_health_head_train, exp_win_head_train, policy_head_train], epochs=1)
+            fit_result = model.fit(np.asarray(x_train), [exp_health_head_train, exp_win_head_train, policy_head_train], epochs=1)
         model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
+
         training_info['iteration'] += 1
+        iteration_info['training_time'] = round(time.time() - iter_start, 2)
+        iteration_info['accumulated_time'] = round(time.time() - start, 2)
+        iteration_info['loss'] = fit_result.history['loss'][-1]
+        print(f'training time={iteration_info["training_time"]}')
+        print(f'accumulated time={iteration_info["accumulated_time"]}')
         with open(f'{SAVES_DIR}/training.json', 'w') as f:
             json.dump(training_info, f)
-        print(f'training time={time.time() - iter_start}')
-        print(f'accumulated time={time.time() - start}')
 
-        if _iterations == ITERATION_COUNT - 1:
-            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '10000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
+        if _iteration == ITERATION_COUNT:
+            agent_output = subprocess.run(['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-tm', '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stdout.decode('ascii'))
                 print(agent_output.stderr.decode('ascii'))
                 raise "agent error"
             agent_output = agent_output.stdout
-            print(agent_output.decode('ascii'))
+            out = agent_output.decode('ascii')
+            save_stats(training_info, _iteration, out)
+            print(out)
+            with open(f'{SAVES_DIR}/training.json', 'w') as f:
+                json.dump(training_info, f)
 
 
 if PLAY_A_GAME:

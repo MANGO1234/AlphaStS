@@ -246,8 +246,8 @@ public class MatchSession {
                 if (deathCount.size() == 1) {
                     var i = deathCount.keySet().stream().toList().get(0);
                     System.out.println("Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
-                    System.out.println("Avg Damage: " + ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i));
-                    System.out.println("Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                    System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i)));
+                    System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i))));
                 } else {
                     for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
                         var i = info.getKey();
@@ -299,10 +299,22 @@ public class MatchSession {
             enemy.randomize(random, curriculumTraining);
         }
         if (state.prop.potions != null) {
-            var r = random.nextInt(11);
-            for (int i = 0; i < state.prop.potions.size(); i++) {
-                state.potionsState[i * 3 + 1] = r == 0 ? 0 : 50 + 5 * r;
-            }
+//            var r = random.nextInt(3);
+//            var r = 0;
+//            if (r == 0) {
+//                for (int i = 0; i < state.prop.potions.size(); i++) {
+//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
+//                    state.potionsState[i * 3 + 1] = r == 0 ? 0 : 50 + 5 * r;
+//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+//                }
+//            } else {
+//                r = random.nextInt(10) + 1;
+//                for (int i = 0; i < state.prop.potions.size(); i++) {
+//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
+//                    state.potionsState[i * 3 + 1] = r == 0 ? 0 : 50 + 5 * r;
+//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+//                }
+//            }
         }
 
         state.doEval(mcts.model);

@@ -208,15 +208,17 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void damage(int n, GameState state) {
+            var dmg = Math.max(0, n - block);
             super.damage(n, state);
-            if (!tookDamage && health < maxHealth) {
+            if (!tookDamage && dmg > 0) {
                 tookDamage = true;
             }
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            var dmg = blockable ? Math.max(0, n - block) : n;
             super.nonAttackDamage(n, blockable, state);
-            if (!tookDamage && health < maxHealth) {
+            if (!tookDamage && dmg > 0) {
                 tookDamage = true;
             }
         }
