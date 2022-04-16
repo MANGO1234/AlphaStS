@@ -154,6 +154,10 @@ def save_stats(training_info, iteration, out):
     training_info['iteration_info'][str(iteration)]['avg_dmg'] = avg_dmg
     training_info['iteration_info'][str(iteration)]['avg_dmg_no_death'] = avg_dmg_no_death
 
+accumualted_time_base = 0
+if training_info['iteration'] > 1:
+    accumualted_time_base = training_info['iteration_info'][str(int(training_info['iteration']) - 1)]['accumulated_time']
+
 training_pool = []
 start_window = 0
 if training_info['iteration'] >= SLOW_WINDOW_END:
@@ -242,7 +246,7 @@ if DO_TRAINING:
 
         training_info['iteration'] += 1
         iteration_info['training_time'] = round(time.time() - iter_start, 2)
-        iteration_info['accumulated_time'] = round(time.time() - start, 2)
+        iteration_info['accumulated_time'] = accumualted_time_base + round(time.time() - start, 2)
         iteration_info['loss'] = fit_result.history['loss'][-1]
         print(f'training time={iteration_info["training_time"]}')
         print(f'accumulated time={iteration_info["accumulated_time"]}')

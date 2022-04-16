@@ -351,6 +351,7 @@ public class Main {
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
         int RANDOMIZATION_SCENARIO = -1;
+        String COMPARE_DIR = null;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
             if (args[i].equals("-training")) {
@@ -398,9 +399,12 @@ public class Main {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             int iteration = root.get("iteration").asInt();
             if (SAVES_DIR.startsWith("../")) {
+                SAVES_DIR = "../tmp/laga_potions_on/saves";
                 NUMBER_OF_GAMES_TO_PLAY = 1000;
                 NUMBER_OF_NODES_PER_TURN = 5000;
 //                RANDOMIZATION_SCENARIO = 1;
+                iteration = 31;
+//                COMPARE_DIR = "../tmp/laga_potions_on/saves/iteration30";
             }
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");
@@ -437,6 +441,9 @@ public class Main {
 //                session.solver = solver;
             }
             session.training = TEST_TRAINING_AGENT;
+            if (COMPARE_DIR != null) {
+                session.compareModel = new Model(COMPARE_DIR);
+            }
             if (TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("training_matches.txt");
             } else if (NUMBER_OF_GAMES_TO_PLAY <= 100) {

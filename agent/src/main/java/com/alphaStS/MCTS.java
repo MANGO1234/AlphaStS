@@ -556,6 +556,9 @@ public class MCTS {
             }
         }
         curLine.internal = true;
+        if (numberOfActions > 0) {
+            curLine.numberOfActions -= 1;
+        }
         if (numberOfActions == 1) {
             curLine.q_comb = 0;
         } else if (numberOfActions == 0) {
@@ -638,7 +641,6 @@ public class MCTS {
         state.total_q_win += v[0];
         state.total_q_health += v[1];
         state.total_q_comb += v[2];
-        curLine.numberOfActions -= 1;
     }
 
     private void searchLineTransposePropagatePolicy(GameState parentState, LineOfPlay line, double p) {

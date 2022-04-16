@@ -65,6 +65,7 @@ public class LineOfPlay {
                 ", p=" + formatFloat(p_cur) + "/" + formatFloat(p_total) +
                 ", q_comb=" + formatFloat(q_comb / n) +
                 ", " + state +
+                ", " + numberOfActions +
                 '}';
     }
 

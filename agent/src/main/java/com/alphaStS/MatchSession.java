@@ -41,8 +41,10 @@ final class GameStep {
 
 public class MatchSession {
     private static boolean LOG_GAME_USING_LINES_FORMAT = true;
+    private static boolean USE_NEW_SEARCH = true;
 
     public boolean training;
+    public Model compareModel;
     Writer matchLogWriter;
     Writer trainingDataWriter;
     int startingAction = -1;
@@ -61,7 +63,6 @@ public class MatchSession {
     }
 
     public Game playGame(GameState origState, MCTS mcts, int nodeCount, int r) {
-        var useNewSearch = true;
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         if (state.actionCtx == GameActionCtx.START_GAME) {
@@ -79,7 +80,7 @@ public class MatchSession {
             state.doAction(startingAction);
         }
 
-        if (useNewSearch) {
+        if (USE_NEW_SEARCH) {
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
                 for (int i = 0; i < upto; i++) {
@@ -88,33 +89,27 @@ public class MatchSession {
                         break;
                     }
                 }
+
+                if (compareModel != null) {
+                    var compareState = state.clone(false);
+                    for (int i = 0; i < nodeCount; i++) {
+                        mcts.searchLine(compareState, false, true, nodeCount - i);
+                        if (mcts.numberOfPossibleActions == 1) {
+                            break;
+                        }
+                    }
+                    if (!state.searchFrontier.isOneOfBestLine(compareState.searchFrontier.getBestLine())) {
+                        System.out.println("---------------------------------------------------------");
+                        System.out.println(state);
+                        System.out.println(state.searchFrontier.getSortedLinesAsStrings(state).get(0));
+                        System.out.println(compareState.searchFrontier.getSortedLinesAsStrings(compareState).get(0));
+                    }
+                }
+
                 for (int action : state.searchFrontier.getBestLine().getActions(state)) {
                     states.add(new GameStep(state, action));
                     if (state.searchFrontier != null) {
-                        var _state = state;
-                        states.get(states.size() - 1).lines = state.searchFrontier.lines.values().stream().sorted((a, b) -> {
-                            if (a.internal == b.internal) {
-                                return -Integer.compare(a.n, b.n);
-                            } else if (a.internal) {
-                                return 1;
-                            } else {
-                                return -1;
-                            }
-                        }).limit(5).map((x) -> {
-                            var tmpS = _state.clone(false);
-                            var actions = x.getActions(tmpS);
-                            var strings = new ArrayList<String>();
-                            for (var _action : actions) {
-                                if (tmpS.getActionString(_action).equals("Begin Turn")) {
-                                    continue;
-                                }
-                                strings.add(tmpS.getActionString(_action));
-                                tmpS.doAction(_action);
-                            }
-                            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
-                                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
-                                    " (" + formatFloat(x.q_health / x.n * _state.getPlayeForRead().getMaxHealth()) + ")";
-                        }).toList();
+                        states.get(states.size() - 1).lines = state.searchFrontier.getSortedLinesAsStrings(state);
                     }
                     if (!training && solver != null) {
                         solver.checkForError(state, action, true);
@@ -129,7 +124,7 @@ public class MatchSession {
                 }
                 state.clearAllSearchInfo();
             }
-        } else{
+        } else {
             state.doEval(mcts.model);
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - state.total_n;
@@ -218,7 +213,7 @@ public class MatchSession {
                             if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
                             if (step.lines != null) {
                                 matchLogWriter.write(step.state().toStringReadable() + "\n");
-                                for (int i = 0; i < step.lines.size(); i++) {
+                                for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
                                     matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
                                 }
                             }
@@ -299,22 +294,22 @@ public class MatchSession {
             enemy.randomize(random, curriculumTraining);
         }
         if (state.prop.potions != null) {
-//            var r = random.nextInt(3);
+            var r = random.nextInt(11);
 //            var r = 0;
-//            if (r == 0) {
-//                for (int i = 0; i < state.prop.potions.size(); i++) {
-//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
-//                    state.potionsState[i * 3 + 1] = r == 0 ? 0 : 50 + 5 * r;
-//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-//                }
-//            } else {
-//                r = random.nextInt(10) + 1;
-//                for (int i = 0; i < state.prop.potions.size(); i++) {
-//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
-//                    state.potionsState[i * 3 + 1] = r == 0 ? 0 : 50 + 5 * r;
-//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-//                }
-//            }
+            if (r == 0) {
+                for (int i = 0; i < state.prop.potions.size(); i++) {
+                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
+                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
+                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+                }
+            } else {
+                r = random.nextInt(10) + 1;
+                for (int i = 0; i < state.prop.potions.size(); i++) {
+                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
+                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
+                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+                }
+            }
         }
 
         state.doEval(mcts.model);
