@@ -182,8 +182,7 @@ public abstract class Enemy extends EnemyReadOnly {
         static int ATTACK_1 = 3;
         static int ATTACK_2 = 4;
         static int SIPHON_SOUL = 5;
-
-        boolean tookDamage = false;
+        static int STUNNED = 6;
 
         public Lagavulin() {
             this(116);
@@ -200,7 +199,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public Lagavulin(Lagavulin other) {
             this(other.health);
             setSharedFields(other);
-            tookDamage = other.tookDamage;
         }
 
         @Override public Enemy copy() {
@@ -210,16 +208,16 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void damage(int n, GameState state) {
             var dmg = Math.max(0, n - block);
             super.damage(n, state);
-            if (!tookDamage && dmg > 0) {
-                tookDamage = true;
+            if ((move == WAIT_1 || move == WAIT_2 || move == WAIT_3) && dmg > 0) {
+                move = STUNNED;
             }
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             var dmg = blockable ? Math.max(0, n - block) : n;
             super.nonAttackDamage(n, blockable, state);
-            if (!tookDamage && dmg > 0) {
-                tookDamage = true;
+            if ((move == WAIT_1 || move == WAIT_2 || move == WAIT_3) && dmg > 0) {
+                move = STUNNED;
             }
         }
 
@@ -241,7 +239,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(RandomGen random) {
-            if (move <= 2 && tookDamage) {
+            if (move == STUNNED) {
                 move = ATTACK_1;
                 return;
             }
@@ -259,6 +257,8 @@ public abstract class Enemy extends EnemyReadOnly {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 20);
             } else if (move == SIPHON_SOUL) {
                 return "-2 Strength+-2 Dexterity";
+            } else if (move == STUNNED) {
+                return "Stunned";
             }
             return "Unknown";
         }

@@ -146,7 +146,7 @@ public class Main {
     }
 
     public static GameState BasicLagavulinState() {
-        // https://www.youtube.com/watch?v=1CELexRf5ZE
+        // https://youtu.be/1CELexRf5ZE?t=2205
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
         cards.add(new CardCount(new Card.Strike(), 2));
@@ -161,7 +161,7 @@ public class Main {
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.Lagavulin());
         var relics = new ArrayList<Relic>();
-        relics.add(new Relic.HappyFlower());
+//        relics.add(new Relic.HappyFlower());
         var potions = new ArrayList<Potion>();
         potions.add(new Potion.DexterityPotion());
         var player = new Player(73, 75);
@@ -347,6 +347,7 @@ public class Main {
         boolean PLAY_A_GAME = false;
         boolean SLOW_TRAINING_WINDOW = false;
         boolean CURRICULUM_TRAINING_ON = false;
+        boolean TRAINING_WITH_LINE = false;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
@@ -387,25 +388,31 @@ public class Main {
             if (args[i].equals("-curriculum_training")) {
                 CURRICULUM_TRAINING_ON = true;
             }
+            if (args[i].equals("-training_with_line")) {
+                TRAINING_WITH_LINE = true;
+            }
             if (args[i].equals("-rand")) {
                 RANDOMIZATION_SCENARIO = Integer.parseInt(args[i + 1]);
                 i++;
             }
         }
 
+        int iteration = -1;
+        if (SAVES_DIR.startsWith("../")) {
+//            SAVES_DIR = "../tmp/saves";
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
+            NUMBER_OF_NODES_PER_TURN = 100;
+//            iteration = 26;
+            //                RANDOMIZATION_SCENARIO = 1;
+            //                COMPARE_DIR = "../tmp/laga_potions_on/saves/iteration30";
+//            COMPARE_DIR = "../tmp/laga3/saves/iteration15";
+        }
+
         ObjectMapper mapper = new ObjectMapper();
         String curIterationDir = SAVES_DIR + "/iteration0";
         try {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
-            int iteration = root.get("iteration").asInt();
-            if (SAVES_DIR.startsWith("../")) {
-                SAVES_DIR = "../tmp/laga_potions_on/saves";
-                NUMBER_OF_GAMES_TO_PLAY = 1000;
-                NUMBER_OF_NODES_PER_TURN = 5000;
-//                RANDOMIZATION_SCENARIO = 1;
-                iteration = 31;
-//                COMPARE_DIR = "../tmp/laga_potions_on/saves/iteration30";
-            }
+            iteration = iteration < 0 ? root.get("iteration").asInt() : iteration;
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
             File f = new File(SAVES_DIR + "/desc.txt");
             if (!f.exists()) {
@@ -456,6 +463,7 @@ public class Main {
             session.setTrainingDataLogFile("training_data.txt");
             session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
             session.POLICY_CAP_ON = false;
+            session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
             writeTrainingData(games, curIterationDir +  "/training_data.bin");

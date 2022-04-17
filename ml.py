@@ -130,6 +130,8 @@ def get_training_samples(training_pool, iteration, file_path):
 
 SLOW_WINDOW_END = 3
 TRAINING_WINDOW_SIZE = 4
+CURRICULUM_TRAINING_END = SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1
+USE_LINE_SEARCH_TO_TRAIN_END = 18
 
 
 def expire_training_samples(training_pool, iteration):
@@ -184,8 +186,10 @@ if DO_TRAINING:
             agent_args += ['-tm', '-c', str(matches_count), '-n', '1']
         if training_info['iteration'] < SLOW_WINDOW_END:
             agent_args += ['-slow']
-        if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1:
+        if training_info['iteration'] < CURRICULUM_TRAINING_END:
             agent_args += ['-curriculum_training']
+        if training_info['iteration'] < USE_LINE_SEARCH_TO_TRAIN_END:
+            agent_args += ['-training_wi]th_line']
         agent_output = subprocess.run(agent_args, capture_output=True)
         if len(agent_output.stderr) > 0:
             print(agent_output.stdout.decode('ascii'))

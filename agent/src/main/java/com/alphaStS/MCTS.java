@@ -10,11 +10,11 @@ import static java.lang.Math.sqrt;
 public class MCTS {
     Model model;
     int numberOfPossibleActions;
-    double[] v;
-    double terminal_v_win;
+    private final double[] v = new double[3];
+    private final int[] ret = new int[2];
+    private double terminal_v_win;
 
     void setModel(Model model) {
-        v = new double[3];
         this.model = model;
     }
 
@@ -32,6 +32,7 @@ public class MCTS {
             v[0] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
             v[1] = state.q_health[state.terminal_action] / state.n[state.terminal_action];
             v[2] = state.q_comb[state.terminal_action] / state.n[state.terminal_action];
+            numberOfPossibleActions = 1;
             return;
         }
         if (state.isTerminal() != 0) {
@@ -52,22 +53,9 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        int action = 0;
-        int numberOfActions = 0;
-        double maxU = -1000000;
-        for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (policy[i] <= 0) {
-                continue;
-            }
-            numberOfActions += 1;
-            //                double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : GameState.calc_q(state.total_q_win / (state.total_n + 1), state.total_q_health / (state.total_n + 1));
-            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
-            double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-            if (u > maxU) {
-                action = i;
-                maxU = u;
-            }
-        }
+        selectAction(state, policy, training, isRoot);
+        int action = ret[0];
+        int numberOfActions = ret[1];
 
         State nextState = state.ns[action];
         GameState state2;
@@ -110,9 +98,9 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-                    state2 = cState.getNextState(true);
-                    this.search2_r(state2, training, remainingCalls, false);
-                    cState.correctV(state2, v);
+//                    state2 = cState.getNextState(true);
+//                    this.search2_r(state2, training, remainingCalls, false);
+//                    cState.correctV(state2, v);
                     v[0] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[1] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     v[2] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
@@ -123,7 +111,7 @@ public class MCTS {
                 }
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
-                    this.search2_r(nState, training, remainingCalls, false);
+//                    this.search2_r(nState, training, remainingCalls, false);
                     v[0] = nState.total_q_win / (nState.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
                     v[1] = nState.total_q_health / (nState.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
                     v[2] = nState.total_q_comb / (nState.total_n + 1) * (state.n[action] + 1) - state.q_comb[action];
@@ -153,7 +141,7 @@ public class MCTS {
         state.total_q_win += v[0];
         state.total_q_health += v[1];
         state.total_q_comb += v[2];
-        this.numberOfPossibleActions = numberOfActions;
+        numberOfPossibleActions = numberOfActions;
     }
 
     void search3(GameState state, boolean training, int remainingCalls) {
@@ -187,44 +175,9 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        int action = 0;
-        int numberOfActions = 0;
-        double maxU = -1000000;
-        var forceN = new boolean[state.getLegalActions().length];
-        var forceNCount = 0;
-        for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (policy[i] <= 0) {
-                continue;
-            }
-            numberOfActions += 1;
-            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
-//            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
-            double u = state.total_n > 0 ? q + 0.1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-            if (training && isRoot) {
-                var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
-                if (state.n[i] < force_n) {
-//                    forceN[i] = true;
-//                    forceNCount += 1;
-                    action = i;
-                    maxU = Integer.MAX_VALUE;
-                    continue;
-                }
-            }
-            if (u > maxU) {
-                action = i;
-                maxU = u;
-            }
-        }
-        if (!forceN[action] && forceNCount > 0) {
-            int forced = state.prop.random.nextInt(forceNCount);
-            int k = 0;
-            for (int i = 0; i < forceN.length; i++) {
-                if (forceN[i] && k++ == forced) {
-                    action = i;
-                    break;
-                }
-            }
-        }
+        selectAction(state, policy, training, isRoot);
+        int action = ret[0];
+        int numberOfActions = ret[1];
 
         State nextState = state.ns[action];
         GameState state2;
@@ -232,9 +185,9 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                state.ns[action] = new ChanceState(state2,state, action);
+                state.ns[action] = new ChanceState(state2, state, action);
                 this.search3_r(state2, training, remainingCalls, false);
-                ((ChanceState) state.ns[action]).correctV(state2, v);
+                ((ChanceState) (state.ns[action])).correctV(state2, v);
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
@@ -314,7 +267,7 @@ public class MCTS {
         state.total_q_win += v[0];
         state.total_q_health += v[1];
         state.total_q_comb += v[2];
-        this.numberOfPossibleActions = numberOfActions;
+        numberOfPossibleActions = numberOfActions;
     }
 
     void searchPlain(GameState state, boolean training, int remainingCalls) {
@@ -336,22 +289,9 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        int action = 0;
-        int numberOfActions = 0;
-        double maxU = -1000000;
-        for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (policy[i] <= 0) {
-                continue;
-            }
-            numberOfActions += 1;
-            //                double q = state.n[i] > 0 ? GameState.calc_q(state.q_win[i] / state.n[i], state.q_health[i] / state.n[i]) : GameState.calc_q(state.total_q_win / (state.total_n + 1), state.total_q_health / (state.total_n + 1));
-            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
-            double u = state.total_n > 0 ? q + 1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-            if (u > maxU) {
-                action = i;
-                maxU = u;
-            }
-        }
+        selectAction(state, policy, training, isRoot);
+        int action = ret[0];
+        int numberOfActions = ret[1];
 
         State nextState = state.ns[action];
         GameState state2;
@@ -387,7 +327,7 @@ public class MCTS {
         state.total_q_win += v[0];
         state.total_q_health += v[1];
         state.total_q_comb += v[2];
-        this.numberOfPossibleActions = numberOfActions;
+        numberOfPossibleActions = numberOfActions;
     }
 
     void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
@@ -667,16 +607,59 @@ public class MCTS {
                 }
                 policy = state.policyMod;
             } else {
-//               if (state.policyMod == null) {
-//                   state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
-//               }
-//               policy = state.policyMod;
-                policy = state.policy;
+               // if (state.policyMod == null) {
+               //     state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
+               // }
+               // policy = state.policyMod;
+               policy = state.policy;
             }
         } else {
             policy = applyFutileSearchPruning(state, state.policy, remainingCalls);
         }
         return policy;
+    }
+
+    private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot) {
+        int action = 0;
+        double maxU = -1000000;
+        var forceN = new boolean[state.getLegalActions().length];
+        var forceNCount = 0;
+        int numberOfActions = 0;
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (policy[i] <= 0) {
+                continue;
+            }
+            numberOfActions += 1;
+            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
+            //            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
+            double u = state.total_n > 0 ? q + 0.1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+            if (training && isRoot) {
+                var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
+                if (state.n[i] < force_n) {
+                    //                    forceN[i] = true;
+                    //                    forceNCount += 1;
+                    action = i;
+                    maxU = Integer.MAX_VALUE;
+                    continue;
+                }
+            }
+            if (u > maxU) {
+                action = i;
+                maxU = u;
+            }
+        }
+        if (!forceN[action] && forceNCount > 0) {
+            int forced = state.prop.random.nextInt(forceNCount);
+            int k = 0;
+            for (int i = 0; i < forceN.length; i++) {
+                if (forceN[i] && k++ == forced) {
+                    action = i;
+                    break;
+                }
+            }
+        }
+        ret[0] = action;
+        ret[1] = numberOfActions;
     }
 
     private float[] applyFutileSearchPruning(GameState state, float[] policy, int remainingCalls) {

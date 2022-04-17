@@ -1322,7 +1322,7 @@ public class GameState implements State {
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 str += "        1 input to keep track of louse damage\n";
             } else if (enemy instanceof Enemy.TheGuardian guardian) {
-                str += "        2 input to keep track of current and max guardian mode shift damage\n";
+                str += "        2 inputs to keep track of current and max guardian mode shift damage\n";
             } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
                 str += "        1 input to keep track of health slime boss split at\n";
             }

@@ -642,7 +642,7 @@ public class InteractiveMode {
     private static void runNNPV2(GameState state, MCTS mcts, String line) {
         int count = parseInt(line.substring(4), 1);
         GameState s = state;
-        if (s.searchFrontier != null && s.searchFrontier.total_n != s.total_n) {
+        if (s.searchFrontier != null && s.searchFrontier.total_n != s.total_n + 1) {
             s.clearAllSearchInfo();
         }
         for (int i = s.total_n; i < count; i++) {

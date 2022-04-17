@@ -7,7 +7,6 @@ import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.alphaStS.utils.Utils.formatFloat;
 import static java.lang.Math.sqrt;
 
 final class GameStep {
@@ -93,7 +92,10 @@ public class MatchSession {
                 if (compareModel != null) {
                     var compareState = state.clone(false);
                     for (int i = 0; i < nodeCount; i++) {
+                        var oldModel = mcts.model;
+                        mcts.model = compareModel;
                         mcts.searchLine(compareState, false, true, nodeCount - i);
+                        mcts.model = oldModel;
                         if (mcts.numberOfPossibleActions == 1) {
                             break;
                         }
@@ -279,6 +281,7 @@ public class MatchSession {
 
     boolean SLOW_TRAINING_WINDOW;
     boolean POLICY_CAP_ON;
+    boolean TRAINING_WITH_LINE;
 
     private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
         var states = new ArrayList<GameStep>();
@@ -294,22 +297,22 @@ public class MatchSession {
             enemy.randomize(random, curriculumTraining);
         }
         if (state.prop.potions != null) {
-            var r = random.nextInt(11);
+            // var r = random.nextInt(11);
 //            var r = 0;
-            if (r == 0) {
-                for (int i = 0; i < state.prop.potions.size(); i++) {
-                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
-                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
-                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-                }
-            } else {
-                r = random.nextInt(10) + 1;
-                for (int i = 0; i < state.prop.potions.size(); i++) {
-                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
-                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
-                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-                }
-            }
+            // if (r == 0) {
+            //     for (int i = 0; i < state.prop.potions.size(); i++) {
+            //         state.potionsState[i * 3] = r == 0 ? 0 : 1;
+            //         state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
+            //         state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+            //     }
+            // } else {
+            //     r = random.nextInt(10) + 1;
+            //     for (int i = 0; i < state.prop.potions.size(); i++) {
+            //         state.potionsState[i * 3] = r == 0 ? 0 : 1;
+            //         state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
+            //         state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+            //     }
+            // }
         }
 
         state.doEval(mcts.model);
@@ -406,6 +409,107 @@ public class MatchSession {
         return states;
     }
 
+    private List<GameStep> playTrainingGame2(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
+        var states = new ArrayList<GameStep>();
+        var state = origState.clone(false);
+        if (state.prop.randomization != null) {
+            state.prop.randomization.randomize(state);
+        }
+        if (state.actionCtx == GameActionCtx.START_GAME) {
+            state.doAction(0);
+        }
+        RandomGen random = state.prop.random;
+        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+            enemy.randomize(random, curriculumTraining);
+        }
+        if (state.prop.potions != null) {
+//            var r = random.nextInt(11);
+//            var r = 0;
+//            if (r == 0) {
+//                for (int i = 0; i < state.prop.potions.size(); i++) {
+//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
+//                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
+//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+//                }
+//            } else {
+//                r = random.nextInt(10) + 1;
+//                for (int i = 0; i < state.prop.potions.size(); i++) {
+//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
+//                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
+//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
+//                }
+//            }
+        }
+
+        while (state.isTerminal() == 0) {
+            int todo = nodeCount - state.total_n;
+            for (int i = 0; i < todo; i++) {
+                mcts.searchLine(state, true, true, todo - i);
+            }
+            for (int action : state.searchFrontier.getBestLine().getActions(state)) {
+                var step = new GameStep(state, action);
+                step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
+                states.add(step);
+                if (nodeCount == 1) {
+                    state = state.clone(false);
+                    state.doAction(action);
+                } else {
+                    state = getNextState(state, mcts, action, false);
+                }
+            }
+            state = state.clone(true);
+
+//            int action = state.searchFrontier.getBestLine().getActions(state).get(0);
+//            var step = new GameStep(state, action);
+//            step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
+//            states.add(step);
+//            state = getNextState(state, mcts, action, true);
+        }
+        states.add(new GameStep(state, -1));
+
+        // do scoring here before clearing states to reuse nn eval if possible
+        float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
+        float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
+        for (int i = states.size() - 1; i >= 0; i--) {
+            states.get(i).v_win = v_win;
+            states.get(i).v_health = v_health;
+            state = states.get(i).state();
+            state.clearNextStates();
+            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
+                var prevState = states.get(i - 1).state();
+                var prevAction = states.get(i - 1).action();
+                var cState = (ChanceState) prevState.ns[prevAction];
+                var stateActual = cState.addGeneratedState(state);
+                while (cState.total_n < 1000 && cState.cache.size() < 100) {
+                    cState.getNextState(false);
+                }
+                double est_v_win = 0;
+                double est_v_health = 0;
+                double[] out = new double[3];
+                for (ChanceState.Node node : cState.cache.values()) {
+                    if (node.state != stateActual) {
+                        if (node.state.policy == null) {
+                            node.state.doEval(mcts.model);
+                        }
+                        node.state.get_v(out);
+                        est_v_win += out[0] * node.n;
+                        est_v_health += out[1] * node.n;
+                    }
+                }
+                est_v_win /= cState.total_node_n;
+                est_v_health /= cState.total_node_n;
+                float p = ((float) cState.getCount(stateActual)) / cState.total_node_n;
+                if (v_win * p + (float) est_v_win > 1.0001) {
+                    Integer.parseInt(null);
+                }
+                v_win = Math.min(v_win * p + (float) est_v_win, 1);
+                v_health = Math.min(v_health * p + (float) est_v_health, 1);
+            }
+        }
+
+        return states;
+    }
+
     public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount, boolean curriculumTraining) {
         var deq = new LinkedBlockingDeque<List<GameStep>>();
         var session = this;
@@ -416,7 +520,11 @@ public class MatchSession {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        deq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii), curriculumTraining));
+                        if (TRAINING_WITH_LINE) {
+                            deq.putLast(session.playTrainingGame2(state, nodeCount, mcts.get(ii), curriculumTraining));
+                        } else {
+                            deq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii), curriculumTraining));
+                        }
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -454,7 +562,10 @@ public class MatchSession {
                 }
             }
 
-           for (GameStep step : steps) {
+            if (TRAINING_WITH_LINE) {
+                continue;
+            }
+            for (GameStep step : steps) {
                if (step.action() < 0 || step.state().terminal_action >= 0) {
                    break;
                }
