@@ -189,7 +189,7 @@ if DO_TRAINING:
         if training_info['iteration'] < CURRICULUM_TRAINING_END:
             agent_args += ['-curriculum_training']
         if training_info['iteration'] < USE_LINE_SEARCH_TO_TRAIN_END:
-            agent_args += ['-training_wi]th_line']
+            agent_args += ['-training_with_line']
         agent_output = subprocess.run(agent_args, capture_output=True)
         if len(agent_output.stderr) > 0:
             print(agent_output.stdout.decode('ascii'))

@@ -71,6 +71,17 @@ public class Main {
         return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
     }
 
+    public static GameState BasicGremlinNobState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.BashP(), 1));
+        cards.add(new CardCount(new Card.Strike(), 5));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.GremlinNob());
+        var relics = new ArrayList<Relic>();
+        return new GameState(enemies, new Player(80, 80), cards, relics, null, null);
+    }
+
     public static GameState BasicJawWormState() {
         var cards = new ArrayList<CardCount>();
         cards.add(new CardCount(new Card.Bash(), 1));
@@ -399,7 +410,7 @@ public class Main {
 
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
-//            SAVES_DIR = "../tmp/saves";
+            SAVES_DIR = "../tmp/saves";
             NUMBER_OF_GAMES_TO_PLAY = 10000;
             NUMBER_OF_NODES_PER_TURN = 100;
 //            iteration = 26;

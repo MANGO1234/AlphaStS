@@ -15,7 +15,9 @@ final class GameStep {
     public boolean useForTraining;
     public float v_win;
     public float v_health;
+    public float v_comb;
     public List<String> lines;
+    public boolean isExplorationMove;
 
     GameStep(GameState state, int action) {
         this.state = state;
@@ -330,13 +332,17 @@ public class MatchSession {
             }
 
             int action;
-            if (state.turnNum >= 0) {
+            int greedyAction;
+            if (state.turnNum >= 100) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
+                greedyAction = action;
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);
+                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
             }
             var step = new GameStep(state, action);
             step.useForTraining = !quickPass;
+            step.isExplorationMove = greedyAction != action;
             states.add(step);
             quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
             state = getNextState(state, mcts, action, !quickPass);
@@ -346,9 +352,18 @@ public class MatchSession {
         // do scoring here before clearing states to reuse nn eval if possible
         float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
         float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
+        float v_comb = (float) state.calc_q(v_win, v_health);
         for (int i = states.size() - 1; i >= 0; i--) {
+            if (states.get(i).isExplorationMove) {
+                if (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1) > v_comb) {
+                    v_win = (float) (states.get(i).state().total_q_win / (states.get(i).state().total_n + 1));
+                    v_health = (float) (states.get(i).state().total_q_health / (states.get(i).state().total_n + 1));
+                    v_comb = (float) (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1));
+                }
+            }
             states.get(i).v_win = v_win;
             states.get(i).v_health = v_health;
+            states.get(i).v_comb = v_comb;
             state = states.get(i).state();
             state.clearNextStates();
             if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
@@ -578,16 +593,16 @@ public class MatchSession {
                        max_i = i;
                    }
                }
-               if (max_i != step.action()) {
-                   if (state.n[max_i] == state.n[step.action()]) {
-                       max_i = step.action();
-                   } else {
-                       System.out.println(step.state());
-                       System.out.println(step.state().getActionString(max_i));
-                       System.out.println(step.state().getActionString(step.action()));
-                       Integer.parseInt(null);
-                   }
-               }
+//               if (max_i != step.action()) {
+//                   if (state.n[max_i] == state.n[step.action()]) {
+//                       max_i = step.action();
+//                   } else {
+//                       System.out.println(step.state());
+//                       System.out.println(step.state().getActionString(max_i));
+//                       System.out.println(step.state().getActionString(step.action()));
+//                       Integer.parseInt(null);
+//                   }
+//               }
                double q = state.q_comb[max_i] / state.n[max_i];
                double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
                var max_puct = q + u;

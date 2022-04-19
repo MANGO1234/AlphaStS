@@ -359,6 +359,8 @@ public class MCTS {
         LineOfPlay maxLine = null;
         double maxU = 0.0;
         if (isRoot) numberOfPossibleActions = 0;
+        double p = 1.0 / state.searchFrontier.lines.size();
+        double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
         for (var line : lines) {
             if (line.numberOfActions == 0) {
                 continue;
@@ -372,7 +374,9 @@ public class MCTS {
             }
             double q = line.n > 0 ? line.q_comb / line.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+            double p_prime = line.p_cur * (1 - ratio) + p * ratio;
             double u = state.searchFrontier.total_n > 0 ? q + 0.125 * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+//            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            if (training && isRoot) {
 //                var force_n = (int) Math.sqrt(0.5 * line.p_cur * state.searchFrontier.total_n);
 //                if (line.n < force_n) {
@@ -625,14 +629,18 @@ public class MCTS {
         var forceN = new boolean[state.getLegalActions().length];
         var forceNCount = 0;
         int numberOfActions = 0;
+        double p = 1.0 / state.getLegalActions().length;
+        double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
             numberOfActions += 1;
+            double p_prime = policy[i] * (1 - ratio) + p * ratio;
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
             //            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
             double u = state.total_n > 0 ? q + 0.1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+//            double u = state.total_n > 0 ? q + 0.1 * p_prime * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (training && isRoot) {
                 var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
                 if (state.n[i] < force_n) {
