@@ -328,7 +328,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = BasicLagavulinState();
+        var state = GuardianState2();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -410,7 +410,7 @@ public class Main {
 
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
-            SAVES_DIR = "../tmp/saves";
+//            SAVES_DIR = "../tmp/saves";
             NUMBER_OF_GAMES_TO_PLAY = 10000;
             NUMBER_OF_NODES_PER_TURN = 100;
 //            iteration = 26;

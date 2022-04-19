@@ -66,7 +66,6 @@ record GameAction(GameActionType type, int cardIdx, int enemyIdx) {
 public class GameState implements State {
     private static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
-    private static final boolean USE_BUGGED_VERSION = false;
 
     boolean isStochastic;
     public GameProperties prop;
@@ -1103,47 +1102,31 @@ public class GameState implements State {
             inputLen += prop.potions.size() * 3;
         }
         // cards currently selecting enemies
-        if (USE_BUGGED_VERSION) {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectEnemy ||
-                            prop.cardDict[action.cardIdx()].selectFromHand ||
-                            prop.cardDict[action.cardIdx()].selectFromDiscard ||
-                            prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        inputLen += 1;
-                    }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                    inputLen += 1;
                 }
             }
-        } else {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectEnemy) {
-                        inputLen += 1;
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                    inputLen += 1;
                 }
             }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromHand) {
-                        inputLen += 1;
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                    inputLen += 1;
                 }
             }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
-                        inputLen += 1;
-                    }
-                }
-            }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        inputLen += 1;
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                    inputLen += 1;
                 }
             }
         }
@@ -1253,47 +1236,31 @@ public class GameState implements State {
                 str += "    3 inputs to keep track of " + prop.potions.get(i) + " usage\n";
             }
         }
-        if (USE_BUGGED_VERSION) {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectEnemy ||
-                            prop.cardDict[action.cardIdx()].selectFromHand ||
-                            prop.cardDict[action.cardIdx()].selectFromDiscard ||
-                            prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + "\n";
-                    }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                    str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
                 }
             }
-        } else {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectEnemy) {
-                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                    str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from hand\n";
                 }
             }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromHand) {
-                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from hand\n";
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                    str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from discard\n";
                 }
             }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
-                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from discard\n";
-                    }
-                }
-            }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from exhaust\n";
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                    str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from exhaust\n";
                 }
             }
         }
@@ -1417,47 +1384,31 @@ public class GameState implements State {
                 x[idx++] = potionsState[i * 3 + 2] == 1 ? 0.5f : -0.5f;
             }
         }
-        if (USE_BUGGED_VERSION) {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null ||
-                    prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectEnemy ||
-                            prop.cardDict[action.cardIdx()].selectFromHand ||
-                            prop.cardDict[action.cardIdx()].selectFromDiscard ||
-                            prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
-                    }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
                 }
             }
-        } else {
-            if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectEnemy) {
-                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
                 }
             }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromHand) {
-                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
                 }
             }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
-                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
-                    }
-                }
-            }
-            if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
-                for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                    if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                        x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
-                    }
+        }
+        if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+            for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                    x[idx++] = previousCard == prop.cardDict[action.cardIdx()] ? 0.6f : -0.6f;
                 }
             }
         }
