@@ -92,10 +92,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             state.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
                 @Override void handle(GameState state) {
                     if (state.turnNum == 1) {
-                        var idx = state.prop.findCardIndex(new CardSilent.Survivor());
-                        if (state.hand[idx] > 0 || state.deck[idx] > 0) {
-                            state.draw(2);
-                        }
+                        state.draw(2);
                     }
                 }
             });
@@ -781,6 +778,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
         @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+        }
+    }
+
+    // **********************************************************************************************************************************************
+    // *********************************************************** Class Specific Relics ************************************************************
+    // **********************************************************************************************************************************************
+
+    public static class RingOfSerpant extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    if (state.turnNum == 1) {
+                        var idx = state.prop.findCardIndex(new CardSilent.Survivor());
+                        if (idx >= 0 && (state.hand[idx] > 0 || state.deck[idx] > 0)) {
+                            state.draw(2);
+                        }
+                    }
+                }
+            });
         }
     }
 }

@@ -14,6 +14,7 @@ public class GameProperties {
     public boolean playerCanHeal;
     public boolean enemyCanGetVuln;
     public boolean enemyCanGetWeakened;
+    public boolean enemyStrengthEotCanChange;
     public long possibleBuffs;
     public boolean needDeckOrderMemory;
     public boolean selectFromExhaust;

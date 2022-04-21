@@ -81,10 +81,10 @@ public class Player extends PlayerReadOnly {
         case VULNERABLE -> this.vulnerable += n;
         case WEAK -> this.weak += n;
         case FRAIL -> this.frail += n;
-        case LOSE_STRENGTH -> this.gainStrength(-2);
-        case LOSE_DEXTERITY -> this.gainDexterity(-2);
-        case LOSE_STRENGTH_EOT -> this.loseStrengthEot = 2;
-        case LOSE_DEXTERITY_EOT -> this.loseDexterityEot = 2;
+        case LOSE_STRENGTH -> this.gainStrength(-n);
+        case LOSE_DEXTERITY -> this.gainDexterity(-n);
+        case LOSE_STRENGTH_EOT -> this.loseStrengthEot = n;
+        case LOSE_DEXTERITY_EOT -> this.loseDexterityEot = n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         }
     }

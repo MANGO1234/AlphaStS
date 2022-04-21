@@ -244,10 +244,9 @@ public class Main {
             @Override public int randomize(GameState state) {
 //                int r = state.prop.random.nextInt(4);
 //                int r = state.prop.random.nextInt(2) + 1;
-//                randomize(state, r);
-//                return r;
-                randomize(state, 0);
-                return 0;
+                int r = 0;
+                randomize(state, r);
+                return r;
             }
 
             @Override public void reset(GameState state) {
@@ -327,8 +326,69 @@ public class Main {
         return new GameState(enemies, player, cards, relics);
     }
 
+    public static GameState TestState() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.UppercutP(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.Inflame(), 1));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new CardNeutral.DarkShackles(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.GremlinNob());
+        enemies.add(new Enemy.Lagavulin());
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.BagOfPreparation());
+        var randomization = new GameStateRandomization() {
+            @Override public int randomize(GameState state) {
+                int r = state.prop.random.nextInt(3);
+                randomize(state, r);
+                return r;
+            }
+
+            @Override public void reset(GameState state) {
+                state.getEnemiesForWrite().getForWrite(0).setHealth(0);
+                state.getEnemiesForWrite().getForWrite(1).setHealth(0);
+                state.getEnemiesForWrite().getForWrite(2).setHealth(0);
+                state.getEnemiesForWrite().getForWrite(3).setHealth(state.getEnemiesForWrite().get(3).maxHealth);
+                state.getEnemiesForWrite().getForWrite(4).setHealth(0);
+                state.enemiesAlive = 1;
+            }
+
+            @Override public void randomize(GameState state, int r) {
+                reset(state);
+                if (r == 1) {
+                    state.getEnemiesForWrite().getForWrite(0).setHealth(state.getEnemiesForWrite().get(0).maxHealth);
+                    state.getEnemiesForWrite().getForWrite(1).setHealth(state.getEnemiesForWrite().get(1).maxHealth);
+                    state.getEnemiesForWrite().getForWrite(2).setHealth(state.getEnemiesForWrite().get(2).maxHealth);
+                    state.getEnemiesForWrite().getForWrite(3).setHealth(0);
+                    state.enemiesAlive = 3;
+                } else if (r == 2) {
+                    state.getEnemiesForWrite().getForWrite(3).setHealth(0);
+                    state.getEnemiesForWrite().getForWrite(4).setHealth(state.getEnemiesForWrite().get(4).maxHealth);
+                    state.enemiesAlive = 1;
+                }
+            }
+
+            @Override public Map<Integer, Info> listRandomizations(GameState state) {
+                var map = new HashMap<Integer, Info>();
+                map.put(0, new Info(1f / 3,"Gremlin Nob"));
+                map.put(1, new Info(1f / 3,"Sentries"));
+                map.put(2, new Info(1f / 3,"Lagavulin"));
+                return map;
+            }
+        };
+//        randomization = null;
+        return new GameState(enemies, new Player(43, 75), cards, relics, null, randomization);
+    }
+
     public static void main(String[] args) throws IOException {
-        var state = GuardianState2();
+        var state = TestState();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -359,6 +419,7 @@ public class Main {
         boolean SLOW_TRAINING_WINDOW = false;
         boolean CURRICULUM_TRAINING_ON = false;
         boolean TRAINING_WITH_LINE = false;
+        boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
@@ -410,11 +471,14 @@ public class Main {
 
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
-//            SAVES_DIR = "../tmp/saves";
+//            SAVES_DIR = "../tmp/test/saves_sentries_norm";
+//            SAVES_DIR = "../tmp/test/saves_nob";
+//            SAVES_DIR = "../tmp/test/saves_laga";
             NUMBER_OF_GAMES_TO_PLAY = 10000;
-            NUMBER_OF_NODES_PER_TURN = 100;
-//            iteration = 26;
-            //                RANDOMIZATION_SCENARIO = 1;
+//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+            NUMBER_OF_NODES_PER_TURN = 200;
+//            iteration = 31;
+            RANDOMIZATION_SCENARIO = 0;
             //                COMPARE_DIR = "../tmp/laga_potions_on/saves/iteration30";
 //            COMPARE_DIR = "../tmp/laga3/saves/iteration15";
         }
@@ -431,6 +495,10 @@ public class Main {
             }
         } catch (FileNotFoundException e) {
             System.out.println("Unable to find neural network.");
+        }
+
+        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
+            state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
@@ -476,6 +544,7 @@ public class Main {
             session.POLICY_CAP_ON = false;
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
+            state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
             var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
             writeTrainingData(games, curIterationDir +  "/training_data.bin");
             long end = System.currentTimeMillis();

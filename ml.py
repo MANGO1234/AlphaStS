@@ -131,7 +131,7 @@ def get_training_samples(training_pool, iteration, file_path):
 SLOW_WINDOW_END = 3
 TRAINING_WINDOW_SIZE = 6
 CURRICULUM_TRAINING_END = SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1
-USE_LINE_SEARCH_TO_TRAIN_END = 18
+USE_LINE_SEARCH_TO_TRAIN_END = 0
 
 
 def expire_training_samples(training_pool, iteration):

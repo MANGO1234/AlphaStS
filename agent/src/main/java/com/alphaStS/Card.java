@@ -34,6 +34,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean affectEnemyStrength;
+    public boolean affectEnemyStrengthEot;
     public boolean putCardOnTopDeck;
     public boolean healPlayer;
     int counterIdx = -1;

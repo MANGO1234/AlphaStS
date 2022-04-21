@@ -626,8 +626,7 @@ public class MCTS {
     private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot) {
         int action = 0;
         double maxU = -1000000;
-        var forceN = new boolean[state.getLegalActions().length];
-        var forceNCount = 0;
+        boolean hasForcedMove = false;
         int numberOfActions = 0;
         double p = 1.0 / state.getLegalActions().length;
         double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
@@ -644,26 +643,20 @@ public class MCTS {
             if (training && isRoot) {
                 var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
                 if (state.n[i] < force_n) {
-                    //                    forceN[i] = true;
-                    //                    forceNCount += 1;
-                    action = i;
-                    maxU = Integer.MAX_VALUE;
+                    if (!hasForcedMove) {
+                        action = i;
+                        maxU = u;
+                        hasForcedMove = true;
+                    } else if (u > maxU) {
+                        action = i;
+                        maxU = u;
+                    }
                     continue;
                 }
             }
-            if (u > maxU) {
+            if (!hasForcedMove && u > maxU) {
                 action = i;
                 maxU = u;
-            }
-        }
-        if (!forceN[action] && forceNCount > 0) {
-            int forced = state.prop.random.nextInt(forceNCount);
-            int k = 0;
-            for (int i = 0; i < forceN.length; i++) {
-                if (forceN[i] && k++ == forced) {
-                    action = i;
-                    break;
-                }
             }
         }
         ret[0] = action;

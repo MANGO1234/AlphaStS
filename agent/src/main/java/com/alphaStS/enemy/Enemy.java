@@ -67,23 +67,30 @@ public abstract class Enemy extends EnemyReadOnly {
         if (weak > 0) {
             weak -= 1;
         }
+        if (loseStrengthEot != 0) {
+            applyDebuff(DebuffType.LOSE_STRENGTH, loseStrengthEot);
+            loseStrengthEot = 0;
+        }
     }
 
     public void react(GameState state, Card card) {
     }
 
-    public void applyDebuff(DebuffType type, int amount) {
+    public boolean applyDebuff(DebuffType type, int n) {
         if (health <= 0) {
-            return;
+            return false;
         }
         if (artifact > 0) {
             artifact--;
-            return;
+            return false;
         }
         switch (type) {
-        case VULNERABLE -> this.vulnerable += amount;
-        case WEAK -> this.weak += amount;
+        case VULNERABLE -> this.vulnerable += n;
+        case WEAK -> this.weak += n;
+        case LOSE_STRENGTH -> this.gainStrength(-n);
+        case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
         }
+        return true;
     }
 
     public void randomize(RandomGen random, boolean training) {
@@ -233,8 +240,8 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 20, 1);
             } else if (move == SIPHON_SOUL) {
                 var player = state.getPlayerForWrite() ;
-                player.applyDebuff(state, DebuffType.LOSE_DEXTERITY, -2);
-                player.applyDebuff(state, DebuffType.LOSE_STRENGTH, -2);
+                player.applyDebuff(state, DebuffType.LOSE_DEXTERITY, 2);
+                player.applyDebuff(state, DebuffType.LOSE_STRENGTH, 2);
             }
         }
 

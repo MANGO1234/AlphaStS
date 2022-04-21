@@ -281,6 +281,7 @@ public class MatchSession {
         }
     }
 
+
     boolean SLOW_TRAINING_WINDOW;
     boolean POLICY_CAP_ON;
     boolean TRAINING_WITH_LINE;
@@ -288,6 +289,9 @@ public class MatchSession {
     private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
+        boolean doNotExplore = state.prop.random.nextFloat() < 0.2;
+//        boolean doNotExplore = false;
+//        boolean doNotExplore = true;
         if (state.prop.randomization != null) {
             state.prop.randomization.randomize(state);
         }
@@ -295,9 +299,9 @@ public class MatchSession {
             state.doAction(0);
         }
         RandomGen random = state.prop.random;
-        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-            enemy.randomize(random, curriculumTraining);
-        }
+//        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+//            enemy.randomize(random, curriculumTraining);
+//        }
         if (state.prop.potions != null) {
             // var r = random.nextInt(11);
 //            var r = 0;
@@ -333,7 +337,7 @@ public class MatchSession {
 
             int action;
             int greedyAction;
-            if (state.turnNum >= 100) {
+            if (doNotExplore || state.turnNum >= 100) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
@@ -434,9 +438,9 @@ public class MatchSession {
             state.doAction(0);
         }
         RandomGen random = state.prop.random;
-        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-            enemy.randomize(random, curriculumTraining);
-        }
+//        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+//            enemy.randomize(random, curriculumTraining);
+//        }
         if (state.prop.potions != null) {
 //            var r = random.nextInt(11);
 //            var r = 0;

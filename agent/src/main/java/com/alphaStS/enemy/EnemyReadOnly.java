@@ -12,6 +12,7 @@ public abstract class EnemyReadOnly {
     protected int vulnerable;
     protected int weak;
     protected int artifact;
+    protected int loseStrengthEot;
     protected int move;
     protected int[] moveHistory;
     public int maxHealth;
@@ -52,6 +53,7 @@ public abstract class EnemyReadOnly {
         strength = other.strength;
         vulnerable = other.vulnerable;
         weak = other.weak;
+        loseStrengthEot = other.loseStrengthEot;
         artifact = other.artifact;
         move = other.move;
         numOfMoves = other.numOfMoves;
@@ -73,6 +75,10 @@ public abstract class EnemyReadOnly {
 
     public int getStrength() {
         return strength;
+    }
+
+    public int getLoseStrengthEot() {
+        return loseStrengthEot;
     }
 
     public int getVulnerable() {
@@ -97,8 +103,11 @@ public abstract class EnemyReadOnly {
 
     public String toString(GameState state) {
         String str = this.getName() + "{hp=" + health;
-        if (strength > 0) {
+        if (strength != 0) {
             str += ", str=" + strength;
+        }
+        if (loseStrengthEot != 0) {
+            str += ", gainStrEot=" + -loseStrengthEot;
         }
         if (move >= 0) {
             str += ", move=" + getMoveString(state);

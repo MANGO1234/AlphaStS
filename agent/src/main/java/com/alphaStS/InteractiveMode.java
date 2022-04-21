@@ -40,7 +40,7 @@ public class InteractiveMode {
                         }
                         System.out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
                         System.out.println("  HP: " + enemy.getHealth());
-                        if (enemy.getStrength() > 0) {
+                        if (enemy.getStrength() != 0) {
                             System.out.println("  Strength: " + enemy.getStrength());
                         }
                         if (enemy.getBlock() > 0) {
@@ -54,6 +54,9 @@ public class InteractiveMode {
                         }
                         if (enemy.getWeak() > 0) {
                             System.out.println("  Weak: " + enemy.getWeak());
+                        }
+                        if (enemy.getLoseStrengthEot() != 0) {
+                            System.out.println("  Gain Strength EOT: " + -enemy.getLoseStrengthEot());
                         }
                         if (enemy instanceof Enemy.RedLouse louse) {
                             if (!louse.hasCurledUp()) {
