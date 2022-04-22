@@ -1,6 +1,9 @@
 package com.alphaStS;
 
-public class CardNeutral {
+public class CardColorless {
+    // Bandage Up
+    // Blind
+
     private static abstract class _DarkShacklesT extends Card {
         private final int n;
 
@@ -33,4 +36,36 @@ public class CardNeutral {
         }
     }
 
+    // Deep Breath
+    // Discovery
+    // Dramatic Entrance
+    // Enlightenment
+    // Finesse
+    // Flash of Steel
+    // Forethought
+    // Good Instincts
+    // Impatience
+    // Jack Of All Trades
+    // Madness
+    // Mind Blast
+    // Panacea
+    // Panic Button
+    // Purity
+    // Swift Strike
+    // Trip
+    // Apotheosis
+    // Chrysalis
+    // Hand of Greed
+    // Magnetism
+    // Master Of Strategy
+    // Mayhem
+    // Metamorphosis
+    // Panache
+    // Sadistic Nature
+    // Secret Technique
+    // Secret Weapon
+    // The Bomb
+    // Thinking Ahead
+    // Transmutation
+    // Violence
 }

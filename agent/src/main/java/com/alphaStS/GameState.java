@@ -66,6 +66,7 @@ record GameAction(GameActionType type, int cardIdx, int enemyIdx) {
 public class GameState implements State {
     private static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
+    private static final boolean BUGGED_INPUT = false;
 
     boolean isStochastic;
     public GameProperties prop;
@@ -398,7 +399,7 @@ public class GameState implements State {
             }
         }
         if (prop.randomization != null) {
-            for (var r : prop.randomization.listRandomizations(this).keySet()) {
+            for (var r : prop.randomization.listRandomizations().keySet()) {
                 prop.randomization.reset(this);
                 var deckCopy = Arrays.copyOf(deck, deck.length);
                 prop.randomization.randomize(this, r);
@@ -1101,7 +1102,7 @@ public class GameState implements State {
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                if ((BUGGED_INPUT || action.type() == GameActionType.PLAY_CARD) && prop.cardDict[action.cardIdx()].selectEnemy) {
                     inputLen += 1;
                 }
             }
@@ -1238,7 +1239,7 @@ public class GameState implements State {
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                if ((BUGGED_INPUT || action.type() == GameActionType.PLAY_CARD) && prop.cardDict[action.cardIdx()].selectEnemy) {
                     str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
                 }
             }
@@ -1389,7 +1390,7 @@ public class GameState implements State {
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectEnemy) {
+                if ((BUGGED_INPUT || action.type() == GameActionType.PLAY_CARD) && prop.cardDict[action.cardIdx()].selectEnemy) {
                     x[idx++] = previousCardIdx == action.cardIdx() ? 0.6f : -0.6f;
                 }
             }

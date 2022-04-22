@@ -799,6 +799,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public void randomize(RandomGen random, boolean training) {
             health = 67 + random.nextInt(7);
+            splitMaxHealth = health;
         }
 
         public String getName() {
@@ -942,12 +943,12 @@ public abstract class Enemy extends EnemyReadOnly {
             moveHistory = new int[] {-1};
             canSlime = true;
             canWeaken = true;
+            splitMaxHealth = maxHealth;
         }
 
         public LargeAcidSlime(int health, boolean startDead) {
             this(health);
             if (startDead) this.health = 0;
-            splitMaxHealth = maxHealth;
         }
 
         public LargeAcidSlime(LargeAcidSlime other) {
@@ -1038,6 +1039,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public void randomize(RandomGen random, boolean training) {
             health = 68 + random.nextInt(5);
+            splitMaxHealth = health;
         }
 
         public String getName() {

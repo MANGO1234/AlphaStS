@@ -1,7 +1,5 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.Enemy;
-
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -248,7 +246,7 @@ public class MatchSession {
                     System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i)));
                     System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i))));
                 } else {
-                    for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
+                    for (var info : state.prop.randomization.listRandomizations().entrySet()) {
                         var i = info.getKey();
                         if (deathCount.get(i) == null) {
                             continue;
@@ -267,7 +265,7 @@ public class MatchSession {
                 }
                 if (game_i == numOfGames && printProgress) {
                     if (state.prop.randomization != null) {
-                        for (var info : state.prop.randomization.listRandomizations(state).entrySet()) {
+                        for (var info : state.prop.randomization.listRandomizations().entrySet()) {
                             if (damageCount.get(info.getKey()) == null) {
                                 continue;
                             }
@@ -563,7 +561,7 @@ public class MatchSession {
             result.add(steps);
             var state = steps.get(steps.size() - 1).state();
             trainingGame_i += 1;
-            if (trainingDataWriter != null && numOfGames <= 200) {
+            if (trainingDataWriter != null && numOfGames <= 500) {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");

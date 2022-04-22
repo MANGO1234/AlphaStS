@@ -25,49 +25,31 @@ public class Main {
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.GremlinNob());
         var relics = new ArrayList<Relic>();
-        var randomization = new GameStateRandomization() {
-            @Override public int randomize(GameState state) {
-                int r = state.prop.random.nextInt(5);
-                randomize(state, r);
-                return r;
-            }
-
-            @Override public void reset(GameState state) {
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Bash()), 1);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.BashP()), 0);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Strike()), 5);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.StrikeP()), 0);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Defend()), 4);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.DefendP()), 0);
-            }
-
-            @Override public void randomize(GameState state, int r) {
-                reset(state);
-                if (r == 1) {
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Strike()), 4);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.StrikeP()), 1);
-                } else if (r == 2) {
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Strike()), 3);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.StrikeP()), 2);
-                } else if (r == 3) {
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Bash()), 0);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.BashP()), 1);
-                } else if (r == 4) {
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Defend()), 0);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.DefendP()), 4);
-                }
-            }
-
-            @Override public Map<Integer, Info> listRandomizations(GameState state) {
-                var map = new HashMap<Integer, Info>();
-                map.put(0, new Info(1f / 5,"No Upgrade"));
-                map.put(1, new Info(1f / 5,"One Strike Upgrade"));
-                map.put(2, new Info(1f / 5,"Two Strikes Upgrade"));
-                map.put(3, new Info(1f / 5,"Bash Upgrade"));
-                map.put(4, new Info(1f / 5, "All Defends Upgraded"));
-                return map;
-            }
-        };
+        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Bash(), 1),
+                        new CardCount(new Card.Strike(), 5),
+                        new CardCount(new Card.Defend(), 4)),
+                List.of(new CardCount(new Card.Bash(), 1),
+                        new CardCount(new Card.Strike(), 4),
+                        new CardCount(new Card.StrikeP(), 1),
+                        new CardCount(new Card.Defend(), 4)),
+                List.of(new CardCount(new Card.Bash(), 1),
+                        new CardCount(new Card.Strike(), 3),
+                        new CardCount(new Card.StrikeP(), 2),
+                        new CardCount(new Card.Defend(), 4)),
+                List.of(new CardCount(new Card.BashP(), 1),
+                        new CardCount(new Card.Strike(), 5),
+                        new CardCount(new Card.Defend(), 4)),
+                List.of(new CardCount(new Card.Bash(), 1),
+                        new CardCount(new Card.Strike(), 5),
+                        new CardCount(new Card.DefendP(), 4))
+        )).setDescriptions(
+                "No Upgrade",
+                "One Strike Upgrade",
+                "Two Strikes Upgrade",
+                "Bash Upgrade",
+                "All Defends Upgraded"
+        );
         return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
     }
 
@@ -94,43 +76,25 @@ public class Main {
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.JawWorm());
         var relics = new ArrayList<Relic>();
-        relics.add(new Relic.BagOfPreparation());
-        var randomization = new GameStateRandomization() {
-            @Override public int randomize(GameState state) {
-                int r = state.prop.random.nextInt(3);
-                randomize(state, r);
-                return r;
-            }
-
-            @Override public void reset(GameState state) {
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Bash()), 1);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Defend()), 4);
-                state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Neutralize()), 0);
-                state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Survivor()), 0);
-                state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Acrobatics()), 0);
-            }
-
-            @Override public void randomize(GameState state, int r) {
-                reset(state);
-                if (r == 1 || r == 2) {
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Bash()), 0);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Defend()), 5);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Neutralize()), 1);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Survivor()), 1);
-                    if (r == 2) {
-                        state.setCardCountInDeck(state.prop.findCardIndex(new CardSilent.Acrobatics()), 1);
-                    }
-                }
-            }
-
-            @Override public Map<Integer, Info> listRandomizations(GameState state) {
-                var map = new HashMap<Integer, Info>();
-                map.put(0, new Info(1f / 3,"Ironclad Starter Deck"));
-                map.put(1, new Info(1f / 3,"Silent Starter Deck"));
-                map.put(2, new Info(1f / 3,"Silent Starter Deck With Acrobatics"));
-                return map;
-            }
-        };
+        relics.add(new Relic.RingOfSerpant());
+        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Bash(), 1),
+                        new CardCount(new Card.Strike(), 5),
+                        new CardCount(new Card.Defend(), 4)),
+                List.of(new CardCount(new Card.Strike(), 5),
+                        new CardCount(new Card.Defend(), 5),
+                        new CardCount(new CardSilent.Neutralize(), 1),
+                        new CardCount(new CardSilent.Survivor(), 1)),
+                List.of(new CardCount(new Card.Strike(), 5),
+                        new CardCount(new Card.Defend(), 5),
+                        new CardCount(new CardSilent.Neutralize(), 1),
+                        new CardCount(new CardSilent.Survivor(), 1),
+                        new CardCount(new CardSilent.Acrobatics(), 1))
+        )).setDescriptions(
+                "Ironclad Starter Deck",
+                "Silent Starter Deck",
+                "Silent Starter Deck With Acrobatics"
+        );
         return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
     }
 
@@ -172,7 +136,6 @@ public class Main {
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.Lagavulin());
         var relics = new ArrayList<Relic>();
-//        relics.add(new Relic.HappyFlower());
         var potions = new ArrayList<Potion>();
         potions.add(new Potion.DexterityPotion());
         var player = new Player(73, 75);
@@ -240,49 +203,29 @@ public class Main {
         relics.add(new Relic.AncientTeaSet());
         relics.add(new Relic.DuVuDoll());
         relics.add(new Relic.WarpedTongs());
-        var randomization = new GameStateRandomization() {
-            @Override public int randomize(GameState state) {
-//                int r = state.prop.random.nextInt(4);
-//                int r = state.prop.random.nextInt(2) + 1;
-                int r = 0;
-                randomize(state, r);
-                return r;
-            }
-
-            @Override public void reset(GameState state) {
-                state.getPlayerForWrite().setOrigHealth(41);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.Carnage()), 1);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.CarnageP()), 0);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOff()), 1);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOffP()), 0);
-                state.setCardCountInDeck(state.prop.findCardIndex(new Card.PowerThrough()), 1);
-            }
-
-            @Override public void randomize(GameState state, int r) {
-                reset(state);
-                if (r == 1) {
-                    state.getPlayerForWrite().setOrigHealth(19);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOff()), 0);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.ShrugItOffP()), 1);
-                } else if (r == 2) {
-                    state.getPlayerForWrite().setOrigHealth(19);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Carnage()), 0);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.CarnageP()), 1);
-                } else if (r == 3) {
-                    state.getPlayerForWrite().setOrigHealth(41);
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.PowerThrough()), 0);
-                }
-            }
-
-            @Override public Map<Integer, Info> listRandomizations(GameState state) {
-                var map = new HashMap<Integer, Info>();
-                map.put(0, new Info(1f / 4, "Health 41"));
-                map.put(1, new Info(1f / 4,"Health 19, Upgrade Shrug It Off"));
-                map.put(2, new Info(1f / 4,"Health 19, Upgrade Carnage"));
-                map.put(3, new Info(1f / 4, "Health 41, No Power Through"));
-                return map;
-            }
-        };
+        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Carnage(), 1),
+                        new CardCount(new Card.ShrugItOff(), 1),
+                        new CardCount(new Card.PowerThrough(), 1)),
+                List.of(new CardCount(new Card.Carnage(), 1),
+                        new CardCount(new Card.ShrugItOffP(), 1),
+                        new CardCount(new Card.PowerThrough(), 1)),
+                List.of(new CardCount(new Card.CarnageP(), 1),
+                        new CardCount(new Card.ShrugItOff(), 1),
+                        new CardCount(new Card.PowerThrough(), 1)),
+                List.of(new CardCount(new Card.Carnage(), 1),
+                        new CardCount(new Card.ShrugItOff(), 1))
+        )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
+                (state) -> state.getPlayerForWrite().setHealth(41),
+                (state) -> state.getPlayerForWrite().setHealth(19),
+                (state) -> state.getPlayerForWrite().setHealth(19),
+                (state) -> state.getPlayerForWrite().setHealth(41)
+        ))).setDescriptions(
+                "Health 41",
+                "Health 19, Upgrade Shrug It Off",
+                "Health 19, Upgrade Carnage",
+                "Health 41, No Power Through"
+        );
         return new GameState(enemies, new Player(41, 75), cards, relics, null, randomization);
     }
 
@@ -335,7 +278,7 @@ public class Main {
         cards.add(new CardCount(new Card.Anger(), 1));
         cards.add(new CardCount(new Card.Inflame(), 1));
         cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new CardNeutral.DarkShackles(), 1));
+        cards.add(new CardCount(new CardColorless.DarkShackles(), 1));
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
         enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
@@ -344,51 +287,78 @@ public class Main {
         enemies.add(new Enemy.Lagavulin());
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.BagOfPreparation());
-        var randomization = new GameStateRandomization() {
-            @Override public int randomize(GameState state) {
-                int r = state.prop.random.nextInt(3);
-                randomize(state, r);
-                return r;
-            }
-
-            @Override public void reset(GameState state) {
-                state.getEnemiesForWrite().getForWrite(0).setHealth(0);
-                state.getEnemiesForWrite().getForWrite(1).setHealth(0);
-                state.getEnemiesForWrite().getForWrite(2).setHealth(0);
-                state.getEnemiesForWrite().getForWrite(3).setHealth(state.getEnemiesForWrite().get(3).maxHealth);
-                state.getEnemiesForWrite().getForWrite(4).setHealth(0);
-                state.enemiesAlive = 1;
-            }
-
-            @Override public void randomize(GameState state, int r) {
-                reset(state);
-                if (r == 1) {
-                    state.getEnemiesForWrite().getForWrite(0).setHealth(state.getEnemiesForWrite().get(0).maxHealth);
-                    state.getEnemiesForWrite().getForWrite(1).setHealth(state.getEnemiesForWrite().get(1).maxHealth);
-                    state.getEnemiesForWrite().getForWrite(2).setHealth(state.getEnemiesForWrite().get(2).maxHealth);
-                    state.getEnemiesForWrite().getForWrite(3).setHealth(0);
-                    state.enemiesAlive = 3;
-                } else if (r == 2) {
-                    state.getEnemiesForWrite().getForWrite(3).setHealth(0);
-                    state.getEnemiesForWrite().getForWrite(4).setHealth(state.getEnemiesForWrite().get(4).maxHealth);
-                    state.enemiesAlive = 1;
-                }
-            }
-
-            @Override public Map<Integer, Info> listRandomizations(GameState state) {
-                var map = new HashMap<Integer, Info>();
-                map.put(0, new Info(1f / 3,"Gremlin Nob"));
-                map.put(1, new Info(1f / 3,"Sentries"));
-                map.put(2, new Info(1f / 3,"Lagavulin"));
-                return map;
-            }
-        };
-//        randomization = null;
+        var randomization = new GameStateRandomization.EnemyEncounterRandomization(enemies,
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        );
+        //        randomization = null;
         return new GameState(enemies, new Player(43, 75), cards, relics, null, randomization);
     }
 
+    public static GameState TestState2() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.UppercutP(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.Inflame(), 1));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new CardColorless.DarkShackles(), 1));
+        cards.add(new CardCount(new Card.Combust(), 1));
+        cards.add(new CardCount(new Card.SeeingRed(), 1));
+        cards.add(new CardCount(new Card.IronWave(), 1));
+        cards.add(new CardCount(new Card.DemonForm(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        enemies.add(new Enemy.GremlinNob());
+        enemies.add(new Enemy.Lagavulin());
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.BagOfPreparation());
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Combust(), 1), new CardCount(new Card.IronWave(), 1)),
+                List.of(new CardCount(new Card.Combust(), 1), new CardCount(new Card.DemonForm(), 1)),
+                List.of(new CardCount(new Card.SeeingRed(), 1), new CardCount(new Card.IronWave(), 1)),
+                List.of(new CardCount(new Card.SeeingRed(), 1), new CardCount(new Card.DemonForm(), 1)),
+                List.of(new CardCount(new Card.Combust(), 1))
+        ));
+        randomization = new GameStateRandomization.EnemyEncounterRandomization(enemies,
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        ).doAfter(randomization).fixR(0, 1, 2, 12, 13, 14);
+        return new GameState(enemies, new Player(41, 75), cards, relics, null, randomization);
+    }
+
+    public static GameState TestState3() {
+        var cards = new ArrayList<CardCount>();
+        cards.add(new CardCount(new Card.Bash(), 1));
+        cards.add(new CardCount(new Card.Strike(), 4));
+        cards.add(new CardCount(new Card.Defend(), 4));
+        cards.add(new CardCount(new Card.UppercutP(), 1));
+        cards.add(new CardCount(new Card.Anger(), 1));
+        cards.add(new CardCount(new Card.Inflame(), 1));
+        cards.add(new CardCount(new Card.AscendersBane(), 1));
+        cards.add(new CardCount(new CardColorless.DarkShackles(), 1));
+        cards.add(new CardCount(new Card.Combust(), 1));
+        cards.add(new CardCount(new Card.IronWave(), 1));
+        cards.add(new CardCount(new Card.SpotWeakness(), 1));
+        var enemies = new ArrayList<Enemy>();
+        enemies.add(new Enemy.SmallAcidSlime());
+        enemies.add(new Enemy.SmallAcidSlime());
+        enemies.add(new Enemy.SmallSpikeSlime());
+        enemies.add(new Enemy.SmallSpikeSlime());
+        enemies.add(new Enemy.SmallSpikeSlime());
+        var relics = new ArrayList<Relic>();
+        relics.add(new Relic.BagOfPreparation());
+        return new GameState(enemies, new Player(13, 75), cards, relics, null, null);
+    }
+
     public static void main(String[] args) throws IOException {
-        var state = TestState();
+        var state = TestState3();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -474,13 +444,12 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_sentries_norm";
 //            SAVES_DIR = "../tmp/test/saves_nob";
 //            SAVES_DIR = "../tmp/test/saves_laga";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
-//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 200;
+//            SAVES_DIR = "../tmp/test2/saves";
+            NUMBER_OF_GAMES_TO_PLAY = 24000;
+            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+            NUMBER_OF_NODES_PER_TURN = 1000;
 //            iteration = 31;
-            RANDOMIZATION_SCENARIO = 0;
-            //                COMPARE_DIR = "../tmp/laga_potions_on/saves/iteration30";
-//            COMPARE_DIR = "../tmp/laga3/saves/iteration15";
+//            RANDOMIZATION_SCENARIO = 0;
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -519,9 +488,9 @@ public class Main {
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir);
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
             if (!TEST_TRAINING_AGENT) {
-                if (state.prop.randomization != null) {
-                    state.prop.randomization.randomize(state, RANDOMIZATION_SCENARIO);
-                }
+//                if (state.prop.randomization != null) {
+//                    state.prop.randomization.randomize(state, RANDOMIZATION_SCENARIO);
+//                }
 //                GameSolver solver = new GameSolver(state);
 //                solver.solve();
 //                session.solver = solver;
@@ -545,14 +514,15 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
-            writeTrainingData(games, curIterationDir +  "/training_data.bin");
+            var games = session.playTrainingGames(state, 300, 100, CURRICULUM_TRAINING_ON);
+            writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {
                 var m = session.mcts.get(i);
                 System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
-                System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
+                System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/"
+                        + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
             }
             System.out.println("--------------------");
         }
@@ -604,7 +574,7 @@ public class Main {
                                 if (state.getLegalActions()[state.terminal_action] == action) {
                                     stream.writeFloat(1);
                                 } else {
-                                    stream.writeFloat( 0);
+                                    stream.writeFloat(0);
                                 }
                             } else {
                                 if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
@@ -631,7 +601,7 @@ public class Main {
         if (state.prop.randomization != null) {
             writer.write("\n************************** Randomizations **************************\n");
             int i = 1;
-            for (var info : state.prop.randomization.listRandomizations(state).values()) {
+            for (var info : state.prop.randomization.listRandomizations().values()) {
                 writer.write(i + ". (" + Utils.formatFloat(info.chance() * 100) + "%) " + info.desc() + "\n");
                 i += 1;
             }

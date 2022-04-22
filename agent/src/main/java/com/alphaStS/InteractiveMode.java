@@ -134,6 +134,7 @@ public class InteractiveMode {
                             state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
                             state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
                             state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                            state.getAction(i).type() == GameActionType.BEGIN_TURN ||
                             state.getAction(i).type() == GameActionType.USE_POTION) {
                         System.out.println(i + ". " + state.getActionString(i));
                     } else if (state.getAction(i).type() == GameActionType.END_TURN) {
@@ -468,7 +469,7 @@ public class InteractiveMode {
         if (state.prop.randomization == null) {
             return ;
         }
-        var randomizations = state.prop.randomization.listRandomizations(state);
+        var randomizations = state.prop.randomization.listRandomizations();
         while (true) {
             for (var info : randomizations.entrySet()) {
                 System.out.println(info.getKey() + ". " + info.getValue().desc());
