@@ -331,7 +331,7 @@ public class Main {
                 new int[] { 0, 1, 2 },
                 new int[] { 3 },
                 new int[] { 4 }
-        ).doAfter(randomization).fixR(0, 1, 2, 12, 13, 14);
+        ).doAfter(randomization).fixR(0, 1, 2, 12, 13, 14).fixR(0);
         return new GameState(enemies, new Player(41, 75), cards, relics, null, randomization);
     }
 
@@ -451,12 +451,14 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_nob";
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
-//            SAVES_DIR = "../tmp/slimeboss/saves_artifact";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
-            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+//            SAVES_DIR = "../tmp/comp1/saves_vr";
+            NUMBER_OF_GAMES_TO_PLAY = 1000;
+//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 50;
-//            iteration = 31;
+            NUMBER_OF_NODES_PER_TURN = 100;
+//            iteration = 21;
+//            COMPARE_DIR = "../saves/iteration20";
+//            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 1);
 //            RANDOMIZATION_SCENARIO = 0;
         }
 

@@ -121,6 +121,9 @@ public abstract class EnemyReadOnly {
         if (weak > 0) {
             str += ", weak=" + weak;
         }
+        if (artifact > 0) {
+            str += ", art=" + artifact;
+        }
         return str + '}';
     }
 
@@ -130,6 +133,9 @@ public abstract class EnemyReadOnly {
         if (o == null || getClass() != o.getClass())
             return false;
         Enemy enemy = (Enemy) o;
+        if (health == 0 && health == enemy.health) {
+            return true;
+        }
         return health == enemy.health && maxHealth == enemy.maxHealth && block == enemy.block
                 && strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak
                 && artifact == enemy.artifact && move == enemy.move && Arrays.equals(moveHistory, enemy.moveHistory);
