@@ -73,7 +73,7 @@ public class MCTS {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2.doAction(0);
-                        var cState = new ChanceState(state2, state, action);
+                        var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(parentState, cState);
                         this.search2_r(state2, training, remainingCalls, false);
@@ -195,7 +195,7 @@ public class MCTS {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2.doAction(0);
-                        var cState = new ChanceState(state2, state, action);
+                        var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(parentState, cState);
                         this.search3_r(state2, training, remainingCalls, false);

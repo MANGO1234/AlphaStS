@@ -362,7 +362,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException {
-        var state = SlimeBossStateLC();
+        var state = TestState2();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -452,10 +452,10 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
 //            SAVES_DIR = "../tmp/slimeboss/saves_artifact";
-            NUMBER_OF_GAMES_TO_PLAY = 1000;
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 5000;
+            NUMBER_OF_NODES_PER_TURN = 50;
 //            iteration = 31;
 //            RANDOMIZATION_SCENARIO = 0;
         }

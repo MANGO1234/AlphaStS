@@ -600,7 +600,11 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (int _i = 0; _i < n; _i++) {
-                int enemy_j = state.prop.random.nextInt(state.enemiesAlive);
+                int enemy_j = 0;
+                if (state.enemiesAlive > 1) {
+                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive);
+                    state.isStochastic = true;
+                }
                 int j = 0;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     if (j == enemy_j) {
@@ -609,9 +613,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                     }
                     enemy_j += 1;
                 }
-            }
-            if (state.enemiesAlive > 1) {
-                state.isStochastic = true;
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -673,15 +674,17 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 c += state.hand[cardIdx];
                 diffCards += state.hand[cardIdx] > 0 ? 1 : 0;
             }
-            int r = state.prop.random.nextInt(c);
+            int r = 1;
+            if (diffCards > 1) {
+                r = state.getSearchRandomGen().nextInt(c) + 1;
+                state.isStochastic = true;
+            }
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
+                r -= state.hand[cardIdx];
                 if (r <= 0) {
                     state.exhaustCardFromHand(cardIdx);
+                    break;
                 }
-                r -= state.hand[cardIdx];
-            }
-            if (diffCards > 1) {
-                state.isStochastic = true;
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1516,7 +1519,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            var r = state.prop.random.nextInt(state.prop.infernalBladeIndexes.length);
+            var r = state.getSearchRandomGen().nextInt(state.prop.infernalBladeIndexes.length);
             state.addCardToHand(state.prop.infernalBladeIndexes[r]);
             state.isStochastic = true;
             return GameActionCtx.PLAY_CARD;
@@ -2602,16 +2605,17 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             state.addOnBlockHandler("Juggernaut", new GameEventHandler() {
                 @Override void handle(GameState state) {
-                    int i = state.prop.random.nextInt(state.enemiesAlive);
+                    int i = 0;
+                    if (state.enemiesAlive > 1) {
+                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive);
+                        state.isStochastic = true;
+                    }
                     int enemy_j = 0;
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         if (i == enemy_j) {
                             state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
                         }
                         enemy_j ++;
-                    }
-                    if (state.enemiesAlive > 1) {
-                        state.isStochastic = true;
                     }
                 }
             });

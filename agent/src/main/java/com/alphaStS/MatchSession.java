@@ -338,12 +338,18 @@ public class MatchSession {
         float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
         float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
         float v_comb = (float) state.calc_q(v_win, v_health);
+        ChanceState lastChanceState = null;
         for (int i = states.size() - 1; i >= 0; i--) {
             if (states.get(i).isExplorationMove) {
-                if (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1) > v_comb) {
-                    v_win = (float) (states.get(i).state().total_q_win / (states.get(i).state().total_n + 1));
-                    v_health = (float) (states.get(i).state().total_q_health / (states.get(i).state().total_n + 1));
-                    v_comb = (float) (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1));
+                ChanceState cState = findBestLineChanceState(states.get(i).state());
+                // make sure we are not transposing (taking the max of 2 iid will overinflate eval)
+                if (cState != null && lastChanceState != null && !cState.equals(lastChanceState)) {
+                    if (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1) > v_comb) {
+                        v_win = (float) (states.get(i).state().total_q_win / (states.get(i).state().total_n + 1));
+                        v_health = (float) (states.get(i).state().total_q_health / (states.get(i).state().total_n + 1));
+                        v_comb = (float) (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1));
+                        lastChanceState = cState;
+                    }
                 }
             }
             states.get(i).v_win = v_win;
@@ -351,62 +357,74 @@ public class MatchSession {
             states.get(i).v_comb = v_comb;
             state = states.get(i).state();
             state.clearNextStates();
-            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
+            if (state.isStochastic && i > 0) {
                 var prevState = states.get(i - 1).state();
                 var prevAction = states.get(i - 1).action();
                 var cState = (ChanceState) prevState.ns[prevAction];
-                var stateActual = cState.addGeneratedState(state);
-                while (cState.total_n < 1000 && cState.cache.size() < 100) {
-                    cState.getNextState(false);
-                }
-                double est_v_win = 0;
-                double est_v_health = 0;
-                double[] out = new double[3];
-                for (ChanceState.Node node : cState.cache.values()) {
-                    if (node.state != stateActual) {
-                        if (node.state.policy == null) {
-                            node.state.doEval(mcts.model);
-                        }
-                        node.state.get_v(out);
-                        est_v_win += out[0] * node.n;
-                        est_v_health += out[1] * node.n;
-                    }
-                }
-                est_v_win /= cState.total_node_n;
-                est_v_health /= cState.total_node_n;
-                float p = ((float) cState.getCount(stateActual)) / cState.total_node_n;
-                if (v_win * p + (float) est_v_win > 1.0001) {
-                    Integer.parseInt(null);
-                }
-                v_win = Math.min(v_win * p + (float) est_v_win, 1);
-                v_health = Math.min(v_health * p + (float) est_v_health, 1);
+                lastChanceState = cState;
 
-                //  var prevSize = cState.cache.size();
-                //  for (int j = 1; j < 900; j++) {
-                //      cState.getNextState(prevState, prevAction);
-                //  }
-                //  est_v_win = 0;
-                //  est_v_health = 0;
-                //  for (ChanceState.Node node : cState.cache.values()) {
-                //      if (node.state != state) {
-                //          node.state.doEval(session.mcts.get(_ii).model);
-                //          node.state.get_v(out);
-                //          est_v_win += out[0] * node.n;
-                //          est_v_health += out[1] * node.n;
-                //      }
-                //  }
-                //  est_v_win /= cState.total_n;
-                //  est_v_health /= cState.total_n;
-                //  p = ((float) cState.getCount(state)) / cState.total_n;
-                //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
-                //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
-                //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
-                //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
-                //  }
+                if (!SLOW_TRAINING_WINDOW) {
+                    var stateActual = cState.addGeneratedState(state);
+                    while (cState.total_n < 1000 && cState.cache.size() < 100) {
+                        cState.getNextState(false);
+                    }
+                    double est_v_win = 0;
+                    double est_v_health = 0;
+                    double[] out = new double[3];
+                    for (ChanceState.Node node : cState.cache.values()) {
+                        if (node.state != stateActual) {
+                            if (node.state.policy == null) {
+                                node.state.doEval(mcts.model);
+                            }
+                            node.state.get_v(out);
+                            est_v_win += out[0] * node.n;
+                            est_v_health += out[1] * node.n;
+                        }
+                    }
+                    est_v_win /= cState.total_node_n;
+                    est_v_health /= cState.total_node_n;
+                    float p = ((float) cState.getCount(stateActual)) / cState.total_node_n;
+                    if (v_win * p + (float) est_v_win > 1.0001) {
+                        Integer.parseInt(null);
+                    }
+                    v_win = Math.min(v_win * p + (float) est_v_win, 1);
+                    v_health = Math.min(v_health * p + (float) est_v_health, 1);
+
+                    //  var prevSize = cState.cache.size();
+                    //  for (int j = 1; j < 900; j++) {
+                    //      cState.getNextState(prevState, prevAction);
+                    //  }
+                    //  est_v_win = 0;
+                    //  est_v_health = 0;
+                    //  for (ChanceState.Node node : cState.cache.values()) {
+                    //      if (node.state != state) {
+                    //          node.state.doEval(session.mcts.get(_ii).model);
+                    //          node.state.get_v(out);
+                    //          est_v_win += out[0] * node.n;
+                    //          est_v_health += out[1] * node.n;
+                    //      }
+                    //  }
+                    //  est_v_win /= cState.total_n;
+                    //  est_v_health /= cState.total_n;
+                    //  p = ((float) cState.getCount(state)) / cState.total_n;
+                    //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
+                    //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
+                    //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
+                    //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
+                    //  }
+                }
             }
         }
 
         return new Game(states, r, doNotExplore);
+    }
+
+    private ChanceState findBestLineChanceState(State state) {
+        while (state instanceof GameState state2) {
+            int action = MCTS.getActionWithMaxNodesOrTerminal(state2);
+            state = state2.ns[action];
+        }
+        return (ChanceState) state;
     }
 
     private Game playTrainingGame2(GameState origState, int nodeCount, MCTS mcts) {
