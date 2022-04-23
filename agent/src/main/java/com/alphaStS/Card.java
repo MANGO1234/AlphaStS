@@ -387,8 +387,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             int cardIdx = state.drawOneCardSpecial();
+            var _this = this;
             state.addGameActionToEndOfDeque(curState -> {
-                state.playCard(cardIdx, -1, false, false);
+                var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                state.playCard(action, -1, false, false);
             });
             state.addGameActionToEndOfDeque(curState -> {
                 state.exhaustedCardHandle(cardIdx, true);
@@ -2402,7 +2404,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                     counters[counterIdx] = -counters[counterIdx]; // prevent double tap from duplicating the cloned attack
                     var enemyIdx = state.lastEnemySelected;
                     state.addGameActionToEndOfDeque(curState -> {
-                        curState.playCard(curState.prop.findCardIndex(card), enemyIdx, true, false);
+                        var cardIdx = curState.prop.findCardIndex(card);
+                        var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                        curState.playCard(action, enemyIdx, true, false);
                     });
                 }
             });

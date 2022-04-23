@@ -1,26 +1,57 @@
 package com.alphaStS;
 
 public abstract class Potion {
-    boolean canVulnerable;
+    boolean vulnEnemy;
+    boolean weakEnemy;
     boolean changePlayerStrength;
     boolean changePlayerDexterity;
+    boolean changePlayerArtifact;
     boolean selectEnemy;
+    boolean selectFromHand;
+    boolean selectFromDiscard;
 
-    public abstract void use(GameState state, int enemyIdx);
-    public abstract void useDouble(GameState state, int enemyIdx);
+    public abstract GameActionCtx use(GameState state, int idx);
+    public abstract GameActionCtx useDouble(GameState state, int idx);
 
     public static class VulnerablePotion extends Potion {
         public VulnerablePotion() {
-            canVulnerable = true;
+            vulnEnemy = true;
             selectEnemy = true;
         }
 
-        @Override public void use(GameState state, int enemyIdx) {
-            state.getEnemiesForWrite().getForWrite(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 3);
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.VULNERABLE, 3);
+            return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void useDouble(GameState state, int enemyIdx) {
-            state.getEnemiesForWrite().getForWrite(enemyIdx).applyDebuff(DebuffType.VULNERABLE, 6);
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.VULNERABLE, 6);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Vulnerable Potion";
+        }
+    }
+
+    public static class WeakPotion extends Potion {
+        public WeakPotion() {
+            weakEnemy = true;
+            selectEnemy = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.WEAK, 3);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.WEAK, 6);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Weak Potion";
         }
     }
 
@@ -29,12 +60,14 @@ public abstract class Potion {
             changePlayerStrength = true;
         }
 
-        @Override public void use(GameState state, int enemyIdx) {
+        @Override public GameActionCtx use(GameState state, int idx) {
             state.getPlayerForWrite().gainStrength(2);
+            return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void useDouble(GameState state, int enemyIdx) {
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
             state.getPlayerForWrite().gainStrength(4);
+            return GameActionCtx.PLAY_CARD;
         }
 
         @Override public String toString() {
@@ -47,16 +80,38 @@ public abstract class Potion {
             changePlayerDexterity = true;
         }
 
-        @Override public void use(GameState state, int enemyIdx) {
+        @Override public GameActionCtx use(GameState state, int idx) {
             state.getPlayerForWrite().gainDexterity(2);
+            return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void useDouble(GameState state, int enemyIdx) {
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
             state.getPlayerForWrite().gainDexterity(4);
+            return GameActionCtx.PLAY_CARD;
         }
 
         @Override public String toString() {
             return "Dexterity Potion";
+        }
+    }
+
+    public static class AncientPotion extends Potion {
+        public AncientPotion() {
+            changePlayerArtifact = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getPlayerForWrite().gainArtifact(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            state.getPlayerForWrite().gainArtifact(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Ancient Potion";
         }
     }
 }

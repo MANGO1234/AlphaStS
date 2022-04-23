@@ -289,6 +289,10 @@ public class InteractiveMode {
                         state = states.remove(states.size() - 1);
                     }
                     continue;
+                } else if (line.startsWith("pot ")) {
+                    updatePotionUtility(state, line);
+                    skipPrint = true;
+                    continue;
                 } else if (line.equals("do")) {
                     drawOrder = new ArrayList<Integer>();
                     mode = 1;
@@ -420,6 +424,31 @@ public class InteractiveMode {
                 }
                 System.out.println("Unknown Command.");
             }
+        }
+    }
+
+    private static void updatePotionUtility(GameState state, String line) {
+        var s = line.substring(4).split(" ");
+        var potionIdx = -1;
+        var util = 0;
+        if (s.length == 1 && state.prop.potions.size() == 1) {
+            potionIdx = 0;
+        } else if (s.length >= 2) {
+            potionIdx = parseInt(s[0], -1);
+            util = parseInt(s[1], 0);
+        }
+        if (potionIdx < 0) {
+            System.out.println("Invalid Command.");
+            return;
+        }
+        if (util == 0) {
+            System.out.println("Set " + state.prop.potions.get(potionIdx) + " to unusable.");
+            state.potionsState[potionIdx * 3 + 1] = 0;
+            state.potionsState[potionIdx * 3 + 1] = 100;
+            state.potionsState[potionIdx * 3 + 1] = 0;
+        } else {
+            System.out.println("Set " + state.prop.potions.get(potionIdx) + " utility to " + util + ".");
+            state.potionsState[potionIdx * 3 + 1] = util;
         }
     }
 

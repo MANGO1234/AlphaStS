@@ -66,7 +66,6 @@ record GameAction(GameActionType type, int cardIdx, int enemyIdx) {
 public class GameState implements State {
     private static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
-    private static final boolean BUGGED_INPUT = false;
 
     boolean isStochastic;
     public GameProperties prop;
@@ -93,7 +92,7 @@ public class GameState implements State {
     private Deque<GameEnvironmentAction> gameActionDeque;
     int energy;
     int energyRefill;
-    int previousCardIdx;
+    GameAction currentAction;
     short turnNum;
     int playerTurnStartHealth;
 
@@ -129,12 +128,12 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && previousCardIdx == gameState.previousCardIdx && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
     }
 
     @Override public int hashCode() {
         // actionCtx, energy, energyRefill, hand, enemies health, previousCardIdx, drawOrder, buffs should cover most
-        int result = Objects.hash(actionCtx, energy, energyRefill, previousCardIdx, drawOrder, buffs);
+        int result = Objects.hash(actionCtx, energy, energyRefill, currentAction, drawOrder, buffs);
         for (var enemy : enemies) {
             result = 31 * result + enemy.getHealth();
         }
@@ -303,6 +302,7 @@ public class GameState implements State {
         Collections.sort(prop.onCardDrawnHandlers);
 
         prop.playerArtifactCanChange = getPlayeForRead().getArtifact() > 0;
+        prop.playerArtifactCanChange |= prop.potions != null && prop.potions.stream().anyMatch((x) -> x.changePlayerArtifact);
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
         prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
@@ -316,8 +316,12 @@ public class GameState implements State {
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
         prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
-        prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy) || relics.stream().anyMatch((x) -> x.vulnEnemy);
-        prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy) || relics.stream().anyMatch((x) -> x.weakEnemy);
+        prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
+        prop.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
+        prop.enemyCanGetVuln |= potions != null && potions.stream().anyMatch((x) -> x.vulnEnemy);
+        prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy);
+        prop.enemyCanGetWeakened |= relics.stream().anyMatch((x) -> x.weakEnemy);
+        prop.enemyCanGetWeakened |= potions != null && potions.stream().anyMatch((x) -> x.weakEnemy);
         prop.enemyStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().affectEnemyStrengthEot);
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
@@ -459,7 +463,7 @@ public class GameState implements State {
         player = other.player;
         enemies = other.enemies;
         enemiesAlive = other.enemiesAlive;
-        previousCardIdx = other.previousCardIdx;
+        currentAction = other.currentAction;
         drawOrder = other.drawOrder;
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
             gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
@@ -555,35 +559,36 @@ public class GameState implements State {
         return prop.cardDict[cardIdx].energyCost(this);
     }
 
-    public void setActionCtx(GameActionCtx ctx, int card_idx) {
+    public void setActionCtx(GameActionCtx ctx, GameAction action) {
         switch (ctx) {
         case PLAY_CARD -> {
-            previousCardIdx = -1;
+            currentAction = null;
             lastEnemySelected = -1;
             actionCtx = ctx;
         }
         case SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST -> {
-            previousCardIdx = card_idx;
+            currentAction = action;
             actionCtx = ctx;
         }
         case BEGIN_TURN -> actionCtx = ctx;
         }
     }
 
-    void playCard(int cardIdx, int selectIdx, boolean cloned, boolean useEnergy) {
+    void playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy) {
+        int cardIdx = action.cardIdx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             hand[cardIdx] -= 1;
             if (useEnergy) {
                 energy -= getCardEnergyCost(cardIdx);
             }
             if (prop.cardDict[cardIdx].selectEnemy) {
-                setActionCtx(GameActionCtx.SELECT_ENEMY, cardIdx);
+                setActionCtx(GameActionCtx.SELECT_ENEMY, action);
             } else if (prop.cardDict[cardIdx].selectFromHand && !prop.cardDict[cardIdx].selectFromHandLater) {
-                setActionCtx(GameActionCtx.SELECT_CARD_HAND, cardIdx);
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action);
             } else if (prop.cardDict[cardIdx].selectFromDiscard && !prop.cardDict[cardIdx].selectFromDiscardLater) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, cardIdx);
+                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action);
             } else if (prop.cardDict[cardIdx].selectFromExhaust) {
-                setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, cardIdx);
+                setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action);
             }
         }
 
@@ -593,12 +598,12 @@ public class GameState implements State {
                     for (int i = 0; i < enemies.size(); i++) {
                         if (enemies.get(i).getHealth() > 0) {
                             lastEnemySelected = i;
-                            setActionCtx(prop.cardDict[cardIdx].play(this, i), cardIdx);
+                            setActionCtx(prop.cardDict[cardIdx].play(this, i), action);
                         }
                     }
                 } else if (selectIdx >= 0) {
                     lastEnemySelected = selectIdx;
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
                     selectIdx = -1;
                 } else {
                     break;
@@ -610,11 +615,11 @@ public class GameState implements State {
                     lastIdx = discard[j] > 0 ? j : lastIdx;
                 }
                 if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, cardIdx);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), action);
                 } else if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
                     selectIdx = -1;
                 } else {
                     break;
@@ -628,11 +633,11 @@ public class GameState implements State {
                     }
                 }
                 if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, cardIdx);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), action);
                 } else if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
                     selectIdx = -1;
                 } else {
                     break;
@@ -644,17 +649,17 @@ public class GameState implements State {
                     lastIdx = exhaust[j] > 0 ? j : lastIdx;
                 }
                 if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, cardIdx);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), action);
                 } else if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), cardIdx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
                     selectIdx = -1;
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(prop.cardDict[cardIdx].play(this, -1), cardIdx);
+                setActionCtx(prop.cardDict[cardIdx].play(this, -1), action);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
@@ -677,6 +682,90 @@ public class GameState implements State {
                 }
             }
         }
+    }
+
+    void usePotion(GameAction action, int selectIdx) {
+        int potionIdx = action.cardIdx();
+        if (actionCtx == GameActionCtx.PLAY_CARD) {
+            if (prop.potions.get(potionIdx).selectEnemy) {
+                setActionCtx(GameActionCtx.SELECT_ENEMY, action);
+            } else if (prop.potions.get(potionIdx).selectFromHand) {
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action);
+            } else if (prop.potions.get(potionIdx).selectFromDiscard) {
+                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action);
+            }
+        }
+
+        do {
+            if (actionCtx == GameActionCtx.SELECT_ENEMY) {
+                if (enemiesAlive == 1) {
+                    for (int i = 0; i < enemies.size(); i++) {
+                        if (enemies.get(i).getHealth() > 0) {
+                            lastEnemySelected = i;
+                            setActionCtx(prop.potions.get(potionIdx).use(this, i), action);
+                        }
+                    }
+                } else if (selectIdx >= 0) {
+                    lastEnemySelected = selectIdx;
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    selectIdx = -1;
+                } else {
+                    break;
+                }
+            } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
+                int possibleChoicesCount = 0, lastIdx = 0;
+                for (int j = 0; j < discard.length; j++) {
+                    possibleChoicesCount += discard[j] > 0 ? 1 : 0;
+                    lastIdx = discard[j] > 0 ? j : lastIdx;
+                }
+                if (possibleChoicesCount == 0) {
+                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                } else if (possibleChoicesCount == 1) {
+                    setActionCtx(prop.potions.get(potionIdx).use(this, lastIdx), action);
+                } else if (selectIdx >= 0) {
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    selectIdx = -1;
+                } else {
+                    break;
+                }
+            } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
+                int possibleChoicesCount = 0, lastIdx = 0;
+                for (int j = 0; j < hand.length; j++) {
+                    if (hand[j] > 0) {
+                        possibleChoicesCount += 1;
+                        lastIdx = j;
+                    }
+                }
+                if (possibleChoicesCount == 0) {
+                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                } else if (possibleChoicesCount == 1) {
+                    setActionCtx(prop.potions.get(potionIdx).use(this, lastIdx), action);
+                } else if (selectIdx >= 0) {
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    selectIdx = -1;
+                } else {
+                    break;
+                }
+            } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
+                int possibleChoicesCount = 0, lastIdx = 0;
+                for (int j = 0; j < exhaust.length; j++) {
+                    possibleChoicesCount += exhaust[j] > 0 ? 1 : 0;
+                    lastIdx = exhaust[j] > 0 ? j : lastIdx;
+                }
+                if (possibleChoicesCount == 0) {
+                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                } else if (possibleChoicesCount == 1) {
+                    setActionCtx(prop.potions.get(potionIdx).use(this, lastIdx), action);
+                } else if (selectIdx >= 0) {
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    selectIdx = -1;
+                } else {
+                    break;
+                }
+            } else if (actionCtx == GameActionCtx.PLAY_CARD) {
+                setActionCtx(prop.potions.get(potionIdx).use(this, -1), action);
+            }
+        } while (actionCtx != GameActionCtx.PLAY_CARD);
     }
 
     void startTurn() {
@@ -737,27 +826,39 @@ public class GameState implements State {
                 handler.handle(this);
             }
             startTurn();
-            setActionCtx(GameActionCtx.PLAY_CARD, -1);
+            setActionCtx(GameActionCtx.PLAY_CARD, null);
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
 //            startTurn();
-            setActionCtx(GameActionCtx.BEGIN_TURN, -1);
+            setActionCtx(GameActionCtx.BEGIN_TURN, null);
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action.cardIdx(), -1, false, true);
+            playCard(action, -1, false, true);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
-            playCard(previousCardIdx, action.enemyIdx(), false, true);
+            if (currentAction.type() == GameActionType.PLAY_CARD) {
+                playCard(currentAction, action.enemyIdx(), false, true);
+            } else if (currentAction.type() == GameActionType.USE_POTION) {
+                usePotion(currentAction, action.enemyIdx());
+            }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
-            playCard(previousCardIdx, action.cardIdx(), false, true);
+            if (currentAction.type() == GameActionType.PLAY_CARD) {
+                playCard(currentAction, action.cardIdx(), false, true);
+            } else if (currentAction.type() == GameActionType.USE_POTION) {
+                usePotion(currentAction, action.cardIdx());
+            }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
-            playCard(previousCardIdx, action.cardIdx(), false, true);
+            if (currentAction.type() == GameActionType.PLAY_CARD) {
+                playCard(currentAction, action.cardIdx(), false, true);
+            } else if (currentAction.type() == GameActionType.USE_POTION) {
+                usePotion(currentAction, action.cardIdx());
+            }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(previousCardIdx, action.cardIdx(), false, true);
+            playCard(currentAction, action.cardIdx(), false, true);
         } else if (action.type() == GameActionType.USE_POTION) {
-            prop.potions.get(action.cardIdx()).use(this, -1);
             potionsState[action.cardIdx() * 3] = 0;
+            usePotion(action, -1);
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             startTurn();
-            setActionCtx(GameActionCtx.PLAY_CARD, -1);
+            setActionCtx(GameActionCtx.PLAY_CARD, null);
         }
         policy = null;
         legalActions = null;
@@ -818,7 +919,11 @@ public class GameState implements State {
             if (action < 0 || action >= a.length) {
                 return false;
             }
-            return hand[a[action].cardIdx()] > 0 && prop.cardDict[previousCardIdx].canSelectFromHand(prop.cardDict[action]);
+            if (currentAction.type() == GameActionType.PLAY_CARD) {
+                return hand[a[action].cardIdx()] > 0 && prop.cardDict[currentAction.cardIdx()].canSelectFromHand(prop.cardDict[action]);
+            } else {
+                return true; // todo: potion like gamblers
+            }
         } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -1102,28 +1207,31 @@ public class GameState implements State {
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((BUGGED_INPUT || action.type() == GameActionType.PLAY_CARD) && prop.cardDict[action.cardIdx()].selectEnemy) {
+                if ((action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectEnemy) ||
+                     action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectEnemy) {
                     inputLen += 1;
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                if ((action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromHand) ||
+                     action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectFromHand) {
                     inputLen += 1;
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                if ((action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromDiscard) ||
+                     action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectFromDiscard) {
                     inputLen += 1;
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                if (action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromExhaust) {
                     inputLen += 1;
                 }
             }
@@ -1150,15 +1258,13 @@ public class GameState implements State {
             }
             inputLen += enemy.numOfMoves; // enemy moves
             if (enemy.getMoveHistory() != null) {
-                for (int move : enemy.getMoveHistory()) {
-                    inputLen += enemy.numOfMoves;
-                }
+                inputLen += enemy.getMoveHistory().length * enemy.numOfMoves;
             }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 inputLen += 1;
-            } else if (enemy instanceof Enemy.TheGuardian guardian) {
+            } else if (enemy instanceof Enemy.TheGuardian) {
                 inputLen += 2;
-            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
+            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime) {
                 inputLen += 1;
             }
         }
@@ -1239,28 +1345,34 @@ public class GameState implements State {
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((BUGGED_INPUT || action.type() == GameActionType.PLAY_CARD) && prop.cardDict[action.cardIdx()].selectEnemy) {
+                if (action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectEnemy) {
                     str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting enemy\n";
+                } else if (action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectEnemy){
+                    str += "    1 input to keep track of currently used potion " + prop.potions.get(action.cardIdx()) + " for selecting enemy\n";
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromHand) {
+                if (action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromHand) {
                     str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from hand\n";
+                } else if (action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectFromHand) {
+                    str += "    1 input to keep track of currently used potion " + prop.potions.get(action.cardIdx()) + " for selecting card from hand\n";
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
+                if (action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromDiscard) {
                     str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from discard\n";
+                } else if (action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectFromDiscard) {
+                    str += "    1 input to keep track of currently used potion " + prop.potions.get(action.cardIdx()) + " for selecting card from discard\n";
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                if (action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromExhaust) {
                     str += "    1 input to keep track of currently played card " + prop.cardDict[action.cardIdx()].cardName + " for selecting card from exhaust\n";
                 }
             }
@@ -1292,9 +1404,9 @@ public class GameState implements State {
             }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 str += "        1 input to keep track of louse damage\n";
-            } else if (enemy instanceof Enemy.TheGuardian guardian) {
+            } else if (enemy instanceof Enemy.TheGuardian) {
                 str += "        2 inputs to keep track of current and max guardian mode shift damage\n";
-            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
+            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime) {
                 str += "        1 input to keep track of health slime boss split at\n";
             }
         }
@@ -1390,29 +1502,32 @@ public class GameState implements State {
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((BUGGED_INPUT || action.type() == GameActionType.PLAY_CARD) && prop.cardDict[action.cardIdx()].selectEnemy) {
-                    x[idx++] = previousCardIdx == action.cardIdx() ? 0.6f : -0.6f;
+                if ((action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectEnemy) ||
+                     action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectEnemy) {
+                    x[idx++] = currentAction == action ? 0.6f : -0.6f;
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromHand) {
-                    x[idx++] = previousCardIdx == action.cardIdx() ? 0.6f : -0.6f;
+                if ((action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromHand) ||
+                     action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectFromHand) {
+                    x[idx++] = currentAction == action ? 0.6f : -0.6f;
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromDiscard) {
-                    x[idx++] = previousCardIdx == action.cardIdx() ? 0.6f : -0.6f;
+                if ((action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromDiscard) ||
+                     action.type() == GameActionType.USE_POTION && prop.potions.get(action.cardIdx()).selectFromDiscard) {
+                    x[idx++] = currentAction == action ? 0.6f : -0.6f;
                 }
             }
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (prop.cardDict[action.cardIdx()].selectFromExhaust) {
-                    x[idx++] = previousCardIdx == action.cardIdx() ? 0.6f : -0.6f;
+                if (action.type() == GameActionType.PLAY_CARD && prop.cardDict[action.cardIdx()].selectFromExhaust) {
+                    x[idx++] = currentAction == action ? 0.6f : -0.6f;
                 }
             }
         }
@@ -1972,7 +2087,7 @@ class ChanceState implements State {
     double total_q_win;
     double total_q_health;
     double total_q_comb;
-    List<GameState> queue = new ArrayList<>();
+    List<GameState> queue;
     boolean queueDone;
     GameState parentState;
     int parentAction;

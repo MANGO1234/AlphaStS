@@ -257,16 +257,18 @@ public class Main {
         var enemies = new ArrayList<Enemy>();
         enemies.add(new Enemy.SlimeBoss());
         enemies.add(new Enemy.LargeSpikeSlime(75, true));
+        enemies.add(new Enemy.MediumSpikeSlime(37, true));
+        enemies.add(new Enemy.MediumSpikeSlime(37, true));
         enemies.add(new Enemy.LargeAcidSlime(75, true));
-        enemies.add(new Enemy.MediumSpikeSlime(37, true));
-        enemies.add(new Enemy.MediumSpikeSlime(37, true));
         enemies.add(new Enemy.MediumAcidSlime(37, true));
         enemies.add(new Enemy.MediumAcidSlime(37, true));
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.Anchor());
         var player = new Player(47, 75);
-        player.gainArtifact(1);
-        return new GameState(enemies, player, cards, relics);
+//        player.gainArtifact(1);
+        List<Potion> potions = null;
+        potions = List.of(new Potion.AncientPotion());
+        return new GameState(enemies, player, cards, relics, potions);
     }
 
     public static GameState TestState() {
@@ -354,11 +356,13 @@ public class Main {
         enemies.add(new Enemy.SmallSpikeSlime());
         var relics = new ArrayList<Relic>();
         relics.add(new Relic.BagOfPreparation());
-        return new GameState(enemies, new Player(13, 75), cards, relics, null, null);
+        var potions = new ArrayList<Potion>();
+        potions.add(new Potion.WeakPotion());
+        return new GameState(enemies, new Player(13, 75), cards, relics, potions, null);
     }
 
     public static void main(String[] args) throws IOException {
-        var state = TestState3();
+        var state = SlimeBossStateLC();
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -390,6 +394,8 @@ public class Main {
         boolean CURRICULUM_TRAINING_ON = false;
         boolean TRAINING_WITH_LINE = false;
         boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
+        boolean GAMES_ADD_POTION_RANDOMIZATION = false;
+        int POTION_STEPS = 4;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
@@ -445,11 +451,20 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_nob";
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
-            NUMBER_OF_GAMES_TO_PLAY = 24000;
+//            SAVES_DIR = "../tmp/slimeboss/saves_artifact";
+            NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 1000;
+            GAMES_ADD_POTION_RANDOMIZATION = true;
+            NUMBER_OF_NODES_PER_TURN = 5000;
 //            iteration = 31;
 //            RANDOMIZATION_SCENARIO = 0;
+        }
+
+        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
+            state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
+        }
+        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -464,10 +479,6 @@ public class Main {
             }
         } catch (FileNotFoundException e) {
             System.out.println("Unable to find neural network.");
-        }
-
-        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
-            state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
@@ -514,7 +525,10 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            var games = session.playTrainingGames(state, 300, 100, CURRICULUM_TRAINING_ON);
+            if (state.prop.potions != null) {
+                state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
+            }
+            var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

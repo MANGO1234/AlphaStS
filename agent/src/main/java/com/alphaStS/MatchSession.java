@@ -147,10 +147,10 @@ public class MatchSession {
             }
         }
         states.add(new GameStep(state, -1));
-        return new Game(states, r);
+        return new Game(states, r, true);
     }
 
-    public static record Game(List<GameStep> steps, int r) {};
+    public static record Game(List<GameStep> steps, int r, boolean noExploration) {};
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, int r, boolean printProgress) {
         var deq = new LinkedBlockingDeque<Game>();
@@ -207,6 +207,12 @@ public class MatchSession {
             if (matchLogWriter != null) {
                 try {
                     matchLogWriter.write("*** Match " + game_i + " ***\n");
+                    if (origState.prop.randomization != null) {
+                        var info = origState.prop.randomization.listRandomizations();
+                        if (info.size() > 1) {
+                            matchLogWriter.write("Scenario: " + info.get(game.r).desc() + "\n");
+                        }
+                    }
                     matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
                     matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
                     boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
@@ -284,39 +290,16 @@ public class MatchSession {
     boolean POLICY_CAP_ON;
     boolean TRAINING_WITH_LINE;
 
-    private List<GameStep> playTrainingGame(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
+    private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         boolean doNotExplore = state.prop.random.nextFloat() < 0.2;
-//        boolean doNotExplore = false;
-//        boolean doNotExplore = true;
+        int r = 0;
         if (state.prop.randomization != null) {
-            state.prop.randomization.randomize(state);
+            r = state.prop.randomization.randomize(state);
         }
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
-        }
-        RandomGen random = state.prop.random;
-//        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-//            enemy.randomize(random, curriculumTraining);
-//        }
-        if (state.prop.potions != null) {
-            // var r = random.nextInt(11);
-//            var r = 0;
-            // if (r == 0) {
-            //     for (int i = 0; i < state.prop.potions.size(); i++) {
-            //         state.potionsState[i * 3] = r == 0 ? 0 : 1;
-            //         state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
-            //         state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-            //     }
-            // } else {
-            //     r = random.nextInt(10) + 1;
-            //     for (int i = 0; i < state.prop.potions.size(); i++) {
-            //         state.potionsState[i * 3] = r == 0 ? 0 : 1;
-            //         state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
-            //         state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-            //     }
-            // }
         }
 
         state.doEval(mcts.model);
@@ -423,39 +406,18 @@ public class MatchSession {
             }
         }
 
-        return states;
+        return new Game(states, r, doNotExplore);
     }
 
-    private List<GameStep> playTrainingGame2(GameState origState, int nodeCount, MCTS mcts, boolean curriculumTraining) {
+    private Game playTrainingGame2(GameState origState, int nodeCount, MCTS mcts) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
+        var r = 0;
         if (state.prop.randomization != null) {
-            state.prop.randomization.randomize(state);
+            r = state.prop.randomization.randomize(state);
         }
         if (state.actionCtx == GameActionCtx.START_GAME) {
             state.doAction(0);
-        }
-        RandomGen random = state.prop.random;
-//        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-//            enemy.randomize(random, curriculumTraining);
-//        }
-        if (state.prop.potions != null) {
-//            var r = random.nextInt(11);
-//            var r = 0;
-//            if (r == 0) {
-//                for (int i = 0; i < state.prop.potions.size(); i++) {
-//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
-//                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
-//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-//                }
-//            } else {
-//                r = random.nextInt(10) + 1;
-//                for (int i = 0; i < state.prop.potions.size(); i++) {
-//                    state.potionsState[i * 3] = r == 0 ? 0 : 1;
-//                    state.potionsState[i * 3 + 1] = r == 0 ? 100 : 50 + 5 * r;
-//                    state.potionsState[i * 3 + 2] = r == 0 ? 0 : 1;
-//                }
-//            }
         }
 
         while (state.isTerminal() == 0) {
@@ -524,11 +486,11 @@ public class MatchSession {
             }
         }
 
-        return states;
+        return new Game(states, r, true);
     }
 
     public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount, boolean curriculumTraining) {
-        var deq = new LinkedBlockingDeque<List<GameStep>>();
+        var deq = new LinkedBlockingDeque<Game>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
         for (int i = 0; i < mcts.size(); i++) {
@@ -538,9 +500,9 @@ public class MatchSession {
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
                         if (TRAINING_WITH_LINE) {
-                            deq.putLast(session.playTrainingGame2(state, nodeCount, mcts.get(ii), curriculumTraining));
+                            deq.putLast(session.playTrainingGame2(state, nodeCount, mcts.get(ii)));
                         } else {
-                            deq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii), curriculumTraining));
+                            deq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii)));
                         }
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
@@ -552,9 +514,11 @@ public class MatchSession {
         var trainingGame_i = 0;
         var result = new ArrayList<List<GameStep>>();
         while (trainingGame_i < numOfGames) {
+            Game game;
             List<GameStep> steps;
             try {
-                steps = deq.takeFirst();
+                game = deq.takeFirst();
+                steps = game.steps;
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -564,6 +528,15 @@ public class MatchSession {
             if (trainingDataWriter != null && numOfGames <= 500) {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
+                    if (origState.prop.randomization != null) {
+                        var info = origState.prop.randomization.listRandomizations();
+                        if (info.size() > 1) {
+                            trainingDataWriter.write("Scenario: " + info.get(game.r).desc() + "\n");
+                        }
+                    }
+                    if (!TRAINING_WITH_LINE && game.noExploration) {
+                        trainingDataWriter.write("No Temperature Moves\n");
+                    }
                     trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
                     trainingDataWriter.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");
                     for (GameStep step : steps) {

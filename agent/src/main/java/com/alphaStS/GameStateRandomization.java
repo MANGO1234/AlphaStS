@@ -221,6 +221,71 @@ public interface GameStateRandomization {
         }
     }
 
+    class PotionsUtilityRandomization implements GameStateRandomization {
+        private final List<Potion> potions;
+        private final int steps;
+
+        public PotionsUtilityRandomization(List<Potion> potions, int steps) {
+            this.potions = potions;
+            this.steps = steps;
+        }
+
+        // todo: think of a better distribution
+        @Override public int randomize(GameState state) {
+            var r = state.prop.random.nextInt(10);
+            if (r < 4) {
+                r = 0;
+            } else {
+                var upto = (int) Math.pow(steps, potions.size());
+                r = 1 + state.prop.random.nextInt(upto);
+            }
+            randomize(state, r);
+            return r;
+        }
+
+        @Override public void reset(GameState state) {
+            for (int i = 0; i < potions.size(); i++) {
+                state.potionsState[i * 3] = 0;
+                state.potionsState[i * 3 + 1] = 100;
+                state.potionsState[i * 3 + 2] = 1;
+            }
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            reset(state);
+            if (r > 0) {
+                r--;
+                int[] s = new int[potions.size()];
+                for (int i = 0; i < s.length; i++) {
+                    s[i] = r % steps;
+                    r /= steps;
+                }
+                for (int i = 0; i < potions.size(); i++) {
+                    state.potionsState[i * 3] = 1;
+                    state.potionsState[i * 3 + 1] = 100 - 5 * s[i];
+                    state.potionsState[i * 3 + 2] = 1;
+                }
+            }
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            Map<Integer, Info> map = new HashMap<>();
+            map.put(0, new Info(0.2, "No potions can be used"));
+            var upto = (int) Math.pow(steps, potions.size());
+            for (int cur_r = 0; cur_r < upto; cur_r++) {
+                String[] desc = new String[potions.size()];
+                var r = cur_r;
+                for (int i = 0; i < desc.length; i++) {
+                    var u = 100 - 5 * (r % steps);
+                    desc[i] = potions.get(i) + " " + u;
+                    r /= steps;
+                }
+                map.put(cur_r + 1, new Info(0.8 / upto, String.join(", ", desc)));
+            }
+            return map;
+        }
+    }
+
     class CardCountRandomization implements GameStateRandomization {
         private final List<List<CardCount>> scenarios;
         private final Map<Integer, Info> infoMap;
