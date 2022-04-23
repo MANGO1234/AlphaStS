@@ -15,16 +15,14 @@ import static com.alphaStS.InteractiveMode.interactiveStart;
 
 public class Main {
     public static GameState BasicGremlinNobState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.BashP(), 0));
-        cards.add(new CardCount(new Card.Strike(), 5));
-        cards.add(new CardCount(new Card.StrikeP(), 0));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.DefendP(), 0));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.GremlinNob());
-        var relics = new ArrayList<Relic>();
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.BashP(), 0);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.StrikeP(), 0);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.DefendP(), 0);
+        builder.addEnemy(new Enemy.GremlinNob());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new Card.Bash(), 1),
                         new CardCount(new Card.Strike(), 5),
@@ -50,33 +48,22 @@ public class Main {
                 "Bash Upgrade",
                 "All Defends Upgraded"
         );
-        return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
-    }
-
-    public static GameState BasicGremlinNobState2() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.BashP(), 1));
-        cards.add(new CardCount(new Card.Strike(), 5));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.GremlinNob());
-        var relics = new ArrayList<Relic>();
-        return new GameState(enemies, new Player(80, 80), cards, relics, null, null);
+        builder.setRandomization(randomization);
+        builder.setPlayer(new Player(80, 80));
+        return new GameState(builder);
     }
 
     public static GameState BasicJawWormState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 5));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new CardSilent.Neutralize(), 0));
-        cards.add(new CardCount(new CardSilent.Survivor(), 0));
-        cards.add(new CardCount(new CardSilent.Acrobatics(), 0));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.JawWorm());
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.RingOfSerpant());
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new CardSilent.Neutralize(), 0);
+        builder.addCard(new CardSilent.Survivor(), 0);
+        builder.addCard(new CardSilent.Acrobatics(), 0);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addEnemy(new Enemy.JawWorm());
+        builder.addRelic(new Relic.RingOfSerpant());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new Card.Bash(), 1),
                         new CardCount(new Card.Strike(), 5),
@@ -95,114 +82,107 @@ public class Main {
                 "Silent Starter Deck",
                 "Silent Starter Deck With Acrobatics"
         );
-        return new GameState(enemies, new Player(80, 80), cards, relics, null, randomization);
+        builder.setRandomization(randomization);
+        builder.setPlayer(new Player(80, 80));
+        return new GameState(builder);
     }
 
     public static GameState BasicSentriesState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.SeverSoul(), 1));
-        cards.add(new CardCount(new Card.Clash(), 1));
-        cards.add(new CardCount(new Card.Headbutt(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.BurningPactP(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.Orichalcum());
-        relics.add(new Relic.BronzeScales());
-        relics.add(new Relic.Vajira());
-        return new GameState(enemies, new Player(32, 75), cards, relics);
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.SeverSoul(), 1);
+        builder.addCard(new Card.Clash(), 1);
+        builder.addCard(new Card.Headbutt(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.BurningPactP(), 1);
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addRelic(new Relic.Orichalcum());
+        builder.addRelic(new Relic.BronzeScales());
+        builder.addRelic(new Relic.Vajira());
+        builder.setPlayer(new Player(32, 75));
+        return new GameState(builder);
     }
 
     public static GameState BasicLagavulinState() {
         // https://youtu.be/1CELexRf5ZE?t=2205
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 2));
-        cards.add(new CardCount(new Card.BodySlam(), 1));
-        cards.add(new CardCount(new Card.Cleave(), 1));
-        cards.add(new CardCount(new Card.IronWave(), 1));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.Impervious(), 1));
-        cards.add(new CardCount(new Card.SeeingRed(), 1));
-        cards.add(new CardCount(new Card.Exhume(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Lagavulin());
-        var relics = new ArrayList<Relic>();
-        var potions = new ArrayList<Potion>();
-        potions.add(new Potion.DexterityPotion());
-        var player = new Player(73, 75);
-        return new GameState(enemies, player, cards, relics, potions);
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 2);
+        builder.addCard(new Card.BodySlam(), 1);
+        builder.addCard(new Card.Cleave(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Impervious(), 1);
+        builder.addCard(new Card.SeeingRed(), 1);
+        builder.addCard(new Card.Exhume(), 1);
+        builder.addEnemy(new Enemy.Lagavulin());
+        builder.addPotion(new Potion.DexterityPotion());
+        builder.setPlayer(new Player(73, 75));
+        return new GameState(builder);
     }
 
     public static GameState BasicLagavulinState2() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 5));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.Impervious(), 1));
-        cards.add(new CardCount(new Card.SeeingRed(), 1));
-        cards.add(new CardCount(new Card.BattleTrance(), 1));
-        cards.add(new CardCount(new Card.PommelStrike(), 1));
-        cards.add(new CardCount(new Card.Shockwave(), 1));
-        cards.add(new CardCount(new Card.Inflame(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Lagavulin());
-        var relics = new ArrayList<Relic>();
-        var player = new Player(60, 75);
-        return new GameState(enemies, player, cards, relics);
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Impervious(), 1);
+        builder.addCard(new Card.SeeingRed(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.PommelStrike(), 1);
+        builder.addCard(new Card.Shockwave(), 1);
+        builder.addCard(new Card.Inflame(), 1);
+        builder.addEnemy(new Enemy.Lagavulin());
+        builder.setPlayer(new Player(60, 75));
+        return new GameState(builder);
     }
 
     public static GameState GuardianState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 2));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.BodySlamP(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.HemokinesisP(), 1));
-        cards.add(new CardCount(new Card.Metallicize(), 1));
-        cards.add(new CardCount(new Card.Hemokinesis(), 1));
-        cards.add(new CardCount(new Card.BattleTrance(), 1));
-        cards.add(new CardCount(new Card.FlameBarrier(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.TheGuardian());
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.CentennialPuzzle());
-        return new GameState(enemies, new Player(36, 75), cards, relics);
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 2);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.BodySlamP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.HemokinesisP(), 1);
+        builder.addCard(new Card.Metallicize(), 1);
+        builder.addCard(new Card.Hemokinesis(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.FlameBarrier(), 1);
+        builder.addEnemy(new Enemy.TheGuardian());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.setPlayer(new Player(36, 75));
+        return new GameState(builder);
     }
 
     public static GameState GuardianState2() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.BashP(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Clash(), 1));
-        cards.add(new CardCount(new Card.Armanent(), 1));
-        cards.add(new CardCount(new Card.Carnage(), 1));
-        cards.add(new CardCount(new Card.CarnageP(), 0));
-        cards.add(new CardCount(new Card.Metallicize(), 1));
-        cards.add(new CardCount(new Card.Shockwave(), 1));
-        cards.add(new CardCount(new Card.ShrugItOff(), 1));
-        cards.add(new CardCount(new Card.ShrugItOffP(), 0));
-        cards.add(new CardCount(new Card.PowerThrough(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.TheGuardian());
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.AncientTeaSet());
-        relics.add(new Relic.DuVuDoll());
-        relics.add(new Relic.WarpedTongs());
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.BashP(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Clash(), 1);
+        builder.addCard(new Card.Armanent(), 1);
+        builder.addCard(new Card.Carnage(), 1);
+        builder.addCard(new Card.CarnageP(), 0);
+        builder.addCard(new Card.Metallicize(), 1);
+        builder.addCard(new Card.Shockwave(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new Card.ShrugItOffP(), 0);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addEnemy(new Enemy.TheGuardian());
+        builder.addRelic(new Relic.AncientTeaSet());
+        builder.addRelic(new Relic.DuVuDoll());
+        builder.addRelic(new Relic.WarpedTongs());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new Card.Carnage(), 1),
                         new CardCount(new Card.ShrugItOff(), 1),
@@ -226,100 +206,96 @@ public class Main {
                 "Health 19, Upgrade Carnage",
                 "Health 41, No Power Through"
         );
-        return new GameState(enemies, new Player(41, 75), cards, relics, null, randomization);
+        builder.setRandomization(randomization);
+        builder.setPlayer(new Player(41, 75));
+        return new GameState(builder);
     }
 
     public static GameState BasicInfiniteState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.BashP(), 1));
-        cards.add(new CardCount(new Card.Dropkick(), 2));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.TheGuardian());
-        var relics = new ArrayList<Relic>();
-        return new GameState(enemies, new Player(41, 75), cards, relics);
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.BashP(), 1);
+        builder.addCard(new Card.Dropkick(), 2);
+        builder.addEnemy(new Enemy.TheGuardian());
+        builder.setPlayer(new Player(41, 75));
+        return new GameState(builder);
     }
 
     public static GameState SlimeBossStateLC() {
         // https://youtu.be/wKbAoS80HA0?t=11397
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 5));
-        cards.add(new CardCount(new Card.Defend(), 3));
-        cards.add(new CardCount(new Card.DefendP(), 1));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new Card.Corruption(), 1));
-        cards.add(new CardCount(new Card.TwinStrike(), 1));
-        cards.add(new CardCount(new Card.UppercutP(), 1));
-        cards.add(new CardCount(new Card.ShockwaveP(), 1));
-        cards.add(new CardCount(new Card.ShrugItOff(), 1));
-        cards.add(new CardCount(new Card.FlameBarrierP(), 1));
-        cards.add(new CardCount(new Card.SpotWeakness(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.SlimeBoss());
-        enemies.add(new Enemy.LargeSpikeSlime(75, true));
-        enemies.add(new Enemy.MediumSpikeSlime(37, true));
-        enemies.add(new Enemy.MediumSpikeSlime(37, true));
-        enemies.add(new Enemy.LargeAcidSlime(75, true));
-        enemies.add(new Enemy.MediumAcidSlime(37, true));
-        enemies.add(new Enemy.MediumAcidSlime(37, true));
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.Anchor());
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Defend(), 3);
+        builder.addCard(new Card.DefendP(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Corruption(), 1);
+        builder.addCard(new Card.TwinStrike(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.ShockwaveP(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new Card.FlameBarrierP(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addEnemy(new Enemy.SlimeBoss());
+        builder.addEnemy(new Enemy.LargeSpikeSlime(75, true));
+        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
+        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
+        builder.addEnemy(new Enemy.LargeAcidSlime(75, true));
+        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
+        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
+        builder.addRelic(new Relic.Anchor());
         var player = new Player(47, 75);
 //        player.gainArtifact(1);
-        List<Potion> potions = null;
-        potions = List.of(new Potion.AncientPotion());
-        return new GameState(enemies, player, cards, relics, potions);
+        builder.setPlayer(player);
+        builder.addPotion(new Potion.AncientPotion());
+        return new GameState(builder);
     }
 
     public static GameState TestState() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.UppercutP(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Inflame(), 1));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new CardColorless.DarkShackles(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.GremlinNob());
-        enemies.add(new Enemy.Lagavulin());
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.BagOfPreparation());
-        var randomization = new GameStateRandomization.EnemyEncounterRandomization(enemies,
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        builder.addRelic(new Relic.BagOfPreparation());
+        var randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
                 new int[] { 0, 1, 2 },
                 new int[] { 3 },
                 new int[] { 4 }
         );
-        //        randomization = null;
-        return new GameState(enemies, new Player(43, 75), cards, relics, null, randomization);
+        builder.setRandomization(randomization);
+        builder.setPlayer(new Player(43, 75));
+        return new GameState(builder);
     }
 
     public static GameState TestState2() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.UppercutP(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Inflame(), 1));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new CardColorless.DarkShackles(), 1));
-        cards.add(new CardCount(new Card.Combust(), 1));
-        cards.add(new CardCount(new Card.SeeingRed(), 1));
-        cards.add(new CardCount(new Card.IronWave(), 1));
-        cards.add(new CardCount(new Card.DemonForm(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        enemies.add(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        enemies.add(new Enemy.GremlinNob());
-        enemies.add(new Enemy.Lagavulin());
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.BagOfPreparation());
+        GameStateBuilder builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.SeeingRed(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.DemonForm(), 1);
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        builder.addRelic(new Relic.BagOfPreparation());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new Card.Combust(), 1), new CardCount(new Card.IronWave(), 1)),
                 List.of(new CardCount(new Card.Combust(), 1), new CardCount(new Card.DemonForm(), 1)),
@@ -327,38 +303,38 @@ public class Main {
                 List.of(new CardCount(new Card.SeeingRed(), 1), new CardCount(new Card.DemonForm(), 1)),
                 List.of(new CardCount(new Card.Combust(), 1))
         ));
-        randomization = new GameStateRandomization.EnemyEncounterRandomization(enemies,
+        randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
                 new int[] { 0, 1, 2 },
                 new int[] { 3 },
                 new int[] { 4 }
-        ).doAfter(randomization).fixR(0, 1, 2, 12, 13, 14).fixR(0);
-        return new GameState(enemies, new Player(41, 75), cards, relics, null, randomization);
+        ).doAfter(randomization).fixR(0, 1, 2, 12, 13, 14);
+        builder.setRandomization(randomization);
+        builder.setPlayer(new Player(41, 75));
+        return new GameState(builder);
     }
 
     public static GameState TestState3() {
-        var cards = new ArrayList<CardCount>();
-        cards.add(new CardCount(new Card.Bash(), 1));
-        cards.add(new CardCount(new Card.Strike(), 4));
-        cards.add(new CardCount(new Card.Defend(), 4));
-        cards.add(new CardCount(new Card.UppercutP(), 1));
-        cards.add(new CardCount(new Card.Anger(), 1));
-        cards.add(new CardCount(new Card.Inflame(), 1));
-        cards.add(new CardCount(new Card.AscendersBane(), 1));
-        cards.add(new CardCount(new CardColorless.DarkShackles(), 1));
-        cards.add(new CardCount(new Card.Combust(), 1));
-        cards.add(new CardCount(new Card.IronWave(), 1));
-        cards.add(new CardCount(new Card.SpotWeakness(), 1));
-        var enemies = new ArrayList<Enemy>();
-        enemies.add(new Enemy.SmallAcidSlime());
-        enemies.add(new Enemy.SmallAcidSlime());
-        enemies.add(new Enemy.SmallSpikeSlime());
-        enemies.add(new Enemy.SmallSpikeSlime());
-        enemies.add(new Enemy.SmallSpikeSlime());
-        var relics = new ArrayList<Relic>();
-        relics.add(new Relic.BagOfPreparation());
-        var potions = new ArrayList<Potion>();
-        potions.add(new Potion.WeakPotion());
-        return new GameState(enemies, new Player(13, 75), cards, relics, potions, null);
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addEnemy(new Enemy.SmallAcidSlime());
+        builder.addEnemy(new Enemy.SmallAcidSlime());
+        builder.addEnemy(new Enemy.SmallSpikeSlime());
+        builder.addEnemy(new Enemy.SmallSpikeSlime());
+        builder.addEnemy(new Enemy.SmallSpikeSlime());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addPotion(new Potion.WeakPotion());
+        builder.setPlayer(new Player(13, 75));
+        return new GameState(builder);
     }
 
     public static void main(String[] args) throws IOException {
@@ -452,10 +428,10 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
 //            SAVES_DIR = "../tmp/comp1/saves_vr";
-            NUMBER_OF_GAMES_TO_PLAY = 1000;
-//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+            NUMBER_OF_GAMES_TO_PLAY = 12000;
+            GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 100;
+            NUMBER_OF_NODES_PER_TURN = 1000;
 //            iteration = 21;
 //            COMPARE_DIR = "../saves/iteration20";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 1);
@@ -467,6 +443,9 @@ public class Main {
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
             state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
+        }
+        if (RANDOMIZATION_SCENARIO >= 0 && state.prop.randomization != null) {
+            state.prop.randomization = state.prop.randomization.fixR(RANDOMIZATION_SCENARIO);
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -490,7 +469,7 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
-            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, RANDOMIZATION_SCENARIO).steps()) {
+            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps()) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
@@ -517,7 +496,7 @@ public class Main {
             } else if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("matches.txt");
             }
-            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, RANDOMIZATION_SCENARIO, !TEST_TRAINING_AGENT);
+            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
         }
 
         if (GENERATE_TRAINING_GAMES) {
@@ -530,7 +509,7 @@ public class Main {
             if (state.prop.potions != null) {
                 state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
             }
-            var games = session.playTrainingGames(state, 200, 100, CURRICULUM_TRAINING_ON);
+            var games = session.playTrainingGames(state, 200, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

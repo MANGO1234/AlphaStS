@@ -132,7 +132,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            var i = state.prop.random.nextInt(rs.length);
+            var i = state.prop.random.nextInt(rs.length, state, RandomGenCtx.BeginningOfGameRandomization);
             a.randomize(state, rs[i]);
             return rs[i];
         }
@@ -232,12 +232,12 @@ public interface GameStateRandomization {
 
         // todo: think of a better distribution
         @Override public int randomize(GameState state) {
-            var r = state.prop.random.nextInt(10);
+            var r = state.prop.random.nextInt(10, state, RandomGenCtx.BeginningOfGameRandomization);
             if (r < 4) {
                 r = 0;
             } else {
                 var upto = (int) Math.pow(steps, potions.size());
-                r = 1 + state.prop.random.nextInt(upto);
+                r = 1 + state.prop.random.nextInt(upto, state, RandomGenCtx.BeginningOfGameRandomization);
             }
             randomize(state, r);
             return r;
@@ -311,7 +311,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(scenarios.size());
+            int r = state.prop.random.nextInt(scenarios.size(), state, RandomGenCtx.BeginningOfGameRandomization);
             randomize(state, r);
             return r;
         }
@@ -347,7 +347,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(scenarios.size());
+            int r = state.prop.random.nextInt(scenarios.size(), state, RandomGenCtx.BeginningOfGameRandomization);
             randomize(state, r);
             return r;
         }
@@ -388,7 +388,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(randomizations.size());
+            int r = state.prop.random.nextInt(randomizations.size(), state, RandomGenCtx.BeginningOfGameRandomization);
             randomize(state, r);
             return r;
         }

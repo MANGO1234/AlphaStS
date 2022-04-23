@@ -38,8 +38,8 @@ final class GameStep {
 }
 
 public class MatchSession {
-    private static boolean LOG_GAME_USING_LINES_FORMAT = true;
-    private static boolean USE_NEW_SEARCH = true;
+    private final static boolean LOG_GAME_USING_LINES_FORMAT = true;
+    private final static boolean USE_NEW_SEARCH = true;
 
     public boolean training;
     public Model compareModel;
@@ -60,20 +60,12 @@ public class MatchSession {
         }
     }
 
-    public Game playGame(GameState origState, MCTS mcts, int nodeCount, int r) {
+    public Game playGame(GameState origState, MCTS mcts, int nodeCount) {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
+        int r = 0;
         if (state.actionCtx == GameActionCtx.START_GAME) {
-            if (state.prop.randomization != null) {
-                if (r >= 0) {
-                    state.prop.randomization.randomize(state, r);
-                } else {
-                    r = state.prop.randomization.randomize(state);
-                }
-            } else {
-                r = 0;
-            }
-            state.doAction(0);
+            r = state.doAction(0);
         } else if (startingAction >= 0) {
             state.doAction(startingAction);
         }
@@ -149,9 +141,9 @@ public class MatchSession {
         return new Game(states, r, true);
     }
 
-    public static record Game(List<GameStep> steps, int r, boolean noExploration) {};
+    public static record Game(List<GameStep> steps, int r, boolean noExploration) {}
 
-    public void playGames(GameState origState, int numOfGames, int nodeCount, int r, boolean printProgress) {
+    public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var deq = new LinkedBlockingDeque<Game>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
@@ -161,7 +153,7 @@ public class MatchSession {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount, r));
+                        deq.putLast(session.playGame(state, mcts.get(ii), nodeCount));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -200,7 +192,7 @@ public class MatchSession {
             totalDamageTaken.computeIfPresent(game.r, (k, x) -> x + damageTaken);
             totalDamageTakenNoDeath.putIfAbsent(game.r, 0);
             totalDamageTakenNoDeath.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
-            damageCount.computeIfAbsent(game.r, (x) -> new HashMap<Integer, Integer>());
+            damageCount.computeIfAbsent(game.r, (x) -> new HashMap<>());
             damageCount.compute(game.r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
             game_i += 1;
             if (matchLogWriter != null) {
@@ -350,11 +342,8 @@ public class MatchSession {
         var state = origState.clone(false);
         boolean doNotExplore = state.prop.random.nextFloat() < 0.2;
         int r = 0;
-        if (state.prop.randomization != null) {
-            r = state.prop.randomization.randomize(state);
-        }
         if (state.actionCtx == GameActionCtx.START_GAME) {
-            state.doAction(0);
+            r = state.doAction(0);
         }
 
         state.doEval(mcts.model);
@@ -459,11 +448,8 @@ public class MatchSession {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         var r = 0;
-        if (state.prop.randomization != null) {
-            r = state.prop.randomization.randomize(state);
-        }
         if (state.actionCtx == GameActionCtx.START_GAME) {
-            state.doAction(0);
+            r = state.doAction(0);
         }
 
         while (state.isTerminal() == 0) {
@@ -514,7 +500,7 @@ public class MatchSession {
         return new Game(states, r, true);
     }
 
-    public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount, boolean curriculumTraining) {
+    public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount) {
         var deq = new LinkedBlockingDeque<Game>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);

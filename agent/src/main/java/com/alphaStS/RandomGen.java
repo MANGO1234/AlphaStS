@@ -11,22 +11,21 @@ public class RandomGen {
         random = new Random();
     }
 
-    public RandomGen(long seed) {
-        random = new Random();
-        random.setSeed(seed);
+    public RandomGen(Random random) {
+        this.random = random;
     }
 
-    public RandomGen(RandomGen other) {
+    protected Random getRandomClone() {
         long seed;
         try {
             Field field = Random.class.getDeclaredField("seed");
             field.setAccessible(true);
-            AtomicLong scrambledSeed = (AtomicLong) field.get(other.random);
+            AtomicLong scrambledSeed = (AtomicLong) field.get(random);
             seed = scrambledSeed.get();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        random = new Random(seed ^ 0x5DEECE66DL);
+        return new Random(seed ^ 0x5DEECE66DL);
     }
 
     public boolean nextBoolean() {
@@ -47,5 +46,15 @@ public class RandomGen {
 
     public long nextLong() {
         return random.nextLong();
+    }
+
+    public RandomGen getCopy() {
+        return new RandomGen(getRandomClone());
+    }
+
+    public RandomGen createWithSeed(long seed) {
+        random = new Random();
+        random.setSeed(seed);
+        return new RandomGen(random);
     }
 }

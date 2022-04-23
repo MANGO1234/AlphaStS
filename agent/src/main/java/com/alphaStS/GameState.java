@@ -144,12 +144,8 @@ public class GameState implements State {
         return result;
     }
 
-    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics) {
-        this(enemiesArg, player, cards, relics, null, null);
-    }
-
-    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics, List<Potion> potions) {
-        this(enemiesArg, player, cards, relics, potions, null);
+    public GameState(GameStateBuilder builder) {
+        this(builder.getEnemies(), builder.getPlayer(), builder.getCards(), builder.getRelics(), builder.getPotions(), builder.getRandomization());
     }
 
     public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics,
@@ -823,14 +819,18 @@ public class GameState implements State {
         }
     }
 
-    void doAction(int actionIdx) {
+    int doAction(int actionIdx) {
         GameAction action = prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
+        int ret = 0;
         if (action.type() == GameActionType.START_GAME) {
             for (GameEventHandler handler : prop.startOfGameHandlers) {
                 handler.handle(this);
             }
+            if (prop.randomization != null) {
+                ret = prop.randomization.randomize(this);
+            }
             if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-                searchRandomGen = new RandomGen(prop.random.nextLong());
+                searchRandomGen = prop.random.createWithSeed(prop.random.nextLong());
             } else {
                 searchRandomGen = prop.random;
             }
@@ -877,6 +877,7 @@ public class GameState implements State {
             transpositions = new HashMap<>();
             searchFrontier = null;
         }
+        return ret;
     }
 
     boolean isActionLegal(int action) {
@@ -2046,7 +2047,7 @@ public class GameState implements State {
 
     public RandomGen getSearchRandomGen() {
         if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {
-            searchRandomGen = new RandomGen(searchRandomGen);
+            searchRandomGen = searchRandomGen.getCopy();
             searchRandomGenCloned = true;
         }
         return searchRandomGen;
@@ -2126,7 +2127,7 @@ class ChanceState implements State {
             total_node_n = 1;
         }
         if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && initState != null) {
-            searchRandomGen = new RandomGen(initState.getSearchRandomGen().nextLong());
+            searchRandomGen = initState.getSearchRandomGen().createWithSeed(initState.getSearchRandomGen().nextLong());
         } else {
             searchRandomGen = parentState.prop.random;
         }
@@ -2239,7 +2240,7 @@ class ChanceState implements State {
         total_n += 1;
         if (queue.size() > 0) {
             GameState ret = queue.remove(queue.size() - 1);
-            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) searchRandomGen = new RandomGen(ret.getSearchRandomGen().nextLong());
+            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) searchRandomGen = ret.getSearchRandomGen().createWithSeed(ret.getSearchRandomGen().nextLong());
             return ret;
         }
         if (calledFromMCTS && cache.size() > 10 && false) {
@@ -2263,7 +2264,7 @@ class ChanceState implements State {
         if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
-        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) searchRandomGen = new RandomGen(state.getSearchRandomGen().nextLong());
+        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong());
         total_node_n += 1;
         var node = cache.get(state);
         if (node != null) {

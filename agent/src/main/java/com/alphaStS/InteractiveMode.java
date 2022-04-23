@@ -3,9 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.Enemy;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 import static com.alphaStS.utils.Utils.formatFloat;
 
@@ -535,6 +533,27 @@ public class InteractiveMode {
         }
     }
 
+    static int selectScenarioForRandomization(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        var info = state.prop.randomization.listRandomizations();
+        System.out.println(info.size());
+        if (info.size() == 1) {
+            return 0;
+        }
+        for (var entry : info.entrySet()) {
+            System.out.println(entry.getKey() + ". " + entry.getValue().desc());
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (info.get(r) != null) {
+                return r;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
     private static void runGames(String modelDir, GameState state, String line) {
         String[] s = line.split(" ");
         int numberOfGames = 100;
@@ -571,7 +590,12 @@ public class InteractiveMode {
         }
         MatchSession session = new MatchSession(numberOfThreads, modelDir);
         session.startingAction = startingAction;
-        session.playGames(state, numberOfGames, nodeCount, randomizationScenario, true);
+        var prevRandomization = state.prop.randomization;
+        if (randomizationScenario >= 0) {
+            state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);
+        }
+        session.playGames(state, numberOfGames, nodeCount, true);
+        state.prop.randomization = prevRandomization;
     }
 
     private static void printTree(GameState state, String line, String modelDir) {
@@ -722,6 +746,12 @@ class RandomGenInteractive extends RandomGen {
     private final BufferedReader reader;
     private final List<String> history;
 
+    public RandomGenInteractive(Random random, BufferedReader reader, List<String> history) {
+        this.random = random;
+        this.reader = reader;
+        this.history = history;
+    }
+
     public RandomGenInteractive(BufferedReader reader, List<String> history) {
         this.reader = reader;
         this.history = history;
@@ -739,9 +769,26 @@ class RandomGenInteractive extends RandomGen {
                 throw new RuntimeException(e);
             }
         }
+        case BeginningOfGameRandomization -> {
+            try {
+                return InteractiveMode.selectScenarioForRandomization(reader, state, history);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         default -> {
             return super.nextInt(bound, state, ctx);
         }
         }
+    }
+
+    public RandomGen getCopy() {
+        return new RandomGenInteractive(getRandomClone(), reader, history);
+    }
+
+    public RandomGen createWithSeed(long seed) {
+        random = new Random();
+        random.setSeed(seed);
+        return new RandomGenInteractive(random, reader, history);
     }
 }
