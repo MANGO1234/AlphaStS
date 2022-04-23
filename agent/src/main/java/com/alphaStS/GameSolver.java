@@ -38,7 +38,7 @@ public class GameSolver {
             boolean hasOtherAction = false;
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 var action = state.getAction(i);
-                if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.cardIdx()].cardType == Card.ATTACK) {
+                if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.idx()].cardType == Card.ATTACK) {
 //                if (action.type() == GameActionType.PLAY_CARD) {
                     hasOtherAction = true;
                 } else if (action.type() == GameActionType.END_TURN) {
