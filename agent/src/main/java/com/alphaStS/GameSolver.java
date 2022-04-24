@@ -25,7 +25,7 @@ public class GameSolver {
             nodes.put(state, state);
             return state;
         }
-        if (state.actionCtx == GameActionCtx.START_GAME) {
+        if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             ChanceState cState = new ChanceState(null, state, 0);
             generateAllPossibilities(cState);
             calcExpectedHealth(cState);
@@ -116,7 +116,7 @@ public class GameSolver {
     private void generateAllPossibilities(ChanceState cState) {
         var state = cState.parentState;
         var action = cState.parentAction;
-        if (state.getAction(action).type() == GameActionType.BEGIN_TURN || state.actionCtx == GameActionCtx.START_GAME) {
+        if (state.getAction(action).type() == GameActionType.BEGIN_TURN || state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             var modState = state.clone(false);
             modState.discardHand();
             int toDraw = 5;

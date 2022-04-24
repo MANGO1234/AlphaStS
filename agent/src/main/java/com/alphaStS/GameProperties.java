@@ -71,6 +71,8 @@ public class GameProperties {
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
     public GameStateRandomization randomization;
+    public GameStateRandomization preBattleScenarios;
+    public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
 
     public GameProperties() {
         random = new RandomGen();

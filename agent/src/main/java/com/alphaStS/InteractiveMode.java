@@ -133,11 +133,12 @@ public class InteractiveMode {
                             state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
                             state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
                             state.getAction(i).type() == GameActionType.BEGIN_TURN ||
-                            state.getAction(i).type() == GameActionType.USE_POTION) {
+                            state.getAction(i).type() == GameActionType.USE_POTION ||
+                            state.getAction(i).type() == GameActionType.SELECT_SCENARIO) {
                         System.out.println(i + ". " + state.getActionString(i));
                     } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                         System.out.println("e. End Turn");
-                    } else if (state.getAction(i).type() == GameActionType.START_GAME) {
+                    } else if (state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
                         System.out.println(i + ". Start Game");
                     } else {
                         System.out.println(state.getAction(i));

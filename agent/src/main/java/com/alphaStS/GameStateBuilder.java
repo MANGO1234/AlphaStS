@@ -13,6 +13,7 @@ public class GameStateBuilder {
     private List<Relic> relics = new ArrayList<>();
     private List<Potion> potions = new ArrayList<>();
     private GameStateRandomization randomization = null;
+    private GameStateRandomization startOfGameScenarios = null;
 
     public GameStateBuilder() {
     }
@@ -63,5 +64,13 @@ public class GameStateBuilder {
 
     public GameStateRandomization getRandomization() {
         return randomization;
+    }
+
+    public void setStartOfGameScenarios(GameStateRandomization randomization) {
+        startOfGameScenarios = randomization;
+    }
+
+    public GameStateRandomization getStartOfGameScenarios() {
+        return startOfGameScenarios;
     }
 }

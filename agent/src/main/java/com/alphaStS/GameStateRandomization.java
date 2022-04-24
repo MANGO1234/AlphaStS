@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.player.Player;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -306,6 +307,9 @@ public interface GameStateRandomization {
                 }
                 this.scenarios.add(m.entrySet().stream().map((e) -> new CardCount(e.getKey(), e.getValue())).toList());
                 var desc = String.join(", ", scenarios.get(i).stream().map((e) -> e.count() + " " + e.card().cardName).toList());
+                if (desc.length() == 0) {
+                    desc = "No Change";
+                }
                 infoMap.put(i, new Info(1.0 / scenarios.size(), desc));
             }
         }
@@ -399,6 +403,42 @@ public interface GameStateRandomization {
 
         @Override public void randomize(GameState state, int r) {
             randomizations.get(r).accept(state);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            return infoMap;
+        }
+    }
+
+    // todo
+    class CampfireRandomization implements GameStateRandomization {
+        private final List<Card> cards;
+        private final Map<Integer, Info> infoMap;
+        private final int restHp;
+        private final int noRestHp;
+
+        public CampfireRandomization(Player player, List<CardCount> possibleCards, List<Card> cards) {
+            this.cards = cards;
+            noRestHp = player.getHealth();
+            restHp = Math.min(player.getHealth() + (int) (0.3 * player.getMaxHealth()), player.getMaxHealth());
+            infoMap = new HashMap<>();
+            infoMap.put(0, new Info(1.0 / this.cards.size(), "Heal to " + restHp));
+            for (int i = 0; i < this.cards.size(); i++) {
+                infoMap.put(i + 1, new Info(1.0 / this.cards.size(), "Upgrade " + this.cards.get(i)));
+            }
+        }
+
+        @Override public int randomize(GameState state) {
+            int r = state.prop.random.nextInt(cards.size(), state, RandomGenCtx.BeginningOfGameRandomization);
+            randomize(state, r);
+            return r;
+        }
+
+        @Override public void reset(GameState state) {
+            randomize(state, 0);
+        }
+
+        @Override public void randomize(GameState state, int r) {
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

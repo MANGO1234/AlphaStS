@@ -104,12 +104,19 @@ public class Model {
             float v_win = ((float[][]) output.get(1).getValue())[0][0];
             float[] policy = ((float[][]) output.get(2).getValue())[0];
             if (state.prop.maxNumOfActions != state.prop.totalNumOfActions) {
-                if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                    float[] newPolicy = new float[state.prop.maxNumOfActions];
-                    Utils.arrayCopy(newPolicy, policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length, state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length);
-                    policy = newPolicy;
-                } else {
+                if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                     policy = Arrays.copyOf(policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
+                } else if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                    int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                    int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                    policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+                } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+                    int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                        startIdx += state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                    }
+                    int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
+                    policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                 }
             }
             var legalActions = state.getLegalActions();
@@ -119,8 +126,6 @@ public class Model {
             }
             state.v_health = (v_health + 1) / 2;
             state.v_win = (v_win + 1) / 2;
-//            state.v_health = v_health;
-//            state.v_win = v_win;
             state.policy = policy;
             o = new NNOutput((float) state.v_health, (float) state.v_win, softmax(policyCompressed), legalActions);
             cache.put(hash, o);

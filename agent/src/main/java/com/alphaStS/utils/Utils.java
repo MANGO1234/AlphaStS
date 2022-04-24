@@ -29,10 +29,12 @@ public class Utils {
         return result;
     }
 
-    public static void arrayCopy(float[] to, float[] from, int start, int len) {
+    public static float[] arrayCopy(float[] from, int start, int len) {
+        var to = new float[len];
         for (int i = 0; i < len; i++) {
             to[i] = from[start + i];
         }
+        return to;
     }
 
     public static String formatFloat(double f) {

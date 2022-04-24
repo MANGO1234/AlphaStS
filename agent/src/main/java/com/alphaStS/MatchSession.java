@@ -64,9 +64,7 @@ public class MatchSession {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         int r = 0;
-        if (state.actionCtx == GameActionCtx.START_GAME) {
-            r = state.doAction(0);
-        } else if (startingAction >= 0) {
+        if (startingAction >= 0) {
             state.doAction(startingAction);
         }
 
@@ -107,11 +105,16 @@ public class MatchSession {
                     if (!training && solver != null) {
                         solver.checkForError(state, action, true);
                     }
-                    if (nodeCount == 1) {
+                    if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                         state = state.clone(false);
-                        state.doAction(action);
+                        r = state.doAction(0);
                     } else {
-                        state = getNextState(state, mcts, action, false);
+                        if (nodeCount == 1) {
+                            state = state.clone(false);
+                            state.doAction(action);
+                        } else {
+                            state = getNextState(state, mcts, action, false);
+                        }
                     }
                     states.get(states.size() - 1).state().clearNextStates();
                 }
@@ -133,7 +136,12 @@ public class MatchSession {
                 if (!training && solver != null) {
                     solver.checkForError(state, action, true);
                 }
-                state = getNextState(state, mcts, action, false);
+                if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                    state = state.clone(false);
+                    r = state.doAction(0);
+                } else {
+                    state = getNextState(state, mcts, action, false);
+                }
                 states.get(states.size() - 1).state().clearNextStates();
             }
         }
@@ -338,13 +346,10 @@ public class MatchSession {
     }
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {
-        var states = new ArrayList<GameStep>();
+        var steps = new ArrayList<GameStep>();
         var state = origState.clone(false);
         boolean doNotExplore = state.prop.random.nextFloat() < 0.2;
         int r = 0;
-        if (state.actionCtx == GameActionCtx.START_GAME) {
-            r = state.doAction(0);
-        }
 
         state.doEval(mcts.model);
         boolean quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
@@ -372,20 +377,25 @@ public class MatchSession {
             var step = new GameStep(state, action);
             step.useForTraining = !quickPass;
             step.isExplorationMove = greedyAction != action;
-            states.add(step);
+            steps.add(step);
             quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
-            state = getNextState(state, mcts, action, !quickPass);
+            if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                state = state.clone(false);
+                r = state.doAction(0);
+            } else {
+                state = getNextState(state, mcts, action, !quickPass);
+            }
         }
-        states.add(new GameStep(state, -1));
+        steps.add(new GameStep(state, -1));
 
         // do scoring here before clearing states to reuse nn eval if possible
         float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
         float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
         float v_comb = (float) state.calc_q(v_win, v_health);
         ChanceState lastChanceState = null;
-        for (int i = states.size() - 1; i >= 0; i--) {
-            if (states.get(i).isExplorationMove) {
-                ChanceState cState = findBestLineChanceState(states.get(i).state());
+        for (int i = steps.size() - 1; i >= 0; i--) {
+            if (steps.get(i).isExplorationMove) {
+                ChanceState cState = findBestLineChanceState(steps.get(i).state());
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
                 // to reduce this effect, seems ok so far, also check if we are transposing and skip for transposing
                 if (cState != null && lastChanceState != null && !cState.equals(lastChanceState)) {
@@ -414,13 +424,13 @@ public class MatchSession {
                     }
                 }
             }
-            states.get(i).v_win = v_win;
-            states.get(i).v_health = v_health;
-            state = states.get(i).state();
+            steps.get(i).v_win = v_win;
+            steps.get(i).v_health = v_health;
+            state = steps.get(i).state();
             state.clearNextStates();
             if (state.isStochastic && i > 0) {
-                var prevState = states.get(i - 1).state();
-                var prevAction = states.get(i - 1).action();
+                var prevState = steps.get(i - 1).state();
+                var prevAction = steps.get(i - 1).action();
                 var cState = (ChanceState) prevState.ns[prevAction];
                 lastChanceState = cState;
 
@@ -432,8 +442,11 @@ public class MatchSession {
                 }
             }
         }
+        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            steps.get(0).useForTraining = false;
+        }
 
-        return new Game(states, r, doNotExplore);
+        return new Game(steps, r, doNotExplore);
     }
 
     private ChanceState findBestLineChanceState(State state) {
@@ -445,10 +458,10 @@ public class MatchSession {
     }
 
     private Game playTrainingGame2(GameState origState, int nodeCount, MCTS mcts) {
-        var states = new ArrayList<GameStep>();
+        var steps = new ArrayList<GameStep>();
         var state = origState.clone(false);
         var r = 0;
-        if (state.actionCtx == GameActionCtx.START_GAME) {
+        if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             r = state.doAction(0);
         }
 
@@ -460,12 +473,17 @@ public class MatchSession {
             for (int action : state.searchFrontier.getBestLine().getActions(state)) {
                 var step = new GameStep(state, action);
                 step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
-                states.add(step);
-                if (nodeCount == 1) {
+                steps.add(step);
+                if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                     state = state.clone(false);
-                    state.doAction(action);
+                    r = state.doAction(0);
                 } else {
-                    state = getNextState(state, mcts, action, false);
+                    if (nodeCount == 1) {
+                        state = state.clone(false);
+                        state.doAction(action);
+                    } else {
+                        state = getNextState(state, mcts, action, false);
+                    }
                 }
             }
             state = state.clone(true);
@@ -476,28 +494,31 @@ public class MatchSession {
 //            states.add(step);
 //            state = getNextState(state, mcts, action, true);
         }
-        states.add(new GameStep(state, -1));
+        steps.add(new GameStep(state, -1));
 
         // do scoring here before clearing states to reuse nn eval if possible
         float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
         float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
         float v_comb = (float) state.calc_q(v_win, v_health);
-        for (int i = states.size() - 1; i >= 0; i--) {
-            states.get(i).v_win = v_win;
-            states.get(i).v_health = v_health;
-            state = states.get(i).state();
+        for (int i = steps.size() - 1; i >= 0; i--) {
+            steps.get(i).v_win = v_win;
+            steps.get(i).v_health = v_health;
+            state = steps.get(i).state();
             state.clearNextStates();
             if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
-                var prevState = states.get(i - 1).state();
-                var prevAction = states.get(i - 1).action();
+                var prevState = steps.get(i - 1).state();
+                var prevAction = steps.get(i - 1).action();
                 float[] ret = calcExpectedValue((ChanceState) prevState.ns[prevAction], state, mcts, v_win, v_health, v_comb);
                 v_win = ret[0];
                 v_health = ret[1];
                 v_comb = ret[2];
             }
         }
+        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            steps.get(0).useForTraining = false;
+        }
 
-        return new Game(states, r, true);
+        return new Game(steps, r, true);
     }
 
     public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount) {
@@ -553,7 +574,7 @@ public class MatchSession {
                     for (GameStep step : steps) {
                         trainingDataWriter.write(step.state().toStringReadable() + "\n");
                         if (step.action() >= 0) {
-                            trainingDataWriter.write("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")\n");
+                            trainingDataWriter.write("action=" + step.state().getActionString(step.action()) + "\n");
                         }
                     }
                     trainingDataWriter.write("\n");
