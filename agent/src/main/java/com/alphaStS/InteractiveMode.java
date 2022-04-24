@@ -448,12 +448,14 @@ public class InteractiveMode {
         }
         if (util == 0) {
             System.out.println("Set " + state.prop.potions.get(potionIdx) + " to unusable.");
-            state.potionsState[potionIdx * 3 + 1] = 0;
+            state.potionsState[potionIdx * 3] = 0;
             state.potionsState[potionIdx * 3 + 1] = 100;
-            state.potionsState[potionIdx * 3 + 1] = 0;
+            state.potionsState[potionIdx * 3 + 2] = 0;
         } else {
             System.out.println("Set " + state.prop.potions.get(potionIdx) + " utility to " + util + ".");
+            state.potionsState[potionIdx * 3] = 1;
             state.potionsState[potionIdx * 3 + 1] = util;
+            state.potionsState[potionIdx * 3 + 2] = 1;
         }
     }
 

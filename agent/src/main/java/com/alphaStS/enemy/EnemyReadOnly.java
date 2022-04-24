@@ -32,6 +32,7 @@ public abstract class EnemyReadOnly {
     public boolean canGainBlock = false;
     public boolean changePlayerStrength = false;
     public boolean changePlayerDexterity = false;
+    protected boolean hasBurningHealthBuff = false;
     public boolean hasArtifact = false;
 
     public EnemyReadOnly(int health, int numOfMoves) {
@@ -69,6 +70,7 @@ public abstract class EnemyReadOnly {
         metallicize = other.metallicize;
         canGainRegeneration = other.canGainRegeneration;
         canGainMetallicize = other.canGainMetallicize;
+        hasBurningHealthBuff = other.hasBurningHealthBuff();
         if (other.moveHistory != null) {
             for (int i = 0; i < other.moveHistory.length; i++) {
                 moveHistory[i] = other.moveHistory[i];
@@ -110,6 +112,10 @@ public abstract class EnemyReadOnly {
 
     public int getArtifact() {
         return artifact;
+    }
+
+    public boolean hasBurningHealthBuff() {
+        return hasBurningHealthBuff;
     }
 
     public int getMove() {

@@ -126,16 +126,16 @@ public interface GameStateRandomization {
             this.rs = rs;
             Map<Integer, Info> aMap = a.listRandomizations();
             infoMap = new HashMap<>();
-            for (int r : rs) {
-                var info = aMap.get(r);
-                infoMap.put(r, new Info(1.0 / rs.length, info.desc));
+            for (int i = 0; i < rs.length; i++) {
+                var info = aMap.get(rs[i]);
+                infoMap.put(i, new Info(1.0 / rs.length, info.desc));
             }
         }
 
         @Override public int randomize(GameState state) {
             var i = state.prop.random.nextInt(rs.length, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             a.randomize(state, rs[i]);
-            return rs[i];
+            return i;
         }
 
         @Override public void reset(GameState state) {
@@ -144,7 +144,7 @@ public interface GameStateRandomization {
 
         @Override public void randomize(GameState state, int r) {
             reset(state);
-            a.randomize(state, r);
+            a.randomize(state, rs[r]);
         }
 
         @Override public Map<Integer, Info> listRandomizations() {
@@ -190,12 +190,8 @@ public interface GameStateRandomization {
 
         @Override public int randomize(GameState state) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                boolean burningHealthBuff = false;
-                if (enemy.canGainRegeneration && enemy.origHealth < enemy.getHealth()) {
-                    burningHealthBuff = true;
-                }
                 enemy.randomize(state.prop.random, curriculumTraining);
-                if (burningHealthBuff) {
+                if (enemy.hasBurningHealthBuff()) {
                     enemy.setHealth((int) (enemy.getHealth() * 1.25));
                 }
             }
@@ -255,7 +251,7 @@ public interface GameStateRandomization {
             for (int i = 0; i < potions.size(); i++) {
                 state.potionsState[i * 3] = 0;
                 state.potionsState[i * 3 + 1] = 100;
-                state.potionsState[i * 3 + 2] = 1;
+                state.potionsState[i * 3 + 2] = 0;
             }
         }
 
@@ -434,6 +430,7 @@ public interface GameStateRandomization {
                 case 0 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         if (enemy.canGainRegeneration) {
+                            enemy.setBurningHealthBuff(true);
                             enemy.setHealth(enemy.maxHealth);
                             enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(0);
@@ -444,6 +441,7 @@ public interface GameStateRandomization {
                 case 1 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         if (enemy.canGainRegeneration) {
+                            enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.origHealth);
                             enemy.gainStrength(2);
                             enemy.setMetallicize(0);
@@ -454,6 +452,7 @@ public interface GameStateRandomization {
                 case 2 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         if (enemy.canGainRegeneration) {
+                            enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.origHealth);
                             enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(4);
@@ -464,6 +463,7 @@ public interface GameStateRandomization {
                 case 3 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         if (enemy.canGainRegeneration) {
+                            enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.origHealth);
                             enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(0);

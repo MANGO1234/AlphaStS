@@ -60,6 +60,10 @@ public abstract class Enemy extends EnemyReadOnly {
         metallicize = n;
     }
 
+    public void setBurningHealthBuff(boolean b) {
+        hasBurningHealthBuff = b;
+    }
+
     public void setMove(int move) {
         this.move = move;
     }

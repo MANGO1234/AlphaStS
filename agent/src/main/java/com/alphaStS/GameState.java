@@ -293,7 +293,7 @@ public class GameState implements State {
             for (int i = 0; i < prop.potions.size(); i++) {
                 potionsState[i * 3] = 0;
                 potionsState[i * 3 + 1] = 100;
-                potionsState[i * 3 + 2] = 1;
+                potionsState[i * 3 + 2] = 0;
             }
         }
 
@@ -442,17 +442,15 @@ public class GameState implements State {
             }
         }
         if (prop.randomization != null) {
+            var clone = this.clone(false);
             for (var r : prop.randomization.listRandomizations().keySet()) {
-                prop.randomization.reset(this);
-                var deckCopy = Arrays.copyOf(deck, deck.length);
-                prop.randomization.randomize(this, r);
+                prop.randomization.randomize(clone, r);
                 for (int i = 0; i < deck.length; i++) {
-                    if (deckCopy[i] != deck[i]) {
+                    if (clone.deck[i] != deck[i]) {
                         l.add(i);
                     }
                 }
             }
-            prop.randomization.reset(this);
         }
         return l.stream().filter((x) -> !(prop.cardDict[x] instanceof Card.CardTmpChangeCost)).sorted().mapToInt(Integer::intValue).toArray();
     }

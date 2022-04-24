@@ -148,9 +148,9 @@ def expire_training_samples(training_pool, iteration):
 
 
 def save_stats(training_info, iteration, out):
-    death_rate = float(re.findall('Deaths: \d+/\d+ \((\d+\.\d+)\%\)', out)[0])
-    avg_dmg = float(re.findall('Avg Damage: (\d+\.\d+)', out)[0])
-    avg_dmg_tmp = re.findall('Avg Damage \(Not Including Deaths\): (\d+\.\d+)', out)
+    death_rate = float(re.findall('\nDeaths: \d+/\d+ \((\d+\.\d+)\%\)', out)[0])
+    avg_dmg = float(re.findall('\nAvg Damage: (\d+\.\d+)', out)[0])
+    avg_dmg_tmp = re.findall('\nAvg Damage \(Not Including Deaths\): (\d+\.\d+)', out)
     avg_dmg_no_death = float(avg_dmg if len(avg_dmg_tmp) == 0 else avg_dmg_tmp[0])
     training_info['iteration_info'][str(iteration)]['death_rate'] = death_rate
     training_info['iteration_info'][str(iteration)]['avg_dmg'] = avg_dmg

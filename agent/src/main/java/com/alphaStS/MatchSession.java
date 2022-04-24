@@ -173,36 +173,44 @@ public class MatchSession {
         var game_i = 0;
         var combinedInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
         Map<Integer, GameStateRandomization.Info> preBattleInfoMap;
+        List<Integer> preBattleInfoMapKeys;
         if (origState.prop.preBattleRandomization != null) {
             preBattleInfoMap = origState.prop.preBattleRandomization.listRandomizations();
+            preBattleInfoMapKeys = preBattleInfoMap.keySet().stream().sorted().toList();
         } else {
-            preBattleInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
+            preBattleInfoMap = new HashMap<>();
             preBattleInfoMap.put(0, new GameStateRandomization.Info(1, ""));
+            preBattleInfoMapKeys = List.of(0);
         }
         Map<Integer, GameStateRandomization.Info> battleInfoMap;
+        List<Integer> battleInfoMapKeys;
         if (origState.prop.randomization != null) {
             battleInfoMap = origState.prop.randomization.listRandomizations();
+            battleInfoMapKeys = battleInfoMap.keySet().stream().sorted().toList();
         } else {
-            battleInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
+            battleInfoMap = new HashMap<>();
             battleInfoMap.put(0, new GameStateRandomization.Info(1, ""));
+            battleInfoMapKeys = List.of(0);
         }
         for (int i = 0; i < preBattleInfoMap.size(); i++) {
             for (int j = 0; j < battleInfoMap.size(); j++) {
-                var chance = preBattleInfoMap.get(i).chance() * battleInfoMap.get(j).chance();
+                int pr = preBattleInfoMapKeys.get(i);
+                int br = battleInfoMapKeys.get(j);
+                var chance = preBattleInfoMap.get(pr).chance() * battleInfoMap.get(br).chance();
                 String desc;
-                if (preBattleInfoMap.get(i).desc().length() == 0) {
-                    desc = battleInfoMap.get(j).desc();
-                } else if (battleInfoMap.get(j).desc().length() == 0) {
-                    desc = preBattleInfoMap.get(i).desc();
+                if (preBattleInfoMap.get(pr).desc().length() == 0) {
+                    desc = battleInfoMap.get(br).desc();
+                } else if (battleInfoMap.get(br).desc().length() == 0) {
+                    desc = preBattleInfoMap.get(pr).desc();
                 } else {
-                    desc = preBattleInfoMap.get(i).desc() + ", " + battleInfoMap.get(j).desc();
+                    desc = preBattleInfoMap.get(pr).desc() + ", " + battleInfoMap.get(br).desc();
                 }
-                combinedInfoMap.put(i * battleInfoMap.size() + j, new GameStateRandomization.Info(chance, desc));
+                combinedInfoMap.put(pr * battleInfoMap.size() + br, new GameStateRandomization.Info(chance, desc));
             }
         }
         var deathCount = new HashMap<Integer, Integer>();
-        var totalDamageTaken = new HashMap<Integer, Integer>();
-        var totalDamageTakenNoDeath = new HashMap<Integer, Integer>();
+        var totalDamageTakenByR = new HashMap<Integer, Integer>();
+        var totalDamageTakenNoDeathByR = new HashMap<Integer, Integer>();
         var numOfGamesByR = new HashMap<Integer, Integer>();
         var damageCount = new HashMap<Integer, HashMap<Integer, Integer>>();
         var start = System.currentTimeMillis();
@@ -227,10 +235,10 @@ public class MatchSession {
             deathCount.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == -1 ? 1 : 0));
             numOfGamesByR.putIfAbsent(r, 0);
             numOfGamesByR.computeIfPresent(r, (k, x) -> x + 1);
-            totalDamageTaken.putIfAbsent(r, 0);
-            totalDamageTaken.computeIfPresent(r, (k, x) -> x + damageTaken);
-            totalDamageTakenNoDeath.putIfAbsent(r, 0);
-            totalDamageTakenNoDeath.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
+            totalDamageTakenByR.putIfAbsent(r, 0);
+            totalDamageTakenByR.computeIfPresent(r, (k, x) -> x + damageTaken);
+            totalDamageTakenNoDeathByR.putIfAbsent(r, 0);
+            totalDamageTakenNoDeathByR.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
             damageCount.computeIfAbsent(r, (x) -> new HashMap<>());
             damageCount.compute(r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
             game_i += 1;
@@ -275,12 +283,7 @@ public class MatchSession {
                 if (!training && solver != null) {
                     System.out.println("Error Count: " + solverErrorCount);
                 }
-                if (deathCount.size() == 1) {
-                    var i = deathCount.keySet().stream().toList().get(0);
-                    System.out.println("Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
-                    System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i)));
-                    System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i))));
-                } else {
+                if (deathCount.size() > 1) {
                     for (var info : state.prop.randomization.listRandomizations().entrySet()) {
                         var i = info.getKey();
                         if (deathCount.get(i) == null) {
@@ -288,27 +291,40 @@ public class MatchSession {
                         }
                         System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
                         System.out.println("    Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
-                        System.out.println("    Avg Damage: " + ((double) totalDamageTaken.get(i)) / numOfGamesByR.get(i));
-                        System.out.println("    Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeath.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                        System.out.println("    Avg Damage: " + ((double) totalDamageTakenByR.get(i)) / numOfGamesByR.get(i));
+                        System.out.println("    Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeathByR.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
                     }
                 }
+                var totalDeathCount = 0;
+                var totalDamageTaken = 0;
+                var totalDamageTakenNoDeath = 0;
+                var totalNumOfGames = 0;
+                for (int rr : deathCount.keySet()) {
+                    totalDeathCount += deathCount.get(rr);
+                    totalDamageTaken += totalDamageTakenByR.get(rr);
+                    totalDamageTakenNoDeath += totalDamageTakenNoDeathByR.get(rr);
+                    totalNumOfGames += numOfGamesByR.get(rr);
+                }
+                System.out.println("Deaths: " + totalDeathCount + "/" + totalNumOfGames + " (" + String.format("%.2f", 100 * totalDeathCount / (float) totalNumOfGames).trim() + "%)");
+                System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken) / totalNumOfGames));
+                System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath) / (totalNumOfGames - totalDeathCount)));
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);
                     System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
                     System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
                 }
-                if (game_i == numOfGames && printProgress) {
-                    if (state.prop.randomization != null) {
-                        for (var info : state.prop.randomization.listRandomizations().entrySet()) {
-                            if (damageCount.get(info.getKey()) == null) {
-                                continue;
-                            }
-                            System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
-                            System.out.println(String.join("\n", damageCount.get(info.getKey()).entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).toList()));
-                        }
-                    }
-                }
+//                if (game_i == numOfGames && printProgress) {
+//                    if (state.prop.randomization != null) {
+//                        for (var info : state.prop.randomization.listRandomizations().entrySet()) {
+//                            if (damageCount.get(info.getKey()) == null) {
+//                                continue;
+//                            }
+//                            System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
+//                            System.out.println(String.join("\n", damageCount.get(info.getKey()).entrySet().stream().sorted(Map.Entry.comparingByKey()).map((e) -> e.getKey() + ": " + e.getValue()).toList()));
+//                        }
+//                    }
+//                }
                 System.out.println("--------------------");
             }
         }
@@ -592,7 +608,7 @@ public class MatchSession {
             result.add(steps);
             var state = steps.get(steps.size() - 1).state();
             trainingGame_i += 1;
-            if (trainingDataWriter != null && numOfGames <= 300) {
+            if (trainingDataWriter != null && trainingGame_i <= 200) {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     if (origState.prop.preBattleRandomization != null) {

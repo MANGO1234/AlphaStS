@@ -343,8 +343,9 @@ public class Main {
                 List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShacklesP(), 1), new CardCount(new Card.Combust(), 1)),
                 List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.CombustP(), 1))
         ));
+        randomization = randomization.doAfter(startOfGameScenarios);
         builder.setRandomization(randomization);
-        builder.setPreBattleScenarios(startOfGameScenarios);
+//        builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addPotion(new Potion.WeakPotion());
         builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(16, 75));
@@ -442,12 +443,12 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_nob";
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
-//            SAVES_DIR = "../tmp/comp2/saves";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
+//            SAVES_DIR = "../tmp/burning/saves_all_pot";
+            NUMBER_OF_GAMES_TO_PLAY = 100;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 1000;
+            NUMBER_OF_NODES_PER_TURN = 100;
 //            iteration = 21;
 //            COMPARE_DIR = "../saves/iteration20";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 1);
@@ -458,7 +459,7 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(1).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
@@ -472,6 +473,11 @@ public class Main {
         if (RANDOMIZATION_SCENARIO >= 0 && state.prop.randomization != null) {
             state.prop.randomization = state.prop.randomization.fixR(RANDOMIZATION_SCENARIO);
         }
+//        state.prop.randomization = state.prop.randomization.fixR(0,1,2,3,4,5,6,7);
+//        state.prop.randomization = state.prop.randomization.fixR(8,9,10,11,12,13,14,15);
+//        state.prop.randomization = state.prop.randomization.fixR(16,17,18,19,20,21,22,23);
+//        state.prop.randomization = state.prop.randomization.fixR(24,25,26,27,28,29,30,31);
+//        state.prop.randomization = state.prop.randomization.fixR(32,33,34,35,36,37,38,39);
 
         ObjectMapper mapper = new ObjectMapper();
         String curIterationDir = SAVES_DIR + "/iteration0";
@@ -532,9 +538,9 @@ public class Main {
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
             if (state.prop.potions != null) {
-                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).doAfter(state.prop.preBattleRandomization);
+                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(1).doAfter(state.prop.preBattleRandomization);
             }
-            var games = session.playTrainingGames(state, 300, 100);
+            var games = session.playTrainingGames(state, 600, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
