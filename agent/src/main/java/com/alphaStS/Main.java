@@ -346,6 +346,7 @@ public class Main {
         builder.setRandomization(randomization);
         builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addPotion(new Potion.WeakPotion());
+        builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(16, 75));
         return new GameState(builder);
     }

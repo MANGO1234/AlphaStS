@@ -79,7 +79,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     }
 
     public static class CardTmpChangeCost extends Card {
-        private final Card card;
+        public final Card card;
 
         public CardTmpChangeCost(Card card, int energyCost) {
             super(card.cardName + " (Tmp " + energyCost + ")", card.cardType, energyCost);

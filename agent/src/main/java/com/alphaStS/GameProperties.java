@@ -26,8 +26,10 @@ public class GameProperties {
     public GameAction[][] actionsByCtx;
 
     // cached card indexes
+    public int realCardsLen; // not including CardTmpCostChange (due to liquid memory)
     public int[] discardIdxes; // cards that can change in number of copies during a fight
     public int[] upgradeIdxes;
+    public int[] tmpCostCardIdxes;
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;
     public int[] strikeCardIdxes;

@@ -2,7 +2,6 @@ package com.alphaStS;
 
 import com.alphaStS.utils.Utils;
 
-import java.awt.*;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;

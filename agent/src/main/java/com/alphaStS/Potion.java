@@ -124,9 +124,12 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            if (state.prop.cardDict[idx].energyCost > 0) {
-
+            if (state.prop.tmpCostCardIdxes[idx] >= 0) {
+                state.removeCardFromDiscard(idx);
+                state.addCardToHand(state.prop.tmpCostCardIdxes[idx]);
             } else {
+                state.removeCardFromDiscard(idx);
+                state.addCardToHand(idx);
             }
             return GameActionCtx.PLAY_CARD;
         }
