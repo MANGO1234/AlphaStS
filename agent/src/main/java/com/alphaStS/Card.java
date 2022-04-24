@@ -15,7 +15,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public final int cardType;
     String cardName;
     int energyCost;
-    public GameActionCtx secondActionCtx;
     public boolean ethereal = false;
     public boolean innate = false;
     public boolean exhaustWhenPlayed = false;
@@ -24,6 +23,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public boolean selectFromDiscard;
     public boolean selectFromExhaust;
     public boolean selectFromHand;
+    public boolean isXCost;
     public boolean selectFromDiscardLater;
     public boolean selectFromHandLater;
     public boolean exhaustSkill;
@@ -78,6 +78,45 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         return Objects.hash(cardName);
     }
 
+    public static class CardTmpChangeCost extends Card {
+        private final Card card;
+
+        public CardTmpChangeCost(Card card, int energyCost) {
+            super(card.cardName + " (Tmp " + energyCost + ")", card.cardType, energyCost);
+            this.card = card;
+            ethereal = card.ethereal;
+            innate = card.innate;
+            exhaustWhenPlayed = card.exhaustWhenPlayed;
+            exhaustNonAttacks = card.exhaustNonAttacks;
+            selectEnemy = card.selectEnemy;
+            selectFromDiscard = card.selectFromDiscard;
+            selectFromExhaust = card.selectFromExhaust;
+            selectFromHand = card.selectFromHand;
+            selectFromDiscardLater = card.selectFromDiscardLater;
+            selectFromHandLater = card.selectFromHandLater;
+            exhaustSkill = card.exhaustSkill;
+            canExhaustAnyCard = card.canExhaustAnyCard;
+            changePlayerStrength = card.changePlayerStrength;
+            changePlayerStrengthEot = card.changePlayerStrengthEot;
+            changePlayerDexterity = card.changePlayerDexterity;
+            vulnEnemy = card.vulnEnemy;
+            weakEnemy = card.weakEnemy;
+            affectEnemyStrength = card.affectEnemyStrength;
+            affectEnemyStrengthEot = card.affectEnemyStrengthEot;
+            putCardOnTopDeck = card.putCardOnTopDeck;
+            healPlayer = card.healPlayer;
+        }
+
+        public void setCounterIdx(GameProperties gameProperties, int idx) {
+            card.setCounterIdx(gameProperties, idx);
+        }
+
+        GameActionCtx play(GameState state, int idx) { return card.play(state, idx); }
+        void onExhaust(GameState state) { card.onExhaust(state); }
+        List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public boolean canSelectFromHand(Card card) { return card.canSelectFromHand(card); }
+        public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
+    }
 
     public static class Bash extends Card {
         public Bash() {
@@ -417,7 +456,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
             selectFromDiscard = true;
             selectFromDiscardLater = true;
-            secondActionCtx = GameActionCtx.SELECT_CARD_DISCARD;
             putCardOnTopDeck = true;
         }
 
@@ -439,7 +477,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
             selectFromDiscard = true;
             selectFromDiscardLater = true;
-            secondActionCtx = GameActionCtx.SELECT_CARD_DISCARD;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -2151,6 +2188,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public static class Whirlwind extends Card {
         public Whirlwind() {
             super("Whirlwind", Card.ATTACK, -1);
+            isXCost = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
@@ -2170,6 +2208,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public static class WhirlwindP extends Card {
         public WhirlwindP() {
             super("Whirlwind+", Card.ATTACK, -1);
+            isXCost = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {

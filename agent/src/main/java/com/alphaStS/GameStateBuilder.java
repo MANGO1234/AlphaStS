@@ -13,7 +13,8 @@ public class GameStateBuilder {
     private List<Relic> relics = new ArrayList<>();
     private List<Potion> potions = new ArrayList<>();
     private GameStateRandomization randomization = null;
-    private GameStateRandomization startOfGameScenarios = null;
+    private GameStateRandomization preBattleRandomization = null;
+    private GameStateRandomization preBattleGameScenarios = null;
 
     public GameStateBuilder() {
     }
@@ -66,11 +67,19 @@ public class GameStateBuilder {
         return randomization;
     }
 
-    public void setStartOfGameScenarios(GameStateRandomization randomization) {
-        startOfGameScenarios = randomization;
+    public void setPreBattleRandomization(GameStateRandomization randomization) {
+        this.preBattleRandomization = randomization;
     }
 
-    public GameStateRandomization getStartOfGameScenarios() {
-        return startOfGameScenarios;
+    public GameStateRandomization getPreBattleRandomization() {
+        return preBattleRandomization;
+    }
+
+    public void setPreBattleScenarios(GameStateRandomization randomization) {
+        preBattleGameScenarios = randomization;
+    }
+
+    public GameStateRandomization getPreBattleScenarios() {
+        return preBattleGameScenarios;
     }
 }

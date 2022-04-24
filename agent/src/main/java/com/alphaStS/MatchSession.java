@@ -64,8 +64,9 @@ public class MatchSession {
         var states = new ArrayList<GameStep>();
         var state = origState.clone(false);
         int r = 0;
-        if (startingAction >= 0) {
-            state.doAction(startingAction);
+        int preBattle_r = 0;
+        if (state.prop.preBattleRandomization != null) {
+            preBattle_r = state.prop.preBattleRandomization.randomize(state);
         }
 
         if (USE_NEW_SEARCH) {
@@ -146,10 +147,10 @@ public class MatchSession {
             }
         }
         states.add(new GameStep(state, -1));
-        return new Game(states, r, true);
+        return new Game(states, preBattle_r, r, true);
     }
 
-    public static record Game(List<GameStep> steps, int r, boolean noExploration) {}
+    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, boolean noExploration) {}
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var deq = new LinkedBlockingDeque<Game>();
@@ -170,6 +171,35 @@ public class MatchSession {
         }
 
         var game_i = 0;
+        var combinedInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
+        Map<Integer, GameStateRandomization.Info> preBattleInfoMap;
+        if (origState.prop.preBattleRandomization != null) {
+            preBattleInfoMap = origState.prop.preBattleRandomization.listRandomizations();
+        } else {
+            preBattleInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
+            preBattleInfoMap.put(0, new GameStateRandomization.Info(1, ""));
+        }
+        Map<Integer, GameStateRandomization.Info> battleInfoMap;
+        if (origState.prop.randomization != null) {
+            battleInfoMap = origState.prop.randomization.listRandomizations();
+        } else {
+            battleInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
+            battleInfoMap.put(0, new GameStateRandomization.Info(1, ""));
+        }
+        for (int i = 0; i < preBattleInfoMap.size(); i++) {
+            for (int j = 0; j < battleInfoMap.size(); j++) {
+                var chance = preBattleInfoMap.get(i).chance() * battleInfoMap.get(j).chance();
+                String desc;
+                if (preBattleInfoMap.get(i).desc().length() == 0) {
+                    desc = battleInfoMap.get(j).desc();
+                } else if (battleInfoMap.get(j).desc().length() == 0) {
+                    desc = preBattleInfoMap.get(i).desc();
+                } else {
+                    desc = preBattleInfoMap.get(i).desc() + ", " + battleInfoMap.get(j).desc();
+                }
+                combinedInfoMap.put(i * battleInfoMap.size() + j, new GameStateRandomization.Info(chance, desc));
+            }
+        }
         var deathCount = new HashMap<Integer, Integer>();
         var totalDamageTaken = new HashMap<Integer, Integer>();
         var totalDamageTakenNoDeath = new HashMap<Integer, Integer>();
@@ -188,28 +218,28 @@ public class MatchSession {
                 throw new RuntimeException(e);
             }
             var state = steps.get(steps.size() - 1).state();
+            var r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
             if (!training && solver != null) {
                 solverErrorCount += solver.checkForError(game);
             }
             int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
-            deathCount.putIfAbsent(game.r, 0);
-            deathCount.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == -1 ? 1 : 0));
-            numOfGamesByR.putIfAbsent(game.r, 0);
-            numOfGamesByR.computeIfPresent(game.r, (k, x) -> x + 1);
-            totalDamageTaken.putIfAbsent(game.r, 0);
-            totalDamageTaken.computeIfPresent(game.r, (k, x) -> x + damageTaken);
-            totalDamageTakenNoDeath.putIfAbsent(game.r, 0);
-            totalDamageTakenNoDeath.computeIfPresent(game.r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
-            damageCount.computeIfAbsent(game.r, (x) -> new HashMap<>());
-            damageCount.compute(game.r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
+            deathCount.putIfAbsent(r, 0);
+            deathCount.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == -1 ? 1 : 0));
+            numOfGamesByR.putIfAbsent(r, 0);
+            numOfGamesByR.computeIfPresent(r, (k, x) -> x + 1);
+            totalDamageTaken.putIfAbsent(r, 0);
+            totalDamageTaken.computeIfPresent(r, (k, x) -> x + damageTaken);
+            totalDamageTakenNoDeath.putIfAbsent(r, 0);
+            totalDamageTakenNoDeath.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
+            damageCount.computeIfAbsent(r, (x) -> new HashMap<>());
+            damageCount.compute(r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
             game_i += 1;
             if (matchLogWriter != null) {
                 try {
                     matchLogWriter.write("*** Match " + game_i + " ***\n");
                     if (origState.prop.randomization != null) {
-                        var info = origState.prop.randomization.listRandomizations();
-                        if (info.size() > 1) {
-                            matchLogWriter.write("Scenario: " + info.get(game.r).desc() + "\n");
+                        if (combinedInfoMap.size() > 1) {
+                            matchLogWriter.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
                         }
                     }
                     matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
@@ -350,6 +380,10 @@ public class MatchSession {
         var state = origState.clone(false);
         boolean doNotExplore = state.prop.random.nextFloat() < 0.2;
         int r = 0;
+        int preBattle_r = 0;
+        if (state.prop.preBattleRandomization != null) {
+            preBattle_r = state.prop.preBattleRandomization.randomize(state);
+        }
 
         state.doEval(mcts.model);
         boolean quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4) > 0;
@@ -446,7 +480,7 @@ public class MatchSession {
             steps.get(0).useForTraining = false;
         }
 
-        return new Game(steps, r, doNotExplore);
+        return new Game(steps, preBattle_r, r, doNotExplore);
     }
 
     private ChanceState findBestLineChanceState(State state) {
@@ -461,8 +495,9 @@ public class MatchSession {
         var steps = new ArrayList<GameStep>();
         var state = origState.clone(false);
         var r = 0;
-        if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
-            r = state.doAction(0);
+        int preBattle_r = 0;
+        if (state.prop.preBattleRandomization != null) {
+            preBattle_r = state.prop.preBattleRandomization.randomize(state);
         }
 
         while (state.isTerminal() == 0) {
@@ -518,7 +553,7 @@ public class MatchSession {
             steps.get(0).useForTraining = false;
         }
 
-        return new Game(steps, r, true);
+        return new Game(steps, preBattle_r, r, true);
     }
 
     public List<List<GameStep>> playTrainingGames(GameState origState, int numOfGames, int nodeCount) {
@@ -557,13 +592,19 @@ public class MatchSession {
             result.add(steps);
             var state = steps.get(steps.size() - 1).state();
             trainingGame_i += 1;
-            if (trainingDataWriter != null && numOfGames <= 200) {
+            if (trainingDataWriter != null && numOfGames <= 300) {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
+                    if (origState.prop.preBattleRandomization != null) {
+                        var info = origState.prop.preBattleRandomization.listRandomizations();
+                        if (info.size() > 1) {
+                            trainingDataWriter.write("Pre-Battle Randomization: " + info.get(game.preBattle_r).desc() + "\n");
+                        }
+                    }
                     if (origState.prop.randomization != null) {
                         var info = origState.prop.randomization.listRandomizations();
                         if (info.size() > 1) {
-                            trainingDataWriter.write("Scenario: " + info.get(game.r).desc() + "\n");
+                            trainingDataWriter.write("Battle Randomization: " + info.get(game.battle_r).desc() + "\n");
                         }
                     }
                     if (!TRAINING_WITH_LINE && game.noExploration) {
@@ -603,16 +644,6 @@ public class MatchSession {
                        max_i = i;
                    }
                }
-//               if (max_i != step.action()) {
-//                   if (state.n[max_i] == state.n[step.action()]) {
-//                       max_i = step.action();
-//                   } else {
-//                       System.out.println(step.state());
-//                       System.out.println(step.state().getActionString(max_i));
-//                       System.out.println(step.state().getActionString(step.action()));
-//                       Integer.parseInt(null);
-//                   }
-//               }
                double q = state.q_comb[max_i] / state.n[max_i];
                double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
                var max_puct = q + u;

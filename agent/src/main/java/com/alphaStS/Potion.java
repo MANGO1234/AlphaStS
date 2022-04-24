@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import java.util.List;
+
 public abstract class Potion {
     boolean vulnEnemy;
     boolean weakEnemy;
@@ -12,6 +14,7 @@ public abstract class Potion {
 
     public abstract GameActionCtx use(GameState state, int idx);
     public abstract GameActionCtx useDouble(GameState state, int idx);
+    List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
 
     public static class VulnerablePotion extends Potion {
         public VulnerablePotion() {
@@ -112,6 +115,32 @@ public abstract class Potion {
 
         @Override public String toString() {
             return "Ancient Potion";
+        }
+    }
+
+    public static class LiquidMemory extends Potion {
+        public LiquidMemory() {
+            selectFromDiscard = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (state.prop.cardDict[idx].energyCost > 0) {
+
+            } else {
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            return use(state, idx);
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
+        }
+
+        @Override public String toString() {
+            return "Liquid Memory";
         }
     }
 }

@@ -52,6 +52,14 @@ public abstract class Enemy extends EnemyReadOnly {
         health = hp;
     }
 
+    public void setRegeneration(int regen) {
+        regeneration = regen;
+    }
+
+    public void setMetallicize(int n) {
+        metallicize = n;
+    }
+
     public void setMove(int move) {
         this.move = move;
     }
@@ -71,6 +79,16 @@ public abstract class Enemy extends EnemyReadOnly {
             applyDebuff(DebuffType.LOSE_STRENGTH, loseStrengthEot);
             loseStrengthEot = 0;
         }
+        if (metallicize > 0) {
+            gainBlock(metallicize);
+        }
+        if (regeneration > 0) {
+            heal(regeneration);
+        }
+    }
+
+    protected void heal(int hp) {
+        health += Math.min(hp, origHealth - health); // currently only used in burning elite regeneration, origHealth = origMaxHealth
     }
 
     public void react(GameState state, Card card) {
@@ -91,6 +109,13 @@ public abstract class Enemy extends EnemyReadOnly {
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
         }
         return true;
+    }
+
+    public Enemy markAsBurningElite() {
+        maxHealth = (int) (maxHealth * 1.25);
+        canGainMetallicize = true;
+        canGainRegeneration = true;
+        return this;
     }
 
     public void randomize(RandomGen random, boolean training) {

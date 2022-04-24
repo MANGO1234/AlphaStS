@@ -53,6 +53,12 @@ public class InteractiveMode {
                         if (enemy.getWeak() > 0) {
                             System.out.println("  Weak: " + enemy.getWeak());
                         }
+                        if (enemy.getRegeneration() > 0) {
+                            System.out.println("  Regeneration: " + enemy.getRegeneration());
+                        }
+                        if (enemy.getMetallicize() > 0) {
+                            System.out.println("  Metallicize: " + enemy.getMetallicize());
+                        }
                         if (enemy.getLoseStrengthEot() != 0) {
                             System.out.println("  Gain Strength EOT: " + -enemy.getLoseStrengthEot());
                         }
@@ -534,9 +540,7 @@ public class InteractiveMode {
         }
     }
 
-    static int selectScenarioForRandomization(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        var info = state.prop.randomization.listRandomizations();
-        System.out.println(info.size());
+    static int selectScenarioForRandomization(BufferedReader reader, Map<Integer, GameStateRandomization.Info> info, List<String> history) throws IOException {
         if (info.size() == 1) {
             return 0;
         }
@@ -758,27 +762,27 @@ class RandomGenInteractive extends RandomGen {
         this.history = history;
     }
 
-    @Override public int nextInt(int bound, GameState state, RandomGenCtx ctx) {
+    @Override public int nextInt(int bound, RandomGenCtx ctx, Object arg) {
         if (rngOn) {
-            return super.nextInt(bound, state, ctx);
+            return super.nextInt(bound, ctx, arg);
         }
         switch (ctx) {
         case WarpedTongs -> {
             try {
-                return InteractiveMode.selectCardForWarpedTongs(reader, state, history);
+                return InteractiveMode.selectCardForWarpedTongs(reader, (GameState) arg, history);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         case BeginningOfGameRandomization -> {
             try {
-                return InteractiveMode.selectScenarioForRandomization(reader, state, history);
+                return InteractiveMode.selectScenarioForRandomization(reader, (Map<Integer, GameStateRandomization.Info>) arg, history);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
         }
         default -> {
-            return super.nextInt(bound, state, ctx);
+            return super.nextInt(bound, ctx, arg);
         }
         }
     }

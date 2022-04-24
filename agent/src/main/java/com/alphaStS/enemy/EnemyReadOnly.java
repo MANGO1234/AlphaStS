@@ -12,10 +12,13 @@ public abstract class EnemyReadOnly {
     protected int vulnerable;
     protected int weak;
     protected int artifact;
+    protected int regeneration;
+    protected int metallicize;
     protected int loseStrengthEot;
     protected int move;
     protected int[] moveHistory;
     public int maxHealth;
+    public int origHealth;
     public int numOfMoves;
     public boolean isElite = false;
     public boolean canVulnerable = false;
@@ -24,6 +27,8 @@ public abstract class EnemyReadOnly {
     public boolean canSlime = false;
     public boolean canDaze = false;
     public boolean canGainStrength = false;
+    public boolean canGainRegeneration = false;
+    public boolean canGainMetallicize = false;
     public boolean canGainBlock = false;
     public boolean changePlayerStrength = false;
     public boolean changePlayerDexterity = false;
@@ -32,6 +37,7 @@ public abstract class EnemyReadOnly {
     public EnemyReadOnly(int health, int numOfMoves) {
         this.health = health;
         maxHealth = health;
+        origHealth = health;
         this.numOfMoves = numOfMoves;
         move = -1;
     }
@@ -58,6 +64,11 @@ public abstract class EnemyReadOnly {
         move = other.move;
         numOfMoves = other.numOfMoves;
         maxHealth = other.maxHealth;
+        origHealth = other.origHealth;
+        regeneration = other.regeneration;
+        metallicize = other.metallicize;
+        canGainRegeneration = other.canGainRegeneration;
+        canGainMetallicize = other.canGainMetallicize;
         if (other.moveHistory != null) {
             for (int i = 0; i < other.moveHistory.length; i++) {
                 moveHistory[i] = other.moveHistory[i];
@@ -87,6 +98,14 @@ public abstract class EnemyReadOnly {
 
     public int getWeak() {
         return weak;
+    }
+
+    public int getRegeneration() {
+        return regeneration;
+    }
+
+    public int getMetallicize() {
+        return metallicize;
     }
 
     public int getArtifact() {
@@ -123,6 +142,12 @@ public abstract class EnemyReadOnly {
         }
         if (artifact > 0) {
             str += ", art=" + artifact;
+        }
+        if (regeneration > 0) {
+            str += ", regen=" + regeneration;
+        }
+        if (metallicize > 0) {
+            str += ", metallicize=" + metallicize;
         }
         return str + '}';
     }

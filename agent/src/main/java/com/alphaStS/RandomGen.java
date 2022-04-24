@@ -40,7 +40,7 @@ public class RandomGen {
         return random.nextInt(bound);
     }
 
-    public int nextInt(int bound, GameState state, RandomGenCtx ctx) {
+    public int nextInt(int bound, RandomGenCtx ctx, Object arg) {
         return random.nextInt(bound);
     }
 

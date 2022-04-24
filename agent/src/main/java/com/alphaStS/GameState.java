@@ -147,24 +147,25 @@ public class GameState implements State {
     }
 
     public GameState(GameStateBuilder builder) {
-        this(builder.getEnemies(), builder.getPlayer(), builder.getCards(), builder.getRelics(), builder.getPotions(), builder.getRandomization(), builder.getStartOfGameScenarios());
+        this(builder.getEnemies(), builder.getPlayer(), builder.getCards(), builder.getRelics(), builder.getPotions(), builder.getRandomization(), builder.getPreBattleRandomization(), builder.getPreBattleScenarios());
     }
 
     public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics,
-            List<Potion> potions, GameStateRandomization randomization, GameStateRandomization startOfGameScenarios) {
+            List<Potion> potions, GameStateRandomization randomization, GameStateRandomization preBattleRandomization, GameStateRandomization preBattleScenarios) {
         // game properties (shared)
         prop = new GameProperties();
         prop.randomization = randomization;
+        prop.preBattleRandomization = preBattleRandomization;
         prop.potions = potions;
 
-        cards = collectAllPossibleCards(cards, enemiesArg, relics);
+        cards = collectAllPossibleCards(cards, enemiesArg, relics, potions);
         cards.sort(Comparator.comparing(a -> a.card().cardName));
         prop.cardDict = new Card[cards.size()];
         for (int i = 0; i < cards.size(); i++) {
             prop.cardDict[i] = cards.get(i).card();
         }
 
-        prop.preBattleScenarios = startOfGameScenarios;
+        prop.preBattleScenarios = preBattleScenarios;
         if (prop.preBattleScenarios != null) {
             prop.preBattleGameScenariosList = prop.preBattleScenarios.listRandomizations().entrySet()
                     .stream().sorted(Comparator.comparingInt(Map.Entry::getKey)).toList();
@@ -437,7 +438,7 @@ public class GameState implements State {
         return l.stream().sorted().mapToInt(Integer::intValue).toArray();
     }
 
-    private List<CardCount> collectAllPossibleCards(List<CardCount> cards, List<Enemy> enemies, List<Relic> relics) {
+    private List<CardCount> collectAllPossibleCards(List<CardCount> cards, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
         var set = new HashSet<>(cards);
         if (enemies.stream().anyMatch((x) -> x.canSlime)) {
             set.add(new CardCount(new Card.Slime(), 0));
@@ -454,6 +455,11 @@ public class GameState implements State {
             }
             for (Relic relic : relics) {
                 for (Card possibleCard : relic.getPossibleGeneratedCards(set.stream().map(CardCount::card).toList())) {
+                    newSet.add(new CardCount(possibleCard, 0));
+                }
+            }
+            for (Potion potion : potions) {
+                for (Card possibleCard : potion.getPossibleGeneratedCards(set.stream().map(CardCount::card).toList())) {
                     newSet.add(new CardCount(possibleCard, 0));
                 }
             }
@@ -1277,6 +1283,12 @@ public class GameState implements State {
             if (enemy.hasArtifact) {
                 inputLen += 1; // enemy artifact
             }
+            if (enemy.canGainRegeneration) {
+                inputLen += 1; // enemy regeneration
+            }
+            if (enemy.canGainMetallicize) {
+                inputLen += 1; // enemy metallicize
+            }
             inputLen += enemy.numOfMoves; // enemy moves
             if (enemy.getMoveHistory() != null) {
                 inputLen += enemy.getMoveHistory().length * enemy.numOfMoves;
@@ -1418,6 +1430,12 @@ public class GameState implements State {
             }
             if (enemy.hasArtifact) {
                 str += "        1 input to keep track of artifact\n";
+            }
+            if (enemy.canGainRegeneration) {
+                str += "        1 input to keep track of regeneration\n";
+            }
+            if (enemy.canGainMetallicize) {
+                str += "        1 input to keep track of metallicize\n";
             }
             str += "        " + enemy.numOfMoves + " inputs to keep track of current move from enemy\n";
             if (enemy.getMoveHistory() != null) {
@@ -1573,6 +1591,12 @@ public class GameState implements State {
                 if (enemy.hasArtifact) {
                     x[idx++] = enemy.getArtifact() / 3.0f;
                 }
+                if (enemy.canGainRegeneration) {
+                    x[idx++] = enemy.getRegeneration() / (float) 10.0;
+                }
+                if (enemy.canGainMetallicize) {
+                    x[idx++] = enemy.getMetallicize() / (float) 14.0;
+                }
                 for (int i = 0; i < enemy.numOfMoves; i++) {
                     if (enemy.getMove() == i) {
                         x[idx++] = 0.5f;
@@ -1619,6 +1643,12 @@ public class GameState implements State {
                     x[idx++] = -0.1f;
                 }
                 if (enemy.hasArtifact) {
+                    x[idx++] = -0.1f;
+                }
+                if (enemy.canGainRegeneration) {
+                    x[idx++] = -0.1f;
+                }
+                if (enemy.canGainMetallicize) {
                     x[idx++] = -0.1f;
                 }
                 for (int i = 0; i < enemy.numOfMoves; i++) {

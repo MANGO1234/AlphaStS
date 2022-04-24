@@ -133,7 +133,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            var i = state.prop.random.nextInt(rs.length, state, RandomGenCtx.BeginningOfGameRandomization);
+            var i = state.prop.random.nextInt(rs.length, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             a.randomize(state, rs[i]);
             return rs[i];
         }
@@ -190,7 +190,14 @@ public interface GameStateRandomization {
 
         @Override public int randomize(GameState state) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                boolean burningHealthBuff = false;
+                if (enemy.canGainRegeneration && enemy.origHealth < enemy.getHealth()) {
+                    burningHealthBuff = true;
+                }
                 enemy.randomize(state.prop.random, curriculumTraining);
+                if (burningHealthBuff) {
+                    enemy.setHealth((int) (enemy.getHealth() * 1.25));
+                }
             }
             if (state.getEnemiesForRead().size() >= 3) {
                 if (state.getEnemiesForRead().get(0).getClass().equals(state.getEnemiesForRead().get(2).getClass())) {
@@ -233,12 +240,12 @@ public interface GameStateRandomization {
 
         // todo: think of a better distribution
         @Override public int randomize(GameState state) {
-            var r = state.prop.random.nextInt(10, state, RandomGenCtx.BeginningOfGameRandomization);
+            var r = state.prop.random.nextInt(10, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             if (r < 4) {
                 r = 0;
             } else {
                 var upto = (int) Math.pow(steps, potions.size());
-                r = 1 + state.prop.random.nextInt(upto, state, RandomGenCtx.BeginningOfGameRandomization);
+                r = 1 + state.prop.random.nextInt(upto, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             }
             randomize(state, r);
             return r;
@@ -315,7 +322,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(scenarios.size(), state, RandomGenCtx.BeginningOfGameRandomization);
+            int r = state.prop.random.nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
@@ -351,21 +358,20 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(scenarios.size(), state, RandomGenCtx.BeginningOfGameRandomization);
+            int r = state.prop.random.nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
 
         @Override public void reset(GameState state) {
+            randomize(state, 0);
+        }
+
+        @Override public void randomize(GameState state, int r) {
             var enemies = state.getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 enemies.getForWrite(i).setHealth(0);
             }
-            state.enemiesAlive = 0;
-        }
-
-        @Override public void randomize(GameState state, int r) {
-            reset(state);
             var enemiesIdx = scenarios.get(r);
             for (int idx : enemiesIdx) {
                 var enemy = state.getEnemiesForWrite().getForWrite(idx);
@@ -392,7 +398,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(randomizations.size(), state, RandomGenCtx.BeginningOfGameRandomization);
+            int r = state.prop.random.nextInt(randomizations.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
@@ -410,15 +416,96 @@ public interface GameStateRandomization {
         }
     }
 
+    // todo: floor
+    class BurningEliteRandomization implements GameStateRandomization {
+        @Override public int randomize(GameState state) {
+            int r = state.prop.random.nextInt(4, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            randomize(state, r);
+            return r;
+        }
+
+        // todo: need to think about reset, e.g. philosopher stone with resetting strength below
+        @Override public void reset(GameState state) {
+            randomize(state, 0);
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            switch (r) {
+                case 0 -> {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        if (enemy.canGainRegeneration) {
+                            enemy.setHealth(enemy.maxHealth);
+                            enemy.gainStrength(-enemy.getStrength());
+                            enemy.setMetallicize(0);
+                            enemy.setRegeneration(0);
+                        }
+                    }
+                }
+                case 1 -> {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        if (enemy.canGainRegeneration) {
+                            enemy.setHealth(enemy.origHealth);
+                            enemy.gainStrength(2);
+                            enemy.setMetallicize(0);
+                            enemy.setRegeneration(0);
+                        }
+                    }
+                }
+                case 2 -> {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        if (enemy.canGainRegeneration) {
+                            enemy.setHealth(enemy.origHealth);
+                            enemy.gainStrength(-enemy.getStrength());
+                            enemy.setMetallicize(4);
+                            enemy.setRegeneration(0);
+                        }
+                    }
+                }
+                case 3 -> {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        if (enemy.canGainRegeneration) {
+                            enemy.setHealth(enemy.origHealth);
+                            enemy.gainStrength(-enemy.getStrength());
+                            enemy.setMetallicize(0);
+                            enemy.setRegeneration(3);
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            var map = new HashMap<Integer, Info>();
+            map.put(0, new Info(1.0 / 4, "+25% Health"));
+            map.put(1, new Info(1.0 / 4, "+2 Strength"));
+            map.put(2, new Info(1.0 / 4, "+4 Metallicize"));
+            map.put(3, new Info(1.0 / 4, "+3 Regeneration"));
+            return map;
+        }
+    }
+
     // todo
     class CampfireRandomization implements GameStateRandomization {
         private final List<Card> cards;
+        private final Map<Card, Integer> startingCardCount;
         private final Map<Integer, Info> infoMap;
         private final int restHp;
         private final int noRestHp;
 
         public CampfireRandomization(Player player, List<CardCount> possibleCards, List<Card> cards) {
-            this.cards = cards;
+            if (cards == null) {
+                this.cards = possibleCards.stream().map(CardCount::card).filter((card) -> CardUpgrade.map.containsKey(card)).toList();
+            } else {
+                this.cards = cards.stream().filter((card) -> CardUpgrade.map.containsKey(card)).toList();
+            }
+            startingCardCount = new HashMap<>();
+            for (Card card : cards) {
+                for (CardCount possibleCard : possibleCards) {
+                    if (possibleCard.card().equals(card)) {
+                        startingCardCount.put(card, possibleCard.count());
+                    }
+                }
+            }
             noRestHp = player.getHealth();
             restHp = Math.min(player.getHealth() + (int) (0.3 * player.getMaxHealth()), player.getMaxHealth());
             infoMap = new HashMap<>();
@@ -429,7 +516,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(cards.size(), state, RandomGenCtx.BeginningOfGameRandomization);
+            int r = state.prop.random.nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }

@@ -757,7 +757,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                     if (nonUpgradedCardCount == 0) {
                         return;
                     }
-                    int r = state.getSearchRandomGen().nextInt(nonUpgradedCardCount, state, RandomGenCtx.WarpedTongs);
+                    int r = state.getSearchRandomGen().nextInt(nonUpgradedCardCount, RandomGenCtx.WarpedTongs, state);
                     int acc = 0;
                     for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                         if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {

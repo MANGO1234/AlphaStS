@@ -320,23 +320,31 @@ public class Main {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.UppercutP(), 1);
         builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.AngerP(), 0);
         builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new Card.InflameP(), 0);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new CardColorless.DarkShacklesP(), 0);
         builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.CombustP(), 0);
         builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.IronWaveP(), 0);
         builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.BattleTrance(), 0);
-        builder.addCard(new Card.FlameBarrier(), 0);
-        builder.addEnemy(new Enemy.Lagavulin());
-//        builder.addEnemy(new Enemy.GremlinNob());
-//        var randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
+        builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
+        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
         var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.BattleTrance(), 1)),
-                List.of(new CardCount(new Card.FlameBarrier(), 1))
+                List.of(new CardCount(new Card.InflameP(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.Combust(), 1)),
+                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWaveP(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.Combust(), 1)),
+                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.AngerP(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.Combust(), 1)),
+                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShacklesP(), 1), new CardCount(new Card.Combust(), 1)),
+                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.CombustP(), 1))
         ));
-//        builder.setRandomization(randomization);
-        builder.setStartOfGameScenarios(startOfGameScenarios);
+        builder.setRandomization(randomization);
+        builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addPotion(new Potion.WeakPotion());
         builder.setPlayer(new Player(16, 75));
         return new GameState(builder);
@@ -377,7 +385,7 @@ public class Main {
         boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
         boolean GAMES_ADD_POTION_RANDOMIZATION = false;
         boolean GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = false;
-        int POTION_STEPS = 4;
+        int POTION_STEPS = 1;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
@@ -434,11 +442,11 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
 //            SAVES_DIR = "../tmp/comp2/saves";
-            NUMBER_OF_GAMES_TO_PLAY = 4000;
-//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
+            GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 500;
+            NUMBER_OF_NODES_PER_TURN = 1000;
 //            iteration = 21;
 //            COMPARE_DIR = "../saves/iteration20";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 1);
@@ -449,7 +457,7 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
@@ -523,9 +531,9 @@ public class Main {
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
             if (state.prop.potions != null) {
-                state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
+                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).doAfter(state.prop.preBattleRandomization);
             }
-            var games = session.playTrainingGames(state, 200, 100);
+            var games = session.playTrainingGames(state, 300, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

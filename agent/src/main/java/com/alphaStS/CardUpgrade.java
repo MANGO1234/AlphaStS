@@ -70,6 +70,9 @@ public class CardUpgrade {
         map.put(new Card.LimitBreak(), new Card.LimitBreakP());
         map.put(new Card.Offering(), new Card.OfferingP());
         map.put(new Card.Reaper(), new Card.ReaperP());
+
+        map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
+
         map = Collections.unmodifiableMap(map);
     }
 }
