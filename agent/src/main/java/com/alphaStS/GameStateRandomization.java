@@ -133,7 +133,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            var i = state.prop.random.nextInt(rs.length, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            var i = state.getSearchRandomGen().nextInt(rs.length, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             a.randomize(state, rs[i]);
             return i;
         }
@@ -190,7 +190,7 @@ public interface GameStateRandomization {
 
         @Override public int randomize(GameState state) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.randomize(state.prop.random, curriculumTraining);
+                enemy.randomize(state.getSearchRandomGen(), curriculumTraining);
                 if (enemy.hasBurningHealthBuff()) {
                     enemy.setHealth((int) (enemy.getHealth() * 1.25));
                 }
@@ -236,12 +236,12 @@ public interface GameStateRandomization {
 
         // todo: think of a better distribution
         @Override public int randomize(GameState state) {
-            var r = state.prop.random.nextInt(10, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            var r = state.getSearchRandomGen().nextInt(10, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             if (r < 4) {
                 r = 0;
             } else {
                 var upto = (int) Math.pow(steps, potions.size());
-                r = 1 + state.prop.random.nextInt(upto, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+                r = 1 + state.getSearchRandomGen().nextInt(upto, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             }
             randomize(state, r);
             return r;
@@ -318,7 +318,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
@@ -354,7 +354,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
@@ -394,7 +394,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(randomizations.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(randomizations.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
@@ -415,7 +415,7 @@ public interface GameStateRandomization {
     // todo: floor
     class BurningEliteRandomization implements GameStateRandomization {
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(4, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(4, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }
@@ -516,7 +516,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.prop.random.nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
             randomize(state, r);
             return r;
         }

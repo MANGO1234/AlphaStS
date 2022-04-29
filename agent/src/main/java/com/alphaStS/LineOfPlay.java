@@ -51,7 +51,7 @@ public class LineOfPlay {
             return actions;
         }
         while (line.parentLines != null) {
-            var r = line.parentLines.size() == 1 ? 0 : rand.nextInt(line.parentLines.size());
+            var r = line.parentLines.size() == 1 ? 0 : rand.nextInt(line.parentLines.size(), RandomGenCtx.Other);
             actions.add(line.parentLines.get(r).action);
             line = line.parentLines.get(r).line;
         }

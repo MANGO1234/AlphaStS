@@ -639,7 +639,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             for (int _i = 0; _i < n; _i++) {
                 int enemy_j = 0;
                 if (state.enemiesAlive > 1) {
-                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive);
+                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.SwordBoomerang);
                     state.isStochastic = true;
                 }
                 int j = 0;
@@ -713,7 +713,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             }
             int r = 1;
             if (diffCards > 1) {
-                r = state.getSearchRandomGen().nextInt(c) + 1;
+                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit) + 1;
                 state.isStochastic = true;
             }
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
@@ -1556,7 +1556,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            var r = state.getSearchRandomGen().nextInt(state.prop.infernalBladeIndexes.length);
+            var r = state.getSearchRandomGen().nextInt(state.prop.infernalBladeIndexes.length, RandomGenCtx.CardGeneration);
             state.addCardToHand(state.prop.infernalBladeIndexes[r]);
             state.isStochastic = true;
             return GameActionCtx.PLAY_CARD;
@@ -2646,7 +2646,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 @Override void handle(GameState state) {
                     int i = 0;
                     if (state.enemiesAlive > 1) {
-                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive);
+                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.Juggernaut);
                         state.isStochastic = true;
                     }
                     int enemy_j = 0;

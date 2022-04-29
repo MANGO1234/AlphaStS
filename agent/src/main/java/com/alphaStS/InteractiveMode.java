@@ -24,6 +24,7 @@ public class InteractiveMode {
         Enemy curEnemy = null;
         List<String> history = new ArrayList<>();
         state.prop.random = new RandomGenInteractive(reader, history);
+        state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(5);
 
         while (true) {
             if (mode == 0) {
@@ -748,7 +749,7 @@ public class InteractiveMode {
     }
 }
 
-class RandomGenInteractive extends RandomGen {
+class RandomGenInteractive extends RandomGen.RandomGenPlain {
     boolean rngOn = true;
     private final BufferedReader reader;
     private final List<String> history;

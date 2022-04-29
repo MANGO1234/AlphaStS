@@ -19,7 +19,7 @@ public class MCTS {
     }
 
     void search(GameState state, boolean training, int remainingCalls) {
-        search3(state, training, remainingCalls);
+        search2(state, training, remainingCalls);
     }
 
     void search2(GameState state, boolean training, int remainingCalls) {
@@ -261,6 +261,11 @@ public class MCTS {
         double q_win_total = state.q_win[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
         double q_health_total = state.q_health[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
         double q_comb_total = state.q_comb[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
+        if (state.ns[actionToPropagate] instanceof ChanceState) {
+            q_win_total = state.q_win[actionToPropagate] / state.n[actionToPropagate] * state.total_n + state.v_win;
+            q_health_total = state.q_health[actionToPropagate] / state.n[actionToPropagate] * state.total_n + state.v_health;
+            q_comb_total = state.q_comb[actionToPropagate] / state.n[actionToPropagate] * state.total_n + state.calc_q(state.v_win, state.v_health);
+        }
         v[0] = q_win_total - state.total_q_win;
         v[1] = q_health_total - state.total_q_health;
         v[2] = q_comb_total - state.total_q_comb;
@@ -277,6 +282,7 @@ public class MCTS {
     void searchPlain_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
             state.get_v(v);
+            numberOfPossibleActions = 1;
             return;
         }
         if (state.policy == null) {
@@ -285,6 +291,7 @@ public class MCTS {
             state.total_q_win = v[0];
             state.total_q_health = v[1];
             state.total_q_comb = v[2];
+            numberOfPossibleActions = state.getLegalActions().length;
             return;
         }
 
@@ -368,7 +375,7 @@ public class MCTS {
             if (remainingCalls > 0 && max_n - line.n > remainingCalls) {
                 continue;
             }
-            if (isRoot) numberOfPossibleActions += 1;
+            if (isRoot) numberOfPossibleActions += 1; // todo: why this?
             if (isRoot && remainingCalls > 0 && max_n < remainingCalls) {
                 numberOfPossibleActions += line.numberOfActions;
             }
@@ -402,7 +409,7 @@ public class MCTS {
             if (line.parentLines.size() == 1) {
                 edge = line.parentLines.get(0);
             } else {
-                edge = line.parentLines.get(parentState.prop.random.nextInt(line.parentLines.size()));
+                edge = line.parentLines.get(parentState.prop.random.nextInt(line.parentLines.size(), RandomGenCtx.Other));
             }
             GameState state = (GameState) edge.line().state;
             state.n[edge.action()] += 1;
@@ -668,8 +675,49 @@ public class MCTS {
             return policy;
         }
         int max_n = Utils.max(state.n);
+        int max_i = -1;
+        for (int i = 0; i < state.n.length; i++) {
+            if (state.n[i] == max_n) {
+                max_i = i;
+                break;
+            }
+        }
         float[] newPolicy = policy;
         for (int i = 0; i < policy.length; i++) {
+//            if (policy[i] > 0 && max_n - state.n[i] <= remainingCalls) {
+//                var kq = new double[2];
+//                var kn = new int[2];
+//                kq[0] = state.q_comb[max_i];
+//                kn[0] = state.n[max_i];
+//                kq[1] = state.q_comb[i];
+//                kn[1] = state.n[i];
+//                for (int j = 0; j < remainingCalls; j++) {
+//                    double q1 = kn[0] > 0 ? kq[0] / kn[0] : Math.max(state.total_q_comb / ((state.total_n + j) + 1), 0);
+//                    double u1 = (state.total_n + j) > 0 ? q1 + 0.1 * state.policy[max_i] * sqrt((state.total_n + j)) / (1 + kn[0]) : state.policy[max_i];
+//                    double q2 = kn[1] > 0 ? kq[1] / kn[1] : Math.max(state.total_q_comb / ((state.total_n + j) + 1), 0);
+//                    double u2 = (state.total_n + j) > 0 ? q2 + 0.1 * state.policy[i] * sqrt((state.total_n + j)) / (1 + kn[1]) : state.policy[i];
+//                    if (q1 + u1 > q2 + u2) {
+////                        kq[0] += (kq[0] / kn[0]);
+//                        kn[0]++;
+//                    } else {
+//                        kq[1] += state.calc_q(1, state.getPlayeForRead().getOrigHealth() / (double) state.getPlayeForRead().getMaxHealth());
+//                        kn[1]++;
+//                        //                        kq[1];
+//                    }
+//                    if (kn[1] >= kn[0]) {
+//                        break;
+//                    }
+//                }
+//                if (kn[0] > kn[1]) {
+//                    if (newPolicy == policy) {
+//                        newPolicy = Arrays.copyOf(policy, policy.length);
+//                    }
+//                    newPolicy[i] = 0;
+////                    System.out.println("Pruned " + state.getActionString(i) + "(" + state.n[max_i] + "," + state.n[i] + "," + remainingCalls + "): " + state);
+//                } else {
+////                    System.out.println("Not Pruned " + state.getActionString(i) + "(" + kn[0] + "," + kn[1] + "," + state.n[max_i] +"," + state.n[i] +"," + remainingCalls + "): " + state);
+//                }
+//            }
             if (policy[i] > 0 && max_n - state.n[i] > remainingCalls) {
                 if (newPolicy == policy) {
                     newPolicy = Arrays.copyOf(policy, policy.length);
@@ -696,7 +744,7 @@ public class MCTS {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }
-        int r = state.prop.random.nextInt(state.total_n);
+        int r = state.prop.random.nextInt(state.total_n, RandomGenCtx.Other);
         int acc = 0;
         int action = -1;
         for (int i = 0; i < state.policy.length; i++) {
@@ -713,14 +761,26 @@ public class MCTS {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }
-        int actionToPropagate = -1;
-        int max_n = -1000;
-        for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (state.n[i] > max_n) {
-                max_n = state.n[i];
-                actionToPropagate = i;
+        if (state.total_n == 0) {
+            int actionToPropagate = -1;
+            float max_p = -1000.0f;
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (state.policy[i] > max_p) {
+                    max_p = state.policy[i];
+                    actionToPropagate = i;
+                }
             }
+            return actionToPropagate;
+        } else {
+            int actionToPropagate = -1;
+            int max_n = -1000;
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (state.n[i] > max_n) {
+                    max_n = state.n[i];
+                    actionToPropagate = i;
+                }
+            }
+            return actionToPropagate;
         }
-        return actionToPropagate;
     }
 }

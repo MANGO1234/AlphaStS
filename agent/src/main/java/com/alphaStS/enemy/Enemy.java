@@ -198,11 +198,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(10) + 1;
+            int b = random.nextInt(10, RandomGenCtx.Other, null) + 1;
             if (b < 10 && training) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
-                health = 85 + random.nextInt(6);
+                health = 85 + random.nextInt(6, RandomGenCtx.Other, null);
             }
         }
 
@@ -300,11 +300,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(10) + 1;
+            int b = random.nextInt(10, RandomGenCtx.Other, null) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
-                health = 112 + random.nextInt(4);
+                health = 112 + random.nextInt(4, RandomGenCtx.Other, null);
             }
         }
 
@@ -368,11 +368,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(4) + 1;
+            int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
             } else {
-                health = 39 + random.nextInt(7);
+                health = 39 + random.nextInt(7, RandomGenCtx.Other, null);
             }
         }
 
@@ -460,7 +460,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(25) + 1;
+            int b = random.nextInt(25, RandomGenCtx.Other, null) + 1;
             health = 264 * b / 25;
         }
 
@@ -593,7 +593,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = training ? random.nextInt(25) + 1 : 25;
+            int b = training ? random.nextInt(25, RandomGenCtx.Other, null) + 1 : 25;
             health = 250 * b / 25;
         }
 
@@ -714,7 +714,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(15) + 1;
+            int b = random.nextInt(15, RandomGenCtx.Other, null) + 1;
             health = 10 * (training ? b : 15);
             if (health <= maxHealth / 2) {
                 move = SPLIT;
@@ -798,7 +798,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == SPLIT) {
                 return;
             }
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 30) {
                 if (move == FLAME_TACKLE && moveHistory[0] == FLAME_TACKLE) {
@@ -827,7 +827,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 67 + random.nextInt(7);
+            health = 67 + random.nextInt(7, RandomGenCtx.Other, null);
             splitMaxHealth = health;
         }
 
@@ -875,7 +875,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(RandomGen random) {
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 30) {
                 if (move == FLAME_TACKLE && moveHistory[0] == FLAME_TACKLE) {
@@ -902,7 +902,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 29 + random.nextInt(6);
+            health = 29 + random.nextInt(6, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -946,7 +946,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 11 + random.nextInt(5);
+            health = 11 + random.nextInt(5, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1030,22 +1030,22 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == SPLIT) {
                 return;
             }
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 40) {
                 if (move == CORROSIVE_SPIT && moveHistory[0] == CORROSIVE_SPIT) {
-                    newMove = random.nextFloat() < 0.6 ? TACKLE : LICK;
+                    newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.6 ? TACKLE : LICK;
                 } else {
                     newMove = CORROSIVE_SPIT;
                 }
             } else if (r < 70) {
                 if (move == TACKLE && moveHistory[0] == TACKLE) {
-                    newMove = random.nextFloat() < 0.6 ? CORROSIVE_SPIT : LICK;
+                    newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.6 ? CORROSIVE_SPIT : LICK;
                 } else {
                     newMove = TACKLE;
                 }
             } else if (move == LICK) {
-                newMove = random.nextFloat() < 0.4 ? CORROSIVE_SPIT : TACKLE;
+                newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.4 ? CORROSIVE_SPIT : TACKLE;
             } else {
                 newMove = LICK;
             }
@@ -1067,7 +1067,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 68 + random.nextInt(5);
+            health = 68 + random.nextInt(5, RandomGenCtx.Other, null);
             splitMaxHealth = health;
         }
 
@@ -1119,22 +1119,22 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(RandomGen random) {
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 40) {
                 if (move == CORROSIVE_SPIT && moveHistory[0] == CORROSIVE_SPIT) {
-                    newMove = random.nextBoolean() ? TACKLE : LICK;
+                    newMove = random.nextBoolean(RandomGenCtx.EnemyChooseMove) ? TACKLE : LICK;
                 } else {
                     newMove = CORROSIVE_SPIT;
                 }
             } else if (r < 80) {
                 if (move == TACKLE && moveHistory[0] == TACKLE) {
-                    newMove = random.nextBoolean() ? CORROSIVE_SPIT : LICK;
+                    newMove = random.nextBoolean(RandomGenCtx.EnemyChooseMove) ? CORROSIVE_SPIT : LICK;
                 } else {
                     newMove = TACKLE;
                 }
             } else if (move == LICK) {
-                newMove = random.nextFloat() < 0.4 ? CORROSIVE_SPIT : TACKLE;
+                newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.4 ? CORROSIVE_SPIT : TACKLE;
             } else {
                 newMove = LICK;
             }
@@ -1154,7 +1154,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 29 + random.nextInt(6);
+            health = 29 + random.nextInt(6, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1210,7 +1210,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 9 + random.nextInt(5);
+            health = 9 + random.nextInt(5, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1256,22 +1256,22 @@ public abstract class Enemy extends EnemyReadOnly {
                 move = 0;
                 return;
             }
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
                 if (move == 0) {
-                    newMove = random.nextFloat() < 0.5625 ? 1 : 2;
+                    newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.5625 ? 1 : 2;
                 } else {
                     newMove = 0;
                 }
             } else if (r < 55) {
                 if (move == 2 && moveHistory[0] == 2) {
-                    newMove = random.nextFloat() < 0.357 ? 0 : 1;
+                    newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.357 ? 0 : 1;
                 } else {
                     newMove = 2;
                 }
             } else if (move == 1) {
-                newMove = random.nextFloat() < 0.416 ? 0 : 2;
+                newMove = random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.416 ? 0 : 2;
             } else {
                 newMove = 1;
             }
@@ -1291,7 +1291,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 42 + random.nextInt(5);
+            health = 42 + random.nextInt(5, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1360,7 +1360,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(RandomGen random) {
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
                 newMove = move == GROW ? BITE : GROW;
@@ -1395,9 +1395,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 11 + random.nextInt(6);
-            d = 6 + random.nextInt(3);
-            curlUpAmount = 9 + random.nextInt(4);
+            health = 11 + random.nextInt(6, RandomGenCtx.Other, null);
+            d = 6 + random.nextInt(3, RandomGenCtx.Other, null);
+            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1465,7 +1465,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(RandomGen random) {
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
                 newMove = move == SPIT_WEB ? BITE : SPIT_WEB;
@@ -1500,9 +1500,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 12 + random.nextInt(7);
-            d = 6 + random.nextInt(3);
-            curlUpAmount = 9 + random.nextInt(4);
+            health = 12 + random.nextInt(7, RandomGenCtx.Other, null);
+            d = 6 + random.nextInt(3, RandomGenCtx.Other, null);
+            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1546,7 +1546,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(RandomGen random) {
-            int r = random.nextInt(100);
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 60) {
                 if (move == 1 && moveHistory[0] == 1) {
@@ -1589,7 +1589,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 24 + random.nextInt(5);
+            health = 24 + random.nextInt(5, RandomGenCtx.Other, null);
         }
 
         public String getName() {
@@ -1642,7 +1642,7 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == MUG_1) {
                 newMove = MUG_2;
             } else if (move == MUG_2) {
-                newMove = random.nextInt(100) < 50 ? LUNGE : SMOKE_BOMB;
+                newMove = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null) < 50 ? LUNGE : SMOKE_BOMB;
             } else if (move == LUNGE) {
                 newMove = SMOKE_BOMB;
             } else {
@@ -1665,7 +1665,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 46 + random.nextInt(5);
+            health = 46 + random.nextInt(5, RandomGenCtx.Other, null);
         }
 
         public String getName() {

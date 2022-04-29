@@ -91,8 +91,8 @@ public class GameState implements State {
     private boolean counterCloned;
     private int[] counter;
     int[] potionsState;
-    private boolean searchRandomGenCloned;
-    private RandomGen searchRandomGen;
+    public boolean searchRandomGenCloned;
+    public RandomGen searchRandomGen;
 
     private Deque<GameEnvironmentAction> gameActionDeque;
     int energy;
@@ -441,6 +441,17 @@ public class GameState implements State {
                 }
             }
         }
+        if (prop.preBattleScenarios != null) {
+            var clone = this.clone(false);
+            for (var r : prop.preBattleScenarios.listRandomizations().keySet()) {
+                prop.preBattleScenarios.randomize(clone, r);
+                for (int i = 0; i < deck.length; i++) {
+                    if (clone.deck[i] != deck[i]) {
+                        l.add(i);
+                    }
+                }
+            }
+        }
         if (prop.randomization != null) {
             var clone = this.clone(false);
             for (var r : prop.randomization.listRandomizations().keySet()) {
@@ -561,7 +572,7 @@ public class GameState implements State {
                 assert deck[i] > 0;
                 drawCardByIdx(i, true);
             } else {
-                i = getSearchRandomGen().nextInt(this.deckArrLen);
+                i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
                 deck[deckArr[i]] -= 1;
                 hand[deckArr[i]] += 1;
                 deckArr[i] = deckArr[deckArrLen - 1];
@@ -583,7 +594,7 @@ public class GameState implements State {
             i = getDrawOrderForWrite().drawTop();
             drawCardByIdx(i, false);
         } else {
-            i = getSearchRandomGen().nextInt(this.deckArrLen);
+            i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
             deck[deckArr[i]] -= 1;
             deckArr[i] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
@@ -868,11 +879,6 @@ public class GameState implements State {
             if (prop.randomization != null) {
                 ret = prop.randomization.randomize(this);
                 isStochastic = true;
-            }
-            if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-                searchRandomGen = prop.random.createWithSeed(prop.random.nextLong());
-            } else {
-                searchRandomGen = prop.random;
             }
             startTurn();
             setActionCtx(GameActionCtx.PLAY_CARD, null);
@@ -1715,7 +1721,7 @@ public class GameState implements State {
     }
 
     void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
-        if (fromCardPlay && prop.hasStrangeSpoon && getSearchRandomGen().nextBoolean()) {
+        if (fromCardPlay && prop.hasStrangeSpoon && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
             discard[cardIdx] += 1;
             return;
         }
@@ -2120,6 +2126,9 @@ public class GameState implements State {
     }
 
     public RandomGen getSearchRandomGen() {
+        if (prop.makingRealMove && prop.realMoveRandomGen != null) {
+            return prop.realMoveRandomGen;
+        }
         if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {
             searchRandomGen = searchRandomGen.getCopy();
             searchRandomGenCloned = true;
@@ -2201,7 +2210,7 @@ class ChanceState implements State {
             total_node_n = 1;
         }
         if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && initState != null) {
-            searchRandomGen = initState.getSearchRandomGen().createWithSeed(initState.getSearchRandomGen().nextLong());
+            searchRandomGen = initState.getSearchRandomGen().createWithSeed(initState.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
         } else {
             searchRandomGen = parentState.prop.random;
         }
@@ -2314,13 +2323,15 @@ class ChanceState implements State {
         total_n += 1;
         if (queue.size() > 0) {
             GameState ret = queue.remove(queue.size() - 1);
-            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) searchRandomGen = ret.getSearchRandomGen().createWithSeed(ret.getSearchRandomGen().nextLong());
+            if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+                searchRandomGen = ret.getSearchRandomGen().createWithSeed(ret.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
+            }
             return ret;
         }
         if (calledFromMCTS && cache.size() > 10 && false) {
             // instead of generating new nodes, revisit node, need testing
-            if (searchRandomGen.nextFloat() < 1.0 - 1.0 / (cache.size() - 10)) {
-                var r = (long) searchRandomGen.nextInt((int) total_node_n);
+            if (searchRandomGen.nextFloat(RandomGenCtx.Other) < 1.0 - 1.0 / (cache.size() - 10)) {
+                var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
                 var acc = 0;
                 for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
                     acc += entry.getValue().n;
@@ -2333,12 +2344,16 @@ class ChanceState implements State {
             }
         }
         var state = parentState.clone(false);
-        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) state.setSearchRandomGen(searchRandomGen);
+        if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            state.setSearchRandomGen(searchRandomGen);
+        }
         state.doAction(parentAction);
         if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
-        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong());
+        if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
+        }
         total_node_n += 1;
         var node = cache.get(state);
         if (node != null) {

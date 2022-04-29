@@ -2,7 +2,7 @@ package com.alphaStS;
 
 import java.util.*;
 
-public class GameProperties {
+public class GameProperties implements Cloneable {
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
@@ -19,6 +19,8 @@ public class GameProperties {
     public boolean needDeckOrderMemory;
     public boolean selectFromExhaust;
     public RandomGen random;
+    public RandomGen realMoveRandomGen;
+    public boolean makingRealMove;
     public Card[] cardDict;
     public List<Potion> potions;
     public int maxNumOfActions;
@@ -77,8 +79,16 @@ public class GameProperties {
     public GameStateRandomization preBattleScenarios;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
 
+    public GameProperties clone() {
+        try {
+            return (GameProperties) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public GameProperties() {
-        random = new RandomGen();
+        random = new RandomGen.RandomGenPlain();
     }
 
     public int findCardIndex(Card card) {

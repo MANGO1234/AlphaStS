@@ -15,3 +15,9 @@ p = (n_win1 + n_win2) / (n1 + n2)
 
 z = (p1 - p2) / math.sqrt(p * (1 - p) * (1 / n1 + 1 / n2))
 print(z)
+
+wins = 140
+losses = 124
+
+print((1 + math.erf((wins - losses) / math.sqrt((2 * wins + 2 * losses)))) / 2)
+print(math.erf((wins - losses) / math.sqrt((2 * wins + 2 * losses))))

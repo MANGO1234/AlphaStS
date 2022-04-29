@@ -352,8 +352,76 @@ public class Main {
         return new GameState(builder);
     }
 
+    public static GameState TestState4() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.PowerThrough(), 0);
+        builder.addCard(new Card.Pummel(), 0);
+        builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
+        builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
+        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
+        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(),
+                List.of(new CardCount(new Card.Pummel(), 1)),
+                List.of(new CardCount(new Card.PowerThrough(), 1))
+        ));
+        randomization = randomization.doAfter(startOfGameScenarios);
+        builder.setRandomization(randomization);
+        //        builder.setPreBattleScenarios(startOfGameScenarios);
+        builder.addPotion(new Potion.LiquidMemory());
+        builder.setPlayer(new Player(43, 75));
+        return new GameState(builder);
+    }
+
+    public static GameState TestState5() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.InflameP(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+//        builder.addCard(new Card.PowerThrough(), 0);
+        builder.addCard(new Card.Pummel(), 1);
+        builder.addEnemy(new Enemy.TheGuardian());
+//        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(),
+//                List.of(new CardCount(new Card.Pummel(), 1)),
+//                List.of(new CardCount(new Card.PowerThrough(), 1))
+//        ));
+//        builder.setRandomization(startOfGameScenarios);
+        //        builder.setPreBattleScenarios(startOfGameScenarios);
+        builder.addPotion(new Potion.LiquidMemory());
+        builder.setPlayer(new Player(43, 75));
+        return new GameState(builder);
+    }
+
     public static void main(String[] args) throws IOException {
-        var state = TestState3();
+//        var state = ();
+        var state = TestState5();
+//        state.prop.randomization = state.prop.randomization.fixR(0,1,2,3,4,5,6,7);
+//        state.prop.randomization = state.prop.randomization.fixR(8,9,10,11,12,13,14,15);
+//        state.prop.randomization = state.prop.randomization.fixR(16,17,18,19,20,21,22,23);
+//        state.prop.randomization = state.prop.randomization.fixR(24,25,26,27,28,29,30,31);
+//        state.prop.randomization = state.prop.randomization.fixR(32,33,34,35,36,37,38,39);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -443,15 +511,16 @@ public class Main {
 //            SAVES_DIR = "../tmp/test/saves_nob";
 //            SAVES_DIR = "../tmp/test/saves_laga";
 //            SAVES_DIR = "../tmp/test2/saves";
-//            SAVES_DIR = "../tmp/burning/saves_all_pot";
-            NUMBER_OF_GAMES_TO_PLAY = 100;
+//            SAVES_DIR = "../tmp/tests/saves_vr3";
+//            SAVES_DIR = "../saves_weight";
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;
-//            iteration = 21;
-//            COMPARE_DIR = "../saves/iteration20";
-//            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 1);
+//            iteration = 31;
+            COMPARE_DIR = "../tmp/tests/saves_vr3/iteration30";
+//            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            RANDOMIZATION_SCENARIO = 0;
         }
 
@@ -459,7 +528,7 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(1).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
@@ -473,11 +542,6 @@ public class Main {
         if (RANDOMIZATION_SCENARIO >= 0 && state.prop.randomization != null) {
             state.prop.randomization = state.prop.randomization.fixR(RANDOMIZATION_SCENARIO);
         }
-//        state.prop.randomization = state.prop.randomization.fixR(0,1,2,3,4,5,6,7);
-//        state.prop.randomization = state.prop.randomization.fixR(8,9,10,11,12,13,14,15);
-//        state.prop.randomization = state.prop.randomization.fixR(16,17,18,19,20,21,22,23);
-//        state.prop.randomization = state.prop.randomization.fixR(24,25,26,27,28,29,30,31);
-//        state.prop.randomization = state.prop.randomization.fixR(32,33,34,35,36,37,38,39);
 
         ObjectMapper mapper = new ObjectMapper();
         String curIterationDir = SAVES_DIR + "/iteration0";
@@ -500,7 +564,7 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
-            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps()) {
+            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, true).steps()) {
                 System.out.println(step.state().toStringReadable());
                 if (step.action() >= 0) {
                     System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
@@ -509,6 +573,9 @@ public class Main {
         }
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir);
+        if (COMPARE_DIR != null) {
+            session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
+        }
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
             if (!TEST_TRAINING_AGENT) {
 //                if (state.prop.randomization != null) {
@@ -538,9 +605,9 @@ public class Main {
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
             if (state.prop.potions != null) {
-                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(1).doAfter(state.prop.preBattleRandomization);
+                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.preBattleRandomization);
             }
-            var games = session.playTrainingGames(state, 600, 100);
+            var games = session.playTrainingGames(state, 200, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
@@ -563,23 +630,67 @@ public class Main {
         for (var game : games) {
             for (int i = game.size() - 2; i >= 0; i--) {
                 var step = game.get(i);
-                if (!step.useForTraining) {
-                    continue;
-                }
-                var state = game.get(i).state();
-                var x = state.getNNInput();
-                for (int j = 0; j < x.length; j++) {
-                    stream.writeFloat(x[j]);
-                }
-                stream.writeFloat((step.v_health * 2) - 1);
-                stream.writeFloat((step.v_win * 2) - 1);
-                int idx = 0;
-                if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                    for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        stream.writeFloat(-1);
+                for (int write_count = 0; write_count < step.trainingWriteCount; write_count++) {
+                    var state = game.get(i).state();
+                    var x = state.getNNInput();
+                    for (int j = 0; j < x.length; j++) {
+                        stream.writeFloat(x[j]);
                     }
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                    stream.writeFloat((step.v_health * 2) - 1);
+                    stream.writeFloat((step.v_win * 2) - 1);
+                    int idx = 0;
+                    if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
+                            stream.writeFloat(-1);
+                        }
+                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                                if (state.terminal_action >= 0) {
+                                    if (state.terminal_action == action) {
+                                        stream.writeFloat(1);
+                                    } else {
+                                        stream.writeInt(0);
+                                    }
+                                } else if (state.isActionLegal(action)) {
+                                    if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                        stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                    } else {
+                                        Integer.parseInt(null);
+                                    }
+                                } else {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                        }
+                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
+                                stream.writeFloat(-1);
+                            }
+                        }
+                    } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
+                            stream.writeFloat(-1);
+                        }
+                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                                stream.writeFloat(-1);
+                            }
+                        }
+                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
+                                if (state.isActionLegal(action)) {
+                                    if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                        stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                    } else {
+                                        Integer.parseInt(null);
+                                    }
+                                } else {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                        }
+                    } else {
+                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
                             if (state.terminal_action >= 0) {
                                 if (state.terminal_action == action) {
                                     stream.writeFloat(1);
@@ -596,60 +707,15 @@ public class Main {
                                 stream.writeFloat(-1);
                             }
                         }
-                    }
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
-                            stream.writeFloat(-1);
-                        }
-                    }
-                } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
-                    for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        stream.writeFloat(-1);
-                    }
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
-                            stream.writeFloat(-1);
-                        }
-                    }
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
-                            if (state.isActionLegal(action)) {
-                                if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
-                                } else {
-                                    Integer.parseInt(null);
-                                }
-                            } else {
+                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
                                 stream.writeFloat(-1);
                             }
                         }
-                    }
-                } else {
-                    for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        if (state.terminal_action >= 0) {
-                            if (state.terminal_action == action) {
-                                stream.writeFloat(1);
-                            } else {
-                                stream.writeInt(0);
+                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
+                                stream.writeFloat(-1);
                             }
-                        } else if (state.isActionLegal(action)) {
-                            if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
-                            } else {
-                                Integer.parseInt(null);
-                            }
-                        } else {
-                            stream.writeFloat(-1);
-                        }
-                    }
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
-                            stream.writeFloat(-1);
-                        }
-                    }
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
-                            stream.writeFloat(-1);
                         }
                     }
                 }

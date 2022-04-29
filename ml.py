@@ -73,6 +73,7 @@ if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
         # model.optimizer.lr.assign(0.01)
 else:
     inputs = keras.Input(shape=(input_len,))
+    # x = layers.BatchNormalization(axis=1)(inputs)
     x = layers.Dense(input_len, activation="linear", name="layer1")(inputs)
     x = layers.BatchNormalization(axis=1)(x)
     x = layers.LeakyReLU()(x)
