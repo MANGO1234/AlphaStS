@@ -366,18 +366,18 @@ public class Main {
         builder.addCard(new Card.IronWave(), 1);
         builder.addCard(new Card.SpotWeakness(), 1);
         builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.PowerThrough(), 0);
-        builder.addCard(new Card.Pummel(), 0);
+//        builder.addCard(new Card.PowerThrough(), 0);
+        builder.addCard(new Card.Pummel(), 1);
         builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
         builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
         randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
-        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(),
-                List.of(new CardCount(new Card.Pummel(), 1)),
-                List.of(new CardCount(new Card.PowerThrough(), 1))
-        ));
-        randomization = randomization.doAfter(startOfGameScenarios);
+//        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(),
+//                List.of(new CardCount(new Card.Pummel(), 1)),
+//                List.of(new CardCount(new Card.PowerThrough(), 1))
+//        ));
+//        randomization = randomization.doAfter(startOfGameScenarios);
         builder.setRandomization(randomization);
         //        builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addPotion(new Potion.LiquidMemory());
@@ -416,7 +416,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
 //        var state = ();
-        var state = TestState5();
+        var state = TestState4();
 //        state.prop.randomization = state.prop.randomization.fixR(0,1,2,3,4,5,6,7);
 //        state.prop.randomization = state.prop.randomization.fixR(8,9,10,11,12,13,14,15);
 //        state.prop.randomization = state.prop.randomization.fixR(16,17,18,19,20,21,22,23);
@@ -513,13 +513,13 @@ public class Main {
 //            SAVES_DIR = "../tmp/test2/saves";
 //            SAVES_DIR = "../tmp/tests/saves_vr3";
 //            SAVES_DIR = "../saves_weight";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
-            GAMES_ADD_ENEMY_RANDOMIZATION = true;
-            GAMES_ADD_POTION_RANDOMIZATION = true;
+            NUMBER_OF_GAMES_TO_PLAY = 10;
+//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+//            GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 100;
+            NUMBER_OF_NODES_PER_TURN = 1;
 //            iteration = 31;
-            COMPARE_DIR = "../tmp/tests/saves_vr3/iteration30";
+//            COMPARE_DIR = "../tmp/tests/saves_vr3/iteration30";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            RANDOMIZATION_SCENARIO = 0;
         }
@@ -528,7 +528,7 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, 90).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
@@ -605,9 +605,9 @@ public class Main {
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
             if (state.prop.potions != null) {
-                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS).fixR(0).doAfter(state.prop.preBattleRandomization);
+                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, 90).doAfter(state.prop.preBattleRandomization);
             }
-            var games = session.playTrainingGames(state, 200, 100);
+            var games = session.playTrainingGames(state, 300, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

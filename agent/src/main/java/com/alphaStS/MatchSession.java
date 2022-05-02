@@ -201,9 +201,8 @@ public class MatchSession {
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var seeds = new ArrayList<Long>(numOfGames);
-        var startingSeed = origState.prop.random.nextLong(RandomGenCtx.Other);
         for (int i = 0; i < numOfGames; i++) {
-            seeds.add(startingSeed + i);
+            seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
         }
         var deq = new LinkedBlockingDeque<Game>();
         var session = this;

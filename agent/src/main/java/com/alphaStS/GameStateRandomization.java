@@ -228,10 +228,16 @@ public interface GameStateRandomization {
     class PotionsUtilityRandomization implements GameStateRandomization {
         private final List<Potion> potions;
         private final int steps;
+        private final int startingRatio;
 
         public PotionsUtilityRandomization(List<Potion> potions, int steps) {
+            this(potions, steps, 100);
+        }
+
+        public PotionsUtilityRandomization(List<Potion> potions, int steps, int startingRatio) {
             this.potions = potions;
             this.steps = steps;
+            this.startingRatio = startingRatio;
         }
 
         // todo: think of a better distribution
@@ -250,7 +256,7 @@ public interface GameStateRandomization {
         @Override public void reset(GameState state) {
             for (int i = 0; i < potions.size(); i++) {
                 state.potionsState[i * 3] = 0;
-                state.potionsState[i * 3 + 1] = 100;
+                state.potionsState[i * 3 + 1] = startingRatio;
                 state.potionsState[i * 3 + 2] = 0;
             }
         }
@@ -266,7 +272,7 @@ public interface GameStateRandomization {
                 }
                 for (int i = 0; i < potions.size(); i++) {
                     state.potionsState[i * 3] = 1;
-                    state.potionsState[i * 3 + 1] = 100 - 5 * s[i];
+                    state.potionsState[i * 3 + 1] = startingRatio - 5 * s[i];
                     state.potionsState[i * 3 + 2] = 1;
                 }
             }
@@ -280,7 +286,7 @@ public interface GameStateRandomization {
                 String[] desc = new String[potions.size()];
                 var r = cur_r;
                 for (int i = 0; i < desc.length; i++) {
-                    var u = 100 - 5 * (r % steps);
+                    var u = startingRatio - 5 * (r % steps);
                     desc[i] = potions.get(i) + " " + u;
                     r /= steps;
                 }

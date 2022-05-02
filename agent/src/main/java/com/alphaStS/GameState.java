@@ -2126,8 +2126,8 @@ public class GameState implements State {
     }
 
     public RandomGen getSearchRandomGen() {
-        if (prop.makingRealMove && prop.realMoveRandomGen != null) {
-            return prop.realMoveRandomGen;
+        if (prop.makingRealMove) {
+            return prop.realMoveRandomGen != null ? prop.realMoveRandomGen : prop.random;
         }
         if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {
             searchRandomGen = searchRandomGen.getCopy();

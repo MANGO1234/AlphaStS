@@ -23,8 +23,14 @@ public class InteractiveMode {
         List<Integer> drawOrder = null;
         Enemy curEnemy = null;
         List<String> history = new ArrayList<>();
+        if (state.prop.realMoveRandomGen != null) {
+            state.setSearchRandomGen(state.prop.realMoveRandomGen.createWithSeed(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc)));
+        } else if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            state.setSearchRandomGen(state.prop.random.createWithSeed(state.prop.random.nextLong(RandomGenCtx.CommonNumberVR)));
+        } else {
+            state.setSearchRandomGen(state.prop.random);
+        }
         state.prop.random = new RandomGenInteractive(reader, history);
-        state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(5);
 
         while (true) {
             if (mode == 0) {
@@ -185,13 +191,17 @@ public class InteractiveMode {
                     state = state.clone(false);
                     for (int i = 0; i < state.getLegalActions().length; i++) {
                         if (state.getAction(i).type() == GameActionType.END_TURN) {
+                            state.prop.makingRealMove = true;
                             state.doAction(i);
+                            state.prop.makingRealMove = false;
                             break;
                         }
                     }
                     for (int i = 0; i < state.getLegalActions().length; i++) {
                         if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
+                            state.prop.makingRealMove = true;
                             state.doAction(i);
+                            state.prop.makingRealMove = false;
                             break;
                         }
                     }
@@ -376,7 +386,9 @@ public class InteractiveMode {
                     states.add(state);
                     state.clearAllSearchInfo();
                     state = state.clone(false);
+                    state.prop.makingRealMove = true;
                     state.doAction(action);
+                    state.prop.makingRealMove = false;
                     continue;
                 }
 

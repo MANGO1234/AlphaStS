@@ -21,6 +21,10 @@ public abstract class RandomGen {
         throw new UnsupportedOperationException();
     }
 
+    public long getSeed(RandomGenCtx ctx) {
+        throw new UnsupportedOperationException();
+    }
+
     public void timeTravelToBeginning() {
         throw new UnsupportedOperationException();
     }
@@ -83,7 +87,7 @@ public abstract class RandomGen {
             return new RandomGenPlain(random);
         }
 
-        public long getSeed() {
+        public long getSeed(RandomGenCtx ctx) {
             long seed;
             try {
                 Field field = Random.class.getDeclaredField("seed");
@@ -101,8 +105,9 @@ public abstract class RandomGen {
         public List<RandomGen> randoms = new ArrayList<>();
 
         public RandomGenByCtx(long seed) {
+            Random random = new Random(seed);
             for (int i = 0; i < RandomGenCtx.values().length; i++) {
-                randoms.add(new RandomGenMemory(seed + i));
+                randoms.add(new RandomGenMemory(random.nextLong()));
             }
         }
 
@@ -140,6 +145,10 @@ public abstract class RandomGen {
             for (int i = 0; i < RandomGenCtx.values().length; i++) {
                 randoms.get(i).timeTravelToBeginning();
             }
+        }
+
+        public long getSeed(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).getSeed(ctx);
         }
     }
 
@@ -230,6 +239,19 @@ public abstract class RandomGen {
 
         public RandomGen createWithSeed(long seed) {
             throw new UnsupportedOperationException();
+        }
+
+        public long getSeed(RandomGenCtx ctx) {
+            long seed;
+            try {
+                Field field = Random.class.getDeclaredField("seed");
+                field.setAccessible(true);
+                AtomicLong scrambledSeed = (AtomicLong) field.get(random);
+                seed = scrambledSeed.get();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+            return seed ^ 0x5DEECE66DL;
         }
     }
 }
