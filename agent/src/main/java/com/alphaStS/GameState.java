@@ -66,11 +66,12 @@ record GameAction(GameActionType type, int idx) { // idx is either cardIdx, enem
 }
 
 public class GameState implements State {
-    private static final int HAND_LIMIT = 10;
+    public static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
     public static final boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
 
     boolean isStochastic;
+    StringBuilder stateDesc;
     public GameProperties prop;
     GameActionCtx actionCtx;
 
@@ -90,16 +91,17 @@ public class GameState implements State {
     private DrawOrder drawOrder;
     private boolean counterCloned;
     private int[] counter;
-    int[] potionsState;
+    short[] potionsState;
     public boolean searchRandomGenCloned;
     public RandomGen searchRandomGen;
 
-    private Deque<GameEnvironmentAction> gameActionDeque;
+    Deque<GameEnvironmentAction> gameActionDeque;
     int energy;
     int energyRefill;
     GameAction currentAction;
     short turnNum;
     int playerTurnStartHealth;
+    byte playerTurnStartPotionCount;
 
     // various other buffs/debuffs
     public long buffs;
@@ -289,7 +291,7 @@ public class GameState implements State {
             }
         }
         if (potions != null) {
-            potionsState = new int[potions.size() * 3];
+            potionsState = new short[potions.size() * 3];
             for (int i = 0; i < prop.potions.size(); i++) {
                 potionsState[i * 3] = 0;
                 potionsState[i * 3 + 1] = 100;
@@ -512,6 +514,7 @@ public class GameState implements State {
         energy = other.energy;
         turnNum = other.turnNum;
         playerTurnStartHealth = other.playerTurnStartHealth;
+        playerTurnStartPotionCount = other.playerTurnStartPotionCount;
         energyRefill = other.energyRefill;
         player = other.player;
         enemies = other.enemies;
@@ -592,11 +595,13 @@ public class GameState implements State {
         int i;
         if (drawOrder.size() > 0) {
             i = getDrawOrderForWrite().drawTop();
-            drawCardByIdx(i, false);
+            drawCardByIdx(i, true);
         } else {
-            i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
-            deck[deckArr[i]] -= 1;
-            deckArr[i] = deckArr[deckArrLen - 1];
+            var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
+            i = deckArr[idx];
+            deck[deckArr[idx]] -= 1;
+            hand[deckArr[i]] += 1;
+            deckArr[idx] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
         }
         return i;
@@ -628,10 +633,14 @@ public class GameState implements State {
         }
     }
 
-    void playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy) {
+    void playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy, boolean exhaustWhenPlayed) {
         int cardIdx = action.idx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             hand[cardIdx] -= 1;
+            if (getCardEnergyCost(cardIdx) < 0) {
+                runActionsInQueueIfNonEmpty();
+                return;
+            }
             if (useEnergy) {
                 energy -= getCardEnergyCost(cardIdx);
             }
@@ -725,7 +734,7 @@ public class GameState implements State {
             for (var handler : prop.onCardPlayedHandlers) {
                 handler.handle(this, prop.cardDict[cardIdx]);
             }
-            if (!cloned) {
+            if (!cloned && !exhaustWhenPlayed) {
                 if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
@@ -734,10 +743,8 @@ public class GameState implements State {
                     discard[cardIdx] += 1;
                 }
             }
-            if (prop.normalityCounterIdx < 0 || counter[prop.normalityCounterIdx] < 3) {
-                if (gameActionDeque != null && gameActionDeque.size() > 0) {
-                    gameActionDeque.pollFirst().doAction(this);
-                }
+            if (prop.normalityCounterIdx < 0 || counter[prop.normalityCounterIdx] < 3) { // todo: hack
+                runActionsInQueueIfNonEmpty();
             }
         }
     }
@@ -808,11 +815,19 @@ public class GameState implements State {
                 setActionCtx(prop.potions.get(potionIdx).use(this, -1), action);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
+        runActionsInQueueIfNonEmpty();
+    }
+
+    public void runActionsInQueueIfNonEmpty() {
+        while (gameActionDeque != null && gameActionDeque.size() > 0 && isTerminal() == 0) {
+            gameActionDeque.pollFirst().doAction(this);
+        }
     }
 
     void startTurn() {
         turnNum++;
         playerTurnStartHealth = getPlayeForRead().getHealth();
+        playerTurnStartPotionCount = getPotionCount();
         gainEnergy(energyRefill);
         var enemies = getEnemiesForWrite();
         for (int i = 0; i < enemies.size(); i++) {
@@ -827,6 +842,16 @@ public class GameState implements State {
         for (GameEventHandler handler : prop.startOfTurnHandlers) {
             handler.handle(this);
         }
+    }
+
+    public byte getPotionCount() {
+        byte ret = 0;
+        if (potionsState != null) {
+            for (int i = 0; i < potionsState.length; i += 3) {
+                ret += potionsState[i];
+            }
+        }
+        return ret;
     }
 
     private void endTurn() {
@@ -887,27 +912,27 @@ public class GameState implements State {
 //            startTurn();
             setActionCtx(GameActionCtx.BEGIN_TURN, null);
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action, -1, false, true);
+            playCard(action, -1, false, true, false);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), false, true);
+                playCard(currentAction, action.idx(), false, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), false, true);
+                playCard(currentAction, action.idx(), false, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), false, true);
+                playCard(currentAction, action.idx(), false, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(currentAction, action.idx(), false, true);
+            playCard(currentAction, action.idx(), false, true, false);
         } else if (action.type() == GameActionType.USE_POTION) {
             potionsState[action.idx() * 3] = 0;
             usePotion(action, -1);
@@ -1097,7 +1122,13 @@ public class GameState implements State {
             }
         }
         str.append("]");
-        if (prop.selectFromExhaust) {
+        boolean hasExhaust = false;
+        for (int i = 0; i < exhaust.length; i++) {
+            if (exhaust[i] > 0) {
+                hasExhaust = true;
+            }
+        }
+        if (hasExhaust) {
             str.append(", exhaust=[");
             first = true;
             for (int i = 0; i < exhaust.length; i++) {
@@ -1328,10 +1359,9 @@ public class GameState implements State {
             if (enemy.getMoveHistory() != null) {
                 inputLen += enemy.getMoveHistory().length * enemy.numOfMoves;
             }
+            inputLen += enemy.getNNInputLen(prop);
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 inputLen += 1;
-            } else if (enemy instanceof Enemy.TheGuardian) {
-                inputLen += 2;
             } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime) {
                 inputLen += 1;
             }
@@ -1476,10 +1506,12 @@ public class GameState implements State {
             if (enemy.getMoveHistory() != null) {
                 str += "        " + enemy.numOfMoves + "*" + enemy.getMoveHistory().length + " inputs to keep track of move history from enemy\n";
             }
+            String desc = enemy.getNNInputDesc(prop);
+            if (desc != null) {
+                str += "        " + desc + "\n";
+            }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 str += "        1 input to keep track of louse damage\n";
-            } else if (enemy instanceof Enemy.TheGuardian) {
-                str += "        2 inputs to keep track of current and max guardian mode shift damage\n";
             } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime) {
                 str += "        1 input to keep track of health slime boss split at\n";
             }
@@ -1650,13 +1682,11 @@ public class GameState implements State {
                         }
                     }
                 }
+                idx += enemy.writeNNInput(prop, x, idx);
                 if (enemy instanceof Enemy.RedLouse louse) {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
                 } else if (enemy instanceof Enemy.GreenLouse louse) {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
-                } else if (enemy instanceof Enemy.TheGuardian guardian) {
-                    x[idx++] = (guardian.getModeShiftDmg() - 50) / 20f;
-                    x[idx++] = (guardian.getMaxModeShiftDmg() - 50) / 20f;
                 } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
                     x[idx++] = slime.splitMaxHealth / (float) slime.maxHealth;
                 }
@@ -1694,10 +1724,10 @@ public class GameState implements State {
                         x[idx++] = -0.1f;
                     }
                 }
+                for (int i = 0; i < enemy.getNNInputLen(prop); i++) {
+                    x[idx++] = -0.1f;
+                }
                 if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
-                    x[idx++] = -0.1f;
-                } else if (enemy instanceof Enemy.TheGuardian) {
-                    x[idx++] = -0.1f;
                     x[idx++] = -0.1f;
                 } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
                     x[idx++] = slime.splitMaxHealth / (float) slime.maxHealth;
@@ -1712,6 +1742,13 @@ public class GameState implements State {
             gameActionDeque = new ArrayDeque<>();
         }
         gameActionDeque.addLast(action);
+    }
+
+    void addGameActionToStartOfDeque(GameEnvironmentAction action) {
+        if (gameActionDeque == null) {
+            gameActionDeque = new ArrayDeque<>();
+        }
+        gameActionDeque.addFirst(action);
     }
 
     void exhaustCardFromHand(int cardIdx) {
@@ -2021,19 +2058,22 @@ public class GameState implements State {
     public void enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmg, int times) {
         int move = enemy.getMove();
         var player = getPlayerForWrite();
+        dmg += enemy.getStrength();
+        if (dmg < 0) {
+            dmg = 0;
+        }
+        if (player.getVulnerable() > 0) {
+            dmg = dmg + dmg / (prop.hasOddMushroom ? 4 : 2);
+        }
+        if (enemy.getWeak() > 0) {
+            dmg = dmg * 3 / 4;
+        }
         for (int i = 0; i < times; i++) {
             if (enemy.getHealth() <= 0 || enemy.getMove() != move) { // dead or interrupted
                 return;
             }
-            dmg += enemy.getStrength();
-            if (player.getVulnerable() > 0) {
-                dmg = dmg + dmg / (prop.hasOddMushroom ? 4 : 2);
-            }
-            if (enemy.getWeak() > 0) {
-                dmg = dmg * 3 / 4;
-            }
             int dmgDealt = player.damage(dmg);
-            if (dmg > 0) {
+            if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {
                     handler.handle(this, enemy, true, dmgDealt);
                 }
@@ -2139,6 +2179,13 @@ public class GameState implements State {
     public void setSearchRandomGen(RandomGen randomGen) {
         searchRandomGen = randomGen;
         searchRandomGenCloned = true;
+    }
+
+    public StringBuilder getStateDesc() {
+        if (stateDesc == null) {
+            stateDesc = new StringBuilder();
+        }
+        return stateDesc;
     }
 }
 

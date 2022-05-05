@@ -95,6 +95,11 @@ public class MatchSession {
             preBattle_r = state.prop.preBattleRandomization.randomize(state);
             state.prop.makingRealMove = false;
         }
+        if (startingAction >= 0) {
+            state.prop.makingRealMove = true;
+            state.doAction(startingAction);
+            state.prop.makingRealMove = false;
+        }
 
         if (USE_NEW_SEARCH) {
             while (state.isTerminal() == 0) {
@@ -354,13 +359,7 @@ public class MatchSession {
                             }
                         }
                     } else {
-                        for (GameStep step : steps) {
-                            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
-                            matchLogWriter.write(step.state().toStringReadable() + "\n");
-                            if (step.action() >= 0) {
-                                matchLogWriter.write("action=" + step.state().getActionString(step.action()) + "\n");
-                            }
-                        }
+                        printGame(matchLogWriter, steps);
                     }
                     matchLogWriter.write("\n");
                     matchLogWriter.write("\n");
@@ -381,7 +380,7 @@ public class MatchSession {
                     System.out.println("Dmg Diff By Win/Loss: " + ((double) dmgDiff1.get()) / win2.get() + "/" + ((double) dmgDiff2.get()) / loss2.get());
                 }
                 if (deathCount.size() > 1) {
-                    for (var info : state.prop.randomization.listRandomizations().entrySet()) {
+                    for (var info : combinedInfoMap.entrySet()) {
                         var i = info.getKey();
                         if (deathCount.get(i) == null) {
                             continue;
@@ -535,9 +534,13 @@ public class MatchSession {
             quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other, null) > 0;
             if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 state = state.clone(false);
+                state.prop.makingRealMove = true;
                 r = state.doAction(0);
+                state.prop.makingRealMove = false;
             } else {
+                state.prop.makingRealMove = true;
                 state = getNextState(state, mcts, action, !quickPass);
+                state.prop.makingRealMove = false;
             }
         }
         steps.add(new GameStep(state, -1));
@@ -755,12 +758,7 @@ public class MatchSession {
                     }
                     trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
                     trainingDataWriter.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");
-                    for (GameStep step : steps) {
-                        trainingDataWriter.write(step.state().toStringReadable() + "\n");
-                        if (step.action() >= 0) {
-                            trainingDataWriter.write("action=" + step.state().getActionString(step.action()) + "\n");
-                        }
-                    }
+                    printGame(trainingDataWriter, steps);
                     trainingDataWriter.write("\n");
                     trainingDataWriter.write("\n");
                 } catch (IOException e) {
@@ -837,15 +835,19 @@ public class MatchSession {
                 newState.doEval(mcts.model);
             }
             if (clone) {
+                var s = newState;
                 boolean isStochastic = newState.isStochastic;
                 newState = newState.clone(false);
+                newState.stateDesc = s.stateDesc;
                 newState.isStochastic = isStochastic;
                 newState.searchFrontier = null;
             }
         } else {
             newState = (GameState) nextState;
             if (clone) {
+                var s = newState;
                 newState = newState.clone(false);
+                newState.stateDesc = s.stateDesc;
                 newState.searchFrontier = null;
             }
         }
@@ -886,6 +888,23 @@ public class MatchSession {
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+
+    public static void printGame(Writer writer, List<GameStep> steps) throws IOException {
+        for (int i = 0; i < steps.size(); i++) {
+            var step = steps.get(i);
+            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
+            writer.write(step.state().toStringReadable() + "\n");
+            if (step.action() >= 0) {
+                var nextStep = steps.get(i + 1);
+                if (nextStep.state().stateDesc != null) {
+                    writer.write("action=" + step.state().getActionString(step.action()) + ", " + nextStep.state().stateDesc + "\n");
+                } else {
+                    writer.write("action=" + step.state().getActionString(step.action()) + "\n");
+                }
+            }
         }
     }
 }

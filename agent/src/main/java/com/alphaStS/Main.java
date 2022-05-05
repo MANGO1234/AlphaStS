@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -366,10 +367,11 @@ public class Main {
         builder.addCard(new Card.IronWave(), 1);
         builder.addCard(new Card.SpotWeakness(), 1);
         builder.addCard(new Card.BattleTrance(), 1);
-//        builder.addCard(new Card.PowerThrough(), 0);
-        builder.addCard(new Card.Pummel(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+//        builder.addCard(new Card.Pummel(), 1);
         builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
         builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
+        builder.addRelic(new Relic.BagOfPreparation());
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
         randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
 //        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
@@ -399,24 +401,35 @@ public class Main {
         builder.addCard(new Card.IronWave(), 1);
         builder.addCard(new Card.SpotWeakness(), 1);
         builder.addCard(new Card.BattleTrance(), 1);
-//        builder.addCard(new Card.PowerThrough(), 0);
-        builder.addCard(new Card.Pummel(), 1);
-        builder.addEnemy(new Enemy.TheGuardian());
-//        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
-//                List.of(),
-//                List.of(new CardCount(new Card.Pummel(), 1)),
-//                List.of(new CardCount(new Card.PowerThrough(), 1))
-//        ));
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.PommelStrike(), 1);
+        builder.addCard(new Card.Corruption(), 1);
+        builder.addCard(new Card.Havoc(), 1);
+        builder.addCard(new Card.FlameBarrier(), 1);
+//        builder.addCard(new Card.Impervious(), 1);
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.PhilosophersStone());
+//        builder.addEnemy(new Enemy.TheGuardian());
+//        builder.addEnemy(new EnemyCity.Byrd());
+//        builder.addEnemy(new EnemyCity.Byrd());
+//        builder.addEnemy(new EnemyCity.Byrd());
+//        builder.addEnemy(new EnemyCity.SphericGuardian());
+        builder.addEnemy(new EnemyCity.Pointy());
+        builder.addEnemy(new EnemyCity.Romeo());
+        builder.addEnemy(new EnemyCity.Bear());
 //        builder.setRandomization(startOfGameScenarios);
-        //        builder.setPreBattleScenarios(startOfGameScenarios);
-        builder.addPotion(new Potion.LiquidMemory());
-        builder.setPlayer(new Player(43, 75));
+        //        builder.setPreBattleScenarios(startOf GameScenarios);
+//        builder.addPotion(new Potion.LiquidMemory());
+//        builder.setPlayer(new Player(75, 87));
+        builder.addPotion(new Potion.FirePotion());
+        builder.addPotion(new Potion.DistilledChaos());
+        builder.setPlayer(new Player(41, 87));
         return new GameState(builder);
     }
 
     public static void main(String[] args) throws IOException {
 //        var state = ();
-        var state = TestState4();
+        var state = TestState5();
 //        state.prop.randomization = state.prop.randomization.fixR(0,1,2,3,4,5,6,7);
 //        state.prop.randomization = state.prop.randomization.fixR(8,9,10,11,12,13,14,15);
 //        state.prop.randomization = state.prop.randomization.fixR(16,17,18,19,20,21,22,23);
@@ -507,20 +520,17 @@ public class Main {
 
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
-//            SAVES_DIR = "../tmp/test/saves_sentries_norm";
-//            SAVES_DIR = "../tmp/test/saves_nob";
-//            SAVES_DIR = "../tmp/test/saves_laga";
-//            SAVES_DIR = "../tmp/test2/saves";
-//            SAVES_DIR = "../tmp/tests/saves_vr3";
-//            SAVES_DIR = "../saves_weight";
-            NUMBER_OF_GAMES_TO_PLAY = 10;
-//            GAMES_ADD_ENEMY_RANDOMIZATION = true;
-//            GAMES_ADD_POTION_RANDOMIZATION = true;
+//            SAVES_DIR = "../tmp/saves_guard";
+//            SAVES_DIR = "../saves2";
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
+            GAMES_ADD_ENEMY_RANDOMIZATION = true;
+            GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 1;
-//            iteration = 31;
-//            COMPARE_DIR = "../tmp/tests/saves_vr3/iteration30";
+            NUMBER_OF_NODES_PER_TURN = 100;
+            iteration = 53;
+//            COMPARE_DIR = "../saves2/iteration30";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
+            COMPARE_DIR = SAVES_DIR + "/iteration52";
 //            RANDOMIZATION_SCENARIO = 0;
         }
 
@@ -528,7 +538,9 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, 90).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 90).doAfter(state.prop.randomization);
+        } else if (GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) {
+            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 90).doAfter(state.prop.preBattleRandomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
@@ -564,12 +576,9 @@ public class Main {
 
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
-            for (GameStep step : session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, true).steps()) {
-                System.out.println(step.state().toStringReadable());
-                if (step.action() >= 0) {
-                    System.out.println("action=" + step.state().getActionString(step.action()) + " (" + step.action() + ")");
-                }
-            }
+            var writer = new OutputStreamWriter(System.out);
+            session.printGame(writer, session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, true).steps());
+            writer.flush();
         }
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir);
@@ -604,9 +613,6 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            if (state.prop.potions != null) {
-                state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, 90).doAfter(state.prop.preBattleRandomization);
-            }
             var games = session.playTrainingGames(state, 300, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
@@ -719,6 +725,135 @@ public class Main {
                         }
                     }
                 }
+                /*
+                {
+            for (int r = 0; r < 1; r++) {
+                var translate = new int[] {0, 1 ,2};
+                if (r == 1) {
+                    translate = new int[] {0, 2 ,1};
+                } else if (r == 2) {
+                    translate = new int[] {1, 0, 2};
+                } else if (r == 3) {
+                    translate = new int[] {1, 2, 0};
+                } else if (r == 4) {
+                    translate = new int[] {2, 0, 1};
+                } else if (r == 5) {
+                    translate = new int[] {2, 1, 0};
+                }
+                for (int i = game.size() - 2; i >= 0; i--) {
+                    var step = game.get(i);
+                    for (int write_count = 0; write_count < step.trainingWriteCount; write_count++) {
+                        var state = game.get(i).state();
+                        var x = state.getNNInput();
+                        var upto = 122 - 48;
+                        for (int j = 0; j < upto; j++) {
+                            stream.writeFloat(x[j]);
+                        }
+                        for (int j = 0; j < 3; j++) {
+                            var t = upto + 16 * translate[j];
+                            for (int k = 0; k < 16; k++) {
+                                stream.writeFloat(x[t + k]);
+                            }
+                        }
+                        //                    for (int j = 0; j < x.length; j++) {
+                        //                        stream.writeFloat(x[j]);
+                        //                    }
+                        stream.writeFloat((step.v_health * 2) - 1);
+                        stream.writeFloat((step.v_win * 2) - 1);
+                        int idx = 0;
+                        if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
+                                stream.writeFloat(-1);
+                            }
+                            if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                                float[] t = new float[3];
+                                var t_idx = 0;
+                                for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                                    if (state.terminal_action >= 0) {
+                                        if (state.terminal_action == action) {
+                                            //                                        stream.writeFloat(1);
+                                            t[t_idx++] = 1;
+                                        } else {
+                                            //                                        stream.writeInt(0);
+                                            t[t_idx++] = 0;
+                                        }
+                                    } else if (state.isActionLegal(action)) {
+                                        if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                            //                                        stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                            t[t_idx++] = (float) (((double) state.n[idx++]) / state.total_n);
+                                        } else {
+                                            Integer.parseInt(null);
+                                        }
+                                    } else {
+                                        //                                    stream.writeFloat(-1);
+                                        t[t_idx++] = -1;
+                                    }
+                                }
+                                for (int j = 0; j < 3; j++) {
+                                    stream.writeFloat(t[translate[j]]);
+                                }
+                            }
+                            if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
+                                for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                        } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
+                                stream.writeFloat(-1);
+                            }
+                            if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                                for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                            if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
+                                for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
+                                    if (state.isActionLegal(action)) {
+                                        if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                            stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                        } else {
+                                            Integer.parseInt(null);
+                                        }
+                                    } else {
+                                        stream.writeFloat(-1);
+                                    }
+                                }
+                            }
+                        } else {
+                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
+                                if (state.terminal_action >= 0) {
+                                    if (state.terminal_action == action) {
+                                        stream.writeFloat(1);
+                                    } else {
+                                        stream.writeInt(0);
+                                    }
+                                } else if (state.isActionLegal(action)) {
+                                    if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                        stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                    } else {
+                                        Integer.parseInt(null);
+                                    }
+                                } else {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                            if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                                for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                            if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
+                                for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
+                                    stream.writeFloat(-1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+                 */
             }
         }
         stream.flush();
@@ -729,10 +864,16 @@ public class Main {
         Writer writer = new BufferedWriter(new FileWriter(f));
         writer.write("************************** NN Description **************************\n");
         writer.write(state.getNNInputDesc());
-        if (state.prop.randomization != null) {
+        if (state.prop.randomization != null || state.prop.preBattleRandomization != null) {
             writer.write("\n************************** Randomizations **************************\n");
+            var randomization = state.prop.preBattleRandomization;
+            if (randomization == null) {
+                randomization = state.prop.randomization;;
+            } else if (state.prop.randomization != null) {
+                randomization = randomization.doAfter(state.prop.randomization);
+            }
             int i = 1;
-            for (var info : state.prop.randomization.listRandomizations().values()) {
+            for (var info : randomization.listRandomizations().values()) {
                 writer.write(i + ". (" + Utils.formatFloat(info.chance() * 100) + "%) " + info.desc() + "\n");
                 i += 1;
             }

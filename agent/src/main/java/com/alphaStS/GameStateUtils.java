@@ -10,6 +10,25 @@ import java.util.HashMap;
 
 public class GameStateUtils {
 
+    public static int getRandomEnemyIdx(GameState state, RandomGenCtx ctx) {
+        int enemyIdx;
+        if (state.enemiesAlive == 1) {
+            enemyIdx = 0;
+        } else {
+            enemyIdx = state.getSearchRandomGen().nextInt(state.enemiesAlive, ctx, state);
+            state.isStochastic = true;
+        }
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            if (state.getEnemiesForRead().get(i).getHealth() > 0) {
+                enemyIdx--;
+                if (enemyIdx < 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
+    }
+
     private static class CardChanges {
         int discard;
         int deck;

@@ -89,10 +89,10 @@ public class InteractiveMode {
                     if (state.getPlayeForRead().getBlock() > 0) {
                         System.out.println("  Block: " + state.getPlayeForRead().getBlock());
                     }
-                    if (state.getPlayeForRead().getStrength() > 0) {
+                    if (state.getPlayeForRead().getStrength() != 0) {
                         System.out.println("  Strength: " + state.getPlayeForRead().getStrength());
                     }
-                    if (state.getPlayeForRead().getDexterity() > 0) {
+                    if (state.getPlayeForRead().getDexterity() != 0) {
                         System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
                     }
                     if (state.getPlayeForRead().getVulnerable() > 0) {
@@ -159,7 +159,13 @@ public class InteractiveMode {
                     }
                 }
                 System.out.println("a. Show Deck");
-                System.out.println("m. Show Discard");
+                System.out.println("s. Show Discard");
+                for (int i = 0; i < state.getExhaustForRead().length; i++) {
+                    if (state.getExhaustForRead()[i] > 0) {
+                        System.out.println("x. Show Exhaust");
+                        break;
+                    }
+                }
             } else if (mode == 1) {
                 for (int i = 0; i < state.prop.cardDict.length; i++) {
                     System.out.println(i + ". " + state.prop.cardDict[i].cardName);
@@ -215,11 +221,20 @@ public class InteractiveMode {
                     }
                     skipPrint = true;
                     continue;
-                } else if (line.equals("m")) {
+                } else if (line.equals("s")) {
                     System.out.println("Discard");
                     for (int i = 0; i < state.discard.length; i++) {
                         if (state.discard[i] > 0) {
                             System.out.println("  " + state.discard[i] + " " + state.prop.cardDict[i].cardName);
+                        }
+                    }
+                    skipPrint = true;
+                    continue;
+                } else if (line.equals("x")) {
+                    System.out.println("Exhaust");
+                    for (int i = 0; i < state.getExhaustForRead().length; i++) {
+                        if (state.getExhaustForRead()[i] > 0) {
+                            System.out.println("  " + state.getExhaustForRead()[i] + " " + state.prop.cardDict[i].cardName);
                         }
                     }
                     skipPrint = true;
@@ -247,6 +262,9 @@ public class InteractiveMode {
                             int hp = Integer.parseInt(s[2]);
                             if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForRead().size() && hp >= 0) {
                                 state.getEnemiesForWrite().getForWrite(enemyIdx).setHealth(hp);
+                                if (hp == 0) {
+                                    state.enemiesAlive -= 1;
+                                }
                             }
                         }
                         continue;
@@ -325,9 +343,13 @@ public class InteractiveMode {
                     selectRandomization(reader, state, history);
                     state.clearAllSearchInfo();
                     continue;
+                } else if (line.equals("reset")) {
+                    state.clearAllSearchInfo();
+                    state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.searchRandomGen.nextLong(RandomGenCtx.Other)));
+                    continue;
                 } else if (line.equals("hist")) {
                     for (String l : history) {
-                        if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ")) {
+                        if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnn ")) {
                             System.out.println(l);
                         }
                     }
@@ -467,7 +489,7 @@ public class InteractiveMode {
         } else {
             System.out.println("Set " + state.prop.potions.get(potionIdx) + " utility to " + util + ".");
             state.potionsState[potionIdx * 3] = 1;
-            state.potionsState[potionIdx * 3 + 1] = util;
+            state.potionsState[potionIdx * 3 + 1] = (short) util;
             state.potionsState[potionIdx * 3 + 2] = 1;
         }
     }
@@ -555,7 +577,8 @@ public class InteractiveMode {
         }
     }
 
-    static int selectScenarioForRandomization(BufferedReader reader, Map<Integer, GameStateRandomization.Info> info, List<String> history) throws IOException {
+    static int selectScenarioForRandomization(BufferedReader reader, GameStateRandomization randomization, List<String> history) throws IOException {
+        var info = randomization.listRandomizations();
         if (info.size() == 1) {
             return 0;
         }
@@ -568,6 +591,27 @@ public class InteractiveMode {
             history.add(line);
             int r = parseInt(line, -1);
             if (info.get(r) != null) {
+                if (randomization instanceof GameStateRandomization.PotionUtilityRandomization pr) {
+                    return r == 0 ? 0 : pr.getSteps() * (4 + r);
+                } else {
+                    return r;
+                }
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
+    static int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        int i = 0;
+        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+            System.out.println((i++) + ". " + enemy.getName());
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < state.enemiesAlive) {
                 return r;
             }
             System.out.println("Unknown Command");
@@ -659,61 +703,35 @@ public class InteractiveMode {
 
     private static void runNNPV(GameState state, MCTS mcts, String line) {
         int count = parseInt(line.substring(3), 1);
-        state.clearAllSearchInfo();
-        double[] policySnapshot = null;
-        var next = 20;
-        for (int i = 0; i < count; i++) {
-            mcts.search(state, false, -1);
-            if (i == next) {
-                var nextSnapshot = new double[state.n.length];
-                for (int j = 0; j < state.n.length; j++) {
-                    nextSnapshot[j] = state.n[j] / (double) state.total_n;
-                }
-                if (policySnapshot != null) {
-                    var kld = 0.0;
-                    for (int j = 0; j < nextSnapshot.length; j++) {
-                        if (policySnapshot[j] > 0) {
-                            kld += policySnapshot[j] * Math.log(policySnapshot[j] / nextSnapshot[j]);
-                        }
-                    }
-                    if (Math.abs(kld) > 0.01) {
-                        System.out.println(state);
-                    }
-                    System.out.println("KLD at " + i + ": " + kld);
-                }
-                policySnapshot = nextSnapshot;
-                next += 20;
+        GameState s = state;
+        int move_i = 0;
+        do {
+            for (int i = s.total_n; i < count; i++) {
+                mcts.search(s, false, -1);
             }
-        }
-        return;
-//        GameState s = state;
-//        int move_i = 0;
-//        do {
-//            for (int i = s.total_n; i < count; i++) {
-//                mcts.search(s, false, -1);
-//            }
-//            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
-//            if (action < 0) {
-//                break;
-//            }
-//            int max_n = s.n[action];
-//            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-//                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
-//            State ns = s.ns[action];
-//            if (ns instanceof ChanceState) {
-//                break;
-//            } else if (ns instanceof GameState ns2) {
-//                if (ns2.isTerminal() != 0) {
-//                    break;
-//                } else {
-//                    s = ns2;
-//                }
-//            } else {
-//                System.out.println("Unknown ns: " + state.toStringReadable());
-//                System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
-//                break;
-//            }
-//        } while (true);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
+            if (action < 0) {
+                break;
+            }
+            int max_n = s.n[action];
+            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
+                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
+            State ns = s.ns[action];
+            System.out.println(ns instanceof ChanceState);
+            if (ns instanceof ChanceState) {
+                break;
+            } else if (ns instanceof GameState ns2) {
+                if (ns2.isTerminal() != 0) {
+                    break;
+                } else {
+                    s = ns2;
+                }
+            } else {
+                System.out.println("Unknown ns: " + state.toStringReadable());
+                System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
+                break;
+            }
+        } while (true);
     }
 
     private static void runNNPV2(GameState state, MCTS mcts, String line) {
@@ -791,7 +809,14 @@ class RandomGenInteractive extends RandomGen.RandomGenPlain {
         }
         case BeginningOfGameRandomization -> {
             try {
-                return InteractiveMode.selectScenarioForRandomization(reader, (Map<Integer, GameStateRandomization.Info>) arg, history);
+                return InteractiveMode.selectScenarioForRandomization(reader, (GameStateRandomization) arg, history);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang -> {
+            try {
+                return InteractiveMode.selectEnemeyRandomInteractive(reader, (GameState) arg, history);
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

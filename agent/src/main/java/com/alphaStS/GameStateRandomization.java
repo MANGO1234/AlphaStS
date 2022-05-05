@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.player.Player;
 
 import java.util.*;
@@ -133,7 +134,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            var i = state.getSearchRandomGen().nextInt(rs.length, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            var i = state.getSearchRandomGen().nextInt(rs.length, RandomGenCtx.BeginningOfGameRandomization, this);
             a.randomize(state, rs[i]);
             return i;
         }
@@ -197,10 +198,21 @@ public interface GameStateRandomization {
             }
             if (state.getEnemiesForRead().size() >= 3) {
                 if (state.getEnemiesForRead().get(0).getClass().equals(state.getEnemiesForRead().get(2).getClass())) {
-                    if (state.getEnemiesForWrite().get(2).getHealth() < state.getEnemiesForWrite().get(0).getHealth()) {
-                        var h = state.getEnemiesForWrite().get(2).getHealth();
-                        state.getEnemiesForWrite().getForWrite(2).setHealth(state.getEnemiesForWrite().get(0).getHealth());
-                        state.getEnemiesForWrite().getForWrite(0).setHealth(h);
+                    if (state.getEnemiesForRead().get(0) instanceof Enemy.Sentry) {
+                        if (state.getEnemiesForWrite().get(2).getHealth() < state.getEnemiesForWrite().get(0).getHealth()) {
+                            var h = state.getEnemiesForWrite().get(2).getHealth();
+                            state.getEnemiesForWrite().getForWrite(2).setHealth(state.getEnemiesForWrite().get(0).getHealth());
+                            state.getEnemiesForWrite().getForWrite(0).setHealth(h);
+                        }
+                    } else if (state.getEnemiesForRead().get(0) instanceof EnemyCity.Byrd) {
+                        var hp = new int[3];
+                        for (int i = 0; i < 3; i++) {
+                            hp[i] = state.getEnemiesForRead().get(i).getHealth();
+                        }
+                        Arrays.sort(hp);
+                        for (int i = 0; i < 3; i++) {
+                            state.getEnemiesForWrite().getForWrite(i).setHealth(hp[i]);
+                        }
                     }
                 }
             }
@@ -225,73 +237,101 @@ public interface GameStateRandomization {
         }
     }
 
-    class PotionsUtilityRandomization implements GameStateRandomization {
-        private final List<Potion> potions;
+    class PotionUtilityRandomization implements GameStateRandomization {
+        private final int potionIdx;
+        private final String potionName;
         private final int steps;
-        private final int startingRatio;
+        private final short startingRatio;
 
-        public PotionsUtilityRandomization(List<Potion> potions, int steps) {
-            this(potions, steps, 100);
+        public PotionUtilityRandomization(Potion potion, int potionIdx, int steps) {
+            this(potion, potionIdx, steps, (short) 100);
         }
 
-        public PotionsUtilityRandomization(List<Potion> potions, int steps, int startingRatio) {
-            this.potions = potions;
+        public PotionUtilityRandomization(Potion potion, int potionIdx, int steps, short startingRatio) {
+            this.potionIdx = potionIdx;
+            this.potionName = potion.toString();
             this.steps = steps;
             this.startingRatio = startingRatio;
         }
 
         // todo: think of a better distribution
         @Override public int randomize(GameState state) {
-            var r = state.getSearchRandomGen().nextInt(10, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
-            if (r < 4) {
+            var upto = steps * 10;
+            var div = (upto - 5 * steps) / steps;
+            var r = state.getSearchRandomGen().nextInt(upto, RandomGenCtx.BeginningOfGameRandomization, this);
+            if (r < 5 * steps) {
                 r = 0;
             } else {
-                var upto = (int) Math.pow(steps, potions.size());
-                r = 1 + state.getSearchRandomGen().nextInt(upto, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+                r = 1 + (r - 5 * steps) / div;
             }
             randomize(state, r);
             return r;
         }
 
         @Override public void reset(GameState state) {
-            for (int i = 0; i < potions.size(); i++) {
-                state.potionsState[i * 3] = 0;
-                state.potionsState[i * 3 + 1] = startingRatio;
-                state.potionsState[i * 3 + 2] = 0;
-            }
+            state.potionsState[potionIdx * 3] = 0;
+            state.potionsState[potionIdx * 3 + 1] = startingRatio;
+            state.potionsState[potionIdx * 3 + 2] = 0;
         }
 
         @Override public void randomize(GameState state, int r) {
-            reset(state);
-            if (r > 0) {
-                r--;
-                int[] s = new int[potions.size()];
-                for (int i = 0; i < s.length; i++) {
-                    s[i] = r % steps;
-                    r /= steps;
-                }
-                for (int i = 0; i < potions.size(); i++) {
-                    state.potionsState[i * 3] = 1;
-                    state.potionsState[i * 3 + 1] = startingRatio - 5 * s[i];
-                    state.potionsState[i * 3 + 2] = 1;
-                }
+            if (r == 0) {
+                state.potionsState[potionIdx * 3] = 0;
+                state.potionsState[potionIdx * 3 + 1] = startingRatio;
+                state.potionsState[potionIdx * 3 + 2] = 0;
+            } else {
+                state.potionsState[potionIdx * 3] = 1;
+                state.potionsState[potionIdx * 3 + 1] = (short) (startingRatio - 5 * (r - 1));
+                state.potionsState[potionIdx * 3 + 2] = 1;
             }
         }
 
         @Override public Map<Integer, Info> listRandomizations() {
             Map<Integer, Info> map = new HashMap<>();
-            map.put(0, new Info(0.2, "No potions can be used"));
-            var upto = (int) Math.pow(steps, potions.size());
-            for (int cur_r = 0; cur_r < upto; cur_r++) {
-                String[] desc = new String[potions.size()];
-                var r = cur_r;
-                for (int i = 0; i < desc.length; i++) {
-                    var u = startingRatio - 5 * (r % steps);
-                    desc[i] = potions.get(i) + " " + u;
-                    r /= steps;
-                }
-                map.put(cur_r + 1, new Info(0.8 / upto, String.join(", ", desc)));
+            map.put(0, new Info(0.4,  potionName + " cannot be used"));
+            for (int cur_r = 0; cur_r < steps; cur_r++) {
+                var u = startingRatio - 5 * cur_r;
+                map.put(cur_r + 1, new Info(0.6 / steps, potionName + " " + u));
             }
+            return map;
+        }
+
+        public int getSteps() {
+            return steps;
+        }
+    }
+
+    class PotionsUtilityRandomization implements GameStateRandomization {
+        private final GameStateRandomization randomization;
+
+        public PotionsUtilityRandomization(List<Potion> potions, int steps) {
+            this(potions, steps, (short) 100);
+        }
+
+        public PotionsUtilityRandomization(List<Potion> potions, int steps, short startingRatio) {
+            GameStateRandomization randomization = null;
+            for (int i = 0; i < potions.size(); i++) {
+                randomization = new PotionUtilityRandomization(potions.get(i), i, steps, startingRatio).doAfter(randomization);
+            }
+            this.randomization = randomization;
+        }
+
+        // todo: think of a better distribution
+        @Override public int randomize(GameState state) {
+            return randomization.randomize(state);
+        }
+
+        @Override public void reset(GameState state) {
+            randomization.reset(state);
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            randomization.randomize(state, r);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            var map = new HashMap<>(randomization.listRandomizations());
+            map.put(0, new Info(map.get(0).chance, "No potions can be used"));
             return map;
         }
     }
@@ -324,7 +364,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
         }
@@ -360,7 +400,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
         }
@@ -400,7 +440,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(randomizations.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(randomizations.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
         }
@@ -421,7 +461,7 @@ public interface GameStateRandomization {
     // todo: floor
     class BurningEliteRandomization implements GameStateRandomization {
         @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(4, RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(4, RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
         }
@@ -522,7 +562,7 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, listRandomizations());
+            int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
         }

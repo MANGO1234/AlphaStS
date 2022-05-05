@@ -158,7 +158,7 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state) {
             if (move == SKULL_BASH) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 3);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
             } else if (move == RUSH_1 || move == RUSH_2) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
             }
@@ -545,8 +545,8 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 36, 1);
             } else if (move == VENT_STEAM) {
                 var player = state.getPlayerForWrite();
-                player.applyDebuff(state, DebuffType.VULNERABLE, 2);
-                player.applyDebuff(state, DebuffType.WEAK, 2);
+                player.applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+                player.applyDebuff(state, DebuffType.WEAK, 2 + 1);
             } else if (move == WHIRL_WIND) {
                 state.enemyDoDamageToPlayer(this, 5, 4);
             } else if (move == DEFENSIVE_MODE) {
@@ -615,13 +615,27 @@ public abstract class Enemy extends EnemyReadOnly {
             return "The Guardian";
         }
 
-        @Override public String toString() {
-            String s = super.toString();
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
             return s.subSequence(0, s.length() - 1) + ", modeShift=" + modeShiftDmg + "/" + maxModeShiftDmg + "}";
         }
 
         @Override public boolean equals(Object o) {
             return super.equals(o) && maxModeShiftDmg == ((TheGuardian) o).maxModeShiftDmg && modeShiftDmg == ((TheGuardian) o).modeShiftDmg;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 2;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "2 inputs to keep track of current and max guardian mode shift damage";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx++] = (modeShiftDmg - 50) / 20f;
+            input[idx] = (maxModeShiftDmg - 50) / 20f;
+            return 2;
         }
     }
 
@@ -780,7 +794,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.addCardToDiscard(state.prop.slimeCardIdx);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 4);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 3 + 1);
             } else if (move == SPLIT) {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
@@ -870,7 +884,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 10, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1 + 1);
             }
         }
 
@@ -1012,7 +1026,7 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
             } else if (move == SPLIT) {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
@@ -1114,7 +1128,7 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1 + 1);
             }
         }
 
@@ -1188,7 +1202,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 4, 1);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1 + 1);
             }
         }
 
@@ -1460,7 +1474,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == SPIT_WEB) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
             }
         }
 

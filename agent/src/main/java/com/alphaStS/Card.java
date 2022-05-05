@@ -426,26 +426,40 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             int cardIdx = state.drawOneCardSpecial();
-            var _this = this;
-            state.addGameActionToEndOfDeque(curState -> {
-                var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                state.playCard(action, -1, false, false);
+            if (state.prop.makingRealMove) {
+                if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
+                state.stateDesc = state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
+            }
+            state.addGameActionToStartOfDeque(curState -> {
+                if (curState.prop.cardDict[cardIdx].cardType != Card.POWER) {
+                    curState.exhaustedCardHandle(cardIdx, true);
+                }
             });
-            state.addGameActionToEndOfDeque(curState -> {
-                state.exhaustedCardHandle(cardIdx, true);
+            state.addGameActionToStartOfDeque(curState -> {
+                var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                curState.playCard(action, -1, false, false, true);
+                while (curState.actionCtx != GameActionCtx.PLAY_CARD) {
+                    if (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
+                        if (curState.prop.makingRealMove) {
+                            curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
+                        }
+                        curState.playCard(action, enemyIdx, false, false, true);
+                    }
+                }
             });
             return GameActionCtx.PLAY_CARD;
         }
     }
 
     public static class Havoc extends _HavocT {
-        public Havoc(String cardName, int cardType, int energyCost) {
+        public Havoc() {
             super("Havoc", Card.SKILL, 1);
         }
     }
 
     public static class HavocP extends _HavocT {
-        public HavocP(String cardName, int cardType, int energyCost) {
+        public HavocP() {
             super("Havoc+", Card.SKILL, 0);
         }
     }
@@ -639,7 +653,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             for (int _i = 0; _i < n; _i++) {
                 int enemy_j = 0;
                 if (state.enemiesAlive > 1) {
-                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.SwordBoomerang);
+                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemySwordBoomerang);
                     state.isStochastic = true;
                 }
                 int j = 0;
@@ -2448,7 +2462,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                     state.addGameActionToEndOfDeque(curState -> {
                         var cardIdx = curState.prop.findCardIndex(card);
                         var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                        curState.playCard(action, enemyIdx, true, false);
+                        curState.playCard(action, enemyIdx, true, false, false);
                     });
                 }
             });
@@ -2646,7 +2660,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 @Override void handle(GameState state) {
                     int i = 0;
                     if (state.enemiesAlive > 1) {
-                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.Juggernaut);
+                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut);
                         state.isStochastic = true;
                     }
                     int enemy_j = 0;

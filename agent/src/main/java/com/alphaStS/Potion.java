@@ -58,6 +58,26 @@ public abstract class Potion {
         }
     }
 
+    public static class FirePotion extends Potion {
+        public FirePotion() {
+            selectEnemy = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).nonAttackDamage(20, true, state);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            state.getEnemiesForWrite().getForWrite(idx).nonAttackDamage(40, true, state);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Fire Potion";
+        }
+    }
+
     public static class StrengthPotion extends Potion {
         public StrengthPotion() {
             changePlayerStrength = true;
@@ -124,6 +144,13 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
+            int cardsInHand = 0;
+            for (int i = 0; i < state.hand.length; i++) {
+                cardsInHand += state.hand[i];
+            }
+            if (cardsInHand >= GameState.HAND_LIMIT) {
+                return GameActionCtx.PLAY_CARD; // tested, potion is wasted
+            }
             if (state.prop.tmpCostCardIdxes[idx] >= 0) {
                 state.removeCardFromDiscard(idx);
                 state.addCardToHand(state.prop.tmpCostCardIdxes[idx]);
@@ -144,6 +171,47 @@ public abstract class Potion {
 
         @Override public String toString() {
             return "Liquid Memory";
+        }
+    }
+
+    public static class DistilledChaos extends Potion {
+        public DistilledChaos() {
+        }
+
+        public GameActionCtx useHelper(GameState state, int times) {
+            for (int i = 0; i < times; i++) {
+                state.addGameActionToStartOfDeque(curState -> {
+                    int cardIdx = curState.drawOneCardSpecial();
+                    if (state.prop.makingRealMove) {
+                        if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
+                        state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
+                    }
+                    var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                    curState.playCard(action, -1, false, false, false);
+                    while (curState.actionCtx != GameActionCtx.PLAY_CARD) {
+                        if (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                            int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
+                            if (curState.prop.makingRealMove) {
+                                curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
+                            }
+                            curState.playCard(action, enemyIdx, false, false, false);
+                        }
+                    }
+                });
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            return useHelper(state, 3);
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            return useHelper(state, 6);
+        }
+
+        @Override public String toString() {
+            return "Distilled Chaos";
         }
     }
 }

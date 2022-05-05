@@ -1,5 +1,6 @@
 package com.alphaStS.enemy;
 
+import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 
 import java.util.Arrays;
@@ -47,6 +48,9 @@ public abstract class EnemyReadOnly {
     public abstract void doMove(GameState state);
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
+    public int getNNInputLen(GameProperties prop) { return 0; }
+    public String getNNInputDesc(GameProperties prop) { return null; }
+    public int writeNNInput(GameProperties prop, float[] input, int idx) { return 0; }
 
     public String getMoveString(GameState state) {
         return getMoveString(state, this.move);
