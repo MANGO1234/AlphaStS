@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 public interface GameStateRandomization {
     int randomize(GameState state);
-    void reset(GameState state);
+    default void reset(GameState state) {};
     void randomize(GameState state, int r);
     Map<Integer, Info> listRandomizations();
 
@@ -26,6 +26,10 @@ public interface GameStateRandomization {
 
     default GameStateRandomization fixR(int... r) {
         return new GameStateRandomization.FixedRandomization(this, r);
+    }
+
+    default GameStateRandomization collapse(String desc) {
+        return new GameStateRandomization.CollapsedRandomization(this, desc);
     }
 
     default GameStateRandomization setDescriptions(String... desc) {
@@ -146,6 +150,31 @@ public interface GameStateRandomization {
         @Override public void randomize(GameState state, int r) {
             reset(state);
             a.randomize(state, rs[r]);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            return infoMap;
+        }
+    }
+
+    class CollapsedRandomization implements GameStateRandomization {
+        private final GameStateRandomization a;
+        private final Map<Integer, Info> infoMap;
+
+        CollapsedRandomization(GameStateRandomization a, String desc) {
+            this.a = a;
+            Map<Integer, Info> aMap = a.listRandomizations();
+            infoMap = new HashMap<>();
+            infoMap.put(0, new Info(1.0, desc));
+        }
+
+        @Override public int randomize(GameState state) {
+            a.randomize(state);
+            return 0;
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            a.randomize(state);
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

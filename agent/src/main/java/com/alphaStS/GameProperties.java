@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.EnemyList;
+
 import java.util.*;
 
 public class GameProperties implements Cloneable {
@@ -23,6 +25,7 @@ public class GameProperties implements Cloneable {
     public boolean makingRealMove;
     public Card[] cardDict;
     public List<Potion> potions;
+    public EnemyList originalEnemies;
     public int maxNumOfActions;
     public int totalNumOfActions;
     public GameAction[][] actionsByCtx;

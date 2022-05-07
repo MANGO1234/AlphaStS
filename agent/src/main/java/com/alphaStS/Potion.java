@@ -64,12 +64,12 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).nonAttackDamage(20, true, state);
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20, true);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).nonAttackDamage(40, true, state);
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 40, true);
             return GameActionCtx.PLAY_CARD;
         }
 

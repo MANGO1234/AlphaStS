@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyCity;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Utils;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -390,7 +391,8 @@ public class Main {
     public static GameState TestState5() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.Strike(), 4);
+//        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new CardColorless.Bite(), 5);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.UppercutP(), 1);
         builder.addCard(new Card.Anger(), 1);
@@ -409,32 +411,38 @@ public class Main {
 //        builder.addCard(new Card.Impervious(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
+        builder.addRelic(new Relic.RedMask());
+        EnemyEncounter.addGremlinLeaderFight(builder);
 //        builder.addEnemy(new Enemy.TheGuardian());
 //        builder.addEnemy(new EnemyCity.Byrd());
 //        builder.addEnemy(new EnemyCity.Byrd());
 //        builder.addEnemy(new EnemyCity.Byrd());
 //        builder.addEnemy(new EnemyCity.SphericGuardian());
-        builder.addEnemy(new EnemyCity.Pointy());
-        builder.addEnemy(new EnemyCity.Romeo());
-        builder.addEnemy(new EnemyCity.Bear());
+//        builder.addEnemy(new EnemyCity.Pointy());
+//        builder.addEnemy(new EnemyCity.Romeo());
+//        builder.addEnemy(new EnemyCity.Bear());
 //        builder.setRandomization(startOfGameScenarios);
         //        builder.setPreBattleScenarios(startOf GameScenarios);
 //        builder.addPotion(new Potion.LiquidMemory());
 //        builder.setPlayer(new Player(75, 87));
         builder.addPotion(new Potion.FirePotion());
         builder.addPotion(new Potion.DistilledChaos());
-        builder.setPlayer(new Player(41, 87));
+        builder.setPlayer(new Player(33, 60));
         return new GameState(builder);
     }
 
     public static void main(String[] args) throws IOException {
-//        var state = ();
         var state = TestState5();
-//        state.prop.randomization = state.prop.randomization.fixR(0,1,2,3,4,5,6,7);
-//        state.prop.randomization = state.prop.randomization.fixR(8,9,10,11,12,13,14,15);
-//        state.prop.randomization = state.prop.randomization.fixR(16,17,18,19,20,21,22,23);
-//        state.prop.randomization = state.prop.randomization.fixR(24,25,26,27,28,29,30,31);
-//        state.prop.randomization = state.prop.randomization.fixR(32,33,34,35,36,37,38,39);
+//        System.out.println(state.prop.randomization.listRandomizations());
+//                state.prop.randomization = state.prop.randomization.collapse("Randomize Gremlin Leader Fight");
+//        state.prop.randomization = state.prop.randomization.fixR(6);
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new Card.Corruption()));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new Card.Havoc()));
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
@@ -521,25 +529,25 @@ public class Main {
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
 //            SAVES_DIR = "../tmp/saves_guard";
-//            SAVES_DIR = "../saves2";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
+            SAVES_DIR = "../saves2";
+            NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;
-            iteration = 53;
-//            COMPARE_DIR = "../saves2/iteration30";
+            iteration = 61;
+//            COMPARE_DIR = "../saves2/iteration60";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
-            COMPARE_DIR = SAVES_DIR + "/iteration52";
+//            COMPARE_DIR = SAVES_DIR + "/iteration60";
 //            RANDOMIZATION_SCENARIO = 0;
         }
 
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
-        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions != null) {
+        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
             state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 90).doAfter(state.prop.randomization);
-        } else if (GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) {
+        } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
             state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 90).doAfter(state.prop.preBattleRandomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
@@ -613,7 +621,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            var games = session.playTrainingGames(state, 300, 100);
+            var games = session.playTrainingGames(state, 200, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

@@ -39,6 +39,7 @@ public class InteractiveMode {
                 }
                 if (!skipPrint) {
                     int enemyIdx = 0;
+                    System.out.println("Enemies Alive: " + state.enemiesAlive);
                     for (var enemy : state.getEnemiesForRead()) {
                         if (enemy.getHealth() <= 0) {
                             continue;
@@ -261,9 +262,14 @@ public class InteractiveMode {
                             int enemyIdx = Integer.parseInt(s[1]);
                             int hp = Integer.parseInt(s[2]);
                             if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForRead().size() && hp >= 0) {
-                                state.getEnemiesForWrite().getForWrite(enemyIdx).setHealth(hp);
-                                if (hp == 0) {
-                                    state.enemiesAlive -= 1;
+                                if (hp > 0 && state.getEnemiesForRead().get(enemyIdx).getHealth() == 0) {
+                                    state.reviveEnemy(enemyIdx);
+                                } else {
+                                    if (hp == 0) {
+                                        state.killEnemy(enemyIdx);
+                                    } else {
+                                        state.getEnemiesForWrite().getForWrite(enemyIdx).setHealth(hp);
+                                    }
                                 }
                             }
                         }

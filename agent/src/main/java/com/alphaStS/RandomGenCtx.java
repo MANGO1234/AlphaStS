@@ -9,6 +9,8 @@ public enum RandomGenCtx {
     RandomEnemyGeneral,
     TrueGrit,
     WarpedTongs,
+    ShieldGremlin,
+    GremlinLeader,
     Misc,
     CommonNumberVR,
     BeginningOfGameRandomization,

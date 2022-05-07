@@ -14,6 +14,11 @@ public class EnemyList extends EnemyListReadOnly {
         super(enemies);
     }
 
+    public void replace(int i, Enemy enemy) {
+        cloned |= (1L << i);
+        enemies[i] = enemy.copy();
+    }
+
     public Enemy getForWrite(int i) {
         if ((cloned & (1L << i)) == 0) {
             enemies[i] = enemies[i].copy();

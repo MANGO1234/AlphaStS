@@ -70,7 +70,7 @@ public class GameState implements State {
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
     public static final boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
 
-    boolean isStochastic;
+    public boolean isStochastic;
     StringBuilder stateDesc;
     public GameProperties prop;
     GameActionCtx actionCtx;
@@ -198,15 +198,13 @@ public class GameState implements State {
         prop.actionsByCtx[GameActionCtx.BEGIN_TURN.ordinal()] = new GameAction[] { new GameAction(GameActionType.BEGIN_TURN, 0) };
 
         // play card actions
-        var l = cards.size() + 1 + (potions == null ? 0 : potions.size());
+        var l = cards.size() + 1 + potions.size();
         prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()] = new GameAction[l];
         for (int i = 0; i < cards.size(); i++) {
             prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][i] = new GameAction(GameActionType.PLAY_CARD, i);
         }
-        if (potions != null) {
-            for (int i = 0; i < potions.size(); i++) {
-                prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cards.size() + i] = new GameAction(GameActionType.USE_POTION, i);
-            }
+        for (int i = 0; i < potions.size(); i++) {
+            prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cards.size() + i] = new GameAction(GameActionType.USE_POTION, i);
         }
         prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][l - 1] = new GameAction(GameActionType.END_TURN, 0);
 
@@ -290,7 +288,7 @@ public class GameState implements State {
                 drawOrder.pushOnTop(i);
             }
         }
-        if (potions != null) {
+        if (potions.size() > 0) {
             potionsState = new short[potions.size() * 3];
             for (int i = 0; i < prop.potions.size(); i++) {
                 potionsState[i * 3] = 0;
@@ -326,8 +324,8 @@ public class GameState implements State {
         for (Card card : prop.cardDict) {
             card.startOfGameSetup(this);
         }
-        for (var enemy : enemies) {
-            enemy.startOfGameSetup(this);
+        for (int i = 0; i < getEnemiesForRead().size(); i++) { // need to use i because setup can modify other enemies
+            getEnemiesForRead().get(i).gamePropertiesSetup(this);
         }
         prop.compileCounterInfo();
         if (prop.counterNames.length > 0) {
@@ -343,15 +341,15 @@ public class GameState implements State {
         Collections.sort(prop.onCardDrawnHandlers);
 
         prop.playerArtifactCanChange = getPlayeForRead().getArtifact() > 0;
-        prop.playerArtifactCanChange |= prop.potions != null && prop.potions.stream().anyMatch((x) -> x.changePlayerArtifact);
+        prop.playerArtifactCanChange |= potions.stream().anyMatch((x) -> x.changePlayerArtifact);
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
         prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
-        prop.playerStrengthCanChange |= potions != null && potions.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerStrengthCanChange |= potions.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
         prop.playerDexterityCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
-        prop.playerDexterityCanChange |= potions != null && potions.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerDexterityCanChange |= potions.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
@@ -359,10 +357,10 @@ public class GameState implements State {
         prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
         prop.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
-        prop.enemyCanGetVuln |= potions != null && potions.stream().anyMatch((x) -> x.vulnEnemy);
+        prop.enemyCanGetVuln |= potions.stream().anyMatch((x) -> x.vulnEnemy);
         prop.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.card().weakEnemy);
         prop.enemyCanGetWeakened |= relics.stream().anyMatch((x) -> x.weakEnemy);
-        prop.enemyCanGetWeakened |= potions != null && potions.stream().anyMatch((x) -> x.weakEnemy);
+        prop.enemyCanGetWeakened |= potions.stream().anyMatch((x) -> x.weakEnemy);
         prop.enemyStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().affectEnemyStrengthEot);
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
@@ -373,6 +371,10 @@ public class GameState implements State {
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
 //        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);
+        prop.originalEnemies = new EnemyList(enemies);
+        for (int i = 0; i < prop.originalEnemies.size(); i++) {
+            prop.originalEnemies.getForWrite(i);
+        }
         prop.inputLen = getNNInputLen();
 
         // mcts related fields
@@ -600,7 +602,7 @@ public class GameState implements State {
             var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
             i = deckArr[idx];
             deck[deckArr[idx]] -= 1;
-            hand[deckArr[i]] += 1;
+            hand[deckArr[idx]] += 1;
             deckArr[idx] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
         }
@@ -834,7 +836,7 @@ public class GameState implements State {
             var enemy = enemies.get(i);
             if (enemy.getHealth() > 0) {
                 var enemy2 = enemies.getForWrite(i);
-                enemy2.nextMove(getSearchRandomGen());
+                enemy2.nextMove(this, getSearchRandomGen());
                 enemy2.endTurn();
             }
         }
@@ -1073,11 +1075,9 @@ public class GameState implements State {
 
     public double calc_q(double q_win, double q_health) {
         double base = q_win * 0.5 + q_win * q_win * q_health * 0.5;
-        if (prop.potions != null) {
-            for (int i = 0; i < prop.potions.size(); i++) {
-                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1) {
-                    base *= potionsState[i * 3 + 1] / 100.0;
-                }
+        for (int i = 0; i < prop.potions.size(); i++) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1) {
+                base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
         return base;
@@ -1294,9 +1294,7 @@ public class GameState implements State {
         for (var handler : prop.counterHandlersNonNull) {
             inputLen += handler.getInputLenDelta();
         }
-        if (prop.potions != null) {
-            inputLen += prop.potions.size() * 3;
-        }
+        inputLen += prop.potions.size() * 3;
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
@@ -1436,10 +1434,8 @@ public class GameState implements State {
                 str += "    " + prop.counterHandlers[i].getInputLenDelta() + " input to keep track of counter for " + prop.counterNames[i] + "\n";
             }
         }
-        if (prop.potions != null) {
-            for (int i = 0; i < prop.potions.size(); i++) {
-                str += "    3 inputs to keep track of " + prop.potions.get(i) + " usage\n";
-            }
+        for (int i = 0; i < prop.potions.size(); i++) {
+            str += "    3 inputs to keep track of " + prop.potions.get(i) + " usage\n";
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
@@ -1599,12 +1595,10 @@ public class GameState implements State {
         for (var handler : prop.counterHandlersNonNull) {
             idx = handler.addToInput(this, x, idx);
         }
-        if (prop.potions != null) {
-            for (int i = 0; i < prop.potions.size(); i++) {
-                x[idx++] = potionsState[i * 3] == 1 ? 0.5f : -0.5f;
-                x[idx++] = potionsState[i * 3 + 1] / 100f;
-                x[idx++] = potionsState[i * 3 + 2] == 1 ? 0.5f : -0.5f;
-            }
+        for (int i = 0; i < prop.potions.size(); i++) {
+            x[idx++] = potionsState[i * 3] == 1 ? 0.5f : -0.5f;
+            x[idx++] = potionsState[i * 3 + 1] / 100f;
+            x[idx++] = potionsState[i * 3 + 2] == 1 ? 0.5f : -0.5f;
         }
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
@@ -2046,12 +2040,18 @@ public class GameState implements State {
         }
         if (enemy.getHealth() > 0) {
             enemy.damage(dmg, this);
+            if (enemy.getHealth() <= 0) {
+                enemiesAlive -= 1;
+            }
         }
     }
 
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
         if (enemy.getHealth() > 0) {
             enemy.nonAttackDamage(dmg, blockable, this);
+            if (enemy.getHealth() <= 0) {
+                enemiesAlive -= 1;
+            }
         }
     }
 
@@ -2126,10 +2126,10 @@ public class GameState implements State {
     }
 
     public EnemyListReadOnly getEnemiesForRead() {
-        if (!enemiesCloned) {
-            enemies = new EnemyList(enemies);
-            enemiesCloned = true;
-        }
+//        if (!enemiesCloned) {
+//            enemies = new EnemyList(enemies);
+//            enemiesCloned = true;
+//        }
         return enemies;
     }
 
@@ -2186,6 +2186,24 @@ public class GameState implements State {
             stateDesc = new StringBuilder();
         }
         return stateDesc;
+    }
+
+    public void killEnemy(int i) {
+        if (getEnemiesForRead().get(i).getHealth() > 0) {
+            getEnemiesForWrite().getForWrite(i).setHealth(0);
+            enemiesAlive -= 1;
+        }
+    }
+
+    public void reviveEnemy(int idx) {
+        if (getEnemiesForRead().get(idx).getHealth() <= 0) {
+            getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
+            getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), false);
+            getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());
+            enemiesAlive += 1;
+        } else {
+            Integer.parseInt(null);
+        }
     }
 }
 

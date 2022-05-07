@@ -735,9 +735,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class RedMask extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             weakEnemy = true;
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(DebuffType.WEAK, 1);
-            }
+            state.addStartOfGameHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        enemy.applyDebuff(DebuffType.WEAK, 1 + 1);
+                    }
+                }
+            });
         }
     }
 

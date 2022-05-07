@@ -68,4 +68,35 @@ public class CardColorless {
     // Thinking Ahead
     // Transmutation
     // Violence
+
+    private static abstract class _BiteT extends Card {
+        private final int n;
+        private final int heal;
+
+        public _BiteT(String cardName, int cardType, int energyCost, int n, int heal) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            this.heal = heal;
+            this.selectEnemy = true;
+            this.healPlayer = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getPlayerForWrite().heal(heal);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Bite extends _BiteT {
+        public Bite() {
+            super("Bite", Card.ATTACK, 1, 7, 2);
+        }
+    }
+
+    public static class BiteP extends _BiteT {
+        public BiteP() {
+            super("Bite+", Card.ATTACK, 1, 8, 3);
+        }
+    }
 }

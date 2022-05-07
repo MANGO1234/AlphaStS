@@ -19,7 +19,7 @@ record NNOutput(float v_health, float v_win, float[] policy, int[] legalActions)
 
 public class Model {
     public static class LRUCache<K, V> extends LinkedHashMap<K, V> {
-        private static final int MAX_ENTRIES = 1000000;
+        private static final int MAX_ENTRIES = 250000;
 
         protected boolean removeEldestEntry(Map.Entry eldest) {
             return size() > MAX_ENTRIES;

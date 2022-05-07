@@ -7,7 +7,7 @@ public abstract class Enemy extends EnemyReadOnly {
         super(health, numOfMoves);
     }
 
-    public abstract void nextMove(RandomGen random);
+    public abstract void nextMove(GameState state, RandomGen random);
 
     public void damage(int n, GameState state) {
         if (health <= 0) {
@@ -17,7 +17,6 @@ public abstract class Enemy extends EnemyReadOnly {
         block = Math.max(0, block - n);
         if (health <= 0) {
             health = 0;
-            state.enemiesAlive -= 1;
         }
     }
 
@@ -33,7 +32,6 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         if (health <= 0) {
             health = 0;
-            state.enemiesAlive -= 1;
         }
     }
 
@@ -164,7 +162,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == -1) {
                 move = BELLOW;
             } else {
@@ -175,7 +173,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card) {
@@ -198,11 +196,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(10, RandomGenCtx.Other, null) + 1;
+            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
             if (b < 10 && training) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
-                health = 85 + random.nextInt(6, RandomGenCtx.Other, null);
+                health = 85 + random.nextInt(6, RandomGenCtx.Other);
             }
         }
 
@@ -274,7 +272,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == STUNNED) {
                 move = ATTACK_1;
                 return;
@@ -300,11 +298,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(10, RandomGenCtx.Other, null) + 1;
+            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
             } else {
-                health = 112 + random.nextInt(4, RandomGenCtx.Other, null);
+                health = 112 + random.nextInt(4, RandomGenCtx.Other);
             }
         }
 
@@ -350,7 +348,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == -1) {
                 move = startMove;
                 return;
@@ -368,11 +366,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
+            int b = random.nextInt(4, RandomGenCtx.Other) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
             } else {
-                health = 39 + random.nextInt(7, RandomGenCtx.Other, null);
+                health = 39 + random.nextInt(7, RandomGenCtx.Other);
             }
         }
 
@@ -431,7 +429,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move < 9) {
                 move = move + 1;
             }
@@ -460,7 +458,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(25, RandomGenCtx.Other, null) + 1;
+            int b = random.nextInt(25, RandomGenCtx.Other) + 1;
             health = 264 * b / 25;
         }
 
@@ -557,7 +555,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move < WHIRL_WIND) {
                 move++;
             } else if (move == WHIRL_WIND) {
@@ -593,11 +591,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = training ? random.nextInt(25, RandomGenCtx.Other, null) + 1 : 25;
+            int b = training ? random.nextInt(25, RandomGenCtx.Other) + 1 : 25;
             health = 250 * b / 25;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card) {
@@ -704,7 +702,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == GOOP_SPRAY) {
                 move = PREPARING;
             } else if (move == PREPARING) {
@@ -728,7 +726,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(15, RandomGenCtx.Other, null) + 1;
+            int b = random.nextInt(15, RandomGenCtx.Other) + 1;
             health = 10 * (training ? b : 15);
             if (health <= maxHealth / 2) {
                 move = SPLIT;
@@ -808,7 +806,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == SPLIT) {
                 return;
             }
@@ -841,7 +839,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 67 + random.nextInt(7, RandomGenCtx.Other, null);
+            health = 67 + random.nextInt(7, RandomGenCtx.Other);
             splitMaxHealth = health;
         }
 
@@ -888,7 +886,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 30) {
@@ -916,7 +914,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 29 + random.nextInt(6, RandomGenCtx.Other, null);
+            health = 29 + random.nextInt(6, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -948,7 +946,7 @@ public abstract class Enemy extends EnemyReadOnly {
             state.enemyDoDamageToPlayer(this, 6, 1);
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             move = TACKLE;
         }
 
@@ -960,7 +958,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 11 + random.nextInt(5, RandomGenCtx.Other, null);
+            health = 11 + random.nextInt(5, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1040,7 +1038,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == SPLIT) {
                 return;
             }
@@ -1081,7 +1079,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 68 + random.nextInt(5, RandomGenCtx.Other, null);
+            health = 68 + random.nextInt(5, RandomGenCtx.Other);
             splitMaxHealth = health;
         }
 
@@ -1132,7 +1130,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 40) {
@@ -1168,7 +1166,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 29 + random.nextInt(6, RandomGenCtx.Other, null);
+            health = 29 + random.nextInt(6, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1206,7 +1204,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == -1 || move == TACKLE) {
                 move = LICK;
             } else {
@@ -1224,7 +1222,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 9 + random.nextInt(5, RandomGenCtx.Other, null);
+            health = 9 + random.nextInt(5, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1265,7 +1263,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             if (move == -1) {
                 move = 0;
                 return;
@@ -1305,7 +1303,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 42 + random.nextInt(5, RandomGenCtx.Other, null);
+            health = 42 + random.nextInt(5, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1373,7 +1371,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
@@ -1409,9 +1407,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 11 + random.nextInt(6, RandomGenCtx.Other, null);
-            d = 6 + random.nextInt(3, RandomGenCtx.Other, null);
-            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other, null);
+            health = 11 + random.nextInt(6, RandomGenCtx.Other);
+            d = 6 + random.nextInt(3, RandomGenCtx.Other);
+            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1478,7 +1476,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
@@ -1514,9 +1512,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 12 + random.nextInt(7, RandomGenCtx.Other, null);
-            d = 6 + random.nextInt(3, RandomGenCtx.Other, null);
-            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other, null);
+            health = 12 + random.nextInt(7, RandomGenCtx.Other);
+            d = 6 + random.nextInt(3, RandomGenCtx.Other);
+            curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1559,7 +1557,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 60) {
@@ -1603,7 +1601,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 24 + random.nextInt(5, RandomGenCtx.Other, null);
+            health = 24 + random.nextInt(5, RandomGenCtx.Other);
         }
 
         public String getName() {
@@ -1649,7 +1647,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
             if (move < 0) {
                 newMove = MUG_1;
@@ -1679,11 +1677,295 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            health = 46 + random.nextInt(5, RandomGenCtx.Other, null);
+            health = 46 + random.nextInt(5, RandomGenCtx.Other);
         }
 
         public String getName() {
             return "Looter";
         }
     }
+
+    public static class FatGremlin extends Enemy {
+        static final int SMASH = 0;
+
+        public FatGremlin() {
+            this(18);
+        }
+
+        public FatGremlin(int health) {
+            super(health, 1);
+            canWeaken = true;
+            canFrail = true;
+        }
+
+        public FatGremlin(FatGremlin other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new FatGremlin(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == SMASH) {
+                state.enemyDoDamageToPlayer(this, 5, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1 + 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            move = SMASH;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SMASH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 5) + "+Frail 1+Weak 1";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            health = 14 + random.nextInt(5, RandomGenCtx.Other);
+        }
+
+        public String getName() {
+            return "Fat Gremlin";
+        }
+    }
+
+    public static class MadGremlin extends Enemy {
+        static final int SCRATCH = 0;
+
+        public MadGremlin() {
+            this(25);
+        }
+
+        public MadGremlin(int health) {
+            super(health, 1);
+            canGainStrength = true;
+        }
+
+        public MadGremlin(MadGremlin other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new MadGremlin(this);
+        }
+
+        @Override public void damage(int n, GameState state) {
+            var dmg = Math.max(0, n - block);
+            super.damage(n, state);
+            if (dmg > 0) {
+                gainStrength(2);
+            }
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == SCRATCH) {
+                state.enemyDoDamageToPlayer(this, 5, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            move = SCRATCH;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SCRATCH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 5);
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            health = 21 + random.nextInt(5, RandomGenCtx.Other);
+        }
+
+        public String getName() {
+            return "Mad Gremlin";
+        }
+    }
+
+    public static class SneakyGremlin extends Enemy {
+        static final int PUNCTURE = 0;
+
+        public SneakyGremlin() {
+            this(15);
+        }
+
+        public SneakyGremlin(int health) {
+            super(health, 1);
+        }
+
+        public SneakyGremlin(SneakyGremlin other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new SneakyGremlin(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == PUNCTURE) {
+                state.enemyDoDamageToPlayer(this, 10, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            move = PUNCTURE;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == PUNCTURE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10);
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            health = 11 + random.nextInt(5, RandomGenCtx.Other);
+        }
+
+        public String getName() {
+            return "Sneaky Gremlin";
+        }
+    }
+
+    public static class ShieldGremlin extends Enemy {
+        static final int PROTECT = 0;
+        static final int SHIELD_BASH = 0;
+
+        public ShieldGremlin() {
+            this(17);
+        }
+
+        public ShieldGremlin(int health) {
+            super(health, 2);
+        }
+
+        public ShieldGremlin(ShieldGremlin other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new ShieldGremlin(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == PROTECT) {
+                if (state.enemiesAlive == 1) { // can only be shield gremlin
+                    gainBlock(11);
+                } else {
+                    int r = 0;
+                    if (state.enemiesAlive > 2) {
+                        r = state.getSearchRandomGen().nextInt(state.enemiesAlive - 1, RandomGenCtx.ShieldGremlin);
+                        state.isStochastic = true;
+                    }
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        if (enemy != this) {
+                            if ((--r) < 0) {
+                                enemy.gainBlock(11);
+                                break;
+                            }
+                        }
+                    }
+                }
+            } else if (move == SHIELD_BASH) {
+                state.enemyDoDamageToPlayer(this, 8, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            if (state.enemiesAlive > 1) {
+                move = PROTECT;
+            } else {
+                move = SHIELD_BASH;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == PROTECT) {
+                return "Gives 11 block to a random ally";
+            } else if (move == SHIELD_BASH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8);
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            health = 13 + random.nextInt(5, RandomGenCtx.Other);
+        }
+
+        public String getName() {
+            return "Shield Gremlin";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var enemies = state.getEnemiesForWrite();
+            for (int i = 0; i < enemies.size(); i++) {
+                if (enemies.get(i).getName().contains("Gremlin")) {
+                    enemies.get(i).canGainBlock = true;
+                }
+            }
+        }
+    }
+
+    public static class GremlinWizard extends Enemy {
+        static final int CHARGING_1 = 0;
+        static final int CHARGING_2 = 1;
+        static final int ULTIMATE_BLAST = 2;
+
+        public GremlinWizard() {
+            this(26);
+        }
+
+        public GremlinWizard(int health) {
+            super(health, 3);
+        }
+
+        public GremlinWizard(GremlinWizard other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new GremlinWizard(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == ULTIMATE_BLAST) {
+                state.enemyDoDamageToPlayer(this, 30, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            if (move < ULTIMATE_BLAST) {
+                move++;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == CHARGING_1 || move == CHARGING_2) {
+                return "Charging";
+            } else if (move == ULTIMATE_BLAST) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 30);
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            health = 22 + random.nextInt(5, RandomGenCtx.Other);
+        }
+
+        public String getName() {
+            return "Gremlin Wizard";
+        }
+    }
+
 }

@@ -3,6 +3,211 @@ package com.alphaStS.enemy;
 import com.alphaStS.*;
 
 public class EnemyCity {
+    public static class GremlinLeader extends Enemy {
+        static final int ENCOURAGE = 0;
+        static final int RALLY = 1;
+        static final int STAB = 2;
+
+        public GremlinLeader() {
+            this(155);
+            isElite = true;
+            canGainStrength = true;
+            canGainBlock = true;
+        }
+
+        public GremlinLeader(int health) {
+            super(health, 3);
+        }
+
+        public GremlinLeader(GremlinLeader other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new GremlinLeader(this);
+        }
+
+        @Override public void damage(int n, GameState state) {
+            super.damage(n, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i);
+                }
+            }
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            super.nonAttackDamage(n, blockable, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i);
+                }
+            }
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == ENCOURAGE) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.gainStrength(5);
+                    if (enemy != this) {
+                        enemy.gainBlock(10);
+                    }
+                }
+            } else if (move == RALLY) {
+                state.isStochastic = true;
+                var enemies = state.getEnemiesForWrite();
+                var startIdx = 0;
+                for (int i = 0; i < enemies.size(); i++) {
+                    if (enemies.get(i) instanceof Enemy.MadGremlin) {
+                        startIdx = i;
+                        break;
+                    }
+                }
+                for (int i = 0; i < 2; i++) {
+                    int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader);
+                    var idx = -1;
+                    if (r < 2) { // Mad Gremlin
+                        idx = startIdx + 2;
+                        if (enemies.get(startIdx).getHealth() <= 0) {
+                            idx = startIdx;
+                        } else if (enemies.get(startIdx + 1).getHealth() <= 0) {
+                            idx = startIdx + 1;
+                        }
+                    } else if (r < 4) { // Sneaky Gremlin
+                        idx = startIdx + 5;
+                        if (enemies.get(startIdx + 3).getHealth() <= 0) {
+                            idx = startIdx + 3;
+                        } else if (enemies.get(startIdx + 4).getHealth() <= 0) {
+                            idx = startIdx + 4;
+                        }
+                    } else if (r < 6) { // Fat Gremlin
+                        idx = startIdx + 8;
+                        if (enemies.get(startIdx + 6).getHealth() <= 0) {
+                            idx = startIdx + 6;
+                        } else if (enemies.get(startIdx + 7).getHealth() <= 0) {
+                            idx = startIdx + 7;
+                        }
+                    } else if (r < 7) { // Shield Gremlin
+                        idx = startIdx + 11;
+                        if (enemies.get(startIdx + 9).getHealth() <= 0) {
+                            idx = startIdx + 9;
+                        } else if (enemies.get(startIdx + 10).getHealth() <= 0) {
+                            idx = startIdx + 10;
+                        }
+                    } else { // Gremlin Wizard
+                        idx = startIdx + 14;
+                        if (enemies.get(startIdx + 12).getHealth() <= 0) {
+                            idx = startIdx + 12;
+                        } else if (enemies.get(startIdx + 13).getHealth() <= 0) {
+                            idx = startIdx + 13;
+                        }
+                    }
+                    state.reviveEnemy(idx);
+                    if (state.enemiesAlive == 4) {
+                        var j = 0;
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            if (enemy.health > 0) {
+                                j += 1;
+                            }
+                        }
+                        if (j < 4) {
+                            System.out.println(state.enemiesAlive);
+                        }
+                    }
+                }
+            } else if (move == STAB) {
+                state.enemyDoDamageToPlayer(this, 6, 3);
+            }
+        }
+
+        private void nextMove(GameState state, RandomGen random, int r) {
+            if (state.enemiesAlive == 1) { // 0 gremlin
+                if (r < 75) {
+                    if (move != RALLY) {
+                        move = RALLY;
+                    } else {
+                        move = STAB;
+                    }
+                } else if (move != STAB) {
+                    move = STAB;
+                } else {
+                    move = RALLY;
+                }
+            } else if (state.enemiesAlive == 2) { // 1 gremlin
+                if (r < 50) {
+                    if (move != RALLY) {
+                        move = RALLY;
+                    } else {
+                        nextMove(state, random, 50 + random.nextInt(50, RandomGenCtx.EnemyChooseMove));
+                    }
+                } else if (r < 80) {
+                    if (move != ENCOURAGE) {
+                        move = ENCOURAGE;
+                    } else {
+                        move = STAB;
+                    }
+                } else if (move != STAB) {
+                    move = STAB;
+                } else {
+                    nextMove(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove));
+                }
+            } else {
+                if (r < 66) {
+                    if (move != ENCOURAGE) {
+                        move = ENCOURAGE;
+                    } else {
+                        move = STAB;
+                    }
+                } else if (move != STAB) {
+                    move = STAB;
+                } else {
+                    move = ENCOURAGE;
+                }
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == ENCOURAGE) {
+                return "Give all allies 5 strength and 10 block";
+            } else if (move == RALLY) {
+                return "Rally";
+            } else if (move == STAB) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6) + "x3";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+            if (training && b < 10) {
+                health = (int) Math.round(((double) (health * b)) / 10);
+            } else {
+                health = 145 + random.nextInt(11, RandomGenCtx.Other);
+            }
+        }
+
+        public String getName() {
+            return "Gremlin Leader";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var enemies = state.getEnemiesForWrite();
+            for (int i = 0; i < enemies.size(); i++) {
+                if (enemies.get(i).getName().contains("Gremlin")) {
+                    enemies.get(i).canGainBlock = true;
+                    enemies.get(i).canGainStrength = true;
+                }
+            }
+        }
+    }
+
     public static class Byrd extends Enemy {
         static int CAW = 0;
         static int PECK = 1;
@@ -72,7 +277,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
             if (move == STUNNED || move == HEADBUTT) {
                 newMove = move + 1;
@@ -215,7 +420,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             move++;
             if (move == 4) {
                 move = 2;
@@ -274,7 +479,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             move = ATTACK;
         }
 
@@ -331,7 +536,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             move++;
             if (move > CROSS_SLASH_2) {
                 move = AGONIZING_SLASH;
@@ -400,7 +605,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void nextMove(RandomGen random) {
+        @Override public void nextMove(GameState state, RandomGen random) {
             move++;
             if (move > MAUL) {
                 move = LUNGE;

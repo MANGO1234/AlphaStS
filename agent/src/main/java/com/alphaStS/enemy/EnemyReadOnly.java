@@ -44,10 +44,10 @@ public abstract class EnemyReadOnly {
         move = -1;
     }
 
-    public void startOfGameSetup(GameState state) {}
     public abstract void doMove(GameState state);
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
+    public void gamePropertiesSetup(GameState state) {}
     public int getNNInputLen(GameProperties prop) { return 0; }
     public String getNNInputDesc(GameProperties prop) { return null; }
     public int writeNNInput(GameProperties prop, float[] input, int idx) { return 0; }
@@ -72,6 +72,8 @@ public abstract class EnemyReadOnly {
         origHealth = other.origHealth;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
+        canGainBlock = other.canGainBlock;
+        canGainStrength = other.canGainStrength;
         canGainRegeneration = other.canGainRegeneration;
         canGainMetallicize = other.canGainMetallicize;
         hasBurningHealthBuff = other.hasBurningHealthBuff();

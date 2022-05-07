@@ -505,7 +505,7 @@ public class MatchSession {
         }
 
         state.doEval(mcts.model);
-        boolean quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other) > 0;
+        boolean quickPass = false;
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
             for (int i = 0; i < todo; i++) {
@@ -520,7 +520,7 @@ public class MatchSession {
 
             int action;
             int greedyAction;
-            if (doNotExplore || state.turnNum >= 100) {
+            if (doNotExplore || quickPass || state.turnNum >= 100) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
@@ -531,7 +531,9 @@ public class MatchSession {
             step.trainingWriteCount = !quickPass ? 1 : 0;
             step.isExplorationMove = greedyAction != action;
             steps.add(step);
-            quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other, null) > 0;
+            if (state.getAction(action).type() == GameActionType.END_TURN) {
+                quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other, null) > 0;
+            }
             if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 state = state.clone(false);
                 state.prop.makingRealMove = true;
