@@ -9,7 +9,6 @@ import java.util.function.Consumer;
 
 public interface GameStateRandomization {
     int randomize(GameState state);
-    default void reset(GameState state) {};
     void randomize(GameState state, int r);
     Map<Integer, Info> listRandomizations();
 
@@ -65,13 +64,7 @@ public interface GameStateRandomization {
             return ar * b.listRandomizations().size() + br;
         }
 
-        @Override public void reset(GameState state) {
-            b.reset(state);
-            a.reset(state);
-        }
-
         @Override public void randomize(GameState state, int r) {
-            reset(state);
             var bLen = b.listRandomizations().size();
             a.randomize(state, r / bLen);
             b.randomize(state, r % bLen);
@@ -105,13 +98,8 @@ public interface GameStateRandomization {
             return r;
         }
 
-        @Override public void reset(GameState state) {
-            b.reset(state);
-            a.reset(state);
-        }
 
         @Override public void randomize(GameState state, int r) {
-            reset(state);
             a.randomize(state, r);
             b.randomize(state, r);
         }
@@ -143,12 +131,7 @@ public interface GameStateRandomization {
             return i;
         }
 
-        @Override public void reset(GameState state) {
-            a.reset(state);
-        }
-
         @Override public void randomize(GameState state, int r) {
-            reset(state);
             a.randomize(state, rs[r]);
         }
 
@@ -163,7 +146,6 @@ public interface GameStateRandomization {
 
         CollapsedRandomization(GameStateRandomization a, String desc) {
             this.a = a;
-            Map<Integer, Info> aMap = a.listRandomizations();
             infoMap = new HashMap<>();
             infoMap.put(0, new Info(1.0, desc));
         }
@@ -196,10 +178,6 @@ public interface GameStateRandomization {
 
         @Override public int randomize(GameState state) {
             return a.randomize(state);
-        }
-
-        @Override public void reset(GameState state) {
-            a.reset(state);
         }
 
         @Override public void randomize(GameState state, int r) {
@@ -248,14 +226,10 @@ public interface GameStateRandomization {
             return 0;
         }
 
-        @Override public void reset(GameState state) {
+        @Override public void randomize(GameState state, int r) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.setHealth(enemy.maxHealth);
             }
-        }
-
-        @Override public void randomize(GameState state, int r) {
-            reset(state);
             randomize(state);
         }
 
@@ -295,12 +269,6 @@ public interface GameStateRandomization {
             }
             randomize(state, r);
             return r;
-        }
-
-        @Override public void reset(GameState state) {
-            state.potionsState[potionIdx * 3] = 0;
-            state.potionsState[potionIdx * 3 + 1] = startingRatio;
-            state.potionsState[potionIdx * 3 + 2] = 0;
         }
 
         @Override public void randomize(GameState state, int r) {
@@ -350,10 +318,6 @@ public interface GameStateRandomization {
             return randomization.randomize(state);
         }
 
-        @Override public void reset(GameState state) {
-            randomization.reset(state);
-        }
-
         @Override public void randomize(GameState state, int r) {
             randomization.randomize(state, r);
         }
@@ -398,10 +362,6 @@ public interface GameStateRandomization {
             return r;
         }
 
-        @Override public void reset(GameState state) {
-            randomize(state, 0);
-        }
-
         @Override public void randomize(GameState state, int r) {
             var s = scenarios.get(r);
             for (CardCount cardCount : s) {
@@ -432,10 +392,6 @@ public interface GameStateRandomization {
             int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
-        }
-
-        @Override public void reset(GameState state) {
-            randomize(state, 0);
         }
 
         @Override public void randomize(GameState state, int r) {
@@ -474,10 +430,6 @@ public interface GameStateRandomization {
             return r;
         }
 
-        @Override public void reset(GameState state) {
-            randomize(state, 0);
-        }
-
         @Override public void randomize(GameState state, int r) {
             randomizations.get(r).accept(state);
         }
@@ -493,11 +445,6 @@ public interface GameStateRandomization {
             int r = state.getSearchRandomGen().nextInt(4, RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
-        }
-
-        // todo: need to think about reset, e.g. philosopher stone with resetting strength below
-        @Override public void reset(GameState state) {
-            randomize(state, 0);
         }
 
         @Override public void randomize(GameState state, int r) {
@@ -594,10 +541,6 @@ public interface GameStateRandomization {
             int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
             return r;
-        }
-
-        @Override public void reset(GameState state) {
-            randomize(state, 0);
         }
 
         @Override public void randomize(GameState state, int r) {

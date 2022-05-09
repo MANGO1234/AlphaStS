@@ -529,7 +529,7 @@ public class Main {
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
 //            SAVES_DIR = "../tmp/saves_guard";
-            SAVES_DIR = "../saves2";
+            SAVES_DIR = "../tmp/saves_gremlin";
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
