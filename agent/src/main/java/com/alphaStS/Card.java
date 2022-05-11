@@ -906,7 +906,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 state.prop.bloodForBloodIndexes[i] = state.prop.findCardIndex(new BloodForBlood(i));
             }
             state.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = 0; i < 4; i++) {
                         state.deck[state.prop.bloodForBloodIndexes[i]] += state.deck[state.prop.bloodForBloodIndexes[i + 1]];
@@ -949,7 +949,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 state.prop.bloodForBloodPIndexes[i] = state.prop.findCardIndex(new BloodForBloodP(i));
             }
             state.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = 0; i < 3; i++) {
                         state.deck[state.prop.bloodForBloodPIndexes[i]] += state.deck[state.prop.bloodForBloodPIndexes[i + 1]];
@@ -1072,7 +1072,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             var _this = this;
-            state.prop.registerCounter(this.cardName, this, new GameProperties.NetworkInputHandler() {
+            var name = cardName.endsWith("+") ? cardName.substring(0, cardName.length() - 1) : cardName ;
+            state.prop.registerCounter(name, this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int counter = state.getCounterForRead()[counterIdx];
                     input[idx] = (counter >> 16) / 2.0f;
@@ -1083,7 +1084,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                     return 2;
                 }
             });
-            state.addPreEndOfTurnHandler(this.cardName, new GameEventHandler() {
+            state.addPreEndOfTurnHandler(name, new GameEventHandler() {
                 @Override void handle(GameState state) {
                     var counter = state.getCounterForRead()[counterIdx];
                     var selfDmg = counter >> 16;
@@ -1463,7 +1464,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnDamageHandler("FlameBarrier", new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (isAttack && source instanceof Enemy enemy) {
                         state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
                     }
@@ -1499,7 +1500,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnDamageHandler("FlameBarrier", new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (isAttack && source instanceof Enemy enemy) {
                         state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
                     }
@@ -1934,7 +1935,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             });
             // todo: test
             state.addOnDamageHandler("Rupture", new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0 && source instanceof Card) {
                         state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
                     }

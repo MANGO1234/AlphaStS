@@ -30,10 +30,6 @@ abstract class GameEventHandler implements Comparable<GameEventHandler> {
     }
 }
 
-abstract class OnDamageHandler {
-    abstract void handle(GameState state, Object source, boolean isAttack, int damageDealt);
-}
-
 interface GameEnvironmentAction {
     void doAction(GameState state);
 }
@@ -354,6 +350,7 @@ public class GameState implements State {
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
+        prop.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.canEntangle);
         prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
         prop.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
@@ -404,6 +401,7 @@ public class GameState implements State {
             if (enemy.canDaze) {
                 l.add(prop.findCardIndex(new Card.Dazed()));
             }
+            l.addAll(enemy.getPossibleGeneratedCards().stream().map(prop::findCardIndex).toList());
         }
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().exhaustWhenPlayed && getCardEnergyCost(i) >= 0) {
@@ -477,6 +475,9 @@ public class GameState implements State {
         }
         if (enemies.stream().anyMatch((x) -> x.canDaze)) {
             set.add(new CardCount(new Card.Dazed(), 0));
+        }
+        for (Enemy enemy : enemies) {
+            set.addAll(enemy.getPossibleGeneratedCards().stream().map((c) -> new CardCount(c, 0)).toList());
         }
         do {
             var newSet = new HashSet<>(set);
@@ -973,6 +974,9 @@ public class GameState implements State {
                 return potionsState[a[action].idx() * 3] == 1;
             } else if (hand[a[action].idx()] > 0) {
                 int cost = getCardEnergyCost(a[action].idx());
+                if (getPlayeForRead().isEntangled() && prop.cardDict[a[action].idx()].cardType == Card.ATTACK) {
+                    return false;
+                }
                 if (cost >= 0 && cost <= energy) {
 //                    if (prop.cardDict[a[action].idx()].cardName.equals("Defend")) {
 //                        var dmg = 0;
@@ -1280,6 +1284,9 @@ public class GameState implements State {
         if (prop.playerCanGetFrailed) {
             inputLen += 1; // player weak
         }
+        if (prop.playerCanGetEntangled) {
+            inputLen += 1; // player entangled
+        }
         if (prop.battleTranceExist) {
             inputLen += 1; // battle trance
         }
@@ -1417,6 +1424,9 @@ public class GameState implements State {
         }
         if (prop.playerCanGetFrailed) {
             str += "    1 input to keep track of player frail\n";
+        }
+        if (prop.playerCanGetEntangled) {
+            str += "    1 input to keep track of whether player is entangled or not\n";
         }
         if (prop.battleTranceExist) {
             str += "    1 input to keep track of battle trance cannot draw card debuff\n";
@@ -1580,6 +1590,9 @@ public class GameState implements State {
         }
         if (prop.playerCanGetFrailed) {
             x[idx++] = player.getFrail() / (float) 10.0;
+        }
+        if (prop.playerCanGetEntangled) {
+            x[idx++] = player.isEntangled() ? 0.5f : -0.5f;
         }
         if (prop.battleTranceExist) {
             x[idx++] = player.cannotDrawCard() ? 0.5f : -0.5f;

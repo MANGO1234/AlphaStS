@@ -2,6 +2,8 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 
+import java.util.List;
+
 public class EnemyCity {
     public static class GremlinLeader extends Enemy {
         static final int ENCOURAGE = 0;
@@ -10,13 +12,13 @@ public class EnemyCity {
 
         public GremlinLeader() {
             this(155);
-            isElite = true;
-            canGainStrength = true;
-            canGainBlock = true;
         }
 
         public GremlinLeader(int health) {
             super(health, 3);
+            isElite = true;
+            canGainStrength = true;
+            canGainBlock = true;
         }
 
         public GremlinLeader(GremlinLeader other) {
@@ -184,7 +186,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(10, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -193,7 +195,7 @@ public class EnemyCity {
             }
         }
 
-        public String getName() {
+        @Override public String getName() {
             return "Gremlin Leader";
         }
 
@@ -205,6 +207,171 @@ public class EnemyCity {
                     enemies.get(i).canGainStrength = true;
                 }
             }
+        }
+    }
+
+    public static class BookOfStabbing extends Enemy {
+        static final int MULTI_STAB = 0;
+        static final int SINGLE_STAB = 1;
+
+        private int stabCount;
+
+        public BookOfStabbing() {
+            this(172);
+        }
+
+        public BookOfStabbing(int health) {
+            super(health, 2);
+            moveHistory = new int[] {-1};
+            isElite = true;
+            stabCount = 1;
+        }
+
+        public BookOfStabbing(BookOfStabbing other) {
+            this(other.health);
+            setSharedFields(other);
+            stabCount = other.stabCount;
+        }
+
+        @Override public Enemy copy() {
+            return new BookOfStabbing(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == MULTI_STAB) {
+                state.enemyDoDamageToPlayer(this, 7, stabCount);
+            } else if (move == SINGLE_STAB) {
+                state.enemyDoDamageToPlayer(this, 24, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+            int newMove;
+            if (r < 15) {
+                if (move == SINGLE_STAB) {
+                    newMove = MULTI_STAB;
+                } else {
+                    newMove = SINGLE_STAB;
+                }
+            } else if (move == MULTI_STAB && moveHistory[0] == MULTI_STAB) {
+                newMove = SINGLE_STAB;
+            } else {
+                newMove = MULTI_STAB;
+            }
+            stabCount++;
+            moveHistory[0] = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == MULTI_STAB) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7) + "x" + stabCount;
+            } else if (move == SINGLE_STAB) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 24);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+            if (training && b < 10) {
+                health = (int) Math.round(((double) (health * b)) / 10);
+            } else {
+                health = 168 + random.nextInt(5, RandomGenCtx.Other);
+            }
+        }
+
+        @Override public String getName() {
+            return "Book of Stabbing";
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 inputs to keep track of current book of stabbing multi-hit counts";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = stabCount / 10f;
+            return 1;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of(new Card.Wound());
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.addOnDamageHandler("BookOfStabbing", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (source instanceof BookOfStabbing && damageDealt > 0) {
+                        state.addCardToDiscard(state.prop.woundCardIdx);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Taskmaster extends Enemy {
+        static final int SCOURING_WHIP = 0;
+
+        public Taskmaster() {
+            this(64);
+            isElite = true;
+            canGainStrength = true;
+        }
+
+        public Taskmaster(int health) {
+            super(health, 1);
+        }
+
+        public Taskmaster(Taskmaster other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new Taskmaster(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == SCOURING_WHIP) {
+                state.enemyDoDamageToPlayer(this, 7, 1);
+                gainStrength(1);
+                state.addCardToDiscard(state.prop.woundCardIdx);
+                state.addCardToDiscard(state.prop.woundCardIdx);
+                state.addCardToDiscard(state.prop.woundCardIdx);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            move = SCOURING_WHIP;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SCOURING_WHIP) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7) + "+Gain Strength 1+Wound 3";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(4, RandomGenCtx.Other) + 1;
+            if (training && b < 4) {
+                health = (int) Math.round(((double) (health * b)) / 4);
+            } else {
+                health = 57 + random.nextInt(8, RandomGenCtx.Other);
+            }
+        }
+
+        @Override public String getName() {
+            return "Taskmaster";
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of(new Card.Wound());
         }
     }
 

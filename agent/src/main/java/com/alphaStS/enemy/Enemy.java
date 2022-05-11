@@ -1230,6 +1230,174 @@ public abstract class Enemy extends EnemyReadOnly {
         }
     }
 
+    public static class RedSlaver extends Enemy {
+        public static final int STAB = 0;
+        public static final int SCRAPE = 1;
+        public static final int ENTANGLE = 2;
+
+        private boolean usedEntangle;
+
+        public RedSlaver() {
+            this(52);
+        }
+
+        public RedSlaver(int health) {
+            super(health, 3);
+            canVulnerable = true;
+            canEntangle = true;
+            moveHistory = new int[] {-1};
+        }
+
+        public RedSlaver(RedSlaver other) {
+            this(other.health);
+            setSharedFields(other);
+            usedEntangle = other.usedEntangle;
+        }
+
+        @Override public Enemy copy() {
+            return new RedSlaver(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == STAB) {
+                state.enemyDoDamageToPlayer(this, 14, 1);
+            } else if (move == SCRAPE) {
+                state.enemyDoDamageToPlayer(this, 9, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+            } else if (move == ENTANGLE) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.ENTANGLED, 1 + 1);
+                usedEntangle = true;
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            if (move == -1) {
+                move = STAB;
+                return;
+            }
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
+            int newMove;
+            if (r >= 75 && !usedEntangle) {
+                newMove = ENTANGLE;
+            } else if (r >= 55 && usedEntangle && (move != STAB || moveHistory[0] != STAB)) {
+                newMove = STAB;
+            } else if (move != SCRAPE) {
+                newMove = SCRAPE;
+            } else {
+                newMove = STAB;
+            }
+            moveHistory[0] = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == STAB) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 14);
+            } else if (move == SCRAPE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 9) + "+Vulnerable 2";
+            } else if (move == ENTANGLE) {
+                return "Entangle";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(3, RandomGenCtx.Other) + 1;
+            if (training && b < 3) {
+                health = (int) Math.round(((double) (health * b)) / 3);
+            } else {
+                health = 48 + random.nextInt(5, RandomGenCtx.Other);
+            }
+        }
+
+        @Override public String getName() {
+            return "Red Slaver";
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 inputs to keep track of whether red slaver have used entangle";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = usedEntangle ? -0.5f : 0.5f;
+            return 1;
+        }
+
+    }
+
+    public static class BlueSlaver extends Enemy {
+        public static final int STAB = 0;
+        public static final int RAKE = 1;
+
+        public BlueSlaver() {
+            this(52);
+        }
+
+        public BlueSlaver(int health) {
+            super(health, 2);
+            canWeaken = true;
+            moveHistory = new int[] {-1};
+        }
+
+        public BlueSlaver(BlueSlaver other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new BlueSlaver(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == STAB) {
+                state.enemyDoDamageToPlayer(this, 13, 1);
+            } else if (move == RAKE) {
+                state.enemyDoDamageToPlayer(this, 8, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
+            int newMove;
+            if (r >= 40 && (move != STAB || moveHistory[0] != STAB)) {
+                newMove = STAB;
+            } else if (move != RAKE) {
+                newMove = RAKE;
+            } else {
+                newMove = STAB;
+            }
+            moveHistory[0] = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == STAB) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 13);
+            } else if (move == RAKE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "+Weak 2";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(3, RandomGenCtx.Other) + 1;
+            if (training && b < 3) {
+                health = (int) Math.round(((double) (health * b)) / 3);
+            } else {
+                health = 48 + random.nextInt(5, RandomGenCtx.Other);
+            }
+        }
+
+        @Override public String getName() {
+            return "Blue Slaver";
+        }
+    }
+
     public static class JawWorm extends Enemy {
         public JawWorm() {
             this(46);

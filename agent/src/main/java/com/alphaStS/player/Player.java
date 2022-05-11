@@ -83,9 +83,10 @@ public class Player extends PlayerReadOnly {
         case FRAIL -> this.frail += n;
         case LOSE_STRENGTH -> this.gainStrength(-n);
         case LOSE_DEXTERITY -> this.gainDexterity(-n);
-        case LOSE_STRENGTH_EOT -> this.loseStrengthEot = n;
-        case LOSE_DEXTERITY_EOT -> this.loseDexterityEot = n;
+        case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
+        case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
+        case ENTANGLED -> this.entangled = n;
         }
     }
 
@@ -100,6 +101,7 @@ public class Player extends PlayerReadOnly {
             frail -= 1;
         }
         cannotDrawCard = false;
+        entangled--;
         if (loseStrengthEot > 0) {
             applyDebuff(state, DebuffType.LOSE_STRENGTH, loseStrengthEot);
         }

@@ -235,4 +235,14 @@ public class EnemyEncounter {
         builder.addEnemy(new EnemyCity.GremlinLeader());
         builder.setRandomization(new GremlinLeaderRandomization(builder.getEnemies(), start).doAfter(builder.getRandomization()));
     }
+
+    public static void addSlaversEliteFight(GameStateBuilder builder) {
+        Enemy enemy = new Enemy.BlueSlaver();
+        enemy.isElite = true;
+        builder.addEnemy(enemy);
+        builder.addEnemy(new EnemyCity.Taskmaster());
+        enemy = new Enemy.RedSlaver();
+        enemy.isElite = true;
+        builder.addEnemy(enemy);
+    }
 }

@@ -110,7 +110,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnDamageHandler(new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (isAttack && source instanceof EnemyReadOnly enemy2) {
                         var idx = state.getEnemiesForRead().find(enemy2);
                         var enemy = state.getEnemiesForWrite().getForWrite(idx);
@@ -125,7 +125,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
             state.addOnDamageHandler(new OnDamageHandler() {
-                @Override void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
                         state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();

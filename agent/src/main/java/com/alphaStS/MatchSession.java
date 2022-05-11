@@ -307,6 +307,7 @@ public class MatchSession {
         var totalDamageTakenByR = new HashMap<Integer, Integer>();
         var totalDamageTakenNoDeathByR = new HashMap<Integer, Integer>();
         var numOfGamesByR = new HashMap<Integer, Integer>();
+        var potionsUsed = new HashMap<Integer, List<Integer>>();
         var damageCount = new HashMap<Integer, HashMap<Integer, Integer>>();
         var start = System.currentTimeMillis();
         var solverErrorCount = 0;
@@ -336,6 +337,21 @@ public class MatchSession {
             totalDamageTakenNoDeathByR.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
             damageCount.computeIfAbsent(r, (x) -> new HashMap<>());
             damageCount.compute(r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
+            potionsUsed.computeIfAbsent(r, (x) -> {
+                var l = new ArrayList<Integer>();
+                for (int i = 0; i < state.prop.potions.size(); i++) {
+                    l.add(i);
+                }
+                return l;
+            });
+            if (state.isTerminal() > 0) {
+                for (int i = 0; i < state.prop.potions.size(); i++) {
+                    if (state.potionsState[i * 3 + 2] == 1 && state.potionsState[i * 3] == 0) {
+                        var l = potionsUsed.get(r);
+                        l.set(i, l.get(i) + 1);
+                    }
+                }
+            }
             game_i += 1;
             if (matchLogWriter != null) {
                 try {
@@ -389,21 +405,35 @@ public class MatchSession {
                         System.out.println("    Deaths: " + deathCount.get(i) + "/" + numOfGamesByR.get(i) + " (" + String.format("%.2f", 100 * deathCount.get(i) / (float) numOfGamesByR.get(i)).trim() + "%)");
                         System.out.println("    Avg Damage: " + ((double) totalDamageTakenByR.get(i)) / numOfGamesByR.get(i));
                         System.out.println("    Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeathByR.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                        var potionsStat = potionsUsed.get(i);
+                        for (int j = 0; j < potionsStat.size(); j++) {
+                            System.out.println("    " + state.prop.potions.get(j) + " Used Percentage: " + ((double) potionsStat.get(j)) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                        }
                     }
                 }
                 var totalDeathCount = 0;
                 var totalDamageTaken = 0;
                 var totalDamageTakenNoDeath = 0;
                 var totalNumOfGames = 0;
+                var totalPotionsUsed = new ArrayList<Integer>();
+                for (int i = 0; i < state.prop.potions.size(); i++) {
+                    totalPotionsUsed.add(0);
+                }
                 for (int rr : deathCount.keySet()) {
                     totalDeathCount += deathCount.get(rr);
                     totalDamageTaken += totalDamageTakenByR.get(rr);
                     totalDamageTakenNoDeath += totalDamageTakenNoDeathByR.get(rr);
                     totalNumOfGames += numOfGamesByR.get(rr);
+                    for (int i = 0; i < totalPotionsUsed.size(); i++) {
+                        totalPotionsUsed.set(i, totalPotionsUsed.get(i) + potionsUsed.get(rr).get(i));
+                    }
                 }
                 System.out.println("Deaths: " + totalDeathCount + "/" + totalNumOfGames + " (" + String.format("%.2f", 100 * totalDeathCount / (float) totalNumOfGames).trim() + "%)");
                 System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken) / totalNumOfGames));
                 System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath) / (totalNumOfGames - totalDeathCount)));
+                for (int j = 0; j < totalPotionsUsed.size(); j++) {
+                    System.out.println("    " + state.prop.potions.get(j) + " Used Percentage: " + ((double) totalPotionsUsed.get(j)) / (totalNumOfGames - totalDeathCount));
+                }
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);

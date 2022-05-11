@@ -1,9 +1,11 @@
 package com.alphaStS.enemy;
 
+import com.alphaStS.Card;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 public abstract class EnemyReadOnly {
@@ -23,6 +25,7 @@ public abstract class EnemyReadOnly {
     public int numOfMoves;
     public boolean isElite = false;
     public boolean canVulnerable = false;
+    public boolean canEntangle = false;
     public boolean canWeaken = false;
     public boolean canFrail = false;
     public boolean canSlime = false;
@@ -48,6 +51,7 @@ public abstract class EnemyReadOnly {
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
     public void gamePropertiesSetup(GameState state) {}
+    public List<Card> getPossibleGeneratedCards() { return List.of(); }
     public int getNNInputLen(GameProperties prop) { return 0; }
     public String getNNInputDesc(GameProperties prop) { return null; }
     public int writeNNInput(GameProperties prop, float[] input, int idx) { return 0; }

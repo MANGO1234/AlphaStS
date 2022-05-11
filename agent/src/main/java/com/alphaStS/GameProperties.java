@@ -13,6 +13,7 @@ public class GameProperties implements Cloneable {
     public boolean playerCanGetVuln;
     public boolean playerCanGetWeakened;
     public boolean playerCanGetFrailed;
+    public boolean playerCanGetEntangled;
     public boolean playerCanHeal;
     public boolean enemyCanGetVuln;
     public boolean enemyCanGetWeakened;

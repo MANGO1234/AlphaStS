@@ -119,6 +119,12 @@ public class InteractiveMode {
                             System.out.println("    - " + state.prop.counterNames[i] + "=" + state.getCounterForRead()[i]);
                         }
                     }
+                    if (state.getPlayeForRead().isEntangled()) {
+                        System.out.println("  - Entangled");
+                    }
+                    if (state.getPlayeForRead().cannotDrawCard()) {
+                        System.out.println("  - Cannot Draw Card");
+                    }
                 }
                 System.out.println();
                 if (state.getDrawOrderForRead().size() > 0) {
