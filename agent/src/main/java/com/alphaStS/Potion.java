@@ -188,14 +188,12 @@ public abstract class Potion {
                     }
                     var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                     curState.playCard(action, -1, false, false, false);
-                    while (curState.actionCtx != GameActionCtx.PLAY_CARD) {
-                        if (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                            int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                            if (curState.prop.makingRealMove) {
-                                curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
-                            }
-                            curState.playCard(action, enemyIdx, false, false, false);
+                    while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
+                        if (curState.prop.makingRealMove) {
+                            curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
                         }
+                        curState.playCard(action, enemyIdx, false, false, false);
                     }
                 });
             }

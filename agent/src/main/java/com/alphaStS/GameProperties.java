@@ -108,13 +108,20 @@ public class GameProperties implements Cloneable {
         void setCounterIdx(GameProperties gameProperties, int idx);
     }
 
-    interface NetworkInputHandler {
+    public interface NetworkInputHandler {
         int addToInput(GameState state, float[] input, int idx);
         int getInputLenDelta();
     }
 
     Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
     Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
+    Map<String, NetworkInputHandler> nnInputHandlerMap = new HashMap<>();
+    NetworkInputHandler[] nnInputHandlers;
+    String[] nnInputHandlersName;
+
+    public void addNNInputHandler(String name, NetworkInputHandler handler) {
+        nnInputHandlerMap.putIfAbsent(name, handler);
+    }
 
     public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
         var registrants = counterRegistrants.computeIfAbsent(name, k -> new ArrayList<>());
@@ -140,5 +147,12 @@ public class GameProperties implements Cloneable {
         }
         counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList()
                 .toArray(new NetworkInputHandler[0]);
+
+        nnInputHandlers = new NetworkInputHandler[nnInputHandlerMap.size()];
+        names = nnInputHandlerMap.keySet().stream().sorted().toList();
+        nnInputHandlersName = names.toArray(new String[] {});
+        for (int i = 0; i < nnInputHandlersName.length; i++) {
+            nnInputHandlers[i] = nnInputHandlerMap.get(nnInputHandlersName[i]);
+        }
     }
 }

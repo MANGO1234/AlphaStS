@@ -1254,6 +1254,10 @@ public abstract class Enemy extends EnemyReadOnly {
             usedEntangle = other.usedEntangle;
         }
 
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && usedEntangle == ((RedSlaver) o).usedEntangle;
+        }
+
         @Override public Enemy copy() {
             return new RedSlaver(this);
         }

@@ -27,6 +27,10 @@ public interface GameStateRandomization {
         return new GameStateRandomization.FixedRandomization(this, r);
     }
 
+    default GameStateRandomization followByIf(int r, GameStateRandomization b) {
+        return new GameStateRandomization.FollowByIf(this, r, b);
+    }
+
     default GameStateRandomization collapse(String desc) {
         return new GameStateRandomization.CollapsedRandomization(this, desc);
     }
@@ -102,6 +106,74 @@ public interface GameStateRandomization {
         @Override public void randomize(GameState state, int r) {
             a.randomize(state, r);
             b.randomize(state, r);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            return infoMap;
+        }
+    }
+
+    class FollowByIf implements GameStateRandomization {
+        private final GameStateRandomization a;
+        private final GameStateRandomization b;
+        int a_r;
+        private final Map<Integer, Info> infoMap;
+        private final Map<List<Integer>, Integer> abMap;
+        private final Map<Integer, List<Integer>> rMapToAB;
+
+        FollowByIf(GameStateRandomization a, int a_r, GameStateRandomization b) {
+            this.a = a;
+            this.b = b;
+            this.a_r = a_r;
+            Map<Integer, Info> aMap = a.listRandomizations();
+            Map<Integer, Info> bMap = b.listRandomizations();
+
+            infoMap = new HashMap<>();
+            abMap = new HashMap<>();
+            rMapToAB = new HashMap<>();
+            var aKeys = aMap.keySet().stream().sorted().toList();
+            int r = 0;
+            for (int i = 0; i < aKeys.size(); i++) {
+                if (aKeys.get(i) == a_r) {
+                    var bKeys = bMap.keySet().stream().sorted().toList();
+                    var aEntry = aMap.get(aKeys.get(i));
+                    for (int j = 0; j < bKeys.size(); j++) {
+                        var l = List.of(aKeys.get(i), bKeys.get(j));
+                        abMap.put(l, r);
+                        rMapToAB.put(r, l);
+                        var bEntry = bMap.get(bKeys.get(j));
+                        var chance = aEntry.chance() * bEntry.chance();
+                        var desc = aEntry.desc() + " + " + bEntry.desc();
+                        infoMap.put(r, new Info(chance, desc));
+                        r++;
+                    }
+                } else {
+                    var l = List.of(aKeys.get(i));
+                    abMap.put(l, r);
+                    rMapToAB.put(r, l);
+                    infoMap.put(r, aMap.get(aKeys.get(i)));
+                    r++;
+                }
+            }
+        }
+
+        @Override public int randomize(GameState state) {
+            var r = a.randomize(state);
+            if (r == a_r) {
+                return abMap.get(List.of(r, b.randomize(state)));
+            }
+            return abMap.get(List.of(r));
+        }
+
+
+        @Override public void randomize(GameState state, int r) {
+            var l = rMapToAB.get(r);
+            if (l.get(0) == a_r) {
+                a.randomize(state, l.get(0));
+                b.randomize(state, l.get(1));
+            } else {
+                a.randomize(state, l.get(0));
+            }
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

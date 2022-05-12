@@ -15,6 +15,7 @@ public class PlayerReadOnly {
     protected int artifact;
     protected boolean cannotDrawCard;
     protected int entangled;
+    protected boolean hexed;
     protected int loseStrengthEot;
     protected int loseDexterityEot;
 
@@ -37,6 +38,7 @@ public class PlayerReadOnly {
         artifact = other.artifact;
         cannotDrawCard = other.cannotDrawCard;
         entangled = other.entangled;
+        hexed = other.hexed;
         loseStrengthEot = other.loseStrengthEot;
         loseDexterityEot = other.loseDexterityEot;
     }
@@ -97,6 +99,10 @@ public class PlayerReadOnly {
         return entangled > 0;
     }
 
+    public boolean isHexed() {
+        return hexed;
+    }
+
     @Override public String toString() {
         String str = "Player{health=" + health;
         if (block > 0) {
@@ -126,6 +132,9 @@ public class PlayerReadOnly {
         if (isEntangled()) {
             str += ", entangled";
         }
+        if (hexed) {
+            str += ", hexed";
+        }
         if (loseStrengthEot > 0) {
             str += ", loseStrEot=" + loseStrengthEot;
         }
@@ -141,10 +150,10 @@ public class PlayerReadOnly {
         if (o == null || getClass() != o.getClass())
             return false;
         PlayerReadOnly that = (PlayerReadOnly) o;
-        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot;
+        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, cannotDrawCard, entangled, loseStrengthEot, loseDexterityEot);
+        return Objects.hash(origHealth, maxHealth, health, block, strength, dexterity, vulnerable, weak, frail, artifact, cannotDrawCard, entangled, hexed, loseStrengthEot, loseDexterityEot);
     }
 }

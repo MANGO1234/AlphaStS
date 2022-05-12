@@ -54,7 +54,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class AncientTeaSet extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.energy += 2;
+            state.addStartOfGameHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.energy += 2;
+                }
+            });
         }
     }
 
@@ -301,7 +305,28 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // Frozen Egg: No need to implement
 
     // todo: Gremlin Horn
-    // todo: Horn Cleat
+
+    public static class HornCleat extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.addNNInputHandler("HornCleat", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.turnNum <= 2 ? state.turnNum / 2.0f : -0.5f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("HornCleat", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    if (state.turnNum == 2) {
+                        state.getPlayerForWrite().gainBlock(14);
+                    }
+                }
+            });
+        }
+    }
+
 
     public static class InkBottle extends Relic {
         @Override public void startOfGameSetup(GameState state) {

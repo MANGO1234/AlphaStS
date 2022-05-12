@@ -237,6 +237,10 @@ public class EnemyCity {
             return new BookOfStabbing(this);
         }
 
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && stabCount == ((BookOfStabbing) o).stabCount;
+        }
+
         @Override public void doMove(GameState state) {
             if (move == MULTI_STAB) {
                 state.enemyDoDamageToPlayer(this, 7, stabCount);
@@ -567,8 +571,6 @@ public class EnemyCity {
             setSharedFields(other);
         }
 
-        @Override public void startTurn() {}
-
         @Override public Enemy copy() {
             return new SphericGuardian(this);
         }
@@ -634,8 +636,6 @@ public class EnemyCity {
             setSharedFields(other);
         }
 
-        @Override public void startTurn() {}
-
         @Override public Enemy copy() {
             return new Pointy(this);
         }
@@ -688,8 +688,6 @@ public class EnemyCity {
             setSharedFields(other);
         }
 
-        @Override public void startTurn() {}
-
         @Override public Enemy copy() {
             return new Romeo(this);
         }
@@ -722,8 +720,8 @@ public class EnemyCity {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(5, RandomGenCtx.Other, null) + 1;
-            if (training && b < 5) {
+            int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
+            if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
             } else {
                 health = 37 + random.nextInt(5, RandomGenCtx.Other, null);
@@ -754,8 +752,6 @@ public class EnemyCity {
             this(other.health);
             setSharedFields(other);
         }
-
-        @Override public void startTurn() {}
 
         @Override public Enemy copy() {
             return new Bear(this);
@@ -791,8 +787,8 @@ public class EnemyCity {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(5, RandomGenCtx.Other, null) + 1;
-            if (training && b < 5) {
+            int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
+            if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
             } else {
                 health = 40 + random.nextInt(5, RandomGenCtx.Other, null);
@@ -801,6 +797,118 @@ public class EnemyCity {
 
         public String getName() {
             return "Bear";
+        }
+    }
+
+    public static class Chosen extends Enemy {
+        static int HEX = 0;
+        static int POKE = 1;
+        static int ZAP = 2;
+        static int DEBILITATE = 3;
+        static int DRAIN = 4;
+
+        public Chosen() {
+            this(103);
+        }
+
+        public Chosen(int health) {
+            super(health, 5);
+            canGainStrength = true;
+            canWeaken = true;
+            canVulnerable = true;
+            canDaze = true;
+        }
+
+        public Chosen(Chosen other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new Chosen(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == HEX) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.HEX, 1);
+            } else if (move == POKE) {
+                state.enemyDoDamageToPlayer(this, 6, 2);
+            } else if (move == ZAP) {
+                state.enemyDoDamageToPlayer(this, 21, 1);
+            } else if (move == DEBILITATE) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+            } else if (move == DRAIN) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3 + 1);
+                gainStrength(3);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            if (move == -1) {
+                move = HEX;
+            } else if (move == HEX || move == POKE || move == ZAP) {
+                int r = random.nextInt(2, RandomGenCtx.EnemyChooseMove);
+                if (r == 0) {
+                    move = DRAIN;
+                } else {
+                    move = DEBILITATE;
+                }
+            } else if (move == DEBILITATE || move == DRAIN) {
+                int r = random.nextInt(10, RandomGenCtx.EnemyChooseMove);
+                if (r < 4) {
+                    move = ZAP;
+                } else {
+                    move = POKE;
+                }
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == HEX) {
+                return "Hex";
+            } else if (move == POKE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6) + "x2";
+            } else if (move == ZAP) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 21);
+            } else if (move == DEBILITATE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12) + "+Vulnerable 2";
+            } else if (move == DRAIN) {
+                return "Weak 3+Gain 3 Strength";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(6, RandomGenCtx.Other, null) + 1;
+            if (training && b < 6) {
+                health = (int) Math.round(((double) (health * b)) / 6);
+            } else {
+                health = 98 + random.nextInt(6, RandomGenCtx.Other, null);
+            }
+        }
+
+        public String getName() {
+            return "Chosen";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card) {
+                    if (card.cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
+                        state.addCardToDiscard(state.prop.dazedCardIdx);
+                    }
+                }
+            });
+            state.prop.addNNInputHandler("Hex", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getPlayeForRead().isHexed() ? 0.5f : -0.5f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
         }
     }
 }

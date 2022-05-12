@@ -461,15 +461,6 @@ public class Main {
                 List.of(new CardCount(new Card.PommelStrike(), 1),
                         new CardCount(new Card.BattleTrance(), 1),
                         new CardCount(new Card.CombustP(), 1))
-//                List.of(new CardCount(new Card.HavocP(), 1),
-//                        new CardCount(new Card.Corruption(), 1),
-//                        new CardCount(new Card.SpotWeakness(), 1)),
-//                List.of(new CardCount(new Card.Havoc(), 1),
-//                        new CardCount(new Card.CorruptionP(), 1),
-//                        new CardCount(new Card.SpotWeakness(), 1)),
-//                List.of(new CardCount(new Card.Havoc(), 1),
-//                        new CardCount(new Card.Corruption(), 1),
-//                        new CardCount(new Card.SpotWeaknessP(), 1))
         ));
         randomization = randomization.doAfter(randomization2);
         builder.setRandomization(randomization);
@@ -490,8 +481,55 @@ public class Main {
         return new GameState(builder);
     }
 
+    public static GameState TestState7() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardColorless.Bite(), 5);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.InflameP(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.PommelStrikeP(), 1);
+        builder.addCard(new Card.Corruption(), 1);
+        builder.addCard(new Card.Havoc(), 1);
+        builder.addCard(new Card.FlameBarrier(), 1);
+        builder.addCard(new Card.SeeingRedP(), 1);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.TwinStrikeP(), 1);
+        builder.addCard(new Card.Headbutt(), 1);
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.PhilosophersStone());
+        builder.addRelic(new Relic.RedMask());
+        builder.addRelic(new Relic.AncientTeaSet());
+        builder.addRelic(new Relic.HornCleat());
+        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        EnemyEncounter.addGremlinLeaderFight(builder);
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3,4,5,6,7,8,9,10,11,12,13,14,15,16}).setDescriptions("Book of Stabbing", "Gremlin Leader");
+        randomization = randomization.followByIf(1, builder.getRandomization().collapse("Randomize Gremlin Leader"));
+        var randomization2 = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(),
+                List.of(new CardCount(new Card.SpotWeakness(), 2)),
+                List.of(new CardCount(new Card.SpotWeakness(), 1),
+                        new CardCount(new Card.Headbutt(), 1)),
+                List.of(new CardCount(new Card.SpotWeakness(), 1),
+                        new CardCount(new Card.TwinStrikeP(), 1))
+        ));
+        randomization = randomization.doAfter(randomization2);
+        builder.setRandomization(randomization);
+        builder.addPotion(new Potion.DistilledChaos());
+        builder.setPlayer(new Player(39, 60));
+        return new GameState(builder);
+    }
+
     public static void main(String[] args) throws IOException {
-        var state = TestState6();
+        var state = TestState7();
 //        System.out.println(state.prop.randomization.listRandomizations());
 //                state.prop.randomization = state.prop.randomization.collapse("Randomize Gremlin Leader Fight");
 //        state.prop.randomization = state.prop.randomization.fixR(6);
@@ -589,14 +627,14 @@ public class Main {
         if (SAVES_DIR.startsWith("../")) {
 //            SAVES_DIR = "../tmp/saves_guard";
 //            SAVES_DIR = "../tmp/saves_gremlin";
-            SAVES_DIR = "../saves2";
-            NUMBER_OF_GAMES_TO_PLAY = 5000;
+//            SAVES_DIR = "../saves2";
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 1000;
-            iteration = 51;
-//            COMPARE_DIR = "../saves/iteration50";
+            NUMBER_OF_NODES_PER_TURN = 100;
+            iteration = 61;
+            COMPARE_DIR = "../saves/iteration60";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
 //            RANDOMIZATION_SCENARIO = 0;
@@ -681,7 +719,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            var games = session.playTrainingGames(state, 300, 100);
+            var games = session.playTrainingGames(state, 400, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

@@ -10,4 +10,5 @@ public enum DebuffType {
     LOSE_STRENGTH_EOT,
     LOSE_DEXTERITY_EOT,
     ENTANGLED,
+    HEX,
 }

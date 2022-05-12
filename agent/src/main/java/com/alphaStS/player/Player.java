@@ -87,6 +87,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         case ENTANGLED -> this.entangled = n;
+        case HEX -> this.hexed = true;
         }
     }
 

@@ -117,6 +117,7 @@ public class EnemyEncounter {
         Map<Integer, Integer> rMap = new HashMap<>();
         Map<Integer, List<Integer>> enemiesMap = new HashMap<>();
         Map<Integer, Info> infoMap = new HashMap<>();
+        int gremlinLeaderIndex;
 
         public GremlinLeaderRandomization(List<Enemy> enemies, int startIdx) {
             var map = new HashMap<List<Integer>, Integer>();
@@ -172,6 +173,7 @@ public class EnemyEncounter {
             for (var entry : iMap.entrySet()) {
                 rMap.put(entry.getKey(), map.get(entry.getValue()));
             }
+            gremlinLeaderIndex = startIdx + 15;
         }
 
         @Override public int randomize(GameState state) {

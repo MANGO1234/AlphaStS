@@ -1301,6 +1301,9 @@ public class GameState implements State {
         for (var handler : prop.counterHandlersNonNull) {
             inputLen += handler.getInputLenDelta();
         }
+        for (var handler : prop.nnInputHandlers) {
+            inputLen += handler.getInputLenDelta();
+        }
         inputLen += prop.potions.size() * 3;
         // cards currently selecting enemies
         if (prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
@@ -1443,6 +1446,9 @@ public class GameState implements State {
             if (prop.counterHandlers[i] != null) {
                 str += "    " + prop.counterHandlers[i].getInputLenDelta() + " input to keep track of counter for " + prop.counterNames[i] + "\n";
             }
+        }
+        for (int i = 0; i < prop.nnInputHandlersName.length; i++) {
+            str += "    " + prop.nnInputHandlers[i].getInputLenDelta() + " input to keep track of " + prop.nnInputHandlersName[i] + "\n";
         }
         for (int i = 0; i < prop.potions.size(); i++) {
             str += "    3 inputs to keep track of " + prop.potions.get(i) + " usage\n";
@@ -1606,6 +1612,9 @@ public class GameState implements State {
             }
         }
         for (var handler : prop.counterHandlersNonNull) {
+            idx = handler.addToInput(this, x, idx);
+        }
+        for (var handler : prop.nnInputHandlers) {
             idx = handler.addToInput(this, x, idx);
         }
         for (int i = 0; i < prop.potions.size(); i++) {
@@ -2179,7 +2188,7 @@ public class GameState implements State {
     }
 
     public RandomGen getSearchRandomGen() {
-        if (prop.makingRealMove) {
+        if (prop.makingRealMove || searchRandomGen == null) {
             return prop.realMoveRandomGen != null ? prop.realMoveRandomGen : prop.random;
         }
         if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {

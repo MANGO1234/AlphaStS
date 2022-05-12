@@ -229,8 +229,8 @@ public class InteractiveMode {
                 }
             } else if (line.equals("i")) {
                 printState = true;
-//            } else if (line.equals("i")) {
-//                System.out.println(Arrays.toString(state.getNNInput()));
+            } else if (line.equals("input")) {
+                System.out.println(Arrays.toString(state.getNNInput()));
             } else if (line.equals("eh")) {
                 setEnemyHealth(reader, state, history);
                 printState = true;
