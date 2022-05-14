@@ -296,9 +296,39 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         }
     }
 
-    // todo: Bottled Flame
-    // todo: Bottled Lightning
-    // todo: Bottled Storm
+    private static class _BottledRelic extends Relic {
+        private final Card card;
+
+        public _BottledRelic(Card card) {
+            this.card = card;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfGameHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(card));
+                }
+            });
+        }
+    }
+
+    public static class BottledFlame extends _BottledRelic {
+        public BottledFlame(Card card) {
+            super(card);
+        }
+    }
+
+    public static class BottledLightning extends _BottledRelic {
+        public BottledLightning(Card card) {
+            super(card);
+        }
+    }
+
+    public static class BottledStorm extends _BottledRelic {
+        public BottledStorm(Card card) {
+            super(card);
+        }
+    }
 
     // Darkstone Periapt: No need to implement
     // Eternal Feather: No need to implement

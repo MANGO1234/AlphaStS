@@ -5,6 +5,7 @@ import com.alphaStS.enemy.EnemyList;
 import java.util.*;
 
 public class GameProperties implements Cloneable {
+    public boolean tmp;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
@@ -47,6 +48,7 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodPIndexes;
     public int[] infernalBladeIndexes;
+    public int ritualDaggerCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;

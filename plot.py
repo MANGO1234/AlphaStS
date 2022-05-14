@@ -19,11 +19,11 @@ if len(sys.argv) > 1:
     for i in range(1, cur_iteration):
         info.append(training_info['iteration_info'][str(i)])
     print(f'x0 = np.linspace(0, {cur_iteration - 1}, {cur_iteration - 1})')
-    print(f'y0 = [{", ".join([str(x["death_rate"]) for x in info])}]')
+    print(f'y0 = [{", ".join([str(x["death_rate"]) for x in info if "death_rate" in x])}]')
     print(f'ax[0].plot(x0, y0, label=\'???\')')
-    print(f'y1 = [{", ".join([str(x["avg_dmg_no_death"]) for x in info])}]')
+    print(f'y1 = [{", ".join([str(x["avg_dmg_no_death"]) for x in info if "avg_dmg_no_death" in x])}]')
     print(f'ax[1].plot(x0, y1, label=\'???\')')
-    print(f'x1 = [{", ".join([str(x["accumulated_time"]) for x in info])}]')
+    print(f'x1 = [{", ".join([str(x["accumulated_time"]) for x in info if "accumulated_time" in x])}]')
     print(f'ax[2].plot(x1, y0, label=\'???\')')
     exit(0)
 

@@ -777,7 +777,7 @@ public class InteractiveMode {
             } else {
                 return -1;
             }
-        }).map((x) -> {
+        }).limit(10).map((x) -> {
             var tmpS = state.clone(false);
             var actions = x.getActions(tmpS);
             var strings = new ArrayList<String>();

@@ -138,6 +138,25 @@ public abstract class Potion {
         }
     }
 
+    public static class EnergyPotion extends Potion {
+        public EnergyPotion() {
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.gainEnergy(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            state.gainEnergy(4);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Energy Potion";
+        }
+    }
+
     public static class LiquidMemory extends Potion {
         public LiquidMemory() {
             selectFromDiscard = true;

@@ -100,6 +100,7 @@ public class MatchSession {
             state.doAction(startingAction);
             state.prop.makingRealMove = false;
         }
+        state.prop.tmp = USE_NEW_SEARCH2;
 
         if (USE_NEW_SEARCH) {
             while (state.isTerminal() == 0) {
@@ -219,6 +220,12 @@ public class MatchSession {
         var dmgDiff = new AtomicLong(0);
         var dmgDiff1 = new AtomicLong(0);
         var dmgDiff2 = new AtomicLong(0);
+        var win3 = new AtomicLong(0);
+        var loss3 = new AtomicLong(0);
+        var calls = new AtomicLong(0);
+        var turns = new AtomicLong(0);
+        var calls2 = new AtomicLong(0);
+        var turns2 = new AtomicLong(0);
         for (int i = 0; i < mcts.size(); i++) {
             int ii = i;
             new Thread(() -> {
@@ -227,7 +234,10 @@ public class MatchSession {
                     var state = origState.clone(false);
                     state.prop = state.prop.clone();
                     state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
-                    var game1 = session.playGame(state, mcts.get(ii), nodeCount, false);
+                    var prev = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits;
+                    var game1 = session.playGame(state, mcts.get(ii), nodeCount, true);
+                    calls.addAndGet(mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits - prev);
+                    turns.addAndGet(game1.steps.get(game1.steps.size() - 1).state().turnNum);
                     if (mcts2.size() > 0) {
                         var randomGen= state.prop.realMoveRandomGen;
                         state = origState.clone(false);
@@ -235,16 +245,32 @@ public class MatchSession {
                         randomGen.timeTravelToBeginning();
                         state.prop.realMoveRandomGen = randomGen;
 //                        state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                        prev = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits;
                         var game2 = session.playGame(state, mcts2.get(ii), nodeCount, false);
+                        calls2.addAndGet(mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev);
+                        turns2.addAndGet(game2.steps.get(game2.steps.size() - 1).state().turnNum);
                         var termState1 = game1.steps().get(game1.steps().size() - 1).state();
                         var termState2 = game2.steps().get(game2.steps().size() - 1).state();
+                        var potionsRem1 = 0;
+                        for (int j = 0; j < termState1.prop.potions.size(); j++) {
+                            if (termState1.potionsState[j * 3] == 1) {
+                                potionsRem1++;
+                            }
+                        }
+                        var potionsRem2 = 0;
+                        for (int j = 0; j < termState1.prop.potions.size(); j++) {
+                            if (termState2.potionsState[j * 3] == 1) {
+                                potionsRem2++;
+                            }
+                        }
                         if (termState1.isTerminal() != termState2.isTerminal()) {
                             if (termState1.isTerminal() == 1) {
                                 win1.incrementAndGet();
                             } else {
                                 loss1.incrementAndGet();
                             }
-                        } else if (termState1.isTerminal() == 1 && termState1.getPlayeForRead().getHealth() != termState2.getPlayeForRead().getHealth()) {
+                        }
+                        if (termState1.isTerminal() == 1 && termState1.getPlayeForRead().getHealth() != termState2.getPlayeForRead().getHealth()) {
                             if (termState1.getPlayeForRead().getHealth() > termState2.getPlayeForRead().getHealth()) {
                                 win2.incrementAndGet();
                                 dmgDiff1.addAndGet(termState1.getPlayeForRead().getHealth() - termState2.getPlayeForRead().getHealth());
@@ -253,6 +279,13 @@ public class MatchSession {
                                 dmgDiff2.addAndGet(termState2.getPlayeForRead().getHealth() - termState1.getPlayeForRead().getHealth());
                             }
                             dmgDiff.addAndGet(termState1.getPlayeForRead().getHealth() - termState2.getPlayeForRead().getHealth());
+                        }
+                        if (termState1.isTerminal() == 1 && potionsRem1 != potionsRem2) {
+                            if (potionsRem1 > potionsRem2) {
+                                win3.incrementAndGet();
+                            } else {
+                                loss3.incrementAndGet();
+                            }
                         }
                     }
                     try {
@@ -340,7 +373,7 @@ public class MatchSession {
             potionsUsed.computeIfAbsent(r, (x) -> {
                 var l = new ArrayList<Integer>();
                 for (int i = 0; i < state.prop.potions.size(); i++) {
-                    l.add(i);
+                    l.add(0);
                 }
                 return l;
             });
@@ -388,12 +421,14 @@ public class MatchSession {
                 if (!training && solver != null) {
                     System.out.println("Error Count: " + solverErrorCount);
                 }
+                System.out.println(calls.get() + "/" + turns.get() + "/" + (((double) calls.get()) / turns.get()));
                 if (mcts2.size() > 0) {
                     System.out.println("Win/Loss: " + win1.get() + "/" + loss1.get());
                     System.out.println("Win/Loss Dmg: " + win2.get() + "/" + loss2.get());
-                    System.out.println("Win/Loss Total: " + (win1.get() + win2.get()) + "/" + (loss1.get() + loss2.get()));
+                    System.out.println("Win/Loss Potion: " + win3.get() + "/" + loss3.get());
                     System.out.println("Dmg Diff: " + ((double) dmgDiff.get()) / (win2.get() + loss2.get()));
                     System.out.println("Dmg Diff By Win/Loss: " + ((double) dmgDiff1.get()) / win2.get() + "/" + ((double) dmgDiff2.get()) / loss2.get());
+                    System.out.println(calls2.get() + "/" + turns2.get() + "/" + (((double) calls2.get()) / turns2.get()));
                 }
                 if (deathCount.size() > 1) {
                     for (var info : combinedInfoMap.entrySet()) {
@@ -432,7 +467,7 @@ public class MatchSession {
                 System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken) / totalNumOfGames));
                 System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath) / (totalNumOfGames - totalDeathCount)));
                 for (int j = 0; j < totalPotionsUsed.size(); j++) {
-                    System.out.println("    " + state.prop.potions.get(j) + " Used Percentage: " + ((double) totalPotionsUsed.get(j)) / (totalNumOfGames - totalDeathCount));
+                    System.out.println(state.prop.potions.get(j) + " Used Percentage: " + ((double) totalPotionsUsed.get(j)) / (totalNumOfGames - totalDeathCount));
                 }
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
@@ -770,7 +805,7 @@ public class MatchSession {
             result.add(steps);
             var state = steps.get(steps.size() - 1).state();
             trainingGame_i += 1;
-            if (trainingDataWriter != null && trainingGame_i <= 200) {
+            if (trainingDataWriter != null && trainingGame_i <= 100) {
                 try {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     if (origState.prop.preBattleRandomization != null) {

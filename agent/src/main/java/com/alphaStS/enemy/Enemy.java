@@ -62,6 +62,19 @@ public abstract class Enemy extends EnemyReadOnly {
         hasBurningHealthBuff = b;
     }
 
+    public void gainMetallicize(int n) {
+        metallicize += n;
+    }
+
+    public void removeAllDebuffs() {
+        vulnerable = 0;
+        weak = 0;
+        loseStrengthEot = 0;
+        if (strength < 0) {
+            strength = 0;
+        }
+    }
+
     public void setMove(int move) {
         this.move = move;
     }

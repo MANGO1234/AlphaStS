@@ -493,8 +493,8 @@ public class Main {
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addCard(new Card.Combust(), 1);
         builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.SpotWeakness(), 2);
+        builder.addCard(new Card.BattleTranceP(), 1);
         builder.addCard(new Card.PowerThrough(), 1);
         builder.addCard(new Card.PommelStrikeP(), 1);
         builder.addCard(new Card.Corruption(), 1);
@@ -502,29 +502,19 @@ public class Main {
         builder.addCard(new Card.FlameBarrier(), 1);
         builder.addCard(new Card.SeeingRedP(), 1);
         builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.TwinStrikeP(), 1);
-        builder.addCard(new Card.Headbutt(), 1);
+        builder.addCard(new Card.Impervious(), 1);
+        builder.addCard(new Card.Shockwave(), 1);
+        builder.addCard(new CardColorless.RitualDaggerP(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.HornCleat());
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
-        EnemyEncounter.addGremlinLeaderFight(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3,4,5,6,7,8,9,10,11,12,13,14,15,16}).setDescriptions("Book of Stabbing", "Gremlin Leader");
-        randomization = randomization.followByIf(1, builder.getRandomization().collapse("Randomize Gremlin Leader"));
-        var randomization2 = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(),
-                List.of(new CardCount(new Card.SpotWeakness(), 2)),
-                List.of(new CardCount(new Card.SpotWeakness(), 1),
-                        new CardCount(new Card.Headbutt(), 1)),
-                List.of(new CardCount(new Card.SpotWeakness(), 1),
-                        new CardCount(new Card.TwinStrikeP(), 1))
-        ));
-        randomization = randomization.doAfter(randomization2);
-        builder.setRandomization(randomization);
+        builder.addRelic(new Relic.BottledLightning(new Card.BattleTranceP()));
+        builder.addEnemy(new EnemyCity.TheChamp());
         builder.addPotion(new Potion.DistilledChaos());
-        builder.setPlayer(new Player(39, 60));
+        builder.addPotion(new Potion.EnergyPotion());
+        builder.setPlayer(new Player(54, 60));
         return new GameState(builder);
     }
 
@@ -633,8 +623,8 @@ public class Main {
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;
-            iteration = 61;
-            COMPARE_DIR = "../saves/iteration60";
+//            iteration = 111;
+//            COMPARE_DIR = "../saves/iteration130";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
 //            RANDOMIZATION_SCENARIO = 0;
@@ -644,9 +634,9 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 90).fixR(1).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 80).doAfter(state.prop.randomization);
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
-            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 90).doAfter(state.prop.preBattleRandomization);
+            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 80).doAfter(state.prop.preBattleRandomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
@@ -719,7 +709,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            var games = session.playTrainingGames(state, 400, 100);
+            var games = session.playTrainingGames(state, 200, 100);
             writeTrainingData(games, curIterationDir + "/training_data.bin");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));

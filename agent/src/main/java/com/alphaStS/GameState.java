@@ -1084,6 +1084,11 @@ public class GameState implements State {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
+        // todo: how do we want to do bonus for potions ritual dagger etc.??
+        if (prop.ritualDaggerCounterIdx >= 0) {
+            int daggerState = getCounterForRead()[prop.ritualDaggerCounterIdx] + 1;
+            base *= 1 - (2 - daggerState) / 2.0 * Configuration.UTIL_FOR_RITUAL_DAGGER;
+        }
         return base;
     }
 
@@ -1182,7 +1187,12 @@ public class GameState implements State {
                 str.append(", other=[").append(tmp).append("]");
             }
         }
-        str.append(", v=(").append(formatFloat(v_win)).append(", ").append(formatFloat(v_health)).append("/").append(formatFloat(v_health * getPlayeForRead().getMaxHealth())).append(")");
+        boolean showQComb = prop.potions.size() > 0 || (prop.ritualDaggerCounterIdx >= 0 && isTerminal() > 0);
+        str.append(", v=(");
+        if (showQComb) {
+            str.append(formatFloat(calc_q(v_win, v_health))).append("/");
+        }
+        str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth())).append(")");
         if (policy != null) {
             str.append(", q/p/n=[");
             first = true;
@@ -2042,7 +2052,7 @@ public class GameState implements State {
         getDrawOrderForWrite().pushOnTop(idx);
     }
 
-    public void playerDoDamageToEnemy(Enemy enemy, int dmg) {
+    public boolean playerDoDamageToEnemy(Enemy enemy, int dmg) {
         var player = getPlayeForRead();
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
@@ -2064,8 +2074,10 @@ public class GameState implements State {
             enemy.damage(dmg, this);
             if (enemy.getHealth() <= 0) {
                 enemiesAlive -= 1;
+                return true;
             }
         }
+        return false;
     }
 
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {

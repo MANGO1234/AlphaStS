@@ -99,4 +99,43 @@ public class CardColorless {
             super("Bite+", Card.ATTACK, 1, 8, 3);
         }
     }
+
+    private static abstract class _RitualDaggerT extends Card {
+        private final int n;
+        private final int dmgInc;
+
+        public _RitualDaggerT(String cardName, int cardType, int energyCost, int n, int dmgInc) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            this.dmgInc = dmgInc;
+            this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] = state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n) ? -1 : 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter(cardName, this, null);
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+            gameProperties.ritualDaggerCounterIdx = counterIdx;
+        }
+    }
+
+    public static class RitualDagger extends _RitualDaggerT {
+        public RitualDagger() {
+            super("Ritual Dagger", Card.ATTACK, 1, 15, 3);
+        }
+    }
+
+    public static class RitualDaggerP extends _RitualDaggerT {
+        public RitualDaggerP() {
+            super("Ritual Dagger+", Card.ATTACK, 1, 15, 5);
+        }
+    }
 }

@@ -5,6 +5,168 @@ import com.alphaStS.*;
 import java.util.List;
 
 public class EnemyCity {
+    public static class TheChamp extends Enemy {
+        private static final int DEFENSIVE_STANCE = 0;
+        private static final int FACE_SLAP = 1;
+        private static final int TAUNT = 2;
+        private static final int HEAVY_SLASH = 3;
+        private static final int GLOAT = 4;
+        private static final int EXECUTE = 5;
+        private static final int ANGER = 6;
+
+        private int numOfDefensiveStance;
+        private int numTurns;
+        private boolean angered;
+
+        public TheChamp() {
+            this(440);
+        }
+
+        public TheChamp(int health) {
+            super(health, 7);
+            canGainStrength = true;
+            canGainMetallicize = true;
+            canWeaken = true;
+            canVulnerable = true;
+            canFrail = true;
+            canGainBlock = true;
+            moveHistory = new int[1];
+        }
+
+        public TheChamp(TheChamp other) {
+            this(other.health);
+            setSharedFields(other);
+            numOfDefensiveStance = other.numOfDefensiveStance;
+            numTurns = other.numTurns;
+            angered = other.angered;
+        }
+
+        @Override public Enemy copy() {
+            return new TheChamp(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == DEFENSIVE_STANCE) {
+                gainBlock(20);
+                gainMetallicize(7);
+            } else if (move == FACE_SLAP) {
+                state.enemyDoDamageToPlayer(this, 14, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+            } else if (move == TAUNT) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+            } else if (move == HEAVY_SLASH) {
+                state.enemyDoDamageToPlayer(this, 18, 1);
+            } else if (move == GLOAT) {
+                gainStrength(4);
+            } else if (move == EXECUTE) {
+                state.enemyDoDamageToPlayer(this, 10, 2);
+            } else if (move == ANGER) {
+                removeAllDebuffs();
+                gainStrength(12);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            numTurns++;
+            if (health < maxHealth / 2 && !angered) {
+                angered = true;
+                newMove = ANGER;
+            } else if (angered && move != EXECUTE && moveHistory[0] != EXECUTE) {
+                newMove = EXECUTE;
+            } else if (numTurns == 4 && !angered) {
+                numTurns = 0;
+                newMove = TAUNT;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                if (move != DEFENSIVE_STANCE && numOfDefensiveStance < 2 && r < 30) {
+                    numOfDefensiveStance++;
+                    newMove = DEFENSIVE_STANCE;
+                } else if ((move != GLOAT && move != DEFENSIVE_STANCE) && r < 30) {
+                    newMove = GLOAT;
+                } else if (move != FACE_SLAP && r < 55) {
+                    newMove = FACE_SLAP;
+                } else if (move != HEAVY_SLASH) {
+                    newMove = HEAVY_SLASH;
+                } else {
+                    newMove = FACE_SLAP;
+                }
+            }
+            moveHistory[0] = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == DEFENSIVE_STANCE) {
+                return "Block 20+Metallicize 7";
+            } else if (move == FACE_SLAP) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 14) + "+Frail 2+Vulnerable 2";
+            } else if (move == TAUNT) {
+                return "Weak 2+Vulnerable 2";
+            } else if (move == HEAVY_SLASH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 18);
+            } else if (move == GLOAT) {
+                return "Strength 4";
+            } else if (move == EXECUTE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10) + "x2";
+            } else if (move == ANGER) {
+                return "Remove All Debuffs+Strength 12";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
+            if (training && b < 10) {
+                health = (int) Math.round(((double) (health * b)) / 10);
+            } else {
+                health = 440;
+            }
+        }
+
+        @Override public String getName() {
+            return "The Champ";
+        }
+
+        @Override public String toString(GameState state) { // can skip numOfDefensiveStance because of metallicize
+            String s = super.toString(state);
+            if (angered) {
+                return s.subSequence(0, s.length() - 1) + ", angered}";
+            } else {
+                return s.subSequence(0, s.length() - 1) + ", untilTaunt=" + (4 - numTurns) + "}";
+            }
+        }
+
+        @Override public boolean equals(Object o) { // can skip numOfDefensiveStance because of metallicize
+            return super.equals(o) && angered == ((TheChamp) o).angered && numTurns == ((TheChamp) o).numTurns;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 5;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "5 input to keep track of whether The Champ has been angered and whether it's close to taunting";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = angered ? 0.5f : -0.5f;
+            for (int i = 0; i < 4; i++) {
+                input[idx + 1 + i] = 0f;
+            }
+            if (!angered) {
+                input[idx + 1 + numTurns] = 0.5f;
+            }
+            return 5;
+        }
+    }
+
+    // ******************************************************************************************
+    // ******************************************************************************************
+    // ******************************************************************************************
+
     public static class GremlinLeader extends Enemy {
         static final int ENCOURAGE = 0;
         static final int RALLY = 1;
