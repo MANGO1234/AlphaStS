@@ -113,7 +113,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] = state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n) ? -1 : 1;
+            state.getCounterForWrite()[counterIdx] = state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n) ? 1 : -1;
             return GameActionCtx.PLAY_CARD;
         }
 

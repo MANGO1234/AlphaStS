@@ -1092,6 +1092,12 @@ public class GameState implements State {
         return base;
     }
 
+    public double get_q() {
+        var out = new double[3] ;
+        get_v(out);
+        return calc_q(out[0], out[1]);
+    }
+
     public String toStringReadable() {
         boolean first;
         StringBuilder str = new StringBuilder("{");

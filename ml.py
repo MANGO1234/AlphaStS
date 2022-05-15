@@ -10,6 +10,7 @@ import subprocess
 import struct
 import tensorflow as tf
 import numpy as np
+import lz4.frame
 from tensorflow import keras
 from tensorflow.keras import layers
 import tf2onnx
@@ -34,9 +35,10 @@ def convertToOnnx(model, input_len, output_dir):
     output_path = output_dir + "/model.onnx"
     model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=12, output_path=output_path)
 
-
-lens_str = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar',
-                           'com.alphaStS.Main', '--get-lengths'], capture_output=True).stdout.decode('ascii').split(',')
+#
+p = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar',
+                    'com.alphaStS.Main', '--get-lengths'], capture_output=True)
+lens_str = p.stdout.decode('ascii').split(',')
 input_len = int(lens_str[0])
 num_of_actions = int(lens_str[1])
 print(f'input_len={input_len}, policy_len={num_of_actions}')
@@ -107,26 +109,30 @@ else:
 start = time.time()
 # np.set_printoptions(threshold=np.inf)
 
-CLASS_PATH = f'./agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar'
+CLASS_PATH = f'./agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar'
 
 
 def get_training_samples(training_pool, iteration, file_path):
-    if not os.path.exists(file_path):
+    if not os.path.exists(file_path) and not os.path.exists(file_path + '.lz4'):
         return
-    with open(file_path, 'rb') as f:
-        content = f.read()
-        offset = 0
-        while offset != len(content):
-            x_fmt = '>' + ('f' * input_len)
-            x = struct.unpack(x_fmt, content[offset: offset + 4 * input_len])
-            [v_health, v_win] = struct.unpack('>ff', content[offset + 4 * input_len: offset + 4 * (input_len + 2)])
-            p_fmt = '>' + ('f' * num_of_actions)
-            p = struct.unpack(p_fmt, content[offset + 4 * (input_len + 2): offset + 4 * (input_len + 2 + num_of_actions)])
-            offset += 4 * (input_len + 2 + num_of_actions)
-            training_pool.append((iteration, [list(x), [v_health], [v_win], list(p)]))
-        if len(content) != offset:
-            print(f'{len(content) - offset} bytes remaining for decoding')
-            raise "agent error"
+    if os.path.exists(file_path):
+        with open(file_path, 'rb') as f:
+            content = f.read()
+    else:
+        with lz4.frame.open(file_path + '.lz4', mode='r') as f:
+            content = f.read()
+    offset = 0
+    while offset != len(content):
+        x_fmt = '>' + ('f' * input_len)
+        x = struct.unpack(x_fmt, content[offset: offset + 4 * input_len])
+        [v_health, v_win] = struct.unpack('>ff', content[offset + 4 * input_len: offset + 4 * (input_len + 2)])
+        p_fmt = '>' + ('f' * num_of_actions)
+        p = struct.unpack(p_fmt, content[offset + 4 * (input_len + 2): offset + 4 * (input_len + 2 + num_of_actions)])
+        offset += 4 * (input_len + 2 + num_of_actions)
+        training_pool.append((iteration, [list(x), [v_health], [v_win], list(p)]))
+    if len(content) != offset:
+        print(f'{len(content) - offset} bytes remaining for decoding')
+        raise "agent error"
 
 
 SLOW_WINDOW_END = 3

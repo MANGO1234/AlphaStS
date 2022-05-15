@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -222,6 +224,10 @@ public class MatchSession {
         var dmgDiff2 = new AtomicLong(0);
         var win3 = new AtomicLong(0);
         var loss3 = new AtomicLong(0);
+        var win4 = new AtomicLong(0);
+        var loss4 = new AtomicLong(0);
+        var winQ = new AtomicLong(0);
+        var lossQ = new AtomicLong(0);
         var calls = new AtomicLong(0);
         var turns = new AtomicLong(0);
         var calls2 = new AtomicLong(0);
@@ -251,6 +257,8 @@ public class MatchSession {
                         turns2.addAndGet(game2.steps.get(game2.steps.size() - 1).state().turnNum);
                         var termState1 = game1.steps().get(game1.steps().size() - 1).state();
                         var termState2 = game2.steps().get(game2.steps().size() - 1).state();
+                        var q1 = termState1.get_q();
+                        var q2 = termState2.get_q();
                         var potionsRem1 = 0;
                         for (int j = 0; j < termState1.prop.potions.size(); j++) {
                             if (termState1.potionsState[j * 3] == 1) {
@@ -270,6 +278,13 @@ public class MatchSession {
                                 loss1.incrementAndGet();
                             }
                         }
+                        if (termState1.isTerminal() == 1 && q1 != q2) {
+                            if (q1 > q2) {
+                                winQ.incrementAndGet();
+                            } else {
+                                lossQ.incrementAndGet();
+                            }
+                        }
                         if (termState1.isTerminal() == 1 && termState1.getPlayeForRead().getHealth() != termState2.getPlayeForRead().getHealth()) {
                             if (termState1.getPlayeForRead().getHealth() > termState2.getPlayeForRead().getHealth()) {
                                 win2.incrementAndGet();
@@ -285,6 +300,17 @@ public class MatchSession {
                                 win3.incrementAndGet();
                             } else {
                                 loss3.incrementAndGet();
+                            }
+                        }
+                        if (state.prop.ritualDaggerCounterIdx >= 0) {
+                            var daggerUsed1 = termState1.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0;
+                            var daggerUsed2 = termState2.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0;
+                            if (termState1.isTerminal() == 1 && daggerUsed1 != daggerUsed2) {
+                                if (daggerUsed1 && !daggerUsed2) {
+                                    win4.incrementAndGet();
+                                } else {
+                                    loss4.incrementAndGet();
+                                }
                             }
                         }
                     }
@@ -341,6 +367,7 @@ public class MatchSession {
         var totalDamageTakenNoDeathByR = new HashMap<Integer, Integer>();
         var numOfGamesByR = new HashMap<Integer, Integer>();
         var potionsUsed = new HashMap<Integer, List<Integer>>();
+        var daggerKilledEnemy = new HashMap<Integer, Integer>();
         var damageCount = new HashMap<Integer, HashMap<Integer, Integer>>();
         var start = System.currentTimeMillis();
         var solverErrorCount = 0;
@@ -385,6 +412,12 @@ public class MatchSession {
                     }
                 }
             }
+            if (state.prop.ritualDaggerCounterIdx >= 0) {
+                daggerKilledEnemy.putIfAbsent(r, 0);
+                if (state.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0) {
+                    daggerKilledEnemy.computeIfPresent(r, (k, x) -> x + 1);
+                }
+            }
             game_i += 1;
             if (matchLogWriter != null) {
                 try {
@@ -424,8 +457,12 @@ public class MatchSession {
                 System.out.println(calls.get() + "/" + turns.get() + "/" + (((double) calls.get()) / turns.get()));
                 if (mcts2.size() > 0) {
                     System.out.println("Win/Loss: " + win1.get() + "/" + loss1.get());
+                    System.out.println("Win/Loss Q: " + winQ.get() + "/" + lossQ.get());
                     System.out.println("Win/Loss Dmg: " + win2.get() + "/" + loss2.get());
                     System.out.println("Win/Loss Potion: " + win3.get() + "/" + loss3.get());
+                    if (state.prop.ritualDaggerCounterIdx >= 0) {
+                        System.out.println("Win/Loss Dagger: " + win4.get() + "/" + loss4.get());
+                    }
                     System.out.println("Dmg Diff: " + ((double) dmgDiff.get()) / (win2.get() + loss2.get()));
                     System.out.println("Dmg Diff By Win/Loss: " + ((double) dmgDiff1.get()) / win2.get() + "/" + ((double) dmgDiff2.get()) / loss2.get());
                     System.out.println(calls2.get() + "/" + turns2.get() + "/" + (((double) calls2.get()) / turns2.get()));
@@ -442,7 +479,10 @@ public class MatchSession {
                         System.out.println("    Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeathByR.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i)));
                         var potionsStat = potionsUsed.get(i);
                         for (int j = 0; j < potionsStat.size(); j++) {
-                            System.out.println("    " + state.prop.potions.get(j) + " Used Percentage: " + ((double) potionsStat.get(j)) / (numOfGamesByR.get(i) - deathCount.get(i)));
+                            System.out.println("    " + state.prop.potions.get(j) + " Used Percentage: " + String.format("%.5f", ((double) potionsStat.get(j)) / (numOfGamesByR.get(i) - deathCount.get(i))));
+                        }
+                        if (state.prop.ritualDaggerCounterIdx >= 0) {
+                            System.out.println("    Dagger Killed Percentage: " + String.format("%.5f", ((double) daggerKilledEnemy.get(i)) / numOfGamesByR.get(i)));
                         }
                     }
                 }
@@ -451,6 +491,7 @@ public class MatchSession {
                 var totalDamageTakenNoDeath = 0;
                 var totalNumOfGames = 0;
                 var totalPotionsUsed = new ArrayList<Integer>();
+                var totalDaggerKilled = 0;
                 for (int i = 0; i < state.prop.potions.size(); i++) {
                     totalPotionsUsed.add(0);
                 }
@@ -462,12 +503,16 @@ public class MatchSession {
                     for (int i = 0; i < totalPotionsUsed.size(); i++) {
                         totalPotionsUsed.set(i, totalPotionsUsed.get(i) + potionsUsed.get(rr).get(i));
                     }
+                    totalDaggerKilled += daggerKilledEnemy.get(rr);
                 }
                 System.out.println("Deaths: " + totalDeathCount + "/" + totalNumOfGames + " (" + String.format("%.2f", 100 * totalDeathCount / (float) totalNumOfGames).trim() + "%)");
                 System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken) / totalNumOfGames));
                 System.out.println("Avg Damage (Not Including Deaths): " + String.format("%.2f", ((double) totalDamageTakenNoDeath) / (totalNumOfGames - totalDeathCount)));
                 for (int j = 0; j < totalPotionsUsed.size(); j++) {
-                    System.out.println(state.prop.potions.get(j) + " Used Percentage: " + ((double) totalPotionsUsed.get(j)) / (totalNumOfGames - totalDeathCount));
+                    System.out.println(state.prop.potions.get(j) + " Used Percentage: " + String.format("%.5f", ((double) totalPotionsUsed.get(j)) / (totalNumOfGames - totalDeathCount)));
+                }
+                if (state.prop.ritualDaggerCounterIdx >= 0) {
+                    System.out.println("Dagger Killed Percentage: " + String.format("%.5f", ((double) totalDaggerKilled) / (totalNumOfGames - totalDeathCount)));
                 }
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
@@ -925,7 +970,7 @@ public class MatchSession {
         try {
             File file = new File(logDir + "/" + fileName);
             file.delete();
-            matchLogWriter = new BufferedWriter(new FileWriter(logDir + "/" + fileName, true));
+            matchLogWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(logDir + "/" + fileName, true)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -935,16 +980,17 @@ public class MatchSession {
         try {
             File file = new File(logDir + "/" + fileName);
             file.delete();
-            trainingDataWriter = new BufferedWriter(new FileWriter(logDir + "/" + fileName, true));
+            trainingDataWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(logDir + "/" + fileName, true)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void flushFileWriters() {
+    public void flushAndCloseFileWriters() {
         try {
             if (matchLogWriter != null) {
                 matchLogWriter.flush();
+                matchLogWriter.close();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -952,12 +998,12 @@ public class MatchSession {
         try {
             if (trainingDataWriter != null) {
                 trainingDataWriter.flush();
+                trainingDataWriter.close();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
-
 
     public static void printGame(Writer writer, List<GameStep> steps) throws IOException {
         for (int i = 0; i < steps.size(); i++) {
