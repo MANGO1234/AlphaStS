@@ -41,7 +41,8 @@ p = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes
 lens_str = p.stdout.decode('ascii').split(',')
 input_len = int(lens_str[0])
 num_of_actions = int(lens_str[1])
-print(f'input_len={input_len}, policy_len={num_of_actions}')
+v_other_len = int(lens_str[2])
+print(f'input_len={input_len}, policy_len={num_of_actions}, v_other_len={v_other_len}')
 
 
 def softmax_cross_entropy_with_logits(y_true, y_pred):
@@ -94,14 +95,20 @@ else:
     exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='tanh')(x)
     exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='tanh')(x)
     policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
-    model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head])
-    model.compile(loss={
+    exp_other_heads = [layers.Dense(1, name=f"exp_other_head{i}", use_bias=True, activation='tanh')(x) for i in range(v_other_len)]
+    model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
+    loss = {
         'exp_health_head': 'mean_squared_error',
         'exp_win_head': 'mean_squared_error',
         'policy_head': softmax_cross_entropy_with_logits
-    },
-        optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9),
-        loss_weights={'exp_health_head': 1 / 3, 'policy_head': 1 / 3, 'exp_win_head': 1 / 3}
+    }
+    loss_weights = {'exp_health_head': 0.3, 'policy_head': 0.3, 'exp_win_head': 0.3}
+    for i in range(v_other_len):
+        loss[f'exp_other_head{i}'] = 'mean_squared_error'
+        loss_weights[f'exp_other_head{i}'] = 0.15
+    model.compile(
+        loss=loss,
+        optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
     )
     model.save(f'{SAVES_DIR}/iteration0')
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
@@ -125,11 +132,13 @@ def get_training_samples(training_pool, iteration, file_path):
     while offset != len(content):
         x_fmt = '>' + ('f' * input_len)
         x = struct.unpack(x_fmt, content[offset: offset + 4 * input_len])
-        [v_health, v_win] = struct.unpack('>ff', content[offset + 4 * input_len: offset + 4 * (input_len + 2)])
+        v_fmt = '>' + 'f' * (2 + v_other_len)
+        v = struct.unpack(v_fmt, content[offset + 4 * input_len:offset + 4 * (input_len + 2 + v_other_len)])
         p_fmt = '>' + ('f' * num_of_actions)
-        p = struct.unpack(p_fmt, content[offset + 4 * (input_len + 2): offset + 4 * (input_len + 2 + num_of_actions)])
-        offset += 4 * (input_len + 2 + num_of_actions)
-        training_pool.append((iteration, [list(x), [v_health], [v_win], list(p)]))
+        p = struct.unpack(p_fmt, content[offset + 4 * (input_len + 2 + v_other_len):offset + 4 * (input_len + 2 + v_other_len + num_of_actions)])
+        offset += 4 * (input_len + 2 + v_other_len + num_of_actions)
+        target = [list(x), v[0], v[1], list(p), [v_other for v_other in v[2:]]]
+        training_pool.append((iteration, target))
     if len(content) != offset:
         print(f'{len(content) - offset} bytes remaining for decoding')
         raise "agent error"
@@ -159,9 +168,15 @@ def save_stats(training_info, iteration, out):
     avg_dmg = float(re.findall('\nAvg Damage: (\d+\.\d+)', out)[0])
     avg_dmg_tmp = re.findall('\nAvg Damage \(Not Including Deaths\): (\d+\.\d+)', out)
     avg_dmg_no_death = float(avg_dmg if len(avg_dmg_tmp) == 0 else avg_dmg_tmp[0])
+    dagger_killed_per_tmp = re.findall('\nDagger Killed Percentage: (\d+\.\d+)', out)
+    dagger_killed_per = float(0 if len(dagger_killed_per_tmp) == 0 else dagger_killed_per_tmp[0])
+    avg_final_q_tmp = re.findall('\nAverage Final Q: (\d+\.\d+)', out)
+    avg_final_q = float(0 if len(avg_final_q_tmp) == 0 else avg_final_q_tmp[0])
     training_info['iteration_info'][str(iteration)]['death_rate'] = death_rate
     training_info['iteration_info'][str(iteration)]['avg_dmg'] = avg_dmg
     training_info['iteration_info'][str(iteration)]['avg_dmg_no_death'] = avg_dmg_no_death
+    training_info['iteration_info'][str(iteration)]['dagger_killed_per'] = dagger_killed_per
+    training_info['iteration_info'][str(iteration)]['avg_final_q'] = avg_final_q
 
 accumualted_time_base = 0
 if training_info['iteration'] > 1:
@@ -236,22 +251,30 @@ if DO_TRAINING:
         #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
         #         # minibatch = training_pool
         train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
-        for i in range(train_iter):
+        for _i in range(train_iter):
             minibatch = training_pool
             x_train = []
             exp_health_head_train = []
             exp_win_head_train = []
             policy_head_train = []
-            for _, (x, v_health, v_win, p) in minibatch:
+            exp_other_heads_train = []
+            for i in range(v_other_len):
+                exp_other_heads_train.append([])
+            for _, (x, v_health, v_win, p, v_others) in minibatch:
                 x_train.append(np.asarray(x))
                 exp_health_head_train.append(np.asarray(v_health).reshape(1))
                 exp_win_head_train.append(np.asarray(v_win).reshape(1))
                 policy_head_train.append(np.asarray(p).reshape(num_of_actions))
+                for i in range(v_other_len):
+                    exp_other_heads_train[i].append(np.asarray(v_others[i]).reshape(1))
             x_train = np.asarray(x_train)
             exp_health_head_train = np.asarray(exp_health_head_train)
             exp_win_head_train = np.asarray(exp_win_head_train)
             policy_head_train = np.asarray(policy_head_train)
-            fit_result = model.fit(np.asarray(x_train), [exp_health_head_train, exp_win_head_train, policy_head_train], epochs=1)
+            for i in range(v_other_len):
+                exp_other_heads_train[i] = np.asarray(exp_other_heads_train[i])
+            target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
+            fit_result = model.fit(np.asarray(x_train), target, epochs=1)
         model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
 

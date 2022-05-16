@@ -65,6 +65,10 @@ public class GameState implements State {
     public static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
     public static final boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
+    public static final int V_COMB_IDX = 0;
+    public static final int V_WIN_IDX = 1;
+    public static final int V_HEALTH_IDX = 2;
+    public static final int V_OTHER_IDX_START = 3;
 
     public boolean isStochastic;
     StringBuilder stateDesc;
@@ -103,18 +107,22 @@ public class GameState implements State {
     public long buffs;
     int lastEnemySelected;
 
+    // search related fields
     private int[] legalActions;
     double v_win; // if terminal, 1.0 or -1.0, else from NN
     double v_health; // if terminal, player_health/player_max_health, else from NN
+    double[] v_other; // if terminal, player_health/player_max_health, else from NN
+    double[] q_comb; // total q value propagated from each child
     double[] q_win; // total v_win value propagated from each child
     double[] q_health; // total v_health value propagated from each child
-    double[] q_comb; // total q value propagated from each child
+    double[][] q_other; // total q value propagated from each child
+    double total_q_comb; // sum of q_win array
+    double total_q_win; // sum of q_win array
+    double total_q_health; // sum of q_health _array
+    double[] total_q_other; // sum of q_other array
     int[] n; // visit count for each child
     State[] ns; // the state object for each child (either GameState or ChanceState)
     int total_n; // sum of n array
-    double total_q_win; // sum of q_win array
-    double total_q_health; // sum of q_health _array
-    double total_q_comb; // sum of q_win array
     float[] policy; // policy from NN
     float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
     Map<GameState, State> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
@@ -327,7 +335,8 @@ public class GameState implements State {
         if (prop.counterNames.length > 0) {
             counter = new int[prop.counterNames.length];
         }
-        Collections.sort(prop.startOfGameHandlers);
+        Collections.sort(prop.startOfBattleHandlers);
+        Collections.sort(prop.endOfBattleHandlers);
         Collections.sort(prop.startOfTurnHandlers);
         Collections.sort(prop.preEndTurnHandlers);
         Collections.sort(prop.onBlockHandlers);
@@ -373,6 +382,11 @@ public class GameState implements State {
             prop.originalEnemies.getForWrite(i);
         }
         prop.inputLen = getNNInputLen();
+        var outputIdx = 0;
+        if (prop.ritualDaggerCounterIdx >= 0) {
+            prop.ritualDaggerVArrayIdx = outputIdx++;
+        }
+        prop.extraOutputLen = outputIdx;
 
         // mcts related fields
         terminal_action = -100;
@@ -901,7 +915,7 @@ public class GameState implements State {
         GameAction action = prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         int ret = 0;
         if (action.type() == GameActionType.BEGIN_BATTLE) {
-            for (GameEventHandler handler : prop.startOfGameHandlers) {
+            for (GameEventHandler handler : prop.startOfBattleHandlers) {
                 handler.handle(this);
             }
             if (prop.randomization != null) {
@@ -946,10 +960,11 @@ public class GameState implements State {
             startTurn();
             setActionCtx(GameActionCtx.PLAY_CARD, null);
         }
-        policy = null;
         legalActions = null;
-        v_win = 0;
-        v_health = 0;
+        v_other = null;
+        q_other = null;
+        total_q_other = null;
+        policy = null;
         if (isStochastic) {
             transpositions = new HashMap<>();
             searchFrontier = null;
@@ -1033,31 +1048,37 @@ public class GameState implements State {
         return false;
     }
 
+    int get_v_len() {
+        return 3 + prop.extraOutputLen;
+    }
+
     void get_v(double[] out) {
         var player = getPlayeForRead();
         if (player.getHealth() <= 0 || turnNum > 30) {
-            out[0] = 0;
-            out[1] = 0;
-            out[2] = 0;
+            Arrays.fill(out, 0);
             return;
-        } else {
-            boolean allDead = true;
-            for (var enemy : enemies) {
-                if (enemy.getHealth() > 0) {
-                    allDead = false;
-                    break;
-                }
-            }
-            if (allDead) {
-                out[0] = 1;
-                out[1] = ((double) player.getHealth()) / player.getMaxHealth();
-                out[2] = calc_q(out[0], out[1]);
-                return;
+        }
+        boolean allDead = true;
+        for (var enemy : enemies) {
+            if (enemy.getHealth() > 0) {
+                allDead = false;
+                break;
             }
         }
-        out[0] = v_win;
-        out[1] = prop.playerCanHeal ? v_health : Math.min(v_health, getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
-        out[2] = calc_q(out[0], out[1]);
+        if (allDead) {
+            out[V_WIN_IDX] = 1;
+            out[V_HEALTH_IDX] = ((double) player.getHealth()) / player.getMaxHealth();
+            if (prop.ritualDaggerVArrayIdx >= 0) {
+                out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : 0;
+            }
+        } else {
+            out[V_WIN_IDX] = v_win;
+            out[V_HEALTH_IDX] = prop.playerCanHeal ? v_health : Math.min(v_health, getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
+            if (prop.ritualDaggerVArrayIdx >= 0) {
+                out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : v_other[prop.ritualDaggerVArrayIdx];
+            }
+        }
+        out[V_COMB_IDX] = calc_q(out);
     }
 
     int isTerminal() {
@@ -1077,25 +1098,28 @@ public class GameState implements State {
         return toStringReadable();
     }
 
-    public double calc_q(double q_win, double q_health) {
-        double base = q_win * 0.5 + q_win * q_win * q_health * 0.5;
+    public double calc_q(double[] v) {
+        var health = v[V_HEALTH_IDX];
+        // todo: how do we want to do bonus for potions ritual dagger etc.??
+        if (prop.ritualDaggerVArrayIdx >= 0) {
+            health *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
+        }
+        double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * health * 0.5;
+//        if (prop.ritualDaggerCounterIdx >= 0) {
+//            base *= 1 - (1 - (getCounterForRead()[prop.ritualDaggerCounterIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
+//        }
         for (int i = 0; i < prop.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
-        // todo: how do we want to do bonus for potions ritual dagger etc.??
-        if (prop.ritualDaggerCounterIdx >= 0) {
-            int daggerState = getCounterForRead()[prop.ritualDaggerCounterIdx] + 1;
-            base *= 1 - (2 - daggerState) / 2.0 * Configuration.UTIL_FOR_RITUAL_DAGGER;
-        }
         return base;
     }
 
     public double get_q() {
-        var out = new double[3] ;
+        var out = new double[get_v_len()];
         get_v(out);
-        return calc_q(out[0], out[1]);
+        return calc_q(out);
     }
 
     public String toStringReadable() {
@@ -1196,9 +1220,13 @@ public class GameState implements State {
         boolean showQComb = prop.potions.size() > 0 || (prop.ritualDaggerCounterIdx >= 0 && isTerminal() > 0);
         str.append(", v=(");
         if (showQComb) {
-            str.append(formatFloat(calc_q(v_win, v_health))).append("/");
+            str.append(formatFloat(get_q())).append("/");
         }
-        str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth())).append(")");
+        str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
+        if (prop.ritualDaggerVArrayIdx >= 0) {
+            str.append("/").append(formatFloat(v_other == null ? 0 : v_other[prop.ritualDaggerVArrayIdx]));
+        }
+        str.append(")");
         if (policy != null) {
             str.append(", q/p/n=[");
             first = true;
@@ -1250,9 +1278,14 @@ public class GameState implements State {
         policy = output.policy();
         v_health = output.v_health();
         v_win = output.v_win();
-        q_health = new double[policy.length];
+        v_other = output.v_other();
         q_comb = new double[policy.length];
+        q_health = new double[policy.length];
         q_win = new double[policy.length];
+        if (v_other != null) {
+            q_other = new double[policy.length][v_other.length];
+            total_q_other = new double[v_other.length];
+        }
         n = new int[policy.length];
         ns = new State[policy.length];
     }
@@ -1876,14 +1909,24 @@ public class GameState implements State {
         return prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[i]];
     }
 
-    public void addStartOfGameHandler(GameEventHandler handler) {
-        prop.startOfGameHandlers.add(handler);
+    public void addStartOfBattleHandler(GameEventHandler handler) {
+        prop.startOfBattleHandlers.add(handler);
     }
 
-    public void addStartOfGameHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "StartOfGame") == null) {
-            prop.gameEventHandlers.put(handlerName + "StartOfGame", handler);
-            prop.startOfGameHandlers.add(handler);
+    public void addStartOfBattleHandler(String handlerName, GameEventHandler handler) {
+        if (prop.gameEventHandlers.get(handlerName + "StartOfBattler") == null) {
+            prop.gameEventHandlers.put(handlerName + "StartOfBattler", handler);
+            prop.startOfBattleHandlers.add(handler);
+        }
+    }
+    public void addEndOfBattleHandler(GameEventHandler handler) {
+        prop.endOfBattleHandlers.add(handler);
+    }
+
+    public void addEndOfBattleHandler(String handlerName, GameEventHandler handler) {
+        if (prop.gameEventHandlers.get(handlerName + "EndOfGame") == null) {
+            prop.gameEventHandlers.put(handlerName + "EndOfGame", handler);
+            prop.endOfBattleHandlers.add(handler);
         }
     }
 
@@ -1974,20 +2017,23 @@ public class GameState implements State {
 
     public void clearAllSearchInfo() {
         policy = null;
-        q_health = null;
-        q_comb = null;
-        q_win = null;
-        n = null;
-        ns = null;
-        transpositions = new HashMap<>();
-        searchFrontier = null;
-        terminal_action = -100;
-        total_n = 0;
-        total_q_win = 0;
-        total_q_health = 0;
-        total_q_comb = 0;
         v_health = 0;
         v_win = 0;
+        v_other = null;
+        q_comb = null;
+        q_health = null;
+        q_win = null;
+        q_other = null;
+        total_q_comb = 0;
+        total_q_win = 0;
+        total_q_health = 0;
+        total_q_other = null;
+        n = null;
+        ns = null;
+        total_n = 0;
+        transpositions = new HashMap<>();
+        terminal_action = -100;
+        searchFrontier = null;
     }
 
     public void gainEnergy(int n) {
@@ -2084,6 +2130,15 @@ public class GameState implements State {
             }
         }
         return false;
+    }
+
+    public void adjustEnemiesAlive(int count) {
+        enemiesAlive += count;
+        if (enemiesAlive == 0) {
+            for (var handler : prop.endOfBattleHandlers) {
+                handler.handle(this);
+            }
+        }
     }
 
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
@@ -2338,6 +2393,7 @@ class ChanceState implements State {
         queue.add(state);
     }
 
+    // currently doesn't do anything
     public void correctV(GameState state2, double[] v) {
         var node = cache.get(state2);
         if (node.revisit) {
@@ -2368,9 +2424,9 @@ class ChanceState implements State {
             node.prev_q_comb = node_cur_q_comb;
             node.prev_q_win = node_cur_q_win;
             node.prev_q_health = node_cur_q_health;
-            v[0] = new_q_win * total_n - total_q_win;
-            v[1] = new_q_health * total_n - total_q_health;
-            v[2] = new_q_comb * total_n - total_q_comb;
+            v[GameState.V_COMB_IDX] = new_q_comb * total_n - total_q_comb;
+            v[GameState.V_WIN_IDX] = new_q_win * total_n - total_q_win;
+            v[GameState.V_HEALTH_IDX] = new_q_health * total_n - total_q_health;
 //            if (new_q_win * total_n - (total_q_win + v[0]) > 0.00000001) {
 //                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
 //            }
@@ -2419,9 +2475,9 @@ class ChanceState implements State {
 //                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
 //            }
         }
-        total_q_win += v[0];
-        total_q_health += v[1];
-        total_q_comb += v[2];
+        total_q_comb += v[GameState.V_COMB_IDX];
+        total_q_win += v[GameState.V_WIN_IDX];
+        total_q_health += v[GameState.V_HEALTH_IDX];
     }
 
     GameState getNextState(boolean calledFromMCTS) {

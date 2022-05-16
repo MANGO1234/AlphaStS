@@ -54,7 +54,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class AncientTeaSet extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addStartOfGameHandler(new GameEventHandler() {
+            state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     state.energy += 2;
                 }
@@ -108,7 +108,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class BronzeScales extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Thorn", this, null);
-            state.addStartOfGameHandler(new GameEventHandler() {
+            state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] += 3;
                 }
@@ -304,7 +304,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         }
 
         @Override public void startOfGameSetup(GameState state) {
-            state.addStartOfGameHandler(new GameEventHandler() {
+            state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(card));
                 }
@@ -790,7 +790,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class RedMask extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             weakEnemy = true;
-            state.addStartOfGameHandler(new GameEventHandler() {
+            state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         enemy.applyDebuff(DebuffType.WEAK, 1 + 1);

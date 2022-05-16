@@ -533,7 +533,7 @@ public class Main {
 //        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new Card.Havoc()));
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
+            System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
             return;
         }
 
@@ -739,8 +739,9 @@ public class Main {
                     for (int j = 0; j < x.length; j++) {
                         stream.writeFloat(x[j]);
                     }
-                    stream.writeFloat((step.v_health * 2) - 1);
-                    stream.writeFloat((step.v_win * 2) - 1);
+                    for (int j = 1; j < step.v.length; j++) {
+                        stream.writeFloat((float) ((step.v[j] * 2) - 1));
+                    }
                     int idx = 0;
                     if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
@@ -752,7 +753,7 @@ public class Main {
                                     if (state.terminal_action == action) {
                                         stream.writeFloat(1);
                                     } else {
-                                        stream.writeInt(0);
+                                        stream.writeFloat(0);
                                     }
                                 } else if (state.isActionLegal(action)) {
                                     if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
@@ -798,7 +799,7 @@ public class Main {
                                 if (state.terminal_action == action) {
                                     stream.writeFloat(1);
                                 } else {
-                                    stream.writeInt(0);
+                                    stream.writeFloat(0);
                                 }
                             } else if (state.isActionLegal(action)) {
                                 if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {

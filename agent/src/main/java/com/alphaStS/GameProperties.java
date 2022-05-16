@@ -49,6 +49,7 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodPIndexes;
     public int[] infernalBladeIndexes;
     public int ritualDaggerCounterIdx = -1;
+    public int ritualDaggerVArrayIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -69,10 +70,12 @@ public class GameProperties implements Cloneable {
     public boolean energyRefillCanChange;
     public boolean isSlimeBossFight;
     public int inputLen;
+    public int extraOutputLen;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();
-    public List<GameEventHandler> startOfGameHandlers = new ArrayList<>();
+    public List<GameEventHandler> startOfBattleHandlers = new ArrayList<>();
+    public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
     public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();

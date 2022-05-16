@@ -14,8 +14,7 @@ final class GameStep {
     private final GameState state;
     private final int action;
     public int trainingWriteCount;
-    public float v_win;
-    public float v_health;
+    public double[] v;
     public List<String> lines;
     public boolean isExplorationMove;
 
@@ -306,7 +305,7 @@ public class MatchSession {
                             var daggerUsed1 = termState1.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0;
                             var daggerUsed2 = termState2.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0;
                             if (termState1.isTerminal() == 1 && daggerUsed1 != daggerUsed2) {
-                                if (daggerUsed1 && !daggerUsed2) {
+                                if (daggerUsed1) {
                                     win4.incrementAndGet();
                                 } else {
                                     loss4.incrementAndGet();
@@ -369,6 +368,7 @@ public class MatchSession {
         var potionsUsed = new HashMap<Integer, List<Integer>>();
         var daggerKilledEnemy = new HashMap<Integer, Integer>();
         var damageCount = new HashMap<Integer, HashMap<Integer, Integer>>();
+        var finalQComb = new HashMap<Integer, Double>();
         var start = System.currentTimeMillis();
         var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
@@ -397,6 +397,8 @@ public class MatchSession {
             totalDamageTakenNoDeathByR.computeIfPresent(r, (k, x) -> x + (state.isTerminal() == 1 ? damageTaken : 0));
             damageCount.computeIfAbsent(r, (x) -> new HashMap<>());
             damageCount.compute(r, (k, v) -> { v.put(damageTaken, v.getOrDefault(damageTaken, 0) + 1); return v; });
+            finalQComb.putIfAbsent(r, 0.0);
+            finalQComb.computeIfPresent(r, (k, x) -> x + state.get_q());
             potionsUsed.computeIfAbsent(r, (x) -> {
                 var l = new ArrayList<Integer>();
                 for (int i = 0; i < state.prop.potions.size(); i++) {
@@ -482,8 +484,9 @@ public class MatchSession {
                             System.out.println("    " + state.prop.potions.get(j) + " Used Percentage: " + String.format("%.5f", ((double) potionsStat.get(j)) / (numOfGamesByR.get(i) - deathCount.get(i))));
                         }
                         if (state.prop.ritualDaggerCounterIdx >= 0) {
-                            System.out.println("    Dagger Killed Percentage: " + String.format("%.5f", ((double) daggerKilledEnemy.get(i)) / numOfGamesByR.get(i)));
+                            System.out.println("    Dagger Killed Percentage: " + String.format("%.5f", ((double) daggerKilledEnemy.get(i)) / (numOfGamesByR.get(i) - deathCount.get(i))));
                         }
+                        System.out.println("    Average Final Q: " + String.format("%.5f", finalQComb.get(i) / (numOfGamesByR.get(i) - deathCount.get(i))));
                     }
                 }
                 var totalDeathCount = 0;
@@ -492,6 +495,7 @@ public class MatchSession {
                 var totalNumOfGames = 0;
                 var totalPotionsUsed = new ArrayList<Integer>();
                 var totalDaggerKilled = 0;
+                var totalFinalQ = 0.0;
                 for (int i = 0; i < state.prop.potions.size(); i++) {
                     totalPotionsUsed.add(0);
                 }
@@ -504,6 +508,7 @@ public class MatchSession {
                         totalPotionsUsed.set(i, totalPotionsUsed.get(i) + potionsUsed.get(rr).get(i));
                     }
                     totalDaggerKilled += daggerKilledEnemy.get(rr);
+                    totalFinalQ += finalQComb.get(rr);
                 }
                 System.out.println("Deaths: " + totalDeathCount + "/" + totalNumOfGames + " (" + String.format("%.2f", 100 * totalDeathCount / (float) totalNumOfGames).trim() + "%)");
                 System.out.println("Avg Damage: " + String.format("%.2f", ((double) totalDamageTaken) / totalNumOfGames));
@@ -514,6 +519,7 @@ public class MatchSession {
                 if (state.prop.ritualDaggerCounterIdx >= 0) {
                     System.out.println("Dagger Killed Percentage: " + String.format("%.5f", ((double) totalDaggerKilled) / (totalNumOfGames - totalDeathCount)));
                 }
+                System.out.println("Average Final Q: " + String.format("%.5f", totalFinalQ / (totalNumOfGames - totalDeathCount)));
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);
@@ -541,36 +547,29 @@ public class MatchSession {
     boolean POLICY_CAP_ON;
     boolean TRAINING_WITH_LINE;
 
-    private float[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, float v_win, float v_health, float v_comb) {
+    private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
         while (cState.total_n < 1000 && cState.cache.size() < 100) {
             cState.getNextState(false);
         }
-        double est_v_win = 0;
-        double est_v_health = 0;
-        double est_v_comb = 0;
-        double[] out = new double[3];
+        double[] est = new double[vCur.length];
+        double[] out = new double[vCur.length];
         for (ChanceState.Node node : cState.cache.values()) {
             if (node.state != stateActual) {
                 if (node.state.policy == null) {
                     node.state.doEval(mcts.model);
                 }
                 node.state.get_v(out);
-                est_v_win += out[0] * node.n;
-                est_v_health += out[1] * node.n;
-                est_v_comb += out[2] * node.n;
+                for (int i = 0; i < est.length; i++) {
+                    est[i] += out[i] * node.n;
+                }
             }
         }
-        est_v_win /= cState.total_node_n;
-        est_v_health /= cState.total_node_n;
-        est_v_comb /= cState.total_node_n;
         float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / cState.total_node_n;
-        if (v_win * p + (float) est_v_win > 1.0001) {
-            Integer.parseInt(null);
+        for (int i = 0; i < est.length; i++) {
+            est[i] /= cState.total_node_n;
+            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
         }
-        v_win = Math.min(v_win * p + (float) est_v_win, 1);
-        v_health = Math.min(v_health * p + (float) est_v_health, 1);
-        v_comb = Math.min(v_comb * p + (float) est_v_comb, 1);
 
         //  var prevSize = cState.cache.size();
         //  for (int j = 1; j < 900; j++) {
@@ -594,7 +593,7 @@ public class MatchSession {
         //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
         //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
         //  }
-        return new float[] {v_win, v_health, v_comb};
+        return est;
     }
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {
@@ -658,9 +657,9 @@ public class MatchSession {
         steps.add(new GameStep(state, -1));
 
         // do scoring here before clearing states to reuse nn eval if possible
-        float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
-        float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
-        float v_comb = (float) state.calc_q(v_win, v_health);
+        var vLen = state.get_v_len();
+        double[] vCur = new double[vLen];
+        state.get_v(vCur);
         ChanceState lastChanceState = null;
         for (int i = steps.size() - 2; i >= 0; i--) {
             if (steps.get(i).isExplorationMove) {
@@ -668,33 +667,14 @@ public class MatchSession {
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
                 // to reduce this effect, seems ok so far, also check if we are transposing and skip for transposing
                 if (cState != null && lastChanceState != null && !cState.equals(lastChanceState)) {
-                    float[] ret = calcExpectedValue(cState, null, mcts, 0, 0, 0);
-                    float v_win2 = ret[0];
-                    float v_health2 = ret[1];
-                    float v_comb2 = ret[2];
-                    if (v_comb2 > v_comb) {
-//                        if (v_comb2 < v_comb) {
-//                            System.out.println(cState);
-//                            System.out.println((float) (states.get(i).state().total_q_win / (states.get(i).state().total_n + 1)) + ", " + (float) (states.get(i).state().total_q_health / (states.get(i).state().total_n + 1)) + ", " + (float) (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1)));
-//                            System.out.println(v_win2 + ", " + v_health2 + ", " + v_comb2);
-//                            System.out.println(lastChanceState);
-//                            System.out.println(cState.equals(lastChanceState));
-//                            System.out.println(cState.parentState.equals(lastChanceState.parentState));
-//                            System.out.println(v_win + ", " + v_health + ", " + v_comb);
-//                            System.out.println("--------------------------");
-//                        }
-//                        v_win = (float) (states.get(i).state().total_q_win / (states.get(i).state().total_n + 1));
-//                        v_health = (float) (states.get(i).state().total_q_health / (states.get(i).state().total_n + 1));
-//                        v_comb = (float) (states.get(i).state().total_q_comb / (states.get(i).state().total_n + 1));
-                        v_win = v_win2;
-                        v_health = v_health2;
-                        v_comb = v_comb2;
+                    double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
+                    if (ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
+                        vCur = ret;
                         lastChanceState = cState;
                     }
                 }
             }
-            steps.get(i).v_win = v_win;
-            steps.get(i).v_health = v_health;
+            steps.get(i).v = vCur;
             state = steps.get(i).state();
             state.clearNextStates();
             if (state.isStochastic && i > 0) {
@@ -704,10 +684,7 @@ public class MatchSession {
                 lastChanceState = cState;
 
                 if (!SLOW_TRAINING_WINDOW) {
-                    float[] ret = calcExpectedValue(cState, state, mcts, v_win, v_health, v_comb);
-                    v_win = ret[0];
-                    v_health = ret[1];
-                    v_comb = ret[2];
+                    vCur = calcExpectedValue(cState, state, mcts, vCur);
                 }
             }
         }
@@ -790,21 +767,17 @@ public class MatchSession {
         steps.add(new GameStep(state, -1));
 
         // do scoring here before clearing states to reuse nn eval if possible
-        float v_win = state.isTerminal() == 1 ? 1.0f : 0.0f;
-        float v_health = (float) (((double) state.getPlayeForRead().getHealth()) / state.getPlayeForRead().getMaxHealth());
-        float v_comb = (float) state.calc_q(v_win, v_health);
+        var vLen = state.get_v_len();
+        double[] vCur = new double[vLen];
+        state.get_v(vCur);
         for (int i = steps.size() - 1; i >= 0; i--) {
-            steps.get(i).v_win = v_win;
-            steps.get(i).v_health = v_health;
+            steps.get(i).v = vCur;
             state = steps.get(i).state();
             state.clearNextStates();
             if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
                 var prevState = steps.get(i - 1).state();
                 var prevAction = steps.get(i - 1).action();
-                float[] ret = calcExpectedValue((ChanceState) prevState.ns[prevAction], state, mcts, v_win, v_health, v_comb);
-                v_win = ret[0];
-                v_health = ret[1];
-                v_comb = ret[2];
+                vCur = calcExpectedValue((ChanceState) prevState.ns[prevAction], state, mcts, vCur);
             }
         }
         if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
@@ -1010,6 +983,9 @@ public class MatchSession {
             var step = steps.get(i);
             if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
             writer.write(step.state().toStringReadable() + "\n");
+            if (step.v != null) {
+                writer.write(Arrays.toString(step.v) + "\n");
+            }
             if (step.action() >= 0) {
                 var nextStep = steps.get(i + 1);
                 if (nextStep.state().stateDesc != null) {

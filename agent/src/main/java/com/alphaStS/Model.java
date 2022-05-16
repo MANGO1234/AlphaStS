@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-record NNOutput(float v_health, float v_win, float[] policy, int[] legalActions) {
+record NNOutput(float v_health, float v_win, double[] v_other, float[] policy, int[] legalActions) {
 }
 
 public class Model {
@@ -76,12 +76,6 @@ public class Model {
     }
 
     NNOutput eval(GameState state) {
-        //                for (NodeInfo i : session.getInputInfo().values()) {
-        //                    System.out.println(i.toString());
-        //                }
-        //                for (NodeInfo i : session.getOutputInfo().values()) {
-        //                    System.out.println(i.toString());
-        //                }
         calls += 1;
         InputHash hash = new InputHash(state.getNNInput());
         NNOutput o = cache.get(hash);
@@ -107,6 +101,7 @@ public class Model {
                 Result output = session.run(Collections.singletonMap(inputName, test))) {
             float v_health = ((float[][]) output.get(0).getValue())[0][0];
             float v_win = ((float[][]) output.get(1).getValue())[0][0];
+
             float[] policy = ((float[][]) output.get(2).getValue())[0];
             if (state.prop.maxNumOfActions != state.prop.totalNumOfActions) {
                 if (state.actionCtx == GameActionCtx.PLAY_CARD) {
@@ -129,10 +124,21 @@ public class Model {
             for (int i = 0; i < legalActions.length; i++) {
                 policyCompressed[i] = policy[legalActions[i]];
             }
+
+            double[] v_other = null;
+            if (state.prop.extraOutputLen > 0) {
+                v_other = new double[state.prop.extraOutputLen];
+                if (state.prop.ritualDaggerVArrayIdx >= 0) {
+                    float value = ((float[][]) output.get(3 + state.prop.ritualDaggerVArrayIdx).getValue())[0][0];
+                    v_other[state.prop.ritualDaggerVArrayIdx] = (value + 1) / 2;
+                }
+            }
+
             state.v_health = (v_health + 1) / 2;
             state.v_win = (v_win + 1) / 2;
             state.policy = policy;
-            o = new NNOutput((float) state.v_health, (float) state.v_win, softmax(policyCompressed), legalActions);
+            state.v_other = v_other;
+            o = new NNOutput((float) state.v_health, (float) state.v_win, v_other, softmax(policyCompressed), legalActions);
             cache.put(hash, o);
             time_taken += System.currentTimeMillis() - start;
             return o;
