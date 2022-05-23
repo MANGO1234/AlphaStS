@@ -511,16 +511,45 @@ public class Main {
         builder.addRelic(new Relic.RedMask());
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.HornCleat());
+        builder.addRelic(new Relic.BurningBlood());
         builder.addRelic(new Relic.BottledLightning(new Card.BattleTranceP()));
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        builder.addEnemy(new EnemyCity.TheChamp());
         builder.addPotion(new Potion.DistilledChaos());
-//        builder.addPotion(new Potion.EnergyPotion());
+        builder.addPotion(new Potion.EnergyPotion());
         builder.setPlayer(new Player(54, 60));
         return new GameState(builder);
     }
 
+    public static GameState TestState8() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Strike(), 3);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.BodySlam(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.TrueGritP(), 1);
+        builder.addCard(new Card.Rage(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new Card.BurningPact(), 1);
+        builder.addCard(new Card.Reaper(), 1);
+        builder.addCard(new Card.DemonForm(), 1);
+        builder.addEnemy(new Enemy.TheGuardian());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.RedSkull());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.BurningBlood());
+        builder.addPotion(new Potion.DexterityPotion());
+        builder.addPotion(new Potion.BloodPotion());
+        builder.setPlayer(new Player(40, 68));
+        return new GameState(builder);
+    }
+
     public static void main(String[] args) throws IOException {
-        var state = TestState7();
+       var state = TestState7();
 //        System.out.println(state.prop.randomization.listRandomizations());
 //                state.prop.randomization = state.prop.randomization.collapse("Randomize Gremlin Leader Fight");
 //        state.prop.randomization = state.prop.randomization.fixR(6);
@@ -618,14 +647,14 @@ public class Main {
         if (SAVES_DIR.startsWith("../")) {
 //            SAVES_DIR = "../tmp/saves_guard";
 //           SAVES_DIR = "../tmp/saves_champ_no";
-//            SAVES_DIR = "../saves2";
+//            SAVES_DIR = "../saves_all";
             NUMBER_OF_GAMES_TO_PLAY = 10000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
 //            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;
-//            iteration = 111;
-//            COMPARE_DIR = "../saves/iteration130";
+//            iteration = 49;
+//            COMPARE_DIR = "../saves/iteration50";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
 //            RANDOMIZATION_SCENARIO = 0;

@@ -85,9 +85,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     public static class BagOfMarbles extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             vulnEnemy = true;
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(DebuffType.VULNERABLE, 1);
-            }
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        enemy.applyDebuff(DebuffType.VULNERABLE, 1 + 1);
+                    }
+                }
+            });
         }
     }
 
@@ -561,7 +565,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.POWER) {
-                        state.getPlayerForWrite().heal(2);
+                        state.healPlayer(2);
                     }
                 }
             });
@@ -844,6 +848,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // *********************************************************** Class Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
+    public static class BurningBlood extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addEndOfBattleHandler("BurningBlood", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.healPlayer(6);
+                }
+            });
+        }
+    }
+
     public static class RingOfSerpant extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
@@ -852,6 +866,29 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                         var idx = state.prop.findCardIndex(new CardSilent.Survivor());
                         if (idx >= 0 && (state.hand[idx] > 0 || state.deck[idx] > 0)) {
                             state.draw(2);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class RedSkull extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addOnDamageHandler(new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
+                        if (state.getPlayeForRead().getHealth() + damageDealt > state.getPlayeForRead().getMaxHealth() / 2) {
+                            state.getPlayerForWrite().gainStrength(3);
+                        }
+                    }
+                }
+            });
+            state.addOnHealHandler(new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int healed) {
+                    if (state.getPlayeForRead().getHealth() > state.getPlayeForRead().getMaxHealth() / 2) {
+                        if (state.getPlayeForRead().getHealth() - healed <= state.getPlayeForRead().getMaxHealth() / 2) {
+                            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
                         }
                     }
                 }

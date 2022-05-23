@@ -118,9 +118,9 @@ public class EnemyCity {
         }
 
         @Override public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
-            if (training && b < 10) {
-                health = (int) Math.round(((double) (health * b)) / 10);
+            int b = random.nextInt(20, RandomGenCtx.Other) + 1;
+            if (training && b < 20) {
+                health = (int) Math.round(((double) (health * b)) / 20);
             } else {
                 health = 440;
             }

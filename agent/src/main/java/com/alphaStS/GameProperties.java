@@ -45,6 +45,7 @@ public class GameProperties implements Cloneable {
     public int dazedCardIdx = -1;
     public int slimeCardIdx = -1;
     public int woundCardIdx = -1;
+    public int voidCardIdx = -1;
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodPIndexes;
     public int[] infernalBladeIndexes;
@@ -81,6 +82,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
     public List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
+    public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
     public GameStateRandomization randomization;

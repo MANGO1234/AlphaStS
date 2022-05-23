@@ -37,8 +37,10 @@ public class Player extends PlayerReadOnly {
         return health - startHealth;
     }
 
-    public void heal(int n) {
-        health += Math.min(n, maxHealth - health);
+    public int heal(int n) {
+        int healed = Math.min(n, maxHealth - health) ;
+        health += healed;
+        return healed;
     }
 
     public void gainBlock(int n) {

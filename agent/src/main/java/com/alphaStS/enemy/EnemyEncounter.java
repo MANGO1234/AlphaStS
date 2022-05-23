@@ -247,4 +247,10 @@ public class EnemyEncounter {
         enemy.isElite = true;
         builder.addEnemy(enemy);
     }
+
+    public static void addAwakenedOneFight(GameStateBuilder builder) {
+        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemy(new EnemyBeyond.AwakenedOne());
+    }
 }

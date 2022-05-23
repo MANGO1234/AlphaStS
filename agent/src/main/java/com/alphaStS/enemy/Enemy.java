@@ -1343,7 +1343,6 @@ public abstract class Enemy extends EnemyReadOnly {
             input[idx] = usedEntangle ? -0.5f : 0.5f;
             return 1;
         }
-
     }
 
     public static class BlueSlaver extends Enemy {
@@ -1493,6 +1492,69 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public String getName() {
             return "Jaw Worm";
+        }
+    }
+
+    public static class Cultist extends Enemy {
+        public static final int INCANTATION = 0;
+        public static final int DARK_STRIKE = 1;
+
+        public Cultist() {
+            this(56);
+        }
+
+        public Cultist(int health) {
+            super(health, 2);
+            canGainStrength = true;
+        }
+
+        public Cultist(Cultist other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new Cultist(this);
+        }
+
+        @Override public void endTurn() {
+            super.endTurn();
+            gainStrength(5);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == INCANTATION) {
+            } else if (move == DARK_STRIKE) {
+                state.enemyDoDamageToPlayer(this, 6, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            if (move < DARK_STRIKE) {
+                move++;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == INCANTATION) {
+                return "Ritual 5";
+            } else if (move == DARK_STRIKE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(5, RandomGenCtx.Other) + 1;
+            if (training && b < 5) {
+                health = (int) Math.round(((double) (health * b)) / 5);
+            } else {
+                health = 50 + random.nextInt(7, RandomGenCtx.Other);
+            }
+        }
+
+        public String getName() {
+            return "Cultist";
         }
     }
 

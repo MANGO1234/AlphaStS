@@ -993,18 +993,13 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public BurningPact() {
             super("Burning Pact", Card.SKILL, 1);
             selectFromHand =  true;
-            selectFromHandLater = true;
             canExhaustAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(2);
-                return GameActionCtx.SELECT_CARD_HAND;
-            } else {
-                state.exhaustCardFromHand(idx);
-                return GameActionCtx.PLAY_CARD;
-            }
+            state.draw(2);
+            state.exhaustCardFromHand(idx);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1017,13 +1012,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(3);
-                return GameActionCtx.SELECT_CARD_HAND;
-            } else {
-                state.exhaustCardFromHand(idx);
-                return GameActionCtx.PLAY_CARD;
-            }
+            state.draw(3);
+            state.exhaustCardFromHand(idx);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1831,6 +1822,11 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                     if (card.cardType == Card.ATTACK) {
                         state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
                     }
+                }
+            });
+            state.addPreEndOfTurnHandler("Rage", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
         }
@@ -2751,9 +2747,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 int prevHp = enemy.getHealth();
                 state.playerDoDamageToEnemy(enemy, 4);
-                amount += enemy.getHealth() - prevHp;
+                amount += prevHp - enemy.getHealth();
             }
-            state.getPlayerForWrite().heal(amount);
+            state.healPlayer(amount);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2770,9 +2766,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 int prevHp = enemy.getHealth();
                 state.playerDoDamageToEnemy(enemy, 5);
-                amount += enemy.getHealth() - prevHp;
+                amount += prevHp - enemy.getHealth();
             }
-            state.getPlayerForWrite().heal(amount);
+            state.healPlayer(amount);
             return GameActionCtx.PLAY_CARD;
         }
     }

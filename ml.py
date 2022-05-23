@@ -260,7 +260,7 @@ if DO_TRAINING:
             exp_other_heads_train = []
             for i in range(v_other_len):
                 exp_other_heads_train.append([])
-            for _, (x, v_health, v_win, p, v_others) in minibatch:
+            for _, (x, v_win, v_health, p, v_others) in minibatch:
                 x_train.append(np.asarray(x))
                 exp_health_head_train.append(np.asarray(v_health).reshape(1))
                 exp_win_head_train.append(np.asarray(v_win).reshape(1))

@@ -9,6 +9,7 @@ public abstract class Potion {
     boolean changePlayerDexterity;
     boolean changePlayerArtifact;
     boolean selectEnemy;
+    boolean healPlayer;
     boolean selectFromHand;
     boolean selectFromDiscard;
 
@@ -118,6 +119,26 @@ public abstract class Potion {
         }
     }
 
+    public static class BloodPotion extends Potion {
+        public BloodPotion() {
+            healPlayer = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.healPlayer(state.getPlayeForRead().getMaxHealth() * 2 / 10);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public GameActionCtx useDouble(GameState state, int idx) {
+            state.healPlayer(state.getPlayeForRead().getMaxHealth() * 4 / 10);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Blood Potion";
+        }
+    }
+
     public static class AncientPotion extends Potion {
         public AncientPotion() {
             changePlayerArtifact = true;
@@ -201,6 +222,9 @@ public abstract class Potion {
             for (int i = 0; i < times; i++) {
                 state.addGameActionToStartOfDeque(curState -> {
                     int cardIdx = curState.drawOneCardSpecial();
+                    if (cardIdx < 0) {
+                        return;
+                    }
                     if (state.prop.makingRealMove) {
                         if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                         state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);

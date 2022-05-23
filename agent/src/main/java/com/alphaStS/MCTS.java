@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import java.util.Arrays;
+import java.util.HashSet;
 
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.utils.Utils;
@@ -262,7 +263,7 @@ public class MCTS {
             }
             actionToPropagate = action;
         } else {
-            actionToPropagate = getActionWithMaxNodesOrTerminal(state);
+            actionToPropagate = getActionWithMaxNodesOrTerminal(state, null);
         }
         double q_comb_total = state.q_comb[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
         double q_win_total = state.q_win[actionToPropagate] / state.n[actionToPropagate] * (state.total_n + 1);
@@ -746,24 +747,35 @@ public class MCTS {
         return policy;
     }
 
-    public static int getActionRandomOrTerminal(GameState state) {
+    public static int getActionRandomOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }
-        int r = state.prop.random.nextInt(state.total_n, RandomGenCtx.Other);
+        var total_n = 0;
+        for (int i = 0; i < state.policy.length; i++) {
+            if (!bannedActions.contains(state.getAction(i))) {
+                total_n += state.n[i];
+            }
+        }
+        if (total_n == 0) { // happens when the non banned action has such low prio that it has 0 visit
+            total_n = state.total_n;
+        }
+        int r = state.prop.random.nextInt(total_n, RandomGenCtx.Other);
         int acc = 0;
         int action = -1;
         for (int i = 0; i < state.policy.length; i++) {
-            acc += state.n[i];
-            if (acc > r) {
-                action = i;
-                break;
+            if (total_n == state.total_n || !bannedActions.contains(state.getAction(i))) {
+                acc += state.n[i];
+                if (acc > r) {
+                    action = i;
+                    break;
+                }
             }
         }
         return action;
     }
 
-    public static int getActionWithMaxNodesOrTerminal(GameState state) {
+    public static int getActionWithMaxNodesOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }
@@ -781,9 +793,11 @@ public class MCTS {
             int actionToPropagate = -1;
             int max_n = -1000;
             for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (state.n[i] > max_n) {
-                    max_n = state.n[i];
-                    actionToPropagate = i;
+                if (bannedActions == null || !bannedActions.contains(state.getAction(i))) {
+                    if (state.n[i] > max_n) {
+                        max_n = state.n[i];
+                        actionToPropagate = i;
+                    }
                 }
             }
             return actionToPropagate;

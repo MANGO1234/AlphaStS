@@ -311,6 +311,8 @@ public class GameState implements State {
                 prop.slimeCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Wound")) {
                 prop.woundCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Void")) {
+                prop.voidCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Anger")) {
                 prop.angerCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Anger+")) {
@@ -360,7 +362,9 @@ public class GameState implements State {
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
         prop.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.canEntangle);
-        prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer) || relics.stream().anyMatch((x) -> x.healPlayer);
+        prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer);
+        prop.playerCanHeal |= relics.stream().anyMatch((x) -> x.healPlayer);
+        prop.playerCanHeal |= potions.stream().anyMatch((x) -> x.healPlayer);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
         prop.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
         prop.enemyCanGetVuln |= potions.stream().anyMatch((x) -> x.vulnEnemy);
@@ -374,6 +378,7 @@ public class GameState implements State {
         prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
         prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
+       prop.selectFromExhaust = true;
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
 //        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);
@@ -1009,6 +1014,11 @@ public class GameState implements State {
 //                            return false;
 //                        }
 //                    }
+//                    if (prop.cardDict[a[action].idx()].cardName.equals("Reaper")) {
+//                        if (player.getStrength() < 20) {
+//                            return false;
+//                        }
+//                    }
                     return true;
                 }
             }
@@ -1100,16 +1110,36 @@ public class GameState implements State {
 
     public double calc_q(double[] v) {
         var health = v[V_HEALTH_IDX];
-        // todo: how do we want to do bonus for potions ritual dagger etc.??
-        if (prop.ritualDaggerVArrayIdx >= 0) {
-            health *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
-        }
-        double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * health * 0.5;
-//        if (prop.ritualDaggerCounterIdx >= 0) {
-//            base *= 1 - (1 - (getCounterForRead()[prop.ritualDaggerCounterIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
-//        }
+        var win = v[V_WIN_IDX];
         for (int i = 0; i < prop.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion) {
+                health = health - ((player.getMaxHealth() * 2 / 10 + 5) / (float) player.getMaxHealth());
+                win = win * 0.8;
+            }
+        }
+//        if (isTerminal() == 0) {
+//            if (getExhaustForRead()[prop.findCardIndex(new Card.Reaper())] > 0) {
+//                health = health - (15 / (float) player.getMaxHealth());
+//            }
+//        }
+        // todo: how do we want to do bonus for potions ritual dagger etc.??
+//        if (prop.ritualDaggerVArrayIdx >= 0) {
+//            health *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
+//        }
+        double base = win * 0.5 + win * win * health * 0.1;
+//        if (!prop.tmp && prop.ritualDaggerCounterIdx >= 0) {
+//            base *= 1 - ((1 - getCounterForRead()[prop.ritualDaggerCounterIdx]) / 2.0) * Configuration.UTIL_FOR_RITUAL_DAGGER;
+//        }
+        if (prop.tmp && prop.ritualDaggerVArrayIdx >= 0) {
+            base *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
+//            if (v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] == 0 || v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] == 1) {
+//                base *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
+//            } else {
+//                base *= 1 - ((1 - base) * Configuration.UTIL_FOR_RITUAL_DAGGER);
+//            }
+        }
+        for (int i = 0; i < prop.potions.size(); i++) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
@@ -1626,7 +1656,7 @@ public class GameState implements State {
             x[idx++] = player.getArtifact() / (float) 3.0;
         }
         if (prop.playerStrengthCanChange) {
-            x[idx++] = player.getStrength() / (float) 10.0;
+            x[idx++] = player.getStrength() / (float) 30.0;
         }
         if (prop.playerDexterityCanChange) {
             x[idx++] = player.getDexterity() / (float) 10.0;
@@ -1985,6 +2015,17 @@ public class GameState implements State {
         }
     }
 
+    public void addOnHealHandler(OnDamageHandler handler) {
+        prop.onHealHandlers.add(handler);
+    }
+
+    public void addOnHealHandler(String handlerName, OnDamageHandler handler) {
+        if (prop.gameEventHandlers.get(handlerName + "OnHeal") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnHeal", handler);
+            prop.onHealHandlers.add(handler);
+        }
+    }
+
     public void addOnCardPlayedHandler(GameEventCardHandler handler) {
         prop.onCardPlayedHandlers.add(handler);
     }
@@ -2192,6 +2233,15 @@ public class GameState implements State {
         if (dmg > 0) {
             for (OnDamageHandler handler : prop.onDamageHandlers) {
                 handler.handle(this, source, false, damageDealt);
+            }
+        }
+    }
+
+    public void healPlayer(int hp) {
+        var healed = getPlayerForWrite().heal(hp);
+        if (healed > 0) {
+            for (var handler : prop.onHealHandlers) {
+                handler.handle(this, null, false, healed);
             }
         }
     }

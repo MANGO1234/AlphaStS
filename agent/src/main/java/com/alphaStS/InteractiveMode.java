@@ -734,7 +734,7 @@ public class InteractiveMode {
             for (int i = s.total_n; i < count; i++) {
                 mcts.search(s, false, -1);
             }
-            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
             if (action < 0) {
                 break;
             }

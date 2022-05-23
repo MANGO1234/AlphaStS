@@ -172,7 +172,7 @@ public class MatchSession {
                     }
                 }
 
-                int action = MCTS.getActionWithMaxNodesOrTerminal(state);
+                int action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
                 states.add(new GameStep(state, action));
                 if (!training && solver != null) {
                     solver.checkForError(state, action, true);
@@ -507,7 +507,9 @@ public class MatchSession {
                     for (int i = 0; i < totalPotionsUsed.size(); i++) {
                         totalPotionsUsed.set(i, totalPotionsUsed.get(i) + potionsUsed.get(rr).get(i));
                     }
-                    totalDaggerKilled += daggerKilledEnemy.get(rr);
+                    if (state.prop.ritualDaggerCounterIdx >= 0) {
+                        totalDaggerKilled += daggerKilledEnemy.get(rr);
+                    }
                     totalFinalQ += finalQComb.get(rr);
                 }
                 System.out.println("Deaths: " + totalDeathCount + "/" + totalNumOfGames + " (" + String.format("%.2f", 100 * totalDeathCount / (float) totalNumOfGames).trim() + "%)");
@@ -615,6 +617,7 @@ public class MatchSession {
 
         state.doEval(mcts.model);
         boolean quickPass = false;
+        var bannedActions = new HashSet<GameAction>();
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
             for (int i = 0; i < todo; i++) {
@@ -630,11 +633,17 @@ public class MatchSession {
             int action;
             int greedyAction;
             if (doNotExplore || quickPass || state.turnNum >= 100) {
-                action = MCTS.getActionWithMaxNodesOrTerminal(state);
+                action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
                 greedyAction = action;
             } else {
-                action = MCTS.getActionRandomOrTerminal(state);
-                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
+                action = MCTS.getActionRandomOrTerminal(state, bannedActions);
+//                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, bannedActions);
+//                if (action != greedyAction) {
+//                    if (state.prop.random.nextBoolean(RandomGenCtx.Other) && state.getAction(greedyAction).type() != GameActionType.END_TURN) {
+//                        bannedActions.add(state.getAction(greedyAction));
+//                    }
+//                }
+                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, null);
             }
             var step = new GameStep(state, action);
             step.trainingWriteCount = !quickPass ? 1 : 0;
@@ -642,6 +651,7 @@ public class MatchSession {
             steps.add(step);
             if (state.getAction(action).type() == GameActionType.END_TURN) {
                 quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other, null) > 0;
+                bannedActions.clear();
             }
             if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 state = state.clone(false);
@@ -720,7 +730,7 @@ public class MatchSession {
             if (state2.isTerminal() != 0) {
                 return null;
             }
-            int action = MCTS.getActionWithMaxNodesOrTerminal(state2);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(state2, null);
             state = state2.ns[action];
         }
         return (ChanceState) state;
@@ -988,11 +998,14 @@ public class MatchSession {
             }
             if (step.action() >= 0) {
                 var nextStep = steps.get(i + 1);
+                writer.write("action=" + step.state().getActionString(step.action()));
                 if (nextStep.state().stateDesc != null) {
-                    writer.write("action=" + step.state().getActionString(step.action()) + ", " + nextStep.state().stateDesc + "\n");
-                } else {
-                    writer.write("action=" + step.state().getActionString(step.action()) + "\n");
+                    writer.write(", " + nextStep.state().stateDesc);
                 }
+                if (step.isExplorationMove) {
+                    writer.write(" (Temperature)");
+                }
+                writer.write("\n");
             }
         }
     }
