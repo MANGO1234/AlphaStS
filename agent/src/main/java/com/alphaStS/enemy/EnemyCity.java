@@ -235,37 +235,37 @@ public class EnemyCity {
                     var idx = -1;
                     if (r < 2) { // Mad Gremlin
                         idx = startIdx + 2;
-                        if (enemies.get(startIdx).getHealth() <= 0) {
+                        if (!enemies.get(startIdx).isAlive()) {
                             idx = startIdx;
-                        } else if (enemies.get(startIdx + 1).getHealth() <= 0) {
+                        } else if (!enemies.get(startIdx + 1).isAlive()) {
                             idx = startIdx + 1;
                         }
                     } else if (r < 4) { // Sneaky Gremlin
                         idx = startIdx + 5;
-                        if (enemies.get(startIdx + 3).getHealth() <= 0) {
+                        if (!enemies.get(startIdx + 3).isAlive()) {
                             idx = startIdx + 3;
-                        } else if (enemies.get(startIdx + 4).getHealth() <= 0) {
+                        } else if (!enemies.get(startIdx + 4).isAlive()) {
                             idx = startIdx + 4;
                         }
                     } else if (r < 6) { // Fat Gremlin
                         idx = startIdx + 8;
-                        if (enemies.get(startIdx + 6).getHealth() <= 0) {
+                        if (!enemies.get(startIdx + 6).isAlive()) {
                             idx = startIdx + 6;
-                        } else if (enemies.get(startIdx + 7).getHealth() <= 0) {
+                        } else if (!enemies.get(startIdx + 7).isAlive()) {
                             idx = startIdx + 7;
                         }
                     } else if (r < 7) { // Shield Gremlin
                         idx = startIdx + 11;
-                        if (enemies.get(startIdx + 9).getHealth() <= 0) {
+                        if (!enemies.get(startIdx + 9).isAlive()) {
                             idx = startIdx + 9;
-                        } else if (enemies.get(startIdx + 10).getHealth() <= 0) {
+                        } else if (!enemies.get(startIdx + 10).isAlive()) {
                             idx = startIdx + 10;
                         }
                     } else { // Gremlin Wizard
                         idx = startIdx + 14;
-                        if (enemies.get(startIdx + 12).getHealth() <= 0) {
+                        if (!enemies.get(startIdx + 12).isAlive()) {
                             idx = startIdx + 12;
-                        } else if (enemies.get(startIdx + 13).getHealth() <= 0) {
+                        } else if (!enemies.get(startIdx + 13).isAlive()) {
                             idx = startIdx + 13;
                         }
                     }

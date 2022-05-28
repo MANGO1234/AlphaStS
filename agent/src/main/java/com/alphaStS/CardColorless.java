@@ -17,7 +17,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            if (state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.LOSE_STRENGTH_EOT, -n)) {
+            if (state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, -n)) {
                 state.getEnemiesForWrite().getForWrite(idx).gainStrength(-n);
             }
             return GameActionCtx.PLAY_CARD;
@@ -128,14 +128,14 @@ public class CardColorless {
     }
 
     public static class RitualDagger extends _RitualDaggerT {
-        public RitualDagger() {
-            super("Ritual Dagger", Card.ATTACK, 1, 15, 3);
+        public RitualDagger(int dmg) {
+            super("Ritual Dagger", Card.ATTACK, 1, dmg, 3);
         }
     }
 
     public static class RitualDaggerP extends _RitualDaggerT {
-        public RitualDaggerP() {
-            super("Ritual Dagger+", Card.ATTACK, 1, 15, 5);
+        public RitualDaggerP(int dmg) {
+            super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5);
         }
     }
 }

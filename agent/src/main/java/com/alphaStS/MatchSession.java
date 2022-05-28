@@ -406,6 +406,9 @@ public class MatchSession {
                 }
                 return l;
             });
+            if (state.prop.ritualDaggerCounterIdx >= 0) {
+                daggerKilledEnemy.putIfAbsent(r, 0);
+            }
             if (state.isTerminal() > 0) {
                 for (int i = 0; i < state.prop.potions.size(); i++) {
                     if (state.potionsState[i * 3 + 2] == 1 && state.potionsState[i * 3] == 0) {
@@ -413,11 +416,10 @@ public class MatchSession {
                         l.set(i, l.get(i) + 1);
                     }
                 }
-            }
-            if (state.prop.ritualDaggerCounterIdx >= 0) {
-                daggerKilledEnemy.putIfAbsent(r, 0);
-                if (state.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0) {
-                    daggerKilledEnemy.computeIfPresent(r, (k, x) -> x + 1);
+                if (state.prop.ritualDaggerCounterIdx >= 0) {
+                    if (state.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0) {
+                        daggerKilledEnemy.computeIfPresent(r, (k, x) -> x + 1);
+                    }
                 }
             }
             game_i += 1;

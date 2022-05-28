@@ -41,7 +41,7 @@ public class EnemyList extends EnemyListReadOnly {
 
         @Override public boolean hasNext() {
             while (i < enemies.enemies.length) {
-                if (enemies.enemies[i].getHealth() > 0) {
+                if (enemies.enemies[i].isAlive()) {
                     return true;
                 }
                 i++;

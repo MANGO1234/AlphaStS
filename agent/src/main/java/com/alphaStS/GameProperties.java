@@ -60,8 +60,11 @@ public class GameProperties implements Cloneable {
     public boolean hasMedicalKit;
     public boolean hasOddMushroom;
     public boolean hasRunicPyramid;
+    public boolean hasSacredBark;
     public boolean hasStrangeSpoon;
     public boolean hasTurnip;
+    public boolean hasChampionBelt;
+    public boolean hasPaperPhrog;
 
     public int normalityCounterIdx = -1;
     public int penNibCounterIdx = -1;

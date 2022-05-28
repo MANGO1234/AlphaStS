@@ -136,6 +136,14 @@ public abstract class EnemyReadOnly {
         return moveHistory;
     }
 
+    public boolean isAlive() {
+        return health > 0;
+    }
+
+    public boolean isTargetable() {
+        return health > 0;
+    }
+
     public String toString(GameState state) {
         String str = this.getName() + "{hp=" + health;
         if (strength != 0) {

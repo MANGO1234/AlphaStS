@@ -34,7 +34,7 @@ public class Player extends PlayerReadOnly {
         if (health < 0) {
             health = 0;
         }
-        return health - startHealth;
+        return startHealth - health;
     }
 
     public int heal(int n) {

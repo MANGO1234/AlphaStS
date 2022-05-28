@@ -88,7 +88,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(DebuffType.VULNERABLE, 1 + 1);
+                        enemy.applyDebuff(state, DebuffType.VULNERABLE, 1 + 1);
                     }
                 }
             });
@@ -259,11 +259,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class PreservedInsect extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            if (isEliteFight(state)) {
-                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    enemy.setHealth(enemy.getHealth() * 3 / 4);
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    if (isEliteFight(state)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.setHealth(enemy.getHealth() * 3 / 4);
+                        }
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -746,7 +750,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
         }
     }
 
-    // todo: Sacred Bark
+
+    public static class SacredBark extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasSacredBark = true;
+        }
+    }
 
     public static class SlaversCollar extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -797,7 +806,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(DebuffType.WEAK, 1 + 1);
+                        enemy.applyDebuff(state, DebuffType.WEAK, 1 + 1);
                     }
                 }
             });
@@ -893,6 +902,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                     }
                 }
             });
+        }
+    }
+
+    public static class PaperPhrog extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasPaperPhrog = true;
+        }
+    }
+
+    public static class ChampionBelt extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasChampionBelt = true;
         }
     }
 }

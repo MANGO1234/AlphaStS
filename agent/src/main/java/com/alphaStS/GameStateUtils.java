@@ -19,7 +19,7 @@ public class GameStateUtils {
             state.isStochastic = true;
         }
         for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
-            if (state.getEnemiesForRead().get(i).getHealth() > 0) {
+            if (state.getEnemiesForRead().get(i).isAlive()) {
                 enemyIdx--;
                 if (enemyIdx < 0) {
                     return i;

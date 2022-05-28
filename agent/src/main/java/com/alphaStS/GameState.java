@@ -284,7 +284,7 @@ public class GameState implements State {
         }
         energyRefill = 3;
         this.enemies = new EnemyList(enemiesArg);
-        enemiesAlive = (int) enemiesArg.stream().filter((x) -> x.getHealth() > 0).count();
+        enemiesAlive = (int) enemiesArg.stream().filter(EnemyReadOnly::isAlive).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
         for (int i = 0; i < deck.length; i++) { // todo: edge case more innate than first turn draw
@@ -332,6 +332,9 @@ public class GameState implements State {
         }
         for (int i = 0; i < getEnemiesForRead().size(); i++) { // need to use i because setup can modify other enemies
             getEnemiesForRead().get(i).gamePropertiesSetup(this);
+        }
+        for (int i = 0; i < potions.size(); i++) { // need to use i because setup can modify other enemies
+            potions.get(i).gamePropertiesSetup(this);
         }
         prop.compileCounterInfo();
         if (prop.counterNames.length > 0) {
@@ -388,9 +391,9 @@ public class GameState implements State {
         }
         prop.inputLen = getNNInputLen();
         var outputIdx = 0;
-        if (prop.ritualDaggerCounterIdx >= 0) {
-            prop.ritualDaggerVArrayIdx = outputIdx++;
-        }
+//        if (prop.ritualDaggerCounterIdx >= 0) {
+//            prop.ritualDaggerVArrayIdx = outputIdx++;
+//        }
         prop.extraOutputLen = outputIdx;
 
         // mcts related fields
@@ -603,6 +606,9 @@ public class GameState implements State {
                 deckArr[i] = deckArr[deckArrLen - 1];
                 deckArrLen -= 1;
             }
+            for (var handler : prop.onCardDrawnHandlers) {
+                handler.handle(this, prop.cardDict[i]);
+            }
         }
     }
 
@@ -683,13 +689,17 @@ public class GameState implements State {
 
         do {
             if (actionCtx == GameActionCtx.SELECT_ENEMY) {
-                if (enemiesAlive == 1) {
-                    for (int i = 0; i < enemies.size(); i++) {
-                        if (enemies.get(i).getHealth() > 0) {
-                            lastEnemySelected = i;
-                            setActionCtx(prop.cardDict[cardIdx].play(this, i), action);
-                        }
+                int targetableEnemies = 0;
+                int idx = -1;
+                for (int i = 0; i < enemies.size(); i++) {
+                    if (enemies.get(i).isTargetable()) {
+                        targetableEnemies++;
+                        idx = i;
                     }
+                }
+                if (targetableEnemies == 1) {
+                    lastEnemySelected = idx;
+                    setActionCtx(prop.cardDict[cardIdx].play(this, idx), action);
                 } else if (selectIdx >= 0) {
                     lastEnemySelected = selectIdx;
                     setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
@@ -785,13 +795,17 @@ public class GameState implements State {
 
         do {
             if (actionCtx == GameActionCtx.SELECT_ENEMY) {
-                if (enemiesAlive == 1) {
-                    for (int i = 0; i < enemies.size(); i++) {
-                        if (enemies.get(i).getHealth() > 0) {
-                            lastEnemySelected = i;
-                            setActionCtx(prop.potions.get(potionIdx).use(this, i), action);
-                        }
+                int targetableEnemies = 0;
+                int idx = -1;
+                for (int i = 0; i < enemies.size(); i++) {
+                    if (enemies.get(i).isTargetable()) {
+                        targetableEnemies++;
+                        idx = i;
                     }
+                }
+                if (targetableEnemies == 1) {
+                    lastEnemySelected = idx;
+                    setActionCtx(prop.potions.get(potionIdx).use(this, idx), action);
                 } else if (selectIdx >= 0) {
                     lastEnemySelected = selectIdx;
                     setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
@@ -854,10 +868,10 @@ public class GameState implements State {
         var enemies = getEnemiesForWrite();
         for (int i = 0; i < enemies.size(); i++) {
             var enemy = enemies.get(i);
-            if (enemy.getHealth() > 0) {
+            if (enemy.isAlive()) {
                 var enemy2 = enemies.getForWrite(i);
-                enemy2.nextMove(this, getSearchRandomGen());
                 enemy2.endTurn();
+                enemy2.nextMove(this, getSearchRandomGen());
             }
         }
         draw(5);
@@ -904,7 +918,7 @@ public class GameState implements State {
         var enemies = getEnemiesForWrite();
         for (int i = 0; i < enemies.size(); i++) {
             var enemy = enemies.get(i);
-            if (enemy.getHealth() > 0) {
+            if (enemy.isAlive()) {
                 var enemy2 = enemies.getForWrite(i);
                 enemy2.startTurn();
                 enemy2.doMove(this);
@@ -920,12 +934,12 @@ public class GameState implements State {
         GameAction action = prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         int ret = 0;
         if (action.type() == GameActionType.BEGIN_BATTLE) {
-            for (GameEventHandler handler : prop.startOfBattleHandlers) {
-                handler.handle(this);
-            }
             if (prop.randomization != null) {
                 ret = prop.randomization.randomize(this);
                 isStochastic = true;
+            }
+            for (GameEventHandler handler : prop.startOfBattleHandlers) {
+                handler.handle(this);
             }
             startTurn();
             setActionCtx(GameActionCtx.PLAY_CARD, null);
@@ -998,7 +1012,15 @@ public class GameState implements State {
                     return false;
                 }
                 if (cost >= 0 && cost <= energy) {
-//                    if (prop.cardDict[a[action].idx()].cardName.equals("Defend")) {
+                    if (prop.cardDict[a[action].idx()].selectEnemy) {
+                        for (int i = 0; i < enemies.size(); i++) {
+                            if (enemies.get(i).isTargetable()) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                    //                    if (prop.cardDict[a[action].idx()].cardName.equals("Defend")) {
 //                        var dmg = 0;
 //                        for (var enemy : enemies) {
 //                            if (enemy.getHealth() > 0 && enemy.getMoveString(this).startsWith("Attack ")) {
@@ -1028,7 +1050,7 @@ public class GameState implements State {
             if (action < 0 || action >= a.length) {
                 return false;
             }
-            return enemies.get(a[action].idx()).getHealth() > 0;
+            return enemies.get(a[action].idx()).isAlive();
         } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -1070,7 +1092,7 @@ public class GameState implements State {
         }
         boolean allDead = true;
         for (var enemy : enemies) {
-            if (enemy.getHealth() > 0) {
+            if (enemy.isAlive()) {
                 allDead = false;
                 break;
             }
@@ -1096,7 +1118,7 @@ public class GameState implements State {
             return -1;
         } else {
             for (var enemy : enemies) {
-                if (enemy.getHealth() > 0) {
+                if (enemy.isAlive()) {
                     return 0;
                 }
             }
@@ -1215,7 +1237,7 @@ public class GameState implements State {
         str.append(", [");
         int eAlive = 0;
         for (var enemy : enemies) {
-            if (enemy.getHealth() > 0) {
+            if (enemy.isAlive()) {
                 str.append(enemy.toString(this));
                 if (++eAlive < enemiesAlive) {
                     str.append(", ");
@@ -1324,6 +1346,9 @@ public class GameState implements State {
         int inputLen = 0;
         inputLen += prop.realCardsLen;
         inputLen += hand.length;
+        if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
+            inputLen += 1;
+        }
         inputLen += prop.discardIdxes.length;
         if (prop.selectFromExhaust) {
             inputLen += prop.realCardsLen;
@@ -1468,6 +1493,9 @@ public class GameState implements State {
         str += "Neural Network Input Breakdown (" + prop.inputLen + " inputs):\n";
         str += "    " + prop.realCardsLen + " inputs for cards in deck\n";
         str += "    " + hand.length + " inputs for cards in hand\n";
+        if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
+            str += "    1 input for number of cards in hand\n";
+        }
         str += "    " + prop.discardIdxes.length + " inputs to keep track of cards in discard\n";
         if (prop.selectFromExhaust) {
             str += "    " + prop.realCardsLen + " inputs for cards in exhaust\n";
@@ -1617,8 +1645,13 @@ public class GameState implements State {
         for (int i = 0; i < prop.realCardsLen; i++) {
             x[idx++] = deck[i] / (float) 10.0;
         }
+        int cardsInHand = 0;
         for (int j : hand) {
+            cardsInHand += j;
             x[idx++] = j / (float) 10.0;
+        }
+        if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
+            x[idx++] = (cardsInHand - 5) / 10.0f;
         }
         for (int i = 0; i < prop.discardIdxes.length; i++) {
             x[idx++] = discard[prop.discardIdxes[i]] / (float) 10.0;
@@ -1733,7 +1766,7 @@ public class GameState implements State {
             }
         }
         for (var enemy : enemies) {
-            if (enemy.getHealth() > 0) {
+            if (enemy.isAlive()) {
                 x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
                 if (prop.enemyCanGetVuln) {
                     x[idx++] = enemy.getVulnerable() / (float) 10.0;
@@ -2155,7 +2188,7 @@ public class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getVulnerable() > 0) {
-            dmg = dmg + dmg / 2;
+            dmg = dmg + (prop.hasPaperPhrog ? dmg * 3 / 4 : dmg / 2);
         }
         if (player.getWeak() > 0) {
             dmg = dmg * 3 / 4;
@@ -2163,9 +2196,9 @@ public class GameState implements State {
         if (prop.hasBoot && dmg < 5) {
             dmg = 5;
         }
-        if (enemy.getHealth() > 0) {
+        if (enemy.isAlive()) {
             enemy.damage(dmg, this);
-            if (enemy.getHealth() <= 0) {
+            if (!enemy.isAlive()) {
                 enemiesAlive -= 1;
                 return true;
             }
@@ -2183,9 +2216,9 @@ public class GameState implements State {
     }
 
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
-        if (enemy.getHealth() > 0) {
+        if (enemy.isAlive()) {
             enemy.nonAttackDamage(dmg, blockable, this);
-            if (enemy.getHealth() <= 0) {
+            if (!enemy.isAlive()) {
                 enemiesAlive -= 1;
             }
         }
@@ -2205,7 +2238,7 @@ public class GameState implements State {
             dmg = dmg * 3 / 4;
         }
         for (int i = 0; i < times; i++) {
-            if (enemy.getHealth() <= 0 || enemy.getMove() != move) { // dead or interrupted
+            if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return;
             }
             int dmgDealt = player.damage(dmg);
@@ -2334,14 +2367,14 @@ public class GameState implements State {
     }
 
     public void killEnemy(int i) {
-        if (getEnemiesForRead().get(i).getHealth() > 0) {
+        if (getEnemiesForRead().get(i).isAlive()) {
             getEnemiesForWrite().getForWrite(i).setHealth(0);
             enemiesAlive -= 1;
         }
     }
 
     public void reviveEnemy(int idx) {
-        if (getEnemiesForRead().get(idx).getHealth() <= 0) {
+        if (!getEnemiesForRead().get(idx).isAlive()) {
             getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
             getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), false);
             getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());

@@ -128,7 +128,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 8);
-            enemy.applyDebuff(DebuffType.VULNERABLE, 2);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -143,7 +143,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 10);
-            enemy.applyDebuff(DebuffType.VULNERABLE, 3);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 3);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -368,7 +368,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 12);
-            enemy.applyDebuff(DebuffType.WEAK, 2);
+            enemy.applyDebuff(state, DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -383,7 +383,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 14);
-            enemy.applyDebuff(DebuffType.WEAK, 3);
+            enemy.applyDebuff(state, DebuffType.WEAK, 3);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -688,7 +688,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 4);
-                enemy.applyDebuff(DebuffType.VULNERABLE, 1);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -703,7 +703,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 7);
-                enemy.applyDebuff(DebuffType.VULNERABLE, 1);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1164,7 +1164,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.LOSE_STRENGTH, 2);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1178,7 +1178,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.LOSE_STRENGTH, 3);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1654,7 +1654,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(DebuffType.WEAK, 1);
+                enemy.applyDebuff(state, DebuffType.WEAK, 1);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1668,7 +1668,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(DebuffType.WEAK, 2);
+                enemy.applyDebuff(state, DebuffType.WEAK, 2);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2106,8 +2106,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(DebuffType.WEAK, 3);
-                enemy.applyDebuff(DebuffType.VULNERABLE, 3);
+                enemy.applyDebuff(state, DebuffType.WEAK, 3);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 3);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2123,8 +2123,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.applyDebuff(DebuffType.WEAK, 5);
-                enemy.applyDebuff(DebuffType.VULNERABLE, 5);
+                enemy.applyDebuff(state, DebuffType.WEAK, 5);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 5);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2171,8 +2171,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 13);
-            enemy.applyDebuff(DebuffType.WEAK, 1);
-            enemy.applyDebuff(DebuffType.VULNERABLE, 1);
+            enemy.applyDebuff(state, DebuffType.WEAK, 1);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2188,8 +2188,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public GameActionCtx play(GameState state, int idx) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 13);
-            enemy.applyDebuff(DebuffType.WEAK, 2);
-            enemy.applyDebuff(DebuffType.VULNERABLE, 2);
+            enemy.applyDebuff(state, DebuffType.WEAK, 2);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }

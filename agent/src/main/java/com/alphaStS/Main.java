@@ -505,7 +505,7 @@ public class Main {
         builder.addCard(new Card.Disarm(), 1);
         builder.addCard(new Card.Impervious(), 1);
         builder.addCard(new Card.Shockwave(), 1);
-        builder.addCard(new CardColorless.RitualDaggerP(), 1);
+        builder.addCard(new CardColorless.RitualDaggerP(15), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
@@ -548,8 +548,78 @@ public class Main {
         return new GameState(builder);
     }
 
+    public static GameState TestState9() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardColorless.Bite(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.InflameP(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addCard(new Card.Combust(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 2);
+        builder.addCard(new Card.BattleTranceP(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.PommelStrikeP(), 1);
+        builder.addCard(new Card.Corruption(), 1);
+        builder.addCard(new Card.Havoc(), 1);
+        builder.addCard(new Card.FlameBarrier(), 1);
+        builder.addCard(new Card.SeeingRedP(), 1);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.Impervious(), 1);
+        builder.addCard(new Card.Shockwave(), 1);
+        builder.addCard(new CardColorless.RitualDaggerP(30), 1);
+        builder.addCard(new Card.BrutalityP(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.Shockwave(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 1);
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.PhilosophersStone());
+        builder.addRelic(new Relic.RedMask());
+        builder.addRelic(new Relic.AncientTeaSet());
+        builder.addRelic(new Relic.HornCleat());
+        builder.addRelic(new Relic.BurningBlood());
+        builder.addRelic(new Relic.BottledLightning(new Card.BattleTranceP()));
+        builder.addRelic(new Relic.Shuriken());
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.OddlySmoothStone());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.addRelic(new Relic.PaperPhrog());
+        builder.addRelic(new Relic.ChampionBelt());
+        builder.addRelic(new Relic.SacredBark());
+        EnemyEncounter.addAwakenedOneFight(builder);
+        builder.addPotion(new Potion.LiquidMemory());
+//        builder.addPotion(new Potion.BlessingOfTheForge());
+        builder.setPlayer(new Player(49, 60));
+        return new GameState(builder);
+    }
+
+    public static GameState TestState10() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.Exhume(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.WildStrike(), 2);
+        builder.addCard(new Card.SecondWind(), 1);
+        builder.addCard(new Card.Inflame(), 1);
+        builder.addEnemy(new Enemy.TheGuardian());
+        builder.addRelic(new Relic.ArtOfWar());
+        builder.addPotion(new Potion.WeakPotion());
+//        builder.addPotion(new Potion.DuplicationPotion());
+        builder.setPlayer(new Player(44, 85));
+        return new GameState(builder);
+    }
+
     public static void main(String[] args) throws IOException {
-       var state = TestState7();
+       var state = TestState10();
 //        System.out.println(state.prop.randomization.listRandomizations());
 //                state.prop.randomization = state.prop.randomization.collapse("Randomize Gremlin Leader Fight");
 //        state.prop.randomization = state.prop.randomization.fixR(6);

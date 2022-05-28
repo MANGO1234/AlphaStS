@@ -91,7 +91,7 @@ public abstract class Enemy extends EnemyReadOnly {
             weak -= 1;
         }
         if (loseStrengthEot != 0) {
-            applyDebuff(DebuffType.LOSE_STRENGTH, loseStrengthEot);
+            applyDebuff(null, DebuffType.LOSE_STRENGTH, loseStrengthEot);
             loseStrengthEot = 0;
         }
         if (metallicize > 0) {
@@ -109,7 +109,7 @@ public abstract class Enemy extends EnemyReadOnly {
     public void react(GameState state, Card card) {
     }
 
-    public boolean applyDebuff(DebuffType type, int n) {
+    public boolean applyDebuff(GameState state, DebuffType type, int n) {
         if (health <= 0) {
             return false;
         }
@@ -118,7 +118,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return false;
         }
         switch (type) {
-        case VULNERABLE -> this.vulnerable += n;
+        case VULNERABLE -> {
+            this.vulnerable += n;
+            if (state.prop.hasChampionBelt) {
+                this.weak += 1;
+            }
+        }
         case WEAK -> this.weak += n;
         case LOSE_STRENGTH -> this.gainStrength(-n);
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
@@ -1519,7 +1524,9 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void endTurn() {
             super.endTurn();
-            gainStrength(5);
+            if (move == DARK_STRIKE) {
+                gainStrength(5);
+            }
         }
 
         @Override public void doMove(GameState state) {

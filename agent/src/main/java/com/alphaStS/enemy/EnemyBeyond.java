@@ -23,11 +23,13 @@ public class EnemyBeyond {
             super(health, 6);
             canGainStrength = true;
             moveHistory = new int[1];
+            strength = 2;
         }
 
         public AwakenedOne(EnemyBeyond.AwakenedOne other) {
             this(other.health);
             setSharedFields(other);
+            awakened = other.awakened;
         }
 
         @Override public Enemy copy() {
@@ -36,18 +38,45 @@ public class EnemyBeyond {
 
         @Override public void damage(int n, GameState state) {
             super.damage(n, state);
-            if (!awakened && health <= 0) {
-                awakened = true;
-                move = REBIRTH;
+            if (health <= 0) {
+                if (!awakened) {
+                    move = REBIRTH;
+                } else {
+                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                        state.killEnemy(i);
+                    }
+                }
             }
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
-            if (!awakened && health <= 0) {
-                awakened = true;
-                move = REBIRTH;
+            if (health <= 0) {
+                if (!awakened) {
+                    move = REBIRTH;
+                } else {
+                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                        state.killEnemy(i);
+                    }
+                }
             }
+        }
+
+        @Override public void startTurn() {
+            super.startTurn();
+            heal(15);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var idx = state.getEnemiesForRead().find(this);
+            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card) {
+                    var enemy = state.getEnemiesForRead().get(idx);
+                    if (card.cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
+                        state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
+                    }
+                }
+            });
         }
 
         @Override public void doMove(GameState state) {
@@ -58,6 +87,7 @@ public class EnemyBeyond {
             } else if (move == REBIRTH) {
                 removeAllDebuffs();
                 health = maxHealth;
+                awakened = true;
             } else if (move == DARK_ECHO) {
                 state.enemyDoDamageToPlayer(this, 40, 1);
             } else if (move == SLUDGE) {
@@ -79,9 +109,15 @@ public class EnemyBeyond {
             } else if (!awakened) {
                 int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (r < 25) {
-                    newMove = SOUL_STRIKE;
-                } else {
+                    if (move != SOUL_STRIKE) {
+                        newMove = SOUL_STRIKE;
+                    } else {
+                        newMove = SLASH;
+                    }
+                } else if (move != SLASH || moveHistory[0] != SLASH) {
                     newMove = SLASH;
+                } else {
+                    newMove = SOUL_STRIKE;
                 }
             } else {
                 if (move == REBIRTH) {
@@ -89,9 +125,17 @@ public class EnemyBeyond {
                 } else {
                     int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                     if (r < 50) {
-                        newMove = TACKLE;
+                        if (move != TACKLE || moveHistory[0] != TACKLE) {
+                            newMove = TACKLE;
+                        } else {
+                            newMove = SLUDGE;
+                        }
                     } else {
-                        newMove = SLUDGE;
+                        if (move != SLUDGE || moveHistory[0] != SLUDGE) {
+                            newMove = SLUDGE;
+                        } else {
+                            newMove = TACKLE;
+                        }
                     }
                 }
             }
@@ -116,6 +160,14 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
+        @Override public boolean isAlive() {
+            return !awakened || health > 0;
+        }
+
+        @Override public boolean isTargetable() {
+            return health > 0 && move != REBIRTH;
+        }
+
         @Override public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(32, RandomGenCtx.Other) + 1;
             if (training) {
@@ -133,6 +185,9 @@ public class EnemyBeyond {
         @Override public String getName() {
             return "Awakened One";
         }
-    }
 
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && awakened == ((EnemyBeyond.AwakenedOne) o).awakened;
+        }
+    }
 }

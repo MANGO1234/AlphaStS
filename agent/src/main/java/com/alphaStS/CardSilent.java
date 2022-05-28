@@ -10,7 +10,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3);
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.WEAK, 1);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 1);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -24,7 +24,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 4);
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.WEAK, 2);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
         }
     }

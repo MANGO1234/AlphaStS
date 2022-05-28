@@ -1,8 +1,11 @@
 package com.alphaStS;
 
-import java.util.List;
+import com.alphaStS.enemy.Enemy;
 
-public abstract class Potion {
+import java.util.List;
+import java.util.Objects;
+
+public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean vulnEnemy;
     boolean weakEnemy;
     boolean changePlayerStrength;
@@ -12,10 +15,15 @@ public abstract class Potion {
     boolean healPlayer;
     boolean selectFromHand;
     boolean selectFromDiscard;
+    int counterIdx = -1;
+
+    public void setCounterIdx(GameProperties gameProperties, int idx) {
+        counterIdx = idx;
+    }
 
     public abstract GameActionCtx use(GameState state, int idx);
-    public abstract GameActionCtx useDouble(GameState state, int idx);
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    public void gamePropertiesSetup(GameState state) {}
 
     public static class VulnerablePotion extends Potion {
         public VulnerablePotion() {
@@ -24,12 +32,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.VULNERABLE, 3);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.VULNERABLE, 6);
+            int n = state.prop.hasSacredBark ? 6 : 3;
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -45,12 +49,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.WEAK, 3);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(DebuffType.WEAK, 6);
+            int n = state.prop.hasSacredBark ? 6 : 3;
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -65,12 +65,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20, true);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 40, true);
+            int n = state.prop.hasSacredBark ? 40 : 20;
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -85,12 +81,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getPlayerForWrite().gainStrength(2);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.getPlayerForWrite().gainStrength(4);
+            int n = state.prop.hasSacredBark ? 4 : 2;
+            state.getPlayerForWrite().gainStrength(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -105,12 +97,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getPlayerForWrite().gainDexterity(2);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.getPlayerForWrite().gainDexterity(4);
+            int n = state.prop.hasSacredBark ? 4 : 2;
+            state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -125,12 +113,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.healPlayer(state.getPlayeForRead().getMaxHealth() * 2 / 10);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.healPlayer(state.getPlayeForRead().getMaxHealth() * 4 / 10);
+            int n = state.prop.hasSacredBark ? 4 : 2;
+            state.healPlayer(state.getPlayeForRead().getMaxHealth() * n / 10);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -145,12 +129,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getPlayerForWrite().gainArtifact(1);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.getPlayerForWrite().gainArtifact(2);
+            int n = state.prop.hasSacredBark ? 2 : 1;
+            state.getPlayerForWrite().gainArtifact(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -164,12 +144,8 @@ public abstract class Potion {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.gainEnergy(2);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            state.gainEnergy(4);
+            int n = state.prop.hasSacredBark ? 4 : 2;
+            state.gainEnergy(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -198,11 +174,16 @@ public abstract class Potion {
                 state.removeCardFromDiscard(idx);
                 state.addCardToHand(idx);
             }
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            return use(state, idx);
+            if (state.prop.hasSacredBark) {
+                state.getCounterForWrite()[counterIdx]++;
+                if (state.getCounterForWrite()[counterIdx] == 2) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                    return GameActionCtx.PLAY_CARD;
+                }
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                return GameActionCtx.PLAY_CARD;
+            }
         }
 
         @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
@@ -212,14 +193,28 @@ public abstract class Potion {
         @Override public String toString() {
             return "Liquid Memory";
         }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("LiquidMemory", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int counter = state.getCounterForRead()[counterIdx];
+                    input[idx] = counter / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
     }
 
     public static class DistilledChaos extends Potion {
         public DistilledChaos() {
         }
 
-        public GameActionCtx useHelper(GameState state, int times) {
-            for (int i = 0; i < times; i++) {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 6 : 3;
+            for (int i = 0; i < n; i++) {
                 state.addGameActionToStartOfDeque(curState -> {
                     int cardIdx = curState.drawOneCardSpecial();
                     if (cardIdx < 0) {
@@ -243,16 +238,31 @@ public abstract class Potion {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public GameActionCtx use(GameState state, int idx) {
-            return useHelper(state, 3);
+        @Override public String toString() {
+            return "Distilled Chaos";
+        }
+    }
+
+    public static class BlessingOfTheForge extends Potion {
+        public BlessingOfTheForge() {
         }
 
-        @Override public GameActionCtx useDouble(GameState state, int idx) {
-            return useHelper(state, 6);
+        @Override public GameActionCtx use(GameState state, int idx) {
+            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
+                    state.hand[i] = 0;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
         }
 
         @Override public String toString() {
-            return "Distilled Chaos";
+            return "Blessing of the Forge";
         }
     }
 }
