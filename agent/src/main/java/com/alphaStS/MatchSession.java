@@ -277,14 +277,14 @@ public class MatchSession {
                                 loss1.incrementAndGet();
                             }
                         }
-                        if (termState1.isTerminal() == 1 && q1 != q2) {
+                        if ((termState1.isTerminal() == 1 && termState2.isTerminal() == 1) && q1 != q2) {
                             if (q1 > q2) {
                                 winQ.incrementAndGet();
                             } else {
                                 lossQ.incrementAndGet();
                             }
                         }
-                        if (termState1.isTerminal() == 1 && termState1.getPlayeForRead().getHealth() != termState2.getPlayeForRead().getHealth()) {
+                        if ((termState1.isTerminal() == 1 && termState2.isTerminal() == 1) && termState1.getPlayeForRead().getHealth() != termState2.getPlayeForRead().getHealth()) {
                             if (termState1.getPlayeForRead().getHealth() > termState2.getPlayeForRead().getHealth()) {
                                 win2.incrementAndGet();
                                 dmgDiff1.addAndGet(termState1.getPlayeForRead().getHealth() - termState2.getPlayeForRead().getHealth());
@@ -294,7 +294,7 @@ public class MatchSession {
                             }
                             dmgDiff.addAndGet(termState1.getPlayeForRead().getHealth() - termState2.getPlayeForRead().getHealth());
                         }
-                        if (termState1.isTerminal() == 1 && potionsRem1 != potionsRem2) {
+                        if ((termState1.isTerminal() == 1 && termState2.isTerminal() == 1) && potionsRem1 != potionsRem2) {
                             if (potionsRem1 > potionsRem2) {
                                 win3.incrementAndGet();
                             } else {
@@ -304,7 +304,7 @@ public class MatchSession {
                         if (state.prop.ritualDaggerCounterIdx >= 0) {
                             var daggerUsed1 = termState1.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0;
                             var daggerUsed2 = termState2.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0;
-                            if (termState1.isTerminal() == 1 && daggerUsed1 != daggerUsed2) {
+                            if ((termState1.isTerminal() == 1 && termState2.isTerminal() == 1) && daggerUsed1 != daggerUsed2) {
                                 if (daggerUsed1) {
                                     win4.incrementAndGet();
                                 } else {

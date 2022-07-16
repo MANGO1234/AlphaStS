@@ -9,10 +9,7 @@ import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
 import com.alphaStS.utils.Utils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 record NNOutput(float v_health, float v_win, double[] v_other, float[] policy, int[] legalActions) {
 }
@@ -49,6 +46,25 @@ public class Model {
         double sum = 0.0;
         for (int i = 0; i < input.length; i++) {
             double val = Math.exp(input[i] - max);
+            sum += val;
+            tmp[i] = val;
+        }
+        float[] output = new float[input.length];
+        for (int i = 0; i < output.length; i++) {
+            output[i] = (float) (tmp[i] / sum);
+        }
+        return output;
+    }
+
+    public static float[] softmax(float[] input, float temp) {
+        double[] tmp = new double[input.length];
+        float max = Float.MIN_VALUE;
+        for (int i = 0; i < input.length; i++) {
+            max = Math.max(max, input[i] / temp);
+        }
+        double sum = 0.0;
+        for (int i = 0; i < input.length; i++) {
+            double val = Math.exp(input[i] / temp - max);
             sum += val;
             tmp[i] = val;
         }

@@ -612,7 +612,7 @@ public class Main {
         builder.addCard(new Card.Inflame(), 1);
         builder.addEnemy(new Enemy.TheGuardian());
         builder.addRelic(new Relic.ArtOfWar());
-        builder.addPotion(new Potion.WeakPotion());
+//        builder.addPotion(new Potion.WeakPotion());
 //        builder.addPotion(new Potion.DuplicationPotion());
         builder.setPlayer(new Player(44, 85));
         return new GameState(builder);
@@ -620,6 +620,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
        var state = TestState10();
+//        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
 //        System.out.println(state.prop.randomization.listRandomizations());
 //                state.prop.randomization = state.prop.randomization.collapse("Randomize Gremlin Leader Fight");
 //        state.prop.randomization = state.prop.randomization.fixR(6);

@@ -381,7 +381,6 @@ public class GameState implements State {
         prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
         prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
-       prop.selectFromExhaust = true;
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
 //        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);

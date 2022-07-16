@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.utils.Utils;
+import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
 import static java.lang.Math.sqrt;
 
@@ -621,6 +622,7 @@ public class MCTS {
         if (training) {
             if (isRoot) {
                 if (state.policyMod == null) {
+                    state.policyMod = Model.softmax(state.policy, 1.25f);
                     state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
                 }
                 policy = state.policyMod;
@@ -799,6 +801,44 @@ public class MCTS {
                         actionToPropagate = i;
                     }
                 }
+            }
+            return actionToPropagate;
+        }
+    }
+
+    public static int getActionWithMaxLCBOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
+        if (state.terminal_action >= 0) {
+            return state.terminal_action;
+        }
+        ClopperPearsonInterval interval = new ClopperPearsonInterval();
+        if (state.total_n == 0) {
+            int actionToPropagate = -1;
+            float max_p = -1000.0f;
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (state.policy[i] > max_p) {
+                    max_p = state.policy[i];
+                    actionToPropagate = i;
+                }
+            }
+            return actionToPropagate;
+        } else {
+            int actionToPropagate = -1;
+            double max_n = -1000;
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (state.n[i] > 0 && (bannedActions == null || !bannedActions.contains(state.getAction(i)))) {
+                    var nS = (int) Math.floor(state.q_comb[i]);
+                    var k = -10.0;
+                    if (state.n[i] / (double) state.total_n >= 0.15 && nS > 0) {
+                        k = interval.createInterval(state.n[i], nS, 0.00001).getLowerBound();
+                    }
+                    if (k > max_n) {
+                        max_n = k;
+                        actionToPropagate = i;
+                    }
+                }
+            }
+            if (max_n == -10.0) {
+                return getActionWithMaxNodesOrTerminal(state, bannedActions);
             }
             return actionToPropagate;
         }
