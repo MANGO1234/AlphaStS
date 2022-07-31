@@ -51,6 +51,10 @@ public class EnemyListReadOnly implements Iterable<EnemyReadOnly> {
         return -1;
     }
 
+    @Override public String toString() {
+        return Arrays.toString(enemies);
+    }
+
     private static class EnemyListIterator implements Iterator<EnemyReadOnly> {
         Enemy[] enemies;
         int i = 0;

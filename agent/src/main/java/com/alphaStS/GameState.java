@@ -111,6 +111,8 @@ public class GameState implements State {
     private int[] legalActions;
     double v_win; // if terminal, 1.0 or -1.0, else from NN
     double v_health; // if terminal, player_health/player_max_health, else from NN
+    double varianceM;
+    double varianceS;
     double[] v_other; // if terminal, player_health/player_max_health, else from NN
     double[] q_comb; // total q value propagated from each child
     double[] q_win; // total v_win value propagated from each child
@@ -324,6 +326,10 @@ public class GameState implements State {
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
         prop.upgradeIdxes = findUpgradeIdxes(cards, relics);
         prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
+        prop.discardReverseIdxes = new int[prop.realCardsLen];
+        for (int i = 0; i < prop.discardIdxes.length; i++) {
+            prop.discardReverseIdxes[prop.discardIdxes[i]] = i;
+        }
         for (Relic relic : relics) {
             relic.startOfGameSetup(this);
         }
@@ -375,6 +381,7 @@ public class GameState implements State {
         prop.enemyCanGetWeakened |= relics.stream().anyMatch((x) -> x.weakEnemy);
         prop.enemyCanGetWeakened |= potions.stream().anyMatch((x) -> x.weakEnemy);
         prop.enemyStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().affectEnemyStrengthEot);
+        prop.enemyStrengthCanChange = cards.stream().anyMatch((x) -> x.card().affectEnemyStrength);
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
         prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
@@ -662,14 +669,15 @@ public class GameState implements State {
 
     void playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy, boolean exhaustWhenPlayed) {
         int cardIdx = action.idx();
+        int energyCost = getCardEnergyCost(cardIdx);
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             hand[cardIdx] -= 1;
-            if (getCardEnergyCost(cardIdx) < 0) {
+            if (energyCost < 0) {
                 runActionsInQueueIfNonEmpty();
                 return;
             }
             if (useEnergy) {
-                energy -= getCardEnergyCost(cardIdx);
+                energy -= energyCost;
             }
             if (cardIdx >= prop.realCardsLen) {
                 cardIdx = prop.tmpCostCardIdxes[cardIdx];
@@ -698,10 +706,10 @@ public class GameState implements State {
                 }
                 if (targetableEnemies == 1) {
                     lastEnemySelected = idx;
-                    setActionCtx(prop.cardDict[cardIdx].play(this, idx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action);
                 } else if (selectIdx >= 0) {
                     lastEnemySelected = selectIdx;
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
                     break;
@@ -715,9 +723,9 @@ public class GameState implements State {
                 if (possibleChoicesCount == 0) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
                     break;
@@ -733,9 +741,9 @@ public class GameState implements State {
                 if (possibleChoicesCount == 0) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
                     break;
@@ -749,15 +757,15 @@ public class GameState implements State {
                 if (possibleChoicesCount == 0) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(prop.cardDict[cardIdx].play(this, -1), action);
+                setActionCtx(prop.cardDict[cardIdx].play(this, -1, energyCost), action);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
@@ -1278,6 +1286,7 @@ public class GameState implements State {
             str.append("/").append(formatFloat(v_other == null ? 0 : v_other[prop.ritualDaggerVArrayIdx]));
         }
         str.append(")");
+        str.append(", var=").append(formatFloat(varianceS / total_n));
         if (policy != null) {
             str.append(", q/p/n=[");
             first = true;
@@ -1454,7 +1463,7 @@ public class GameState implements State {
             if (enemy.canGainBlock) {
                 inputLen += 1; // enemy block
             }
-            if (enemy.canGainStrength) {
+            if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
                 inputLen += 1; // enemy strength
             }
             if (enemy.hasArtifact) {
@@ -1608,7 +1617,7 @@ public class GameState implements State {
             if (enemy.canGainBlock) {
                 str += "        1 input to keep track of block\n";
             }
-            if (enemy.canGainStrength) {
+            if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
                 str += "        1 input to keep track of strength\n";
             }
             if (enemy.hasArtifact) {
@@ -1776,7 +1785,7 @@ public class GameState implements State {
                 if (prop.enemyStrengthEotCanChange) {
                     x[idx++] = enemy.getLoseStrengthEot() / (float) 20.0;
                 }
-                if (enemy.canGainStrength) {
+                if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
                     x[idx++] = enemy.getStrength() / (float) 20.0;
                 }
                 if (enemy.canGainBlock) {
@@ -1828,7 +1837,7 @@ public class GameState implements State {
                 if (prop.enemyStrengthEotCanChange) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.canGainStrength) {
+                if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
                     x[idx++] = -0.1f;
                 }
                 if (enemy.canGainBlock) {
@@ -2249,15 +2258,18 @@ public class GameState implements State {
         }
     }
 
-    public int enemyCalcDamageToPlayer(Enemy enemy, int d) {
-        d += enemy.getStrength();
+    public int enemyCalcDamageToPlayer(Enemy enemy, int dmg) {
+        dmg += enemy.getStrength();
+        if (dmg < 0) {
+            dmg = 0;
+        }
+        if (player.getVulnerable() > 0) {
+            dmg = dmg + dmg / (prop.hasOddMushroom ? 4 : 2);
+        }
         if (enemy.getWeak() > 0) {
-            d = d * 3 / 4;
+            dmg = dmg * 3 / 4;
         }
-        if (getPlayeForRead().getVulnerable() > 0) {
-            d = d + d / 2;
-        }
-        return d;
+        return dmg;
     }
 
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable, Object source) {
@@ -2435,6 +2447,8 @@ class ChanceState implements State {
     double total_q_win;
     double total_q_health;
     double total_q_comb;
+    double varianceM;
+    double varianceS;
     List<GameState> queue;
     boolean queueDone;
     GameState parentState;
@@ -2477,6 +2491,10 @@ class ChanceState implements State {
 
     // currently doesn't do anything
     public void correctV(GameState state2, double[] v) {
+        var newVarianceM = varianceM + (v[GameState.V_COMB_IDX] - varianceM) / (total_n + 1);
+        var newVarianceS = varianceS + (v[GameState.V_COMB_IDX] - varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
+        varianceM = newVarianceM;
+        varianceS = newVarianceS;
         var node = cache.get(state2);
         if (node.revisit) {
 //            var new_total_q_comb = 0.0;

@@ -18,6 +18,7 @@ public class GameProperties implements Cloneable {
     public boolean playerCanHeal;
     public boolean enemyCanGetVuln;
     public boolean enemyCanGetWeakened;
+    public boolean enemyStrengthCanChange;
     public boolean enemyStrengthEotCanChange;
     public long possibleBuffs;
     public boolean needDeckOrderMemory;
@@ -35,6 +36,7 @@ public class GameProperties implements Cloneable {
     // cached card indexes
     public int realCardsLen; // not including CardTmpCostChange (due to liquid memory)
     public int[] discardIdxes; // cards that can change in number of copies during a fight
+    public int[] discardReverseIdxes;
     public int[] upgradeIdxes;
     public int[] tmpCostCardIdxes;
     public int angerCardIdx = -1;

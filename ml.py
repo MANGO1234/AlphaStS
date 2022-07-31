@@ -17,6 +17,12 @@ import tf2onnx
 from scipy.special import softmax
 from misc import getFlag, getFlagValue
 
+# tf.config.threading.set_intra_op_parallelism_threads(1)
+# tf.config.threading.set_inter_op_parallelism_threads(1)
+# os.environ["OMP_NUM_THREADS"] = f"1"
+# os.environ['TF_NUM_INTEROP_THREADS'] = f"1"
+# os.environ['TF_NUM_INTRAOP_THREADS'] = f"1"
+
 # rand.seed(5)
 # np.random.seed(5)
 # tf.random.set_seed(5)

@@ -53,7 +53,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         return energyCost;
     }
 
-    GameActionCtx play(GameState state, int idx) { return GameActionCtx.PLAY_CARD; }
+    GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     void onExhaust(GameState state) {}
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
     public boolean canSelectFromHand(Card card) { return true; }
@@ -111,7 +111,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             card.setCounterIdx(gameProperties, idx);
         }
 
-        GameActionCtx play(GameState state, int idx) { return card.play(state, idx); }
+        GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         void onExhaust(GameState state) { card.onExhaust(state); }
         List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
         public boolean canSelectFromHand(Card card) { return card.canSelectFromHand(card); }
@@ -125,7 +125,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 8);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
@@ -140,7 +140,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 10);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 3);
@@ -154,7 +154,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6);
             return GameActionCtx.PLAY_CARD;
         }
@@ -166,7 +166,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9);
             return GameActionCtx.PLAY_CARD;
         }
@@ -177,7 +177,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Defend", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
             return GameActionCtx.PLAY_CARD;
         }
@@ -189,7 +189,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             energyCost = 1;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(8);
             return GameActionCtx.PLAY_CARD;
         }
@@ -201,7 +201,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6);
             state.addCardToDiscard(state.prop.angerCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -214,7 +214,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 8);
             state.addCardToDiscard(state.prop.angerPCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -227,7 +227,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectFromHand = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
             if (idx >= 0) {
                 state.removeCardFromHand(idx);
@@ -250,7 +250,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Armanent+", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                 if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
@@ -272,7 +272,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getPlayeForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
@@ -284,7 +284,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getPlayeForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
@@ -296,7 +296,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 14);
             return GameActionCtx.PLAY_CARD;
         }
@@ -317,7 +317,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 18);
             return GameActionCtx.PLAY_CARD;
         }
@@ -337,7 +337,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Cleave", Card.ATTACK, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 8);
             }
@@ -350,7 +350,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Cleave+", Card.ATTACK, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 11);
             }
@@ -365,7 +365,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 12);
             enemy.applyDebuff(state, DebuffType.WEAK, 2);
@@ -380,7 +380,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 14);
             enemy.applyDebuff(state, DebuffType.WEAK, 3);
@@ -395,7 +395,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrengthEot = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
             player.gainStrength(2);
             player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 2);
@@ -409,7 +409,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
             player.gainStrength(4);
             player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 4);
@@ -424,8 +424,11 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             canExhaustAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int cardIdx = state.drawOneCardSpecial();
+            if (cardIdx < 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             if (state.prop.makingRealMove) {
                 if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                 state.stateDesc = state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
@@ -471,7 +474,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             putCardOnTopDeck = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9);
                 return GameActionCtx.SELECT_CARD_DISCARD;
@@ -491,7 +494,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectFromDiscardLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9);
                 return GameActionCtx.SELECT_CARD_DISCARD;
@@ -509,7 +512,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 14 + state.getPlayeForRead().getStrength() * 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -521,7 +524,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 14 + state.getPlayeForRead().getStrength() * 4);
             return GameActionCtx.PLAY_CARD;
         }
@@ -533,7 +536,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 5);
             state.getPlayerForWrite().gainBlock(5);
             return GameActionCtx.PLAY_CARD;
@@ -546,7 +549,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 7);
             state.getPlayerForWrite().gainBlock(7);
             return GameActionCtx.PLAY_CARD;
@@ -559,12 +562,16 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 0;
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
-                count += state.discard[state.prop.strikeCardIdxes[i]];
-                count += state.deck[state.prop.strikeCardIdxes[i]];
+                if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
+                    count += state.discard[state.prop.discardReverseIdxes[state.prop.strikeCardIdxes[i]]];
+                }
+                if (state.prop.strikeCardIdxes[i] < state.deck.length) {
+                    count += state.deck[state.prop.strikeCardIdxes[i]];
+                }
             }
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + 2 * count);
             return GameActionCtx.PLAY_CARD;
@@ -577,7 +584,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 0;
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
@@ -595,7 +602,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -608,7 +615,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
             state.draw(2);
             return GameActionCtx.PLAY_CARD;
@@ -620,7 +627,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Shrug It Off", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(8);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -632,7 +639,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Shrug It Off+", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(11);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -647,7 +654,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int _i = 0; _i < n; _i++) {
                 int enemy_j = 0;
                 if (state.enemiesAlive > 1) {
@@ -685,7 +692,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 4);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -700,7 +707,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             vulnEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 7);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -715,7 +722,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             canExhaustAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(7);
             int c = 0;
             int diffCards = 0;
@@ -746,7 +753,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             canExhaustAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(9);
             state.exhaustCardFromHand(idx);
             return GameActionCtx.PLAY_CARD;
@@ -759,7 +766,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 5);
             state.playerDoDamageToEnemy(enemy, 5);
@@ -773,7 +780,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 7);
             state.playerDoDamageToEnemy(enemy, 7);
@@ -789,7 +796,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.draw(1);
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -809,7 +816,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.draw(2);
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -827,7 +834,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12);
             state.addCardToDeck(state.prop.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -844,7 +851,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12);
             state.addCardToDeck(state.prop.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -860,7 +867,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Battle Trance", Card.SKILL, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.draw(3);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
@@ -872,7 +879,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Battle Trance+", Card.SKILL, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.draw(4);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
@@ -889,7 +896,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 18);
             return GameActionCtx.PLAY_CARD;
         }
@@ -932,7 +939,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 22);
             return GameActionCtx.PLAY_CARD;
         }
@@ -970,7 +977,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Bloodletting", Card.SKILL, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(3, false, this);
             state.gainEnergy(2);
             return GameActionCtx.PLAY_CARD;
@@ -982,7 +989,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Bloodletting+", Card.SKILL, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(3, false, this);
             state.gainEnergy(3);
             return GameActionCtx.PLAY_CARD;
@@ -996,10 +1003,14 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             canExhaustAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
-            state.draw(2);
-            state.exhaustCardFromHand(idx);
-            return GameActionCtx.PLAY_CARD;
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(2);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.exhaustCardFromHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
         }
     }
 
@@ -1011,10 +1022,14 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             canExhaustAnyCard = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
-            state.draw(3);
-            state.exhaustCardFromHand(idx);
-            return GameActionCtx.PLAY_CARD;
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(3);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.exhaustCardFromHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
         }
     }
 
@@ -1025,7 +1040,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1038,7 +1053,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 28);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1052,7 +1067,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             // we split counter into two component, 1 for self damage, and 1 for enemy damage
             state.getCounterForWrite()[counterIdx] += 1 << 16;
             state.getCounterForWrite()[counterIdx] += n;
@@ -1104,7 +1119,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Dark Embrace", Card.POWER, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1132,7 +1147,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Dark Embrace+", Card.POWER, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1163,7 +1178,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             affectEnemyStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1177,7 +1192,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             affectEnemyStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1189,7 +1204,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 5);
             if (enemy.getVulnerable() > 0) {
@@ -1206,7 +1221,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 8);
             if (enemy.getVulnerable() > 0) {
@@ -1223,7 +1238,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectFromHand = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1243,7 +1258,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectFromHand = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.addCardToHand(idx);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
@@ -1263,7 +1278,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Entrench", Card.SKILL, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
             player.gainBlockNotFromCardPlay(player.getBlock());
             return GameActionCtx.PLAY_CARD;
@@ -1275,7 +1290,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Entrench+", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
             player.gainBlockNotFromCardPlay(player.getBlock());
             return GameActionCtx.PLAY_CARD;
@@ -1290,7 +1305,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1332,7 +1347,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Feel No Pain", Card.POWER, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1360,7 +1375,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Feel No Pain+", Card.POWER, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1391,7 +1406,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1436,7 +1451,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Flame Barrier", Card.SKILL, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(12);
             state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
@@ -1472,7 +1487,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Flame Barrier+", Card.SKILL, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(16);
             state.getCounterForWrite()[counterIdx] += 6;
             return GameActionCtx.PLAY_CARD;
@@ -1509,7 +1524,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(10);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1521,7 +1536,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             ethereal = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(13);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1533,7 +1548,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(2, false, this);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 15);
             return GameActionCtx.PLAY_CARD;
@@ -1546,7 +1561,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(2, false, this);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
             return GameActionCtx.PLAY_CARD;
@@ -1559,7 +1574,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var r = state.getSearchRandomGen().nextInt(state.prop.infernalBladeIndexes.length, RandomGenCtx.CardGeneration);
             state.addCardToHand(state.prop.infernalBladeIndexes[r]);
             state.isStochastic = true;
@@ -1572,47 +1587,72 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 state.prop.infernalBladeIndexes[0] = state.prop.findCardIndex(new Card.Anger());
                 state.prop.infernalBladeIndexes[1] = state.prop.findCardIndex(new Card.BodySlam());
                 state.prop.infernalBladeIndexes[2] = state.prop.findCardIndex(new Card.Clash());
-                state.prop.infernalBladeIndexes[3] = state.prop.findCardIndex(new Card.Cleave());
-                state.prop.infernalBladeIndexes[4] = state.prop.findCardIndex(new Card.Clothesline());
-                state.prop.infernalBladeIndexes[5] = state.prop.findCardIndex(new Card.Headbutt());
-                state.prop.infernalBladeIndexes[6] = state.prop.findCardIndex(new Card.HeavyBlade());
-                state.prop.infernalBladeIndexes[7] = state.prop.findCardIndex(new Card.IronWave());
-                state.prop.infernalBladeIndexes[8] = state.prop.findCardIndex(new Card.PerfectedStrike());
-                state.prop.infernalBladeIndexes[9] = state.prop.findCardIndex(new Card.PommelStrike());
-                state.prop.infernalBladeIndexes[10] = state.prop.findCardIndex(new Card.SwordBoomerang());
-                state.prop.infernalBladeIndexes[11] = state.prop.findCardIndex(new Card.Thunderclap());
-                state.prop.infernalBladeIndexes[12] = state.prop.findCardIndex(new Card.TwinStrike());
-                state.prop.infernalBladeIndexes[13] = state.prop.findCardIndex(new Card.WildStrike());
-                state.prop.infernalBladeIndexes[14] = state.prop.findCardIndex(new Card.BloodForBlood());
-                state.prop.infernalBladeIndexes[15] = state.prop.findCardIndex(new Card.Carnage());
-                state.prop.infernalBladeIndexes[16] = state.prop.findCardIndex(new Card.Dropkick());
-                state.prop.infernalBladeIndexes[17] = state.prop.findCardIndex(new Card.Hemokinesis());
-                state.prop.infernalBladeIndexes[18] = state.prop.findCardIndex(new Card.Pummel());
-                state.prop.infernalBladeIndexes[19] = state.prop.findCardIndex(new Card.Rampage());
+                state.prop.infernalBladeIndexes[3] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Cleave(), 0));
+                state.prop.infernalBladeIndexes[4] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Clothesline(), 0));
+                state.prop.infernalBladeIndexes[5] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Headbutt(), 0));
+                state.prop.infernalBladeIndexes[6] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.HeavyBlade(), 0));
+                state.prop.infernalBladeIndexes[7] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.IronWave(), 0));
+                state.prop.infernalBladeIndexes[8] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.PerfectedStrike(), 0));
+                state.prop.infernalBladeIndexes[9] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.PommelStrike(), 0));
+                state.prop.infernalBladeIndexes[10] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.SwordBoomerang(), 0));
+                state.prop.infernalBladeIndexes[11] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Thunderclap(), 0));
+                state.prop.infernalBladeIndexes[12] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.TwinStrike(), 0));
+                state.prop.infernalBladeIndexes[13] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.WildStrike(), 0));
+                state.prop.infernalBladeIndexes[14] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.BloodForBlood(), 0));
+                state.prop.infernalBladeIndexes[15] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Carnage(), 0));
+                state.prop.infernalBladeIndexes[16] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Dropkick(), 0));
+                state.prop.infernalBladeIndexes[17] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Hemokinesis(), 0));
+                state.prop.infernalBladeIndexes[18] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Pummel(), 0));
+                state.prop.infernalBladeIndexes[19] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Rampage(), 0));
                 state.prop.infernalBladeIndexes[20] = state.prop.findCardIndex(new Card.RecklessCharge());
-                state.prop.infernalBladeIndexes[21] = state.prop.findCardIndex(new Card.SearingBlow(0));
-                state.prop.infernalBladeIndexes[22] = state.prop.findCardIndex(new Card.SeverSoul());
-                state.prop.infernalBladeIndexes[23] = state.prop.findCardIndex(new Card.Uppercut());
+                state.prop.infernalBladeIndexes[21] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.SearingBlow(0), 0));
+                state.prop.infernalBladeIndexes[22] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.SeverSoul(), 0));
+                state.prop.infernalBladeIndexes[23] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Uppercut(), 0));
                 state.prop.infernalBladeIndexes[24] = state.prop.findCardIndex(new Card.Whirlwind());
-                state.prop.infernalBladeIndexes[25] = state.prop.findCardIndex(new Card.Bludgeon());
-                state.prop.infernalBladeIndexes[26] = state.prop.findCardIndex(new Card.FiendFire());
-                state.prop.infernalBladeIndexes[27] = state.prop.findCardIndex(new Card.Immolate());
+                state.prop.infernalBladeIndexes[25] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Bludgeon(), 0));
+                state.prop.infernalBladeIndexes[26] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.FiendFire(), 0));
+                state.prop.infernalBladeIndexes[27] = state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Immolate(), 0));
             }
         }
 
         @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return List.of(new Card.Anger(), new Card.BodySlam(), new Card.Clash(), new Card.Cleave(), new Card.Clothesline(), new Card.Headbutt(),
-                    new Card.HeavyBlade(), new Card.IronWave(), new Card.PerfectedStrike(), new Card.PommelStrike(), new Card.SwordBoomerang(),
-                    new Card.Thunderclap(), new Card.TwinStrike(), new Card.WildStrike(), new Card.BloodForBlood(), new Card.Carnage(),
-                    new Card.Dropkick(), new Card.Hemokinesis(), new Card.Pummel(), new Card.Rampage(), new Card.RecklessCharge(),
-                    new Card.SearingBlow(0), new Card.SeverSoul(), new Card.Uppercut(), new Card.Whirlwind(),
-                    new Card.Bludgeon(), new Card.FiendFire(), new Card.Immolate());
+            return List.of(
+                    new Card.Anger(),
+                    new Card.BodySlam(),
+                    new Card.Clash(),
+                    new Card.CardTmpChangeCost(new Card.Cleave(), 0),
+                    new Card.CardTmpChangeCost(new Card.Clothesline(), 0),
+                    new Card.CardTmpChangeCost(new Card.Headbutt(), 0),
+                    new Card.CardTmpChangeCost(new Card.HeavyBlade(), 0),
+                    new Card.CardTmpChangeCost(new Card.IronWave(), 0),
+                    new Card.CardTmpChangeCost(new Card.PerfectedStrike(), 0),
+                    new Card.CardTmpChangeCost(new Card.PommelStrike(), 0),
+                    new Card.CardTmpChangeCost(new Card.SwordBoomerang(), 0),
+                    new Card.CardTmpChangeCost(new Card.Thunderclap(), 0),
+                    new Card.CardTmpChangeCost(new Card.TwinStrike(), 0),
+                    new Card.CardTmpChangeCost(new Card.WildStrike(), 0),
+                    new Card.CardTmpChangeCost(new Card.BloodForBlood(), 0),
+                    new Card.CardTmpChangeCost(new Card.Carnage(), 0),
+                    new Card.CardTmpChangeCost(new Card.Dropkick(), 0),
+                    new Card.CardTmpChangeCost(new Card.Hemokinesis(), 0),
+                    new Card.CardTmpChangeCost(new Card.Pummel(), 0),
+                    new Card.CardTmpChangeCost(new Card.Rampage(), 0),
+                    new Card.RecklessCharge(),
+                    new Card.CardTmpChangeCost(new Card.SearingBlow(0), 0),
+                    new Card.CardTmpChangeCost(new Card.SeverSoul(), 0),
+                    new Card.CardTmpChangeCost(new Card.Uppercut(), 0),
+                    new Card.Whirlwind(),
+                    new Card.CardTmpChangeCost(new Card.Bludgeon(), 0),
+                    new Card.CardTmpChangeCost(new Card.FiendFire(), 0),
+                    new Card.CardTmpChangeCost(new Card.Immolate(), 0)
+            );
         }
     }
 
     public static class InfernalBlade extends _InfernalBladeT {
         public InfernalBlade() {
-            super("Infernal Blade", Card.SKILL, 1);
+            super("Infernal Blade",
+            Card.SKILL, 1);
         }
     }
 
@@ -1628,7 +1668,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainStrength(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1640,7 +1680,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainStrength(3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1652,7 +1692,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.WEAK, 1);
             }
@@ -1666,7 +1706,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.WEAK, 2);
             }
@@ -1679,7 +1719,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Metallicize", Card.POWER, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1707,7 +1747,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Metallicize+", Card.POWER, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1735,7 +1775,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Power Through", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(15);
             state.addCardToHand(state.prop.woundCardIdx);
             state.addCardToHand(state.prop.woundCardIdx);
@@ -1752,7 +1792,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Power Through+", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(20);
             state.addCardToHand(state.prop.woundCardIdx);
             state.addCardToHand(state.prop.woundCardIdx);
@@ -1771,7 +1811,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 4; i++) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 2);
             }
@@ -1786,7 +1826,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < 5; i++) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 2);
             }
@@ -1802,7 +1842,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1851,7 +1891,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 8);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1863,7 +1903,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 8);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1875,7 +1915,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 7);
             state.addCardToDeck(state.prop.dazedCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1892,7 +1932,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
             state.addCardToDeck(state.prop.dazedCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1912,7 +1952,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1959,7 +1999,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n * (n + 7) / 2 + 12);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1971,7 +2011,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustNonAttacks = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -1989,7 +2029,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Second Wind+", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -2008,7 +2048,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainEnergy(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2020,7 +2060,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainEnergy(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2031,7 +2071,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Sentinel", Card.SKILL, 1);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2047,7 +2087,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(8);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2064,7 +2104,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustNonAttacks = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -2083,7 +2123,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.hand.length; i++) {
                 if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     while (state.hand[i] > 0) {
@@ -2104,7 +2144,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.WEAK, 3);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 3);
@@ -2121,7 +2161,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.applyDebuff(state, DebuffType.WEAK, 5);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 5);
@@ -2137,7 +2177,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.getEnemiesForRead().get(idx).getMoveString(state).contains("Attack")) {
                 state.getPlayerForWrite().gainStrength(3);
             }
@@ -2152,7 +2192,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.getEnemiesForRead().get(idx).getMoveString(state).contains("Attack")) {
                 state.getPlayerForWrite().gainStrength(4);
             }
@@ -2168,7 +2208,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 13);
             enemy.applyDebuff(state, DebuffType.WEAK, 1);
@@ -2185,7 +2225,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             weakEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             state.playerDoDamageToEnemy(enemy, 13);
             enemy.applyDebuff(state, DebuffType.WEAK, 2);
@@ -2200,8 +2240,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             isXCost = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
-            for (int i = 0; i < state.energy; i++) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < energyUsed; i++) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     state.playerDoDamageToEnemy(enemy, 5);
                 }
@@ -2220,8 +2260,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             isXCost = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
-            for (int i = 0; i < state.energy; i++) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < energyUsed; i++) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     state.playerDoDamageToEnemy(enemy, 8);
                 }
@@ -2239,7 +2279,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Barricade", Card.POWER, 3);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.buffs |= PlayerBuff.BARRICADE.mask();
             return GameActionCtx.PLAY_CARD;
         }
@@ -2250,7 +2290,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Barricade+", Card.POWER, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.buffs |= PlayerBuff.BARRICADE.mask();
             return GameActionCtx.PLAY_CARD;
         }
@@ -2261,7 +2301,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Berserk", Card.POWER, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
@@ -2273,7 +2313,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Berserk+", Card.POWER, 0);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
             state.energyRefill += 1;
             return GameActionCtx.PLAY_CARD;
@@ -2286,7 +2326,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 32);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2298,7 +2338,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 42);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2310,7 +2350,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.innate = innate;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += 1;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2354,7 +2394,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustSkill = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.buffs |= PlayerBuff.CORRUPTION.mask();
             return GameActionCtx.PLAY_CARD;
         }
@@ -2366,7 +2406,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustSkill = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.buffs |= PlayerBuff.CORRUPTION.mask();
             return GameActionCtx.PLAY_CARD;
         }
@@ -2381,7 +2421,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2424,7 +2464,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2484,7 +2524,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getExhaustForWrite()[idx] -= 1;
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
@@ -2498,7 +2538,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getExhaustForWrite()[idx] -= 1;
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
@@ -2511,9 +2551,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Feed", Card.ATTACK, 1);
             healPlayer = true;
             exhaustWhenPlayed = true;
+            selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2524,9 +2565,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Feed+", Card.ATTACK, 1);
             healPlayer = true;
             exhaustWhenPlayed = true;
+            selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2539,7 +2581,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.hand.length; i++) {
                 while (state.hand[i] > 0) {
                     state.exhaustCardFromHand(i);
@@ -2557,7 +2599,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.hand.length; i++) {
                 while (state.hand[i] > 0) {
                     state.exhaustCardFromHand(i);
@@ -2573,7 +2615,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Immolate", Card.ATTACK, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 21);
             }
@@ -2591,7 +2633,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             super("Immolate+", Card.ATTACK, 2);
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, 28);
             }
@@ -2610,7 +2652,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(30);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2622,7 +2664,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(40);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2636,7 +2678,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             this.n = n;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2689,7 +2731,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
             player.gainStrength(player.getStrength());
             return GameActionCtx.PLAY_CARD;
@@ -2702,7 +2744,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             changePlayerStrength = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var player = state.getPlayerForWrite();
             player.gainStrength(player.getStrength());
             return GameActionCtx.PLAY_CARD;
@@ -2715,7 +2757,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(6, false, this);
             state.draw(3);
             return GameActionCtx.PLAY_CARD;
@@ -2728,7 +2770,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(6, false, this);
             state.draw(5);
             return GameActionCtx.PLAY_CARD;
@@ -2742,7 +2784,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int amount = 0;
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 int prevHp = enemy.getHealth();
@@ -2761,7 +2803,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int amount = 0;
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 int prevHp = enemy.getHealth();

@@ -16,7 +16,7 @@ public class CardColorless {
             this.affectEnemyStrengthEot = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, -n)) {
                 state.getEnemiesForWrite().getForWrite(idx).gainStrength(-n);
             }
@@ -81,7 +81,7 @@ public class CardColorless {
             this.healPlayer = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
             state.getPlayerForWrite().heal(heal);
             return GameActionCtx.PLAY_CARD;
@@ -112,7 +112,7 @@ public class CardColorless {
             this.exhaustWhenPlayed = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] = state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n) ? 1 : -1;
             return GameActionCtx.PLAY_CARD;
         }

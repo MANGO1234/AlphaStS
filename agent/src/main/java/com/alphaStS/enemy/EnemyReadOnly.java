@@ -176,6 +176,38 @@ public abstract class EnemyReadOnly {
         return str + '}';
     }
 
+    public String toString() {
+        String str = this.getName() + "{hp=" + health;
+        if (strength != 0) {
+            str += ", str=" + strength;
+        }
+        if (loseStrengthEot != 0) {
+            str += ", gainStrEot=" + -loseStrengthEot;
+        }
+        if (move >= 0) {
+            str += ", move=" + move;
+        }
+        if (block > 0) {
+            str += ", block=" + block;
+        }
+        if (vulnerable > 0) {
+            str += ", vuln=" + vulnerable;
+        }
+        if (weak > 0) {
+            str += ", weak=" + weak;
+        }
+        if (artifact > 0) {
+            str += ", art=" + artifact;
+        }
+        if (regeneration > 0) {
+            str += ", regen=" + regeneration;
+        }
+        if (metallicize > 0) {
+            str += ", metallicize=" + metallicize;
+        }
+        return str + '}';
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o)
             return true;

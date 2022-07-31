@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import cc.mallet.types.Dirichlet;
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
@@ -54,6 +55,8 @@ public class MCTS {
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
             numberOfPossibleActions = state.getLegalActions().length;
+            state.varianceM = v[GameState.V_COMB_IDX];
+            state.varianceS = 0;
             return;
         }
 
@@ -131,6 +134,10 @@ public class MCTS {
         state.q_health[action] += v[GameState.V_HEALTH_IDX];
         state.n[action] += 1;
         state.total_n += 1;
+        var newVarianceM = state.varianceM + (v[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
+        var newVarianceS = state.varianceS + (v[GameState.V_COMB_IDX] - state.varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
+        state.varianceM = newVarianceM;
+        state.varianceS = newVarianceS;
         if (terminal_v_win > 0.5) {
             state.terminal_action = action;
             if (state.isStochastic) {
@@ -390,7 +397,9 @@ public class MCTS {
             double q = line.n > 0 ? line.q_comb / line.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
             double p_prime = line.p_cur * (1 - ratio) + p * ratio;
-            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+            double cpuct = 0.1;
+            // cpuct = Math.min(5 * Math.sqrt(state.varianceS / state.total_n), 0.5);
+            double u = state.searchFrontier.total_n > 0 ? q + cpuct * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            if (training && isRoot) {
 //                var force_n = (int) Math.sqrt(0.5 * line.p_cur * state.searchFrontier.total_n);
@@ -405,7 +414,6 @@ public class MCTS {
                 maxLine = line;
             }
         }
-        assert maxLine != null;
         searchLine_r(state, maxLine, training, isRoot);
         searchLinePropagate(state, maxLine);
         terminal_v_win = -100;
@@ -425,6 +433,10 @@ public class MCTS {
             state.q_win[edge.action()] += v[GameState.V_WIN_IDX];
             state.q_health[edge.action()] += v[GameState.V_HEALTH_IDX];
             state.total_n += 1;
+            var newVarianceM = state.varianceM + (v[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
+            var newVarianceS = state.varianceS + (v[GameState.V_COMB_IDX] - state.varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
+            state.varianceM = newVarianceM;
+            state.varianceS = newVarianceS;
             if (line.state instanceof GameState childState && childState.terminal_action >= 0) {
                 state.terminal_action = edge.action();
                 double q_win_total = childState.total_q_win / (childState.total_n + 1) * (state.total_n + 1);
@@ -485,6 +497,8 @@ public class MCTS {
             curLine.q_win = v[GameState.V_WIN_IDX];
             curLine.q_health = v[GameState.V_HEALTH_IDX];
             parentState.searchFrontier.total_n += 1;
+            state.varianceM = v[GameState.V_COMB_IDX];
+            state.varianceS = 0;
             return;
         }
         if (state.policy == null && state.actionCtx == GameActionCtx.BEGIN_TURN) {
@@ -653,9 +667,9 @@ public class MCTS {
             numberOfActions += 1;
             double p_prime = policy[i] * (1 - ratio) + p * ratio;
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
-            //            double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : 0;
-            double u = state.total_n > 0 ? q + 0.1 * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-//            double u = state.total_n > 0 ? q + 0.1 * p_prime * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+            double cpuct = 0.1;
+            // cpuct = Math.min(3 * Math.sqrt(state.varianceS / state.total_n), 0.5);
+            double u = state.total_n > 0 ? q + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (training && isRoot) {
                 var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
                 if (state.n[i] < force_n) {

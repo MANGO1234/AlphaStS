@@ -810,8 +810,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            var games = session.playTrainingGames(state, 200, 100);
-            writeTrainingData(games, curIterationDir + "/training_data.bin.lz4");
+            session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {
@@ -824,109 +823,6 @@ public class Main {
         }
 
         session.flushAndCloseFileWriters();
-    }
-
-    private static void writeTrainingData(List<List<GameStep>> games, String path) throws IOException {
-        File file = new File(path);
-        file.delete();
-        var stream = new DataOutputStream(new FramedLZ4CompressorOutputStream(new BufferedOutputStream(new FileOutputStream(path))));
-        for (var game : games) {
-            for (int i = game.size() - 2; i >= 0; i--) {
-                var step = game.get(i);
-                for (int write_count = 0; write_count < step.trainingWriteCount; write_count++) {
-                    var state = game.get(i).state();
-                    var x = state.getNNInput();
-                    for (int j = 0; j < x.length; j++) {
-                        stream.writeFloat(x[j]);
-                    }
-                    for (int j = 1; j < step.v.length; j++) {
-                        stream.writeFloat((float) ((step.v[j] * 2) - 1));
-                    }
-                    int idx = 0;
-                    if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                            stream.writeFloat(-1);
-                        }
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
-                                if (state.terminal_action >= 0) {
-                                    if (state.terminal_action == action) {
-                                        stream.writeFloat(1);
-                                    } else {
-                                        stream.writeFloat(0);
-                                    }
-                                } else if (state.isActionLegal(action)) {
-                                    if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                        stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
-                                    } else {
-                                        Integer.parseInt(null);
-                                    }
-                                } else {
-                                    stream.writeFloat(-1);
-                                }
-                            }
-                        }
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
-                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
-                                stream.writeFloat(-1);
-                            }
-                        }
-                    } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                            stream.writeFloat(-1);
-                        }
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
-                                stream.writeFloat(-1);
-                            }
-                        }
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
-                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
-                                if (state.isActionLegal(action)) {
-                                    if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                        stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
-                                    } else {
-                                        Integer.parseInt(null);
-                                    }
-                                } else {
-                                    stream.writeFloat(-1);
-                                }
-                            }
-                        }
-                    } else {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                            if (state.terminal_action >= 0) {
-                                if (state.terminal_action == action) {
-                                    stream.writeFloat(1);
-                                } else {
-                                    stream.writeFloat(0);
-                                }
-                            } else if (state.isActionLegal(action)) {
-                                if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
-                                } else {
-                                    Integer.parseInt(null);
-                                }
-                            } else {
-                                stream.writeFloat(-1);
-                            }
-                        }
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
-                                stream.writeFloat(-1);
-                            }
-                        }
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()] != null) {
-                            for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length; action++) {
-                                stream.writeFloat(-1);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        stream.flush();
-        stream.close();
     }
 
     private static void writeStateDescription(File f, GameState state) throws IOException {

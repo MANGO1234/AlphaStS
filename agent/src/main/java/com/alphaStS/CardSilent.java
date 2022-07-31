@@ -8,7 +8,7 @@ public class CardSilent {
             this.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 1);
             return GameActionCtx.PLAY_CARD;
@@ -22,7 +22,7 @@ public class CardSilent {
             this.selectEnemy = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 4);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
@@ -39,7 +39,7 @@ public class CardSilent {
             this.selectFromHandLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.getPlayerForWrite().gainBlock(n);
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -73,7 +73,7 @@ public class CardSilent {
             this.selectFromHandLater = true;
         }
 
-        public GameActionCtx play(GameState state, int idx) {
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
                 state.draw(n);
                 return GameActionCtx.SELECT_CARD_HAND;
