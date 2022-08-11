@@ -1,4 +1,4 @@
-saves/
+saves*/
 tmp/
 __pycache__
 *.c

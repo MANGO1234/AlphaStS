@@ -5,8 +5,10 @@ import com.alphaStS.utils.Utils;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class GameStateUtils {
 
@@ -27,6 +29,41 @@ public class GameStateUtils {
             }
         }
         return -1;
+    }
+
+    public static List<List<GameStep>> groupByTurns(List<GameStep> steps) {
+        List<List<GameStep>> turns = new ArrayList<>();
+        List<GameStep> current = null;
+        int lastTurn = -1;
+        for (int i = 0; i < steps.size(); i++) {
+            if (lastTurn != steps.get(i).state().turnNum) {
+                if (current != null) {
+                    turns.add(current);
+                }
+                current = new ArrayList<>();
+            }
+            lastTurn = steps.get(i).state().turnNum;
+            current.add(steps.get(i));
+        }
+        turns.add(current);
+        return turns;
+    }
+
+    public static int[][] getScenarioGroups(GameState state, int groupSize, int stride) {
+        int size = state.prop.randomization.listRandomizations().size();
+        int[][] groups = new int[size / groupSize][groupSize];
+        int offset = 0;
+        int idx = 0;
+        while (offset < size) {
+            for (int i = 0; i < stride; i++) {
+                for (int j = 0; j < groupSize; j++) {
+                    groups[idx][j] = offset + i + j * stride;
+                }
+                idx++;
+            }
+            offset += stride * groupSize;
+        }
+        return groups;
     }
 
     private static class CardChanges {

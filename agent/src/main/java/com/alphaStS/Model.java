@@ -144,11 +144,11 @@ public class Model {
             }
 
             double[] v_other = null;
-            if (state.prop.extraOutputLen > 0) {
+            if (output.size() > 3 && state.prop.extraOutputLen > 0) {
                 v_other = new double[state.prop.extraOutputLen];
-                if (state.prop.ritualDaggerVArrayIdx >= 0) {
-                    float value = ((float[][]) output.get(3 + state.prop.ritualDaggerVArrayIdx).getValue())[0][0];
-                    v_other[state.prop.ritualDaggerVArrayIdx] = (value + 1) / 2;
+                for (int i = 0; i < v_other.length; i++) {
+                    float value = ((float[][]) output.get(3 + i).getValue())[0][0];
+                    v_other[i] = (value + 1) / 2;
                 }
             }
 

@@ -791,6 +791,31 @@ public class MCTS {
         return action;
     }
 
+    public static int getActionRandomOrTerminalSelectScenario(GameState state) {
+        if (state.terminal_action >= 0) {
+            return state.terminal_action;
+        }
+        var total_n = 0;
+        for (int i = 0; i < state.policy.length; i++) {
+            if (state.n[i] > 0) {
+                total_n += Math.pow(state.n[i], Configuration.PRE_BATTLE_SCENARIO_TEMP);
+            }
+        }
+        int r = state.prop.random.nextInt(total_n, RandomGenCtx.Other);
+        int acc = 0;
+        int action = -1;
+        for (int i = 0; i < state.policy.length; i++) {
+            if (state.n[i] > 0) {
+                acc += Math.pow(state.n[i], Configuration.PRE_BATTLE_SCENARIO_TEMP);
+                if (acc > r) {
+                    action = i;
+                    break;
+                }
+            }
+        }
+        return action;
+    }
+
     public static int getActionWithMaxNodesOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
         if (state.terminal_action >= 0) {
             return state.terminal_action;

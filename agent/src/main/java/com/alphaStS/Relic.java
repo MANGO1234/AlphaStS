@@ -184,6 +184,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // Meal Ticket: No need to implement
 
     public static class Nunchaku extends Relic {
+        int n;
+
+        public Nunchaku(int n) {
+            this.n = n;
+        }
+
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Nunchaku", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -205,6 +211,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
                             state.gainEnergy(1);
                         }
                     }
+                }
+            });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
                 }
             });
         }
@@ -342,7 +353,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     // Eternal Feather: No need to implement
     // Frozen Egg: No need to implement
 
-    // todo: Gremlin Horn
+    public static class GremlinHorn extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addOnEnemyDeathHandler("GremlinHorn", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.gainEnergy(1);
+                    state.draw(1);
+                }
+            });
+        }
+    }
 
     public static class HornCleat extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -364,7 +384,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             });
         }
     }
-
 
     public static class InkBottle extends Relic {
         @Override public void startOfGameSetup(GameState state) {

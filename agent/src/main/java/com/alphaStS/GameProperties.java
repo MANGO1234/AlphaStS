@@ -6,6 +6,7 @@ import java.util.*;
 
 public class GameProperties implements Cloneable {
     public boolean tmp;
+    public boolean testPotionOutput;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
@@ -44,6 +45,7 @@ public class GameProperties implements Cloneable {
     public int[] strikeCardIdxes;
     // cached status indexes
     public int burnCardIdx = -1;
+    public int burnPCardIdx = -1;
     public int dazedCardIdx = -1;
     public int slimeCardIdx = -1;
     public int woundCardIdx = -1;
@@ -86,6 +88,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
     public List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
+    public List<GameEventHandler> onEnemyDeathHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
@@ -126,6 +129,7 @@ public class GameProperties implements Cloneable {
     }
 
     Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
+    Map<String, Integer> counterIdx = new HashMap<>();
     Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
     Map<String, NetworkInputHandler> nnInputHandlerMap = new HashMap<>();
     NetworkInputHandler[] nnInputHandlers;
@@ -143,6 +147,14 @@ public class GameProperties implements Cloneable {
         }
     }
 
+    public boolean hasCounter(String name) {
+        return counterRegistrants.get(name) != null;
+    }
+
+    public int getCounterIdx(String name) {
+        return counterIdx.get(name);
+    }
+
     String[] counterNames;
     NetworkInputHandler[] counterHandlers;
     NetworkInputHandler[] counterHandlersNonNull;
@@ -155,6 +167,7 @@ public class GameProperties implements Cloneable {
             counterHandlers[i] = counterHandlerMap.get(counterNames[i]);
             for (CounterRegistrant registrant : counterRegistrants.get(counterNames[i])) {
                 registrant.setCounterIdx(this, i);
+                counterIdx.put(counterNames[i], i);
             }
         }
         counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList()

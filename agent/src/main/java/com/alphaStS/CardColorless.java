@@ -138,4 +138,28 @@ public class CardColorless {
             super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5);
         }
     }
+
+    public static class Finess extends Card {
+        public Finess() {
+            super("Finess", Card.SKILL, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(2);
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FinessP extends Card {
+        public FinessP() {
+            super("Finess+", Card.SKILL, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(4);
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 }

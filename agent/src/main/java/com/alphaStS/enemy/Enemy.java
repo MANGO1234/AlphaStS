@@ -2,6 +2,8 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 
+import java.util.List;
+
 public abstract class Enemy extends EnemyReadOnly {
     public Enemy(int health, int numOfMoves) {
         super(health, numOfMoves);
@@ -83,7 +85,7 @@ public abstract class Enemy extends EnemyReadOnly {
         block = 0;
     }
 
-    public void endTurn() {
+    public void endTurn(int turnNum) {
         if (vulnerable > 0) {
             vulnerable -= 1;
         }
@@ -273,10 +275,14 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void endTurn() {
-            super.endTurn();
+        @Override public void endTurn(int turnNum) {
+            super.endTurn(turnNum);
             if (move <= WAIT_3) {
-                gainBlock(8);
+                if (metallicize == 4 && turnNum == 1) {
+                    gainBlock(4);
+                } else {
+                    gainBlock(8);
+                }
             }
         }
 
@@ -437,13 +443,27 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, n, 6);
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
+                state.addCardToDiscard(state.prop.burnCardIdx);
+                state.addCardToDiscard(state.prop.burnCardIdx);
             } else if (move == TACKLE_1 || move == TACKLE_2) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
             } else if (move == INFLAME_1) {
                 strength += 3;
-                gainBlock(12);;
+                gainBlock(12);
             } else if (move == INFERNAL_1) {
                 state.enemyDoDamageToPlayer(this, 3, 6);
+                var deck = state.getDeck();
+                state.setCardCountInDeck(state.prop.burnPCardIdx, deck[state.prop.burnPCardIdx] + deck[state.prop.burnCardIdx]);
+                state.setCardCountInDeck(state.prop.burnCardIdx, 0);
+                var hand = state.getHand();
+                state.setCardCountInHand(state.prop.burnPCardIdx, hand[state.prop.burnPCardIdx] + hand[state.prop.burnCardIdx]);
+                state.setCardCountInHand(state.prop.burnCardIdx, 0);
+                var discard = state.getDiscard();
+                state.setCardCountInDiscard(state.prop.burnPCardIdx, discard[state.prop.burnPCardIdx] + discard[state.prop.burnCardIdx]);
+                state.setCardCountInDiscard(state.prop.burnCardIdx, 0);
+                state.addCardToDiscard(state.prop.burnPCardIdx);
+                state.addCardToDiscard(state.prop.burnPCardIdx);
+                state.addCardToDiscard(state.prop.burnPCardIdx);
             }
         }
 
@@ -476,13 +496,17 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(25, RandomGenCtx.Other) + 1;
-            health = 264 * b / 25;
+            if (training) {
+                int b = random.nextInt(25, RandomGenCtx.Other) + 1;
+                health = 264 * b / 25;
+            }
         }
 
         public String getName() {
             return "Hexaghost";
         }
+
+        public List<Card> getPossibleGeneratedCards() { return List.of(new Card.Burn(), new Card.BurnP()); }
     }
 
     public static class TheGuardian extends Enemy {
@@ -1522,8 +1546,8 @@ public abstract class Enemy extends EnemyReadOnly {
             return new Cultist(this);
         }
 
-        @Override public void endTurn() {
-            super.endTurn();
+        @Override public void endTurn(int turnNum) {
+            super.endTurn(turnNum);
             if (move == DARK_STRIKE) {
                 gainStrength(5);
             }

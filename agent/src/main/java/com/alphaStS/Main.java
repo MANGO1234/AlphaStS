@@ -618,11 +618,173 @@ public class Main {
         return new GameState(builder);
     }
 
+    public static GameState TestState12() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.AngerP(), 0);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.Uppercut(), 1);
+        builder.addCard(new Card.UppercutP(), 0);
+        builder.addCard(new CardColorless.Finess(), 1);
+        builder.addCard(new Card.IronWave(), 0);
+        builder.addRelic(new Relic.Vajira());
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        );
+        GameStateRandomization scenarios = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardColorless.Finess(), 1)),
+                List.of(new CardCount(new Card.IronWave(), 1))
+        ));
+        scenarios = scenarios.doAfter(new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Uppercut(), 1), new CardCount(new Card.Anger(), 1)),
+                List.of(new CardCount(new Card.Uppercut(), 1), new CardCount(new Card.AngerP(), 1)),
+                List.of(new CardCount(new Card.UppercutP(), 1), new CardCount(new Card.Anger(), 1))
+        )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
+                (state) -> state.getPlayerForWrite().setOrigHealth(57),
+                (state) -> state.getPlayerForWrite().setOrigHealth(40),
+                (state) -> state.getPlayerForWrite().setOrigHealth(40)
+        ))).setDescriptions(
+                "Rest",
+                "Upgrade Anger",
+                "Upgrade Uppercut"
+        )).union( 6.0 / 7, new GameStateRandomization.SimpleCustomRandomization(List.of(
+                (state) -> {
+                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Strike()), 5);
+                    state.getPlayerForWrite().setOrigHealth(57);
+                }
+        )));
+        builder.setRandomization(randomization);
+        builder.setPreBattleScenarios(scenarios);
+        builder.setPlayer(new Player(40, 57));
+        return new GameState(builder);
+    }
+
+    public static GameState TestState13() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.Nunchaku(2));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM).markAsBurningElite());
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+//        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+                new int[] { 3 }
+//                new int[] { 4 }
+        );
+        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
+        builder.setRandomization(randomization);
+        builder.addPotion(new Potion.DrawPotion());
+        builder.addPotion(new Potion.LiquidMemory());
+        builder.setPlayer(new Player(38, 38));
+        return new GameState(builder);
+    }
+
+    public static GameState TestState14() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 1);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.DisarmP(), 0);
+        builder.addCard(new Card.PowerThroughP(), 0);
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.Nunchaku(8));
+        builder.addEnemy(new Enemy.Hexaghost());
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Disarm(), 1), new CardCount(new Card.PowerThroughP(), 1)),
+                List.of(new CardCount(new Card.DisarmP(), 1), new CardCount(new Card.PowerThrough(), 1))
+        ));
+        builder.setRandomization(randomization);
+        builder.addPotion(new Potion.LiquidMemory());
+        builder.setPlayer(new Player(35, 35));
+        return new GameState(builder);
+    }
+
+    public static GameState TestState15() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 1);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.PowerThroughP(), 1);
+        builder.addCard(new Card.Feed(), 1);
+        builder.addCard(new Card.FiendFire(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 1);
+        builder.addCard(new Card.Sentinel(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.PommelStrike(), 1);
+        builder.addCard(new Card.SeverSoul(), 1);
+        builder.addCard(new Card.DemonForm(), 1);
+        builder.addCard(new Card.Evolve(), 1);
+        builder.addCard(new Card.Havoc(), 0);
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.Nunchaku(7));
+        builder.addRelic(new Relic.GremlinHorn());
+        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        EnemyEncounter.addSlaversEliteFight(builder);
+        EnemyEncounter.addGremlinLeaderFight(builder);
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3}, new int[] {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19});
+        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
+        randomization = randomization.doAfter(new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Havoc(), 0)),
+                List.of(new CardCount(new Card.Anger(), 2), new CardCount(new Card.Havoc(), 0)),
+                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Havoc(), 1))
+        )));
+        builder.setRandomization(randomization);
+        builder.addPotion(new Potion.LiquidMemory());
+        builder.setPlayer(new Player(66, 70));
+        return new GameState(builder);
+    }
+
     public static void main(String[] args) throws IOException {
-       var state = TestState10();
+       var state = TestState15();
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
 //        System.out.println(state.prop.randomization.listRandomizations());
-//                state.prop.randomization = state.prop.randomization.collapse("Randomize Gremlin Leader Fight");
 //        state.prop.randomization = state.prop.randomization.fixR(6);
 //        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
 //        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
@@ -668,7 +830,6 @@ public class Main {
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
-        int RANDOMIZATION_SCENARIO = -1;
         String COMPARE_DIR = null;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
@@ -708,28 +869,24 @@ public class Main {
             if (args[i].equals("-training_with_line")) {
                 TRAINING_WITH_LINE = true;
             }
-            if (args[i].equals("-rand")) {
-                RANDOMIZATION_SCENARIO = Integer.parseInt(args[i + 1]);
-                i++;
-            }
         }
 
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
 //            SAVES_DIR = "../tmp/saves_guard";
 //           SAVES_DIR = "../tmp/saves_champ_no";
-//            SAVES_DIR = "../saves_all";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
+//            SAVES_DIR = "../saves4";
+            NUMBER_OF_GAMES_TO_PLAY = 4000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
-//            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 100;
-//            iteration = 49;
-//            COMPARE_DIR = "../saves/iteration50";
+            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
+            NUMBER_OF_NODES_PER_TURN = 200;
+            iteration = 51;
+            COMPARE_DIR = "../saves/iteration40";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
-//            RANDOMIZATION_SCENARIO = 0;
         }
+        NUMBER_OF_THREADS = 1;
 
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
@@ -739,7 +896,9 @@ public class Main {
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
             state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 80).doAfter(state.prop.preBattleRandomization);
         }
-        if (!GENERATE_TRAINING_GAMES && GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION && state.prop.preBattleScenarios != null) {
+        var preBattleScenarios = state.prop.preBattleScenarios;
+        var randomization = state.prop.randomization;
+        if ((TEST_TRAINING_AGENT || GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION) && state.prop.preBattleScenarios != null) {
             if (state.prop.randomization == null) {
                 state.prop.randomization = state.prop.preBattleScenarios;
             } else {
@@ -747,9 +906,6 @@ public class Main {
             }
             state.prop.preBattleScenarios = null;
             state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null);
-        }
-        if (RANDOMIZATION_SCENARIO >= 0 && state.prop.randomization != null) {
-            state.prop.randomization = state.prop.randomization.fixR(RANDOMIZATION_SCENARIO);
         }
 
         ObjectMapper mapper = new ObjectMapper();
@@ -782,6 +938,9 @@ public class Main {
         if (COMPARE_DIR != null) {
             session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
         }
+        if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES) {
+            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 3, 2);
+        }
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
             if (!TEST_TRAINING_AGENT) {
 //                if (state.prop.randomization != null) {
@@ -802,6 +961,11 @@ public class Main {
             }
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
         }
+        if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
+            state.prop.preBattleScenarios = preBattleScenarios;
+            state.prop.randomization = randomization;
+            state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null);
+        }
 
         if (GENERATE_TRAINING_GAMES) {
             session.setTrainingDataLogFile("training_data.txt.gz");
@@ -810,7 +974,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
+            session.playTrainingGames(state, 400, 100, curIterationDir + "/training_data.bin.lz4");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {

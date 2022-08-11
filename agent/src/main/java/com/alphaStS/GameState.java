@@ -99,7 +99,7 @@ public class GameState implements State {
     int energy;
     int energyRefill;
     GameAction currentAction;
-    short turnNum;
+    public short turnNum;
     int playerTurnStartHealth;
     byte playerTurnStartPotionCount;
 
@@ -307,6 +307,8 @@ public class GameState implements State {
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().cardName.equals("Burn")) {
                 prop.burnCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Burn+")) {
+                prop.burnPCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Dazed")) {
                 prop.dazedCardIdx = i;
             } if (cards.get(i).card().cardName.equals("Slime")) {
@@ -400,6 +402,7 @@ public class GameState implements State {
 //        if (prop.ritualDaggerCounterIdx >= 0) {
 //            prop.ritualDaggerVArrayIdx = outputIdx++;
 //        }
+//        outputIdx += prop.potions.size();
         prop.extraOutputLen = outputIdx;
 
         // mcts related fields
@@ -663,7 +666,7 @@ public class GameState implements State {
             currentAction = action;
             actionCtx = ctx;
         }
-        case BEGIN_TURN -> actionCtx = ctx;
+        case SELECT_SCENARIO, BEGIN_TURN -> actionCtx = ctx;
         }
     }
 
@@ -877,7 +880,7 @@ public class GameState implements State {
             var enemy = enemies.get(i);
             if (enemy.isAlive()) {
                 var enemy2 = enemies.getForWrite(i);
-                enemy2.endTurn();
+                enemy2.endTurn(turnNum);
                 enemy2.nextMove(this, getSearchRandomGen());
             }
         }
@@ -1110,17 +1113,37 @@ public class GameState implements State {
             if (prop.ritualDaggerVArrayIdx >= 0) {
                 out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : 0;
             }
+            if (prop.testPotionOutput) {
+                for (int i = 0; i < prop.potions.size(); i++) {
+                    if (potionsState[i * 3] == 1 || potionsState[i * 3 + 2] == 0) {
+                        out[V_OTHER_IDX_START + i] = 1;
+                    } else {
+                        out[V_OTHER_IDX_START + i] = 0;
+                    }
+                }
+            }
         } else {
             out[V_WIN_IDX] = v_win;
             out[V_HEALTH_IDX] = prop.playerCanHeal ? v_health : Math.min(v_health, getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
             if (prop.ritualDaggerVArrayIdx >= 0) {
                 out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : v_other[prop.ritualDaggerVArrayIdx];
             }
+            if (prop.testPotionOutput) {
+                for (int i = 0; i < prop.potions.size(); i++) {
+                    if (potionsState[i * 3 + 2] == 0) {
+                        out[V_OTHER_IDX_START + i] = 1;
+                    } else if (potionsState[i * 3] == 0) {
+                        out[V_OTHER_IDX_START + i] = 0;
+                    } else {
+                        out[V_OTHER_IDX_START + i] = v_other[i];
+                    }
+                }
+            }
         }
         out[V_COMB_IDX] = calc_q(out);
     }
 
-    int isTerminal() {
+    public int isTerminal() {
         if (getPlayeForRead().getHealth() <= 0 || turnNum > 30) {
             return -1;
         } else {
@@ -1146,17 +1169,25 @@ public class GameState implements State {
                 win = win * 0.8;
             }
         }
-//        if (isTerminal() == 0) {
+//        if (isTerminal() == 0 && prop.tmp) {
 //            if (getExhaustForRead()[prop.findCardIndex(new Card.Reaper())] > 0) {
-//                health = health - (15 / (float) player.getMaxHealth());
+//                health = health - (10 / (float) player.getMaxHealth());
 //            }
 //        }
         // todo: how do we want to do bonus for potions ritual dagger etc.??
 //        if (prop.ritualDaggerVArrayIdx >= 0) {
 //            health *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
 //        }
-        double base = win * 0.5 + win * win * health * 0.1;
-//        if (!prop.tmp && prop.ritualDaggerCounterIdx >= 0) {
+        double base = win * 0.5 + win * win * health * 0.5;
+        if (prop.testPotionOutput) {
+            for (int i = 0; i < prop.potions.size(); i++) {
+                //                health = Math.max(0, health - (1 - v[V_OTHER_IDX_START + i]) * (15 / (float) player.getMaxHealth()));
+                if (potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion)) {
+                    base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[V_OTHER_IDX_START + i];
+                }
+            }
+        }
+        //        if (!prop.tmp && prop.ritualDaggerCounterIdx >= 0) {
 //            base *= 1 - ((1 - getCounterForRead()[prop.ritualDaggerCounterIdx]) / 2.0) * Configuration.UTIL_FOR_RITUAL_DAGGER;
 //        }
         if (prop.tmp && prop.ritualDaggerVArrayIdx >= 0) {
@@ -1167,9 +1198,11 @@ public class GameState implements State {
 //                base *= 1 - ((1 - base) * Configuration.UTIL_FOR_RITUAL_DAGGER);
 //            }
         }
-        for (int i = 0; i < prop.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion)) {
-                base *= potionsState[i * 3 + 1] / 100.0;
+        if (!prop.testPotionOutput) {
+            for (int i = 0; i < prop.potions.size(); i++) {
+                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion)) {
+                    base *= potionsState[i * 3 + 1] / 100.0;
+                }
             }
         }
         return base;
@@ -1282,8 +1315,10 @@ public class GameState implements State {
             str.append(formatFloat(get_q())).append("/");
         }
         str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
-        if (prop.ritualDaggerVArrayIdx >= 0) {
-            str.append("/").append(formatFloat(v_other == null ? 0 : v_other[prop.ritualDaggerVArrayIdx]));
+        if (v_other != null) {
+            for (int i = 0; i < v_other.length; i++) {
+                str.append("/").append(formatFloat(v_other[i]));
+            }
         }
         str.append(")");
         str.append(", var=").append(formatFloat(varianceS / total_n));
@@ -1894,6 +1929,9 @@ public class GameState implements State {
     }
 
     void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
+        if (cardIdx >= prop.realCardsLen) {
+            cardIdx = prop.tmpCostCardIdxes[cardIdx];
+        }
         if (fromCardPlay && prop.hasStrangeSpoon && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
             discard[cardIdx] += 1;
             return;
@@ -2045,6 +2083,18 @@ public class GameState implements State {
         }
     }
 
+    public void addOnEnemyDeathHandler(GameEventHandler handler) {
+        prop.onEnemyDeathHandlers.add(handler);
+    }
+
+    public void addOnEnemyDeathHandler(String handlerName, GameEventHandler handler) {
+        if (prop.gameEventHandlers.get(handlerName + "OnEnemyDeath") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnEnemyDeath", handler);
+            prop.onEnemyDeathHandlers.add(handler);
+        }
+    }
+
+
     public void addOnDamageHandler(OnDamageHandler handler) {
         prop.onDamageHandlers.add(handler);
     }
@@ -2180,6 +2230,14 @@ public class GameState implements State {
         }
     }
 
+    public void setCardCountInDiscard(int cardIndex, int count) {
+        discard[cardIndex] = (byte) count;
+    }
+
+    public void setCardCountInHand(int cardIndex, int count) {
+        hand[cardIndex] = (byte) count;
+    }
+
     public void putCardOnTopOfDeck(int idx) {
         deck[idx]++;
         deckArr[deckArrLen++] = (short) idx;
@@ -2208,6 +2266,9 @@ public class GameState implements State {
             enemy.damage(dmg, this);
             if (!enemy.isAlive()) {
                 enemiesAlive -= 1;
+                for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
+                    handler.handle(this);
+                }
                 return true;
             }
         }
@@ -2228,6 +2289,9 @@ public class GameState implements State {
             enemy.nonAttackDamage(dmg, blockable, this);
             if (!enemy.isAlive()) {
                 enemiesAlive -= 1;
+                for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
+                    handler.handle(this);
+                }
             }
         }
     }
@@ -2288,6 +2352,18 @@ public class GameState implements State {
                 handler.handle(this, null, false, healed);
             }
         }
+    }
+
+    public byte[] getDeck() {
+        return deck;
+    }
+
+    public byte[] getHand() {
+        return hand;
+    }
+
+    public byte[] getDiscard() {
+        return discard;
     }
 
     public byte[] getExhaustForRead() {
@@ -2393,6 +2469,14 @@ public class GameState implements State {
         } else {
             Integer.parseInt(null);
         }
+    }
+
+    public boolean potionUsed(int i) {
+        return potionsState[i * 3 + 2] == 1 && potionsState[i * 3] == 0;
+    }
+
+    public boolean hadPotion(int i) {
+        return potionsState[i * 3 + 2] == 1;
     }
 }
 
@@ -2527,7 +2611,7 @@ class ChanceState implements State {
             v[GameState.V_COMB_IDX] = new_q_comb * total_n - total_q_comb;
             v[GameState.V_WIN_IDX] = new_q_win * total_n - total_q_win;
             v[GameState.V_HEALTH_IDX] = new_q_health * total_n - total_q_health;
-//            if (new_q_win * total_n - (total_q_win + v[0]) > 0.00000001) {
+//            if (new_q_win * total_n - (total_q_win + v[GameState.V_WIN_IDX]) > 0.00000001) {
 //                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
 //            }
         } else {
@@ -2568,10 +2652,10 @@ class ChanceState implements State {
 //            node.prev_q_comb = node_cur_q_comb;
 //            node.prev_q_win = node_cur_q_win;
 //            node.prev_q_health = node_cur_q_health;
-//            v[0] = new_q_win * total_n - total_q_win;
-//            v[1] = new_q_health * total_n - total_q_health;
-//            v[2] = new_q_comb * total_n - total_q_comb;
-//            if (new_q_win * total_n - (total_q_win + v[0]) > 0.00000001) {
+//            v[GameState.V_COMB_IDX] = new_q_comb * total_n - total_q_comb;
+//            v[GameState.V_WIN_IDX] = new_q_win * total_n - total_q_win;
+//            v[GameState.V_HEALTH_IDX] = new_q_health * total_n - total_q_health;
+//            if (new_q_win * total_n - (total_q_win + v[GameState.V_WIN_IDX]) > 0.00000001) {
 //                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
 //            }
         }
@@ -2589,20 +2673,18 @@ class ChanceState implements State {
             }
             return ret;
         }
-        if (calledFromMCTS && cache.size() > 10 && false) {
+        if (calledFromMCTS && cache.size() >= Math.ceil(Math.sqrt(total_n)) && false) {
             // instead of generating new nodes, revisit node, need testing
-            if (searchRandomGen.nextFloat(RandomGenCtx.Other) < 1.0 - 1.0 / (cache.size() - 10)) {
-                var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
-                var acc = 0;
-                for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
-                    acc += entry.getValue().n;
-                    if (acc > r) {
-                        entry.getValue().revisit = true;
-                        return entry.getValue().state;
-                    }
+            var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
+            var acc = 0;
+            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+                acc += entry.getValue().n;
+                if (acc > r) {
+                    entry.getValue().revisit = true;
+                    return entry.getValue().state;
                 }
-                Integer.parseInt(null);
             }
+            Integer.parseInt(null);
         }
         var state = parentState.clone(false);
         if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {

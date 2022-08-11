@@ -154,6 +154,21 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class DrawPotion extends Potion {
+        public DrawPotion() {
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 6 : 3;
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Draw Potion";
+        }
+    }
+
     public static class LiquidMemory extends Potion {
         public LiquidMemory() {
             selectFromDiscard = true;

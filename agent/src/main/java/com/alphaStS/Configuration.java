@@ -14,4 +14,7 @@ public class Configuration {
     public static final boolean CARD_IN_HAND_IN_NN_INPUT = true;
 
     public static final float UTIL_FOR_RITUAL_DAGGER = 0.4f;
+    public static final float PRE_BATTLE_SCENARIO_TEMP = 0f;
+
+    public static final boolean PRINT_MODEL_COMPARE_DIFF = false;
 }

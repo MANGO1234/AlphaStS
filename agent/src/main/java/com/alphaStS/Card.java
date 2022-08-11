@@ -2545,7 +2545,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
     }
 
-    // todo: nn reward + on enemy death handler
+    // todo: nn reward
     public static class Feed extends Card {
         public Feed() {
             super("Feed", Card.ATTACK, 1);
@@ -2556,6 +2556,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
+            if (!state.getEnemiesForRead().get(idx).isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+                state.getPlayerForWrite().heal(3);
+            }
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2570,6 +2573,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12);
+            if (!state.getEnemiesForRead().get(idx).isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+                state.getPlayerForWrite().heal(4);
+            }
             return GameActionCtx.PLAY_CARD;
         }
     }

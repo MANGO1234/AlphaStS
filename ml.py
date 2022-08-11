@@ -17,11 +17,11 @@ import tf2onnx
 from scipy.special import softmax
 from misc import getFlag, getFlagValue
 
-# tf.config.threading.set_intra_op_parallelism_threads(1)
-# tf.config.threading.set_inter_op_parallelism_threads(1)
-# os.environ["OMP_NUM_THREADS"] = f"1"
-# os.environ['TF_NUM_INTEROP_THREADS'] = f"1"
-# os.environ['TF_NUM_INTRAOP_THREADS'] = f"1"
+tf.config.threading.set_intra_op_parallelism_threads(1)
+tf.config.threading.set_inter_op_parallelism_threads(1)
+os.environ["OMP_NUM_THREADS"] = f"1"
+os.environ['TF_NUM_INTEROP_THREADS'] = f"1"
+os.environ['TF_NUM_INTRAOP_THREADS'] = f"1"
 
 # rand.seed(5)
 # np.random.seed(5)
@@ -122,7 +122,7 @@ else:
 start = time.time()
 # np.set_printoptions(threshold=np.inf)
 
-CLASS_PATH = f'./agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar'
+CLASS_PATH = f'./agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
 
 
 def get_training_samples(training_pool, iteration, file_path):

@@ -23,6 +23,10 @@ public interface GameStateRandomization {
         return new GameStateRandomization.Join(this, b);
     }
 
+    default GameStateRandomization union(double aChance, GameStateRandomization b) {
+        return new GameStateRandomization.Union(this, aChance, b);
+    }
+
     default GameStateRandomization fixR(int... r) {
         return new GameStateRandomization.FixedRandomization(this, r);
     }
@@ -106,6 +110,50 @@ public interface GameStateRandomization {
         @Override public void randomize(GameState state, int r) {
             a.randomize(state, r);
             b.randomize(state, r);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            return infoMap;
+        }
+    }
+
+    class Union implements GameStateRandomization {
+        private final GameStateRandomization a;
+        private double aChance;
+        private final GameStateRandomization b;
+        private final Map<Integer, Info> infoMap;
+
+        Union(GameStateRandomization a, double aChance, GameStateRandomization b) {
+            this.a = a;
+            this.b = b;
+            Map<Integer, Info> aMap = a.listRandomizations();
+            Map<Integer, Info> bMap = b.listRandomizations();
+            this.aChance = aChance;
+            infoMap = new HashMap<>();
+            for (var aEntry : aMap.entrySet()) {
+                infoMap.put(aEntry.getKey(), new Info(aEntry.getValue().chance * aChance, aEntry.getValue().desc));
+            }
+            for (var bEntry : bMap.entrySet()) {
+                infoMap.put(bEntry.getKey() + aMap.size(), new Info(bEntry.getValue().chance * (1 - aChance), bEntry.getValue().desc));
+            }
+        }
+
+        @Override public int randomize(GameState state) {
+            var r = state.getSearchRandomGen().nextFloat(RandomGenCtx.BeginningOfGameRandomization);
+            if (r < aChance) {
+                return a.randomize(state);
+            } else {
+                return b.randomize(state) + a.listRandomizations().size();
+            }
+        }
+
+
+        @Override public void randomize(GameState state, int r) {
+            if (r < a.listRandomizations().size()) {
+                a.randomize(state, r);
+            } else {
+                b.randomize(state, r - a.listRandomizations().size());
+            }
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

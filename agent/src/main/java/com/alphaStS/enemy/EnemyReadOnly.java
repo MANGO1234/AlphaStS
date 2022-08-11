@@ -24,6 +24,7 @@ public abstract class EnemyReadOnly {
     public int origHealth;
     public int numOfMoves;
     public boolean isElite = false;
+    public boolean isMinion = false;
     public boolean canVulnerable = false;
     public boolean canEntangle = false;
     public boolean canWeaken = false;
@@ -77,6 +78,7 @@ public abstract class EnemyReadOnly {
         regeneration = other.regeneration;
         metallicize = other.metallicize;
         canGainBlock = other.canGainBlock;
+        isMinion = other.isMinion;
         canGainStrength = other.canGainStrength;
         canGainRegeneration = other.canGainRegeneration;
         canGainMetallicize = other.canGainMetallicize;
