@@ -17,4 +17,6 @@ public class Configuration {
     public static final float PRE_BATTLE_SCENARIO_TEMP = 0f;
 
     public static final boolean PRINT_MODEL_COMPARE_DIFF = false;
+    public static final long SLEEP_PER_GAME = 200;
+    public static final long SLEEP_PER_GAME_TRAINING = 500;
 }

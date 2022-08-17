@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 
 import cc.mallet.types.Dirichlet;
-import com.alphaStS.enemy.Enemy;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
@@ -40,11 +39,9 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (!state.isStochastic && v[GameState.V_WIN_IDX] > 0.5) {
-                if (state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal &&
-                    state.playerTurnStartPotionCount == state.getPotionCount()) {
-                    terminal_v_win = v[GameState.V_WIN_IDX];
-                }
+            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
+                    state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
+                terminal_v_win = v[GameState.V_WIN_IDX];
             }
             return;
         }
@@ -171,11 +168,9 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
-            if (v[GameState.V_WIN_IDX] > 0.5) {
-                if (state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal &&
-                        state.playerTurnStartPotionCount == state.getPotionCount()) {
-                    terminal_v_win = v[GameState.V_WIN_IDX];
-                }
+            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
+                    state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
+                terminal_v_win = v[GameState.V_WIN_IDX];
             }
             return;
         }
@@ -383,6 +378,20 @@ public class MCTS {
         if (isRoot) numberOfPossibleActions = 0;
         double p = 1.0 / state.searchFrontier.lines.size();
         double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
+        int frontierNodes = 0;
+        for (var line : lines) {
+            if (line.numberOfActions == 0) {
+                continue;
+            }
+            if (line.internal) {
+                continue;
+            }
+            frontierNodes++;
+        }
+        boolean skipInternalNodes = false;
+        if (state.prop.testNewFeature && frontierNodes >= Math.ceil(Math.pow(state.total_n + 1, 0.5))) {
+            skipInternalNodes = true;
+        }
         for (var line : lines) {
             if (line.numberOfActions == 0) {
                 continue;
@@ -390,11 +399,15 @@ public class MCTS {
             if (remainingCalls > 0 && max_n - line.n > remainingCalls) {
                 continue;
             }
+            if (skipInternalNodes && line.internal) {
+                continue;
+            }
             if (isRoot) numberOfPossibleActions += 1; // todo: why this?
             if (isRoot && remainingCalls > 0 && max_n < remainingCalls) {
                 numberOfPossibleActions += line.numberOfActions;
             }
-            double q = line.n > 0 ? line.q_comb / line.n : 0;
+            var parentLine = line.parentLines == null ? null : line.parentLines.get(0).line();
+            double q = line.n > 0 ? line.q_comb / line.n : parentLine != null && parentLine.n > 0 ? parentLine.q_comb / parentLine.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
             double p_prime = line.p_cur * (1 - ratio) + p * ratio;
             double cpuct = 0.1;
@@ -476,8 +489,10 @@ public class MCTS {
             curLine.q_win += v[GameState.V_WIN_IDX];
             curLine.q_health += v[GameState.V_HEALTH_IDX];
             parentState.searchFrontier.total_n += 1;
-            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartHealth == state.getPlayeForRead().getHealth() && !state.prop.playerCanHeal) {
-//                terminal_v_win = v[GameState.V_WIN_IDX];
+            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
+                    state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
+                state.terminal_action = -1234;
+                terminal_v_win = v[GameState.V_WIN_IDX];
             }
             return;
         }
@@ -598,12 +613,6 @@ public class MCTS {
         state.total_n += 1;
         if (terminal_v_win > 0.5) {
             state.terminal_action = action;
-//            System.out.println(state);
-//            System.out.println(state.q_win[action]);
-//            System.out.println(state.n[action]);
-//            System.out.println(state.total_n);
-//            System.out.println(state.total_q_win);
-//            System.out.println(Arrays.toString(v));
             double q_win_total = state.q_win[action] / state.n[action] * (state.total_n + 1);
             double q_health_total = state.q_health[action] / state.n[action] * (state.total_n + 1);
             double q_comb_total = state.q_comb[action] / state.n[action] * (state.total_n + 1);

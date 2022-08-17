@@ -3,11 +3,12 @@ package com.alphaStS.utils;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateRandomization;
 import com.alphaStS.GameStep;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class ScenarioStats {
     public int numOfGames;
@@ -16,6 +17,8 @@ public class ScenarioStats {
     public int totalDamageTakenNoDeath;
     public int[] potionsUsed;
     public int daggerKilledEnemy;
+    public int feedKilledEnemy;
+    public int feedHealTotal;
     public int nunchakuCounter;
     public Map<Integer, Integer> damageCount;
     public double finalQComb;
@@ -27,12 +30,18 @@ public class ScenarioStats {
     long loss;
     long winByDmg;
     long lossByDmg;
-    long dmgDiff1;
-    long dmgDiff2;
+    List<Integer> winDmgs;
+    List<Integer> lossDmgs;
+    long winDmgDiff;
+    long loseDmgDiff;
     long[] winByPotion;
     long[] lossByPotion;
     long winByDagger;
     long lossByDagger;
+    long winByFeed;
+    long lossByFeed;
+    long winByFeedAmt;
+    long lossByFeedAmt;
     long winByQ;
     long lossByQ;
     long modelCalls2;
@@ -43,6 +52,8 @@ public class ScenarioStats {
         if (stats.length > 0) {
             total.potionsUsed = new int[stats[0].potionsUsed.length];
             total.damageCount = new HashMap<>();
+            total.winDmgs = new ArrayList<>();
+            total.lossDmgs = new ArrayList<>();
         }
         for (ScenarioStats stat : stats) {
             total.numOfGames += stat.numOfGames;
@@ -53,6 +64,8 @@ public class ScenarioStats {
                 total.potionsUsed[j] += stat.potionsUsed[j];
             }
             total.daggerKilledEnemy += stat.daggerKilledEnemy;
+            total.feedKilledEnemy += stat.feedKilledEnemy;
+            total.feedHealTotal += stat.feedHealTotal;
             total.nunchakuCounter += stat.nunchakuCounter;
             for (var dmg : stat.damageCount.keySet()) {
                 total.damageCount.putIfAbsent(dmg, 0);
@@ -67,8 +80,10 @@ public class ScenarioStats {
             total.loss += stat.loss;
             total.winByDmg += stat.winByDmg;
             total.lossByDmg += stat.lossByDmg;
-            total.dmgDiff1 += stat.dmgDiff1;
-            total.dmgDiff2 += stat.dmgDiff2;
+            total.winDmgDiff += stat.winDmgDiff;
+            total.loseDmgDiff += stat.loseDmgDiff;
+            total.winDmgs.addAll(stat.winDmgs);
+            total.lossDmgs.addAll(stat.lossDmgs);
             if (total.winByPotion == null && stat.winByPotion != null) {
                 total.winByPotion = new long[stat.winByPotion.length];
                 total.lossByPotion = new long[stat.winByPotion.length];
@@ -81,6 +96,10 @@ public class ScenarioStats {
             }
             total.winByDagger += stat.winByDagger;
             total.lossByDagger += stat.lossByDagger;
+            total.winByFeed += stat.winByFeed;
+            total.lossByFeed += stat.lossByFeed;
+            total.winByFeedAmt += stat.winByFeedAmt;
+            total.lossByFeedAmt += stat.lossByFeedAmt;
             total.winByQ += stat.winByQ;
             total.lossByQ += stat.lossByQ;
             total.modelCalls2 += stat.modelCalls2;
@@ -93,11 +112,11 @@ public class ScenarioStats {
         GameState state = steps.get(steps.size() - 1).state();
         this.modelCalls += modelCalls;
         totalTurns += state.turnNum;
-        if (potionsUsed == null) {
-            potionsUsed = new int[state.prop.potions.size()];
-        }
         if (damageCount == null) {
             damageCount = new HashMap<>();
+            potionsUsed = new int[state.prop.potions.size()];
+            winDmgs = new ArrayList<>();
+            lossDmgs = new ArrayList<>();
         }
         int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
         numOfGames++;
@@ -116,6 +135,12 @@ public class ScenarioStats {
             if (state.prop.ritualDaggerCounterIdx >= 0) {
                 if (state.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0) {
                     daggerKilledEnemy++;
+                }
+            }
+            if (state.prop.feedCounterIdx >= 0) {
+                if (state.getCounterForRead()[state.prop.feedCounterIdx] > 0) {
+                    feedKilledEnemy++;
+                    feedHealTotal += state.getCounterForWrite()[state.prop.feedCounterIdx];
                 }
             }
             if (state.prop.hasCounter("Nunchaku")) {
@@ -144,12 +169,13 @@ public class ScenarioStats {
         if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && state.getPlayeForRead().getHealth() != state2.getPlayeForRead().getHealth()) {
             if (state.getPlayeForRead().getHealth() > state2.getPlayeForRead().getHealth()) {
                 winByDmg++;
-                dmgDiff1 += state.getPlayeForRead().getHealth() - state2.getPlayeForRead().getHealth();
+                winDmgDiff += state.getPlayeForRead().getHealth() - state2.getPlayeForRead().getHealth();
+                winDmgs.add(state.getPlayeForRead().getHealth() - state2.getPlayeForRead().getHealth());
             } else {
                 lossByDmg++;
-                dmgDiff2 += state2.getPlayeForRead().getHealth() - state.getPlayeForRead().getHealth();
+                loseDmgDiff += state2.getPlayeForRead().getHealth() - state.getPlayeForRead().getHealth();
+                lossDmgs.add(state2.getPlayeForRead().getHealth() - state.getPlayeForRead().getHealth());
             }
-            //            dmgDiff.addAndGet(state.getPlayeForRead().getHealth() - state2.getPlayeForRead().getHealth());
         }
 
         if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && q1 != q2) {
@@ -183,6 +209,20 @@ public class ScenarioStats {
                 }
             }
         }
+
+        if (state.prop.feedCounterIdx >= 0) {
+            var feedUsed1 = state.getCounterForRead()[state.prop.feedCounterIdx] > 0;
+            var feedUsed2 = state2.getCounterForRead()[state.prop.feedCounterIdx] > 0;
+            if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && feedUsed1 != feedUsed2) {
+                if (feedUsed1) {
+                    winByFeed++;
+                    winByFeedAmt += state.getCounterForRead()[state.prop.feedCounterIdx] - state2.getCounterForRead()[state.prop.feedCounterIdx];
+                } else {
+                    lossByFeed++;
+                    lossByFeedAmt += state2.getCounterForRead()[state.prop.feedCounterIdx] - state.getCounterForRead()[state.prop.feedCounterIdx];
+                }
+            }
+        }
     }
 
     public void printStats(GameState state, int spaces) {
@@ -197,6 +237,9 @@ public class ScenarioStats {
         }
         if (state.prop.ritualDaggerCounterIdx >= 0) {
             System.out.println(indent + "Dagger Killed Percentage: " + String.format("%.5f", ((double) daggerKilledEnemy) / (numOfGames - deathCount)));
+        }
+        if (state.prop.feedCounterIdx >= 0) {
+            System.out.println(indent + "Feed Killed Percentage: " + String.format("%.5f", ((double) feedKilledEnemy) / (numOfGames - deathCount)) + "(Average=" + ((double) feedHealTotal) / feedKilledEnemy + ")");
         }
         if (state.prop.hasCounter("Nunchaku")) {
             System.out.println(indent + "Average Nunchaku Counter: " + String.format("%.5f", ((double) nunchakuCounter) / (numOfGames - deathCount)));
@@ -217,8 +260,33 @@ public class ScenarioStats {
             if (state.prop.ritualDaggerCounterIdx >= 0) {
                 System.out.println(indent + "Win/Loss Dagger: " + winByDagger + "/" + lossByDagger);
             }
-            System.out.println(indent + "Dmg Diff: " + ((double) dmgDiff1 - dmgDiff2) / (winByDmg + lossByDmg));
-            System.out.println(indent + "Dmg Diff By Win/Loss: " + ((double) dmgDiff1) / winByDmg + "/" + ((double) dmgDiff2) / lossByDmg);
+            if (state.prop.feedCounterIdx >= 0) {
+                System.out.println(indent + "Win/Loss Feed: " + winByFeed + "/" + lossByFeed + " (" + winByFeedAmt / (double) winByFeed + "/" + lossByFeedAmt / (double) lossByFeed + "/" + (winByFeedAmt - lossByFeedAmt) / (double) (winByFeed + lossByFeed) + ")");
+            }
+            DescriptiveStatistics ds = new DescriptiveStatistics();
+            winDmgs.forEach(ds::addValue);
+            var winVariance = ds.getVariance();
+            var winDmgMean = ((double) winDmgDiff) / winByDmg;
+            var winDmgUpperBound = winDmgMean + 1.98 * winVariance / Math.sqrt(winByDmg);
+            var winDmgLowerBound = winDmgMean - 1.98 * winVariance / Math.sqrt(winByDmg);
+            ds.clear();
+            lossDmgs.forEach(ds::addValue);
+            var lossVariance = ds.getVariance();
+            var lossDmgMean = ((double) loseDmgDiff) / lossByDmg;
+            var lossDmgUpperBound = lossDmgMean + 1.98 * lossVariance / Math.sqrt(lossByDmg);
+            var lossDmgLowerBound = lossDmgMean - 1.98 * lossVariance / Math.sqrt(lossByDmg);
+            System.out.printf("%sDmg Diff By Win/Loss: %6.5f (%6.5f) [%6.5f - %6.5f]/%6.5f (%6.5f) [%6.5f - %6.5f]\n", indent,
+                    winDmgMean, winVariance / Math.sqrt(winByDmg), winDmgLowerBound, winDmgUpperBound,
+                    lossDmgMean, lossVariance / Math.sqrt(lossByDmg), lossDmgLowerBound, lossDmgUpperBound);
+            ds.clear();
+            winDmgs.forEach(ds::addValue);
+            lossDmgs.forEach((x)->ds.addValue(-x));
+            var v = ds.getMean();
+            var vU = v + 1.98 * ds.getVariance() / Math.sqrt(winDmgs.size() + lossDmgs.size());
+            var vL = v - 1.98 * ds.getVariance() / Math.sqrt(winDmgs.size() + lossDmgs.size());
+            System.out.printf("%sDmg Diff: %6.5f [%6.5f - %6.5f] %6.5f [%6.5f - %6.5f]\n", indent, ((double) winDmgDiff - loseDmgDiff) / (winByDmg + lossByDmg),
+                    (winDmgLowerBound * winByDmg - lossDmgUpperBound * lossByDmg) / (winByDmg + lossByDmg),
+                    (winDmgUpperBound * winByDmg - lossDmgLowerBound * lossByDmg) / (winByDmg + lossByDmg), v, vL, vU);
         }
     }
 

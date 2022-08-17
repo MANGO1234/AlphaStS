@@ -430,8 +430,8 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 return GameActionCtx.PLAY_CARD;
             }
             if (state.prop.makingRealMove) {
-                if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
-                state.stateDesc = state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
+                if (state.getStateDesc().length() > 0) state.getStateDesc().append(", ");
+                state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
             }
             state.addGameActionToStartOfDeque(curState -> {
                 if (curState.prop.cardDict[cardIdx].cardType != Card.POWER) {
@@ -655,19 +655,25 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            boolean moreThan1Enemy = state.enemiesAlive > 1;
+            state.isStochastic = moreThan1Enemy;
             for (int _i = 0; _i < n; _i++) {
                 int enemy_j = 0;
                 if (state.enemiesAlive > 1) {
-                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemySwordBoomerang);
-                    state.isStochastic = true;
+                    enemy_j = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemySwordBoomerang, state);
                 }
-                int j = 0;
-                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                int j = 0, enemyIdx = -1;
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAll()) {
+                    enemyIdx++;
+                    if (!enemy.isAlive()) continue;
                     if (j == enemy_j) {
                         state.playerDoDamageToEnemy(enemy, 3);
+                        if (moreThan1Enemy && state.prop.makingRealMove) {
+                            state.getStateDesc().append(state.getStateDesc().length() > 0 ? ", " : "").append(enemy.getName() + "(" + enemyIdx + ")");
+                        }
                         break;
                     }
-                    enemy_j += 1;
+                    j += 1;
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -732,7 +738,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             }
             int r = 1;
             if (diffCards > 1) {
-                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit) + 1;
+                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit, state) + 1;
                 state.isStochastic = true;
             }
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
@@ -1994,7 +2000,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         private final int n;
 
         public SearingBlow(int numberOfUpgrades) {
-            super("Searing Blow", Card.ATTACK, 2);
+            super(numberOfUpgrades == 0 ? "Searing Blow" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2);
             n = numberOfUpgrades;
             selectEnemy = true;
         }
@@ -2084,7 +2090,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public static class SentinelP extends Card {
         public SentinelP() {
             super("Sentinel+", Card.SKILL, 1);
-            selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2546,37 +2551,47 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     }
 
     // todo: nn reward
-    public static class Feed extends Card {
-        public Feed() {
-            super("Feed", Card.ATTACK, 1);
+    public static abstract class _FeedT extends Card {
+        private final int n;
+        private final int hpInc;
+
+        public _FeedT(String cardName, int cardType, int energyCost, int n, int hpInc) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            this.hpInc = hpInc;
             healPlayer = true;
             exhaustWhenPlayed = true;
             selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
             if (!state.getEnemiesForRead().get(idx).isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
-                state.getPlayerForWrite().heal(3);
+                state.getPlayerForWrite().heal(hpInc);
+                state.getCounterForWrite()[state.prop.feedCounterIdx] += hpInc;
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Feed", this, null);
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+            gameProperties.feedCounterIdx = idx;
         }
     }
 
-    public static class FeedP extends Card {
-        public FeedP() {
-            super("Feed+", Card.ATTACK, 1);
-            healPlayer = true;
-            exhaustWhenPlayed = true;
-            selectEnemy = true;
+    public static class Feed extends _FeedT {
+        public Feed() {
+            super("Feed", Card.ATTACK, 1, 10, 3);
         }
+    }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12);
-            if (!state.getEnemiesForRead().get(idx).isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
-                state.getPlayerForWrite().heal(4);
-            }
-            return GameActionCtx.PLAY_CARD;
+    public static class FeedP extends _FeedT {
+        public FeedP() {
+            super("Feed+", Card.ATTACK, 1, 12, 4);
         }
     }
 
@@ -2703,7 +2718,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 @Override void handle(GameState state) {
                     int i = 0;
                     if (state.enemiesAlive > 1) {
-                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut);
+                        i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut, state);
                         state.isStochastic = true;
                     }
                     int enemy_j = 0;

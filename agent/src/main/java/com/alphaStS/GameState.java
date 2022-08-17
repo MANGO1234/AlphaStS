@@ -100,7 +100,7 @@ public class GameState implements State {
     int energyRefill;
     GameAction currentAction;
     public short turnNum;
-    int playerTurnStartHealth;
+    int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
 
     // various other buffs/debuffs
@@ -326,6 +326,7 @@ public class GameState implements State {
             }
         }
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
+        prop.healCardsIdxes = findCardThatCanHealIdxes(cards, relics);
         prop.upgradeIdxes = findUpgradeIdxes(cards, relics);
         prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
         prop.discardReverseIdxes = new int[prop.realCardsLen];
@@ -373,9 +374,6 @@ public class GameState implements State {
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
         prop.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.canEntangle);
-        prop.playerCanHeal = cards.stream().anyMatch((x) -> x.card().healPlayer);
-        prop.playerCanHeal |= relics.stream().anyMatch((x) -> x.healPlayer);
-        prop.playerCanHeal |= potions.stream().anyMatch((x) -> x.healPlayer);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
         prop.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
         prop.enemyCanGetVuln |= potions.stream().anyMatch((x) -> x.vulnEnemy);
@@ -408,6 +406,22 @@ public class GameState implements State {
         // mcts related fields
         terminal_action = -100;
         transpositions = new HashMap<>();
+    }
+
+    private int[] findCardThatCanHealIdxes(List<CardCount> cards, List<Relic> relics) {
+        // todo
+        long c = cards.stream().filter((x) -> x.card().healPlayer).count();
+        if (c == 0) {
+            return null;
+        }
+        int[] r = new int[(int) c];
+        int idx = 0;
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).card().healPlayer) {
+                r[idx++] = i;
+            }
+        }
+        return r;
     }
 
     private int[] findUpgradeIdxes(List<CardCount> cards, List<Relic> relics) {
@@ -547,7 +561,7 @@ public class GameState implements State {
         deckArrLen = other.deckArrLen;
         energy = other.energy;
         turnNum = other.turnNum;
-        playerTurnStartHealth = other.playerTurnStartHealth;
+        playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
         energyRefill = other.energyRefill;
         player = other.player;
@@ -588,7 +602,7 @@ public class GameState implements State {
         if (getPlayeForRead().cannotDrawCard()) {
             return;
         }
-//        if (deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
+//        if (!prop.testNewFeature || deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
             isStochastic = true;
 //        }
         int cardsInHand = 0;
@@ -612,6 +626,9 @@ public class GameState implements State {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
                 deck[deckArr[i]] -= 1;
                 hand[deckArr[i]] += 1;
+                if (prop.makingRealMove) {
+                    getStateDesc().append(getStateDesc().length() > 0 ? ", " : "Draw ").append(prop.cardDict[deckArr[i]].cardName);
+                }
                 deckArr[i] = deckArr[deckArrLen - 1];
                 deckArrLen -= 1;
             }
@@ -868,11 +885,14 @@ public class GameState implements State {
         while (gameActionDeque != null && gameActionDeque.size() > 0 && isTerminal() == 0) {
             gameActionDeque.pollFirst().doAction(this);
         }
+        if (gameActionDeque != null && isTerminal() != 0) {
+            gameActionDeque.clear();
+        }
     }
 
     void startTurn() {
         turnNum++;
-        playerTurnStartHealth = getPlayeForRead().getHealth();
+        playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
         playerTurnStartPotionCount = getPotionCount();
         gainEnergy(energyRefill);
         var enemies = getEnemiesForWrite();
@@ -1124,7 +1144,7 @@ public class GameState implements State {
             }
         } else {
             out[V_WIN_IDX] = v_win;
-            out[V_HEALTH_IDX] = prop.playerCanHeal ? v_health : Math.min(v_health, getPlayeForRead().getHealth() / (float) getPlayeForRead().getMaxHealth());
+            out[V_HEALTH_IDX] = Math.min(v_health, getMaxPossibleHealth() / (float) getPlayeForRead().getMaxHealth());
             if (prop.ritualDaggerVArrayIdx >= 0) {
                 out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : v_other[prop.ritualDaggerVArrayIdx];
             }
@@ -1141,6 +1161,33 @@ public class GameState implements State {
             }
         }
         out[V_COMB_IDX] = calc_q(out);
+    }
+
+    public boolean checkIfCanHeal() {
+        if (prop.healCardsIdxes == null) {
+            return false;
+        }
+        if (prop.findCardIndex("Exhume") >= 0 || prop.findCardIndex("Exhume+") >= 0) {
+            return true;
+        }
+        for (int i = 0; i < prop.healCardsIdxes.length; i++) {
+            if (hand[prop.healCardsIdxes[i]] > 0 || deck[prop.healCardsIdxes[i]] > 0 || discard[prop.healCardsIdxes[i]] > 0) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private int getMaxPossibleHealth() {
+        if (checkIfCanHeal()) {
+            int v = 4;
+            if (getExhaustForRead()[prop.findCardIndex("Armanent+")] > 0) {
+                v = 3;
+            }
+            return Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+        } else {
+            return getPlayeForRead().getHealth();
+        }
     }
 
     public int isTerminal() {
@@ -1190,7 +1237,7 @@ public class GameState implements State {
         //        if (!prop.tmp && prop.ritualDaggerCounterIdx >= 0) {
 //            base *= 1 - ((1 - getCounterForRead()[prop.ritualDaggerCounterIdx]) / 2.0) * Configuration.UTIL_FOR_RITUAL_DAGGER;
 //        }
-        if (prop.tmp && prop.ritualDaggerVArrayIdx >= 0) {
+        if (prop.testNewFeature && prop.ritualDaggerVArrayIdx >= 0) {
             base *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
 //            if (v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] == 0 || v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] == 1) {
 //                base *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
@@ -2697,11 +2744,18 @@ class ChanceState implements State {
         if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
         }
+         if (parentState.prop.makingRealMove && Configuration.PRINT_MODEL_COMPARE_DIFF) {
+             total_n -= 1;
+             return state;
+         }
         total_node_n += 1;
         var node = cache.get(state);
         if (node != null) {
             node.n += 1;
             node.revisit = false;
+            if (node.state.stateDesc == null && state.stateDesc != null) {
+                node.state.stateDesc = state.stateDesc;
+            }
             return node.state;
         }
         cache.put(state, new Node(state));

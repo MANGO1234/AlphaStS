@@ -65,4 +65,37 @@ public class EnemyList extends EnemyListReadOnly {
             return new EnemyListAliveIterator(enemies);
         }
     }
+
+    public EnemyListAllIterable iterateOverAll() {
+        return new EnemyListAllIterable(this);
+    }
+
+    private static class EnemyListAllIterator implements Iterator<Enemy> {
+        EnemyList enemies;
+        int i = 0;
+
+        protected EnemyListAllIterator(EnemyList enemies) {
+            this.enemies = enemies;
+        }
+
+        @Override public boolean hasNext() {
+            return i < enemies.enemies.length;
+        }
+
+        @Override public Enemy next() {
+            return enemies.getForWrite(i++);
+        }
+    }
+
+    public static class EnemyListAllIterable implements Iterable<Enemy> {
+        EnemyList enemies;
+
+        public EnemyListAllIterable(EnemyList enemies) {
+            this.enemies = enemies;
+        }
+
+        @Override public Iterator<Enemy> iterator() {
+            return new EnemyListAllIterator(enemies);
+        }
+    }
 }

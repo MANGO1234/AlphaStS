@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.utils.ScenarioStats;
+import com.alphaStS.utils.Utils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
 
@@ -55,7 +56,7 @@ public class MatchSession {
     }
 
     public Game playGame(GameState origState, MCTS mcts, int nodeCount, boolean USE_NEW_SEARCH2) {
-        var states = new ArrayList<GameStep>();
+        var steps = new ArrayList<GameStep>();
         var state = origState.clone(false);
         int r = 0;
         int preBattle_r = 0;
@@ -76,9 +77,9 @@ public class MatchSession {
             state.doAction(startingAction);
             state.prop.makingRealMove = false;
         }
-        state.prop.tmp = USE_NEW_SEARCH2;
+        state.prop.testNewFeature = USE_NEW_SEARCH2;
 
-        if (USE_NEW_SEARCH) {
+        if (true) {
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
                 for (int i = 0; i < upto; i++) {
@@ -108,9 +109,9 @@ public class MatchSession {
                 }
 
                 for (int action : state.searchFrontier.getBestLine().getActions(state)) {
-                    states.add(new GameStep(state, action));
+                    steps.add(new GameStep(state, action));
                     if (state.searchFrontier != null) {
-                        states.get(states.size() - 1).lines = state.searchFrontier.getSortedLinesAsStrings(state);
+                        steps.get(steps.size() - 1).lines = state.searchFrontier.getSortedLinesAsStrings(state);
                     }
                     if (!training && solver != null) {
                         solver.checkForError(state, action, true);
@@ -132,7 +133,7 @@ public class MatchSession {
                             state.prop.makingRealMove = false;
                         }
                     }
-                    states.get(states.size() - 1).state().clearNextStates();
+                    steps.get(steps.size() - 1).state().clearNextStates();
                 }
                 state.clearAllSearchInfo();
             }
@@ -148,7 +149,7 @@ public class MatchSession {
                 }
 
                 int action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
-                states.add(new GameStep(state, action));
+                steps.add(new GameStep(state, action));
                 if (!training && solver != null) {
                     solver.checkForError(state, action, true);
                 }
@@ -172,21 +173,29 @@ public class MatchSession {
                         state.prop.makingRealMove = false;
                     }
                 }
-                states.get(states.size() - 1).state().clearNextStates();
+                steps.get(steps.size() - 1).state().clearNextStates();
             }
         }
-        states.add(new GameStep(state, -1));
-        return new Game(states, preBattle_r, r, true);
+        steps.add(new GameStep(state, -1));
+        for (int i = 1; i < steps.size(); i++) {
+            if (steps.get(i).state().stateDesc != null) {
+                steps.get(i - 1).actionDesc = steps.get(i).state().stateDesc;
+            }
+        }
+        return new Game(steps, preBattle_r, r, true);
     }
 
     public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, boolean noExploration) {}
-    public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2) {}
+    public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed) {}
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
             seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
         }
+//        seeds.clear();
+//        seeds.add(-3983415241759956846l);
+//        numOfGames = 1;
         var deq = new LinkedBlockingDeque<GameResult>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
@@ -214,11 +223,12 @@ public class MatchSession {
                         modelCalls2 = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev;
                     }
                     try {
-                        deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2));
+                        deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2, seeds.get(idx - 1)));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
                     idx = numToPlay.getAndDecrement();
+                    com.alphaStS.utils.Utils.sleep(Configuration.SLEEP_PER_GAME);
                 }
             }).start();
         }
@@ -283,8 +293,7 @@ public class MatchSession {
             if (!training && solver != null) {
                 solverErrorCount += solver.checkForError(game);
             }
-            if (Configuration.PRINT_MODEL_COMPARE_DIFF && steps2 != null && steps.get(steps.size() - 1).state().isTerminal() != steps2.get(steps2.size() - 1).state().isTerminal()) {
-                System.out.println(steps.get(steps.size() - 1).state().isTerminal() > 0 ? "!!! Win" : "!!! Loss");
+            if (Configuration.PRINT_MODEL_COMPARE_DIFF && steps2 != null) {
                 var turns1 = GameStateUtils.groupByTurns(steps);
                 var turns2 = GameStateUtils.groupByTurns(steps2);
                 for (int i = 1; i < Math.min(turns1.size(), turns2.size()); i++) {
@@ -292,13 +301,33 @@ public class MatchSession {
                     var t2 = turns2.get(i);
                     var ts1 = t1.get(t1.size() - 1).state().clone(false);
                     var ts2 = t2.get(t2.size() - 1).state().clone(false);
-                    ts1.doAction(0);
-                    ts2.doAction(0);
+                    if (ts1.actionCtx != GameActionCtx.BEGIN_TURN) {
+                        for (int j = 0; j < ts1.getLegalActions().length; j++) {
+                            if (ts1.getAction(j).type() == GameActionType.END_TURN) {
+                                ts1.doAction(j);
+                                break;
+                            }
+                        }
+                    }
+                    if (ts2.actionCtx != GameActionCtx.BEGIN_TURN) {
+                        for (int j = 0; j < ts2.getLegalActions().length; j++) {
+                            if (ts2.getAction(j).type() == GameActionType.END_TURN) {
+                                ts2.doAction(j);
+                                break;
+                            }
+                        }
+                    }
                     if (!ts1.equals(ts2)) {
+                        System.out.println("******************************************** " + result.seed);
                         System.out.println(t1.get(0));
                         System.out.println(t2.get(0));
-                        System.out.println(t1.stream().limit(t1.size() - 1).map((s) -> s.state().getActionString(s.action())).collect(Collectors.joining(", ")));
-                        System.out.println(t2.stream().limit(t2.size() - 1).map((s) -> s.state().getActionString(s.action())).collect(Collectors.joining(", ")));
+                        System.out.println(t1.stream().map(GameStep::getActionString).limit(t1.size() - 1).filter((x) -> !x.equals("End Turn"))
+                                .collect(Collectors.joining(", ")));
+                        System.out.println(t2.stream().map(GameStep::getActionString).limit(t2.size() - 1).filter((x) -> !x.equals("End Turn"))
+                                .collect(Collectors.joining(", ")));
+                        if (!t1.get(0).state().equals(t2.get(0).state())) {
+                            System.out.println("!!!");
+                        }
                         break;
                     }
                 }
@@ -657,6 +686,7 @@ public class MatchSession {
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
+                    Utils.sleep(Configuration.SLEEP_PER_GAME_TRAINING);
                 }
             }).start();
         }
@@ -782,7 +812,7 @@ public class MatchSession {
                     }
                     if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
                         for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
-                            if (state.terminal_action >= 0) {
+                            if (false) {
                                 if (state.terminal_action == action) {
                                     stream.writeFloat(1);
                                 } else {
@@ -828,7 +858,7 @@ public class MatchSession {
                     }
                 } else {
                     for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        if (state.terminal_action >= 0) {
+                        if (false) {
                             if (state.terminal_action == action) {
                                 stream.writeFloat(1);
                             } else {
@@ -938,7 +968,7 @@ public class MatchSession {
                 var nextStep = steps.get(i + 1);
                 writer.write("action=" + step.state().getActionString(step.action()));
                 if (nextStep.state().stateDesc != null) {
-                    writer.write(", " + nextStep.state().stateDesc);
+                    writer.write(" (" + nextStep.state().stateDesc + ")");
                 }
                 if (step.isExplorationMove) {
                     writer.write(" (Temperature)");

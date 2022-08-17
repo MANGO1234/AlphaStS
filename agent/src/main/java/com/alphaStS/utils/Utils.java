@@ -46,4 +46,12 @@ public class Utils {
             return String.format("%6.3f", f).trim();
         }
     }
+
+    public static void sleep(long ms) {
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -9,6 +9,7 @@ public final class GameStep {
     public double[] v;
     public List<String> lines;
     public boolean isExplorationMove;
+    public StringBuilder actionDesc;
 
     GameStep(GameState state, int action) {
         this.state = state;
@@ -27,6 +28,14 @@ public final class GameStep {
         return "GameStep{" +
                 "state=" + state +
                 ", action=" + action +
+                (actionDesc == null ? "" : (" (" + actionDesc + " )")) +
                 '}';
+    }
+
+    public String getActionString() {
+        if (action < 0) {
+            return null;
+        }
+        return state().getActionString(action()) + (actionDesc == null ? "" : (" (" + actionDesc + ")"));
     }
 }

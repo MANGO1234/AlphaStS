@@ -747,15 +747,14 @@ public class Main {
         builder.addCard(new Card.IronWave(), 1);
         builder.addCard(new Card.SpotWeakness(), 1);
         builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 1);
+        builder.addCard(new Card.BattleTrance(), 2);
+        builder.addCard(new Card.SwordBoomerang(), 2);
         builder.addCard(new Card.Disarm(), 1);
         builder.addCard(new Card.PowerThroughP(), 1);
         builder.addCard(new Card.Feed(), 1);
         builder.addCard(new Card.FiendFire(), 1);
         builder.addCard(new Card.SwordBoomerang(), 1);
         builder.addCard(new Card.Sentinel(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
         builder.addCard(new Card.PommelStrike(), 1);
         builder.addCard(new Card.SeverSoul(), 1);
         builder.addCard(new Card.DemonForm(), 1);
@@ -765,18 +764,20 @@ public class Main {
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(7));
         builder.addRelic(new Relic.GremlinHorn());
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
-        EnemyEncounter.addSlaversEliteFight(builder);
-        EnemyEncounter.addGremlinLeaderFight(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3}, new int[] {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19});
-        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
-        randomization = randomization.doAfter(new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Havoc(), 0)),
-                List.of(new CardCount(new Card.Anger(), 2), new CardCount(new Card.Havoc(), 0)),
-                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Havoc(), 1))
-        )));
+        builder.addEnemy(new EnemyCity.Byrd());
+        builder.addEnemy(new EnemyCity.Byrd());
+        builder.addEnemy(new EnemyCity.Byrd());
+//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        EnemyEncounter.addSlaversEliteFight(builder);
+//        EnemyEncounter.addGremlinLeaderFight(builder);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3}, new int[] {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19});
+//        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(),
+                List.of(new CardCount(new Card.Havoc(), 1))
+        ));
         builder.setRandomization(randomization);
-        builder.addPotion(new Potion.LiquidMemory());
+//        builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(66, 70));
         return new GameState(builder);
     }
@@ -875,14 +876,14 @@ public class Main {
         if (SAVES_DIR.startsWith("../")) {
 //            SAVES_DIR = "../tmp/saves_guard";
 //           SAVES_DIR = "../tmp/saves_champ_no";
-//            SAVES_DIR = "../saves4";
-            NUMBER_OF_GAMES_TO_PLAY = 4000;
+            SAVES_DIR = "../saves";
+            NUMBER_OF_GAMES_TO_PLAY = 10000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 200;
-            iteration = 51;
-            COMPARE_DIR = "../saves/iteration40";
+            NUMBER_OF_NODES_PER_TURN = 100;
+            iteration = 36;
+            COMPARE_DIR = "../saves/iteration35";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }
@@ -974,7 +975,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            session.playTrainingGames(state, 400, 100, curIterationDir + "/training_data.bin.lz4");
+            session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {

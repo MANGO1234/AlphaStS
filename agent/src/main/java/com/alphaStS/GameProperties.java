@@ -5,7 +5,7 @@ import com.alphaStS.enemy.EnemyList;
 import java.util.*;
 
 public class GameProperties implements Cloneable {
-    public boolean tmp;
+    public boolean testNewFeature;
     public boolean testPotionOutput;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
@@ -16,7 +16,6 @@ public class GameProperties implements Cloneable {
     public boolean playerCanGetWeakened;
     public boolean playerCanGetFrailed;
     public boolean playerCanGetEntangled;
-    public boolean playerCanHeal;
     public boolean enemyCanGetVuln;
     public boolean enemyCanGetWeakened;
     public boolean enemyStrengthCanChange;
@@ -53,8 +52,10 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodPIndexes;
     public int[] infernalBladeIndexes;
+    public int[] healCardsIdxes;
     public int ritualDaggerCounterIdx = -1;
     public int ritualDaggerVArrayIdx = -1;
+    public int feedCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -117,6 +118,18 @@ public class GameProperties implements Cloneable {
             }
         }
         return -1;
+    }
+
+    private Map<String, Integer> cardIndexCache = new HashMap<>();
+
+    public int findCardIndex(String cardName) {
+        if (cardIndexCache.size() == 0) { // todo: move to construction
+            for (int i = 0; i < cardDict.length; i++) {
+                cardIndexCache.put(cardDict[i].cardName, i);
+            }
+        }
+        Integer v = cardIndexCache.get(cardName);
+        return v == null ? -1 : v;
     }
 
     interface CounterRegistrant {
