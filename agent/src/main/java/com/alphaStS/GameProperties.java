@@ -5,7 +5,7 @@ import com.alphaStS.enemy.EnemyList;
 import java.util.*;
 
 public class GameProperties implements Cloneable {
-    public boolean testNewFeature;
+    public boolean testNewFeature = true;
     public boolean testPotionOutput;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;

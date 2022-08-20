@@ -52,7 +52,9 @@ public class LineOfPlay {
         }
         while (line.parentLines != null) {
             var r = line.parentLines.size() == 1 ? 0 : rand.nextInt(line.parentLines.size(), RandomGenCtx.Other);
-            actions.add(line.parentLines.get(r).action);
+            if (((GameState) line.parentLines.get(r).line.state).getAction(line.parentLines.get(r).action).type() != GameActionType.BEGIN_TURN) {
+                actions.add(line.parentLines.get(r).action);
+            }
             line = line.parentLines.get(r).line;
         }
         Collections.reverse(actions);

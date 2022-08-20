@@ -32,6 +32,13 @@ public final class GameStep {
                 '}';
     }
 
+    public GameAction getAction() {
+        if (action < 0) {
+            return null;
+        }
+        return state().getAction(action());
+    }
+
     public String getActionString() {
         if (action < 0) {
             return null;

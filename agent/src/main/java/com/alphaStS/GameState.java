@@ -2744,10 +2744,6 @@ class ChanceState implements State {
         if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
         }
-         if (parentState.prop.makingRealMove && Configuration.PRINT_MODEL_COMPARE_DIFF) {
-             total_n -= 1;
-             return state;
-         }
         total_node_n += 1;
         var node = cache.get(state);
         if (node != null) {
@@ -2756,9 +2752,15 @@ class ChanceState implements State {
             if (node.state.stateDesc == null && state.stateDesc != null) {
                 node.state.stateDesc = state.stateDesc;
             }
+            if (parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+               node.state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
+            }
             return node.state;
         }
         cache.put(state, new Node(state));
+        if (parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+           state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
+        }
         return state;
     }
 

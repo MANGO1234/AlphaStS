@@ -877,13 +877,13 @@ public class Main {
 //            SAVES_DIR = "../tmp/saves_guard";
 //           SAVES_DIR = "../tmp/saves_champ_no";
             SAVES_DIR = "../saves";
-            NUMBER_OF_GAMES_TO_PLAY = 10000;
+            NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 100;
-            iteration = 36;
-            COMPARE_DIR = "../saves/iteration35";
+            NUMBER_OF_NODES_PER_TURN = 1000;
+            iteration = 61;
+            COMPARE_DIR = "../saves/iteration60";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }
@@ -931,7 +931,7 @@ public class Main {
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
             var writer = new OutputStreamWriter(System.out);
-            session.printGame(writer, session.playGame(state, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN, true).steps());
+            session.printGame(writer, session.playGame(state, -1, null, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps());
             writer.flush();
         }
 

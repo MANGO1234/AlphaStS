@@ -389,7 +389,7 @@ public class MCTS {
             frontierNodes++;
         }
         boolean skipInternalNodes = false;
-        if (state.prop.testNewFeature && frontierNodes >= Math.ceil(Math.pow(state.total_n + 1, 0.5))) {
+        if (frontierNodes >= Math.ceil(Math.pow(state.total_n + 1, 0.5))) {
             skipInternalNodes = true;
         }
         for (var line : lines) {

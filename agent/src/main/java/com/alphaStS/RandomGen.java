@@ -25,19 +25,26 @@ public abstract class RandomGen {
         throw new UnsupportedOperationException();
     }
 
+    public long getStartingSeed() {
+        throw new UnsupportedOperationException();
+    }
+
     public void timeTravelToBeginning() {
         throw new UnsupportedOperationException();
     }
 
     public static class RandomGenPlain extends RandomGen {
         Random random;
+        long startingSeed;
 
         public RandomGenPlain() {
             random = new Random();
+            startingSeed = getSeed(null);
         }
 
         public RandomGenPlain(Random random) {
             this.random = random;
+            startingSeed = getSeed(null);
         }
 
         protected Random getRandomClone() {
@@ -99,12 +106,18 @@ public abstract class RandomGen {
             }
             return seed ^ 0x5DEECE66DL;
         }
+
+        public long getStartingSeed() {
+            return startingSeed;
+        }
     }
 
     public static class RandomGenByCtx extends RandomGen {
         public List<RandomGen> randoms = new ArrayList<>();
+        long startingSeed;
 
         public RandomGenByCtx(long seed) {
+            startingSeed = seed;
             Random random = new Random(seed);
             for (int i = 0; i < RandomGenCtx.values().length; i++) {
                 randoms.add(new RandomGenMemory(random.nextLong()));
@@ -149,6 +162,10 @@ public abstract class RandomGen {
 
         public long getSeed(RandomGenCtx ctx) {
             return randoms.get(ctx.ordinal()).getSeed(ctx);
+        }
+
+        public long getStartingSeed() {
+            return startingSeed;
         }
     }
 

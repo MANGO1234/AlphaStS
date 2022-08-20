@@ -323,6 +323,13 @@ public class InteractiveMode {
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
                 runGames(modelDir, state, line);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+            } else if (line.equals("cmpSet") || line.startsWith("cmpSet ")) {
+                runGamesCmpSetup(state, line);
+            } else if (line.equals("cmp") || line.startsWith("cmp ")) {
+                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                runGamesCmp(reader, modelDir, line);
+                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.equals("rng off")) {
                 ((RandomGenInteractive) state.prop.random).rngOn = false;
             } else if (line.equals("rng on")) {
@@ -685,6 +692,90 @@ public class InteractiveMode {
         }
         session.playGames(state, numberOfGames, nodeCount, true);
         state.prop.randomization = prevRandomization;
+    }
+
+    private static GameState state1;
+    private static GameState state2;
+    private static int startingAction1;
+    private static int startingAction2;
+
+    private static void runGamesCmpSetup(GameState state, String line) {
+        String[] s = line.split(" ");
+        if (s.length < 1) {
+            return;
+        }
+        int startingAction = -1;
+        if (s.length >= 3) {
+            if (s[2].equals("e")) {
+                startingAction = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+            } else {
+                startingAction = parseInt(s[2], -1);
+            }
+            if (startingAction < 0 || startingAction >= state.getLegalActions().length) {
+                System.out.println("Unknown action.");
+                return;
+            }
+        }
+        if (s[1].equals("1")) {
+            state1 = state.clone(false);
+            startingAction1 = startingAction;
+        } else if (s[1].equals("2")) {
+            state2 = state.clone(false);
+            startingAction2 = startingAction;
+        } else {
+            System.out.println("cmpSet <1|2>");
+        }
+    }
+
+    private static void runGamesCmp(BufferedReader reader, String modelDir, String line) throws IOException {
+        String[] s = line.split(" ");
+        int numberOfGames = 100;
+        int numberOfThreads = 2;
+        int nodeCount = 500;
+        int randomizationScenario = -1;
+        if (s.length > 1) {
+            for (int i = 1; i < s.length; i++) {
+                if (s[i].startsWith("c=")) {
+                    numberOfGames = parseInt(s[i].substring(2), 0);
+                }
+                if (s[i].startsWith("t=")) {
+                    numberOfThreads = parseInt(s[i].substring(2), 2);
+                }
+                if (s[i].startsWith("n=")) {
+                    nodeCount = parseInt(s[i].substring(2), 500);
+                }
+                if (s[i].startsWith("r=")) {
+                    randomizationScenario = parseInt(s[i].substring(2), -1);
+                }
+            }
+        }
+        MatchSession session = new MatchSession(numberOfThreads, modelDir, modelDir);
+        session.startingAction = startingAction1;
+        session.origStateCmp = state2;
+        session.startingActionCmp = startingAction2;
+        var prevRandomization = state1.prop.randomization;
+        if (randomizationScenario >= 0) {
+            state1.prop.randomization = state1.prop.randomization.fixR(randomizationScenario);
+        }
+        if (state1 == null || state2 == null) {
+            System.out.println("States not set");
+            return;
+        }
+        System.out.println(state1);
+        if (startingAction1 >= 0) {
+            System.out.println("    " + state1.getActionString(startingAction1));
+        }
+        System.out.println(state2);
+        if (startingAction2 >= 0) {
+            System.out.println("    " + state2.getActionString(startingAction2));
+        }
+        System.out.println("Continue? (y/n)");
+        System.out.print("> ");
+        if (!reader.readLine().equals("y")) {
+            return;
+        }
+        session.playGames(state1, numberOfGames, nodeCount, true);
+        state1.prop.randomization = prevRandomization;
     }
 
     private static void printTree(GameState state, String line, String modelDir) {
