@@ -39,6 +39,9 @@ public class MCTS {
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
+            state.total_q_comb = v[GameState.V_COMB_IDX];
+            state.total_q_win = v[GameState.V_WIN_IDX];
+            state.total_q_health = v[GameState.V_HEALTH_IDX];
             if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
                     state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
@@ -167,6 +170,9 @@ public class MCTS {
             return;
         }
         if (state.isTerminal() != 0) {
+            state.total_q_comb = v[GameState.V_COMB_IDX];
+            state.total_q_win = v[GameState.V_WIN_IDX];
+            state.total_q_health = v[GameState.V_HEALTH_IDX];
             state.get_v(v);
             if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
                     state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
@@ -291,6 +297,9 @@ public class MCTS {
 
     void searchPlain_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
+            state.total_q_comb = v[GameState.V_COMB_IDX];
+            state.total_q_win = v[GameState.V_WIN_IDX];
+            state.total_q_health = v[GameState.V_HEALTH_IDX];
             state.get_v(v);
             numberOfPossibleActions = 1;
             return;

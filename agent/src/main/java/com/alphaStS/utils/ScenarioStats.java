@@ -3,9 +3,9 @@ package com.alphaStS.utils;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateRandomization;
 import com.alphaStS.GameStep;
-import com.alphaStS.MatchSession;
 import com.alphaStS.MatchSession.GameResult;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,20 +30,20 @@ public class ScenarioStats {
     boolean hasState2;
     long numberOfDivergences;
     long numberOfSamples;
-    long win;
-    long loss;
-    List<Double> winDmgs;
-    List<Double> lossDmgs;
-    long[] winByPotion;
-    long[] lossByPotion;
-    long winByDagger;
-    long lossByDagger;
-    long winByFeed;
-    long lossByFeed;
+    int win;
+    int loss;
+    List<Double> winDmgs = new ArrayList<>();
+    List<Double> lossDmgs = new ArrayList<>();
+    int[] winByPotion;
+    int[] lossByPotion;
+    int winByDagger;
+    int lossByDagger;
+    int winByFeed;
+    int lossByFeed;
     long winByFeedAmt;
     long lossByFeedAmt;
-    long winByQ;
-    long lossByQ;
+    List<Double> winQs = new ArrayList<>();
+    List<Double> lossQs = new ArrayList<>();
     long modelCalls2;
     long totalTurns2;
 
@@ -52,8 +52,6 @@ public class ScenarioStats {
         if (stats.length > 0) {
             total.potionsUsed = new int[stats[0].potionsUsed.length];
             total.damageCount = new HashMap<>();
-            total.winDmgs = new ArrayList<>();
-            total.lossDmgs = new ArrayList<>();
         }
         for (ScenarioStats stat : stats) {
             total.numOfGames += stat.numOfGames;
@@ -83,8 +81,8 @@ public class ScenarioStats {
             total.winDmgs.addAll(stat.winDmgs);
             total.lossDmgs.addAll(stat.lossDmgs);
             if (total.winByPotion == null && stat.winByPotion != null) {
-                total.winByPotion = new long[stat.winByPotion.length];
-                total.lossByPotion = new long[stat.winByPotion.length];
+                total.winByPotion = new int[stat.winByPotion.length];
+                total.lossByPotion = new int[stat.winByPotion.length];
             }
             if (total.winByPotion != null) {
                 for (int i = 0; i < stat.winByPotion.length; i++) {
@@ -98,8 +96,8 @@ public class ScenarioStats {
             total.lossByFeed += stat.lossByFeed;
             total.winByFeedAmt += stat.winByFeedAmt;
             total.lossByFeedAmt += stat.lossByFeedAmt;
-            total.winByQ += stat.winByQ;
-            total.lossByQ += stat.lossByQ;
+            total.winQs.addAll(stat.winQs);
+            total.lossQs.addAll(stat.lossQs);
             total.modelCalls2 += stat.modelCalls2;
             total.totalTurns2 += stat.totalTurns2;
         }
@@ -113,8 +111,6 @@ public class ScenarioStats {
         if (damageCount == null) {
             damageCount = new HashMap<>();
             potionsUsed = new int[state.prop.potions.size()];
-            winDmgs = new ArrayList<>();
-            lossDmgs = new ArrayList<>();
         }
         int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
         numOfGames++;
@@ -148,6 +144,9 @@ public class ScenarioStats {
     }
 
     public void add(List<GameStep> steps, List<GameStep> steps2, int modelCalls2, List<GameResult> reruns) {
+        if (steps2 == null) {
+            return;
+        }
         numberOfDivergences += reruns != null ? 1 : 0;
         numberOfSamples += reruns != null ? 1 + reruns.size() : 0;
         hasState2 = true;
@@ -169,8 +168,6 @@ public class ScenarioStats {
             steps2 = stepsArr2.get(stepsIdx);
             GameState state = steps.get(steps.size() - 1).state();
             GameState state2 = steps2.get(steps2.size() - 1).state();
-            var q1 = state.get_q();
-            var q2 = state2.get_q();
             if (state.isTerminal() != state2.isTerminal()) {
                 if (state.isTerminal() == 1) {
                     win++;
@@ -179,17 +176,9 @@ public class ScenarioStats {
                 }
             }
 
-            if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && q1 != q2) {
-                if (q1 > q2) {
-                    winByQ++;
-                } else {
-                    lossByQ++;
-                }
-            }
-
             if (winByPotion == null && state.prop.potions.size() > 0) {
-                winByPotion = new long[state.prop.potions.size()];
-                lossByPotion = new long[state.prop.potions.size()];
+                winByPotion = new int[state.prop.potions.size()];
+                lossByPotion = new int[state.prop.potions.size()];
             }
             for (int i = 0; i < state.prop.potions.size(); i++) {
                 if (!state.potionUsed(i) && state2.potionUsed(i)) {
@@ -241,6 +230,22 @@ public class ScenarioStats {
         } else if (meanTotalDmg < 0) {
             lossDmgs.add(((double) -meanTotalDmg) / stepsArr.size());
         }
+
+        double meanTotalQ = 0;
+        for (int stepsIdx = 0; stepsIdx < stepsArr.size(); stepsIdx++) {
+            steps = stepsArr.get(stepsIdx);
+            steps2 = stepsArr2.get(stepsIdx);
+            GameState state = steps.get(steps.size() - 1).state();
+            GameState state2 = steps2.get(steps2.size() - 1).state();
+            if ((state.isTerminal() == 1 && state2.isTerminal() == 1)) {
+                meanTotalQ += state.get_q() - state2.get_q();
+            }
+        }
+        if (meanTotalQ > 0) {
+            winQs.add(meanTotalQ / stepsArr.size());
+        } else if (meanTotalQ < 0) {
+            lossQs.add(-meanTotalQ / stepsArr.size());
+        }
     }
 
     public void printStats(GameState state, int spaces) {
@@ -268,12 +273,12 @@ public class ScenarioStats {
         if (hasState2) {
             System.out.println(indent + "Compared Network Nodes/Turns: " + modelCalls2 + "/" + totalTurns2 + "/" + (((double) modelCalls2) / totalTurns2));
             System.out.println(indent + "Number of Divergences: " + numberOfDivergences + " (" + numberOfSamples + ")");
-            System.out.println(indent + "Win/Loss: " + win + "/" + loss);
-            System.out.println(indent + "Win/Loss Q: " + winByQ + "/" + lossByQ);
+            printBinomialStat(indent, "Win/Loss", win, loss);
+            System.out.println(indent + "Win/Loss Q: " + winQs.size() + "/" + lossQs.size());
             System.out.println(indent + "Win/Loss Dmg: " + winDmgs.size() + "/" + lossDmgs.size());
             if (winByPotion != null) {
                 for (int i = 0; i < state.prop.potions.size(); i++) {
-                    System.out.println(indent + "Win/Loss Potion " + state.prop.potions.get(i) + ": " + winByPotion[i] + "/" + lossByPotion[i]);
+                    printBinomialStat(indent, "Win/Loss Potion " + state.prop.potions.get(i), winByPotion[i], lossByPotion[i]);
                 }
             }
             if (state.prop.ritualDaggerCounterIdx >= 0) {
@@ -285,27 +290,61 @@ public class ScenarioStats {
             DescriptiveStatistics ds = new DescriptiveStatistics();
             winDmgs.forEach(ds::addValue);
             var winDmgMean = ds.getMean();
-            var winVariance = ds.getVariance();
-            var winDmgUpperBound = winDmgMean + 1.98 * winVariance / Math.sqrt(winDmgs.size());
-            var winDmgLowerBound = winDmgMean - 1.98 * winVariance / Math.sqrt(winDmgs.size());
+            var winDmgVariance = ds.getVariance();
+            var winDmgUpperBound = winDmgMean + 1.98 * Math.sqrt(winDmgVariance / winDmgs.size());
+            var winDmgLowerBound = winDmgMean - 1.98 * Math.sqrt(winDmgVariance / winDmgs.size());
             ds.clear();
             lossDmgs.forEach(ds::addValue);
             var lossDmgMean = ds.getMean();
-            var lossVariance = ds.getVariance();
-            var lossDmgUpperBound = lossDmgMean + 1.98 * lossVariance / Math.sqrt(lossDmgs.size());
-            var lossDmgLowerBound = lossDmgMean - 1.98 * lossVariance / Math.sqrt(lossDmgs.size());
+            var lossDmgVariance = ds.getVariance();
+            var lossDmgUpperBound = lossDmgMean + 1.98 * Math.sqrt(lossDmgVariance / lossDmgs.size());
+            var lossDmgLowerBound = lossDmgMean - 1.98 * Math.sqrt(lossDmgVariance / lossDmgs.size());
             System.out.printf("%sDmg Diff By Win/Loss: %6.5f (%6.5f) [%6.5f - %6.5f]/%6.5f (%6.5f) [%6.5f - %6.5f]\n", indent,
-                    winDmgMean, winVariance / Math.sqrt(winDmgs.size()), winDmgLowerBound, winDmgUpperBound,
-                    lossDmgMean, lossVariance / Math.sqrt(lossDmgs.size()), lossDmgLowerBound, lossDmgUpperBound);
+                    winDmgMean, Math.sqrt(winDmgVariance / winDmgs.size()), winDmgLowerBound, winDmgUpperBound,
+                    lossDmgMean, Math.sqrt(lossDmgVariance / lossDmgs.size()), lossDmgLowerBound, lossDmgUpperBound);
             ds.clear();
             winDmgs.forEach(ds::addValue);
             lossDmgs.forEach((x)->ds.addValue(-x));
-            var v = ds.getMean();
-            var vU = v + 1.98 * ds.getVariance() / Math.sqrt(winDmgs.size() + lossDmgs.size());
-            var vL = v - 1.98 * ds.getVariance() / Math.sqrt(winDmgs.size() + lossDmgs.size());
-            System.out.printf("%sDmg Diff: %6.5f [%6.5f - %6.5f] [%6.5f - %6.5f]\n", indent, v,
+            var vDmg = ds.getMean();
+            var vDmgU = vDmg + 1.98 * ds.getStandardDeviation() / Math.sqrt(winDmgs.size() + lossDmgs.size());
+            var vDmgL = vDmg - 1.98 * ds.getStandardDeviation() / Math.sqrt(winDmgs.size() + lossDmgs.size());
+            System.out.printf("%sDmg Diff: %6.5f [%6.5f - %6.5f] [%6.5f - %6.5f]\n", indent, vDmg,
                     (winDmgLowerBound * winDmgs.size() - lossDmgUpperBound * lossDmgs.size()) / (winDmgs.size() + lossDmgs.size()),
-                    (winDmgUpperBound * winDmgs.size() - lossDmgLowerBound * lossDmgs.size()) / (winDmgs.size() + lossDmgs.size()), vL, vU);
+                    (winDmgUpperBound * winDmgs.size() - lossDmgLowerBound * lossDmgs.size()) / (winDmgs.size() + lossDmgs.size()), vDmgL, vDmgU);
+
+            ds.clear();
+            winQs.forEach(ds::addValue);
+            var winQMean = ds.getMean();
+            var winQVariance = ds.getVariance();
+            var winQUpperBound = winQMean + 1.98 * Math.sqrt(winQVariance / winQs.size());
+            var winQLowerBound = winQMean - 1.98 * Math.sqrt(winQVariance / winQs.size());
+            ds.clear();
+            lossQs.forEach(ds::addValue);
+            var lossQMean = ds.getMean();
+            var lossQVariance = ds.getVariance();
+            var lossQUpperBound = lossQMean + 1.98 * Math.sqrt(lossQVariance / lossQs.size());
+            var lossQLowerBound = lossQMean - 1.98 * Math.sqrt(lossQVariance / lossQs.size());
+            System.out.printf("%sQ Diff By Win/Loss: %6.5f (%6.5f) [%6.5f - %6.5f]/%6.5f (%6.5f) [%6.5f - %6.5f]\n", indent,
+                    winQMean, Math.sqrt(winQVariance / winQs.size()), winQLowerBound, winQUpperBound,
+                    lossQMean, Math.sqrt(lossQVariance / lossQs.size()), lossQLowerBound, lossQUpperBound);
+            ds.clear();
+            winQs.forEach(ds::addValue);
+            lossQs.forEach((x)->ds.addValue(-x));
+            var vQ = ds.getMean();
+            var vQU = vQ + 1.98 * ds.getStandardDeviation() / Math.sqrt(winQs.size() + lossQs.size());
+            var vQL = vQ - 1.98 * ds.getStandardDeviation() / Math.sqrt(winQs.size() + lossQs.size());
+            System.out.printf("%sQ Diff: %6.5f [%6.5f - %6.5f] [%6.5f - %6.5f]\n", indent, vQ,
+                    (winQLowerBound * winQs.size() - lossQUpperBound * lossQs.size()) / (winQs.size() + lossQs.size()),
+                    (winQUpperBound * winQs.size() - lossQLowerBound * lossQs.size()) / (winQs.size() + lossQs.size()), vQL, vQU);
+        }
+    }
+
+    private void printBinomialStat(String indent, String prefix, int win, int loss) {
+        if (win + loss > 0 && win > 0 && loss > 0) {
+            var ci = new ClopperPearsonInterval().createInterval(win + loss, win, 0.95);
+            System.out.printf("%s%s: %d/%d (%.5f [%.5f-%.5f])\n", indent, prefix, win, loss, ((double) win) / (win + loss), ci.getLowerBound(), ci.getUpperBound());
+        } else {
+            System.out.printf("%s%s: %d/%d\n", indent, prefix, win, loss);
         }
     }
 

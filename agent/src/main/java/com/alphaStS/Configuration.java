@@ -18,5 +18,5 @@ public class Configuration {
 
     public static final boolean PRINT_MODEL_COMPARE_DIFF = false;
     public static final long SLEEP_PER_GAME = 0;
-    public static final long SLEEP_PER_GAME_TRAINING = 500;
+    public static final long SLEEP_PER_GAME_TRAINING = 0;
 }

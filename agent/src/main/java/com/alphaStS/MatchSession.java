@@ -95,7 +95,7 @@ public class MatchSession {
             state.prop.makingRealMove = false;
         }
 
-        if (state.prop.testNewFeature) {
+        if (false) {
             while (state.isTerminal() == 0) {
                 int upto = nodeCount - (state.total_n + (state.policy == null ? 0 : 1));
                 for (int i = 0; i < upto; i++) {
@@ -120,7 +120,7 @@ public class MatchSession {
                             state = state.clone(false);
                             state.doAction(action);
                         } else {
-                            state = getNextState(state, mcts, action, false);
+                            state = getNextState(state, mcts, action, steps.get(steps.size() - 1), false);
                         }
                         if (doStartTurn) {
                             state.doAction(0);
@@ -161,7 +161,7 @@ public class MatchSession {
                             state.doAction(0);
                         }
                     } else {
-                        state = getNextState(state, mcts, action, false);
+                        state = getNextState(state, mcts, action, steps.get(steps.size() - 1), false);
                     }
                 }
                 state.prop.makingRealMove = false;
@@ -213,7 +213,9 @@ public class MatchSession {
                 return null;
             }
             var refState = refGame.steps().get(refGameIdx + 1).state();
-            if (refState.getSearchRandomGen().getStartingSeed() != state.getSearchRandomGen().getStartingSeed()) {
+            if ((refGame.steps.get(refGameIdx).takenFromChanceStateCache && !steps.get(steps.size() - 1).takenFromChanceStateCache) ||
+                    (!refGame.steps.get(refGameIdx).takenFromChanceStateCache && steps.get(steps.size() - 1).takenFromChanceStateCache) ||
+                    refState.getSearchRandomGen().getStartingSeed() != state.getSearchRandomGen().getStartingSeed()) {
                 state = refState.clone(false);
                 state.prop = prevState.prop;
                 state.clearAllSearchInfo();
@@ -250,6 +252,7 @@ public class MatchSession {
                     var modelCalls = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits - prev;
                     Game game2 = null;
                     var modelCalls2 = 0;
+                    List<GameResult> reruns = null;
                     if (mcts2.size() > 0) {
                         var randomGen= state.prop.realMoveRandomGen;
                         randomGen.timeTravelToBeginning();
@@ -260,52 +263,51 @@ public class MatchSession {
                         prev = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits;
                         game2 = session.playGame(state2, startingActionCmp, game1, mcts2.get(ii), nodeCount);
                         modelCalls2 = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev;
-                    }
 
-                    var turns1 = GameStateUtils.groupByTurns(game1.steps);
-                    var turns2 = GameStateUtils.groupByTurns(game2.steps);
-                    List<GameResult> reruns = null;
-                    for (int turnI = 1; turnI < Math.min(turns1.size(), turns2.size()); turnI++) {
-                        var t1 = turns1.get(turnI);
-                        var t2 = turns2.get(turnI);
-                        var ts1 = t1.get(t1.size() - 1).state().clone(false);
-                        var ts2 = t2.get(t2.size() - 1).state().clone(false);
-                        for (int j = 0; j < ts1.getLegalActions().length; j++) {
-                            if (ts1.getAction(j).type() == GameActionType.END_TURN) {
-                                ts1.doAction(j);
-                                break;
-                            }
-                        }
-                        for (int j = 0; j < ts2.getLegalActions().length; j++) {
-                            if (ts2.getAction(j).type() == GameActionType.END_TURN) {
-                                ts2.doAction(j);
-                                break;
-                            }
-                        }
-                        if (!ts1.equals(ts2)) {
-                            reruns = new ArrayList<>();
-                            for (int j = 0; j < 3; j++) {
-                                var rerunState = ts1.clone(false);
-                                rerunState.prop = rerunState.prop.clone();
-                                rerunState.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
-                                prev = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits;
-                                var rerunGame1 = session.playGame(rerunState, 0, null, mcts.get(ii), nodeCount);
-                                var rerunModelCalls = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits - prev;
-                                Game rerunGame2 = null;
-                                var rerunModelCalls2 = 0;
-                                if (mcts2.size() > 0) {
-                                    var randomGen= rerunState.prop.realMoveRandomGen;
-                                    randomGen.timeTravelToBeginning();
-                                    var rerunState2 = ts2.clone(false);
-                                    rerunState2.prop = rerunState2.prop.clone();
-                                    rerunState2.prop.realMoveRandomGen = randomGen;
-                                    prev = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits;
-                                    rerunGame2 = session.playGame(rerunState2, 0, game1, mcts2.get(ii), nodeCount);
-                                    rerunModelCalls2 = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev;
+                        var turns1 = GameStateUtils.groupByTurns(game1.steps);
+                        var turns2 = GameStateUtils.groupByTurns(game2.steps);
+                        for (int turnI = 1; turnI < Math.min(turns1.size(), turns2.size()); turnI++) {
+                            var t1 = turns1.get(turnI);
+                            var t2 = turns2.get(turnI);
+                            var ts1 = t1.get(t1.size() - 1).state().clone(false);
+                            var ts2 = t2.get(t2.size() - 1).state().clone(false);
+                            for (int j = 0; j < ts1.getLegalActions().length; j++) {
+                                if (ts1.getAction(j).type() == GameActionType.END_TURN) {
+                                    ts1.doAction(j);
+                                    break;
                                 }
-                                reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null));
                             }
-                            break;
+                            for (int j = 0; j < ts2.getLegalActions().length; j++) {
+                                if (ts2.getAction(j).type() == GameActionType.END_TURN) {
+                                    ts2.doAction(j);
+                                    break;
+                                }
+                            }
+                            if (!ts1.equals(ts2)) {
+                                reruns = new ArrayList<>();
+                                for (int j = 0; j < 3; j++) {
+                                    var rerunState = ts1.clone(false);
+                                    rerunState.prop = rerunState.prop.clone();
+                                    rerunState.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
+                                    prev = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits;
+                                    var rerunGame1 = session.playGame(rerunState, 0, null, mcts.get(ii), nodeCount);
+                                    var rerunModelCalls = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits - prev;
+                                    Game rerunGame2 = null;
+                                    var rerunModelCalls2 = 0;
+                                    if (mcts2.size() > 0) {
+                                        randomGen= rerunState.prop.realMoveRandomGen;
+                                        randomGen.timeTravelToBeginning();
+                                        var rerunState2 = ts2.clone(false);
+                                        rerunState2.prop = rerunState2.prop.clone();
+                                        rerunState2.prop.realMoveRandomGen = randomGen;
+                                        prev = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits;
+                                        rerunGame2 = session.playGame(rerunState2, 0, game1, mcts2.get(ii), nodeCount);
+                                        rerunModelCalls2 = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev;
+                                    }
+                                    reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null));
+                                }
+                                break;
+                            }
                         }
                     }
 
@@ -493,7 +495,7 @@ public class MatchSession {
     boolean POLICY_CAP_ON;
     boolean TRAINING_WITH_LINE;
 
-    private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
+    private double[] calcExpectedValue2(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
         while (cState.total_n < 1000 && cState.cache.size() < 100) {
             cState.getNextState(false);
@@ -516,30 +518,60 @@ public class MatchSession {
             est[i] /= cState.total_node_n;
             est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
         }
-
-        //  var prevSize = cState.cache.size();
-        //  for (int j = 1; j < 900; j++) {
-        //      cState.getNextState(prevState, prevAction);
-        //  }
-        //  est_v_win = 0;
-        //  est_v_health = 0;
-        //  for (ChanceState.Node node : cState.cache.values()) {
-        //      if (node.state != state) {
-        //          node.state.doEval(session.mcts.get(_ii).model);
-        //          node.state.get_v(out);
-        //          est_v_win += out[0] * node.n;
-        //          est_v_health += out[1] * node.n;
-        //      }
-        //  }
-        //  est_v_win /= cState.total_n;
-        //  est_v_health /= cState.total_n;
-        //  p = ((float) cState.getCount(state)) / cState.total_n;
-        //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
-        //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
-        //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
-        //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
-        //  }
         return est;
+    }
+
+    private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
+        return calcExpectedValue2(cState, generatedState, mcts, vCur);
+//        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
+//        while (cState.total_n < 300) {
+//            mcts.search(cState.getNextState(false), false, 1000);
+//        }
+//        double[] est = new double[vCur.length];
+//        double[] out = new double[vCur.length];
+//        for (ChanceState.Node node : cState.cache.values()) {
+//            if (node.state != stateActual) {
+//                out[GameState.V_COMB_IDX] = node.state.total_q_comb / (node.state.total_n + 1);
+//                out[GameState.V_WIN_IDX] = node.state.total_q_win / (node.state.total_n + 1);
+//                out[GameState.V_HEALTH_IDX] = node.state.total_q_health / (node.state.total_n + 1);
+//                for (int i = 0; i < est.length; i++) {
+//                    est[i] += out[i] * node.n;
+//                }
+//            }
+//        }
+//        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / cState.total_node_n;
+//        for (int i = 0; i < est.length; i++) {
+//            est[i] /= cState.total_node_n;
+//            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
+//        }
+////        System.out.println(cState);
+////        System.out.println(Arrays.toString(est));
+////        cState = new ChanceState(null, cState.parentState, cState.parentAction);
+////        System.out.println(Arrays.toString(calcExpectedValue2(cState, generatedState, mcts, vCur)));
+//
+//        //  var prevSize = cState.cache.size();
+//        //  for (int j = 1; j < 900; j++) {
+//        //      cState.getNextState(prevState, prevAction);
+//        //  }
+//        //  est_v_win = 0;
+//        //  est_v_health = 0;
+//        //  for (ChanceState.Node node : cState.cache.values()) {
+//        //      if (node.state != state) {
+//        //          node.state.doEval(session.mcts.get(_ii).model);
+//        //          node.state.get_v(out);
+//        //          est_v_win += out[0] * node.n;
+//        //          est_v_health += out[1] * node.n;
+//        //      }
+//        //  }
+//        //  est_v_win /= cState.total_n;
+//        //  est_v_health /= cState.total_n;
+//        //  p = ((float) cState.getCount(state)) / cState.total_n;
+//        //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
+//        //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
+//        //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
+//        //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
+//        //  }
+//        return est;
     }
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {
@@ -980,10 +1012,17 @@ public class MatchSession {
     }
 
     private GameState getNextState(GameState state, MCTS mcts, int action, boolean clone) {
+        return getNextState(state, mcts, action, null, clone);
+    }
+
+    private GameState getNextState(GameState state, MCTS mcts, int action, GameStep prevStep, boolean clone) {
         State nextState = state.ns[action];
         GameState newState;
         if (nextState instanceof ChanceState cState) {
             newState = cState.getNextState(false);
+            if (prevStep != null) {
+                prevStep.takenFromChanceStateCache = newState.policy != null;
+            }
             if (newState.policy == null) {
                 newState.doEval(mcts.model);
             }

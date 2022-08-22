@@ -5,6 +5,7 @@ import java.util.List;
 public final class GameStep {
     private final GameState state;
     private final int action;
+    public boolean takenFromChanceStateCache;
     public int trainingWriteCount;
     public double[] v;
     public List<String> lines;
@@ -27,8 +28,7 @@ public final class GameStep {
     @Override public String toString() {
         return "GameStep{" +
                 "state=" + state +
-                ", action=" + action +
-                (actionDesc == null ? "" : (" (" + actionDesc + " )")) +
+                ", action=" + getActionString() +
                 '}';
     }
 

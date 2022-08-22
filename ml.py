@@ -1,6 +1,7 @@
 # format
 
 import random as rand
+import platform
 import time
 import math
 import json
@@ -41,9 +42,13 @@ def convertToOnnx(model, input_len, output_dir):
     output_path = output_dir + "/model.onnx"
     model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=12, output_path=output_path)
 
-#
-p = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar',
-                    'com.alphaStS.Main', '--get-lengths'], capture_output=True)
+sep = ':'
+if platform.system() == 'Windows':
+    sep = ';'
+
+CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
+
+p = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--get-lengths'], capture_output=True)
 lens_str = p.stdout.decode('ascii').split(',')
 input_len = int(lens_str[0])
 num_of_actions = int(lens_str[1])
@@ -121,8 +126,6 @@ else:
 
 start = time.time()
 # np.set_printoptions(threshold=np.inf)
-
-CLASS_PATH = f'./agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar;./agent/src/resources/mallet.jar;./agent/src/resources/mallet-deps.jar;{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar;{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar;{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
 
 
 def get_training_samples(training_pool, iteration, file_path):
@@ -309,14 +312,14 @@ if DO_TRAINING:
 
 
 if PLAY_A_GAME:
-    agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--server']
+    agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--server']
     agent_output = subprocess.run(agent_args, capture_output=True)
     print(agent_output.stdout.decode('ascii'))
     print(agent_output.stderr.decode('ascii'))
     print(time.time() - start)
 
 if PLAY_MATCHES:
-    agent_args = ['java', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--client']
+    agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--client']
     agent_output = subprocess.run(agent_args, capture_output=True)
     print(agent_output.stdout.decode('ascii'))
     print(agent_output.stderr.decode('ascii'))

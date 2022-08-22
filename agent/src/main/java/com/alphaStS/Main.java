@@ -787,13 +787,6 @@ public class Main {
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
 //        System.out.println(state.prop.randomization.listRandomizations());
 //        state.prop.randomization = state.prop.randomization.fixR(6);
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new CardColorless.Bite()));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new Card.Corruption()));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(new Card.Havoc()));
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
@@ -881,9 +874,9 @@ public class Main {
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 1000;
-            iteration = 61;
-            COMPARE_DIR = "../saves/iteration60";
+            NUMBER_OF_NODES_PER_TURN = 300;
+            iteration = 21;
+            COMPARE_DIR = "../saves/iteration20";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }
