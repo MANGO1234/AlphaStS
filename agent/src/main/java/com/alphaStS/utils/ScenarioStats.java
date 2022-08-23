@@ -24,28 +24,28 @@ public class ScenarioStats {
     public int nunchakuCounter;
     public Map<Integer, Integer> damageCount;
     public double finalQComb;
-    long modelCalls;
-    long totalTurns;
+    public long modelCalls;
+    public long totalTurns;
 
-    boolean hasState2;
-    long numberOfDivergences;
-    long numberOfSamples;
-    int win;
-    int loss;
-    List<Double> winDmgs = new ArrayList<>();
-    List<Double> lossDmgs = new ArrayList<>();
-    int[] winByPotion;
-    int[] lossByPotion;
-    int winByDagger;
-    int lossByDagger;
-    int winByFeed;
-    int lossByFeed;
-    long winByFeedAmt;
-    long lossByFeedAmt;
-    List<Double> winQs = new ArrayList<>();
-    List<Double> lossQs = new ArrayList<>();
-    long modelCalls2;
-    long totalTurns2;
+    public boolean hasState2;
+    public long numberOfDivergences;
+    public long numberOfSamples;
+    public int win;
+    public int loss;
+    public List<Double> winDmgs = new ArrayList<>();
+    public List<Double> lossDmgs = new ArrayList<>();
+    public int[] winByPotion;
+    public int[] lossByPotion;
+    public int winByDagger;
+    public int lossByDagger;
+    public int winByFeed;
+    public int lossByFeed;
+    public long winByFeedAmt;
+    public long lossByFeedAmt;
+    public List<Double> winQs = new ArrayList<>();
+    public List<Double> lossQs = new ArrayList<>();
+    public long modelCalls2;
+    public long totalTurns2;
 
     public static ScenarioStats combine(ScenarioStats... stats) {
         ScenarioStats total = new ScenarioStats();
@@ -54,54 +54,62 @@ public class ScenarioStats {
             total.damageCount = new HashMap<>();
         }
         for (ScenarioStats stat : stats) {
-            total.numOfGames += stat.numOfGames;
-            total.numberOfDivergences += stat.numberOfDivergences;
-            total.numberOfSamples += stat.numberOfSamples;
-            total.deathCount += stat.deathCount;
-            total.totalDamageTaken += stat.totalDamageTaken;
-            total.totalDamageTakenNoDeath += stat.totalDamageTakenNoDeath;
-            for (int j = 0; j < total.potionsUsed.length; j++) {
-                total.potionsUsed[j] += stat.potionsUsed[j];
-            }
-            total.daggerKilledEnemy += stat.daggerKilledEnemy;
-            total.feedKilledEnemy += stat.feedKilledEnemy;
-            total.feedHealTotal += stat.feedHealTotal;
-            total.nunchakuCounter += stat.nunchakuCounter;
-            for (var dmg : stat.damageCount.keySet()) {
-                total.damageCount.putIfAbsent(dmg, 0);
-                total.damageCount.computeIfPresent(dmg, (k, v) -> v + 1);
-            }
-            total.finalQComb += stat.finalQComb;
-            total.modelCalls += stat.modelCalls;
-            total.totalTurns += stat.totalTurns;
-
-            total.hasState2 |= stat.hasState2;
-            total.win += stat.win;
-            total.loss += stat.loss;
-            total.winDmgs.addAll(stat.winDmgs);
-            total.lossDmgs.addAll(stat.lossDmgs);
-            if (total.winByPotion == null && stat.winByPotion != null) {
-                total.winByPotion = new int[stat.winByPotion.length];
-                total.lossByPotion = new int[stat.winByPotion.length];
-            }
-            if (total.winByPotion != null) {
-                for (int i = 0; i < stat.winByPotion.length; i++) {
-                    total.winByPotion[i] += stat.winByPotion[i];
-                    total.lossByPotion[i] += stat.lossByPotion[i];
-                }
-            }
-            total.winByDagger += stat.winByDagger;
-            total.lossByDagger += stat.lossByDagger;
-            total.winByFeed += stat.winByFeed;
-            total.lossByFeed += stat.lossByFeed;
-            total.winByFeedAmt += stat.winByFeedAmt;
-            total.lossByFeedAmt += stat.lossByFeedAmt;
-            total.winQs.addAll(stat.winQs);
-            total.lossQs.addAll(stat.lossQs);
-            total.modelCalls2 += stat.modelCalls2;
-            total.totalTurns2 += stat.totalTurns2;
+            total.add(stat, null);
         }
         return total;
+    }
+
+    public void add(ScenarioStats stat, GameState state) {
+        if (damageCount == null) {
+            damageCount = new HashMap<>();
+            potionsUsed = new int[state.prop.potions.size()];
+        }
+        numOfGames += stat.numOfGames;
+        numberOfDivergences += stat.numberOfDivergences;
+        numberOfSamples += stat.numberOfSamples;
+        deathCount += stat.deathCount;
+        totalDamageTaken += stat.totalDamageTaken;
+        totalDamageTakenNoDeath += stat.totalDamageTakenNoDeath;
+        for (int j = 0; j < potionsUsed.length; j++) {
+            potionsUsed[j] += stat.potionsUsed[j];
+        }
+        daggerKilledEnemy += stat.daggerKilledEnemy;
+        feedKilledEnemy += stat.feedKilledEnemy;
+        feedHealTotal += stat.feedHealTotal;
+        nunchakuCounter += stat.nunchakuCounter;
+        for (var dmg : stat.damageCount.keySet()) {
+            damageCount.putIfAbsent(dmg, 0);
+            damageCount.computeIfPresent(dmg, (k, v) -> v + 1);
+        }
+        finalQComb += stat.finalQComb;
+        modelCalls += stat.modelCalls;
+        totalTurns += stat.totalTurns;
+
+        hasState2 |= stat.hasState2;
+        win += stat.win;
+        loss += stat.loss;
+        winDmgs.addAll(stat.winDmgs);
+        lossDmgs.addAll(stat.lossDmgs);
+        if (winByPotion == null && stat.winByPotion != null) {
+            winByPotion = new int[stat.winByPotion.length];
+            lossByPotion = new int[stat.winByPotion.length];
+        }
+        if (winByPotion != null) {
+            for (int i = 0; i < stat.winByPotion.length; i++) {
+                winByPotion[i] += stat.winByPotion[i];
+                lossByPotion[i] += stat.lossByPotion[i];
+            }
+        }
+        winByDagger += stat.winByDagger;
+        lossByDagger += stat.lossByDagger;
+        winByFeed += stat.winByFeed;
+        lossByFeed += stat.lossByFeed;
+        winByFeedAmt += stat.winByFeedAmt;
+        lossByFeedAmt += stat.lossByFeedAmt;
+        winQs.addAll(stat.winQs);
+        lossQs.addAll(stat.lossQs);
+        modelCalls2 += stat.modelCalls2;
+        totalTurns2 += stat.totalTurns2;
     }
 
     public void add(List<GameStep> steps, int modelCalls) {
@@ -348,7 +356,7 @@ public class ScenarioStats {
         }
     }
 
-    public static String getCommonString(HashMap<Integer, GameStateRandomization.Info> scenarios, int[] scenarioGroup) {
+    public static String getCommonString(Map<Integer, GameStateRandomization.Info> scenarios, int[] scenarioGroup) {
         String pre = scenarios.get(scenarioGroup[0]).desc();
         String suff = scenarios.get(scenarioGroup[0]).desc();
         for (int i = 1; i < scenarioGroup.length; i++) {

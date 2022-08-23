@@ -16,7 +16,15 @@ record NNOutput(float v_health, float v_win, double[] v_other, float[] policy, i
 
 public class Model {
     public static class LRUCache<K, V> extends LinkedHashMap<K, V> {
-        private static final int MAX_ENTRIES = 250000;
+        private static final int MAX_ENTRIES;
+
+        static {
+            if (System.getProperty("os.name").startsWith("Windows")) {
+                MAX_ENTRIES = 250000;
+            } else {
+                MAX_ENTRIES = 10000;
+            }
+        }
 
         protected boolean removeEldestEntry(Map.Entry eldest) {
             return size() > MAX_ENTRIES;
@@ -89,6 +97,14 @@ public class Model {
             inputName = session.getInputNames().iterator().next();
             cache = new LRUCache<>();
         } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void close() {
+        try {
+            session.close();
+        } catch (OrtException e) {
             throw new RuntimeException(e);
         }
     }

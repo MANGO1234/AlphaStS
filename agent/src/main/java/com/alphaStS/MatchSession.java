@@ -1,12 +1,19 @@
 package com.alphaStS;
 
 import com.alphaStS.utils.ScenarioStats;
+import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
 
 import java.io.*;
+import java.net.Socket;
 import java.util.*;
+import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -19,7 +26,6 @@ public class MatchSession {
     private final static boolean USE_NEW_SEARCH = false;
 
     public boolean training;
-    public Model compareModel;
     Writer matchLogWriter;
     Writer trainingDataWriter;
     String logDir;
@@ -27,25 +33,26 @@ public class MatchSession {
     List<MCTS> mcts2 = new ArrayList<>();
     public int[][] scenariosGroup;
     public GameSolver solver;
+    String modelDir;
+    String modelCmpDir;
 
     public MatchSession(int numberOfThreads, String dir) {
-        logDir = dir;
-        for (int i = 0; i < numberOfThreads; i++) {
-            Model model = new Model(dir);
-            var m = new MCTS();
-            m.setModel(model);
-            mcts.add(m);
-        }
+        this(numberOfThreads, dir, null);
     }
 
     public MatchSession(int numberOfThreads, String dir, String dir2) {
         logDir = dir;
+        modelDir = dir;
+        modelCmpDir = dir2;
         for (int i = 0; i < numberOfThreads; i++) {
             Model model = new Model(dir);
             var m = new MCTS();
             m.setModel(model);
             mcts.add(m);
 
+            if (dir2 == null) {
+                continue;
+            }
             if (!dir.equals(dir2)) {
                 model = new Model(dir2);
             }
@@ -228,7 +235,7 @@ public class MatchSession {
     }
 
     public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, boolean noExploration) {}
-    public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns) {}
+    public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, int remoteR, ScenarioStats remoteStats) {}
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var seeds = new ArrayList<Long>(numOfGames);
@@ -236,100 +243,393 @@ public class MatchSession {
             seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
         }
         var deq = new LinkedBlockingDeque<GameResult>();
-        var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
         for (int i = 0; i < mcts.size(); i++) {
-            int ii = i;
-            new Thread(() -> {
-                int idx = numToPlay.getAndDecrement();
-                while (idx > 0) {
-                    var state = origState.clone(false);
-                    state.prop = state.prop.clone();
-                    state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
-                    state.prop.testNewFeature = true;
-                    var prev = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits;
-                    var game1 = session.playGame(state, startingAction, null, mcts.get(ii), nodeCount);
-                    var modelCalls = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits - prev;
-                    Game game2 = null;
-                    var modelCalls2 = 0;
-                    List<GameResult> reruns = null;
-                    if (mcts2.size() > 0) {
-                        var randomGen= state.prop.realMoveRandomGen;
-                        randomGen.timeTravelToBeginning();
-                        var state2 = (origStateCmp != null ? origStateCmp : origState).clone(false);
-                        state2.prop = state2.prop.clone();
-                        state2.prop.realMoveRandomGen = randomGen;
-                        state2.prop.testNewFeature = false;
-                        prev = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits;
-                        game2 = session.playGame(state2, startingActionCmp, game1, mcts2.get(ii), nodeCount);
-                        modelCalls2 = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev;
+            startPlayGameThread(origState, nodeCount, seeds, deq, numToPlay, i);
+        }
+        for (Tuple<String, Integer> server : getRemoteServers()) {
+            startRemotePlayGameThread(server.v1(), server.v2(), modelDir, modelCmpDir, nodeCount, numToPlay, deq);
+        }
 
-                        var turns1 = GameStateUtils.groupByTurns(game1.steps);
-                        var turns2 = GameStateUtils.groupByTurns(game2.steps);
-                        for (int turnI = 1; turnI < Math.min(turns1.size(), turns2.size()); turnI++) {
-                            var t1 = turns1.get(turnI);
-                            var t2 = turns2.get(turnI);
-                            var ts1 = t1.get(t1.size() - 1).state().clone(false);
-                            var ts2 = t2.get(t2.size() - 1).state().clone(false);
+        var game_i = 0;
+        var ret = getInfoMaps(origState);
+        var combinedInfoMap = ret.v1();
+        var battleInfoMap = ret.v2();
+        var scenarioStats = new HashMap<Integer, ScenarioStats>();
+        var start = System.currentTimeMillis();
+        var solverErrorCount = 0;
+        var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
+        while (game_i < numOfGames) {
+            GameResult result;
+            try {
+                result = deq.takeFirst();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            int r;
+            if (result.remoteStats == null) {
+                Game game = result.game;
+                List<GameStep> steps = game.steps;
+                List<GameStep> steps2 = result.game2 == null ? null : result.game2.steps;
+                var state = steps.get(steps.size() - 1).state();
+                r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
+                if (!training && solver != null) {
+                    solverErrorCount += solver.checkForError(game);
+                }
+                if (Configuration.PRINT_MODEL_COMPARE_DIFF && steps2 != null) {
+                    var turns1 = GameStateUtils.groupByTurns(steps);
+                    var turns2 = GameStateUtils.groupByTurns(steps2);
+                    for (int i = 1; i < Math.min(turns1.size(), turns2.size()); i++) {
+                        var t1 = turns1.get(i);
+                        var t2 = turns2.get(i);
+                        var ts1 = t1.get(t1.size() - 1).state().clone(false);
+                        var ts2 = t2.get(t2.size() - 1).state().clone(false);
+                        if (ts1.actionCtx != GameActionCtx.BEGIN_TURN) {
                             for (int j = 0; j < ts1.getLegalActions().length; j++) {
                                 if (ts1.getAction(j).type() == GameActionType.END_TURN) {
                                     ts1.doAction(j);
                                     break;
                                 }
                             }
+                        }
+                        if (ts2.actionCtx != GameActionCtx.BEGIN_TURN) {
                             for (int j = 0; j < ts2.getLegalActions().length; j++) {
                                 if (ts2.getAction(j).type() == GameActionType.END_TURN) {
                                     ts2.doAction(j);
                                     break;
                                 }
                             }
-                            if (!ts1.equals(ts2)) {
-                                reruns = new ArrayList<>();
-                                for (int j = 0; j < 3; j++) {
-                                    var rerunState = ts1.clone(false);
-                                    rerunState.prop = rerunState.prop.clone();
-                                    rerunState.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
-                                    prev = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits;
-                                    var rerunGame1 = session.playGame(rerunState, 0, null, mcts.get(ii), nodeCount);
-                                    var rerunModelCalls = mcts.get(ii).model.calls - mcts.get(ii).model.cache_hits - prev;
-                                    Game rerunGame2 = null;
-                                    var rerunModelCalls2 = 0;
-                                    if (mcts2.size() > 0) {
-                                        randomGen= rerunState.prop.realMoveRandomGen;
-                                        randomGen.timeTravelToBeginning();
-                                        var rerunState2 = ts2.clone(false);
-                                        rerunState2.prop = rerunState2.prop.clone();
-                                        rerunState2.prop.realMoveRandomGen = randomGen;
-                                        prev = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits;
-                                        rerunGame2 = session.playGame(rerunState2, 0, game1, mcts2.get(ii), nodeCount);
-                                        rerunModelCalls2 = mcts2.get(ii).model.calls - mcts2.get(ii).model.cache_hits - prev;
+                        }
+                        if (!ts1.equals(ts2)) {
+                            System.out.println("******************************************** " + result.seed);
+                            System.out.println(t1.get(0));
+                            System.out.println(t2.get(0));
+                            System.out.println(t1.stream().map(GameStep::getActionString).limit(t1.size() - 1).filter((x) -> !x.equals("End Turn"))
+                                    .collect(Collectors.joining(", ")));
+                            System.out.println(t2.stream().map(GameStep::getActionString).limit(t2.size() - 1).filter((x) -> !x.equals("End Turn"))
+                                    .collect(Collectors.joining(", ")));
+                            if (!t1.get(0).state().equals(t2.get(0).state())) {
+                                System.out.println("!!!");
+                            }
+                            break;
+                        }
+                    }
+                }
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
+                scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
+                game_i += 1;
+                if (matchLogWriter != null) {
+                    int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
+                    try {
+                        matchLogWriter.write("*** Match " + game_i + " ***\n");
+                        if (origState.prop.randomization != null) {
+                            if (combinedInfoMap.size() > 1) {
+                                matchLogWriter.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
+                            }
+                        }
+                        matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+                        matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
+                        boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
+                        if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
+                            for (GameStep step : steps) {
+                                if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
+                                if (step.lines != null) {
+                                    matchLogWriter.write(step.state().toStringReadable() + "\n");
+                                    for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
+                                        matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
                                     }
-                                    reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null));
                                 }
+                            }
+                        } else {
+                            printGame(matchLogWriter, steps);
+                        }
+                        matchLogWriter.write("\n");
+                        matchLogWriter.write("\n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                r = result.remoteR;
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(result.remoteStats, origState);
+                game_i += 1;
+            }
+
+            if ((printProgress && game_i % progressInterval == 0) || game_i == numOfGames) {
+                System.out.println("Progress: " + game_i + "/" + numOfGames);
+                if (!training && solver != null) {
+                    System.out.println("Error Count: " + solverErrorCount);
+                }
+                if (scenarioStats.size() > 1) {
+                    for (var info : combinedInfoMap.entrySet()) {
+                        var i = info.getKey();
+                        if (scenarioStats.get(i) != null) {
+                            System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
+                            scenarioStats.get(i).printStats(origState, 4);
+                        }
+                    }
+                }
+                if (scenariosGroup != null) {
+                    for (int i = 0; i < scenariosGroup.length; i++) {
+                        System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
+                        var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
+                        ScenarioStats.combine(group).printStats(origState, 4);
+                    }
+                }
+                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, 0);
+                System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
+                for (int i = 0; i < mcts.size(); i++) {
+                    var m = mcts.get(i);
+                    System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
+                    System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
+                }
+                System.out.println("--------------------");
+            }
+        }
+    }
+
+    private List<Tuple<String, Integer>> getRemoteServers() {
+        if (!Configuration.USE_REMOTE_SERVERS) {
+            return List.of();
+        }
+        try {
+            List<Tuple<String, Integer>> l = new ArrayList<>();
+            BufferedReader reader = new BufferedReader(new FileReader(System.getProperty("user.home") + "/alphaStSServers.txt"));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                var s = line.split(":");
+                l.add(new Tuple<>(s[0], Integer.parseInt(s[1])));
+            }
+            return l;
+        } catch (FileNotFoundException e) {
+            return List.of();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void startRemotePlayGameThread(String ip, int port, String modelDir, String modelCmpDir, int nodeCount, AtomicInteger numToPlay, BlockingDeque<GameResult> deq) {
+        new Thread(() -> {
+            while (numToPlay.get() > 0) {
+                try {
+                    Socket socket = new Socket(ip, port);
+                    JsonFactory jsonFactory = new JsonFactory();
+                    jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+                    jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+                    ObjectMapper mapper = new ObjectMapper(jsonFactory);
+                    ServerRequest req = new ServerRequest();
+                    req.type = ServerRequestType.UPLOAD_MODEL;
+                    req.bytes = new FileInputStream(modelDir + "/model.onnx").readAllBytes();
+                    var out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                    var w = new StringWriter();
+                    mapper.writeValue(w, req);
+                    var reqStr = w.toString();
+                    System.out.printf("Uploading model to %s...\n", ip);
+                    out.writeInt(reqStr.length());
+                    out.writeBytes(reqStr);
+                    out.flush();
+                    if (modelCmpDir != null) {
+                        req.type = ServerRequestType.UPLOAD_MODEL_CMP;
+                        req.bytes = null;
+                        if (!modelDir.equals(modelCmpDir)) {
+                            req.bytes = new FileInputStream(modelCmpDir + "/model.onnx").readAllBytes();
+                        }
+                        w = new StringWriter();
+                        mapper.writeValue(w, req);
+                        reqStr = w.toString();
+                        System.out.printf("Uploading model for comparison to %s...\n", ip);
+                        out.writeInt(reqStr.length());
+                        out.writeBytes(reqStr);
+                        out.flush();
+                    }
+                    req.type = ServerRequestType.PLAY_GAMES;
+                    req.nodeCount = nodeCount;
+                    System.out.printf("Start requesting games from %s...\n", ip);
+                    while (numToPlay.get() > 0) {
+                        req.remainingGames = numToPlay.get();
+                        w = new StringWriter();
+                        mapper.writeValue(w, req);
+                        reqStr = w.toString();
+                        out.writeInt(reqStr.length());
+                        out.writeBytes(reqStr);
+                        out.flush();
+                        var ret = mapper.readValue(socket.getInputStream(), RemoteGameResult.class);
+                        if (numToPlay.getAndDecrement() > 0) {
+                            deq.putLast(new GameResult(null, 0, null, 0, 0, null, ret.r, ret.stats));
+                        }
+                    }
+                    System.out.printf("Stop requesting games from %s...\n", ip);
+                    req.remainingGames = 0;
+                    w = new StringWriter();
+                    mapper.writeValue(w, req);
+                    reqStr = w.toString();
+                    out.writeInt(reqStr.length());
+                    out.writeBytes(reqStr);
+                    out.flush();
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace(System.out);
+                    Utils.sleep(5000);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+    }
+
+    public static record RemoteGameResult(int r, ScenarioStats stats) {}
+
+    AtomicInteger remoteNumOfGames = new AtomicInteger(-123456);
+    BlockingDeque<GameResult> remoteDeq = new LinkedBlockingDeque<>();
+    List<Thread> remoteThreads = new ArrayList<>();
+
+    public RemoteGameResult playGamesRemote(GameState origState, int numOfGames, int nodeCount) {
+        if (remoteNumOfGames.get() == -123456) {
+            remoteNumOfGames.set(numOfGames);
+            var seeds = new ArrayList<Long>(numOfGames);
+            for (int i = 0; i < numOfGames; i++) {
+                seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
+            }
+            for (int i = 0; i < mcts.size(); i++) {
+                remoteThreads.add(startPlayGameThread(origState, nodeCount, seeds, remoteDeq, remoteNumOfGames, i));
+            }
+        }
+
+        GameResult result;
+        Game game;
+        List<GameStep> steps;
+        List<GameStep> steps2;
+        try {
+            result = remoteDeq.takeFirst();
+            game = result.game;
+            steps = game.steps;
+            steps2 = result.game2 == null ? null : result.game2.steps;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        var stat = new ScenarioStats();
+        stat.add(steps, result.modelCalls);
+        stat.add(steps, steps2, result.modelCalls2, result.reruns);
+        var ret = getInfoMaps(origState);
+        var battleInfoMap = ret.v2();
+        var r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
+        return new RemoteGameResult(r, stat);
+    }
+
+    public void stopPlayGamesRemote() {
+        remoteNumOfGames.set(-123456);
+        for (int i = 0; i < remoteThreads.size(); i++) {
+            try {
+                remoteThreads.get(i).join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        for (int i = 0; i < mcts.size(); i++) {
+            mcts.get(i).model.close();
+        }
+        for (int i = 0; i < mcts2.size(); i++) {
+            if (!modelDir.equals(modelCmpDir)) {
+                mcts2.get(i).model.close();
+            }
+        }
+    }
+
+    private Thread startPlayGameThread(GameState origState, int nodeCount, ArrayList<Long> seeds, BlockingDeque<GameResult> deq, AtomicInteger numToPlay, int threadIdx) {
+        var session = this;
+        var t = new Thread(() -> {
+            int idx = numToPlay.getAndDecrement();
+            while (idx > 0) {
+                var state = origState.clone(false);
+                state.prop = state.prop.clone();
+                state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                state.prop.testNewFeature = true;
+                var prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
+                var game1 = session.playGame(state, startingAction, null, mcts.get(threadIdx), nodeCount);
+                var modelCalls = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits - prev;
+                Game game2 = null;
+                var modelCalls2 = 0;
+                List<GameResult> reruns = null;
+                if (mcts2.size() > 0) {
+                    var randomGen= state.prop.realMoveRandomGen;
+                    randomGen.timeTravelToBeginning();
+                    var state2 = (origStateCmp != null ? origStateCmp : origState).clone(false);
+                    state2.prop = state2.prop.clone();
+                    state2.prop.realMoveRandomGen = randomGen;
+                    state2.prop.testNewFeature = false;
+                    prev = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits;
+                    game2 = session.playGame(state2, startingActionCmp, game1, mcts2.get(threadIdx), nodeCount);
+                    modelCalls2 = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits - prev;
+
+                    var turns1 = GameStateUtils.groupByTurns(game1.steps);
+                    var turns2 = GameStateUtils.groupByTurns(game2.steps);
+                    for (int turnI = 1; turnI < Math.min(turns1.size(), turns2.size()); turnI++) {
+                        var t1 = turns1.get(turnI);
+                        var t2 = turns2.get(turnI);
+                        var ts1 = t1.get(t1.size() - 1).state().clone(false);
+                        var ts2 = t2.get(t2.size() - 1).state().clone(false);
+                        for (int j = 0; j < ts1.getLegalActions().length; j++) {
+                            if (ts1.getAction(j).type() == GameActionType.END_TURN) {
+                                ts1.doAction(j);
                                 break;
                             }
                         }
-                    }
-
-                    try {
-                        deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2, seeds.get(idx - 1), reruns));
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    idx = numToPlay.getAndDecrement();
-                    if (nodeCount > 1) {
-                        Utils.sleep(Configuration.SLEEP_PER_GAME);
+                        for (int j = 0; j < ts2.getLegalActions().length; j++) {
+                            if (ts2.getAction(j).type() == GameActionType.END_TURN) {
+                                ts2.doAction(j);
+                                break;
+                            }
+                        }
+                        if (!ts1.equals(ts2)) {
+                            reruns = new ArrayList<>();
+                            for (int j = 0; j < 3; j++) {
+                                var rerunState = ts1.clone(false);
+                                rerunState.prop = rerunState.prop.clone();
+                                rerunState.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
+                                prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
+                                var rerunGame1 = session.playGame(rerunState, 0, null, mcts.get(threadIdx), nodeCount);
+                                var rerunModelCalls = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits - prev;
+                                Game rerunGame2 = null;
+                                var rerunModelCalls2 = 0;
+                                if (mcts2.size() > 0) {
+                                    randomGen= rerunState.prop.realMoveRandomGen;
+                                    randomGen.timeTravelToBeginning();
+                                    var rerunState2 = ts2.clone(false);
+                                    rerunState2.prop = rerunState2.prop.clone();
+                                    rerunState2.prop.realMoveRandomGen = randomGen;
+                                    prev = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits;
+                                    rerunGame2 = session.playGame(rerunState2, 0, game1, mcts2.get(threadIdx), nodeCount);
+                                    rerunModelCalls2 = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits - prev;
+                                }
+                                reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null, 0, null));
+                            }
+                            break;
+                        }
                     }
                 }
-            }).start();
-        }
 
-        var game_i = 0;
+                try {
+                    deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2, seeds.get(idx - 1), reruns, 0, null));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                idx = numToPlay.getAndDecrement();
+                if (nodeCount > 1) {
+                    Utils.sleep(Configuration.SLEEP_PER_GAME);
+                }
+            }
+        });
+        t.start();
+        return t;
+    }
+
+    public Tuple<Map<Integer, GameStateRandomization.Info>, Map<Integer, GameStateRandomization.Info>> getInfoMaps(GameState state) {
         var combinedInfoMap = new HashMap<Integer, GameStateRandomization.Info>();
         Map<Integer, GameStateRandomization.Info> preBattleInfoMap;
         List<Integer> preBattleInfoMapKeys;
-        if (origState.prop.preBattleRandomization != null) {
-            preBattleInfoMap = origState.prop.preBattleRandomization.listRandomizations();
+        if (state.prop.preBattleRandomization != null) {
+            preBattleInfoMap = state.prop.preBattleRandomization.listRandomizations();
             preBattleInfoMapKeys = preBattleInfoMap.keySet().stream().sorted().toList();
         } else {
             preBattleInfoMap = new HashMap<>();
@@ -338,8 +638,8 @@ public class MatchSession {
         }
         Map<Integer, GameStateRandomization.Info> battleInfoMap;
         List<Integer> battleInfoMapKeys;
-        if (origState.prop.randomization != null) {
-            battleInfoMap = origState.prop.randomization.listRandomizations();
+        if (state.prop.randomization != null) {
+            battleInfoMap = state.prop.randomization.listRandomizations();
             battleInfoMapKeys = battleInfoMap.keySet().stream().sorted().toList();
         } else {
             battleInfoMap = new HashMap<>();
@@ -362,134 +662,8 @@ public class MatchSession {
                 combinedInfoMap.put(pr * battleInfoMap.size() + br, new GameStateRandomization.Info(chance, desc));
             }
         }
-        var scenarioStats = new HashMap<Integer, ScenarioStats>();
-        var start = System.currentTimeMillis();
-        var solverErrorCount = 0;
-        var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
-        while (game_i < numOfGames) {
-            GameResult result;
-            Game game;
-            List<GameStep> steps;
-            List<GameStep> steps2;
-            try {
-                result = deq.takeFirst();
-                game = result.game;
-                steps = game.steps;
-                steps2 = result.game2 == null ? null : result.game2.steps;
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-            var state = steps.get(steps.size() - 1).state();
-            var r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
-            if (!training && solver != null) {
-                solverErrorCount += solver.checkForError(game);
-            }
-            if (Configuration.PRINT_MODEL_COMPARE_DIFF && steps2 != null) {
-                var turns1 = GameStateUtils.groupByTurns(steps);
-                var turns2 = GameStateUtils.groupByTurns(steps2);
-                for (int i = 1; i < Math.min(turns1.size(), turns2.size()); i++) {
-                    var t1 = turns1.get(i);
-                    var t2 = turns2.get(i);
-                    var ts1 = t1.get(t1.size() - 1).state().clone(false);
-                    var ts2 = t2.get(t2.size() - 1).state().clone(false);
-                    if (ts1.actionCtx != GameActionCtx.BEGIN_TURN) {
-                        for (int j = 0; j < ts1.getLegalActions().length; j++) {
-                            if (ts1.getAction(j).type() == GameActionType.END_TURN) {
-                                ts1.doAction(j);
-                                break;
-                            }
-                        }
-                    }
-                    if (ts2.actionCtx != GameActionCtx.BEGIN_TURN) {
-                        for (int j = 0; j < ts2.getLegalActions().length; j++) {
-                            if (ts2.getAction(j).type() == GameActionType.END_TURN) {
-                                ts2.doAction(j);
-                                break;
-                            }
-                        }
-                    }
-                    if (!ts1.equals(ts2)) {
-                        System.out.println("******************************************** " + result.seed);
-                        System.out.println(t1.get(0));
-                        System.out.println(t2.get(0));
-                        System.out.println(t1.stream().map(GameStep::getActionString).limit(t1.size() - 1).filter((x) -> !x.equals("End Turn"))
-                                .collect(Collectors.joining(", ")));
-                        System.out.println(t2.stream().map(GameStep::getActionString).limit(t2.size() - 1).filter((x) -> !x.equals("End Turn"))
-                                .collect(Collectors.joining(", ")));
-                        if (!t1.get(0).state().equals(t2.get(0).state())) {
-                            System.out.println("!!!");
-                        }
-                        break;
-                    }
-                }
-            }
-            scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
-            scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
-            game_i += 1;
-            if (matchLogWriter != null) {
-                int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
-                try {
-                    matchLogWriter.write("*** Match " + game_i + " ***\n");
-                    if (origState.prop.randomization != null) {
-                        if (combinedInfoMap.size() > 1) {
-                            matchLogWriter.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
-                        }
-                    }
-                    matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                    matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
-                    boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
-                    if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
-                        for (GameStep step : steps) {
-                            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
-                            if (step.lines != null) {
-                                matchLogWriter.write(step.state().toStringReadable() + "\n");
-                                for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
-                                    matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
-                                }
-                            }
-                        }
-                    } else {
-                        printGame(matchLogWriter, steps);
-                    }
-                    matchLogWriter.write("\n");
-                    matchLogWriter.write("\n");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            if ((printProgress && game_i % progressInterval == 0) || game_i == numOfGames) {
-                System.out.println("Progress: " + game_i + "/" + numOfGames);
-                if (!training && solver != null) {
-                    System.out.println("Error Count: " + solverErrorCount);
-                }
-                if (scenarioStats.size() > 1) {
-                    for (var info : combinedInfoMap.entrySet()) {
-                        var i = info.getKey();
-                        if (scenarioStats.get(i) != null) {
-                            System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
-                            scenarioStats.get(i).printStats(state, 4);
-                        }
-                    }
-                }
-                if (scenariosGroup != null) {
-                    for (int i = 0; i < scenariosGroup.length; i++) {
-                        System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
-                        var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
-                        ScenarioStats.combine(group).printStats(state, 4);
-                    }
-                }
-                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(state, 0);
-                System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
-                for (int i = 0; i < mcts.size(); i++) {
-                    var m = mcts.get(i);
-                    System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
-                    System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
-                }
-                System.out.println("--------------------");
-            }
-        }
+        return new Tuple<>(combinedInfoMap, battleInfoMap);
     }
-
 
     boolean SLOW_TRAINING_WINDOW;
     boolean POLICY_CAP_ON;

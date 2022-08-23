@@ -191,15 +191,15 @@ accumualted_time_base = 0
 if training_info['iteration'] > 1:
     accumualted_time_base = training_info['iteration_info'][str(int(training_info['iteration']) - 1)]['accumulated_time']
 
-training_pool = []
-start_window = 0
-if training_info['iteration'] >= SLOW_WINDOW_END:
-    start_window = max(SLOW_WINDOW_END, training_info['iteration'] - TRAINING_WINDOW_SIZE)
-    for i in range(start_window, training_info['iteration'] - 1):
-        print(f'loading data from {SAVES_DIR}/iteration{i}/training_data.bin')
-        get_training_samples(training_pool, i, f'{SAVES_DIR}/iteration{i}/training_data.bin')
-
 if DO_TRAINING:
+    training_pool = []
+    start_window = 0
+    if training_info['iteration'] >= SLOW_WINDOW_END:
+        start_window = max(SLOW_WINDOW_END, training_info['iteration'] - TRAINING_WINDOW_SIZE)
+        for i in range(start_window, training_info['iteration'] - 1):
+            print(f'loading data from {SAVES_DIR}/iteration{i}/training_data.bin')
+            get_training_samples(training_pool, i, f'{SAVES_DIR}/iteration{i}/training_data.bin')
+
     start = time.time()
     for _iteration in range(training_info["iteration"], ITERATION_COUNT + 1):
         training_info['iteration_info'][str(_iteration)] = {}
