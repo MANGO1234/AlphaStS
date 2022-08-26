@@ -772,4 +772,38 @@ public class TestStates {
         builder.setPlayer(new Player(66, 70));
         return new GameState(builder);
     }
+
+    public static GameState TestState16() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new Card.Cleave(), 1);
+        builder.addCard(new CardColorless.Apotheosis(), 1);
+        builder.addCard(new Card.PommelStrike(), 0);
+        builder.addCard(new Card.Anger(), 0);
+        builder.addRelic(new Relic.BronzeScales());
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM).markAsBurningElite());
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        );
+        randomization = randomization.doAfter(new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.PommelStrike(), 1)),
+                List.of(new CardCount(new Card.Anger(), 1))
+        )));
+        builder.setRandomization(randomization);
+        builder.addPotion(new Potion.DistilledChaos());
+        builder.addPotion(new Potion.EssenceOfSteel());
+        builder.setPlayer(new Player(54, 54));
+        return new GameState(builder);
+    }
 }

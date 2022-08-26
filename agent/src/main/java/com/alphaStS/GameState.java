@@ -370,6 +370,7 @@ public class GameState implements State {
         prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerDexterityCanChange |= potions.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
+        prop.playerDexterityEotCanChange = potions.stream().anyMatch((x) -> x.changePlayerDexterityEot);
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
@@ -425,7 +426,7 @@ public class GameState implements State {
     }
 
     private int[] findUpgradeIdxes(List<CardCount> cards, List<Relic> relics) {
-        if (cards.stream().noneMatch((x) -> x.card().cardName.contains("Armanent")) &&
+        if (cards.stream().noneMatch((x) -> x.card().cardName.contains("Armanent") || x.card().cardName.contains("Apotheosis")) &&
             relics.stream().noneMatch((x) -> x instanceof Relic.WarpedTongs)) {
             return null;
         }
@@ -599,7 +600,7 @@ public class GameState implements State {
     }
 
     void draw(int count) {
-        if (getPlayeForRead().cannotDrawCard()) {
+        if (count == 0 || getPlayeForRead().cannotDrawCard()) {
             return;
         }
 //        if (!prop.testNewFeature || deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
@@ -809,6 +810,9 @@ public class GameState implements State {
     }
 
     void usePotion(GameAction action, int selectIdx) {
+        if (prop.hasToyOrniphopter) {
+            getPlayerForWrite().heal(5);
+        }
         int potionIdx = action.idx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (prop.potions.get(potionIdx).selectEnemy) {
@@ -932,16 +936,17 @@ public class GameState implements State {
         for (GameEventHandler handler : prop.preEndTurnHandlers) {
             handler.handle(this);
         }
+        byte[] handDup = Arrays.copyOf(hand, hand.length);
         for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0) {
+            if (handDup[i] > 0) {
                 if (prop.cardDict[i].ethereal) {
-                    for (int count = 0; count < hand[i]; count++) {
+                    for (int count = 0; count < handDup[i]; count++) {
                         exhaustedCardHandle(i, false);
                     }
-                    hand[i] = 0;
+                    hand[i] -= handDup[i];
                 } else if (!prop.hasRunicPyramid) {
-                    discard[i] += hand[i];
-                    hand[i] = 0;
+                    discard[i] += handDup[i];
+                    hand[i] -= handDup[i];
                 }
             }
         }
@@ -2662,7 +2667,7 @@ class ChanceState implements State {
 //                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
 //            }
         } else {
-            if (node.state.prop.testNewFeature) {
+            if (false) {
                 var new_total_q_comb = 0.0;
                 var new_total_q_win = 0.0;
                 var new_total_q_health = 0.0;
@@ -2710,7 +2715,7 @@ class ChanceState implements State {
         if (queue != null && queue.size() > 0) {
             return queue.remove(0);
         }
-        if (calledFromMCTS && cache.size() >= Math.ceil(Math.sqrt(total_n)) && parentState.prop.testNewFeature) {
+        if (calledFromMCTS && cache.size() >= Math.ceil(Math.sqrt(total_n)) && false) {
             // instead of generating new nodes, revisit node, need testing
             var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
             var acc = 0;

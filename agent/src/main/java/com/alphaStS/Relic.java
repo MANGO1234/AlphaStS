@@ -294,7 +294,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     // Tiny Chest: No need to implement
 
-    // todo: Toy Ornithopter
+
+    public static class ToyOrnithopter extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasToyOrniphopter = true;
+            // technically heals, but we don't actually want to wait for it
+        }
+    }
 
     public static class Vajira extends Relic {
         @Override public void startOfGameSetup(GameState state) {

@@ -10,11 +10,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.alphaStS.InteractiveMode.interactiveStart;
 
 enum ServerRequestType {
     PLAY_GAMES,
+    PLAY_TRAINING_GAMES,
     UPLOAD_MODEL,
     UPLOAD_MODEL_CMP
 }
@@ -28,7 +31,7 @@ class ServerRequest {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-       var state = TestStates.TestState15();
+       var state = TestStates.TestState16();
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
 //        System.out.println(state.prop.randomization.listRandomizations());
 //        state.prop.randomization = state.prop.randomization.fixR(6);
@@ -96,13 +99,13 @@ public class Main {
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
-            NUMBER_OF_GAMES_TO_PLAY = 500;
+            NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            NUMBER_OF_NODES_PER_TURN = 100;
-            iteration = 61;
-            COMPARE_DIR = "../saves/iteration60";
+            NUMBER_OF_NODES_PER_TURN = 200;
+            iteration = 41;
+            COMPARE_DIR = "../saves11/iteration40";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }
@@ -112,9 +115,17 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 80).doAfter(state.prop.randomization);
+            var s = new ArrayList<Short>();
+            for (int i = 0; i < state.prop.potions.size(); i++) {
+                s.add((short) 80);
+            }
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).fixR(0, 3).doAfter(state.prop.randomization);
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
-            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, (short) 80).doAfter(state.prop.preBattleRandomization);
+            var s = new ArrayList<Short>();
+            for (int i = 0; i < state.prop.potions.size(); i++) {
+                s.add((short) 80);
+            }
+            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).fixR(0, 3).doAfter(state.prop.preBattleRandomization);
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;
@@ -216,30 +227,73 @@ public class Main {
         ObjectMapper mapper = new ObjectMapper(jsonFactory);
         MatchSession session = null;
         ServerSocket serverSocket = new ServerSocket(4000);
+        String modelDir = null, modelCmpDir = null;
         while (serverSocket.isBound()) {
             Socket socket = serverSocket.accept();
             try {
                 var in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
-                String modelDir = null, modelCmpDir = null;
+                int numOfGames = 0;
+                int newNumOfGames = 0;
+                boolean playGamesStopped = false;
                 while (socket.isConnected()) {
                     int len = in.readInt();
                     byte[] bytes = in.readNBytes(len);
                     ServerRequest req = mapper.readValue(bytes, ServerRequest.class);
-                    System.out.println(req.type);
                     switch (req.type) {
                     case PLAY_GAMES -> {
                         if (req.remainingGames == 0) {
+                            break;
+                        }
+                        if (session == null) {
+                            session = new MatchSession(1, modelDir, modelCmpDir);
+                            numOfGames = 0;
+                            newNumOfGames = 0;
+                            playGamesStopped = false;
+                        }
+                        List<MatchSession.RemoteGameResult> results = new ArrayList<>();
+                        int count = session.remoteDeq.size();
+                        for (int i = 0; i < count; i++) {
+                            results.add(session.playGamesRemote(state, req.remainingGames, req.nodeCount));
+                        }
+                        if (results.size() == 0) {
+                            results.add(session.playGamesRemote(state, req.remainingGames, req.nodeCount));
+                        }
+                        mapper.writeValue(socket.getOutputStream(), results);
+                        newNumOfGames += results.size();
+                        if (newNumOfGames - numOfGames > 20) {
+                            System.out.printf("Requested %d games\n", newNumOfGames);
+                            numOfGames = newNumOfGames;
+                        }
+                    }
+                    case PLAY_TRAINING_GAMES -> {
+                        if (req.remainingGames == 0) {
+                            break;
+                        }
+                        if (session == null) {
+                            session = new MatchSession(1, modelDir, modelCmpDir);
+                        } else if (!playGamesStopped) {
                             session.stopPlayGamesRemote();
-                            session = null;
-                        } else {
-                            if (session == null) {
-                                session = new MatchSession(1, modelDir, modelCmpDir);
-                            }
-                            var ret = session.playGamesRemote(state, req.remainingGames, req.nodeCount);
-                            mapper.writeValue(socket.getOutputStream(), ret);
+                            numOfGames = 0;
+                            newNumOfGames = 0;
+                            playGamesStopped = true;
+                        }
+                        List<MatchSession.TrainingGameResult> results = new ArrayList<>();
+                        int count = session.remoteTrainingDeq.size();
+                        for (int i = 0; i < count; i++) {
+                            results.add(session.playTrainingGamesRemote(state, req.remainingGames, req.nodeCount));
+                        }
+                        if (results.size() == 0) {
+                            results.add(session.playTrainingGamesRemote(state, req.remainingGames, req.nodeCount));
+                        }
+                        mapper.writeValue(socket.getOutputStream(), results);
+                        newNumOfGames += results.size();
+                        if (newNumOfGames - numOfGames > 10) {
+                            System.out.printf("Requested %d training games\n", newNumOfGames);
+                            numOfGames = newNumOfGames;
                         }
                     }
                     case UPLOAD_MODEL -> {
+                        System.out.println(req.type);
                         File f = new File(System.getProperty("user.home") + "/tmp/model");
                         f.mkdirs();
                         new File(System.getProperty("user.home") + "/tmp/model/model.onnx").delete();
@@ -251,6 +305,7 @@ public class Main {
                         modelCmpDir = null;
                     }
                     case UPLOAD_MODEL_CMP -> {
+                        System.out.println(req.type);
                         if (req.bytes == null) {
                             modelCmpDir = System.getProperty("user.home") + "/tmp/model";
                         } else {
@@ -272,6 +327,8 @@ public class Main {
             socket.close();
             if (session != null) {
                 session.stopPlayGamesRemote();
+                session.stopPlayTrainingGamesRemote();
+                session.close();
                 session = null;
             }
         }

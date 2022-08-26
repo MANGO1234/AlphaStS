@@ -421,14 +421,10 @@ public interface GameStateRandomization {
     class PotionsUtilityRandomization implements GameStateRandomization {
         private final GameStateRandomization randomization;
 
-        public PotionsUtilityRandomization(List<Potion> potions, int steps) {
-            this(potions, steps, (short) 100);
-        }
-
-        public PotionsUtilityRandomization(List<Potion> potions, int steps, short startingRatio) {
+        public PotionsUtilityRandomization(List<Potion> potions, int steps, List<Short> startingRatios) {
             GameStateRandomization randomization = null;
             for (int i = 0; i < potions.size(); i++) {
-                randomization = new PotionUtilityRandomization(potions.get(i), i, steps, startingRatio).doAfter(randomization);
+                randomization = new PotionUtilityRandomization(potions.get(i), i, steps, startingRatios.get(i)).doAfter(randomization);
             }
             this.randomization = randomization;
         }

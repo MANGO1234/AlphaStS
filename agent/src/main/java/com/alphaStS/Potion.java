@@ -10,6 +10,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean weakEnemy;
     boolean changePlayerStrength;
     boolean changePlayerDexterity;
+    boolean changePlayerDexterityEot;
     boolean changePlayerArtifact;
     boolean selectEnemy;
     boolean healPlayer;
@@ -104,6 +105,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Dexterity Potion";
+        }
+    }
+
+    public static class SpeedPotion extends Potion {
+        public SpeedPotion() {
+            changePlayerDexterity = true;
+            changePlayerDexterityEot = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 10 : 5;
+            state.getPlayerForWrite().gainDexterity(n);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Speed Potion";
         }
     }
 
@@ -278,6 +297,37 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Blessing of the Forge";
+        }
+    }
+
+    public static class EssenceOfSteel extends Potion {
+        public EssenceOfSteel() {
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 8 : 4;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Essence Of Steel";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                }
+            });
         }
     }
 }

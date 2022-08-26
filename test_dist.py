@@ -24,7 +24,8 @@ if PLAY_A_GAME:
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
     p = subprocess.Popen(agent_args, stdout=subprocess.PIPE)
     while p.poll() is None:
-        print(p.stdout.readline().decode('ascii'), end='')
+        print(p.stdout.readline().decode('ascii'), end='', flush=True)
+    [print(line.decode('ascii'), end='', flush=True) for line in p.stderr.readlines()]
     p.terminate()
     print(time.time() - start)
 
@@ -35,5 +36,6 @@ if PLAY_MATCHES:
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
     p = subprocess.Popen(agent_args, stdout=subprocess.PIPE)
     while p.poll() is None:
-        print(p.stdout.readline().decode('ascii'), end='')
+        print(p.stdout.readline().decode('ascii'), end='', flush=True)
+    [print(line.decode('ascii'), end='', flush=True) for line in p.stderr.readlines()]
     print(time.time() - start)

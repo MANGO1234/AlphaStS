@@ -1,0 +1,18 @@
+Setup ec2 to run server instance:
+
+Java:
+sudo yum install sudo yum install java-17-amazon-corretto-devel
+
+Maven:
+sudo wget https://www-eu.apache.org/dist/maven/maven-3/3.8.6/binaries/apache-maven-3.8.6-bin.tar.gz
+sudo tar xf ./apache-maven-*.tar.gz -C /opt
+sudo ln -s /opt/apache-maven-3.8.6 /opt/maven
+rm apache-maven-3.8.6-bin.tar.gz
+
+Add to .bashrc:
+
+
+Conda (not needed for now):
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+bash Miniconda3-latest-Linux-x86_64.sh
+rm Miniconda3-latest-Linux-x86_64.sh

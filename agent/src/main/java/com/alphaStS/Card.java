@@ -1010,13 +1010,9 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(2);
-                return GameActionCtx.SELECT_CARD_HAND;
-            } else {
-                state.exhaustCardFromHand(idx);
-                return GameActionCtx.PLAY_CARD;
-            }
+            state.exhaustCardFromHand(idx);
+            state.draw(2);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -1024,18 +1020,13 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public BurningPactP() {
             super("Burning Pact+", Card.SKILL, 1);
             selectFromHand =  true;
-            selectFromHandLater = true;
             canExhaustAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(3);
-                return GameActionCtx.SELECT_CARD_HAND;
-            } else {
-                state.exhaustCardFromHand(idx);
-                return GameActionCtx.PLAY_CARD;
-            }
+            state.exhaustCardFromHand(idx);
+            state.draw(3);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 
@@ -3073,7 +3064,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
-                        state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
                     }
                 }
             });

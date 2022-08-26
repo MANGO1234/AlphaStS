@@ -235,7 +235,8 @@ public class MatchSession {
     }
 
     public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, boolean noExploration) {}
-    public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, int remoteR, ScenarioStats remoteStats) {}
+    public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats) {}
+    public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
     public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) {
         var seeds = new ArrayList<Long>(numOfGames);
@@ -247,8 +248,12 @@ public class MatchSession {
         for (int i = 0; i < mcts.size(); i++) {
             startPlayGameThread(origState, nodeCount, seeds, deq, numToPlay, i);
         }
-        for (Tuple<String, Integer> server : getRemoteServers()) {
-            startRemotePlayGameThread(server.v1(), server.v2(), modelDir, modelCmpDir, nodeCount, numToPlay, deq);
+        var remoteServerGames = new HashMap<String, Integer>();
+        if (nodeCount > 1) {
+            for (Tuple<String, Integer> server : getRemoteServers()) {
+                remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
+                startRemotePlayGameThread(server.v1(), server.v2(), modelDir, modelCmpDir, nodeCount, numToPlay, deq);
+            }
         }
 
         var game_i = 0;
@@ -353,6 +358,7 @@ public class MatchSession {
             } else {
                 r = result.remoteR;
                 scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(result.remoteStats, origState);
+                remoteServerGames.computeIfPresent(result.remoteServer, (k, x) -> x + 1);
                 game_i += 1;
             }
 
@@ -361,6 +367,7 @@ public class MatchSession {
                 if (!training && solver != null) {
                     System.out.println("Error Count: " + solverErrorCount);
                 }
+                remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
                 if (scenarioStats.size() > 1) {
                     for (var info : combinedInfoMap.entrySet()) {
                         var i = info.getKey();
@@ -425,7 +432,7 @@ public class MatchSession {
                     var w = new StringWriter();
                     mapper.writeValue(w, req);
                     var reqStr = w.toString();
-                    System.out.printf("Uploading model to %s...\n", ip);
+                    System.out.printf("Uploading model to %s:%d...\n", ip, port);
                     out.writeInt(reqStr.length());
                     out.writeBytes(reqStr);
                     out.flush();
@@ -438,14 +445,14 @@ public class MatchSession {
                         w = new StringWriter();
                         mapper.writeValue(w, req);
                         reqStr = w.toString();
-                        System.out.printf("Uploading model for comparison to %s...\n", ip);
+                        System.out.printf("Uploading model for comparison to %s:%d...\n", ip, port);
                         out.writeInt(reqStr.length());
                         out.writeBytes(reqStr);
                         out.flush();
                     }
                     req.type = ServerRequestType.PLAY_GAMES;
                     req.nodeCount = nodeCount;
-                    System.out.printf("Start requesting games from %s...\n", ip);
+                    System.out.printf("Start requesting games from %s:%d...\n", ip, port);
                     while (numToPlay.get() > 0) {
                         req.remainingGames = numToPlay.get();
                         w = new StringWriter();
@@ -454,12 +461,14 @@ public class MatchSession {
                         out.writeInt(reqStr.length());
                         out.writeBytes(reqStr);
                         out.flush();
-                        var ret = mapper.readValue(socket.getInputStream(), RemoteGameResult.class);
-                        if (numToPlay.getAndDecrement() > 0) {
-                            deq.putLast(new GameResult(null, 0, null, 0, 0, null, ret.r, ret.stats));
+                        var ret = mapper.readValue(socket.getInputStream(), RemoteGameResult[].class);
+                        int idx = 0;
+                        while (idx < ret.length && numToPlay.getAndDecrement() > 0) {
+                            deq.putLast(new GameResult(null, 0, null, 0, 0, null, ip + ":" + port, ret[idx].r, ret[idx].stats));
+                            idx++;
                         }
                     }
-                    System.out.printf("Stop requesting games from %s...\n", ip);
+                    System.out.printf("Stop requesting games from %s:%d...\n", ip, port);
                     req.remainingGames = 0;
                     w = new StringWriter();
                     mapper.writeValue(w, req);
@@ -526,6 +535,11 @@ public class MatchSession {
                 e.printStackTrace();
             }
         }
+        remoteThreads.clear();
+        remoteDeq.clear();
+    }
+
+    public void close() {
         for (int i = 0; i < mcts.size(); i++) {
             mcts.get(i).model.close();
         }
@@ -541,6 +555,13 @@ public class MatchSession {
         var t = new Thread(() -> {
             int idx = numToPlay.getAndDecrement();
             while (idx > 0) {
+                if (deq.size() >= (nodeCount == 1 ? 1000 : 40)) {
+                    if (numToPlay.get() < 0) {
+                        break;
+                    }
+                    Utils.sleep(200);
+                    continue;
+                }
                 var state = origState.clone(false);
                 state.prop = state.prop.clone();
                 state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
@@ -602,7 +623,7 @@ public class MatchSession {
                                     rerunGame2 = session.playGame(rerunState2, 0, game1, mcts2.get(threadIdx), nodeCount);
                                     rerunModelCalls2 = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits - prev;
                                 }
-                                reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null, 0, null));
+                                reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null, null,0, null));
                             }
                             break;
                         }
@@ -610,7 +631,7 @@ public class MatchSession {
                 }
 
                 try {
-                    deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2, seeds.get(idx - 1), reruns, 0, null));
+                    deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2, seeds.get(idx - 1), reruns, null,0, null));
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -965,7 +986,7 @@ public class MatchSession {
         File file = new File(path);
         file.delete();
         var stream = new DataOutputStream(new FramedLZ4CompressorOutputStream(new BufferedOutputStream(new FileOutputStream(path))));
-        var deq = new LinkedBlockingDeque<Game>();
+        var deq = new LinkedBlockingDeque<TrainingGameResult>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
         for (int i = 0; i < mcts.size(); i++) {
@@ -974,11 +995,7 @@ public class MatchSession {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        if (TRAINING_WITH_LINE) {
-                            deq.putLast(session.playTrainingGame2(state, nodeCount, mcts.get(ii)));
-                        } else {
-                            deq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii)));
-                        }
+                        deq.putLast(new TrainingGameResult(session.playTrainingGame(state, nodeCount, mcts.get(ii)), null, null, null));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -986,107 +1003,235 @@ public class MatchSession {
                 }
             }).start();
         }
+        var remoteServerGames = new HashMap<String, Integer>();
+        for (Tuple<String, Integer> server : getRemoteServers()) {
+            remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
+            startRemotePlayTrainingGameThread(server.v1(), server.v2(), nodeCount, numToPlay, deq);
+        }
 
         var trainingGame_i = 0;
         while (trainingGame_i < numOfGames) {
-            Game game;
-            List<GameStep> steps;
+            TrainingGameResult result;
             try {
-                game = deq.takeFirst();
-                steps = game.steps;
+                result = deq.takeFirst();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            var state = steps.get(steps.size() - 1).state();
             trainingGame_i += 1;
-            if (trainingDataWriter != null && trainingGame_i <= 100) {
-                try {
+            if (result.game != null) {
+                var game = result.game;
+                var steps = game.steps;
+                if (trainingDataWriter != null && trainingGame_i <= 100) {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
-                    if (origState.prop.preBattleRandomization != null) {
-                        var info = origState.prop.preBattleRandomization.listRandomizations();
-                        if (info.size() > 1) {
-                            trainingDataWriter.write("Pre-Battle Randomization: " + info.get(game.preBattle_r).desc() + "\n");
-                        }
-                    }
-                    if (origState.prop.randomization != null) {
-                        var info = origState.prop.randomization.listRandomizations();
-                        if (info.size() > 1) {
-                            trainingDataWriter.write("Battle Randomization: " + info.get(game.battle_r).desc() + "\n");
-                        }
-                    }
-                    if (!TRAINING_WITH_LINE && game.noExploration) {
-                        trainingDataWriter.write("No Temperature Moves\n");
-                    }
-                    trainingDataWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                    trainingDataWriter.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");
-                    printGame(trainingDataWriter, steps);
-                    trainingDataWriter.write("\n");
-                    trainingDataWriter.write("\n");
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+                    writeTrainingGameRecord(trainingDataWriter, origState, game, steps);
                 }
-            }
-            writeTrainingData(stream, steps);
-
-            if (TRAINING_WITH_LINE) {
-                continue;
-            }
-            for (GameStep step : steps) {
-               if (step.action() < 0 || step.state().terminal_action >= 0) {
-                   break;
-               }
-               if (step.trainingWriteCount <= 0) {
-                   continue;
-               }
-               state = step.state();
-               var max_i = -1;
-               var max_n = 0;
-               for (int i = 0; i < state.getLegalActions().length; i++) {
-                   if (state.n[i] > max_n) {
-                       max_n = state.n[i];
-                       max_i = i;
-                   }
-               }
-               double q = state.q_comb[max_i] / state.n[max_i];
-               double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
-               var max_puct = q + u;
-               var del_n = 0;
-               for (int i = 0; i < state.getLegalActions().length; i++) {
-                   if (i == max_i) {
-                       continue;
-                   }
-                   q = state.q_comb[i] / state.n[i];
-                   var new_n = (int) Math.ceil(0.1 * state.policyMod[i] * sqrt(state.total_n) / (max_puct - q) - 1);
-                   if (new_n < 0 || state.n[i] == 1) {
-                       continue;
-                   }
-                   var force_n = (int) Math.sqrt(0.5 * state.policyMod[i] * state.total_n);
-                   new_n = Math.max(state.n[i] - force_n, new_n);
-                   if (state.n[i] > new_n) {
-//                        System.out.println(state);
-//                        System.out.println(q);
-//                        System.out.println(state.q_comb[max_i] / state.n[max_i]);
-//                        System.out.println(0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i]));
-//                        System.out.println(0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]));
-//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i]));
-//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i] - 1));
-//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + state.n[i] - 2));
-//                        System.out.println(q + 0.1 * state.policyMod[i] * sqrt(state.total_n) / (1 + new_n));
-//                        System.out.println(max_puct);
-//                        System.out.println("Prune " + state.n[i] + " to " + new_n + ":" + force_n);
-                       del_n += state.n[i] - new_n;
-                       state.n[i] = new_n;
-//                        Integer.parseInt(null);
-                   }
-               }
-               state.total_n -= del_n;
-                if (calcKld(state) > 0.5) {
-//                    step.trainingWriteCount = 2;
+                pruneForcedPlayouts(steps);
+                writeTrainingData(stream, steps);
+            } else {
+                if (trainingDataWriter != null && trainingGame_i <= 100) {
+                    trainingDataWriter.write("*** Match " + trainingGame_i + " (Remote) ***\n");
+                    trainingDataWriter.write(result.remoteTrainingGameRecord);
                 }
+                stream.write(result.remoteTrainingData);
+                remoteServerGames.computeIfPresent(result.remoteServer, (k, x) -> x + 1);
             }
         }
         stream.flush();
         stream.close();
+        remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
+    }
+
+    private void writeTrainingGameRecord(Writer writer, GameState origState, Game game, List<GameStep> steps) {
+        try {
+            var state = steps.get(steps.size() - 1).state();
+            if (origState.prop.preBattleRandomization != null) {
+                var info = origState.prop.preBattleRandomization.listRandomizations();
+                if (info.size() > 1) {
+                    writer.write("Pre-Battle Randomization: " + info.get(game.preBattle_r).desc() + "\n");
+                }
+            }
+            if (origState.prop.randomization != null) {
+                var info = origState.prop.randomization.listRandomizations();
+                if (info.size() > 1) {
+                    writer.write("Battle Randomization: " + info.get(game.battle_r).desc() + "\n");
+                }
+            }
+            if (!TRAINING_WITH_LINE && game.noExploration) {
+                writer.write("No Temperature Moves\n");
+            }
+            writer.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+            writer.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");
+            printGame(writer, steps);
+            writer.write("\n");
+            writer.write("\n");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void startRemotePlayTrainingGameThread(String ip, int port, int nodeCount, AtomicInteger numToPlay, BlockingDeque<TrainingGameResult> deq) {
+        new Thread(() -> {
+            while (numToPlay.get() > 0) {
+                try {
+                    var socket = new Socket(ip, port);
+                    var jsonFactory = new JsonFactory();
+                    jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
+                    jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
+                    var mapper = new ObjectMapper(jsonFactory);
+                    var out = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                    var req = new ServerRequest();
+                    req.type = ServerRequestType.UPLOAD_MODEL;
+                    req.bytes = new FileInputStream(modelDir + "/model.onnx").readAllBytes();
+                    var w = new StringWriter();
+                    mapper.writeValue(w, req);
+                    var reqStr = w.toString();
+                    System.out.printf("Uploading model to %s:%d...\n", ip, port);
+                    out.writeInt(reqStr.length());
+                    out.writeBytes(reqStr);
+                    out.flush();
+                    req.type = ServerRequestType.PLAY_TRAINING_GAMES;
+                    req.nodeCount = nodeCount;
+                    System.out.printf("Start requesting training games from %s:%d...\n", ip, port);
+                    while (numToPlay.get() > 0) {
+                        req.remainingGames = numToPlay.get();
+                        w = new StringWriter();
+                        mapper.writeValue(w, req);
+                        reqStr = w.toString();
+                        out.writeInt(reqStr.length());
+                        out.writeBytes(reqStr);
+                        out.flush();
+                        var ret = mapper.readValue(socket.getInputStream(), MatchSession.TrainingGameResult[].class);
+                        int idx = 0;
+                        while (idx < ret.length && numToPlay.getAndDecrement() > 0) {
+                            var result = new TrainingGameResult(null, ip + ":" + port, ret[idx].remoteTrainingGameRecord, ret[idx].remoteTrainingData);
+                            deq.putLast(result);
+                            idx++;
+                        }
+                    }
+                    System.out.printf("Stop requesting training games from %s:%d...\n", ip, port);
+                    req.remainingGames = 0;
+                    w = new StringWriter();
+                    mapper.writeValue(w, req);
+                    reqStr = w.toString();
+                    out.writeInt(reqStr.length());
+                    out.writeBytes(reqStr);
+                    out.flush();
+                    socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace(System.out);
+                    Utils.sleep(5000);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }).start();
+    }
+
+    AtomicInteger remoteNumOfTrainingGames = new AtomicInteger(-123456);
+    BlockingDeque<Game> remoteTrainingDeq = new LinkedBlockingDeque<>();
+    List<Thread> remoteTrainingThreads = new ArrayList<>();
+
+    public TrainingGameResult playTrainingGamesRemote(GameState origState, int numOfGames, int nodeCount) throws IOException {
+        if (remoteNumOfTrainingGames.get() == -123456) {
+            remoteNumOfTrainingGames.set(numOfGames);
+            var session = this;
+            for (int i = 0; i < mcts.size(); i++) {
+                int ii = i;
+                remoteTrainingThreads.add(new Thread(() -> {
+                    var state = origState.clone(false);
+                    int idx = remoteNumOfTrainingGames.getAndDecrement();
+                    while (idx > 0) {
+                        if (remoteTrainingDeq.size() >= 30) {
+                            if (remoteNumOfTrainingGames.get() <= 0) {
+                                break;
+                            }
+                            Utils.sleep(200);
+                            continue;
+                        }
+                        try {
+                            remoteTrainingDeq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii)));
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                        idx = remoteNumOfTrainingGames.getAndDecrement();
+                    }
+                }));
+                remoteTrainingThreads.get(remoteTrainingThreads.size() - 1).start();
+            }
+        }
+
+        Game game;
+        List<GameStep> steps;
+        try {
+            game = remoteTrainingDeq.takeFirst();
+            steps = game.steps;
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        pruneForcedPlayouts(steps);
+        var gameRecordWriter = new StringWriter();
+        writeTrainingGameRecord(gameRecordWriter, origState, game, steps);
+        var byteStream = new ByteArrayOutputStream();
+        writeTrainingData(new DataOutputStream(byteStream), steps);
+        return new TrainingGameResult(null, null, gameRecordWriter.toString(), byteStream.toByteArray());
+    }
+
+    public void stopPlayTrainingGamesRemote() {
+        remoteNumOfTrainingGames.set(-123456);
+        for (int i = 0; i < remoteTrainingThreads.size(); i++) {
+            try {
+                remoteTrainingThreads.get(i).join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        remoteTrainingThreads.clear();
+        remoteTrainingDeq.clear();
+    }
+
+    private void pruneForcedPlayouts(List<GameStep> steps) {
+        GameState state;
+        for (GameStep step : steps) {
+            if (step.action() < 0 || step.state().terminal_action >= 0) {
+                break;
+            }
+            if (step.trainingWriteCount <= 0) {
+                continue;
+            }
+            state = step.state();
+            var max_i = -1;
+            var max_n = 0;
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (state.n[i] > max_n) {
+                    max_n = state.n[i];
+                    max_i = i;
+                }
+            }
+            double q = state.q_comb[max_i] / state.n[max_i];
+            double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
+            var max_puct = q + u;
+            var del_n = 0;
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (i == max_i) {
+                    continue;
+                }
+                q = state.q_comb[i] / state.n[i];
+                var new_n = (int) Math.ceil(0.1 * state.policyMod[i] * sqrt(state.total_n) / (max_puct - q) - 1);
+                if (new_n < 0 || state.n[i] == 1) {
+                    continue;
+                }
+                var force_n = (int) Math.sqrt(0.5 * state.policyMod[i] * state.total_n);
+                new_n = Math.max(state.n[i] - force_n, new_n);
+                if (state.n[i] > new_n) {
+                    del_n += state.n[i] - new_n;
+                    state.n[i] = new_n;
+                }
+            }
+            state.total_n -= del_n;
+            if (calcKld(state) > 0.5) {
+                //                    step.trainingWriteCount = 2;
+            }
+        }
     }
 
     private static void writeTrainingData(DataOutputStream stream, List<GameStep> game) throws IOException {

@@ -109,7 +109,7 @@ public class Player extends PlayerReadOnly {
             applyDebuff(state, DebuffType.LOSE_STRENGTH, loseStrengthEot);
         }
         if (loseDexterityEot > 0) {
-            applyDebuff(state, DebuffType.LOSE_STRENGTH, loseDexterityEot);
+            applyDebuff(state, DebuffType.LOSE_DEXTERITY, loseDexterityEot);
         }
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
         } else if (state.prop.hasCaliper) {

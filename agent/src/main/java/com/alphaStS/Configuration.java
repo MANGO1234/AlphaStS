@@ -18,6 +18,6 @@ public class Configuration {
 
     public static final boolean PRINT_MODEL_COMPARE_DIFF = false;
     public static final int SLEEP_PER_GAME = 0;
-    public static final int SLEEP_PER_GAME_TRAINING = 0;
-    public static final boolean USE_REMOTE_SERVERS = false;
+    public static final int SLEEP_PER_GAME_TRAINING = 100;
+    public static final boolean USE_REMOTE_SERVERS = true;
 }

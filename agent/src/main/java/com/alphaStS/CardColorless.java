@@ -1,5 +1,8 @@
 package com.alphaStS;
 
+import java.util.List;
+import java.util.Objects;
+
 public class CardColorless {
     // Bandage Up
     // Blind
@@ -161,5 +164,44 @@ public class CardColorless {
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
+    }
+
+    public static class Apotheosis extends Card {
+        public Apotheosis() {
+            super("Apotheosis", Card.SKILL, 2);
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
+                    state.hand[i] = 0;
+                }
+                if (state.deck[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.deck[state.prop.upgradeIdxes[i]] += state.deck[i];
+                    state.deck[i] = 0;
+                }
+                if (state.discard[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.discard[state.prop.upgradeIdxes[i]] += state.discard[i];
+                    state.discard[i] = 0;
+                }
+                if (state.getExhaustForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getExhaustForWrite()[state.prop.upgradeIdxes[i]] += state.getExhaustForRead()[i];
+                    state.getExhaustForWrite()[i] = 0;
+                }
+            }
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.prop.upgradeIdxes[state.deckArr[i]] >= 0) {
+                    state.deckArr[i] = (short) state.prop.upgradeIdxes[state.deckArr[i]];
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+        }
+
     }
 }
