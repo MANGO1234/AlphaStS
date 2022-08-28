@@ -229,13 +229,7 @@ public class TestStates {
         builder.addCard(new Card.ShrugItOff(), 1);
         builder.addCard(new Card.FlameBarrierP(), 1);
         builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addEnemy(new Enemy.SlimeBoss());
-        builder.addEnemy(new Enemy.LargeSpikeSlime(75, true));
-        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
-        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
-        builder.addEnemy(new Enemy.LargeAcidSlime(75, true));
-        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
-        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
+        EnemyEncounter.addSlimeBossFight(builder);
         builder.addRelic(new Relic.Anchor());
         var player = new Player(47, 75);
         //        player.gainArtifact(1);
@@ -776,34 +770,31 @@ public class TestStates {
     public static GameState TestState16() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new Card.IronWave(), 1);
         builder.addCard(new Card.ShrugItOff(), 1);
         builder.addCard(new Card.Cleave(), 1);
-        builder.addCard(new CardColorless.Apotheosis(), 1);
-        builder.addCard(new Card.PommelStrike(), 0);
-        builder.addCard(new Card.Anger(), 0);
+        builder.addCard(new CardColorless.ApotheosisP(), 1);
+        builder.addCard(new Card.PommelStrikeP(), 1);
+        builder.addCard(new Card.Havoc(), 1);
+        builder.addCard(new Card.BludgeonP(), 0);
         builder.addRelic(new Relic.BronzeScales());
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM).markAsBurningElite());
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
-        builder.addEnemy(new Enemy.GremlinNob());
-        builder.addEnemy(new Enemy.Lagavulin());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
-        );
-        randomization = randomization.doAfter(new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.PommelStrike(), 1)),
-                List.of(new CardCount(new Card.Anger(), 1))
-        )));
+        builder.addRelic(new Relic.Calipers());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.GremlinHorn());
+        builder.addRelic(new Relic.MeatOnTheBone());
+        EnemyEncounter.addSlimeBossFight(builder);
+        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.BashP(), 1)),
+                List.of(new CardCount(new Card.Havoc(), 1), new CardCount(new Card.BashP(), 1)),
+                List.of(new CardCount(new Card.Havoc(), 1), new CardCount(new Card.BludgeonP(), 1), new CardCount(new Card.Bash(), 1))
+        ));
         builder.setRandomization(randomization);
         builder.addPotion(new Potion.DistilledChaos());
-        builder.addPotion(new Potion.EssenceOfSteel());
-        builder.setPlayer(new Player(54, 54));
+        builder.addPotion(new Potion.StrengthPotion());
+        builder.setPlayer(new Player(67, 73));
         return new GameState(builder);
     }
 }

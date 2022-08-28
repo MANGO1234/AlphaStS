@@ -85,6 +85,7 @@ public class CardUpgrade {
         map.put(new Card.Reaper(), new Card.ReaperP());
 
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
+        map.put(new CardColorless.Apotheosis(), new CardColorless.ApotheosisP());
 
         map = Collections.unmodifiableMap(map);
     }

@@ -177,7 +177,6 @@ public class InteractiveMode {
                 printAction = true;
                 printState = false;
             }
-
             System.out.print("> ");
             String line = reader.readLine();
             if (line.equals("exit")) {

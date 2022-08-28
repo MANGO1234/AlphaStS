@@ -731,16 +731,16 @@ public abstract class Enemy extends EnemyReadOnly {
                         var enemy = enemies.getForWrite(i);
                         enemy.health = health;
                         ((Enemy.LargeAcidSlime) enemy).splitMaxHealth = health;
-                        state.enemiesAlive += 1;
+                        state.adjustEnemiesAlive(1);
                     } else if (enemies.get(i) instanceof Enemy.LargeSpikeSlime) {
                         var enemy = enemies.getForWrite(i);
                         enemy.health = health;
                         ((Enemy.LargeSpikeSlime) enemy).splitMaxHealth = health;
-                        state.enemiesAlive += 1;
+                        state.adjustEnemiesAlive(1);
                     }
                 }
                 health = 0;
-                state.enemiesAlive -= 1;
+                state.adjustEnemiesAlive(-1);
             }
         }
 
@@ -840,11 +840,11 @@ public abstract class Enemy extends EnemyReadOnly {
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof Enemy.MediumSpikeSlime) {
                         enemies.getForWrite(i).health = health;
-                        state.enemiesAlive += 1;
+                        state.adjustEnemiesAlive(1);
                     }
                 }
                 health = 0;
-                state.enemiesAlive -= 1;
+                state.adjustEnemiesAlive(-1);
             }
         }
 
@@ -1072,11 +1072,11 @@ public abstract class Enemy extends EnemyReadOnly {
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof Enemy.MediumAcidSlime) {
                         enemies.getForWrite(i).health = health;
-                        state.enemiesAlive += 1;
+                        state.adjustEnemiesAlive(1);
                     }
                 }
                 health = 0;
-                state.enemiesAlive -= 1;
+                state.adjustEnemiesAlive(-1);
             }
         }
 

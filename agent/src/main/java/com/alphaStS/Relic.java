@@ -485,7 +485,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     // Matryoshka: No need to implement
 
-    // todo: Meat on the Bone
+    public static class MeatOnTheBone extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasMeatOnBone = true;
+            state.addEndOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
+                        state.getPlayerForWrite().heal(12);
+                    }
+                }
+            });
+        }
+    }
 
     public static class MercuryHourglass extends Relic {
         @Override public void startOfGameSetup(GameState state) {

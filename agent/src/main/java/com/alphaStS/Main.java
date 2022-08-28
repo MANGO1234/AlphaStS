@@ -34,7 +34,14 @@ public class Main {
        var state = TestStates.TestState16();
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
 //        System.out.println(state.prop.randomization.listRandomizations());
-//        state.prop.randomization = state.prop.randomization.fixR(6);
+//        state.prop.randomization = state.prop.randomization.fixR(2);
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Shrug It Off"));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Bash"));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Pommel Strike+"));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Strike"));
+//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Strike"));
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
@@ -104,8 +111,8 @@ public class Main {
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 200;
-            iteration = 41;
-            COMPARE_DIR = "../saves11/iteration40";
+            iteration = 51;
+//            COMPARE_DIR = "../saves11/iteration30";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }
@@ -172,7 +179,7 @@ public class Main {
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
         if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES) {
-            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 3, 2);
+//            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 3, 2);
         }
 
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {

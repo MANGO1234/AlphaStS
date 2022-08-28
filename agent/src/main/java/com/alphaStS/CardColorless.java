@@ -166,9 +166,9 @@ public class CardColorless {
         }
     }
 
-    public static class Apotheosis extends Card {
-        public Apotheosis() {
-            super("Apotheosis", Card.SKILL, 2);
+    private static abstract class _ApotheosisT extends Card {
+        public _ApotheosisT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost);
             exhaustWhenPlayed = true;
         }
 
@@ -200,8 +200,19 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
         }
+    }
 
+    public static class Apotheosis extends CardColorless._ApotheosisT {
+        public Apotheosis() {
+            super("Apotheosis", Card.SKILL, 2);
+        }
+    }
+
+    public static class ApotheosisP extends CardColorless._ApotheosisT {
+        public ApotheosisP() {
+            super("Apotheosis+", Card.SKILL, 1);
+        }
     }
 }

@@ -283,4 +283,14 @@ public class EnemyEncounter {
         builder.addEnemy(new Enemy.Cultist());
         builder.addEnemy(new EnemyBeyond.AwakenedOne());
     }
+
+    public static void addSlimeBossFight(GameStateBuilder builder) {
+        builder.addEnemy(new Enemy.SlimeBoss());
+        builder.addEnemy(new Enemy.LargeSpikeSlime(75, true));
+        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
+        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
+        builder.addEnemy(new Enemy.LargeAcidSlime(75, true));
+        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
+        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
+    }
 }

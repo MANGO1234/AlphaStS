@@ -7,9 +7,11 @@ import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.BigRational;
+import com.alphaStS.utils.CircularArray;
 import com.alphaStS.utils.DrawOrder;
 import com.alphaStS.utils.DrawOrderReadOnly;
 
+import java.io.OutputStream;
 import java.util.*;
 
 import static com.alphaStS.utils.Utils.formatFloat;
@@ -95,7 +97,7 @@ public class GameState implements State {
     public boolean searchRandomGenCloned;
     public RandomGen searchRandomGen;
 
-    Deque<GameEnvironmentAction> gameActionDeque;
+    CircularArray<GameEnvironmentAction> gameActionDeque;
     int energy;
     int energyRefill;
     GameAction currentAction;
@@ -150,7 +152,11 @@ public class GameState implements State {
         for (var enemy : enemies) {
             result = 31 * result + enemy.getHealth();
         }
+        result = 31 * result + player.getHealth();
         result = 31 * result + Arrays.hashCode(hand);
+        result = 31 * result + Arrays.hashCode(deck);
+        result = 31 * result + Arrays.hashCode(discard);
+        result = 31 * result + Arrays.hashCode(potionsState);
         return result;
     }
 
@@ -572,7 +578,7 @@ public class GameState implements State {
         drawOrder = other.drawOrder;
         searchRandomGen = other.searchRandomGen;
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
-            gameActionDeque = new ArrayDeque<>(other.gameActionDeque);
+            gameActionDeque = new CircularArray<>(other.gameActionDeque);
         }
         potionsState = other.potionsState != null ? Arrays.copyOf(other.potionsState, other.potionsState.length) : null;
         other.enemiesCloned = false;
@@ -1169,6 +1175,9 @@ public class GameState implements State {
     }
 
     public boolean checkIfCanHeal() {
+        if (prop.hasMeatOnBone) {
+            return getPlayeForRead().getHealth() < getPlayeForRead().getMaxHealth() / 2 + 12;
+        }
         if (prop.healCardsIdxes == null) {
             return false;
         }
@@ -1185,11 +1194,32 @@ public class GameState implements State {
 
     private int getMaxPossibleHealth() {
         if (checkIfCanHeal()) {
-            int v = 4;
-            if (getExhaustForRead()[prop.findCardIndex("Armanent+")] > 0) {
-                v = 3;
+            int v = 0;
+            if (prop.healCardsIdxes != null) {
+                for (int i = 0; i < prop.healCardsIdxes.length; i++) {
+                    if (prop.cardDict[prop.healCardsIdxes[i]].cardName.startsWith("Feed")) {
+                        if (getExhaustForRead()[prop.findCardIndex("Armanent+")] > 0) {
+                            v += 3;
+                        } else {
+                            v += 4;
+                        }
+                    }
+                }
             }
-            return Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+            int hp;
+            if (prop.hasMeatOnBone) {
+                // todo: feed and meat on bone interaction when they are together
+                if (getPlayeForRead().getHealth() >= getPlayeForRead().getMaxHealth() / 2 + 12) {
+                    return Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+                }
+                if (getPlayeForRead().getHealth() + v < getPlayeForRead().getMaxHealth() / 2) {
+                    return getPlayeForRead().getHealth() + v + 12;
+                }
+                return getPlayeForRead().getMaxHealth() / 2 + 12;
+            } else {
+                hp = Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+            }
+            return hp;
         } else {
             return getPlayeForRead().getHealth();
         }
@@ -1962,14 +1992,14 @@ public class GameState implements State {
 
     void addGameActionToEndOfDeque(GameEnvironmentAction action) {
         if (gameActionDeque == null) {
-            gameActionDeque = new ArrayDeque<>();
+            gameActionDeque = new CircularArray<>();
         }
         gameActionDeque.addLast(action);
     }
 
     void addGameActionToStartOfDeque(GameEnvironmentAction action) {
         if (gameActionDeque == null) {
-            gameActionDeque = new ArrayDeque<>();
+            gameActionDeque = new CircularArray<>();
         }
         gameActionDeque.addFirst(action);
     }
@@ -2317,7 +2347,7 @@ public class GameState implements State {
         if (enemy.isAlive()) {
             enemy.damage(dmg, this);
             if (!enemy.isAlive()) {
-                enemiesAlive -= 1;
+                adjustEnemiesAlive(-1);
                 for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
                     handler.handle(this);
                 }
@@ -2340,7 +2370,7 @@ public class GameState implements State {
         if (enemy.isAlive()) {
             enemy.nonAttackDamage(dmg, blockable, this);
             if (!enemy.isAlive()) {
-                enemiesAlive -= 1;
+                adjustEnemiesAlive(-1);
                 for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
                     handler.handle(this);
                 }
@@ -2508,7 +2538,7 @@ public class GameState implements State {
     public void killEnemy(int i) {
         if (getEnemiesForRead().get(i).isAlive()) {
             getEnemiesForWrite().getForWrite(i).setHealth(0);
-            enemiesAlive -= 1;
+            adjustEnemiesAlive(-1);
         }
     }
 
@@ -2517,7 +2547,7 @@ public class GameState implements State {
             getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
             getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), false);
             getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());
-            enemiesAlive += 1;
+            adjustEnemiesAlive(1);
         } else {
             Integer.parseInt(null);
         }
