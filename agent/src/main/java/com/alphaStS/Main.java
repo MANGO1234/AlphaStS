@@ -31,17 +31,10 @@ class ServerRequest {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-       var state = TestStates.TestState16();
+       var state = TestStates.TestState17();
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
 //        System.out.println(state.prop.randomization.listRandomizations());
 //        state.prop.randomization = state.prop.randomization.fixR(2);
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Shrug It Off"));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Bash"));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Pommel Strike+"));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Strike"));
-//        state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Strike"));
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
@@ -126,13 +119,13 @@ public class Main {
             for (int i = 0; i < state.prop.potions.size(); i++) {
                 s.add((short) 80);
             }
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).fixR(0, 3).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).doAfter(state.prop.randomization);
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
             var s = new ArrayList<Short>();
             for (int i = 0; i < state.prop.potions.size(); i++) {
                 s.add((short) 80);
             }
-            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).fixR(0, 3).doAfter(state.prop.preBattleRandomization);
+            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).doAfter(state.prop.preBattleRandomization);
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;

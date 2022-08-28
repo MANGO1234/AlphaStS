@@ -84,6 +84,68 @@ public class CardUpgrade {
         map.put(new Card.Offering(), new Card.OfferingP());
         map.put(new Card.Reaper(), new Card.ReaperP());
 
+        map.put(new Card.CardTmpChangeCost(new Card.Bash(), 0), new Card.CardTmpChangeCost(new Card.BashP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Strike(), 0), new Card.CardTmpChangeCost(new Card.StrikeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Defend(), 0), new Card.CardTmpChangeCost(new Card.DefendP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Armanent(), 0), new Card.CardTmpChangeCost(new Card.ArmanentP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.BodySlam(), 0), new Card.BodySlamP());
+        map.put(new Card.CardTmpChangeCost(new Card.Cleave(), 0), new Card.CardTmpChangeCost(new Card.CleaveP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Clothesline(), 0), new Card.CardTmpChangeCost(new Card.ClotheslineP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Havoc(), 0), new Card.HavocP());
+        map.put(new Card.CardTmpChangeCost(new Card.Headbutt(), 0), new Card.CardTmpChangeCost(new Card.HeadbuttP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.HeavyBlade(), 0), new Card.CardTmpChangeCost(new Card.HeavyBladeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.IronWave(), 0), new Card.CardTmpChangeCost(new Card.IronWaveP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.PerfectedStrike(), 0), new Card.CardTmpChangeCost(new Card.PerfectedStrikeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.PommelStrike(), 0), new Card.CardTmpChangeCost(new Card.PommelStrikeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.ShrugItOff(), 0), new Card.CardTmpChangeCost(new Card.ShrugItOffP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.SwordBoomerang(), 0), new Card.CardTmpChangeCost(new Card.SwordBoomerangP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Thunderclap(), 0), new Card.CardTmpChangeCost(new Card.ThunderclapP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.TrueGrit(), 0), new Card.CardTmpChangeCost(new Card.TrueGritP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.TwinStrike(), 0), new Card.CardTmpChangeCost(new Card.TwinStrikeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.WildStrike(), 0), new Card.CardTmpChangeCost(new Card.WildStrikeP(), 0));
+        // todo BloodForBlood + Tmp
+        map.put(new Card.CardTmpChangeCost(new Card.BurningPact(), 0), new Card.CardTmpChangeCost(new Card.BurningPactP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Carnage(), 0), new Card.CardTmpChangeCost(new Card.CarnageP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Combust(), 0), new Card.CardTmpChangeCost(new Card.CombustP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.DarkEmbrace(), 0), new Card.CardTmpChangeCost(new Card.DarkEmbraceP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Disarm(), 0), new Card.CardTmpChangeCost(new Card.DisarmP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Dropkick(), 0), new Card.CardTmpChangeCost(new Card.DropkickP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.DualWield(), 0), new Card.CardTmpChangeCost(new Card.DualWieldP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Entrench(), 0), new Card.CardTmpChangeCost(new Card.EntrenchP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Evolve(), 0), new Card.CardTmpChangeCost(new Card.EvolveP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.FeelNoPain(), 0), new Card.CardTmpChangeCost(new Card.FeelNoPainP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.FireBreathing(), 0), new Card.CardTmpChangeCost(new Card.FireBreathingP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0), new Card.CardTmpChangeCost(new Card.FlameBarrierP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0), new Card.CardTmpChangeCost(new Card.GhostlyArmorP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Hemokinesis(), 0), new Card.CardTmpChangeCost(new Card.HemokinesisP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.InfernalBlade(), 0), new Card.InfernalBladeP());
+        map.put(new Card.CardTmpChangeCost(new Card.Inflame(), 0), new Card.CardTmpChangeCost(new Card.InflameP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Metallicize(), 0), new Card.CardTmpChangeCost(new Card.MetallicizeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.PowerThrough(), 0), new Card.CardTmpChangeCost(new Card.PowerThroughP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Pummel(), 0), new Card.CardTmpChangeCost(new Card.PummelP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Rampage(), 0), new Card.CardTmpChangeCost(new Card.RampageP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Rupture(), 0), new Card.CardTmpChangeCost(new Card.RuptureP(), 0));
+        // todo SearingBlow + Tmp
+        map.put(new Card.CardTmpChangeCost(new Card.SecondWind(), 0), new Card.CardTmpChangeCost(new Card.SecondWindP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Sentinel(), 0), new Card.CardTmpChangeCost(new Card.SentinelP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.SeverSoul(), 0), new Card.CardTmpChangeCost(new Card.SeverSoulP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Shockwave(), 0), new Card.CardTmpChangeCost(new Card.ShockwaveP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.SpotWeakness(), 0), new Card.CardTmpChangeCost(new Card.SpotWeaknessP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Uppercut(), 0), new Card.CardTmpChangeCost(new Card.UppercutP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Barricade(), 0), new Card.CardTmpChangeCost(new Card.BarricadeP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Bludgeon(), 0), new Card.CardTmpChangeCost(new Card.BludgeonP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Corruption(), 0), new Card.CardTmpChangeCost(new Card.CorruptionP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.DemonForm(), 0), new Card.CardTmpChangeCost(new Card.DemonFormP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.DoubleTap(), 0), new Card.CardTmpChangeCost(new Card.DoubleTapP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Exhume(), 0), new Card.ExhumeP());
+        map.put(new Card.CardTmpChangeCost(new Card.Feed(), 0), new Card.CardTmpChangeCost(new Card.FeedP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.FiendFire(), 0), new Card.CardTmpChangeCost(new Card.FiendFireP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Immolate(), 0), new Card.CardTmpChangeCost(new Card.ImmolateP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Impervious(), 0), new Card.CardTmpChangeCost(new Card.ImperviousP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Juggernaut(), 0), new Card.CardTmpChangeCost(new Card.JuggernautP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.LimitBreak(), 0), new Card.CardTmpChangeCost(new Card.LimitBreakP(), 0));
+        map.put(new Card.CardTmpChangeCost(new Card.Reaper(), 0), new Card.CardTmpChangeCost(new Card.ReaperP(), 0));
+
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
         map.put(new CardColorless.Apotheosis(), new CardColorless.ApotheosisP());
 

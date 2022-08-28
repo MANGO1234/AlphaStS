@@ -1,11 +1,11 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.Enemy;
-
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public abstract class Potion implements GameProperties.CounterRegistrant {
+    boolean selectCard1OutOf3;
     boolean vulnEnemy;
     boolean weakEnemy;
     boolean changePlayerStrength;
@@ -24,6 +24,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public abstract GameActionCtx use(GameState state, int idx);
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    List<Card> getPossibleSelect3OutOf1Cards(List<Card> cards) { return List.of(); }
     public void gamePropertiesSetup(GameState state) {}
 
     public static class VulnerablePotion extends Potion {
@@ -159,9 +160,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EnergyPotion extends Potion {
-        public EnergyPotion() {
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.prop.hasSacredBark ? 4 : 2;
             state.gainEnergy(n);
@@ -243,9 +241,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class DistilledChaos extends Potion {
-        public DistilledChaos() {
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.prop.hasSacredBark ? 6 : 3;
             for (int i = 0; i < n; i++) {
@@ -278,9 +273,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class BlessingOfTheForge extends Potion {
-        public BlessingOfTheForge() {
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                 if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
@@ -301,9 +293,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EssenceOfSteel extends Potion {
-        public EssenceOfSteel() {
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 8 : 4;
             return GameActionCtx.PLAY_CARD;
@@ -328,6 +317,129 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
+        }
+    }
+
+    public static class SkillPotion extends Potion {
+        public SkillPotion() {
+            selectCard1OutOf3 = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length, RandomGenCtx.SkillPotion);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 1, RandomGenCtx.SkillPotion);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 2, RandomGenCtx.SkillPotion);
+            if (idx2 >= idx1) {
+                idx2++;
+            }
+            if (idx3 >= Math.min(idx1, idx2)) {
+                idx3++;
+            }
+            if (idx3 >= Math.max(idx1, idx2)) {
+                idx3++;
+            }
+            state.setSelect1OutOf3Idxes(idx1, idx2, idx3);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public String toString() {
+            return "Skill Potion";
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            // todo: need to pass in character
+            return List.of(
+                    new Card.Armanent(),
+                    new Card.Flex(),
+                    new Card.Havoc(),
+                    new Card.ShrugItOff(),
+                    new Card.TrueGrit(),
+                    new Card.WarCry(),
+                    new Card.BattleTrance(),
+                    new Card.Bloodletting(),
+                    new Card.BurningPact(),
+                    new Card.Disarm(),
+                    new Card.DualWield(),
+                    new Card.Entrench(),
+                    new Card.FlameBarrier(),
+                    new Card.GhostlyArmor(),
+//                    new Card.InfernalBlade(),
+                    new Card.Intimidate(),
+                    new Card.PowerThrough(),
+                    new Card.Rage(),
+                    new Card.SecondWind(),
+                    new Card.SeeingRed(),
+                    new Card.Sentinel(),
+                    new Card.Shockwave(),
+                    new Card.SpotWeakness(),
+                    new Card.DoubleTap(),
+                    new Card.Exhume(),
+                    new Card.Impervious(),
+                    new Card.LimitBreak(),
+                    new Card.Offering(),
+                    new Card.CardTmpChangeCost(new Card.Armanent(), 0),
+                    new Card.CardTmpChangeCost(new Card.Havoc(), 0),
+                    new Card.CardTmpChangeCost(new Card.ShrugItOff(), 0),
+                    new Card.CardTmpChangeCost(new Card.TrueGrit(), 0),
+                    new Card.CardTmpChangeCost(new Card.BurningPact(), 0),
+                    new Card.CardTmpChangeCost(new Card.Disarm(), 0),
+                    new Card.CardTmpChangeCost(new Card.DualWield(), 0),
+                    new Card.CardTmpChangeCost(new Card.Entrench(), 0),
+                    new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0),
+                    new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0),
+//                    new Card.CardTmpChangeCost(new Card.InfernalBlade(), 0),
+                    new Card.CardTmpChangeCost(new Card.PowerThrough(), 0),
+                    new Card.CardTmpChangeCost(new Card.SecondWind(), 0),
+                    new Card.CardTmpChangeCost(new Card.Sentinel(), 0),
+                    new Card.CardTmpChangeCost(new Card.Shockwave(), 0),
+                    new Card.CardTmpChangeCost(new Card.SpotWeakness(), 0),
+                    new Card.CardTmpChangeCost(new Card.DoubleTap(), 0),
+                    new Card.CardTmpChangeCost(new Card.Exhume(), 0),
+                    new Card.CardTmpChangeCost(new Card.Impervious(), 0),
+                    new Card.CardTmpChangeCost(new Card.LimitBreak(), 0)
+            );
+        }
+
+        @Override List<Card> getPossibleSelect3OutOf1Cards(List<Card> cards) {
+            // todo: need to pass in character
+            return List.of(
+                    new Card.CardTmpChangeCost(new Card.Armanent(), 0),
+                    new Card.Flex(),
+                    new Card.CardTmpChangeCost(new Card.Havoc(), 0),
+                    new Card.CardTmpChangeCost(new Card.ShrugItOff(), 0),
+                    new Card.CardTmpChangeCost(new Card.TrueGrit(), 0),
+                    new Card.WarCry(),
+                    new Card.BattleTrance(),
+                    new Card.Bloodletting(),
+                    new Card.CardTmpChangeCost(new Card.BurningPact(), 0),
+                    new Card.CardTmpChangeCost(new Card.Disarm(), 0),
+                    new Card.CardTmpChangeCost(new Card.DualWield(), 0),
+                    new Card.CardTmpChangeCost(new Card.Entrench(), 0),
+                    new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0),
+                    new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0),
+//                    new Card.CardTmpChangeCost(new Card.InfernalBlade(), 0),
+                    new Card.Intimidate(),
+                    new Card.CardTmpChangeCost(new Card.PowerThrough(), 0),
+                    new Card.Rage(),
+                    new Card.CardTmpChangeCost(new Card.SecondWind(), 0),
+                    new Card.SeeingRed(),
+                    new Card.CardTmpChangeCost(new Card.Sentinel(), 0),
+                    new Card.CardTmpChangeCost(new Card.Shockwave(), 0),
+                    new Card.CardTmpChangeCost(new Card.SpotWeakness(), 0),
+                    new Card.CardTmpChangeCost(new Card.DoubleTap(), 0),
+                    new Card.CardTmpChangeCost(new Card.Exhume(), 0),
+                    new Card.CardTmpChangeCost(new Card.Impervious(), 0),
+                    new Card.CardTmpChangeCost(new Card.LimitBreak(), 0),
+                    new Card.Offering()
+            );
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleSelect3OutOf1Cards(Arrays.asList(state.prop.cardDict));
+            state.prop.skillPotionIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.prop.skillPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -1648,8 +1649,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
     public static class InfernalBlade extends _InfernalBladeT {
         public InfernalBlade() {
-            super("Infernal Blade",
-            Card.SKILL, 1);
+            super("Infernal Blade", Card.SKILL, 1);
         }
     }
 

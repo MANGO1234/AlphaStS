@@ -11,6 +11,7 @@ public enum RandomGenCtx {
     WarpedTongs,
     ShieldGremlin,
     GremlinLeader,
+    SkillPotion,
     Misc,
     CommonNumberVR,
     BeginningOfGameRandomization,

@@ -797,4 +797,30 @@ public class TestStates {
         builder.setPlayer(new Player(67, 73));
         return new GameState(builder);
     }
+
+    public static GameState TestState17() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Carnage(), 1);
+        builder.addCard(new Card.Armanent(), 1);
+        builder.addCard(new Card.Metallicize(), 1);
+        builder.addCard(new Card.Decay(), 1);
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        );
+        builder.setRandomization(randomization);
+//        builder.addPotion(new Potion.SkillPotion());
+        builder.setPlayer(new Player(62, 62));
+        return new GameState(builder);
+    }
 }

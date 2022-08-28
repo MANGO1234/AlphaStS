@@ -157,6 +157,7 @@ public class InteractiveMode {
                             state.getAction(i).type() == GameActionType.BEGIN_TURN ||
                             state.getAction(i).type() == GameActionType.USE_POTION ||
                             state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
+                            state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
                             state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
                         System.out.println(i + ". " + state.getActionString(i));
                     } else if (state.getAction(i).type() == GameActionType.END_TURN) {
