@@ -8,7 +8,9 @@ import java.io.Writer;
 import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class GameStateUtils {
 
@@ -197,7 +199,6 @@ public class GameStateUtils {
         }
     }
 
-
     static private void printTreeH2(GameState parentState, int parentAction, State s, int depth, Writer writer, String indent) throws IOException {
         if (depth < 0) {
             return;
@@ -245,6 +246,126 @@ public class GameStateUtils {
                 writer = new OutputStreamWriter(System.out);
             }
             printTreeH2(null, -1, state, depth, writer, "");
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static private String lineBreak(String s, int length) {
+        var b = new StringBuilder();
+        var token = s.split("[\s/]");
+        var split = s.split("[^\s/]+");
+        var l = 0;
+        for (int i = 0; i < token.length; i++) {
+            int to_write = token[i].length();
+            if (i < token.length - 1) {
+                if (split[i + 1].equals("/")) {
+                    to_write += 1;
+                } else if (l > 0 && split[i].equals(" ")) {
+                    to_write += 1;
+                }
+            }
+            if (l + to_write > length) {
+                b.append("\\n");
+                l = 0;
+            }
+            if (i < token.length - 1) {
+                if (l > 0 && split[i].equals(" ")) {
+                    b.append(" ");
+                }
+            }
+            b.append(token[i]);
+            if (i < token.length - 1) {
+                if (split[i + 1].equals("/")) {
+                    b.append("/");
+                }
+            }
+            l += token[i].length();
+        }
+        return b.toString();
+    }
+
+    static private void printDagGraphvizH(State s, int depth, Writer writer, HashSet<StateIdentity> writtenNodes, boolean stopAtChanceNode) throws IOException {
+        if (writtenNodes.contains(new StateIdentity(s))) {
+            return;
+        }
+        writtenNodes.add(new StateIdentity(s));
+        if (s instanceof ChanceState cs) {
+            writer.write(String.format("    \"%s\" [shape=\"box\", label=\"Chance State (n=%d, node_n=%d)\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), cs.total_n, cs.total_node_n));
+        } else {
+            var str = s.toString();
+            str = str.substring(1, str.length() - 1);
+            writer.write(String.format("    \"%s\" [shape=\"box\", label=\"%s\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), lineBreak(str, 60)));
+        }
+        if (depth < 0) {
+            return;
+        }
+        if (s instanceof ChanceState cState) {
+            for (ChanceState.Node node : cState.cache.values().stream().sorted((a, b) -> Long.compare(b.n, a.n)).toList()) {
+                var n = node.state.total_n + 1;
+                var q_comb = node.state.total_q_comb;
+                var q_win = node.state.total_q_win;
+                var q_health = node.state.total_q_health;
+                var chanceStr = node.state.getStateDescStr();
+                var label = "n=%d/%d, q=%s/%s/%s".formatted(n, node.n, Utils.formatFloat(q_comb / n), Utils.formatFloat(q_win / n), Utils.formatFloat(q_health / n));
+                if (chanceStr.length() > 0) {
+                    label = chanceStr + ", " + label;
+                }
+                writer.write(String.format("    \"%s\" -> \"%s\" [label=\"%s\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), System.identityHashCode(node.state) + ":" + node.state.hashCode(), lineBreak(label, 40)));
+                printDagGraphvizH(node.state, depth, writer, writtenNodes, stopAtChanceNode);
+            }
+        } else if (s instanceof GameState state) {
+            var list = new ArrayList<int[]>();
+            for (int i = 0; i < state.n.length; i++) {
+                list.add(new int[] { state.n[i], i });
+            }
+            list.sort((a, b) -> b[0] != a[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
+            for (var x : list) {
+                var i = x[1];
+                if (state.ns[i] != null && depth > 0) {
+                    var n = state.n[i];
+                    var q_comb = state.q_comb[i];
+                    var q_win = state.q_win[i];
+                    var q_health = state.q_health[i];
+                    var label = "%s, n=%d, q=%s/%s/%s".formatted(state.getActionString(i), n, Utils.formatFloat(q_comb / n), Utils.formatFloat(q_win / n), Utils.formatFloat(q_health / n));
+                    writer.write(String.format("    \"%s\" -> \"%s\" [label=\"%s\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), System.identityHashCode(state.ns[i]) + ":" + state.ns[i].hashCode(), lineBreak(label, 40)));
+                    printDagGraphvizH(state.ns[i], depth - 1, writer, writtenNodes, stopAtChanceNode);
+                }
+            }
+        }
+    }
+
+    private static class StateIdentity {
+        State st;
+
+        public StateIdentity(State s) {
+            st = s;
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            StateIdentity that = (StateIdentity) o;
+            return st == that.st;
+        }
+
+        @Override public int hashCode() {
+            return System.identityHashCode(st);
+        }
+    }
+
+    static void printDagGraphviz(State state, Writer writer, int depth) {
+        try {
+            if (writer == null) {
+                writer = new OutputStreamWriter(System.out);
+            }
+            writer.write("digraph G {\n");
+            var writtenNodes = new HashSet<StateIdentity>();
+            printDagGraphvizH(state, depth, writer, writtenNodes, false);
+            writer.write("}");
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();

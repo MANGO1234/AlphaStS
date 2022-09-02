@@ -122,7 +122,7 @@ public class MatchSession {
                         state = state.clone(false);
                         r = state.doAction(0);
                     } else {
-                        var doStartTurn = state.getAction(action).type() == GameActionType.END_TURN ;
+                        var doStartTurn = state.getAction(action).type() == GameActionType.END_TURN;
                         if (nodeCount == 1) {
                             state = state.clone(false);
                             state.doAction(action);
@@ -186,7 +186,7 @@ public class MatchSession {
                 steps.get(i - 1).actionDesc = steps.get(i).state().stateDesc;
             }
         }
-        return new Game(steps, preBattle_r, r, true);
+        return new Game(steps, preBattle_r, r, null, true);
     }
 
     // when comparing game searchRandomGen can get out of sync, make sure it's synced as much as possible
@@ -234,7 +234,7 @@ public class MatchSession {
         return null;
     }
 
-    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, boolean noExploration) {}
+    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, boolean noExploration) {}
     public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats) {}
     public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
@@ -564,6 +564,7 @@ public class MatchSession {
                 }
                 var state = origState.clone(false);
                 state.prop = state.prop.clone();
+                state.prop.doingComparison = mcts2.size() > 0;
                 state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
                 state.prop.testNewFeature = true;
                 var prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
@@ -577,6 +578,7 @@ public class MatchSession {
                     randomGen.timeTravelToBeginning();
                     var state2 = (origStateCmp != null ? origStateCmp : origState).clone(false);
                     state2.prop = state2.prop.clone();
+                    state2.prop.doingComparison = true;
                     state2.prop.realMoveRandomGen = randomGen;
                     state2.prop.testNewFeature = false;
                     prev = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits;
@@ -771,6 +773,7 @@ public class MatchSession {
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {
         var steps = new ArrayList<GameStep>();
+        var augmentedSteps = new ArrayList<GameStep>();
         var state = origState.clone(false);
         boolean doNotExplore = state.prop.random.nextFloat(RandomGenCtx.Other) < Configuration.TRAINING_PERCENTAGE_NO_TEMPERATURE;
         int r = 0;
@@ -857,8 +860,9 @@ public class MatchSession {
         state.get_v(vCur);
         ChanceState lastChanceState = null;
         for (int i = steps.size() - 2; i >= 0; i--) {
-            if (steps.get(i).isExplorationMove) {
-                ChanceState cState = findBestLineChanceState(steps.get(i).state());
+            if (!SLOW_TRAINING_WINDOW && steps.get(i).isExplorationMove) {
+                List<GameStep> extraSteps = new ArrayList<>();
+                ChanceState cState = findBestLineChanceState(steps.get(i).state(), nodeCount, mcts, extraSteps);
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
                 // to reduce this effect, seems ok so far, also check if we are transposing and skip for transposing
                 if (cState != null && lastChanceState != null && !cState.equals(lastChanceState)) {
@@ -867,6 +871,11 @@ public class MatchSession {
                         vCur = ret;
                         lastChanceState = cState;
                     }
+                    for (GameStep step : extraSteps) {
+                        step.v = ret;
+                        step.trainingWriteCount = 1;
+                    }
+                    augmentedSteps.addAll(extraSteps);
                 }
             }
             steps.get(i).v = vCur;
@@ -887,7 +896,7 @@ public class MatchSession {
             steps.get(0).trainingWriteCount = 0;
         }
 
-        return new Game(steps, preBattle_r, r, doNotExplore);
+        return new Game(steps, preBattle_r, r, augmentedSteps, doNotExplore);
     }
 
     private double calcKld(GameState state) {
@@ -910,15 +919,50 @@ public class MatchSession {
         return Math.abs(kld);
     }
 
-    private ChanceState findBestLineChanceState(State state) {
-        while (state instanceof GameState state2) {
-            if (state2.isTerminal() != 0) {
-                return null;
+    private ChanceState findBestLineChanceState(GameState state, int nodeCount, MCTS mcts, List<GameStep> augmentedSteps) {
+        ChanceState cs1 = null;
+        GameState ss = state;
+        while (true) {
+            if (ss == null || ss.isTerminal() != 0) {
+                break;
             }
-            int action = MCTS.getActionWithMaxNodesOrTerminal(state2, null);
-            state = state2.ns[action];
+            int action = MCTS.getActionWithMaxNodesOrTerminal(ss, null);
+            if (ss.ns[action] instanceof ChanceState cs) {
+                cs1 = cs;
+                break;
+            }
+            ss = (GameState) ss.ns[action];
         }
-        return (ChanceState) state;
+        if (!Configuration.TRAINING_RESCORE_SEARCH_FOR_BEST_LINE) {
+            return cs1;
+        }
+
+        ChanceState cs2 = null;
+        boolean firstState = true;
+        while (true) {
+            if (state.isTerminal() != 0) {
+                break;
+            }
+            int todo = nodeCount - state.total_n;
+            for (int i = 0; i < todo; i++) {
+                mcts.search(state, false, todo - i);
+                if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
+                    break;
+                }
+            }
+
+            int action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
+            if (!firstState) {
+                augmentedSteps.add(new GameStep(state, action));
+            }
+            firstState = false;
+            if (state.ns[action] instanceof ChanceState cs) {
+                cs2 = cs;
+                break;
+            }
+            state = (GameState) state.ns[action];
+        }
+        return cs2;
     }
 
     private Game playTrainingGame2(GameState origState, int nodeCount, MCTS mcts) {
@@ -979,7 +1023,7 @@ public class MatchSession {
             steps.get(0).trainingWriteCount = 0;
         }
 
-        return new Game(steps, preBattle_r, r, true);
+        return new Game(steps, preBattle_r, r, null, true);
     }
 
     public void playTrainingGames(GameState origState, int numOfGames, int nodeCount, String path) throws IOException {
@@ -1027,6 +1071,7 @@ public class MatchSession {
                 }
                 pruneForcedPlayouts(steps);
                 writeTrainingData(stream, steps);
+                writeTrainingData(stream, game.augmentedSteps);
             } else {
                 if (trainingDataWriter != null && trainingGame_i <= 100) {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " (Remote) ***\n");
@@ -1034,6 +1079,9 @@ public class MatchSession {
                 }
                 stream.write(result.remoteTrainingData);
                 remoteServerGames.computeIfPresent(result.remoteServer, (k, x) -> x + 1);
+            }
+            if (trainingGame_i % 20 == 0) {
+                System.out.println(trainingGame_i + " games finished...");
             }
         }
         stream.flush();
@@ -1173,6 +1221,7 @@ public class MatchSession {
         writeTrainingGameRecord(gameRecordWriter, origState, game, steps);
         var byteStream = new ByteArrayOutputStream();
         writeTrainingData(new DataOutputStream(byteStream), steps);
+        writeTrainingData(new DataOutputStream(byteStream), game.augmentedSteps);
         return new TrainingGameResult(null, null, gameRecordWriter.toString(), byteStream.toByteArray());
     }
 
@@ -1347,12 +1396,11 @@ public class MatchSession {
             }
             if (clone) {
                 var s = newState;
-                boolean isStochastic = newState.isStochastic;
                 newState = newState.clone(false);
                 newState.stateDesc = s.stateDesc;
-                newState.isStochastic = isStochastic;
                 newState.searchFrontier = null;
             }
+            newState.isStochastic = true;
         } else {
             newState = (GameState) nextState;
             if (clone) {
@@ -1361,6 +1409,7 @@ public class MatchSession {
                 newState.stateDesc = s.stateDesc;
                 newState.searchFrontier = null;
             }
+            newState.isStochastic = false;
         }
         return newState;
     }

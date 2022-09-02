@@ -71,9 +71,24 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                state.ns[action] = new ChanceState(state2, state, action);
-                this.search2_r(state2, training, remainingCalls, false);
-                ((ChanceState) (state.ns[action])).correctV(state2, v);
+                if (!(Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature))) {
+                    var s = state.transpositions.get(state2);
+                    if (s == null) {
+                        state.ns[action] = new ChanceState(state2, state, action);
+                        state.transpositions.put(state2, state2);
+                        this.search2_r(state2, training, remainingCalls, false);
+                        ((ChanceState) (state.ns[action])).correctV(state2, v);
+                    } else {
+                        state2 = (GameState) s ;
+                        state.ns[action] = new ChanceState(state2, state, action);
+                        this.search2_r(state2, training, remainingCalls, false);
+                        ((ChanceState) (state.ns[action])).correctV(state2, v);
+                    }
+                } else {
+                    state.ns[action] = new ChanceState(state2, state, action);
+                    this.search2_r(state2, training, remainingCalls, false);
+                    ((ChanceState) (state.ns[action])).correctV(state2, v);
+                }
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
@@ -139,16 +154,17 @@ public class MCTS {
         state.varianceM = newVarianceM;
         state.varianceS = newVarianceS;
         if (terminal_v_win > 0.5) {
-            state.terminal_action = action;
-            if (state.isStochastic) {
+            if (state.ns[action] instanceof ChanceState) {
                 terminal_v_win = -100;
+            } else {
+                state.terminal_action = action;
+                double q_win_total = state.q_win[action] / state.n[action] * (state.total_n + 1);
+                double q_health_total = state.q_health[action] / state.n[action] * (state.total_n + 1);
+                double q_comb_total = state.q_comb[action] / state.n[action] * (state.total_n + 1);
+                v[GameState.V_COMB_IDX] = q_comb_total - state.total_q_comb;
+                v[GameState.V_WIN_IDX] = q_win_total - state.total_q_win;
+                v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
             }
-            double q_win_total = state.q_win[action] / state.n[action] * (state.total_n + 1);
-            double q_health_total = state.q_health[action] / state.n[action] * (state.total_n + 1);
-            double q_comb_total = state.q_comb[action] / state.n[action] * (state.total_n + 1);
-            v[GameState.V_COMB_IDX] = q_comb_total - state.total_q_comb;
-            v[GameState.V_WIN_IDX] = q_win_total - state.total_q_win;
-            v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
         }
         state.total_q_comb += v[GameState.V_COMB_IDX];
         state.total_q_win += v[GameState.V_WIN_IDX];
@@ -200,7 +216,7 @@ public class MCTS {
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
-            if (state2.isStochastic) {
+            if (state2.isStochastic && (true || state.getAction(action).type() == GameActionType.BEGIN_TURN || state.getAction(action).type() == GameActionType.BEGIN_BATTLE)) {
                 state.ns[action] = new ChanceState(state2, state, action);
                 this.search3_r(state2, training, remainingCalls, false);
                 ((ChanceState) (state.ns[action])).correctV(state2, v);
@@ -217,7 +233,11 @@ public class MCTS {
                         this.search3_r(state2, training, remainingCalls, false);
                         cState.correctV(state2, v);
                     } else {
-                        state.ns[action] = state2;
+                        if (state2.isStochastic) {
+                            state.ns[action] = new ChanceState(state2, state, action);
+                        } else {
+                            state.ns[action] = state2;
+                        }
                         state.transpositions.put(state2, state2);
                         this.search3_r(state2, training, remainingCalls, false);
                     }
@@ -266,11 +286,13 @@ public class MCTS {
         state.total_n += 1;
         int actionToPropagate;
         if (terminal_v_win > 0.5) {
-            state.terminal_action = action;
-            if (state.isStochastic) {
+            if (state.ns[action] instanceof ChanceState) {
                 terminal_v_win = -100;
+                actionToPropagate = getActionWithMaxNodesOrTerminal(state, null);
+            } else {
+                state.terminal_action = action;
+                actionToPropagate = action;
             }
-            actionToPropagate = action;
         } else {
             actionToPropagate = getActionWithMaxNodesOrTerminal(state, null);
         }

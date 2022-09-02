@@ -33,8 +33,6 @@ public class Main {
     public static void main(String[] args) throws IOException {
        var state = TestStates.TestState17();
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
-//        System.out.println(state.prop.randomization.listRandomizations());
-//        state.prop.randomization = state.prop.randomization.fixR(2);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
@@ -99,13 +97,13 @@ public class Main {
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
-            NUMBER_OF_GAMES_TO_PLAY = 1000;
+            NUMBER_OF_GAMES_TO_PLAY = 2400;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 200;
             iteration = 51;
-//            COMPARE_DIR = "../saves11/iteration30";
+            COMPARE_DIR = "../saves/iteration50";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }
@@ -117,15 +115,15 @@ public class Main {
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
             var s = new ArrayList<Short>();
             for (int i = 0; i < state.prop.potions.size(); i++) {
-                s.add((short) 80);
+                s.add((short) 90);
             }
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).fixR(1).doAfter(state.prop.randomization);
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
             var s = new ArrayList<Short>();
             for (int i = 0; i < state.prop.potions.size(); i++) {
-                s.add((short) 80);
+                s.add((short) 90);
             }
-            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).doAfter(state.prop.preBattleRandomization);
+            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).fixR(1).doAfter(state.prop.preBattleRandomization);
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;
@@ -138,6 +136,7 @@ public class Main {
             state.prop.preBattleScenarios = null;
             state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null);
         }
+//        state.prop.randomization = state.prop.randomization.fixR(0, 2, 4);
 
         ObjectMapper mapper = new ObjectMapper();
         String curIterationDir = SAVES_DIR + "/iteration0";
@@ -172,7 +171,7 @@ public class Main {
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
         if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES) {
-//            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 3, 2);
+            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 3);
         }
 
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
@@ -205,7 +204,7 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
-            session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
+            session.playTrainingGames(state, 300, 100, curIterationDir + "/training_data.bin.lz4");
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {

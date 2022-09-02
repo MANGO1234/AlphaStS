@@ -22,7 +22,7 @@ if PLAY_A_GAME:
     agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH_AGENT, 'com.alphaStS.Main', '--server']
     if platform.system() != 'Windows':
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
-    p = subprocess.Popen(agent_args, stdout=subprocess.PIPE)
+    p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     while p.poll() is None:
         print(p.stdout.readline().decode('ascii'), end='', flush=True)
     [print(line.decode('ascii'), end='', flush=True) for line in p.stderr.readlines()]
@@ -34,7 +34,7 @@ if PLAY_MATCHES:
     agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH_AGENT, 'com.alphaStS.Main', '-p', '-g', '-c', 200, '-n', 100]
     if platform.system() != 'Windows':
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
-    p = subprocess.Popen(agent_args, stdout=subprocess.PIPE)
+    p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     while p.poll() is None:
         print(p.stdout.readline().decode('ascii'), end='', flush=True)
     [print(line.decode('ascii'), end='', flush=True) for line in p.stderr.readlines()]

@@ -805,22 +805,31 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new Card.Carnage(), 1);
-        builder.addCard(new Card.Armanent(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
         builder.addCard(new Card.Metallicize(), 1);
-        builder.addCard(new Card.Decay(), 1);
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.GremlinNob());
-        builder.addEnemy(new Enemy.Lagavulin());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
-        );
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.ImmolateP(), 1);
+        builder.addCard(new Card.Anger(), 0);
+        builder.addCard(new Card.Headbutt(), 0);
+        builder.addCard(new Card.Evolve(), 0);
+        EnemyEncounter.addSlimeBossFight(builder);
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 1)),
+                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 0)),
+                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 1)),
+                List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 1)),
+                List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 1))
+                ));
         builder.setRandomization(randomization);
-//        builder.addPotion(new Potion.SkillPotion());
-        builder.setPlayer(new Player(62, 62));
+        builder.addPotion(new Potion.BloodPotion(16));
+        builder.addPotion(new Potion.SpeedPotion());
+        builder.addRelic(new Relic.PaperPhrog());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.OddlySmoothStone());
+        builder.setPlayer(new Player(26, 42));
         return new GameState(builder);
     }
 }

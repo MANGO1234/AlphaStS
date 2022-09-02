@@ -27,7 +27,7 @@ abstract class GameEventHandler implements Comparable<GameEventHandler> {
     abstract void handle(GameState state);
 
     @Override public int compareTo(GameEventHandler other) {
-        return Integer.compare(other.priority, priority);
+        return Integer.compare(priority, other.priority);
     }
 }
 
@@ -561,16 +561,25 @@ public class GameState implements State {
             for (CardCount c : set) {
                 for (Card possibleCard : c.card().getPossibleGeneratedCards(set.stream().map(CardCount::card).toList())) {
                     newSet.add(new CardCount(possibleCard, 0));
+                    if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
+                        newSet.add(new CardCount(tmp.card, 0));
+                    }
                 }
             }
             for (Relic relic : relics) {
                 for (Card possibleCard : relic.getPossibleGeneratedCards(set.stream().map(CardCount::card).toList())) {
                     newSet.add(new CardCount(possibleCard, 0));
+                    if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
+                        newSet.add(new CardCount(tmp.card, 0));
+                    }
                 }
             }
             for (Potion potion : potions) {
                 for (Card possibleCard : potion.getPossibleGeneratedCards(set.stream().map(CardCount::card).toList())) {
                     newSet.add(new CardCount(possibleCard, 0));
+                    if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
+                        newSet.add(new CardCount(tmp.card, 0));
+                    }
                 }
             }
             if (set.size() == newSet.size()) {
@@ -650,13 +659,18 @@ public class GameState implements State {
             if (deckArrLen == 0) {
                 return;
             }
-            int i;
+            int i, cardIdx;
             if (drawOrder.size() > 0) {
                 i = getDrawOrderForWrite().drawTop();
                 assert deck[i] > 0;
                 drawCardByIdx(i, true);
+                cardIdx = i;
             } else {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
+                if (prop.makingRealMove && prop.doingComparison) {
+                    Arrays.sort(this.deckArr, 0, this.deckArrLen);
+                }
+                cardIdx = deckArr[i];
                 deck[deckArr[i]] -= 1;
                 hand[deckArr[i]] += 1;
                 if (prop.makingRealMove) {
@@ -666,7 +680,7 @@ public class GameState implements State {
                 deckArrLen -= 1;
             }
             for (var handler : prop.onCardDrawnHandlers) {
-                handler.handle(this, prop.cardDict[i]);
+                handler.handle(this, prop.cardDict[cardIdx]);
             }
         }
     }
@@ -710,6 +724,7 @@ public class GameState implements State {
         case PLAY_CARD -> {
             currentAction = null;
             lastEnemySelected = -1;
+            select1OutOf3CardsIdxes = 0;
             actionCtx = ctx;
         }
         case BEGIN_BATTLE, SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_1_OUT_OF_3 -> {
@@ -1057,7 +1072,9 @@ public class GameState implements State {
         total_q_other = null;
         policy = null;
         if (isStochastic) {
-            transpositions = new HashMap<>();
+            if ((Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || prop.testNewFeature)) && (action.type() == GameActionType.BEGIN_TURN || action.type() == GameActionType.BEGIN_BATTLE)) {
+                transpositions = new HashMap<>();
+            }
             searchFrontier = null;
         }
         return ret;
@@ -1151,7 +1168,7 @@ public class GameState implements State {
                 return false;
             }
             int idx = prop.select1OutOf3CardsReverseIdxes[a[action].idx()];
-            return (select1OutOf3CardsIdxes & 255) == idx || (select1OutOf3CardsIdxes & (255 << 8)) == (idx << 8) || (select1OutOf3CardsIdxes & (255 << 16)) == (idx << 16);
+            return (select1OutOf3CardsIdxes & 255) == idx || ((select1OutOf3CardsIdxes >> 8) & 255) == idx || ((select1OutOf3CardsIdxes >> 16) & 255) == idx;
         } else if (actionCtx == GameActionCtx.SELECT_SCENARIO) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()];
             return action >= 0 && action < a.length;
@@ -1230,16 +1247,24 @@ public class GameState implements State {
         return false;
     }
 
+    // todo
     private int getMaxPossibleHealth() {
         if (checkIfCanHeal()) {
             int v = 0;
             if (prop.healCardsIdxes != null) {
                 for (int i = 0; i < prop.healCardsIdxes.length; i++) {
+                    // todo: need to take take feed+ into account
                     if (prop.cardDict[prop.healCardsIdxes[i]].cardName.startsWith("Feed")) {
                         if (getExhaustForRead()[prop.findCardIndex("Armanent+")] > 0) {
                             v += 3;
                         } else {
                             v += 4;
+                        }
+                    }
+                    // todo: need to count max strength
+                    if (prop.cardDict[prop.healCardsIdxes[i]].cardName.startsWith("Reaper")) {
+                        for (var enemy : getEnemiesForRead()) {
+                            v += enemy.getHealth();
                         }
                     }
                 }
@@ -1253,7 +1278,7 @@ public class GameState implements State {
                 if (getPlayeForRead().getHealth() + v < getPlayeForRead().getMaxHealth() / 2) {
                     return getPlayeForRead().getHealth() + v + 12;
                 }
-                return getPlayeForRead().getMaxHealth() / 2 + 12;
+                return Math.min(getPlayeForRead().getMaxHealth(), Math.max(getPlayeForRead().getHealth() + v, getPlayeForRead().getMaxHealth() / 2 + 12));
             } else {
                 hp = Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
             }
@@ -1284,9 +1309,9 @@ public class GameState implements State {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
         for (int i = 0; i < prop.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion) {
-                health = health - ((player.getMaxHealth() * 2 / 10 + 5) / (float) player.getMaxHealth());
-                win = win * 0.8;
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot) {
+                health = Math.min(health - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                win = win * 0.9;
             }
         }
 //        if (isTerminal() == 0 && prop.tmp) {
@@ -1441,7 +1466,7 @@ public class GameState implements State {
             }
         }
         str.append(")");
-        str.append(", var=").append(formatFloat(varianceS / total_n));
+//        str.append(", var=").append(formatFloat(varianceS / total_n));
         if (policy != null) {
             str.append(", q/p/n=[");
             first = true;
@@ -1839,7 +1864,7 @@ public class GameState implements State {
                 }
             }
             for (int i = 0; i < MAX_AGENT_DECK_ORDER_MEMORY - drawOrder.size(); i++) {
-                for (int j = 0; j < hand.length; j++) {
+                for (int j = 0; j < prop.realCardsLen; j++) {
                     x[idx++] = 0f;
                 }
             }
@@ -1934,8 +1959,8 @@ public class GameState implements State {
         }
         if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
             x[idx + (select1OutOf3CardsIdxes & 255)] = 1;
-            x[idx + ((select1OutOf3CardsIdxes & (255 << 8)) >> 8)] = 1;
-            x[idx + ((select1OutOf3CardsIdxes & (255 << 16)) >> 16)] = 1;
+            x[idx + ((select1OutOf3CardsIdxes >> 8) & 255)] = 1;
+            x[idx + ((select1OutOf3CardsIdxes >> 16) & 255)] = 1;
         }
         idx += prop.select1OutOf3CardsIdxes.length;
         for (var enemy : enemies) {
@@ -2585,6 +2610,10 @@ public class GameState implements State {
         return stateDesc;
     }
 
+    public String getStateDescStr() {
+        return stateDesc == null ? "" : stateDesc.toString();
+    }
+
     public void killEnemy(int i) {
         if (getEnemiesForRead().get(i).isAlive()) {
             getEnemiesForWrite().getForWrite(i).setHealth(0);
@@ -2612,7 +2641,18 @@ public class GameState implements State {
     }
 
     public void setSelect1OutOf3Idxes(int idx1, int idx2, int idx3) {
-        select1OutOf3CardsIdxes = (idx1 << 16) + (idx2 << 8) + idx3;
+        if (idx2 > idx3) {
+            int tmp = idx2;
+            idx2 = idx3;
+            idx3 = tmp;
+        }
+        if (idx1 > idx3) {
+            select1OutOf3CardsIdxes = (idx2 << 16) + (idx3 << 8) + idx1;
+        } else if (idx1 > idx2) {
+            select1OutOf3CardsIdxes = (idx2 << 16) + (idx1 << 8) + idx3;
+        } else {
+            select1OutOf3CardsIdxes = (idx1 << 16) + (idx2 << 8) + idx3;
+        }
     }
 }
 
@@ -2751,7 +2791,8 @@ class ChanceState implements State {
 //                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
 //            }
         } else {
-            if (false) {
+            if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
+                    (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature))) {
                 var new_total_q_comb = 0.0;
                 var new_total_q_win = 0.0;
                 var new_total_q_health = 0.0;
@@ -2799,7 +2840,7 @@ class ChanceState implements State {
         if (queue != null && queue.size() > 0) {
             return queue.remove(0);
         }
-        if (calledFromMCTS && cache.size() >= Math.ceil(Math.sqrt(total_n)) && false) {
+        if (calledFromMCTS && cache.size() >= Math.ceil(Math.sqrt(total_n)) && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) {
             // instead of generating new nodes, revisit node, need testing
             var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
             var acc = 0;
@@ -2812,7 +2853,7 @@ class ChanceState implements State {
             }
             Integer.parseInt(null);
         }
-        var state = parentState.clone(false);
+        var state = parentState.clone(true);
         if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             state.setSearchRandomGen(searchRandomGen);
         }

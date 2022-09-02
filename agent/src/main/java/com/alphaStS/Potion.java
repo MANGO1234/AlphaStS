@@ -1,5 +1,8 @@
 package com.alphaStS;
 
+import com.alphaStS.player.PlayerReadOnly;
+import com.alphaStS.utils.Tuple;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -128,13 +131,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class BloodPotion extends Potion {
+        int heal;
+
+        public BloodPotion(int healHp) {
+            healPlayer = true;
+            heal = healHp;
+        }
+
         public BloodPotion() {
             healPlayer = true;
         }
 
-        @Override public GameActionCtx use(GameState state, int idx) {
+        public int getHealAmount(GameState state) {
             int n = state.prop.hasSacredBark ? 4 : 2;
-            state.healPlayer(state.getPlayeForRead().getMaxHealth() * n / 10);
+            return heal == 0 ? state.getPlayeForRead().getMaxHealth() * n / 10 : heal;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.healPlayer(getHealAmount(state));
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -326,9 +340,13 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length, RandomGenCtx.SkillPotion);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 1, RandomGenCtx.SkillPotion);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 2, RandomGenCtx.SkillPotion);
+            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length, RandomGenCtx.SkillPotion,
+                    interactive ? new Tuple<>(state, (255 << 8) + 255) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 1, RandomGenCtx.SkillPotion,
+                    interactive ? new Tuple<>(state, (255 << 8) + idx1) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 2, RandomGenCtx.SkillPotion,
+                    interactive ? new Tuple<>(state, (idx2 << 8) + idx1) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -338,7 +356,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             if (idx3 >= Math.max(idx1, idx2)) {
                 idx3++;
             }
-            state.setSelect1OutOf3Idxes(idx1, idx2, idx3);
+            state.setSelect1OutOf3Idxes(state.prop.skillPotionIdxes[idx1], state.prop.skillPotionIdxes[idx2], state.prop.skillPotionIdxes[idx3]);
+            state.isStochastic = true;
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
@@ -363,7 +382,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new Card.Entrench(),
                     new Card.FlameBarrier(),
                     new Card.GhostlyArmor(),
-//                    new Card.InfernalBlade(),
+                    new Card.FakeInfernalBlade(),
                     new Card.Intimidate(),
                     new Card.PowerThrough(),
                     new Card.Rage(),
@@ -387,7 +406,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new Card.CardTmpChangeCost(new Card.Entrench(), 0),
                     new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0),
                     new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0),
-//                    new Card.CardTmpChangeCost(new Card.InfernalBlade(), 0),
+                    new Card.CardTmpChangeCost(new Card.FakeInfernalBlade(), 0),
                     new Card.CardTmpChangeCost(new Card.PowerThrough(), 0),
                     new Card.CardTmpChangeCost(new Card.SecondWind(), 0),
                     new Card.CardTmpChangeCost(new Card.Sentinel(), 0),
@@ -417,7 +436,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new Card.CardTmpChangeCost(new Card.Entrench(), 0),
                     new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0),
                     new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0),
-//                    new Card.CardTmpChangeCost(new Card.InfernalBlade(), 0),
+                    new Card.CardTmpChangeCost(new Card.FakeInfernalBlade(), 0),
                     new Card.Intimidate(),
                     new Card.CardTmpChangeCost(new Card.PowerThrough(), 0),
                     new Card.Rage(),

@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.utils.Tuple;
 
 import java.io.*;
 import java.util.*;
@@ -633,6 +634,33 @@ public class InteractiveMode {
         }
     }
 
+    static int selectCardsForSkillPotion(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
+        var state = arg.v1();
+        int currentIdx1 = arg.v2() & 255;
+        int currentIdx2 = (arg.v2() >> 8) & 255;
+        currentIdx2 = currentIdx2 >= currentIdx1 ? currentIdx2 + 1 : currentIdx2;
+        int currentPick = currentIdx1 == 255 ? 0 : currentIdx2 == 255 ? 1 : 2;
+        int p = 0;
+        for (int i = 0; i < state.prop.skillPotionIdxes.length; i++) {
+            if (i == currentIdx1 || i == currentIdx2) {
+                continue;
+            }
+            var card = state.prop.cardDict[state.prop.select1OutOf3CardsIdxes[state.prop.skillPotionIdxes[i]]];
+            System.out.println(p + ". " + card.cardName);
+            p++;
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (0 <= r && r < state.prop.skillPotionIdxes.length - currentPick) {
+                return r;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
     static int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int i = 0;
         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -783,6 +811,7 @@ public class InteractiveMode {
         int depth = 3;
         int action = -1;
         boolean writeToFile = false;
+        boolean dag = false;
         if (s.length > 1) {
             for (int i = 1; i < s.length; i++) {
                 if (s[i].startsWith("d=")) {
@@ -794,18 +823,32 @@ public class InteractiveMode {
                 if (s[i].equals("f")) {
                     writeToFile = true;
                 }
+                if (s[i].equals("dag")) {
+                    dag = true;
+                }
             }
         }
         Writer writer;
         try {
-            writer = writeToFile ? new BufferedWriter(new FileWriter(modelDir + "/tree.txt")) : new OutputStreamWriter(System.out);
+            if (dag) {
+                writer = new BufferedWriter(new FileWriter(modelDir + "/dag.dot"));
+                if (action >= 0 && action < state.ns.length && state.ns[action] != null) {
+                    GameStateUtils.printDagGraphviz(state.ns[action], null, depth);
+                    GameStateUtils.printDagGraphviz(state.ns[action], writer, depth);
+                } else {
+                    GameStateUtils.printDagGraphviz(state, null, depth);
+                    GameStateUtils.printDagGraphviz(state, writer, depth);
+                }
+            } else {
+                writer = writeToFile ? new BufferedWriter(new FileWriter(modelDir + "/tree.txt")) : new OutputStreamWriter(System.out);
+                if (action >= 0 && action < state.ns.length && state.ns[action] != null) {
+                    GameStateUtils.printTree2(state.ns[action], writer, depth);
+                } else {
+                    GameStateUtils.printTree2(state, writer, depth);
+                }
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
-        }
-        if (action >= 0 && action < state.ns.length && state.ns[action] != null) {
-            GameStateUtils.printTree2(state.ns[action], writer, depth);
-        } else {
-            GameStateUtils.printTree2(state, writer, depth);
         }
     }
 
@@ -892,63 +935,70 @@ public class InteractiveMode {
             return default_v;
         }
     }
-}
 
-class RandomGenInteractive extends RandomGen.RandomGenPlain {
-    boolean rngOn = true;
-    private final BufferedReader reader;
-    private final List<String> history;
+    public static class RandomGenInteractive extends RandomGen.RandomGenPlain {
+        boolean rngOn = true;
+        private final BufferedReader reader;
+        private final List<String> history;
 
-    public RandomGenInteractive(Random random, BufferedReader reader, List<String> history) {
-        this.random = random;
-        this.reader = reader;
-        this.history = history;
-    }
-
-    public RandomGenInteractive(BufferedReader reader, List<String> history) {
-        this.reader = reader;
-        this.history = history;
-    }
-
-    @Override public int nextInt(int bound, RandomGenCtx ctx, Object arg) {
-        if (rngOn) {
-            return super.nextInt(bound, ctx, arg);
+        public RandomGenInteractive(Random random, BufferedReader reader, List<String> history) {
+            this.random = random;
+            this.reader = reader;
+            this.history = history;
         }
-        switch (ctx) {
-        case WarpedTongs -> {
-            try {
-                return InteractiveMode.selectCardForWarpedTongs(reader, (GameState) arg, history);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+
+        public RandomGenInteractive(BufferedReader reader, List<String> history) {
+            this.reader = reader;
+            this.history = history;
+        }
+
+        @Override public int nextInt(int bound, RandomGenCtx ctx, Object arg) {
+            if (rngOn) {
+                return super.nextInt(bound, ctx, arg);
+            }
+            switch (ctx) {
+            case WarpedTongs -> {
+                try {
+                    return InteractiveMode.selectCardForWarpedTongs(reader, (GameState) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case BeginningOfGameRandomization -> {
+                try {
+                    return InteractiveMode.selectScenarioForRandomization(reader, (GameStateRandomization) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case SkillPotion -> {
+                try {
+                    return InteractiveMode.selectCardsForSkillPotion(reader, (Tuple<GameState, Integer>) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang -> {
+                try {
+                    return InteractiveMode.selectEnemeyRandomInteractive(reader, (GameState) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            default -> {
+                return super.nextInt(bound, ctx, arg);
+            }
             }
         }
-        case BeginningOfGameRandomization -> {
-            try {
-                return InteractiveMode.selectScenarioForRandomization(reader, (GameStateRandomization) arg, history);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang -> {
-            try {
-                return InteractiveMode.selectEnemeyRandomInteractive(reader, (GameState) arg, history);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        default -> {
-            return super.nextInt(bound, ctx, arg);
-        }
-        }
-    }
 
-    public RandomGen getCopy() {
-        return new RandomGenInteractive(getRandomClone(), reader, history);
-    }
+        public RandomGen getCopy() {
+            return new RandomGenInteractive(getRandomClone(), reader, history);
+        }
 
-    public RandomGen createWithSeed(long seed) {
-        random = new Random();
-        random.setSeed(seed);
-        return new RandomGenInteractive(random, reader, history);
+        public RandomGen createWithSeed(long seed) {
+            random = new Random();
+            random.setSeed(seed);
+            return new RandomGenInteractive(random, reader, history);
+        }
     }
 }

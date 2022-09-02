@@ -225,7 +225,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class Orichalcum extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addPreEndOfTurnHandler(new GameEventHandler(1) {
+            state.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     if (state.getPlayeForRead().getBlock() == 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(6);

@@ -569,8 +569,6 @@ public abstract class Card implements GameProperties.CounterRegistrant {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
                     count += state.discard[state.prop.discardReverseIdxes[state.prop.strikeCardIdxes[i]]];
-                }
-                if (state.prop.strikeCardIdxes[i] < state.deck.length) {
                     count += state.deck[state.prop.strikeCardIdxes[i]];
                 }
             }
@@ -589,8 +587,10 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             int count = 0;
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
-                count += state.discard[state.prop.strikeCardIdxes[i]];
-                count += state.deck[state.prop.strikeCardIdxes[i]];
+                if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
+                    count += state.discard[state.prop.strikeCardIdxes[i]];
+                    count += state.deck[state.prop.strikeCardIdxes[i]];
+                }
             }
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + 3 * count);
             return GameActionCtx.PLAY_CARD;
@@ -3097,6 +3097,34 @@ public abstract class Card implements GameProperties.CounterRegistrant {
         public CurseOfTheBell() {
             super("Curse of The Bell", Card.CURSE, -1);
             exhaustWhenPlayed = true;
+        }
+    }
+
+    private abstract static class _FakeInfernalBladeT extends Card {
+        public _FakeInfernalBladeT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost);
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.addCardToHand(state.prop.findCardIndex(new Card.CardTmpChangeCost(new Card.Strike(), 0)));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new Card.CardTmpChangeCost(new Card.Strike(), 0));
+        }
+    }
+
+    public static class FakeInfernalBlade extends _FakeInfernalBladeT {
+        public FakeInfernalBlade() {
+            super("Fake Infernal Blade", Card.ATTACK, 1);
+        }
+    }
+
+    public static class FakeInfernalBladeP extends _FakeInfernalBladeT {
+        public FakeInfernalBladeP() {
+            super("Fake Infernal Blade+", Card.SKILL, 0);
         }
     }
 }

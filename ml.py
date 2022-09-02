@@ -40,7 +40,7 @@ SAVES_DIR = getFlagValue('-dir', './saves')
 def convertToOnnx(model, input_len, output_dir):
     spec = (tf.TensorSpec((1, input_len), tf.float32, name="input"),)
     output_path = output_dir + "/model.onnx"
-    model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=12, output_path=output_path)
+    model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13, output_path=output_path)
 
 sep = ':'
 if platform.system() == 'Windows':
@@ -221,27 +221,31 @@ if DO_TRAINING:
             agent_args += ['-curriculum_training']
         if training_info['iteration'] < USE_LINE_SEARCH_TO_TRAIN_END:
             agent_args += ['-training_with_line']
-        agent_output = subprocess.run(agent_args, capture_output=True)
-        if len(agent_output.stderr) > 0:
-            print(agent_output.stdout.decode('ascii'))
-            print(agent_output.stderr.decode('ascii'))
+        agent_output = ''
+        p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        while p.poll() is None:
+            line = p.stdout.readline().decode('ascii')
+            print(line, end='', flush=True)
+            agent_output += line
+        err = p.stderr.readlines()
+        if len(err) > 0:
+            [print(line.decode('ascii'), end='', flush=True) for line in err]
             raise "agent error"
-        agent_output = agent_output.stdout
 
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
-            split = agent_output.find(b'--------------------')
-            out = agent_output[2 if agent_output[0] == '\r' else 0: split + 20].decode('ascii')
+            split = agent_output.find('--------------------')
+            out = agent_output[2 if agent_output[0] == '\r' else 0: split + 20]
             save_stats(training_info, _iteration - 1, out)
-            print(out)
+            # print(out)
             agent_output = agent_output[split + 20:]
 
         print(f'Iteration {training_info["iteration"]}')
-        split = agent_output.find(b'--------------------')
-        print(agent_output[2 if agent_output[0] == 13 else 0: split + 20].decode('ascii'))
+        split = agent_output.find('--------------------')
+        # print(agent_output[2 if agent_output[0] == 13 else 0: split + 20])
         agent_output = agent_output[split + 20:]
-        split = agent_output.find(b'--------------------')
+        split = agent_output.find('--------------------')
         if split >= 0:
-            print(agent_output[2 if agent_output[0] == 13 else 0: split + 20].decode('ascii'))
+            # print(agent_output[2 if agent_output[0] == 13 else 0: split + 20])
             agent_output = agent_output[split + 20:]
 
         get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')

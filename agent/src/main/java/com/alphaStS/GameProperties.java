@@ -6,6 +6,7 @@ import java.util.*;
 
 public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
+    public boolean doingComparison;
     public boolean testPotionOutput;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
