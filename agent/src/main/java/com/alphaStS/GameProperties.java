@@ -76,6 +76,7 @@ public class GameProperties implements Cloneable {
     public boolean hasChampionBelt;
     public boolean hasPaperPhrog;
     public boolean hasMeatOnBone;
+    public boolean hasBurningBlood;
 
     public int normalityCounterIdx = -1;
     public int penNibCounterIdx = -1;
@@ -104,6 +105,8 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
+
+    public double cpuct = 0.1;
 
     public GameProperties clone() {
         try {

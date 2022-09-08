@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyListReadOnly;
@@ -29,10 +30,6 @@ abstract class GameEventHandler implements Comparable<GameEventHandler> {
     @Override public int compareTo(GameEventHandler other) {
         return Integer.compare(priority, other.priority);
     }
-}
-
-interface GameEnvironmentAction {
-    void doAction(GameState state);
 }
 
 enum GameActionCtx {
@@ -145,7 +142,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && Objects.equals(gameActionDeque, gameState.gameActionDeque);
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
     }
 
     @Override public int hashCode() {
@@ -640,7 +637,7 @@ public class GameState implements State {
         return clone;
     }
 
-    void draw(int count) {
+    public void draw(int count) {
         if (count == 0 || getPlayeForRead().cannotDrawCard()) {
             return;
         }
@@ -1065,6 +1062,7 @@ public class GameState implements State {
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             startTurn();
             setActionCtx(GameActionCtx.PLAY_CARD, null);
+            runActionsInQueueIfNonEmpty();
         }
         legalActions = null;
         v_other = null;
@@ -1122,11 +1120,6 @@ public class GameState implements State {
 //                            }
 //                        }
 //                        if (player.getBlock() >= dmg) {
-//                            return false;
-//                        }
-//                    }
-//                    if (prop.cardDict[a[action].idx()].cardName.equals("Reaper")) {
-//                        if (player.getStrength() < 20) {
 //                            return false;
 //                        }
 //                    }
@@ -1230,6 +1223,9 @@ public class GameState implements State {
     }
 
     public boolean checkIfCanHeal() {
+        if (prop.hasBurningBlood) {
+            return true;
+        }
         if (prop.hasMeatOnBone) {
             return getPlayeForRead().getHealth() < getPlayeForRead().getMaxHealth() / 2 + 12;
         }
@@ -1269,6 +1265,11 @@ public class GameState implements State {
                     }
                 }
             }
+
+            if (prop.hasBurningBlood) {
+                v += 6;
+            }
+
             int hp;
             if (prop.hasMeatOnBone) {
                 // todo: feed and meat on bone interaction when they are together
@@ -1311,14 +1312,9 @@ public class GameState implements State {
         for (int i = 0; i < prop.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot) {
                 health = Math.min(health - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                win = win * 0.9;
+                win = win * potionsState[i * 3 + 1] / 100.0;
             }
         }
-//        if (isTerminal() == 0 && prop.tmp) {
-//            if (getExhaustForRead()[prop.findCardIndex(new Card.Reaper())] > 0) {
-//                health = health - (10 / (float) player.getMaxHealth());
-//            }
-//        }
         // todo: how do we want to do bonus for potions ritual dagger etc.??
 //        if (prop.ritualDaggerVArrayIdx >= 0) {
 //            health *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
@@ -2139,8 +2135,7 @@ public class GameState implements State {
         }
     }
 
-    public String getActionString(int i) {
-        GameAction action = getAction(i);
+    public String getActionString(GameAction action) {
         if (action.type() == GameActionType.BEGIN_BATTLE) {
             return "Begin Battle";
         } else if (action.type() == GameActionType.PLAY_CARD) {
@@ -2169,6 +2164,10 @@ public class GameState implements State {
             return "Begin Turn";
         }
         return "Unknown";
+    }
+
+    public String getActionString(int i) {
+        return getActionString(getAction(i));
     }
 
     public GameAction getAction(int i) {
@@ -2321,6 +2320,7 @@ public class GameState implements State {
         ns = null;
         total_n = 0;
         transpositions = new HashMap<>();
+        legalActions = null;
         terminal_action = -100;
         searchFrontier = null;
     }

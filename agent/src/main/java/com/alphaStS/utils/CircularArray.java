@@ -1,7 +1,5 @@
 package com.alphaStS.utils;
 
-import com.alphaStS.Configuration;
-
 import java.util.Arrays;
 
 // ArrayDeque doesn't implement equals
@@ -89,6 +87,15 @@ public class CircularArray<T> {
         size = 0;
     }
 
+    @Override public String toString() {
+        return "CircularArray{" +
+                "arr=" + Arrays.toString(arr) +
+                ", start=" + start +
+                ", end=" + end +
+                ", size=" + size +
+                '}';
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o)
             return true;
@@ -98,13 +105,10 @@ public class CircularArray<T> {
         if (size() != that.size()) {
             return false;
         }
-        int j = that.start;
-        int end2 = end <= start && size > 0 ? end + arr.length : end;
-        for (int i = start; i < end2; i++) {
-            if (!that.arr[j].equals(arr[i % arr.length])) {
+        for (int i = start, j = that.start; i < start + size; i++, j++) {
+            if (!that.arr[j % that.arr.length].equals(arr[i % arr.length])) {
                 return false;
             }
-            j++;
         }
         return true;
     }

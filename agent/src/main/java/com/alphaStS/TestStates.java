@@ -47,6 +47,12 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState BasicGremlinNobState2() {
+        var state = BasicGremlinNobState();
+        state.prop.randomization = state.prop.randomization.fixR(3);
+        return state;
+    }
+
     public static GameState BasicJawWormState() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
@@ -767,37 +773,6 @@ public class TestStates {
         return new GameState(builder);
     }
 
-    public static GameState TestState16() {
-        var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.Strike(), 4);
-        builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.Cleave(), 1);
-        builder.addCard(new CardColorless.ApotheosisP(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 1);
-        builder.addCard(new Card.Havoc(), 1);
-        builder.addCard(new Card.BludgeonP(), 0);
-        builder.addRelic(new Relic.BronzeScales());
-        builder.addRelic(new Relic.Calipers());
-        builder.addRelic(new Relic.BagOfPreparation());
-        builder.addRelic(new Relic.GremlinHorn());
-        builder.addRelic(new Relic.MeatOnTheBone());
-        EnemyEncounter.addSlimeBossFight(builder);
-        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.BashP(), 1)),
-                List.of(new CardCount(new Card.Havoc(), 1), new CardCount(new Card.BashP(), 1)),
-                List.of(new CardCount(new Card.Havoc(), 1), new CardCount(new Card.BludgeonP(), 1), new CardCount(new Card.Bash(), 1))
-        ));
-        builder.setRandomization(randomization);
-        builder.addPotion(new Potion.DistilledChaos());
-        builder.addPotion(new Potion.StrengthPotion());
-        builder.setPlayer(new Player(67, 73));
-        return new GameState(builder);
-    }
-
     public static GameState TestState17() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
@@ -820,6 +795,7 @@ public class TestStates {
                 List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 0)),
                 List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 1)),
                 List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 1)),
+                List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 0)),
                 List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 1))
                 ));
         builder.setRandomization(randomization);

@@ -298,7 +298,7 @@ public class InteractiveMode {
                 state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.searchRandomGen.nextLong(RandomGenCtx.Other)));
             } else if (line.equals("hist")) {
                 for (String l : history) {
-                    if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnn ")) {
+                    if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnn ") && !l.startsWith("cmp")) {
                         System.out.println(l);
                     }
                 }
@@ -876,7 +876,6 @@ public class InteractiveMode {
             System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
                     ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
             State ns = s.ns[action];
-            System.out.println(ns instanceof ChanceState);
             if (ns instanceof ChanceState) {
                 break;
             } else if (ns instanceof GameState ns2) {

@@ -18,23 +18,26 @@ import tf2onnx
 from scipy.special import softmax
 from misc import getFlag, getFlagValue
 
-tf.config.threading.set_intra_op_parallelism_threads(1)
-tf.config.threading.set_inter_op_parallelism_threads(1)
-os.environ["OMP_NUM_THREADS"] = f"1"
-os.environ['TF_NUM_INTEROP_THREADS'] = f"1"
-os.environ['TF_NUM_INTRAOP_THREADS'] = f"1"
-
 # rand.seed(5)
 # np.random.seed(5)
 # tf.random.set_seed(5)
 
 DO_TRAINING = getFlag('-t')
 SKIP_TRAINING_MATCHES = getFlag('-s')
+INTERACTIVE = getFlag('-i')
 PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
+SINGLE_THREADED = getFlag('-st')
 ITERATION_COUNT = int(getFlagValue('-c', 5))
 NODE_COUNT = int(getFlagValue('-n', 1000))
 SAVES_DIR = getFlagValue('-dir', './saves')
+
+if SINGLE_THREADED:
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
+    os.environ["OMP_NUM_THREADS"] = f"1"
+    os.environ['TF_NUM_INTEROP_THREADS'] = f"1"
+    os.environ['TF_NUM_INTRAOP_THREADS'] = f"1"
 
 
 def convertToOnnx(model, input_len, output_dir):
@@ -113,12 +116,13 @@ else:
         'exp_win_head': 'mean_squared_error',
         'policy_head': softmax_cross_entropy_with_logits
     }
-    loss_weights = {'exp_health_head': 0.3, 'policy_head': 0.3, 'exp_win_head': 0.3}
+    loss_weights = {'exp_health_head': 0.45, 'policy_head': 0.1, 'exp_win_head': 0.45}
     for i in range(v_other_len):
         loss[f'exp_other_head{i}'] = 'mean_squared_error'
         loss_weights[f'exp_other_head{i}'] = 0.15
     model.compile(
         loss=loss,
+        loss_weights=loss_weights,
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
     )
     model.save(f'{SAVES_DIR}/iteration0')
@@ -175,7 +179,7 @@ def expire_training_samples(training_pool, iteration):
 def save_stats(training_info, iteration, out):
     death_rate = float(re.findall('\nDeaths: \d+/\d+ \((\d+\.\d+)\%\)', out)[0])
     avg_dmg = float(re.findall('\nAvg Damage: (\d+\.\d+)', out)[0])
-    avg_dmg_tmp = re.findall('\nAvg Damage \(Not Including Deaths\): (\d+\.\d+)', out)
+    avg_dmg_tmp = re.findall('\nAvg Damage \(Not Including Deaths\): (\-?\d+\.\d+)', out)
     avg_dmg_no_death = float(avg_dmg if len(avg_dmg_tmp) == 0 else avg_dmg_tmp[0])
     dagger_killed_per_tmp = re.findall('\nDagger Killed Percentage: (\d+\.\d+)', out)
     dagger_killed_per = float(0 if len(dagger_killed_per_tmp) == 0 else dagger_killed_per_tmp[0])
@@ -206,7 +210,7 @@ if DO_TRAINING:
         iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
 
-        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-training', '-t', '2', '-dir', SAVES_DIR]
+        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-training', '-t', '1' if SINGLE_THREADED else '2', '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
                 matches_count = 1000

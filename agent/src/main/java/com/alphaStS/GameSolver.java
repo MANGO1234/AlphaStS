@@ -146,7 +146,13 @@ public class GameSolver {
         }
 //        for (int i = 0; i < 100; i++) {
 //            var nextState = cState.getNextState(false);
-//            solveH(nextState);
+//            var s = solveH(nextState);
+//            var cacheS = cState.cache.get(nextState).state;
+//            if (s != cacheS) {
+//                var node = cState.cache.remove(nextState);
+//                node.state = s;
+//                cState.cache.put(nextState, node);
+//            }
 //        }
     }
 

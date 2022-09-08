@@ -1,8 +1,8 @@
 package com.alphaStS;
 
+import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -1321,7 +1321,7 @@ public abstract class Card implements GameProperties.CounterRegistrant {
             state.addOnCardDrawnHandler("Evolve", new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card) {
                     if (card.cardType == Card.STATUS) {
-                        state.draw(state.getCounterForRead()[counterIdx]);
+                        state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
                 }
             });

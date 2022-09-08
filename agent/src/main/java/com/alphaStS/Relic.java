@@ -895,7 +895,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
 
     public static class BurningBlood extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addEndOfBattleHandler("BurningBlood", new GameEventHandler() {
+            state.prop.hasBurningBlood = true;
+            state.addEndOfBattleHandler("BurningBlood", new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     state.healPlayer(6);
                 }

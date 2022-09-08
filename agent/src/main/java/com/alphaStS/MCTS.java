@@ -441,7 +441,7 @@ public class MCTS {
             double q = line.n > 0 ? line.q_comb / line.n : parentLine != null && parentLine.n > 0 ? parentLine.q_comb / parentLine.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
             double p_prime = line.p_cur * (1 - ratio) + p * ratio;
-            double cpuct = 0.1;
+            double cpuct = state.prop.cpuct;
             // cpuct = Math.min(5 * Math.sqrt(state.varianceS / state.total_n), 0.5);
             double u = state.searchFrontier.total_n > 0 ? q + cpuct * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
@@ -707,7 +707,7 @@ public class MCTS {
             numberOfActions += 1;
             double p_prime = policy[i] * (1 - ratio) + p * ratio;
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
-            double cpuct = 0.1;
+            double cpuct = state.prop.cpuct;
             // cpuct = Math.min(3 * Math.sqrt(state.varianceS / state.total_n), 0.5);
             double u = state.total_n > 0 ? q + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (training && isRoot) {

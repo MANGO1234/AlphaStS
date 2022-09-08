@@ -12,6 +12,8 @@ import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStre
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -405,6 +407,9 @@ public class MatchSession {
             BufferedReader reader = new BufferedReader(new FileReader(System.getProperty("user.home") + "/alphaStSServers.txt"));
             String line;
             while ((line = reader.readLine()) != null) {
+                if (line.length() == 0) {
+                    continue;
+                }
                 var s = line.split(":");
                 l.add(new Tuple<>(s[0], Integer.parseInt(s[1])));
             }
@@ -1473,5 +1478,296 @@ public class MatchSession {
                 writer.write("\n");
             }
         }
+    }
+
+    public void tune(GameState state) {
+        var cpucts = new ArrayList<Double>();
+        for (int i = 0; i < 16; i++) {
+            cpucts.add(0.07 + i * 0.06 / 16);
+        }
+        var rand = new Random();
+        for (int i = 0; i < 20; i++) {
+            List<Tuple<Double, Double>> r = tuneH(state, 500, 50, cpucts);
+            r.sort(Comparator.comparingDouble(Tuple::v2));
+            System.out.println(r);
+            cpucts = new ArrayList<>();
+            for (int j = 0; j < 4; j++) {
+               cpucts.add(r.get(12 + j).v1() * (rand.nextBoolean() ? 0.8 : 1.2));
+            }
+            for (int j = 4; j < 16; j++) {
+                cpucts.add(r.get(j).v1());
+            }
+            cpucts.sort(Comparator.comparingDouble(Double::valueOf));
+        }
+    }
+
+    private Thread startPlayGameThread2(GameState origState, int nodeCount, ArrayList<Long> seeds, BlockingDeque<GameResult> deq, AtomicInteger numToPlay, int threadIdx) {
+        var session = this;
+        var t = new Thread(() -> {
+            int idx = numToPlay.getAndDecrement();
+            while (idx > 0) {
+                if (deq.size() >= (nodeCount == 1 ? 1000 : 40)) {
+                    if (numToPlay.get() < 0) {
+                        break;
+                    }
+                    Utils.sleep(200);
+                    continue;
+                }
+                var state = origState.clone(false);
+                state.prop = state.prop.clone();
+                state.prop.doingComparison = true;
+                state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                state.prop.testNewFeature = true;
+                state.prop.cpuct = cpucts.get(0);
+                var prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
+                var game1 = session.playGame(state, startingAction, null, mcts.get(threadIdx), nodeCount);
+                var modelCalls = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits - prev;
+                results.set(0, results.get(0) + game1.steps().get(game1.steps.size() - 1).state().get_q());
+                for (int i = 1; i < cpucts.size(); i++) {
+                    state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                    state = origState.clone(false);
+                    state.prop = state.prop.clone();
+                    state.prop.doingComparison = true;
+                    state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                    state.prop.testNewFeature = true;
+                    state.prop.cpuct = cpucts.get(i);
+                    var game2 = session.playGame(state, startingAction, game1, mcts.get(threadIdx), nodeCount);
+                    results.set(i, results.get(i) + game2.steps().get(game2.steps.size() - 1).state().get_q());
+                }
+                try {
+                    deq.putLast(new GameResult(game1, modelCalls, null, 0, seeds.get(idx - 1), null, null,0, null));
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                idx = numToPlay.getAndDecrement();
+                if (nodeCount > 1) {
+                    Utils.sleep(Configuration.SLEEP_PER_GAME);
+                }
+            }
+        });
+        t.start();
+        return t;
+    }
+
+    ArrayList<Double> cpucts;
+    ArrayList<Double> results;
+    public List<Tuple<Double, Double>> tuneH(GameState origState, int numOfGames, int nodeCount, ArrayList<Double> cpucts) {
+        this.cpucts = cpucts;
+        this.results = new ArrayList<>();
+        for (int i = 0; i < cpucts.size(); i++) {
+            results.add(0.0);
+        }
+        var seeds = new ArrayList<Long>(numOfGames);
+        for (int i = 0; i < numOfGames; i++) {
+            seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
+        }
+        var deq = new LinkedBlockingDeque<GameResult>();
+        var numToPlay = new AtomicInteger(numOfGames);
+        for (int i = 0; i < mcts.size(); i++) {
+            startPlayGameThread2(origState, nodeCount, seeds, deq, numToPlay, i);
+        }
+//        var remoteServerGames = new HashMap<String, Integer>();
+//        if (nodeCount > 1) {
+//            for (Tuple<String, Integer> server : getRemoteServers()) {
+//                remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
+//                startRemotePlayGameThread(server.v1(), server.v2(), modelDir, modelCmpDir, nodeCount, numToPlay, deq);
+//            }
+//        }
+
+        var game_i = 0;
+        var ret = getInfoMaps(origState);
+        var combinedInfoMap = ret.v1();
+        var battleInfoMap = ret.v2();
+        var scenarioStats = new HashMap<Integer, ScenarioStats>();
+        var start = System.currentTimeMillis();
+        var solverErrorCount = 0;
+        var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
+        while (game_i < numOfGames) {
+            GameResult result;
+            try {
+                result = deq.takeFirst();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            int r;
+            if (result.remoteStats == null) {
+                Game game = result.game;
+                List<GameStep> steps = game.steps;
+                List<GameStep> steps2 = result.game2 == null ? null : result.game2.steps;
+                var state = steps.get(steps.size() - 1).state();
+                r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
+                if (!training && solver != null) {
+                    solverErrorCount += solver.checkForError(game);
+                }
+                if (Configuration.PRINT_MODEL_COMPARE_DIFF && steps2 != null) {
+                    var turns1 = GameStateUtils.groupByTurns(steps);
+                    var turns2 = GameStateUtils.groupByTurns(steps2);
+                    for (int i = 1; i < Math.min(turns1.size(), turns2.size()); i++) {
+                        var t1 = turns1.get(i);
+                        var t2 = turns2.get(i);
+                        var ts1 = t1.get(t1.size() - 1).state().clone(false);
+                        var ts2 = t2.get(t2.size() - 1).state().clone(false);
+                        if (ts1.actionCtx != GameActionCtx.BEGIN_TURN) {
+                            for (int j = 0; j < ts1.getLegalActions().length; j++) {
+                                if (ts1.getAction(j).type() == GameActionType.END_TURN) {
+                                    ts1.doAction(j);
+                                    break;
+                                }
+                            }
+                        }
+                        if (ts2.actionCtx != GameActionCtx.BEGIN_TURN) {
+                            for (int j = 0; j < ts2.getLegalActions().length; j++) {
+                                if (ts2.getAction(j).type() == GameActionType.END_TURN) {
+                                    ts2.doAction(j);
+                                    break;
+                                }
+                            }
+                        }
+                        if (!ts1.equals(ts2)) {
+                            System.out.println("******************************************** " + result.seed);
+                            System.out.println(t1.get(0));
+                            System.out.println(t2.get(0));
+                            System.out.println(t1.stream().map(GameStep::getActionString).limit(t1.size() - 1).filter((x) -> !x.equals("End Turn"))
+                                    .collect(Collectors.joining(", ")));
+                            System.out.println(t2.stream().map(GameStep::getActionString).limit(t2.size() - 1).filter((x) -> !x.equals("End Turn"))
+                                    .collect(Collectors.joining(", ")));
+                            if (!t1.get(0).state().equals(t2.get(0).state())) {
+                                System.out.println("!!!");
+                            }
+                            break;
+                        }
+                    }
+                }
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
+                scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
+                game_i += 1;
+                if (matchLogWriter != null) {
+                    int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
+                    try {
+                        matchLogWriter.write("*** Match " + game_i + " ***\n");
+                        if (origState.prop.randomization != null) {
+                            if (combinedInfoMap.size() > 1) {
+                                matchLogWriter.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
+                            }
+                        }
+                        matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
+                        matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
+                        boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
+                        if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
+                            for (GameStep step : steps) {
+                                if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
+                                if (step.lines != null) {
+                                    matchLogWriter.write(step.state().toStringReadable() + "\n");
+                                    for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
+                                        matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
+                                    }
+                                }
+                            }
+                        } else {
+                            printGame(matchLogWriter, steps);
+                        }
+                        matchLogWriter.write("\n");
+                        matchLogWriter.write("\n");
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } else {
+                r = result.remoteR;
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(result.remoteStats, origState);
+//                remoteServerGames.computeIfPresent(result.remoteServer, (k, x) -> x + 1);
+                game_i += 1;
+            }
+
+            if ((true && game_i % progressInterval == 0) || game_i == numOfGames) {
+                System.out.println("Progress: " + game_i + "/" + numOfGames);
+                if (!training && solver != null) {
+                    System.out.println("Error Count: " + solverErrorCount);
+                }
+//                remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
+                if (scenarioStats.size() > 1) {
+                    for (var info : combinedInfoMap.entrySet()) {
+                        var i = info.getKey();
+                        if (scenarioStats.get(i) != null) {
+                            System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
+                            scenarioStats.get(i).printStats(origState, 4);
+                        }
+                    }
+                }
+                if (scenariosGroup != null) {
+                    for (int i = 0; i < scenariosGroup.length; i++) {
+                        System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
+                        var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
+                        ScenarioStats.combine(group).printStats(origState, 4);
+                    }
+                }
+                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, 0);
+                System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
+                for (int i = 0; i < mcts.size(); i++) {
+                    var m = mcts.get(i);
+                    System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
+                    System.out.println("Model " + i + ": cache_size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/" + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
+                }
+                System.out.println("--------------------");
+            }
+        }
+
+        var r = new ArrayList<Tuple<Double, Double>>();
+        for (int i = 0; i < 16; i++) {
+            r.add(new Tuple<>(cpucts.get(i), results.get(i)));
+        }
+        cpucts = null;
+        results = null;
+        return r;
+    }
+
+    // custom code that I modified if I want to check if/how fast network learned a strategy in a training run
+    public static void getTrainingRunStats(String savesDir, GameState origState, int numOfGames, int nodeCount) {
+        int iter = 0;
+        do {
+            System.out.println("**************************************");
+            System.out.printf("Iteration %d\n", iter);
+            MatchSession session = new MatchSession(1, Path.of(savesDir, "iteration" + iter).toString());
+            session.playGamesForStat(origState, numOfGames, nodeCount);
+            iter++;
+        } while (Files.exists(Path.of(savesDir, "iteration" + iter)));
+    }
+
+    public void playGamesForStat(GameState origState, int numOfGames, int nodeCount) {
+        var seeds = new ArrayList<Long>(numOfGames);
+        for (int i = 0; i < numOfGames; i++) {
+            seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
+        }
+        var deq = new LinkedBlockingDeque<GameResult>();
+        var numToPlay = new AtomicInteger(numOfGames);
+        for (int i = 0; i < mcts.size(); i++) {
+            startPlayGameThread(origState, nodeCount, seeds, deq, numToPlay, i);
+        }
+
+        var game_i = 0;
+        var start = System.currentTimeMillis();
+        var progressInterval = ((int) Math.ceil(numOfGames / 100f)) * 25;
+        var averageQ = 0.0;
+        while (game_i < numOfGames) {
+            GameResult result;
+            try {
+                result = deq.takeFirst();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            if (result.remoteStats == null) {
+                Game game = result.game;
+                List<GameStep> steps = game.steps;
+                var state = steps.get(steps.size() - 1).state();
+                averageQ += state.get_q();
+            }
+            game_i += 1;
+            if ((game_i % progressInterval == 0) || game_i == numOfGames) {
+                System.out.println("Progress: " + game_i + "/" + numOfGames);
+            }
+        }
+        System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
+        System.out.println("Average Q: " + averageQ / numOfGames);
     }
 }
