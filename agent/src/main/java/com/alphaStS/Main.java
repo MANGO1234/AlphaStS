@@ -32,13 +32,12 @@ class ServerRequest {
 public class Main {
     public static void main(String[] args) throws IOException {
        var state = TestStates.BasicGremlinNobState2();
-//        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
-       System.out.println("Seed: " + state.prop.random.getSeed(null));
-
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
             return;
         }
+//        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
+        System.out.println("Seed: " + state.prop.random.getSeed(null));
 
         boolean GENERATE_TRAINING_GAMES = false;
         boolean TEST_TRAINING_AGENT = false;

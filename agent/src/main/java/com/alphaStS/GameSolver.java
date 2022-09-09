@@ -15,82 +15,125 @@ public class GameSolver {
     }
 
     private GameState solveH(GameState state) {
-        var cachedState = nodes.get(state);
+        var cachedState = (GameState) state.transpositions.get(state);
         if (cachedState != null) {
             return cachedState;
         }
+        if (state.isStochastic) {
+            cachedState = nodes.get(state);
+            if (cachedState != null) {
+                return cachedState;
+            }
+        }
         if (state.isTerminal() != 0) {
-            state.e_health = BigRational.valueOf(state.getPlayeForRead().getHealth());
             state.e_win = state.isTerminal() == 1 ? BigRational.ONE : BigRational.ZERO;
-            nodes.put(state, state);
+            state.e_health = BigRational.valueOf(state.getPlayeForRead().getHealth());
             return state;
         }
         if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             ChanceState cState = new ChanceState(null, state, 0);
             generateAllPossibilities(cState);
-            calcExpectedHealth(cState);
-            state.e_health = cState.e_health;
+            calcExpectedHealth(cState, BigRational.ZERO, BigRational.ZERO);
             state.e_win = cState.e_win;
+            state.e_health = cState.e_health;
             state.ns = new State[1];
             state.ns[0] = cState;
         } else {
-            BigRational maxHealth = BigRational.ZERO, maxWin = BigRational.ZERO;
+            BigRational maxWin = BigRational.ZERO, maxHealth = BigRational.ZERO;
+            var found = false;
             boolean hasOtherAction = false;
+            boolean enemyAttacking = state.getEnemiesForRead().get(0).getMoveString(state).startsWith("Attack");
+            boolean enemyAsleep = state.getEnemiesForRead().get(0).getMoveString(state).startsWith("Asleep");
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 var action = state.getAction(i);
-                if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.idx()].cardType == Card.ATTACK) {
-//                if (action.type() == GameActionType.PLAY_CARD) {
-                    hasOtherAction = true;
-                } else if (action.type() == GameActionType.END_TURN) {
-                    if (hasOtherAction) {
+                if (enemyAttacking) {
+                    if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.idx()].cardType == Card.SKILL) {
+                        hasOtherAction = true;
+                    } else if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.idx()].cardType == Card.ATTACK) {
+                        hasOtherAction = true;
+                    } else if (action.type() == GameActionType.END_TURN) {
+                        if (hasOtherAction) {
+                            continue;
+                        }
+                    }
+                } else if (!enemyAsleep) {
+                    if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.idx()].cardType == Card.SKILL) {
                         continue;
+                    } else if (action.type() == GameActionType.PLAY_CARD && state.prop.cardDict[action.idx()].cardType == Card.ATTACK) {
+                        hasOtherAction = true;
+                    } else if (action.type() == GameActionType.END_TURN) {
+                        if (hasOtherAction) {
+                            continue;
+                        }
                     }
                 }
-                GameState s = state.clone(false);
+                GameState s = state.clone(true);
                 s.doAction(i);
                 if (s.isStochastic) {
                     ChanceState cState = new ChanceState(null, state, i);
                     generateAllPossibilities(cState);
-                    calcExpectedHealth(cState);
+                    calcExpectedHealth(cState, maxWin, maxHealth);
+                    if (cState.e_win == null) {
+                        continue;
+                    }
                     int c = cState.e_win.compareTo(maxWin) ;
-                    if (c > 0) {
+                    if (c > 0 || (c == 0 && cState.e_health.compareTo(maxHealth) >= 0)) {
                         maxWin = cState.e_win;
                         maxHealth = cState.e_health;
-                    } else if (c == 0 && cState.e_health.compareTo(maxHealth) > 0) {
-                        maxHealth = cState.e_health;
+                        found = true;
                     }
                     state.ns = new State[state.getLegalActions().length];
                     state.ns[i] = cState;
                 } else {
                     s = solveH(s);
                     int c = s.e_win.compareTo(maxWin);
-                    if (c > 0) {
+                    if (c > 0 || (c == 0 && s.e_health.compareTo(maxHealth) >= 0)) {
                         maxWin = s.e_win;
                         maxHealth = s.e_health;
-                    } else if (c == 0 && s.e_health.compareTo(maxHealth) > 0) {
-                        maxHealth = s.e_health;
+                        found = true;
                     }
                     if (state.ns == null) {
                         state.ns = new State[state.getLegalActions().length];
                     }
                     state.ns[i] = s;
+                    if (s.isTerminal() > 0) {
+                        break;
+                    }
                 }
             }
-            state.e_health = maxHealth;
-            state.e_win = maxWin;
+            if (found) {
+                state.e_win = maxWin;
+                state.e_health = maxHealth;
+                if (state.isStochastic) {
+                    nodes.put(state, state);
+                }
+                state.transpositions.put(state, state);
+            }
         }
-        nodes.put(state, state);
+        state.clearAllSearchInfo();
         return state;
     }
 
-    private void calcExpectedHealth(ChanceState cState) {
-        BigRational e_health = BigRational.ZERO, e_win = BigRational.ZERO;
-        for (ChanceState.Node node : cState.cache.values()) {
-            e_health = e_health.add(new BigRational(node.n, cState.total_node_n).multiply(node.state.e_health));
-            e_win = e_win.add(new BigRational(node.n, cState.total_node_n).multiply(node.state.e_win));
+    private void calcExpectedHealth(ChanceState cState, BigRational winMaxBound, BigRational healthMaxBound) {
+        BigRational e_win = BigRational.ZERO, e_health = BigRational.ZERO, p = BigRational.ONE;
+        var nodes = cState.cache.values();
+        for (ChanceState.Node node : nodes) {
+            var nodeP = new BigRational(node.n, cState.total_node_n);
+//            BigRational winBound = winMaxBound.subtract(e_win).subtract(p.subtract(nodeP)).divide(p);
+//            BigRational healthBound = healthMaxBound.subtract(e_health).subtract(p.subtract(nodeP).multiply(BigRational.valueOf(cState.parentState.getPlayeForRead().getHealth()))).divide(p);
+//            if (winBound.compareTo(BigRational.ONE) > 0) {
+//                return;
+//            }
+            node.state = solveH(node.state);
+//            if (node.state.e_win.compareTo(winBound) < 0 || (node.state.e_win.compareTo(winBound) == 0 && node.state.e_health.compareTo(healthBound) < 0)) {
+//                return;
+//            }
+            e_win = e_win.add(nodeP.multiply(node.state.e_win));
+            e_health = e_health.add(nodeP.multiply(node.state.e_health));
+            p.subtract(nodeP);
         }
-        cState.e_health = e_health;
         cState.e_win = e_win;
+        cState.e_health = e_health;
     }
 
     //cache of the factorials from 1 to 20 (20! is the maximum a long can hold)
@@ -165,7 +208,6 @@ public class GameSolver {
             newState.discard = Arrays.copyOf(modState.discard, modState.discard.length);
             newState.deckArr = Arrays.copyOf(modState.deckArr, modState.deckArr.length);
             newState.deckArrLen = modState.deckArrLen;
-            newState = solveH(newState);
             var node = new ChanceState.Node(newState);
             node.n = n;
             cState.cache.put(newState, node);
@@ -200,7 +242,7 @@ public class GameSolver {
         var e_health = origState.e_health.toDouble();
         var e_winString = origState.e_win.getNumerator() + "/" + origState.e_win.getDenominator();
         var e_healthString = origState.e_health.getNumerator() + "/" + origState.e_health.getDenominator();
-        System.out.println(origState + ": " + Utils.formatFloat(e_win) + " (" + e_winString + "), " + Utils.formatFloat(e_health) + " (" + e_healthString + ")");
+        System.out.println(origState + ": " + Utils.formatFloat(e_win) + " (" + e_winString + "), " + Utils.formatFloat(e_health) + " (" + e_healthString + "), " + "cacheSize=" + nodes.size());
     }
 
     public List<Integer> isBestAction(GameState stateArg, int action) {
