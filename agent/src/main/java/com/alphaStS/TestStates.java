@@ -98,9 +98,7 @@ public class TestStates {
         builder.addCard(new Card.Headbutt(), 1);
         builder.addCard(new Card.Anger(), 1);
         builder.addCard(new Card.BurningPactP(), 1);
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        EnemyEncounter.addSentrieFight(builder);
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
         builder.addRelic(new Relic.Vajira());
@@ -254,9 +252,7 @@ public class TestStates {
         builder.addCard(new Card.Inflame(), 1);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        EnemyEncounter.addSentrieFight(builder);
         builder.addEnemy(new Enemy.GremlinNob());
         builder.addEnemy(new Enemy.Lagavulin());
         builder.addRelic(new Relic.BagOfPreparation());
@@ -284,9 +280,7 @@ public class TestStates {
         builder.addCard(new Card.SeeingRed(), 1);
         builder.addCard(new Card.IronWave(), 1);
         builder.addCard(new Card.DemonForm(), 1);
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        EnemyEncounter.addSentrieFight(builder);
         builder.addEnemy(new Enemy.GremlinNob());
         builder.addEnemy(new Enemy.Lagavulin());
         builder.addRelic(new Relic.BagOfPreparation());
@@ -457,9 +451,7 @@ public class TestStates {
         randomization = randomization.doAfter(randomization2);
         builder.setRandomization(randomization);
         //        builder.addEnemy(new Enemy.TheGuardian());
-        //        builder.addEnemy(new EnemyCity.Byrd());
-        //        builder.addEnemy(new EnemyCity.Byrd());
-        //        builder.addEnemy(new EnemyCity.Byrd());
+        //        EnemyEncounter.addByrdsFight(builder);
         //        builder.addEnemy(new EnemyCity.SphericGuardian());
         //        builder.addEnemy(new EnemyCity.Pointy());
         //        builder.addEnemy(new EnemyCity.Romeo());
@@ -623,9 +615,7 @@ public class TestStates {
         builder.addCard(new CardColorless.Finess(), 1);
         builder.addCard(new Card.IronWave(), 0);
         builder.addRelic(new Relic.Vajira());
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        EnemyEncounter.addSentrieFight(builder);
         builder.addEnemy(new Enemy.GremlinNob());
         builder.addEnemy(new Enemy.Lagavulin());
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
@@ -678,9 +668,7 @@ public class TestStates {
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(2));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM).markAsBurningElite());
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+        EnemyEncounter.addSentrieFight(builder, true);
         //        builder.addEnemy(new Enemy.GremlinNob());
         builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
@@ -754,9 +742,7 @@ public class TestStates {
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(7));
         builder.addRelic(new Relic.GremlinHorn());
-        builder.addEnemy(new EnemyCity.Byrd());
-        builder.addEnemy(new EnemyCity.Byrd());
-        builder.addEnemy(new EnemyCity.Byrd());
+        EnemyEncounter.addByrdsFight(builder);
         //        builder.addEnemy(new EnemyCity.BookOfStabbing());
         //        EnemyEncounter.addSlaversEliteFight(builder);
         //        EnemyEncounter.addGremlinLeaderFight(builder);

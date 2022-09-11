@@ -160,16 +160,20 @@ public class GameState implements State {
     }
 
     public GameState(GameStateBuilder builder) {
-        this(builder.getEnemies(), builder.getPlayer(), builder.getCards(), builder.getRelics(), builder.getPotions(), builder.getRandomization(), builder.getPreBattleRandomization(), builder.getPreBattleScenarios());
-    }
-
-    public GameState(List<Enemy> enemiesArg, Player player, List<CardCount> cards, List<Relic> relics,
-            List<Potion> potions, GameStateRandomization randomization, GameStateRandomization preBattleRandomization, GameStateRandomization preBattleScenarios) {
+        List<Enemy> enemiesArg = builder.getEnemies();
+        Player player = builder.getPlayer();
+        List<CardCount> cards = builder.getCards();
+        List<Relic> relics = builder.getRelics();
+        List<Potion> potions = builder.getPotions();
+        GameStateRandomization randomization = builder.getRandomization();
+        GameStateRandomization preBattleRandomization = builder.getPreBattleRandomization();
+        GameStateRandomization preBattleScenarios = builder.getPreBattleScenarios();
         // game properties (shared)
         prop = new GameProperties();
         prop.randomization = randomization;
         prop.preBattleRandomization = preBattleRandomization;
         prop.potions = potions;
+        prop.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics, potions);
         cards.sort((o1, o2) -> {
@@ -1936,7 +1940,9 @@ public class GameState implements State {
             x[idx + ((select1OutOf3CardsIdxes >> 16) & 255)] = 1;
         }
         idx += prop.select1OutOf3CardsIdxes.length;
-        for (var enemy : enemies) {
+        var enemyOrder = getEnemyOrder();
+        for (int enemyIdx = 0; enemyIdx < enemies.size(); enemyIdx++) {
+            var enemy = enemies.get(enemyOrder != null ? enemyOrder[enemyIdx] : enemyIdx);
             if (enemy.isAlive()) {
                 x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
                 if (prop.enemyCanGetVuln) {
@@ -2030,6 +2036,20 @@ public class GameState implements State {
             }
         }
         return x;
+    }
+
+    public int[] getEnemyOrder() {
+        if (prop.enemiesReordering == null) {
+            return null;
+        }
+        int[] order = new int[enemies.size()];
+        for (int i = 0; i < order.length; i++) {
+            order[i] = i;
+        }
+        for (var reordering : prop.enemiesReordering) {
+            reordering.accept(this, order);
+        }
+        return order;
     }
 
     void addGameActionToEndOfDeque(GameEnvironmentAction action) {

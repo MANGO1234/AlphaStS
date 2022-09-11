@@ -4,7 +4,9 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.player.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 public class GameStateBuilder {
     private Player player = null;
@@ -12,6 +14,7 @@ public class GameStateBuilder {
     private List<Enemy> enemies = new ArrayList<>();
     private List<Relic> relics = new ArrayList<>();
     private List<Potion> potions = new ArrayList<>();
+    private List<BiConsumer<GameState, int[]>> enemyReorderings = new ArrayList<>();
     private GameStateRandomization randomization = null;
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
@@ -81,5 +84,13 @@ public class GameStateBuilder {
 
     public GameStateRandomization getPreBattleScenarios() {
         return preBattleGameScenarios;
+    }
+
+    public void addEnemyReordering(BiConsumer<GameState, int[]> reordering) {
+        enemyReorderings.add(reordering);
+    }
+
+    public List<BiConsumer<GameState, int[]>> getEnemyReordering() {
+        return enemyReorderings;
     }
 }

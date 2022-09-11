@@ -293,4 +293,51 @@ public class EnemyEncounter {
         builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
         builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
     }
+
+    public static void addByrdsFight(GameStateBuilder builder) {
+        var start = builder.getEnemies().size();
+        builder.addEnemy(new EnemyCity.Byrd());
+        builder.addEnemy(new EnemyCity.Byrd());
+        builder.addEnemy(new EnemyCity.Byrd());
+        builder.addEnemyReordering((state, order) -> {
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start;
+                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                    order[start + 2] = start + 3 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start;
+                    order[start + 2] = start + 1;
+                }
+            } else {
+                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start + 1;
+                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                    order[start + 2] = start + 2 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start + 1;
+                    order[start + 2] = start;
+                }
+            }
+        });
+    }
+
+    public static void addSentrieFight(GameStateBuilder builder) {
+        addSentrieFight(builder, false);
+    }
+
+    public static void addSentrieFight(GameStateBuilder builder, boolean burning) {
+        var start = builder.getEnemies().size();
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        builder.addEnemyReordering((state, order) -> {
+            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start + 2;
+                order[start + 2] = start;
+            }
+        });
+    }
 }

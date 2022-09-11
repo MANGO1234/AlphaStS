@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.EnemyList;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
@@ -105,6 +106,7 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
+    public List<BiConsumer<GameState, int[]>> enemiesReordering;
 
     public double cpuct = 0.1;
 

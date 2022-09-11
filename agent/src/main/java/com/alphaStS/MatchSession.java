@@ -1306,7 +1306,9 @@ public class MatchSession {
                         stream.writeFloat(-1);
                     }
                     if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                        for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; action++) {
+                        var order = state.getEnemyOrder();
+                        for (int actionIdx = 0; actionIdx < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; actionIdx++) {
+                            int action = order != null ? order[actionIdx] : actionIdx;
                             if (false) {
                                 if (state.terminal_action == action) {
                                     stream.writeFloat(1);
@@ -1314,10 +1316,18 @@ public class MatchSession {
                                     stream.writeFloat(0);
                                 }
                             } else if (state.isActionLegal(action)) {
-                                if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                if (order != null) {
+                                    for (int idx2 = 0; idx2 < state.getLegalActions().length; idx2++) {
+                                        if (state.getLegalActions()[idx2] == action) {
+                                            stream.writeFloat((float) (((double) state.n[idx2]) / state.total_n));
+                                        }
+                                    }
                                 } else {
-                                    Integer.parseInt(null);
+                                    if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
+                                        stream.writeFloat((float) (((double) state.n[order[idx++]]) / state.total_n));
+                                    } else {
+                                        Integer.parseInt(null);
+                                    }
                                 }
                             } else {
                                 stream.writeFloat(-1);

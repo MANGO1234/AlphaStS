@@ -323,26 +323,6 @@ public interface GameStateRandomization {
                     enemy.setHealth((int) (enemy.getHealth() * 1.25));
                 }
             }
-            if (state.getEnemiesForRead().size() >= 3) {
-                if (state.getEnemiesForRead().get(0).getClass().equals(state.getEnemiesForRead().get(2).getClass())) {
-                    if (state.getEnemiesForRead().get(0) instanceof Enemy.Sentry) {
-                        if (state.getEnemiesForWrite().get(2).getHealth() < state.getEnemiesForWrite().get(0).getHealth()) {
-                            var h = state.getEnemiesForWrite().get(2).getHealth();
-                            state.getEnemiesForWrite().getForWrite(2).setHealth(state.getEnemiesForWrite().get(0).getHealth());
-                            state.getEnemiesForWrite().getForWrite(0).setHealth(h);
-                        }
-                    } else if (state.getEnemiesForRead().get(0) instanceof EnemyCity.Byrd) {
-                        var hp = new int[3];
-                        for (int i = 0; i < 3; i++) {
-                            hp[i] = state.getEnemiesForRead().get(i).getHealth();
-                        }
-                        Arrays.sort(hp);
-                        for (int i = 0; i < 3; i++) {
-                            state.getEnemiesForWrite().getForWrite(i).setHealth(hp[i]);
-                        }
-                    }
-                }
-            }
             return 0;
         }
 

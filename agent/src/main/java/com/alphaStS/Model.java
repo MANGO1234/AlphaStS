@@ -114,7 +114,8 @@ public class Model {
         InputHash hash = new InputHash(state.getNNInput());
         NNOutput o = cache.get(hash);
         if (o != null) {
-            if (!Arrays.equals(o.legalActions(), state.getLegalActions())) {
+            if (!Arrays.equals(o.legalActions(), state.getLegalActions()) &&
+                    (state.actionCtx != GameActionCtx.SELECT_ENEMY || state.prop.enemiesReordering == null)) {
                 System.err.println(Arrays.toString(state.getNNInput()));
                 System.err.println(state);
                 System.err.println(Arrays.toString(o.legalActions()));
@@ -151,6 +152,16 @@ public class Model {
                     }
                     int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
                     policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
+                }
+            }
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                var order = state.getEnemyOrder();
+                if (order != null) {
+                    var newPolicy = new float[policy.length];
+                    for (int i = 0; i < newPolicy.length; i++) {
+                        newPolicy[order[i]] = policy[i];
+                    }
+                    policy = newPolicy;
                 }
             }
             var legalActions = state.getLegalActions();
