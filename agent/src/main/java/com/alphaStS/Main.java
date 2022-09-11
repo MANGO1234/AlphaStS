@@ -102,8 +102,8 @@ public class Main {
             GAMES_ADD_POTION_RANDOMIZATION = true;
             GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;
-//            iteration = 120;
-//            COMPARE_DIR = "../saves/iteration120";
+//            iteration = 56;
+            COMPARE_DIR = "../saves/iteration60";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }

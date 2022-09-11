@@ -119,7 +119,7 @@ else:
     loss_weights = {'exp_health_head': 0.45, 'policy_head': 0.1, 'exp_win_head': 0.45}
     for i in range(v_other_len):
         loss[f'exp_other_head{i}'] = 'mean_squared_error'
-        loss_weights[f'exp_other_head{i}'] = 0.15
+        loss_weights[f'exp_other_head{i}'] = 0.25
     model.compile(
         loss=loss,
         loss_weights=loss_weights,

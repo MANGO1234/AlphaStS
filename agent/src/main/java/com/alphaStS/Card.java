@@ -6,7 +6,7 @@ import com.alphaStS.enemy.Enemy;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class Card implements GameProperties.CounterRegistrant {
+public abstract class Card implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
     public static int ATTACK = 0;
     public static int SKILL = 1;
     public static int POWER = 2;
@@ -39,9 +39,13 @@ public abstract class Card implements GameProperties.CounterRegistrant {
     public boolean putCardOnTopDeck;
     public boolean healPlayer;
     int counterIdx = -1;
+    int vArrayIdx = -1;
 
     public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
+    }
+    public void setVArrayIdx(int idx) {
+        vArrayIdx = idx;
     }
 
     public Card(String cardName, int cardType, int energyCost) {
@@ -2566,6 +2570,28 @@ public abstract class Card implements GameProperties.CounterRegistrant {
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Feed", this, null);
+            state.prop.addExtraTrainingTarget("ZFeed", this, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                    if (enemiesAllDead) {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
+                    } else {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    double max_v = Math.min(0.25, v[GameState.V_OTHER_IDX_START + vArrayIdx]);
+                    var idx = state.prop.findCardIndex("Feed");
+                    if (state.getExhaustForRead()[idx] > 0 || state.getExhaustForRead()[state.prop.findCardIndex("Feed+")] > 0 ) {
+                        max_v = state.getCounterForRead()[counterIdx] / 16.0;
+                    } else if (state.getExhaustForRead()[state.prop.findCardIndex("Armanent+")] > 0) {
+                        if (state.getHand()[idx] > 0 || state.getDiscard()[idx] > 0 || state.getDeck()[idx] > 0) {
+                            max_v = Math.min(3 / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]);
+                        }
+                    }
+                    v[GameState.V_HEALTH_IDX] += 2 * 16 * max_v / state.getPlayeForRead().getMaxHealth();
+                }
+            });
         }
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {

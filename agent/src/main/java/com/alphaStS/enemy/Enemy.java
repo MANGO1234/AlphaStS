@@ -685,6 +685,8 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SLAM = 2;
         static int SPLIT = 3;
 
+        private int splitHealth;
+
         public SlimeBoss() {
             this(150);
         }
@@ -739,6 +741,7 @@ public abstract class Enemy extends EnemyReadOnly {
                         state.adjustEnemiesAlive(1);
                     }
                 }
+                splitHealth = health;
                 health = 0;
                 state.adjustEnemiesAlive(-1);
             }
@@ -778,6 +781,20 @@ public abstract class Enemy extends EnemyReadOnly {
         public String getName() {
             return "Slime Boss";
         }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of health slime boss split at";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx++] = splitHealth / (float) 75.0;
+            return 1;
+        }
+
     }
 
     public static class LargeSpikeSlime extends Enemy {
@@ -785,7 +802,7 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 1;
         private static final int SPLIT = 2;
 
-        public int splitMaxHealth;
+        private int splitMaxHealth;
 
         public LargeSpikeSlime() {
             this(73);
@@ -1015,7 +1032,7 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 2;
         private static final int SPLIT = 3;
 
-        public int splitMaxHealth;
+        private int splitMaxHealth;
 
         public LargeAcidSlime() {
             this(72);

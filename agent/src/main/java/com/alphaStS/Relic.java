@@ -6,7 +6,7 @@ import com.alphaStS.enemy.EnemyReadOnly;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class Relic implements GameProperties.CounterRegistrant {
+public abstract class Relic implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
     public boolean changePlayerStrength;
     public boolean changePlayerDexterity;
     public boolean vulnEnemy;
@@ -19,6 +19,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
     int counterIdx = -1;
     @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
+    }
+    int vArrayIdx = -1;
+    @Override public void setVArrayIdx(int idx) {
+        vArrayIdx = idx;
     }
 
     private static boolean isEliteFight(GameState state) {
@@ -216,6 +220,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant {
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
+                }
+            });
+            state.prop.addExtraTrainingTarget("Nunchaku", this, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                    if (enemiesAllDead) {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
+                    } else {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    v[GameState.V_HEALTH_IDX] += 2 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
                 }
             });
         }

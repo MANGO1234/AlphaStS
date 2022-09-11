@@ -57,8 +57,8 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodPIndexes;
     public int[] infernalBladeIndexes;
     public int[] healCardsIdxes;
+    public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
     public int ritualDaggerCounterIdx = -1;
-    public int ritualDaggerVArrayIdx = -1;
     public int feedCounterIdx = -1;
 
     public boolean hasBlueCandle;
@@ -145,6 +145,10 @@ public class GameProperties implements Cloneable {
         void setCounterIdx(GameProperties gameProperties, int idx);
     }
 
+    interface TrainingTargetRegistrant {
+        void setVArrayIdx(int idx);
+    }
+
     public interface NetworkInputHandler {
         int addToInput(GameState state, float[] input, int idx);
         int getInputLenDelta();
@@ -200,6 +204,24 @@ public class GameProperties implements Cloneable {
         nnInputHandlersName = names.toArray(new String[] {});
         for (int i = 0; i < nnInputHandlersName.length; i++) {
             nnInputHandlers[i] = nnInputHandlerMap.get(nnInputHandlersName[i]);
+        }
+    }
+
+    Map<String, TrainingTarget> trainingTargetsMap = new HashMap<>();
+    Map<String, TrainingTargetRegistrant> trainingTargetsRegistrantMap = new HashMap<>();
+
+    public void addExtraTrainingTarget(String targetId, TrainingTargetRegistrant registrant, TrainingTarget target) {
+        if (trainingTargetsMap.get(targetId) == null) {
+            trainingTargetsMap.put(targetId, target);
+            trainingTargetsRegistrantMap.put(targetId, registrant);
+        }
+    }
+
+    public void compilerExtraTrainingTarget() {
+        var registrants = trainingTargetsRegistrantMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
+        for (int i = 0; i < registrants.size(); i++) {
+            registrants.get(i).getValue().setVArrayIdx(extraOutputLen++);
+            extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));
         }
     }
 }

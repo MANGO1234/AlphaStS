@@ -744,7 +744,6 @@ public class TestStates {
         builder.addCard(new Card.PowerThroughP(), 1);
         builder.addCard(new Card.Feed(), 1);
         builder.addCard(new Card.FiendFire(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 1);
         builder.addCard(new Card.Sentinel(), 1);
         builder.addCard(new Card.PommelStrike(), 1);
         builder.addCard(new Card.SeverSoul(), 1);

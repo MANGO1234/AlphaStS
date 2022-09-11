@@ -410,18 +410,12 @@ public class GameState implements State {
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
-//        prop.isSlimeBossFight = enemiesArg.stream().anyMatch((x) -> x instanceof Enemy.SlimeBoss);
         prop.originalEnemies = new EnemyList(enemies);
         for (int i = 0; i < prop.originalEnemies.size(); i++) {
             prop.originalEnemies.getForWrite(i);
         }
+        prop.compilerExtraTrainingTarget();
         prop.inputLen = getNNInputLen();
-        var outputIdx = 0;
-//        if (prop.ritualDaggerCounterIdx >= 0) {
-//            prop.ritualDaggerVArrayIdx = outputIdx++;
-//        }
-//        outputIdx += prop.potions.size();
-        prop.extraOutputLen = outputIdx;
 
         // mcts related fields
         terminal_action = -100;
@@ -1179,19 +1173,16 @@ public class GameState implements State {
             Arrays.fill(out, 0);
             return;
         }
-        boolean allDead = true;
+        boolean enemiesAllDead = true;
         for (var enemy : enemies) {
             if (enemy.isAlive()) {
-                allDead = false;
+                enemiesAllDead = false;
                 break;
             }
         }
-        if (allDead) {
+        if (enemiesAllDead) {
             out[V_WIN_IDX] = 1;
             out[V_HEALTH_IDX] = ((double) player.getHealth()) / player.getMaxHealth();
-            if (prop.ritualDaggerVArrayIdx >= 0) {
-                out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : 0;
-            }
             if (prop.testPotionOutput) {
                 for (int i = 0; i < prop.potions.size(); i++) {
                     if (potionsState[i * 3] == 1 || potionsState[i * 3 + 2] == 0) {
@@ -1204,9 +1195,6 @@ public class GameState implements State {
         } else {
             out[V_WIN_IDX] = v_win;
             out[V_HEALTH_IDX] = Math.min(v_health, getMaxPossibleHealth() / (float) getPlayeForRead().getMaxHealth());
-            if (prop.ritualDaggerVArrayIdx >= 0) {
-                out[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] = getCounterForRead()[prop.ritualDaggerCounterIdx] < 0 ? 0 : getCounterForRead()[prop.ritualDaggerCounterIdx] > 0 ? 1 : v_other[prop.ritualDaggerVArrayIdx];
-            }
             if (prop.testPotionOutput) {
                 for (int i = 0; i < prop.potions.size(); i++) {
                     if (potionsState[i * 3 + 2] == 0) {
@@ -1218,6 +1206,9 @@ public class GameState implements State {
                     }
                 }
             }
+        }
+        for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
+            prop.extraTrainingTargets.get(i).fillVArray(this, out, enemiesAllDead);
         }
         out[V_COMB_IDX] = calc_q(out);
     }
@@ -1311,15 +1302,16 @@ public class GameState implements State {
         var win = v[V_WIN_IDX];
         for (int i = 0; i < prop.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot) {
-                health = Math.min(health - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                win = win * potionsState[i * 3 + 1] / 100.0;
+                v[V_HEALTH_IDX] = Math.min(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
         }
-        // todo: how do we want to do bonus for potions ritual dagger etc.??
-//        if (prop.ritualDaggerVArrayIdx >= 0) {
-//            health *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
-//        }
-        double base = win * 0.5 + win * win * health * 0.5;
+        for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
+            prop.extraTrainingTargets.get(i).updateQValues(this, v);
+        }
+        double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * v[V_HEALTH_IDX] * 0.5;
+        v[V_WIN_IDX] = win;
+        v[V_HEALTH_IDX] = health;
         if (prop.testPotionOutput) {
             for (int i = 0; i < prop.potions.size(); i++) {
                 //                health = Math.max(0, health - (1 - v[V_OTHER_IDX_START + i]) * (15 / (float) player.getMaxHealth()));
@@ -1327,17 +1319,6 @@ public class GameState implements State {
                     base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[V_OTHER_IDX_START + i];
                 }
             }
-        }
-        //        if (!prop.tmp && prop.ritualDaggerCounterIdx >= 0) {
-//            base *= 1 - ((1 - getCounterForRead()[prop.ritualDaggerCounterIdx]) / 2.0) * Configuration.UTIL_FOR_RITUAL_DAGGER;
-//        }
-        if (prop.testNewFeature && prop.ritualDaggerVArrayIdx >= 0) {
-            base *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
-//            if (v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] == 0 || v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx] == 1) {
-//                base *= 1 - ((1 - v[V_OTHER_IDX_START + prop.ritualDaggerVArrayIdx]) * Configuration.UTIL_FOR_RITUAL_DAGGER);
-//            } else {
-//                base *= 1 - ((1 - base) * Configuration.UTIL_FOR_RITUAL_DAGGER);
-//            }
         }
         if (!prop.testPotionOutput) {
             for (int i = 0; i < prop.potions.size(); i++) {
@@ -1450,7 +1431,7 @@ public class GameState implements State {
                 str.append(", other=[").append(tmp).append("]");
             }
         }
-        boolean showQComb = prop.potions.size() > 0 || (prop.ritualDaggerCounterIdx >= 0 && isTerminal() > 0);
+        boolean showQComb = prop.potions.size() > 0 || (prop.extraTrainingTargets.size() > 0 && isTerminal() > 0);
         str.append(", v=(");
         if (showQComb) {
             str.append(formatFloat(get_q())).append("/");
@@ -1659,8 +1640,6 @@ public class GameState implements State {
             inputLen += enemy.getNNInputLen(prop);
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 inputLen += 1;
-            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime) {
-                inputLen += 1;
             }
         }
         return inputLen;
@@ -1819,8 +1798,6 @@ public class GameState implements State {
             }
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                 str += "        1 input to keep track of louse damage\n";
-            } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime) {
-                str += "        1 input to keep track of health slime boss split at\n";
             }
         }
         return str;
@@ -2009,8 +1986,6 @@ public class GameState implements State {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
                 } else if (enemy instanceof Enemy.GreenLouse louse) {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
-                } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
-                    x[idx++] = slime.splitMaxHealth / (float) slime.maxHealth;
                 }
             } else {
                 x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
@@ -2051,8 +2026,6 @@ public class GameState implements State {
                 }
                 if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
                     x[idx++] = -0.1f;
-                } else if (prop.isSlimeBossFight && enemy instanceof Enemy.LargeAcidSlime slime) {
-                    x[idx++] = slime.splitMaxHealth / (float) slime.maxHealth;
                 }
             }
         }
@@ -2653,6 +2626,10 @@ public class GameState implements State {
         } else {
             select1OutOf3CardsIdxes = (idx1 << 16) + (idx2 << 8) + idx3;
         }
+    }
+
+    public double getVOther(int vArrayIdx) {
+        return v_other[vArrayIdx];
     }
 }
 
