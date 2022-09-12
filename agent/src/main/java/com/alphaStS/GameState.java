@@ -747,7 +747,7 @@ public class GameState implements State {
         }
     }
 
-    boolean playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy, boolean exhaustWhenPlayed) {
+    boolean playCard(GameAction action, int selectIdx, boolean runActionQueueOnEnd, boolean cloned, boolean useEnergy, boolean exhaustWhenPlayed) {
         int cardIdx = action.idx();
         int lastSelectedIdx = -1;
         boolean cardPlayedSuccessfully = true;
@@ -755,7 +755,9 @@ public class GameState implements State {
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             hand[cardIdx] -= 1;
             if (energyCost < 0) {
-                runActionsInQueueIfNonEmpty();
+                if (runActionQueueOnEnd) {
+                    runActionsInQueueIfNonEmpty();
+                }
                 return false;
             }
             if (useEnergy) {
@@ -799,6 +801,7 @@ public class GameState implements State {
                         setActionCtx(GameActionCtx.PLAY_CARD, action);
                     }
                 } else {
+                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
@@ -815,6 +818,7 @@ public class GameState implements State {
                     setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
+                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
@@ -833,6 +837,7 @@ public class GameState implements State {
                     setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
+                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
@@ -849,6 +854,7 @@ public class GameState implements State {
                     setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
                     selectIdx = -1;
                 } else {
+                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
@@ -857,8 +863,10 @@ public class GameState implements State {
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
         if (actionCtx == GameActionCtx.PLAY_CARD) {
-            for (var handler : prop.onCardPlayedHandlers) {
-                handler.handle(this, prop.cardDict[cardIdx], lastSelectedIdx, cloned);
+            if (cardPlayedSuccessfully) {
+                for (var handler : prop.onCardPlayedHandlers) {
+                    handler.handle(this, prop.cardDict[cardIdx], lastSelectedIdx, cloned);
+                }
             }
             if (!cloned && !exhaustWhenPlayed) {
                 if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
@@ -870,7 +878,9 @@ public class GameState implements State {
                 }
             }
             if (prop.normalityCounterIdx < 0 || counter[prop.normalityCounterIdx] < 3) { // todo: hack
-                runActionsInQueueIfNonEmpty();
+                if (runActionQueueOnEnd) {
+                    runActionsInQueueIfNonEmpty();
+                }
             }
         }
         return cardPlayedSuccessfully;
@@ -1026,7 +1036,13 @@ public class GameState implements State {
             if (enemy.isAlive()) {
                 var enemy2 = enemies.getForWrite(i);
                 if (prop.hasRunicDome) {
+                    var oldIsStochastic = isStochastic;
+                    isStochastic = false;
                     enemy2.nextMove(this, getSearchRandomGen());
+                    if (isStochastic && prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
+                        rgi.selectEnemyMove(this, enemy2, i);
+                    }
+                    isStochastic = oldIsStochastic;
                 }
                 enemy2.startTurn();
                 enemy2.doMove(this);
@@ -1056,27 +1072,27 @@ public class GameState implements State {
 //            startTurn();
             setActionCtx(GameActionCtx.BEGIN_TURN, null);
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action, -1, false, true, false);
+            playCard(action, -1, true, false, true, false);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), false, true, false);
+                playCard(currentAction, action.idx(), true, false, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), false, true, false);
+                playCard(currentAction, action.idx(), true, false, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), false, true, false);
+                playCard(currentAction, action.idx(), true, false, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(currentAction, action.idx(), false, true, false);
+            playCard(currentAction, action.idx(), true, false, true, false);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             addCardToHand(action.idx());
             setActionCtx(GameActionCtx.PLAY_CARD, null);
@@ -1459,7 +1475,8 @@ public class GameState implements State {
             first = true;
             for (int i = 0; i < prop.counterHandlers.length; i++) {
                 if (prop.counterHandlers[i] != null && getCounterForRead()[i] != 0) {
-                    tmp.append(first ? "" : ", ").append(prop.counterNames[i]).append('=').append(getCounterForRead()[i]);
+                    String s = prop.counterHandlers[i].getDisplayString(this);
+                    tmp.append(first ? "" : ", ").append(prop.counterNames[i]).append('=').append(s != null ? s : getCounterForRead()[i]);
                     first = false;
                 }
             }
@@ -2708,7 +2725,7 @@ public class GameState implements State {
             if (orbs[0] == OrbType.FROST.ordinal()) {
                 getPlayerForWrite().gainBlock(5);
             } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
-                int idx = getRandomEnemyIdx(RandomGenCtx.RandomEnemyLightningOrb);
+                int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
                 if (idx >= 0) {
                     var enemy = getEnemiesForWrite().getForWrite(idx);
                     enemy.nonAttackDamage(8, true, this);
@@ -2732,7 +2749,7 @@ public class GameState implements State {
             if (orbs[i] == OrbType.FROST.ordinal()) {
                 getPlayerForWrite().gainBlock(2);
             } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
-                int idx = getRandomEnemyIdx(RandomGenCtx.RandomEnemyLightningOrb);
+                int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
                 if (idx >= 0) {
                     var enemy = getEnemiesForWrite().getForWrite(idx);
                     enemy.nonAttackDamage(3, true, this);
@@ -2744,25 +2761,6 @@ public class GameState implements State {
                 // todo: implement dark orb
             }
         }
-    }
-
-    public int getRandomEnemyIdx(RandomGenCtx ctx) {
-        int idx = 0;
-        if (enemiesAlive > 1) {
-            idx = getSearchRandomGen().nextInt(enemiesAlive, ctx, this);
-            isStochastic = true;
-        }
-        int enemy_j = 0;
-        var e = getEnemiesForRead();
-        for (int i = 0; i < e.size(); i++) {
-            if (e.get(i).isAlive()) {
-                if (idx == enemy_j) {
-                    return idx;
-                }
-                enemy_j++;
-            }
-        }
-        return -1; // only happens when enemy all die in the middle of an action
     }
 }
 

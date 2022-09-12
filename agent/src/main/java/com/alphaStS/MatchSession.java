@@ -611,7 +611,7 @@ public class MatchSession {
                         }
                         if (!ts1.equals(ts2)) {
                             reruns = new ArrayList<>();
-                            for (int j = 0; j < 3; j++) {
+                            for (int j = 0; j < Configuration.CMP_DEVIATION_NUM_RERUN; j++) {
                                 var rerunState = ts1.clone(false);
                                 rerunState.prop = rerunState.prop.clone();
                                 rerunState.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
@@ -1221,9 +1221,9 @@ public class MatchSession {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        pruneForcedPlayouts(steps);
         var gameRecordWriter = new StringWriter();
         writeTrainingGameRecord(gameRecordWriter, origState, game, steps);
+        pruneForcedPlayouts(steps);
         var byteStream = new ByteArrayOutputStream();
         writeTrainingData(new DataOutputStream(byteStream), steps);
         writeTrainingData(new DataOutputStream(byteStream), game.augmentedSteps);
@@ -1309,22 +1309,32 @@ public class MatchSession {
                         var order = state.getEnemyOrder();
                         for (int actionIdx = 0; actionIdx < state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length; actionIdx++) {
                             int action = order != null ? order[actionIdx] : actionIdx;
-                            if (false) {
-                                if (state.terminal_action == action) {
-                                    stream.writeFloat(1);
-                                } else {
-                                    stream.writeFloat(0);
-                                }
-                            } else if (state.isActionLegal(action)) {
+                            if (state.isActionLegal(action)) {
                                 if (order != null) {
                                     for (int idx2 = 0; idx2 < state.getLegalActions().length; idx2++) {
                                         if (state.getLegalActions()[idx2] == action) {
-                                            stream.writeFloat((float) (((double) state.n[idx2]) / state.total_n));
+                                            if (state.terminal_action >= 0) {
+                                                if (state.terminal_action == idx2) {
+                                                    stream.writeFloat(1);
+                                                } else {
+                                                    stream.writeFloat(0);
+                                                }
+                                            } else {
+                                                stream.writeFloat((float) (((double) state.n[idx2]) / state.total_n));
+                                            }
                                         }
                                     }
                                 } else {
                                     if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                        stream.writeFloat((float) (((double) state.n[order[idx++]]) / state.total_n));
+                                        if (state.terminal_action >= 0) {
+                                            if (state.terminal_action == idx++) {
+                                                stream.writeFloat(1);
+                                            } else {
+                                                stream.writeFloat(0);
+                                            }
+                                        } else {
+                                            stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                        }
                                     } else {
                                         Integer.parseInt(null);
                                     }
@@ -1363,15 +1373,17 @@ public class MatchSession {
                     }
                 } else {
                     for (int action = 0; action < state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
-                        if (false) {
-                            if (state.terminal_action == action) {
-                                stream.writeFloat(1);
-                            } else {
-                                stream.writeFloat(0);
-                            }
-                        } else if (state.isActionLegal(action)) {
+                        if (state.isActionLegal(action)) {
                             if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                if (state.terminal_action >= 0) {
+                                    if (state.terminal_action == idx++) {
+                                        stream.writeFloat(1);
+                                    } else {
+                                        stream.writeFloat(0);
+                                    }
+                                } else {
+                                    stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
+                                }
                             } else {
                                 Integer.parseInt(null);
                             }

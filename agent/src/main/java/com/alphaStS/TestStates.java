@@ -809,12 +809,13 @@ public class TestStates {
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.BootSequenceP(), 1);
         builder.addCard(new CardDefect.EchoForm(), 2);
-        EnemyEncounter.addSentrieFight(builder);
+        EnemyEncounter.addByrdsFight(builder);
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.RunicDome());
-        builder.setPlayer(new Player(68, 75));
+        builder.addPotion(new Potion.DistilledChaos());
+        builder.setPlayer(new Player(61, 61));
         return new GameState(builder);
     }
 }

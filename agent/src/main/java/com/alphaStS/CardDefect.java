@@ -4,6 +4,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 
 import java.util.List;
+import java.util.Objects;
 
 public class CardDefect {
     public static class DualCast extends Card {
@@ -307,12 +308,12 @@ public class CardDefect {
                     }
                     int remain = (state.getCounterForRead()[counterIdx] & ((1 << 16) - 1));
                     if (remain > 0) {
-                        var counters = state.getCounterForWrite();
                         state.addGameActionToStartOfDeque(curState -> {
                             var cardIdx = curState.prop.findCardIndex(card);
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, false, false)) {
-                                counters[counterIdx] -= 1;
+                            if (curState.playCard(action, lastIdx, false,true, false, false)) {
+                                curState.getCounterForWrite()[counterIdx] -= 1;
+                                curState.runActionsInQueueIfNonEmpty();
                             }
                         });
                     }

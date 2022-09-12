@@ -5,18 +5,18 @@ import com.alphaStS.utils.Utils;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class GameStateUtils {
 
     public static int getRandomEnemyIdx(GameState state, RandomGenCtx ctx) {
         int enemyIdx;
-        if (state.enemiesAlive == 1) {
+        if (state.enemiesAlive == 0) {
+            return -1;
+        } else if (state.enemiesAlive == 1) {
             enemyIdx = 0;
         } else {
             enemyIdx = state.getSearchRandomGen().nextInt(state.enemiesAlive, ctx, state);

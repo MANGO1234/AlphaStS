@@ -445,13 +445,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             });
             state.addGameActionToStartOfDeque(curState -> {
                 var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                curState.playCard(action, -1, false, false, true);
+                curState.playCard(action, -1, true, false, false, true);
                 while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                     int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
                     if (curState.prop.makingRealMove) {
                         curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
                     }
-                    curState.playCard(action, enemyIdx, false, false, true);
+                    curState.playCard(action, enemyIdx, true, false, false, true);
                 }
             });
             return GameActionCtx.PLAY_CARD;
@@ -2491,7 +2491,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     state.addGameActionToEndOfDeque(curState -> {
                         var cardIdx = curState.prop.findCardIndex(card);
                         var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                        curState.playCard(action, lastIdx, true, false, false);
+                        curState.playCard(action, lastIdx, true, true, false, false);
                     });
                 }
             });

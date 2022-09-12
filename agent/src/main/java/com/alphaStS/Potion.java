@@ -268,13 +268,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
                     }
                     var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                    curState.playCard(action, -1, false, false, false);
+                    curState.playCard(action, -1, true,false, false, false);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
                         if (curState.prop.makingRealMove) {
-                            curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
+                            curState.getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : curState.getEnemiesForRead().get(enemyIdx).getName())
+                                    .append(" (").append(enemyIdx).append(")");
                         }
-                        curState.playCard(action, enemyIdx, false, false, false);
+                        curState.playCard(action, enemyIdx, true,false, false, false);
                     }
                 });
             }

@@ -671,10 +671,13 @@ public class InteractiveMode {
         }
     }
 
-    static int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        int i = 0;
-        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-            System.out.println((i++) + ". " + enemy.getName());
+    static int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history, RandomGenCtx ctx) throws IOException {
+        System.out.println("Select enemy for " + ctx);
+        int idx = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i ++) {
+            if (state.getEnemiesForRead().get(i).isAlive()) {
+                System.out.println(idx + ". " + state.getEnemiesForRead().get(i).getName() + "(" + i + ")");
+            }
         }
         while (true) {
             System.out.print("> ");
@@ -987,9 +990,9 @@ public class InteractiveMode {
                     throw new RuntimeException(e);
                 }
             }
-            case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang -> {
+            case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb -> {
                 try {
-                    return InteractiveMode.selectEnemeyRandomInteractive(reader, (GameState) arg, history);
+                    return InteractiveMode.selectEnemeyRandomInteractive(reader, (GameState) arg, history, ctx);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -1008,6 +1011,29 @@ public class InteractiveMode {
             random = new Random();
             random.setSeed(seed);
             return new RandomGenInteractive(random, reader, history);
+        }
+
+        public void selectEnemyMove(GameState state, Enemy enemy, int enemyIdx) {
+            System.out.println("Select move for " + enemy.getName() + " (" + enemyIdx + ")");
+            for (int i = 0; i < enemy.numOfMoves; i++) {
+                System.out.println(i + ". " + enemy.getMoveString(state, i));
+            }
+            while (true) {
+                System.out.print("> ");
+                String line;
+                try {
+                    line = reader.readLine();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                history.add(line);
+                int r = parseInt(line, -1);
+                if (0 <= r && r < enemy.numOfMoves) {
+                    enemy.setMove(r);
+                    return;
+                }
+                System.out.println("Unknown Move");
+            }
         }
     }
 }

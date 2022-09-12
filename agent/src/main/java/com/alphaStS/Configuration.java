@@ -17,6 +17,7 @@ public class Configuration {
     public static final float PRE_BATTLE_SCENARIO_TEMP = 0f;
 
     public static final boolean PRINT_MODEL_COMPARE_DIFF = false;
+    public static final int CMP_DEVIATION_NUM_RERUN = 3;
     public static final int SLEEP_PER_GAME = 0;
     public static final int SLEEP_PER_GAME_TRAINING = 250;
     public static final boolean USE_REMOTE_SERVERS = true;
