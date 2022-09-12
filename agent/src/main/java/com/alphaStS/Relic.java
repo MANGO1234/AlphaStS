@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.OrbType;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,7 +42,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             state.buffs |= PlayerBuff.AKABEKO.mask();
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.AKABEKO.mask();
                     }
@@ -69,7 +70,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class ArtOfWar extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.ART_OF_WAR.mask();
                     }
@@ -206,7 +207,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -265,7 +266,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -421,7 +422,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
                     if (counter[counterIdx] == 10) {
@@ -447,7 +448,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -479,7 +480,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.SKILL) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -544,7 +545,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -581,7 +582,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -620,7 +621,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void startOfGameSetup(GameState state) {
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType == Card.POWER) {
                         state.healPlayer(2);
                     }
@@ -795,7 +796,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Runic Dome
+    public static class RunicDome extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.energyRefill += 1;
+            state.prop.hasRunicDome = true;
+        }
+    }
 
     public static class RunicPyramid extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -907,7 +913,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // **********************************************************************************************************************************************
-    // *********************************************************** Class Specific Relics ************************************************************
+    // ******************************************************** Ironclad Specific Relics ************************************************************
     // **********************************************************************************************************************************************
 
     public static class BurningBlood extends Relic {
@@ -968,6 +974,20 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class ChampionBelt extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.hasChampionBelt = true;
+        }
+    }
+
+    // **********************************************************************************************************************************************
+    // ********************************************************** Defect Specific Relics ************************************************************
+    // **********************************************************************************************************************************************
+
+    public static class CrackedOrb extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.channelOrb(OrbType.LIGHTNING);
+                }
+            });
         }
     }
 }

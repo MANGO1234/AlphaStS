@@ -71,7 +71,7 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                if (!(Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature))) {
+                if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
                     var s = state.transpositions.get(state2);
                     if (s == null) {
                         state.ns[action] = new ChanceState(state2, state, action);
@@ -79,7 +79,7 @@ public class MCTS {
                         this.search2_r(state2, training, remainingCalls, false);
                         ((ChanceState) (state.ns[action])).correctV(state2, v);
                     } else {
-                        state2 = (GameState) s ;
+                        state2 = (GameState) s;
                         state.ns[action] = new ChanceState(state2, state, action);
                         this.search2_r(state2, training, remainingCalls, false);
                         ((ChanceState) (state.ns[action])).correctV(state2, v);

@@ -70,7 +70,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     var enemy = state.getEnemiesForRead().get(idx);
                     if (card.cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
                         state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
@@ -107,6 +107,7 @@ public class EnemyBeyond {
             if (move == -1) {
                 newMove = SLASH;
             } else if (!awakened) {
+                state.isStochastic = true;
                 int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (r < 25) {
                     if (move != SOUL_STRIKE) {
@@ -123,6 +124,7 @@ public class EnemyBeyond {
                 if (move == REBIRTH) {
                     newMove = DARK_ECHO;
                 } else {
+                    state.isStochastic = true;
                     int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                     if (r < 50) {
                         if (move != TACKLE || moveHistory[0] != TACKLE) {

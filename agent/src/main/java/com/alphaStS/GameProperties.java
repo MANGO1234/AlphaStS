@@ -70,6 +70,7 @@ public class GameProperties implements Cloneable {
     public boolean hasIceCream;
     public boolean hasMedicalKit;
     public boolean hasOddMushroom;
+    public boolean hasRunicDome;
     public boolean hasRunicPyramid;
     public boolean hasSacredBark;
     public boolean hasStrangeSpoon;
@@ -107,6 +108,9 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization preBattleScenarios;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
     public List<BiConsumer<GameState, int[]>> enemiesReordering;
+
+    // defect specific
+    public int maxNumOfOrbs;
 
     public double cpuct = 0.1;
 
@@ -154,6 +158,7 @@ public class GameProperties implements Cloneable {
     public interface NetworkInputHandler {
         int addToInput(GameState state, float[] input, int idx);
         int getInputLenDelta();
+        default String getDisplayString(GameState state) { return null; }
     }
 
     Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();

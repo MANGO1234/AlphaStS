@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
 
 import java.io.*;
@@ -90,6 +91,14 @@ public class InteractiveMode {
                 if (state.getPlayeForRead().getBlock() > 0) {
                     System.out.println("  Block: " + state.getPlayeForRead().getBlock());
                 }
+                if (state.getOrbs() != null) {
+                    var orbs = state.getOrbs();
+                    System.out.print("  Orbs (" + orbs.length + "): ");
+                    for (int i = orbs.length - 1; i >= 0; i--) {
+                        System.out.print((i == orbs.length - 1 ? "" : ", ") + OrbType.values()[orbs[i]].displayName);
+                    }
+                    System.out.println();
+                }
                 if (state.getPlayeForRead().getStrength() != 0) {
                     System.out.println("  Strength: " + state.getPlayeForRead().getStrength());
                 }
@@ -117,7 +126,8 @@ public class InteractiveMode {
                     System.out.println("  Other:");
                     for (int i = 0; i < state.prop.counterHandlers.length; i++) {
                         if (state.prop.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
-                            System.out.println("    - " + state.prop.counterNames[i] + "=" + state.getCounterForRead()[i]);
+                            String counterStr = state.prop.counterHandlers[i].getDisplayString(state);
+                            System.out.println("    - " + state.prop.counterNames[i] + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[i]));
                         }
                     }
                     if (state.getPlayeForRead().isEntangled()) {
@@ -857,7 +867,7 @@ public class InteractiveMode {
         for (int i = state.total_n; i < count; i++) {
             mcts.search(state, false, -1);
         }
-        System.out.println(state.toStringReadable());
+        System.out.println(state);
     }
 
     private static void runNNPV(GameState state, MCTS mcts, String line) {
@@ -885,7 +895,7 @@ public class InteractiveMode {
                     s = ns2;
                 }
             } else {
-                System.out.println("Unknown ns: " + state.toStringReadable());
+                System.out.println("Unknown ns: " + state);
                 System.out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
                 break;
             }

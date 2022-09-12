@@ -1,15 +1,16 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
 public class GameStateBuilder {
     private Player player = null;
+    private CharacterEnum character = CharacterEnum.IRONCLAD;
     private List<CardCount> cards = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
     private List<Relic> relics = new ArrayList<>();
@@ -92,5 +93,13 @@ public class GameStateBuilder {
 
     public List<BiConsumer<GameState, int[]>> getEnemyReordering() {
         return enemyReorderings;
+    }
+
+    public void setCharacter(CharacterEnum character) {
+        this.character = character;
+    }
+
+    public CharacterEnum getCharacter() {
+        return character;
     }
 }

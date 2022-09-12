@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyEncounter;
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 
 import java.util.List;
@@ -791,6 +792,29 @@ public class TestStates {
         builder.addRelic(new Relic.PreservedInsect());
         builder.addRelic(new Relic.OddlySmoothStone());
         builder.setPlayer(new Player(26, 42));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateDefect() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.SunderP(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.BootSequenceP(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 2);
+        EnemyEncounter.addSentrieFight(builder);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.RunicDome());
+        builder.setPlayer(new Player(68, 75));
         return new GameState(builder);
     }
 }

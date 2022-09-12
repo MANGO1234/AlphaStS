@@ -150,7 +150,7 @@ public class GameStateUtils {
         }
         if (s instanceof ChanceState state) {
             for (ChanceState.Node node : state.cache.values()) {
-                writer.write(indent + "Chance Node (" + node.n + "/" + state.total_node_n + "): " + node.state.toStringReadable() + "\n");
+                writer.write(indent + "Chance Node (" + node.n + "/" + state.total_node_n + "): " + node.state.toString() + "\n");
                 if (node.state.n == null) {
                     return;
                 }
@@ -168,7 +168,7 @@ public class GameStateUtils {
                 }
             }
         } else if (s instanceof GameState state) {
-            writer.write(indent + "Normal Node: " + state.toStringReadable() + "\n");
+            writer.write(indent + "Normal Node: " + state.toString() + "\n");
             if (state.n == null) {
                 return;
             }
@@ -204,7 +204,7 @@ public class GameStateUtils {
             return;
         }
         if (s instanceof ChanceState cState) {
-            writer.write(indent + parentState.toStringReadable() + "\n");
+            writer.write(indent + parentState.toString() + "\n");
             for (ChanceState.Node node : cState.cache.values().stream().sorted((a, b) -> Long.compare(b.n, a.n)).toList()) {
                 writer.write(indent + "Chance Node (" + node.n + "/" + cState.total_node_n + "): " + diffGameState(parentState, node.state) + "\n");
                 var state = node.state;

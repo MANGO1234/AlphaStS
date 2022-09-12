@@ -7,6 +7,7 @@ public enum RandomGenCtx {
     RandomEnemySwordBoomerang,
     RandomEnemyJuggernaut,
     RandomEnemyGeneral,
+    RandomEnemyLightningOrb,
     TrueGrit,
     WarpedTongs,
     ShieldGremlin,

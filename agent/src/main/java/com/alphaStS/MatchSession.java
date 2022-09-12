@@ -342,7 +342,7 @@ public class MatchSession {
                             for (GameStep step : steps) {
                                 if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
                                 if (step.lines != null) {
-                                    matchLogWriter.write(step.state().toStringReadable() + "\n");
+                                    matchLogWriter.write(step.state().toString() + "\n");
                                     for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
                                         matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
                                     }
@@ -1472,7 +1472,7 @@ public class MatchSession {
         for (int i = 0; i < steps.size(); i++) {
             var step = steps.get(i);
             if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
-            writer.write(step.state().toStringReadable() + "\n");
+            writer.write(step.state() + "\n");
             if (step.v != null) {
                 writer.write(Arrays.toString(step.v) + "\n");
             }
@@ -1668,7 +1668,7 @@ public class MatchSession {
                             for (GameStep step : steps) {
                                 if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
                                 if (step.lines != null) {
-                                    matchLogWriter.write(step.state().toStringReadable() + "\n");
+                                    matchLogWriter.write(step.state() + "\n");
                                     for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
                                         matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
                                     }

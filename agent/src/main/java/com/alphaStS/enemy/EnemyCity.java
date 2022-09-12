@@ -334,6 +334,7 @@ public class EnemyCity {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
+            state.isStochastic = true;
             nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
         }
 
@@ -412,6 +413,7 @@ public class EnemyCity {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
+            state.isStochastic = true;
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 15) {
@@ -615,12 +617,14 @@ public class EnemyCity {
             if (move == STUNNED || move == HEADBUTT) {
                 newMove = move + 1;
             } else if (move == -1) { // first turn
+                state.isStochastic = true;
                 if (random.nextInt(200, RandomGenCtx.EnemyChooseMove) < 125) {
                     newMove = PECK;
                 } else {
                     newMove = CAW;
                 }
             } else {
+                state.isStochastic = true;
                 int n = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (n < 50) {
                     if (move == PECK && moveHistory[0] == PECK) {
@@ -1009,6 +1013,7 @@ public class EnemyCity {
             if (move == -1) {
                 move = HEX;
             } else if (move == HEX || move == POKE || move == ZAP) {
+                state.isStochastic = true;
                 int r = random.nextInt(2, RandomGenCtx.EnemyChooseMove);
                 if (r == 0) {
                     move = DRAIN;
@@ -1016,6 +1021,7 @@ public class EnemyCity {
                     move = DEBILITATE;
                 }
             } else if (move == DEBILITATE || move == DRAIN) {
+                state.isStochastic = true;
                 int r = random.nextInt(10, RandomGenCtx.EnemyChooseMove);
                 if (r < 4) {
                     move = ZAP;
@@ -1055,7 +1061,7 @@ public class EnemyCity {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card) {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
                         state.addCardToDiscard(state.prop.dazedCardIdx);
                     }

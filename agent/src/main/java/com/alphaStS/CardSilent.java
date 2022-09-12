@@ -96,4 +96,75 @@ public class CardSilent {
             super("Acrobatics+", Card.SKILL, 1, 4);
         }
     }
+
+    // Backflip
+    // Bane
+    // Blade Dance
+    // Cloak And Dagger
+    // Dagger Spray
+    // Dagger Throw
+    // Deadly Poison
+    // Deflect
+    // Dodge and Roll
+    // Flying Knee
+    // Outmaneuver
+    // Piercing Wail
+    // Poisoned Stab
+    // Prepared
+    // Quick Slash
+    // Slice
+    // Sneaky Strike
+    // Sucker Punch
+    // Accuracy
+    // All-Out Attack
+    // Backstab
+    // Blur
+    // Bouncing Flask
+    // Calculated Gamble
+    // Caltrops
+    // Catalyst
+    // Choke
+    // Concentrate
+    // Crippling Cloud
+    // Dash
+    // Distraction
+    // Endless Agony
+    // Escape Plan
+    // Eviscerate
+    // Expertise
+    // Finisher
+    // Flechettes
+    // Footwork
+    // Heel Hook
+    // Infinite Blades
+    // Leg Sweep
+    // Masterful Stab
+    // Noxious Fumes
+    // Predator
+    // Reflex
+    // Riddle With Holes
+    // Setup
+    // Skewer
+    // Tactician
+    // Terror
+    // Well-Laid Plans
+    // A Thousand Cuts
+    // Adrenaline
+    // After Image
+    // Alchemize
+    // Bullet Time
+    // Burst
+    // Corpse Explosion
+    // Die Die Die
+    // Doppelganger
+    // Envenom
+    // Glass Knife
+    // Grand Finale
+    // Malaise
+    // Nightmare
+    // Phantasmal Killer
+    // Storm of Steel
+    // Tools of the Trade
+    // Unload
+    // Wraith Form
 }

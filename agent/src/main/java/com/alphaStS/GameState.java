@@ -5,6 +5,8 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyListReadOnly;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.enums.OrbType;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.BigRational;
@@ -106,7 +108,9 @@ public class GameState implements State {
 
     // various other buffs/debuffs
     public long buffs;
-    int lastEnemySelected;
+
+    // Defect specific
+    private short[] orbs;
 
     // search related fields
     private int[] legalActions;
@@ -142,7 +146,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && lastEnemySelected == gameState.lastEnemySelected && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && Arrays.equals(orbs, gameState.orbs) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
     }
 
     @Override public int hashCode() {
@@ -174,6 +178,10 @@ public class GameState implements State {
         prop.preBattleRandomization = preBattleRandomization;
         prop.potions = potions;
         prop.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
+        if (builder.getCharacter() == CharacterEnum.DEFECT) {
+            prop.maxNumOfOrbs = 3;
+            orbs = new short[3];
+        }
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics, potions);
         cards.sort((o1, o2) -> {
@@ -619,7 +627,9 @@ public class GameState implements State {
         buffs = other.buffs;
         counter = other.counter;
         select1OutOf3CardsIdxes = other.select1OutOf3CardsIdxes;
-        lastEnemySelected = other.lastEnemySelected;
+        if (other.orbs != null) {
+            orbs = Arrays.copyOf(other.orbs, other.orbs.length); // todo: make it copy on write
+        }
 
         legalActions = other.legalActions;
         terminal_action = -100;
@@ -647,6 +657,7 @@ public class GameState implements State {
             cardsInHand += hand[i];
         }
         count = Math.min(GameState.HAND_LIMIT - cardsInHand, count);
+        boolean firstRandomDraw = true;
         for (int c = 0; c < count; c++) {
             if (deckArrLen == 0) {
                 reshuffle();
@@ -669,13 +680,20 @@ public class GameState implements State {
                 deck[deckArr[i]] -= 1;
                 hand[deckArr[i]] += 1;
                 if (prop.makingRealMove) {
-                    getStateDesc().append(getStateDesc().length() > 0 ? ", " : "Draw ").append(prop.cardDict[deckArr[i]].cardName);
+                    if (firstRandomDraw) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Draw ");
+                        firstRandomDraw = false;
+                    }
+                    if (getStateDesc().charAt(getStateDesc().length() - 1) != ' ') {
+                        getStateDesc().append(", ");
+                    }
+                    getStateDesc().append(prop.cardDict[deckArr[i]].cardName);
                 }
                 deckArr[i] = deckArr[deckArrLen - 1];
                 deckArrLen -= 1;
             }
             for (var handler : prop.onCardDrawnHandlers) {
-                handler.handle(this, prop.cardDict[cardIdx]);
+                handler.handle(this, prop.cardDict[cardIdx], -1, false);
             }
         }
     }
@@ -718,7 +736,6 @@ public class GameState implements State {
         switch (ctx) {
         case PLAY_CARD -> {
             currentAction = null;
-            lastEnemySelected = -1;
             select1OutOf3CardsIdxes = 0;
             actionCtx = ctx;
         }
@@ -730,14 +747,16 @@ public class GameState implements State {
         }
     }
 
-    void playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy, boolean exhaustWhenPlayed) {
+    boolean playCard(GameAction action, int selectIdx, boolean cloned, boolean useEnergy, boolean exhaustWhenPlayed) {
         int cardIdx = action.idx();
+        int lastSelectedIdx = -1;
+        boolean cardPlayedSuccessfully = true;
         int energyCost = getCardEnergyCost(cardIdx);
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             hand[cardIdx] -= 1;
             if (energyCost < 0) {
                 runActionsInQueueIfNonEmpty();
-                return;
+                return false;
             }
             if (useEnergy) {
                 energy -= energyCost;
@@ -768,12 +787,17 @@ public class GameState implements State {
                     }
                 }
                 if (targetableEnemies == 1) {
-                    lastEnemySelected = idx;
+                    lastSelectedIdx = idx;
                     setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action);
                 } else if (selectIdx >= 0) {
-                    lastEnemySelected = selectIdx;
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
-                    selectIdx = -1;
+                    if (getEnemiesForRead().get(selectIdx).isAlive()) {
+                        lastSelectedIdx = selectIdx;
+                        setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                        selectIdx = -1;
+                    } else {
+                        cardPlayedSuccessfully = false;
+                        setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    }
                 } else {
                     break;
                 }
@@ -834,7 +858,7 @@ public class GameState implements State {
 
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             for (var handler : prop.onCardPlayedHandlers) {
-                handler.handle(this, prop.cardDict[cardIdx]);
+                handler.handle(this, prop.cardDict[cardIdx], lastSelectedIdx, cloned);
             }
             if (!cloned && !exhaustWhenPlayed) {
                 if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
@@ -849,6 +873,7 @@ public class GameState implements State {
                 runActionsInQueueIfNonEmpty();
             }
         }
+        return cardPlayedSuccessfully;
     }
 
     void usePotion(GameAction action, int selectIdx) {
@@ -877,10 +902,8 @@ public class GameState implements State {
                     }
                 }
                 if (targetableEnemies == 1) {
-                    lastEnemySelected = idx;
                     setActionCtx(prop.potions.get(potionIdx).use(this, idx), action);
                 } else if (selectIdx >= 0) {
-                    lastEnemySelected = selectIdx;
                     setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
                     selectIdx = -1;
                 } else {
@@ -949,7 +972,9 @@ public class GameState implements State {
             if (enemy.isAlive()) {
                 var enemy2 = enemies.getForWrite(i);
                 enemy2.endTurn(turnNum);
-                enemy2.nextMove(this, getSearchRandomGen());
+                if (!prop.hasRunicDome) {
+                    enemy2.nextMove(this, getSearchRandomGen());
+                }
             }
         }
         draw(5);
@@ -980,6 +1005,7 @@ public class GameState implements State {
         for (GameEventHandler handler : prop.preEndTurnHandlers) {
             handler.handle(this);
         }
+        triggerOrbsPassiveEndOfTurn();
         byte[] handDup = Arrays.copyOf(hand, hand.length);
         for (int i = 0; i < hand.length; i++) {
             if (handDup[i] > 0) {
@@ -999,6 +1025,9 @@ public class GameState implements State {
             var enemy = enemies.get(i);
             if (enemy.isAlive()) {
                 var enemy2 = enemies.getForWrite(i);
+                if (prop.hasRunicDome) {
+                    enemy2.nextMove(this, getSearchRandomGen());
+                }
                 enemy2.startTurn();
                 enemy2.doMove(this);
             }
@@ -1297,10 +1326,6 @@ public class GameState implements State {
         }
     }
 
-    @Override public String toString() {
-        return toStringReadable();
-    }
-
     public double calc_q(double[] v) {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
@@ -1340,7 +1365,7 @@ public class GameState implements State {
         return calc_q(out);
     }
 
-    public String toStringReadable() {
+    @Override public String toString() {
         boolean first;
         StringBuilder str = new StringBuilder("{");
         str.append("hand=[");
@@ -1396,6 +1421,13 @@ public class GameState implements State {
                     first = false;
                     str.append(exhaust[i]).append(" ").append(prop.cardDict[i].cardName);
                 }
+            }
+            str.append("]");
+        }
+        if (orbs != null) {
+            str.append(", orbs=[");
+            for (int i = orbs.length - 1; i >= 0 ; i--) {
+                str.append(i == orbs.length - 1 ? "" : ", ").append(OrbType.values()[orbs[i]].abbrev);
             }
             str.append("]");
         }
@@ -2650,6 +2682,87 @@ public class GameState implements State {
 
     public double getVOther(int vArrayIdx) {
         return v_other[vArrayIdx];
+    }
+
+    // Defect specific
+    public short[] getOrbs() {
+        return orbs;
+    }
+
+    public void channelOrb(OrbType orb) {
+        if (orbs[orbs.length - 1] != 0) {
+            evokeOrb(1);
+            orbs[orbs.length - 1] = (short) orb.ordinal();
+        } else {
+            for (int i = 0; i < orbs.length; i++) {
+                if (orbs[i] == 0) {
+                    orbs[i] = (short) orb.ordinal();
+                    break;
+                }
+            }
+        }
+    }
+
+    public void evokeOrb(int times) {
+        for (int i = 0; i < times; i++) {
+            if (orbs[0] == OrbType.FROST.ordinal()) {
+                getPlayerForWrite().gainBlock(5);
+            } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
+                int idx = getRandomEnemyIdx(RandomGenCtx.RandomEnemyLightningOrb);
+                if (idx >= 0) {
+                    var enemy = getEnemiesForWrite().getForWrite(idx);
+                    enemy.nonAttackDamage(8, true, this);
+                    if (prop.makingRealMove) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
+                    }
+                }
+            } else if (orbs[0] == OrbType.DARK.ordinal()) {
+                // todo: implement dark orb
+            } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
+                gainEnergy(2);
+            }
+        }
+        System.arraycopy(orbs, 1, orbs, 0, orbs.length - 1);
+        orbs[orbs.length - 1] = 0;
+    }
+
+    private void triggerOrbsPassiveEndOfTurn() {
+        if (orbs == null) return;
+        for (int i = 0; i < orbs.length; i++) {
+            if (orbs[i] == OrbType.FROST.ordinal()) {
+                getPlayerForWrite().gainBlock(2);
+            } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
+                int idx = getRandomEnemyIdx(RandomGenCtx.RandomEnemyLightningOrb);
+                if (idx >= 0) {
+                    var enemy = getEnemiesForWrite().getForWrite(idx);
+                    enemy.nonAttackDamage(3, true, this);
+                    if (prop.makingRealMove) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
+                    }
+                }
+            } else if (orbs[i] == OrbType.DARK.ordinal()) {
+                // todo: implement dark orb
+            }
+        }
+    }
+
+    public int getRandomEnemyIdx(RandomGenCtx ctx) {
+        int idx = 0;
+        if (enemiesAlive > 1) {
+            idx = getSearchRandomGen().nextInt(enemiesAlive, ctx, this);
+            isStochastic = true;
+        }
+        int enemy_j = 0;
+        var e = getEnemiesForRead();
+        for (int i = 0; i < e.size(); i++) {
+            if (e.get(i).isAlive()) {
+                if (idx == enemy_j) {
+                    return idx;
+                }
+                enemy_j++;
+            }
+        }
+        return -1; // only happens when enemy all die in the middle of an action
     }
 }
 
