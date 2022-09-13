@@ -263,6 +263,7 @@ public class MatchSession {
         var combinedInfoMap = ret.v1();
         var battleInfoMap = ret.v2();
         var scenarioStats = new HashMap<Integer, ScenarioStats>();
+        var chanceNodeStats = new HashMap<GameState, ScenarioStats>();
         var start = System.currentTimeMillis();
         var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
@@ -325,6 +326,10 @@ public class MatchSession {
                 }
                 scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
                 scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
+                if (scenarioStats.size() == 1 && startingAction >= 0 && game.steps.get(0).state().isStochastic) {
+                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
+                    chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
+                }
                 game_i += 1;
                 if (matchLogWriter != null) {
                     int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
@@ -377,6 +382,11 @@ public class MatchSession {
                             System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
                             scenarioStats.get(i).printStats(origState, 4);
                         }
+                    }
+                } else if (startingAction >= 0 && chanceNodeStats.size() > 1) {
+                    for (var stats : chanceNodeStats.entrySet()) {
+                        System.out.println("Random Event: " + stats.getKey().getStateDesc());
+                        stats.getValue().printStats(origState, 4);
                     }
                 }
                 if (scenariosGroup != null) {

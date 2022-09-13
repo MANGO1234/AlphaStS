@@ -87,7 +87,9 @@ public class InteractiveMode {
                 }
                 System.out.println("Player");
                 System.out.println("  Energy: " + state.energy);
-                System.out.println("  HP: " + state.getPlayeForRead().getHealth());
+                int maxPossibleHealth = state.getMaxPossibleHealth();
+                int health = state.getPlayeForRead().getHealth();
+                System.out.println("  HP: " + health + ((health != maxPossibleHealth) ? " (Max Possible HP=" + maxPossibleHealth + ")" : ""));
                 if (state.getPlayeForRead().getBlock() > 0) {
                     System.out.println("  Block: " + state.getPlayeForRead().getBlock());
                 }
@@ -104,6 +106,9 @@ public class InteractiveMode {
                 }
                 if (state.getPlayeForRead().getDexterity() != 0) {
                     System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
+                }
+                if (state.getFocus() > 0) {
+                    System.out.println("  Focus: " + state.getFocus());
                 }
                 if (state.getPlayeForRead().getVulnerable() > 0) {
                     System.out.println("  Vulnerable: " + state.getPlayeForRead().getVulnerable());

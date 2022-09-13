@@ -278,7 +278,7 @@ public class EnemyCity {
                             }
                         }
                         if (j < 4) {
-                            System.out.println(state.enemiesAlive);
+                            System.out.println("!!!!! ENEMIES_ALIVE IS WRONG " + state.enemiesAlive + ": " + j);
                         }
                     }
                 }
@@ -783,6 +783,112 @@ public class EnemyCity {
 
         public String getName() {
             return "Spheric Guardian";
+        }
+    }
+
+    public static class ShelledParasite extends Enemy {
+        static int DOUBLE_STRIKE = 0;
+        static int SUCK = 1;
+        static int FELL = 2;
+        static int STUNNED = 3;
+
+        public ShelledParasite() {
+            this(75);
+        }
+
+        public ShelledParasite(int health) {
+            super(health, 4);
+            canFrail = true;
+            canGainBlock = true;
+            metallicize = 14;
+            moveHistory = new int[1];
+        }
+
+        public ShelledParasite(ShelledParasite other) {
+            this(other.health);
+            setSharedFields(other);
+        }
+
+        @Override public Enemy copy() {
+            return new ShelledParasite(this);
+        }
+
+        @Override public void doMove(GameState state) {
+            if (move == DOUBLE_STRIKE) {
+                state.enemyDoDamageToPlayer(this, 7, 2);
+            } else if (move == SUCK) {
+                heal(state.enemyDoDamageToPlayer(this, 12, 1));
+            } else if (move == FELL) {
+                state.enemyDoDamageToPlayer(this, 21, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2 + 1);
+            } else if (move == STUNNED) {
+            }
+        }
+
+        @Override public void damage(int n, GameState state) {
+            var dmg = Math.max(0, n - block);
+            super.damage(n, state);
+            if (dmg > 0) {
+                metallicize -= 1;
+                if (dmg == 0) {
+                    move = STUNNED;
+                }
+            }
+        }
+
+        private int nextMove(GameState state, RandomGen random, int num) {
+            if (num < 20) {
+                if (move != FELL) {
+                    return move;
+                } else {
+                    return nextMove(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove) + 20);
+                }
+            } else if (num < 60) {
+                if (!(move == DOUBLE_STRIKE && moveHistory[0] == DOUBLE_STRIKE)) {
+                    return DOUBLE_STRIKE;
+                } else {
+                    return SUCK;
+                }
+            } else if (!(move == SUCK && moveHistory[0] == SUCK)) {
+                return SUCK;
+            } else {
+                return DOUBLE_STRIKE;
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move < 0) {
+                newMove = FELL;
+            } else {
+                state.isStochastic = true;
+                newMove = nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
+            }
+            moveHistory[0] = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == DOUBLE_STRIKE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7) + "x2";
+            } else if (move == SUCK) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12);
+            } else if (move == FELL) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 21) + "+Frail 2";
+            } else if (move == STUNNED) {
+                return "Stunned";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training) {
+            if (training) {
+                health = (int) ((random.nextInt(7, RandomGenCtx.Other, null) + 1) / 7.0 * 75);
+            }
+        }
+
+        public String getName() {
+            return "Shelled Parasite";
         }
     }
 

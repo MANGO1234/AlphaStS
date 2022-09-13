@@ -14,6 +14,7 @@ import com.alphaStS.utils.CircularArray;
 import com.alphaStS.utils.DrawOrder;
 import com.alphaStS.utils.DrawOrderReadOnly;
 
+import javax.imageio.event.IIOReadProgressListener;
 import java.util.*;
 
 import static com.alphaStS.utils.Utils.formatFloat;
@@ -111,6 +112,7 @@ public class GameState implements State {
 
     // Defect specific
     private short[] orbs;
+    private short focus;
 
     // search related fields
     private int[] legalActions;
@@ -146,7 +148,7 @@ public class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && Arrays.equals(orbs, gameState.orbs) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
     }
 
     @Override public int hashCode() {
@@ -348,6 +350,10 @@ public class GameState implements State {
                 prop.angerPCardIdx = i;
             } else if (cards.get(i).card().cardName.contains("Strike")) {
                 strikeIdxes.add(i);
+            } else if (cards.get(i).card().cardName.equals("Echo Form")) {
+                prop.echoFormCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Echo Form+")) {
+                prop.echoFormPCardIdx = i;
             }
         }
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
@@ -402,6 +408,7 @@ public class GameState implements State {
         prop.playerDexterityCanChange |= potions.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
         prop.playerDexterityEotCanChange = potions.stream().anyMatch((x) -> x.changePlayerDexterityEot);
+        prop.playerFocusCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerFocus);
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
@@ -630,6 +637,7 @@ public class GameState implements State {
         if (other.orbs != null) {
             orbs = Arrays.copyOf(other.orbs, other.orbs.length); // todo: make it copy on write
         }
+        focus = other.focus;
 
         legalActions = other.legalActions;
         terminal_action = -100;
@@ -1262,8 +1270,11 @@ public class GameState implements State {
         out[V_COMB_IDX] = calc_q(out);
     }
 
-    public boolean checkIfCanHeal() {
+    private boolean checkIfCanHeal() {
         if (prop.hasBurningBlood) {
+            return true;
+        }
+        if (prop.selfRepairCounterIdx >= 0) {
             return true;
         }
         if (prop.hasMeatOnBone) {
@@ -1283,8 +1294,8 @@ public class GameState implements State {
         return false;
     }
 
-    // todo
-    private int getMaxPossibleHealth() {
+    // todo: yeah domain knowledge is really really hard
+    public int getMaxPossibleHealth() {
         if (checkIfCanHeal()) {
             int v = 0;
             if (prop.healCardsIdxes != null) {
@@ -1303,9 +1314,28 @@ public class GameState implements State {
                             v += enemy.getHealth();
                         }
                     }
+                    if (prop.cardDict[prop.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ||
+                            prop.cardDict[prop.healCardsIdxes[i]] instanceof CardDefect.SelfRepairP) {
+                        int m = getNonExhaustCount(prop.healCardsIdxes[i]);
+                        if (m > 0) {
+                            if (prop.echoFormCardIdx > 0 || prop.echoFormPCardIdx > 0) {
+                                if (getCounterForRead()[prop.echoFormCounterIdx] > 0) {
+                                    m *= 2;
+                                } else if (prop.echoFormCardIdx > 0 && getNonExhaustCount(prop.echoFormCardIdx) > 0) {
+                                    m *= 2;
+                                } else if (prop.echoFormPCardIdx > 0 && getNonExhaustCount(prop.echoFormPCardIdx) > 0) {
+                                    m *= 2;
+                                }
+                            }
+                        }
+                        v += (prop.cardDict[prop.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ? 7 : 10) * m;
+                    }
                 }
             }
 
+            if (prop.selfRepairCounterIdx >= 0) {
+                v += getCounterForRead()[prop.selfRepairCounterIdx];
+            }
             if (prop.hasBurningBlood) {
                 v += 6;
             }
@@ -1313,6 +1343,7 @@ public class GameState implements State {
             int hp;
             if (prop.hasMeatOnBone) {
                 // todo: feed and meat on bone interaction when they are together
+                // todo: self repair and meat on bone interaction when they are together
                 if (getPlayeForRead().getHealth() >= getPlayeForRead().getMaxHealth() / 2 + 12) {
                     return Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
                 }
@@ -1327,6 +1358,10 @@ public class GameState implements State {
         } else {
             return getPlayeForRead().getHealth();
         }
+    }
+
+    private int getNonExhaustCount(int cardIdx) {
+        return getHand()[cardIdx] + getDiscard()[cardIdx] + getDeck()[cardIdx];
     }
 
     public int isTerminal() {
@@ -1446,6 +1481,9 @@ public class GameState implements State {
                 str.append(i == orbs.length - 1 ? "" : ", ").append(OrbType.values()[orbs[i]].abbrev);
             }
             str.append("]");
+        }
+        if (focus > 0) {
+            str.append(", focus=").append(focus);
         }
         str.append(", energy=").append(energy).append(", ctx=").append(actionCtx).append(", ").append(getPlayeForRead());
         str.append(", [");
@@ -1582,6 +1620,10 @@ public class GameState implements State {
         inputLen += 1; // energy
         inputLen += 1; // player health
         inputLen += 1; // player block
+        inputLen += prop.maxNumOfOrbs * 5;
+        if (prop.playerFocusCanChange) {
+            inputLen += 1; // focus
+        }
         if (prop.playerArtifactCanChange) {
             inputLen += 1; // player artifact
         }
@@ -1728,6 +1770,12 @@ public class GameState implements State {
         str += "    1 input to keep track of energy\n";
         str += "    1 input to keep track of player health\n";
         str += "    1 input to keep track of player block\n";
+        if (prop.maxNumOfOrbs > 0) {
+            str += "    " + prop.maxNumOfOrbs + "*5 inputs to keep track of player orb slots\n";
+        }
+        if (prop.playerFocusCanChange) {
+            str += "    1 input to keep track of player focus\n";
+        }
         if (prop.playerArtifactCanChange) {
             str += "    1 input to keep track of player artifact\n";
         }
@@ -1903,6 +1951,21 @@ public class GameState implements State {
         x[idx++] = energy / (float) 10;
         x[idx++] = player.getHealth() / (float) player.getMaxHealth();
         x[idx++] = player.getBlock() / (float) 40.0;
+        if (orbs != null) {
+            for (int i = 0; i < orbs.length; i++) {
+                if (orbs[i] > 0) {
+                    x[idx + orbs[i]] = 0.5f;
+                }
+                idx += 5;
+            }
+        }
+        for (int i = orbs == null ? 0 : orbs.length; i < prop.maxNumOfOrbs; i++) {
+            x[idx] = 0.5f;
+            idx += 5;
+        }
+        if (prop.playerFocusCanChange) {
+            x[idx] = focus / 15.0f;
+        }
         if (prop.playerArtifactCanChange) {
             x[idx++] = player.getArtifact() / (float) 3.0;
         }
@@ -2495,8 +2558,9 @@ public class GameState implements State {
         }
     }
 
-    public void enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmg, int times) {
+    public int enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmg, int times) {
         int move = enemy.getMove();
+        int totalDmgDealt = 0;
         var player = getPlayerForWrite();
         dmg += enemy.getStrength();
         if (dmg < 0) {
@@ -2510,15 +2574,17 @@ public class GameState implements State {
         }
         for (int i = 0; i < times; i++) {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
-                return;
+                return totalDmgDealt;
             }
             int dmgDealt = player.damage(dmg);
+            totalDmgDealt += dmgDealt;
             if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {
                     handler.handle(this, enemy, true, dmgDealt);
                 }
             }
         }
+        return totalDmgDealt;
     }
 
     public int enemyCalcDamageToPlayer(Enemy enemy, int dmg) {
@@ -2707,6 +2773,7 @@ public class GameState implements State {
     }
 
     public void channelOrb(OrbType orb) {
+        if (orbs == null) return;
         if (orbs[orbs.length - 1] != 0) {
             evokeOrb(1);
             orbs[orbs.length - 1] = (short) orb.ordinal();
@@ -2721,21 +2788,22 @@ public class GameState implements State {
     }
 
     public void evokeOrb(int times) {
+        if (orbs == null) return;
         for (int i = 0; i < times; i++) {
             if (orbs[0] == OrbType.FROST.ordinal()) {
-                getPlayerForWrite().gainBlock(5);
+                getPlayerForWrite().gainBlockNotFromCardPlay(5 + focus);
             } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
                 int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
                 if (idx >= 0) {
                     var enemy = getEnemiesForWrite().getForWrite(idx);
-                    enemy.nonAttackDamage(8, true, this);
-                    if (prop.makingRealMove) {
+                    if (prop.makingRealMove && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
                     }
+                    playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
                 }
             } else if (orbs[0] == OrbType.DARK.ordinal()) {
                 // todo: implement dark orb
-            } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
+            } else if (orbs[0] == OrbType.PLASMA.ordinal()) {
                 gainEnergy(2);
             }
         }
@@ -2747,20 +2815,45 @@ public class GameState implements State {
         if (orbs == null) return;
         for (int i = 0; i < orbs.length; i++) {
             if (orbs[i] == OrbType.FROST.ordinal()) {
-                getPlayerForWrite().gainBlock(2);
+                getPlayerForWrite().gainBlockNotFromCardPlay(2 + focus);
             } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
                 int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
                 if (idx >= 0) {
                     var enemy = getEnemiesForWrite().getForWrite(idx);
-                    enemy.nonAttackDamage(3, true, this);
-                    if (prop.makingRealMove) {
+                    if (prop.makingRealMove && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
                     }
+                    playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
                 }
             } else if (orbs[i] == OrbType.DARK.ordinal()) {
                 // todo: implement dark orb
             }
         }
+    }
+
+    public void gainOrbSlot(int n) {
+        if (orbs == null) {
+            return;
+        }
+        if (n < 0) {
+            if (orbs.length + n == 0) {
+                orbs = null;
+            } else {
+                orbs = Arrays.copyOf(orbs, orbs.length + n);
+            }
+        } else {
+            var newOrbs = new short[orbs.length + 1];
+            System.arraycopy(newOrbs, 0, orbs, 0, orbs.length);
+            orbs = newOrbs;
+        }
+    }
+
+    public void gainFocus(int n) {
+        focus += n;
+    }
+
+    public short getFocus() {
+        return focus;
     }
 }
 

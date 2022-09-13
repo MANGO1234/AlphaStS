@@ -32,6 +32,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean changePlayerStrength;
     public boolean changePlayerStrengthEot;
     public boolean changePlayerDexterity;
+    public boolean changePlayerFocus;
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean affectEnemyStrength;

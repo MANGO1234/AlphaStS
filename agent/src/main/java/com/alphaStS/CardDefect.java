@@ -1,10 +1,8 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 
 import java.util.List;
-import java.util.Objects;
 
 public class CardDefect {
     public static class DualCast extends Card {
@@ -208,7 +206,35 @@ public class CardDefect {
     // Capacitor
     // Chaos
     // Chill
-    // Consume
+
+    private static abstract class _ConsumeT extends Card {
+        private final int n;
+
+        public _ConsumeT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2);
+            this.n = n;
+            this.changePlayerFocus = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainOrbSlot(-1);
+            state.gainFocus(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Consume extends CardDefect._ConsumeT {
+        public Consume() {
+            super("Consume", 2);
+        }
+    }
+
+    public static class ConsumeP extends CardDefect._ConsumeT {
+        public ConsumeP() {
+            super("Consume+", 3);
+        }
+    }
+
     // Darkness
     // Defragment
     // Doom and Gloom
@@ -218,7 +244,35 @@ public class CardDefect {
     // Force Field
     // Fusion
     // Genetic Algorithm
-    // Glacier
+
+    private static abstract class _GlacierT extends Card {
+        private final int n;
+
+        public _GlacierT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            state.channelOrb(OrbType.FROST);
+            state.channelOrb(OrbType.FROST);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Glacier extends CardDefect._GlacierT {
+        public Glacier() {
+            super("Glacier", 7);
+        }
+    }
+
+    public static class GlacierP extends CardDefect._GlacierT {
+        public GlacierP() {
+            super("Glacier+", 10);
+        }
+    }
+
     // Heatsinks
     // Hello World
     // Loop
@@ -229,7 +283,56 @@ public class CardDefect {
     // Reprogram
     // Rip and Tear
     // Scrape
-    // Self Repair
+
+    private static abstract class _SelfRepairT extends Card {
+        private final int n;
+
+        public _SelfRepairT(String cardName, int n) {
+            super(cardName, Card.POWER, 1);
+            this.n = n;
+            healPlayer = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("SelfRepair", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.selfRepairCounterIdx = idx;
+        }
+    }
+
+    public static class SelfRepair extends CardDefect._SelfRepairT {
+        public SelfRepair() {
+            super("Self Repair", 7);
+        }
+    }
+
+    public static class SelfRepairP extends CardDefect._SelfRepairT {
+        public SelfRepairP() {
+            super("Self Repair+", 10);
+        }
+    }
+
     // Skim
     // Static Discharge
     // Storm
@@ -325,6 +428,11 @@ public class CardDefect {
                     state.getCounterForWrite()[counterIdx] = (counter >> 16) + (counter & (((1 << 16) - 1) << 16));
                 }
             });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.echoFormCounterIdx = idx;
         }
     }
 

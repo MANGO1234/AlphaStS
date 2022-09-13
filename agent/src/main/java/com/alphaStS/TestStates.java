@@ -809,13 +809,23 @@ public class TestStates {
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.BootSequenceP(), 1);
         builder.addCard(new CardDefect.EchoForm(), 2);
-        EnemyEncounter.addByrdsFight(builder);
+        builder.addCard(new CardDefect.Sunder(), 1);
+        builder.addCard(new CardDefect.Consume(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        EnemyEncounter.addSlaversEliteFight(builder);
+        EnemyEncounter.addGremlinLeaderFight(builder);
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3}, new int[] {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19});
+        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
+        builder.setRandomization(randomization);
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.RunicDome());
         builder.addPotion(new Potion.DistilledChaos());
-        builder.setPlayer(new Player(61, 61));
+        builder.setPlayer(new Player(23, 37));
         return new GameState(builder);
     }
 }

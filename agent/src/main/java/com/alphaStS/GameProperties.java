@@ -14,6 +14,7 @@ public class GameProperties implements Cloneable {
     public boolean playerDexterityCanChange;
     public boolean playerStrengthEotCanChange;
     public boolean playerDexterityEotCanChange;
+    public boolean playerFocusCanChange;
     public boolean playerCanGetVuln;
     public boolean playerCanGetWeakened;
     public boolean playerCanGetFrailed;
@@ -54,6 +55,8 @@ public class GameProperties implements Cloneable {
     public int slimeCardIdx = -1;
     public int woundCardIdx = -1;
     public int voidCardIdx = -1;
+    public int echoFormCardIdx = -1;
+    public int echoFormPCardIdx = -1;
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodPIndexes;
     public int[] infernalBladeIndexes;
@@ -61,6 +64,8 @@ public class GameProperties implements Cloneable {
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
     public int ritualDaggerCounterIdx = -1;
     public int feedCounterIdx = -1;
+    public int echoFormCounterIdx = -1;
+    public int selfRepairCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
