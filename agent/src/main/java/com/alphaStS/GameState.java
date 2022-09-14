@@ -14,7 +14,6 @@ import com.alphaStS.utils.CircularArray;
 import com.alphaStS.utils.DrawOrder;
 import com.alphaStS.utils.DrawOrderReadOnly;
 
-import javax.imageio.event.IIOReadProgressListener;
 import java.util.*;
 
 import static com.alphaStS.utils.Utils.formatFloat;

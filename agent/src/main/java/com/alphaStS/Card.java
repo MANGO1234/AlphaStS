@@ -2565,7 +2565,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Feed", this, null);
-            state.prop.addExtraTrainingTarget("ZFeed", this, new TrainingTarget() {
+            state.prop.addExtraTrainingTarget("Feed", this, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
                     if (enemiesAllDead) {
                         v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
