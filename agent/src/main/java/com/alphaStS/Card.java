@@ -662,7 +662,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             boolean moreThan1Enemy = state.enemiesAlive > 1;
-            state.isStochastic = moreThan1Enemy;
+            if (moreThan1Enemy) {
+                state.setIsStochastic();
+            }
             for (int _i = 0; _i < n; _i++) {
                 int enemy_j = 0;
                 if (state.enemiesAlive > 1) {
@@ -745,7 +747,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             int r = 1;
             if (diffCards > 1) {
                 r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit, state) + 1;
-                state.isStochastic = true;
+                state.setIsStochastic();
             }
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
                 r -= state.hand[cardIdx];
@@ -1580,7 +1582,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var r = state.getSearchRandomGen().nextInt(state.prop.infernalBladeIndexes.length, RandomGenCtx.CardGeneration);
             state.addCardToHand(state.prop.infernalBladeIndexes[r]);
-            state.isStochastic = true;
+            state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2731,7 +2733,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     int i = 0;
                     if (state.enemiesAlive > 1) {
                         i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut, state);
-                        state.isStochastic = true;
+                        state.setIsStochastic();
                     }
                     int enemy_j = 0;
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {

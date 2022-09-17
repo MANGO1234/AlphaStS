@@ -221,7 +221,7 @@ public class EnemyCity {
                     }
                 }
             } else if (move == RALLY) {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 var enemies = state.getEnemiesForWrite();
                 var startIdx = 0;
                 for (int i = 0; i < enemies.size(); i++) {
@@ -334,7 +334,7 @@ public class EnemyCity {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
         }
 
@@ -413,7 +413,7 @@ public class EnemyCity {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 15) {
@@ -617,14 +617,14 @@ public class EnemyCity {
             if (move == STUNNED || move == HEADBUTT) {
                 newMove = move + 1;
             } else if (move == -1) { // first turn
-                state.isStochastic = true;
+                state.setIsStochastic();
                 if (random.nextInt(200, RandomGenCtx.EnemyChooseMove) < 125) {
                     newMove = PECK;
                 } else {
                     newMove = CAW;
                 }
             } else {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 int n = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (n < 50) {
                     if (move == PECK && moveHistory[0] == PECK) {
@@ -861,7 +861,7 @@ public class EnemyCity {
             if (move < 0) {
                 newMove = FELL;
             } else {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 newMove = nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
             }
             moveHistory[0] = move;
@@ -1119,7 +1119,7 @@ public class EnemyCity {
             if (move == -1) {
                 move = HEX;
             } else if (move == HEX || move == POKE || move == ZAP) {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 int r = random.nextInt(2, RandomGenCtx.EnemyChooseMove);
                 if (r == 0) {
                     move = DRAIN;
@@ -1127,7 +1127,7 @@ public class EnemyCity {
                     move = DEBILITATE;
                 }
             } else if (move == DEBILITATE || move == DRAIN) {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 int r = random.nextInt(10, RandomGenCtx.EnemyChooseMove);
                 if (r < 4) {
                     move = ZAP;

@@ -869,7 +869,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == SPLIT) {
                 return;
             }
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 30) {
@@ -947,7 +947,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
             int newMove;
             if (r < 30) {
@@ -1103,7 +1103,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == SPLIT) {
                 return;
             }
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 40) {
@@ -1193,7 +1193,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 40) {
@@ -1342,7 +1342,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 move = STAB;
                 return;
             }
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r >= 75 && !usedEntangle) {
@@ -1429,7 +1429,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r >= 40 && (move != STAB || moveHistory[0] != STAB)) {
@@ -1504,7 +1504,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 move = 0;
                 return;
             }
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
@@ -1674,7 +1674,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
@@ -1780,7 +1780,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 25) {
@@ -1862,7 +1862,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            state.isStochastic = true;
+            state.setIsStochastic();
             int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null);
             int newMove;
             if (r < 60) {
@@ -1959,7 +1959,7 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == MUG_1) {
                 newMove = MUG_2;
             } else if (move == MUG_2) {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 newMove = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null) < 50 ? LUNGE : SMOKE_BOMB;
             } else if (move == LUNGE) {
                 newMove = SMOKE_BOMB;
@@ -2170,7 +2170,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 } else {
                     int r = 0;
                     if (state.enemiesAlive > 2) {
-                        state.isStochastic = true;
+                        state.setIsStochastic();
                         r = state.getSearchRandomGen().nextInt(state.enemiesAlive - 1, RandomGenCtx.ShieldGremlin);
                     }
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {

@@ -65,6 +65,7 @@ public class GameProperties implements Cloneable {
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
     public int ritualDaggerCounterIdx = -1;
     public int feedCounterIdx = -1;
+    public int nunchakuCounterIdx = -1;
     public int echoFormCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
 

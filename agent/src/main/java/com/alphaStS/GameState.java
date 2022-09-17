@@ -658,7 +658,7 @@ public class GameState implements State {
             return;
         }
 //        if (!prop.testNewFeature || deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
-            isStochastic = true;
+            setIsStochastic();
 //        }
         int cardsInHand = 0;
         for (int i = 0; i < hand.length; i++) {
@@ -707,7 +707,7 @@ public class GameState implements State {
     }
 
     int drawOneCardSpecial() {
-        isStochastic = true;
+        setIsStochastic();
         if (deckArrLen == 0) {
             reshuffle();
         }
@@ -1068,7 +1068,7 @@ public class GameState implements State {
         if (action.type() == GameActionType.BEGIN_BATTLE) {
             if (prop.randomization != null) {
                 ret = prop.randomization.randomize(this);
-                isStochastic = true;
+                setIsStochastic();
             }
             for (GameEventHandler handler : prop.startOfBattleHandlers) {
                 handler.handle(this);
@@ -2780,6 +2780,14 @@ public class GameState implements State {
 
     public double getVOther(int vArrayIdx) {
         return v_other[vArrayIdx];
+    }
+
+    public void setIsStochastic() {
+        // todo: I think the battle ends immediately on enemies death, maybe only distilled
+        // chaos/havoc with bird faced urn, or meat on the bone + e.g. guardian may heal/dmg?
+        if (isTerminal() == 0) {
+            isStochastic = true;
+        }
     }
 
     // Defect specific

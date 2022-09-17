@@ -20,7 +20,7 @@ public class GameStateUtils {
             enemyIdx = 0;
         } else {
             enemyIdx = state.getSearchRandomGen().nextInt(state.enemiesAlive, ctx, state);
-            state.isStochastic = true;
+            state.setIsStochastic();
         }
         for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
             if (state.getEnemiesForRead().get(i).isAlive()) {

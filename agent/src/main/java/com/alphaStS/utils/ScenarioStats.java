@@ -42,6 +42,10 @@ public class ScenarioStats {
     public int lossByFeed;
     public long winByFeedAmt;
     public long lossByFeedAmt;
+    public int winByNunchaku;
+    public int lossByNunchaku;
+    public long winByNunchakuAmt;
+    public long lossByNunchakuAmt;
     public List<Double> winQs = new ArrayList<>();
     public List<Double> lossQs = new ArrayList<>();
     public long modelCalls2;
@@ -106,6 +110,10 @@ public class ScenarioStats {
         lossByFeed += stat.lossByFeed;
         winByFeedAmt += stat.winByFeedAmt;
         lossByFeedAmt += stat.lossByFeedAmt;
+        winByNunchaku += stat.winByNunchaku;
+        lossByNunchaku += stat.lossByNunchaku;
+        winByNunchakuAmt += stat.winByNunchakuAmt;
+        lossByNunchakuAmt += stat.lossByNunchakuAmt;
         winQs.addAll(stat.winQs);
         lossQs.addAll(stat.lossQs);
         modelCalls2 += stat.modelCalls2;
@@ -221,6 +229,20 @@ public class ScenarioStats {
                     }
                 }
             }
+
+            if (state.prop.nunchakuCounterIdx >= 0) {
+                var nunchakuCounter1 = state.getCounterForRead()[state.prop.nunchakuCounterIdx];
+                var nunchakuCounter2 = state2.getCounterForRead()[state.prop.nunchakuCounterIdx];
+                if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && nunchakuCounter1 != nunchakuCounter2) {
+                    if (nunchakuCounter1 > nunchakuCounter2) {
+                        winByNunchaku++;
+                        winByNunchakuAmt += nunchakuCounter1 - nunchakuCounter2;
+                    } else {
+                        lossByNunchaku++;
+                        lossByNunchakuAmt += nunchakuCounter2 - nunchakuCounter1;
+                    }
+                }
+            }
         }
 
         int meanTotalDmg = 0;
@@ -294,6 +316,9 @@ public class ScenarioStats {
             }
             if (state.prop.feedCounterIdx >= 0) {
                 System.out.println(indent + "Win/Loss Feed: " + winByFeed + "/" + lossByFeed + " (" + winByFeedAmt / (double) winByFeed + "/" + lossByFeedAmt / (double) lossByFeed + "/" + (winByFeedAmt - lossByFeedAmt) / (double) (winByFeed + lossByFeed) + ")");
+            }
+            if (state.prop.nunchakuCounterIdx >= 0) {
+                System.out.println(indent + "Win/Loss Nunchaku: " + winByNunchaku + "/" + lossByNunchaku + " (" + winByNunchakuAmt / (double) winByNunchaku + "/" + lossByNunchakuAmt / (double) lossByNunchaku + "/" + (winByNunchakuAmt - lossByNunchakuAmt) / (double) (winByNunchaku + lossByNunchaku) + ")");
             }
             DescriptiveStatistics ds = new DescriptiveStatistics();
             winDmgs.forEach(ds::addValue);

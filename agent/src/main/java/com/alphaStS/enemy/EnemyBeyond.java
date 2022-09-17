@@ -107,7 +107,7 @@ public class EnemyBeyond {
             if (move == -1) {
                 newMove = SLASH;
             } else if (!awakened) {
-                state.isStochastic = true;
+                state.setIsStochastic();
                 int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (r < 25) {
                     if (move != SOUL_STRIKE) {
@@ -124,7 +124,7 @@ public class EnemyBeyond {
                 if (move == REBIRTH) {
                     newMove = DARK_ECHO;
                 } else {
-                    state.isStochastic = true;
+                    state.setIsStochastic();
                     int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                     if (r < 50) {
                         if (move != TACKLE || moveHistory[0] != TACKLE) {

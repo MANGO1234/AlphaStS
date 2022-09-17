@@ -358,7 +358,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 idx3++;
             }
             state.setSelect1OutOf3Idxes(state.prop.skillPotionIdxes[idx1], state.prop.skillPotionIdxes[idx2], state.prop.skillPotionIdxes[idx3]);
-            state.isStochastic = true;
+            state.setIsStochastic();
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 

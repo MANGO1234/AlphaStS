@@ -237,6 +237,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
         }
+
+        @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
+            super.setCounterIdx(properties, counterIdx);
+            properties.nunchakuCounterIdx = counterIdx;
+        }
     }
 
     // Omamori: No need to implement
@@ -895,7 +900,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             acc += state.hand[i];
                             if (acc > r) {
                                 if (state.hand[i] != nonUpgradedCardCount) {
-                                    state.isStochastic = true;
+                                    state.setIsStochastic();
                                 }
                                 state.removeCardFromHand(i);
                                 state.addCardToHand(state.prop.upgradeIdxes[i]);

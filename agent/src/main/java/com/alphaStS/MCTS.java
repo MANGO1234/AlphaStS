@@ -44,8 +44,7 @@ public class MCTS {
             state.total_q_comb = v[GameState.V_COMB_IDX];
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
-            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
-                    state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
+            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
             return;
@@ -224,6 +223,12 @@ public class MCTS {
         numberOfPossibleActions = numberOfActions;
     }
 
+    public boolean cannotImproveState(GameState state) {
+        return state.playerTurnStartPotionCount == state.getPotionCount() &&
+                state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth() &&
+                (state.prop.nunchakuCounterIdx < 0 || state.getCounterForRead()[state.prop.nunchakuCounterIdx] == 9);
+    }
+
     private void updateTranspositions(GameState transpositionKey, GameState state, GameState curParentState, int action) {
         var parents = transpositionKey.transpositionsParent.get(transpositionKey);
         if (parents == null) {
@@ -279,8 +284,7 @@ public class MCTS {
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
             state.get_v(v);
-            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
-                    state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
+            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
             return;
@@ -624,8 +628,7 @@ public class MCTS {
             curLine.q_win += v[GameState.V_WIN_IDX];
             curLine.q_health += v[GameState.V_HEALTH_IDX];
             parentState.searchFrontier.total_n += 1;
-            if (v[GameState.V_WIN_IDX] > 0.5 && state.playerTurnStartPotionCount == state.getPotionCount() &&
-                    state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth()) {
+            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 state.terminal_action = -1234;
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
