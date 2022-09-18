@@ -14,7 +14,7 @@ public class EnemyBeyond {
         private static final int TACKLE = 5;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(6, true);
             defaultProperty.canGainStrength = true;
         }
 
@@ -25,8 +25,7 @@ public class EnemyBeyond {
         }
 
         public AwakenedOne(int health) {
-            super(health, 6);
-            moveHistory = new int[1];
+            super(health);
             strength = 2;
         }
 
@@ -119,7 +118,7 @@ public class EnemyBeyond {
                     } else {
                         newMove = SLASH;
                     }
-                } else if (move != SLASH || moveHistory[0] != SLASH) {
+                } else if (move != SLASH || lastMove != SLASH) {
                     newMove = SLASH;
                 } else {
                     newMove = SOUL_STRIKE;
@@ -131,13 +130,13 @@ public class EnemyBeyond {
                     state.setIsStochastic();
                     int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                     if (r < 50) {
-                        if (move != TACKLE || moveHistory[0] != TACKLE) {
+                        if (move != TACKLE || lastMove != TACKLE) {
                             newMove = TACKLE;
                         } else {
                             newMove = SLUDGE;
                         }
                     } else {
-                        if (move != SLUDGE || moveHistory[0] != SLUDGE) {
+                        if (move != SLUDGE || lastMove != SLUDGE) {
                             newMove = SLUDGE;
                         } else {
                             newMove = TACKLE;
@@ -145,7 +144,7 @@ public class EnemyBeyond {
                     }
                 }
             }
-            moveHistory[0] = move;
+            lastMove = move;
             move = newMove;
         }
 

@@ -4,12 +4,12 @@ import com.alphaStS.Card;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public abstract class EnemyReadOnly {
     public static class EnemyProperty {
+        public int numOfMoves = 0;
         public boolean isElite = false;
         public boolean isMinion = false;
         public boolean canVulnerable = false;
@@ -26,6 +26,12 @@ public abstract class EnemyReadOnly {
         public boolean changePlayerDexterity = false;
         public boolean hasBurningEliteBuff = false;
         public boolean hasArtifact = false;
+        public boolean useLast2MovesForMoveSelection = false;
+
+        public EnemyProperty(int numOfMoves, boolean useLast2MovesForMoveSelection) {
+            this.numOfMoves = numOfMoves;
+            this.useLast2MovesForMoveSelection = useLast2MovesForMoveSelection;
+        }
 
         public void applyBurningEliteBuff() {
             canGainMetallicize = true;
@@ -49,19 +55,16 @@ public abstract class EnemyReadOnly {
     protected int regeneration;
     protected int metallicize;
     protected int loseStrengthEot;
-    protected int move;
-    protected int[] moveHistory;
+    protected int move = -1;
+    protected int lastMove = -1;
     public int maxHealth;
     public int origHealth;
-    public int numOfMoves;
     protected boolean hasBurningHealthBuff = false;
 
-    public EnemyReadOnly(int health, int numOfMoves) {
+    public EnemyReadOnly(int health) {
         this.health = health;
         maxHealth = health;
         origHealth = health;
-        this.numOfMoves = numOfMoves;
-        move = -1;
     }
 
     public abstract void doMove(GameState state);
@@ -89,17 +92,12 @@ public abstract class EnemyReadOnly {
         loseStrengthEot = other.loseStrengthEot;
         artifact = other.artifact;
         move = other.move;
-        numOfMoves = other.numOfMoves;
+        lastMove = other.lastMove;
         maxHealth = other.maxHealth;
         origHealth = other.origHealth;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
         hasBurningHealthBuff = other.hasBurningHealthBuff();
-        if (other.moveHistory != null) {
-            for (int i = 0; i < other.moveHistory.length; i++) {
-                moveHistory[i] = other.moveHistory[i];
-            }
-        }
     }
 
     public int getHealth() {
@@ -146,8 +144,8 @@ public abstract class EnemyReadOnly {
         return move;
     }
 
-    public int[] getMoveHistory() {
-        return moveHistory;
+    public int getLastMove() {
+        return lastMove;
     }
 
     public boolean isAlive() {
@@ -231,14 +229,12 @@ public abstract class EnemyReadOnly {
         if (health == 0 && health == enemy.health) {
             return true;
         }
-        return health == enemy.health && maxHealth == enemy.maxHealth && block == enemy.block
-                && strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak
-                && artifact == enemy.artifact && move == enemy.move && Arrays.equals(moveHistory, enemy.moveHistory);
+        return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove &&
+                maxHealth == enemy.maxHealth && block == enemy.block && strength == enemy.strength
+                && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact;
     }
 
     @Override public int hashCode() {
-        int result = Objects.hash(health, maxHealth, block, strength, vulnerable, weak, artifact, move);
-        result = 31 * result + Arrays.hashCode(moveHistory);
-        return result;
+        return Objects.hash(health, maxHealth, block, strength, vulnerable, weak, artifact, move, lastMove);
     }
 }

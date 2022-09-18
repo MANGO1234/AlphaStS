@@ -1741,9 +1741,9 @@ public class GameState implements State {
             if (enemy.property.canGainMetallicize) {
                 inputLen += 1; // enemy metallicize
             }
-            inputLen += enemy.numOfMoves; // enemy moves
-            if (enemy.getMoveHistory() != null) {
-                inputLen += enemy.getMoveHistory().length * enemy.numOfMoves;
+            inputLen += enemy.property.numOfMoves; // enemy moves
+            if (enemy.property.useLast2MovesForMoveSelection) {
+                inputLen += enemy.property.numOfMoves;
             }
             inputLen += enemy.getNNInputLen(prop);
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
@@ -1902,9 +1902,9 @@ public class GameState implements State {
             if (enemy.property.canGainMetallicize) {
                 str += "        1 input to keep track of metallicize\n";
             }
-            str += "        " + enemy.numOfMoves + " inputs to keep track of current move from enemy\n";
-            if (enemy.getMoveHistory() != null) {
-                str += "        " + enemy.numOfMoves + "*" + enemy.getMoveHistory().length + " inputs to keep track of move history from enemy\n";
+            str += "        " + enemy.property.numOfMoves + " inputs to keep track of current move from enemy\n";
+            if (enemy.property.useLast2MovesForMoveSelection) {
+                str += "        " + enemy.property.numOfMoves + " inputs to keep track of move history from enemy\n";
             }
             String desc = enemy.getNNInputDesc(prop);
             if (desc != null) {
@@ -2094,21 +2094,19 @@ public class GameState implements State {
                 if (enemy.property.canGainMetallicize) {
                     x[idx++] = enemy.getMetallicize() / (float) 14.0;
                 }
-                for (int i = 0; i < enemy.numOfMoves; i++) {
+                for (int i = 0; i < enemy.property.numOfMoves; i++) {
                     if (enemy.getMove() == i) {
                         x[idx++] = 0.5f;
                     } else {
                         x[idx++] = -0.5f;
                     }
                 }
-                if (enemy.getMoveHistory() != null) {
-                    for (int move : enemy.getMoveHistory()) {
-                        for (int i = 0; i < enemy.numOfMoves; i++) {
-                            if (move == i) {
-                                x[idx++] = 0.5f;
-                            } else {
-                                x[idx++] = -0.5f;
-                            }
+                if (enemy.property.useLast2MovesForMoveSelection) {
+                    for (int i = 0; i < enemy.property.numOfMoves; i++) {
+                        if (enemy.getLastMove() == i) {
+                            x[idx++] = 0.5f;
+                        } else {
+                            x[idx++] = -0.5f;
                         }
                     }
                 }
@@ -2144,11 +2142,11 @@ public class GameState implements State {
                 if (enemy.property.canGainMetallicize) {
                     x[idx++] = -0.1f;
                 }
-                for (int i = 0; i < enemy.numOfMoves; i++) {
+                for (int i = 0; i < enemy.property.numOfMoves; i++) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.getMoveHistory() != null) {
-                    for (int i = 0; i < enemy.numOfMoves * enemy.getMoveHistory().length; i++) {
+                if (enemy.property.useLast2MovesForMoveSelection) {
+                    for (int i = 0; i < enemy.property.numOfMoves; i++) {
                         x[idx++] = -0.1f;
                     }
                 }

@@ -15,7 +15,7 @@ public class EnemyCity {
         private static final int ANGER = 6;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(7, true);
             defaultProperty.canGainStrength = true;
             defaultProperty.canGainMetallicize = true;
             defaultProperty.canWeaken = true;
@@ -33,8 +33,7 @@ public class EnemyCity {
         }
 
         public TheChamp(int health) {
-            super(health, 7);
-            moveHistory = new int[1];
+            super(health);
         }
 
         public TheChamp(TheChamp other) {
@@ -78,7 +77,7 @@ public class EnemyCity {
             if (health < maxHealth / 2 && !angered) {
                 angered = true;
                 newMove = ANGER;
-            } else if (angered && move != EXECUTE && moveHistory[0] != EXECUTE) {
+            } else if (angered && move != EXECUTE && lastMove != EXECUTE) {
                 newMove = EXECUTE;
             } else if (numTurns == 4 && !angered) {
                 numTurns = 0;
@@ -98,7 +97,7 @@ public class EnemyCity {
                     newMove = FACE_SLAP;
                 }
             }
-            moveHistory[0] = move;
+            lastMove = move;
             move = newMove;
         }
 
@@ -177,7 +176,7 @@ public class EnemyCity {
         static final int STAB = 2;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(3, false);
             defaultProperty.isElite = true;
             defaultProperty.canGainStrength = true;
             defaultProperty.canGainBlock = true;
@@ -188,7 +187,7 @@ public class EnemyCity {
         }
 
         public GremlinLeader(int health) {
-            super(health, 3);
+            super(health);
         }
 
         public GremlinLeader(GremlinLeader other) {
@@ -386,7 +385,7 @@ public class EnemyCity {
         static final int SINGLE_STAB = 1;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(2, true);
             defaultProperty.isElite = true;
         }
 
@@ -397,8 +396,7 @@ public class EnemyCity {
         }
 
         public BookOfStabbing(int health) {
-            super(health, 2);
-            moveHistory = new int[] {-1};
+            super(health);
             stabCount = 1;
         }
 
@@ -434,13 +432,13 @@ public class EnemyCity {
                 } else {
                     newMove = SINGLE_STAB;
                 }
-            } else if (move == MULTI_STAB && moveHistory[0] == MULTI_STAB) {
+            } else if (move == MULTI_STAB && lastMove == MULTI_STAB) {
                 newMove = SINGLE_STAB;
             } else {
                 newMove = MULTI_STAB;
             }
             stabCount++;
-            moveHistory[0] = move;
+            lastMove = move;
             move = newMove;
         }
 
@@ -498,7 +496,7 @@ public class EnemyCity {
         static final int SCOURING_WHIP = 0;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(1, false);
             defaultProperty.isElite = true;
             defaultProperty.canGainStrength = true;
         }
@@ -508,7 +506,7 @@ public class EnemyCity {
         }
 
         public Taskmaster(int health) {
-            super(health, 1);
+            super(health);
         }
 
         public Taskmaster(Taskmaster other) {
@@ -568,7 +566,7 @@ public class EnemyCity {
         static int FLY = 5;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(5, true);
             defaultProperty.canGainStrength = true;
         }
 
@@ -583,8 +581,7 @@ public class EnemyCity {
         }
 
         public Byrd(int health) {
-            super(health, 5);
-            moveHistory = new int[] {-1};
+            super(health);
         }
 
         public Byrd(Byrd other) {
@@ -647,7 +644,7 @@ public class EnemyCity {
                 state.setIsStochastic();
                 int n = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (n < 50) {
-                    if (move == PECK && moveHistory[0] == PECK) {
+                    if (move == PECK && lastMove == PECK) {
                         if (random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.4f) {
                             newMove = SWOOP;
                         } else {
@@ -676,7 +673,7 @@ public class EnemyCity {
                     newMove = CAW;
                 }
             }
-            moveHistory[0] = move;
+            lastMove = move;
             move = newMove;
         }
 
@@ -740,7 +737,7 @@ public class EnemyCity {
         static int HARDEN = 3;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(4, false);
             defaultProperty.canFrail = true;
             defaultProperty.canGainBlock = true;
             defaultProperty.hasArtifact = true;
@@ -751,7 +748,7 @@ public class EnemyCity {
         }
 
         public SphericGuardian(int health) {
-            super(health, 4);
+            super(health);
             artifact = 3;
             block = 40;
         }
@@ -817,7 +814,7 @@ public class EnemyCity {
         static int STUNNED = 3;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(4, true);
             defaultProperty.canFrail = true;
             defaultProperty.canGainBlock = true;
         }
@@ -827,9 +824,8 @@ public class EnemyCity {
         }
 
         public ShelledParasite(int health) {
-            super(health, 4);
+            super(health);
             metallicize = 14;
-            moveHistory = new int[1];
         }
 
         public ShelledParasite(ShelledParasite other) {
@@ -850,6 +846,7 @@ public class EnemyCity {
                 state.enemyDoDamageToPlayer(this, 21, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2 + 1);
             } else if (move == STUNNED) {
+                // do nothing
             }
         }
 
@@ -858,7 +855,7 @@ public class EnemyCity {
             super.damage(n, state);
             if (dmg > 0) {
                 metallicize -= 1;
-                if (dmg == 0) {
+                if (metallicize == 0) {
                     move = STUNNED;
                 }
             }
@@ -872,12 +869,12 @@ public class EnemyCity {
                     return nextMove(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove) + 20);
                 }
             } else if (num < 60) {
-                if (!(move == DOUBLE_STRIKE && moveHistory[0] == DOUBLE_STRIKE)) {
+                if (!(move == DOUBLE_STRIKE && lastMove == DOUBLE_STRIKE)) {
                     return DOUBLE_STRIKE;
                 } else {
                     return SUCK;
                 }
-            } else if (!(move == SUCK && moveHistory[0] == SUCK)) {
+            } else if (!(move == SUCK && lastMove == SUCK)) {
                 return SUCK;
             } else {
                 return DOUBLE_STRIKE;
@@ -892,7 +889,7 @@ public class EnemyCity {
                 state.setIsStochastic();
                 newMove = nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
             }
-            moveHistory[0] = move;
+            lastMove = move;
             move = newMove;
         }
 
@@ -923,12 +920,16 @@ public class EnemyCity {
     public static class Pointy extends Enemy {
         static int ATTACK = 0;
 
+        static {
+            defaultProperty = new EnemyProperty(1, false);
+        }
+
         public Pointy() {
             this(34);
         }
 
         public Pointy(int health) {
-            super(health, 1);
+            super(health);
         }
 
         public Pointy(Pointy other) {
@@ -975,7 +976,7 @@ public class EnemyCity {
         static int CROSS_SLASH_2 = 3;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(4, false);
             defaultProperty.canWeaken = true;
         }
 
@@ -984,7 +985,7 @@ public class EnemyCity {
         }
 
         public Romeo(int health) {
-            super(health, 4);
+            super(health);
         }
 
         public Romeo(Romeo other) {
@@ -1043,7 +1044,7 @@ public class EnemyCity {
         static int MAUL = 2;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(3, false);
             defaultProperty.changePlayerDexterity = true;
             defaultProperty.canGainBlock = true;
         }
@@ -1053,7 +1054,7 @@ public class EnemyCity {
         }
 
         public Bear(int health) {
-            super(health, 3);
+            super(health);
         }
 
         public Bear(Bear other) {
@@ -1116,7 +1117,7 @@ public class EnemyCity {
         static int DRAIN = 4;
 
         static {
-            defaultProperty = new EnemyProperty();
+            defaultProperty = new EnemyProperty(5, false);
             defaultProperty.canGainStrength = true;
             defaultProperty.canWeaken = true;
             defaultProperty.canVulnerable = true;
@@ -1128,7 +1129,7 @@ public class EnemyCity {
         }
 
         public Chosen(int health) {
-            super(health, 5);
+            super(health);
         }
 
         public Chosen(Chosen other) {

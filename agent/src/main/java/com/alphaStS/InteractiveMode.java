@@ -496,7 +496,7 @@ public class InteractiveMode {
         }
         EnemyReadOnly curEnemy = state.getEnemiesForRead().get(curEnemyIdx);
 
-        for (int i = 0; i < curEnemy.numOfMoves; i++) {
+        for (int i = 0; i < curEnemy.property.numOfMoves; i++) {
             System.out.println(i + ". " + curEnemy.getMoveString(state, i));
         }
         while (true) {
@@ -507,11 +507,11 @@ public class InteractiveMode {
                 return;
             }
             int moveIdx = parseInt(line, -1);
-            if (moveIdx >= 0 && moveIdx < curEnemy.numOfMoves) {
+            if (moveIdx >= 0 && moveIdx < curEnemy.property.numOfMoves) {
                 state.getEnemiesForWrite().getForWrite(curEnemyIdx).setMove(moveIdx);
                 return;
             } else {
-                var movesOrig = IntStream.range(0, curEnemy.numOfMoves).mapToObj((i) -> curEnemy.getMoveString(state, i)).toList();
+                var movesOrig = IntStream.range(0, curEnemy.property.numOfMoves).mapToObj((i) -> curEnemy.getMoveString(state, i)).toList();
                 var moves = movesOrig.stream().map((x) -> x.toLowerCase(Locale.ROOT)).toList();
                 var move = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), moves);
                 if (move != null) {
@@ -1171,7 +1171,7 @@ public class InteractiveMode {
 
         public void selectEnemyMove(GameState state, Enemy enemy, int enemyIdx) {
             System.out.println("Select move for " + enemy.getName() + " (" + enemyIdx + ")");
-            for (int i = 0; i < enemy.numOfMoves; i++) {
+            for (int i = 0; i < enemy.property.numOfMoves; i++) {
                 System.out.println(i + ". " + enemy.getMoveString(state, i));
             }
             while (true) {
@@ -1184,7 +1184,7 @@ public class InteractiveMode {
                 }
                 history.add(line);
                 int r = parseInt(line, -1);
-                if (0 <= r && r < enemy.numOfMoves) {
+                if (0 <= r && r < enemy.property.numOfMoves) {
                     enemy.setMove(r);
                     return;
                 }
