@@ -47,6 +47,11 @@ public abstract class RandomGen {
             startingSeed = getSeed(null);
         }
 
+        public RandomGenPlain(long seed) {
+            this.random = new Random(seed);
+            startingSeed = seed;
+        }
+
         protected Random getRandomClone() {
             long seed;
             try {
@@ -115,6 +120,7 @@ public abstract class RandomGen {
     public static class RandomGenByCtx extends RandomGen {
         public List<RandomGen> randoms = new ArrayList<>();
         long startingSeed;
+        public boolean useNewCommonNumberVR;
 
         public RandomGenByCtx(long seed) {
             startingSeed = seed;
@@ -149,9 +155,13 @@ public abstract class RandomGen {
         }
 
         public RandomGen createWithSeed(long seed) {
-            var random = new Random();
-            random.setSeed(seed);
-            return new RandomGenPlain(random);
+            if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || useNewCommonNumberVR)) {
+                return new RandomGenByCtxCOW(seed);
+            } else {
+                var random = new Random();
+                random.setSeed(seed);
+                return new RandomGenPlain(random);
+            }
         }
 
         public void timeTravelToBeginning() {
@@ -269,6 +279,58 @@ public abstract class RandomGen {
                 throw new RuntimeException(e);
             }
             return seed ^ 0x5DEECE66DL;
+        }
+    }
+
+    public static class RandomGenByCtxCOW extends RandomGen {
+        public List<RandomGen> randoms = new ArrayList<>();
+        long startingSeed;
+
+        public RandomGenByCtxCOW(long seed) {
+            startingSeed = seed;
+            Random random = new Random(seed);
+            for (int i = 0; i < RandomGenCtx.values().length; i++) {
+                randoms.add(new RandomGenPlain(random.nextLong()));
+            }
+        }
+
+        public RandomGenByCtxCOW(RandomGenByCtxCOW other) {
+            startingSeed = other.startingSeed;
+            for (int i = 0; i < RandomGenCtx.values().length; i++) {
+                randoms.add(other.randoms.get(i).getCopy());
+            }
+        }
+
+        public boolean nextBoolean(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).nextBoolean(ctx);
+        }
+
+        public float nextFloat(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).nextFloat(ctx);
+        }
+
+        public int nextInt(int bound, RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).nextInt(bound, ctx);
+        }
+
+        public int nextInt(int bound, RandomGenCtx ctx, Object arg) {
+            return randoms.get(ctx.ordinal()).nextInt(bound, ctx, arg);
+        }
+
+        public long nextLong(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).nextLong(ctx);
+        }
+
+        public long getSeed(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).getSeed(ctx);
+        }
+
+        public RandomGen getCopy() {
+            return new RandomGenByCtxCOW(this);
+        }
+
+        public long getStartingSeed() {
+            return startingSeed;
         }
     }
 }

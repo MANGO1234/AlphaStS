@@ -26,5 +26,7 @@ public class Configuration {
     public static final boolean TEST_PROGRESSIVE_WIDENING = true;
     public static final boolean TRANSPOSITION_ACROSS_CHANCE_NODE = false;
     public static final boolean TEST_TRANSPOSITION_ACROSS_CHANCE_NODE = true;
+    public static final boolean NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION = false;
+    public static final boolean TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION = true;
     public static final boolean TRAINING_RESCORE_SEARCH_FOR_BEST_LINE = false;
 }

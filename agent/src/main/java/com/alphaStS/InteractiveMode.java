@@ -350,6 +350,10 @@ public class InteractiveMode {
                 ((RandomGenInteractive) state.prop.random).rngOn = false;
             } else if (line.equals("rng on")) {
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
+            } else if (line.equals("test off")) {
+                state.prop.testNewFeature = false;
+            } else if (line.equals("test on")) {
+                state.prop.testNewFeature = true;
             } else if (line.equals("desc")) {
                 System.out.println(state.getNNInputDesc());
             } else if (line.equals("")) {

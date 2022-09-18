@@ -193,7 +193,7 @@ public class MatchSession {
 
     // when comparing game searchRandomGen can get out of sync, make sure it's synced as much as possible
     private RefRet syncWithRef(Game refGame, int refGameIdx, ArrayList<GameStep> steps, GameState state, int action) {
-        if (state.isStochastic && refGame != null && refGameIdx < refGame.steps().size()) {
+        if (!Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && state.isStochastic && refGame != null && refGameIdx < refGame.steps().size()) {
             var prevState = steps.get(steps.size() - 1).state();
             boolean check = false;
             if (refGame.steps.get(refGameIdx).getAction().type() == GameActionType.END_TURN) {
@@ -580,7 +580,9 @@ public class MatchSession {
                 var state = origState.clone(false);
                 state.prop = state.prop.clone();
                 state.prop.doingComparison = mcts2.size() > 0;
-                state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                var randomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                state.prop.realMoveRandomGen = randomGen;
+                randomGen.useNewCommonNumberVR = true;
                 state.prop.testNewFeature = true;
                 var prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
                 var game1 = session.playGame(state, startingAction, null, mcts.get(threadIdx), nodeCount);
@@ -589,12 +591,12 @@ public class MatchSession {
                 var modelCalls2 = 0;
                 List<GameResult> reruns = null;
                 if (mcts2.size() > 0) {
-                    var randomGen= state.prop.realMoveRandomGen;
                     randomGen.timeTravelToBeginning();
                     var state2 = (origStateCmp != null ? origStateCmp : origState).clone(false);
                     state2.prop = state2.prop.clone();
                     state2.prop.doingComparison = true;
                     state2.prop.realMoveRandomGen = randomGen;
+                    randomGen.useNewCommonNumberVR = false;
                     state2.prop.testNewFeature = false;
                     prev = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits;
                     game2 = session.playGame(state2, startingActionCmp, game1, mcts2.get(threadIdx), nodeCount);
@@ -624,14 +626,16 @@ public class MatchSession {
                             for (int j = 0; j < Configuration.CMP_DEVIATION_NUM_RERUN; j++) {
                                 var rerunState = ts1.clone(false);
                                 rerunState.prop = rerunState.prop.clone();
-                                rerunState.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
+                                randomGen = new RandomGen.RandomGenByCtx(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
+                                rerunState.prop.realMoveRandomGen = randomGen;
+                                randomGen.useNewCommonNumberVR = true;
                                 prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
                                 var rerunGame1 = session.playGame(rerunState, 0, null, mcts.get(threadIdx), nodeCount);
                                 var rerunModelCalls = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits - prev;
                                 Game rerunGame2 = null;
                                 var rerunModelCalls2 = 0;
                                 if (mcts2.size() > 0) {
-                                    randomGen= rerunState.prop.realMoveRandomGen;
+                                    randomGen.useNewCommonNumberVR = false;
                                     randomGen.timeTravelToBeginning();
                                     var rerunState2 = ts2.clone(false);
                                     rerunState2.prop = rerunState2.prop.clone();
