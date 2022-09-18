@@ -8,8 +8,12 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class EnemyReadOnly {
-    public static class EnemyProperty {
-        public int numOfMoves = 0;
+    public static class EnemyProperty implements Cloneable {
+        public int numOfMoves;
+        public int maxHealth;
+        public int origHealth; // during randomization, property cloning can be set to change origHealth, origMaxHealth and hasBurningHealthBuff for that battle
+        public int origMaxHealth; // during randomization, property cloning can be set to change origHealth and hasBurningHealthBuff for that battle
+        protected boolean hasBurningHealthBuff = false;
         public boolean isElite = false;
         public boolean isMinion = false;
         public boolean canVulnerable = false;
@@ -26,7 +30,7 @@ public abstract class EnemyReadOnly {
         public boolean changePlayerDexterity = false;
         public boolean hasBurningEliteBuff = false;
         public boolean hasArtifact = false;
-        public boolean useLast2MovesForMoveSelection = false;
+        public boolean useLast2MovesForMoveSelection;
 
         public EnemyProperty(int numOfMoves, boolean useLast2MovesForMoveSelection) {
             this.numOfMoves = numOfMoves;
@@ -34,13 +38,22 @@ public abstract class EnemyReadOnly {
         }
 
         public void applyBurningEliteBuff() {
+            hasBurningEliteBuff= true;
             canGainMetallicize = true;
             canGainRegeneration = true;
-            // todo
+            maxHealth = (int) (maxHealth * 1.25);
         }
 
         public boolean hasBurningEliteBuff() {
             return hasBurningEliteBuff;
+        }
+
+        public EnemyProperty clone() {
+            try {
+                return (EnemyProperty) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -57,14 +70,13 @@ public abstract class EnemyReadOnly {
     protected int loseStrengthEot;
     protected int move = -1;
     protected int lastMove = -1;
-    public int maxHealth;
-    public int origHealth;
-    protected boolean hasBurningHealthBuff = false;
 
     public EnemyReadOnly(int health) {
         this.health = health;
-        maxHealth = health;
-        origHealth = health;
+        property = property.clone();
+        property.maxHealth = health;
+        property.origMaxHealth = health;
+        property.origHealth = health;
     }
 
     public abstract void doMove(GameState state);
@@ -93,11 +105,8 @@ public abstract class EnemyReadOnly {
         artifact = other.artifact;
         move = other.move;
         lastMove = other.lastMove;
-        maxHealth = other.maxHealth;
-        origHealth = other.origHealth;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
-        hasBurningHealthBuff = other.hasBurningHealthBuff();
     }
 
     public int getHealth() {
@@ -137,7 +146,7 @@ public abstract class EnemyReadOnly {
     }
 
     public boolean hasBurningHealthBuff() {
-        return hasBurningHealthBuff;
+        return property.hasBurningHealthBuff;
     }
 
     public int getMove() {
@@ -229,12 +238,11 @@ public abstract class EnemyReadOnly {
         if (health == 0 && health == enemy.health) {
             return true;
         }
-        return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove &&
-                maxHealth == enemy.maxHealth && block == enemy.block && strength == enemy.strength
-                && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact;
+        return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
+                strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(health, maxHealth, block, strength, vulnerable, weak, artifact, move, lastMove);
+        return Objects.hash(health, block, strength, vulnerable, weak, artifact, move, lastMove);
     }
 }

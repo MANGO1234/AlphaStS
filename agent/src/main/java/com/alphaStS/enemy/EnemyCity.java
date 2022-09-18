@@ -74,7 +74,7 @@ public class EnemyCity {
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
             numTurns++;
-            if (health < maxHealth / 2 && !angered) {
+            if (health < property.maxHealth / 2 && !angered) {
                 angered = true;
                 newMove = ANGER;
             } else if (angered && move != EXECUTE && lastMove != EXECUTE) {

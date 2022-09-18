@@ -103,7 +103,7 @@ public class EnemyEncounter {
             }
             for (int i = 0; i < 4; i++) {
                 var enemy = state.getEnemiesForWrite().getForWrite(enemies.get(i));
-                enemy.setHealth(enemy.maxHealth);
+                enemy.setHealth(enemy.property.maxHealth);
             }
             state.enemiesAlive = 4;
         }
@@ -192,7 +192,7 @@ public class EnemyEncounter {
             }
             for (int i = 0; i < 3; i++) {
                 var enemy = state.getEnemiesForWrite().getForWrite(enemies.get(i));
-                enemy.setHealth(enemy.maxHealth);
+                enemy.setHealth(enemy.property.maxHealth);
             }
             state.enemiesAlive = 3;
         }

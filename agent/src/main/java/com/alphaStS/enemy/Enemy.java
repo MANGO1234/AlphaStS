@@ -61,7 +61,10 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public void setBurningHealthBuff(boolean b) {
-        hasBurningHealthBuff = b;
+        if (property.hasBurningHealthBuff != b) {
+            property = property.clone();
+            property.hasBurningHealthBuff = b;
+        }
     }
 
     public void gainMetallicize(int n) {
@@ -105,7 +108,7 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     protected void heal(int hp) {
-        health += Math.min(hp, origHealth - health); // currently only used in burning elite regeneration, origHealth = origMaxHealth
+        health += Math.min(hp, property.origHealth - health);
     }
 
     public void react(GameState state, Card card) {
@@ -135,7 +138,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
     public Enemy markAsBurningElite() {
         property.applyBurningEliteBuff();
-        maxHealth = (int) (maxHealth * 1.25);
         return this;
     }
 
@@ -731,14 +733,14 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void damage(int n, GameState state) {
             super.damage(n, state);
-            if (health <= maxHealth / 2) {
+            if (health <= property.maxHealth / 2) {
                 move = SPLIT;
             }
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
-            if (health <= maxHealth / 2) {
+            if (health <= property.maxHealth / 2) {
                 move = SPLIT;
             }
         }
@@ -797,7 +799,7 @@ public abstract class Enemy extends EnemyReadOnly {
         public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(15, RandomGenCtx.Other) + 1;
             health = 10 * (training ? b : 15);
-            if (health <= maxHealth / 2) {
+            if (health <= property.maxHealth / 2) {
                 move = SPLIT;
             }
         }
@@ -840,7 +842,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public LargeSpikeSlime(int health) {
             super(health);
-            splitMaxHealth = maxHealth;
+            splitMaxHealth = property.maxHealth;
         }
 
         public LargeSpikeSlime(LargeSpikeSlime other) {
@@ -1082,7 +1084,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public LargeAcidSlime(int health) {
             super(health);
-            splitMaxHealth = maxHealth;
+            splitMaxHealth = property.maxHealth;
         }
 
         public LargeAcidSlime(int health, boolean startDead) {

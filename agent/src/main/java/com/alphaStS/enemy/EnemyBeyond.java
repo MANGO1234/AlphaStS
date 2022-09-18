@@ -89,7 +89,7 @@ public class EnemyBeyond {
                 state.enemyDoDamageToPlayer(this, 6, 4);
             } else if (move == REBIRTH) {
                 removeAllDebuffs();
-                health = maxHealth;
+                health = property.maxHealth;
                 awakened = true;
             } else if (move == DARK_ECHO) {
                 state.enemyDoDamageToPlayer(this, 40, 1);

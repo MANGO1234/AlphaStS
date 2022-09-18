@@ -2069,7 +2069,7 @@ public class GameState implements State {
         for (int enemyIdx = 0; enemyIdx < enemies.size(); enemyIdx++) {
             var enemy = enemies.get(enemyOrder != null ? enemyOrder[enemyIdx] : enemyIdx);
             if (enemy.isAlive()) {
-                x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
+                x[idx++] = enemy.getHealth() / (float) enemy.property.maxHealth;
                 if (prop.enemyCanGetVuln) {
                     x[idx++] = enemy.getVulnerable() / (float) 10.0;
                 }
@@ -2117,7 +2117,7 @@ public class GameState implements State {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
                 }
             } else {
-                x[idx++] = enemy.getHealth() / (float) enemy.maxHealth;
+                x[idx++] = enemy.getHealth() / (float) enemy.property.maxHealth;
                 if (prop.enemyCanGetVuln) {
                     x[idx++] = -0.1f;
                 }
