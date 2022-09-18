@@ -220,49 +220,49 @@ public class EnemyEncounter {
         // todo: in some situations, order matter, create a variant where order matters
         var start = builder.getEnemies().size();
         Enemy enemy = new Enemy.MadGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.MadGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.MadGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.SneakyGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.SneakyGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.SneakyGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.FatGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.FatGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.FatGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.ShieldGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.ShieldGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.ShieldGremlin();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.GremlinWizard();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.GremlinWizard();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.GremlinWizard();
-        enemy.isMinion = true;
+        enemy.property.isMinion = true;
         builder.addEnemy(enemy);
         builder.addEnemy(new EnemyCity.GremlinLeader());
         builder.setRandomization(new GremlinLeaderRandomization(builder.getEnemies(), start).doAfter(builder.getRandomization()));
@@ -270,11 +270,11 @@ public class EnemyEncounter {
 
     public static void addSlaversEliteFight(GameStateBuilder builder) {
         Enemy enemy = new Enemy.BlueSlaver();
-        enemy.isElite = true;
+        enemy.property.isElite = true;
         builder.addEnemy(enemy);
         builder.addEnemy(new EnemyCity.Taskmaster());
         enemy = new Enemy.RedSlaver();
-        enemy.isElite = true;
+        enemy.property.isElite = true;
         builder.addEnemy(enemy);
     }
 

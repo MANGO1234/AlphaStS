@@ -2558,7 +2558,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            if (!state.getEnemiesForRead().get(idx).isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+            if (!state.getEnemiesForRead().get(idx).property.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 state.getPlayerForWrite().heal(hpInc);
                 state.getCounterForWrite()[state.prop.feedCounterIdx] += hpInc;
             }

@@ -13,6 +13,11 @@ public class EnemyBeyond {
         private static final int SLUDGE = 4;
         private static final int TACKLE = 5;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+        }
+
         private boolean awakened;
 
         public AwakenedOne() {
@@ -21,7 +26,6 @@ public class EnemyBeyond {
 
         public AwakenedOne(int health) {
             super(health, 6);
-            canGainStrength = true;
             moveHistory = new int[1];
             strength = 2;
         }

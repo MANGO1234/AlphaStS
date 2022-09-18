@@ -551,7 +551,7 @@ public interface GameStateRandomization {
             switch (r) {
                 case 0 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.canGainRegeneration) {
+                        if (enemy.property.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(true);
                             enemy.setHealth(enemy.maxHealth);
                             enemy.gainStrength(-enemy.getStrength());
@@ -562,7 +562,7 @@ public interface GameStateRandomization {
                 }
                 case 1 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.canGainRegeneration) {
+                        if (enemy.property.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.origHealth);
                             enemy.gainStrength(2);
@@ -573,7 +573,7 @@ public interface GameStateRandomization {
                 }
                 case 2 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.canGainRegeneration) {
+                        if (enemy.property.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.origHealth);
                             enemy.gainStrength(-enemy.getStrength());
@@ -584,7 +584,7 @@ public interface GameStateRandomization {
                 }
                 case 3 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.canGainRegeneration) {
+                        if (enemy.property.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.origHealth);
                             enemy.gainStrength(-enemy.getStrength());

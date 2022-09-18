@@ -14,6 +14,16 @@ public class EnemyCity {
         private static final int EXECUTE = 5;
         private static final int ANGER = 6;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+            defaultProperty.canGainMetallicize = true;
+            defaultProperty.canWeaken = true;
+            defaultProperty.canVulnerable = true;
+            defaultProperty.canFrail = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         private int numOfDefensiveStance;
         private int numTurns;
         private boolean angered;
@@ -24,12 +34,6 @@ public class EnemyCity {
 
         public TheChamp(int health) {
             super(health, 7);
-            canGainStrength = true;
-            canGainMetallicize = true;
-            canWeaken = true;
-            canVulnerable = true;
-            canFrail = true;
-            canGainBlock = true;
             moveHistory = new int[1];
         }
 
@@ -172,15 +176,19 @@ public class EnemyCity {
         static final int RALLY = 1;
         static final int STAB = 2;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+            defaultProperty.canGainStrength = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         public GremlinLeader() {
             this(155);
         }
 
         public GremlinLeader(int health) {
             super(health, 3);
-            isElite = true;
-            canGainStrength = true;
-            canGainBlock = true;
         }
 
         public GremlinLeader(GremlinLeader other) {
@@ -366,8 +374,8 @@ public class EnemyCity {
             var enemies = state.getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 if (enemies.get(i).getName().contains("Gremlin")) {
-                    enemies.get(i).canGainBlock = true;
-                    enemies.get(i).canGainStrength = true;
+                    enemies.get(i).property.canGainBlock = true;
+                    enemies.get(i).property.canGainStrength = true;
                 }
             }
         }
@@ -376,6 +384,11 @@ public class EnemyCity {
     public static class BookOfStabbing extends Enemy {
         static final int MULTI_STAB = 0;
         static final int SINGLE_STAB = 1;
+
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+        }
 
         private int stabCount;
 
@@ -386,7 +399,6 @@ public class EnemyCity {
         public BookOfStabbing(int health) {
             super(health, 2);
             moveHistory = new int[] {-1};
-            isElite = true;
             stabCount = 1;
         }
 
@@ -485,10 +497,14 @@ public class EnemyCity {
     public static class Taskmaster extends Enemy {
         static final int SCOURING_WHIP = 0;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+            defaultProperty.canGainStrength = true;
+        }
+
         public Taskmaster() {
             this(64);
-            isElite = true;
-            canGainStrength = true;
         }
 
         public Taskmaster(int health) {
@@ -551,6 +567,11 @@ public class EnemyCity {
         static int HEADBUTT = 4;
         static int FLY = 5;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+        }
+
         int flying = 4;
 
         public int getFlying() {
@@ -564,7 +585,6 @@ public class EnemyCity {
         public Byrd(int health) {
             super(health, 5);
             moveHistory = new int[] {-1};
-            canGainStrength = true;
         }
 
         public Byrd(Byrd other) {
@@ -719,15 +739,19 @@ public class EnemyCity {
         static int SLAM = 2;
         static int HARDEN = 3;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canFrail = true;
+            defaultProperty.canGainBlock = true;
+            defaultProperty.hasArtifact = true;
+        }
+
         public SphericGuardian() {
             this(20);
         }
 
         public SphericGuardian(int health) {
             super(health, 4);
-            canFrail = true;
-            canGainBlock = true;
-            hasArtifact = true;
             artifact = 3;
             block = 40;
         }
@@ -792,14 +816,18 @@ public class EnemyCity {
         static int FELL = 2;
         static int STUNNED = 3;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canFrail = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         public ShelledParasite() {
             this(75);
         }
 
         public ShelledParasite(int health) {
             super(health, 4);
-            canFrail = true;
-            canGainBlock = true;
             metallicize = 14;
             moveHistory = new int[1];
         }
@@ -946,13 +974,17 @@ public class EnemyCity {
         static int CROSS_SLASH_1 = 2;
         static int CROSS_SLASH_2 = 3;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canWeaken = true;
+        }
+
         public Romeo() {
             this(41);
         }
 
         public Romeo(int health) {
             super(health, 4);
-            canWeaken = true;
         }
 
         public Romeo(Romeo other) {
@@ -1010,14 +1042,18 @@ public class EnemyCity {
         static int LUNGE = 1;
         static int MAUL = 2;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.changePlayerDexterity = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         public Bear() {
             this(44);
         }
 
         public Bear(int health) {
             super(health, 3);
-            changePlayerDexterity = true;
-            canGainBlock = true;
         }
 
         public Bear(Bear other) {
@@ -1079,16 +1115,20 @@ public class EnemyCity {
         static int DEBILITATE = 3;
         static int DRAIN = 4;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+            defaultProperty.canWeaken = true;
+            defaultProperty.canVulnerable = true;
+            defaultProperty.canDaze = true;
+        }
+
         public Chosen() {
             this(103);
         }
 
         public Chosen(int health) {
             super(health, 5);
-            canGainStrength = true;
-            canWeaken = true;
-            canVulnerable = true;
-            canDaze = true;
         }
 
         public Chosen(Chosen other) {

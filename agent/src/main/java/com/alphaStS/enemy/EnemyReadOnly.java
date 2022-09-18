@@ -9,6 +9,37 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class EnemyReadOnly {
+    public static class EnemyProperty {
+        public boolean isElite = false;
+        public boolean isMinion = false;
+        public boolean canVulnerable = false;
+        public boolean canEntangle = false;
+        public boolean canWeaken = false;
+        public boolean canFrail = false;
+        public boolean canSlime = false;
+        public boolean canDaze = false;
+        public boolean canGainStrength = false;
+        public boolean canGainRegeneration = false;
+        public boolean canGainMetallicize = false;
+        public boolean canGainBlock = false;
+        public boolean changePlayerStrength = false;
+        public boolean changePlayerDexterity = false;
+        public boolean hasBurningEliteBuff = false;
+        public boolean hasArtifact = false;
+
+        public void applyBurningEliteBuff() {
+            canGainMetallicize = true;
+            canGainRegeneration = true;
+            // todo
+        }
+
+        public boolean hasBurningEliteBuff() {
+            return hasBurningEliteBuff;
+        }
+    }
+
+    protected static EnemyProperty defaultProperty;
+    public EnemyProperty property = defaultProperty;
     protected int health;
     protected int block;
     protected int strength;
@@ -23,22 +54,7 @@ public abstract class EnemyReadOnly {
     public int maxHealth;
     public int origHealth;
     public int numOfMoves;
-    public boolean isElite = false;
-    public boolean isMinion = false;
-    public boolean canVulnerable = false;
-    public boolean canEntangle = false;
-    public boolean canWeaken = false;
-    public boolean canFrail = false;
-    public boolean canSlime = false;
-    public boolean canDaze = false;
-    public boolean canGainStrength = false;
-    public boolean canGainRegeneration = false;
-    public boolean canGainMetallicize = false;
-    public boolean canGainBlock = false;
-    public boolean changePlayerStrength = false;
-    public boolean changePlayerDexterity = false;
     protected boolean hasBurningHealthBuff = false;
-    public boolean hasArtifact = false;
 
     public EnemyReadOnly(int health, int numOfMoves) {
         this.health = health;
@@ -64,6 +80,7 @@ public abstract class EnemyReadOnly {
     public abstract String getName();
 
     protected void setSharedFields(Enemy other) {
+        property = other.property;
         health = other.health;
         block = other.block;
         strength = other.strength;
@@ -77,11 +94,6 @@ public abstract class EnemyReadOnly {
         origHealth = other.origHealth;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
-        canGainBlock = other.canGainBlock;
-        isMinion = other.isMinion;
-        canGainStrength = other.canGainStrength;
-        canGainRegeneration = other.canGainRegeneration;
-        canGainMetallicize = other.canGainMetallicize;
         hasBurningHealthBuff = other.hasBurningHealthBuff();
         if (other.moveHistory != null) {
             for (int i = 0; i < other.moveHistory.length; i++) {

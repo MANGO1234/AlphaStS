@@ -28,7 +28,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     private static boolean isEliteFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
-            if (enemy.isElite) {
+            if (enemy.property.isElite) {
                 return true;
             }
         }

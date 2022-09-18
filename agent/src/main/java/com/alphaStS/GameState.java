@@ -396,20 +396,20 @@ public class GameState implements State {
         prop.playerArtifactCanChange = getPlayeForRead().getArtifact() > 0;
         prop.playerArtifactCanChange |= potions.stream().anyMatch((x) -> x.changePlayerArtifact);
         prop.playerStrengthCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrength);
-        prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerStrength);
+        prop.playerStrengthCanChange |= enemiesArg.stream().anyMatch((x) -> x.property.changePlayerStrength);
         prop.playerStrengthCanChange |= relics.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerStrengthCanChange |= potions.stream().anyMatch((x) -> x.changePlayerStrength);
         prop.playerDexterityCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerDexterity);
-        prop.playerDexterityCanChange |= enemiesArg.stream().anyMatch((x) -> x.changePlayerDexterity);
+        prop.playerDexterityCanChange |= enemiesArg.stream().anyMatch((x) -> x.property.changePlayerDexterity);
         prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerDexterityCanChange |= potions.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
         prop.playerDexterityEotCanChange = potions.stream().anyMatch((x) -> x.changePlayerDexterityEot);
         prop.playerFocusCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerFocus);
-        prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.canVulnerable);
-        prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.canWeaken);
-        prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.canFrail);
-        prop.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.canEntangle);
+        prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.property.canVulnerable);
+        prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.property.canWeaken);
+        prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.property.canFrail);
+        prop.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.property.canEntangle);
         prop.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.card().vulnEnemy);
         prop.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
         prop.enemyCanGetVuln |= potions.stream().anyMatch((x) -> x.vulnEnemy);
@@ -474,7 +474,7 @@ public class GameState implements State {
     private int[] findDiscardToKeepTrackOf(List<CardCount> cards, List<Enemy> enemies) {
         Set<Integer> l = new HashSet<>();
         for (Enemy enemy : enemies) {
-            if (enemy.canDaze) {
+            if (enemy.property.canDaze) {
                 l.add(prop.findCardIndex(new Card.Dazed()));
             }
             l.addAll(enemy.getPossibleGeneratedCards().stream().map(prop::findCardIndex).toList());
@@ -555,10 +555,10 @@ public class GameState implements State {
 
     private List<CardCount> collectAllPossibleCards(List<CardCount> cards, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
         var set = new HashSet<>(cards);
-        if (enemies.stream().anyMatch((x) -> x.canSlime)) {
+        if (enemies.stream().anyMatch((x) -> x.property.canSlime)) {
             set.add(new CardCount(new Card.Slime(), 0));
         }
-        if (enemies.stream().anyMatch((x) -> x.canDaze)) {
+        if (enemies.stream().anyMatch((x) -> x.property.canDaze)) {
             set.add(new CardCount(new Card.Dazed(), 0));
         }
         for (Enemy enemy : enemies) {
@@ -1726,19 +1726,19 @@ public class GameState implements State {
             if (prop.enemyStrengthEotCanChange) {
                 inputLen += 1; // enemy gain strength eot
             }
-            if (enemy.canGainBlock) {
+            if (enemy.property.canGainBlock) {
                 inputLen += 1; // enemy block
             }
-            if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
+            if (enemy.property.canGainStrength || prop.enemyStrengthCanChange) {
                 inputLen += 1; // enemy strength
             }
-            if (enemy.hasArtifact) {
+            if (enemy.property.hasArtifact) {
                 inputLen += 1; // enemy artifact
             }
-            if (enemy.canGainRegeneration) {
+            if (enemy.property.canGainRegeneration) {
                 inputLen += 1; // enemy regeneration
             }
-            if (enemy.canGainMetallicize) {
+            if (enemy.property.canGainMetallicize) {
                 inputLen += 1; // enemy metallicize
             }
             inputLen += enemy.numOfMoves; // enemy moves
@@ -1887,19 +1887,19 @@ public class GameState implements State {
             if (prop.enemyStrengthEotCanChange) {
                 str += "        1 input to keep track of enemy gain strength eot\n";
             }
-            if (enemy.canGainBlock) {
+            if (enemy.property.canGainBlock) {
                 str += "        1 input to keep track of block\n";
             }
-            if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
+            if (enemy.property.canGainStrength || prop.enemyStrengthCanChange) {
                 str += "        1 input to keep track of strength\n";
             }
-            if (enemy.hasArtifact) {
+            if (enemy.property.hasArtifact) {
                 str += "        1 input to keep track of artifact\n";
             }
-            if (enemy.canGainRegeneration) {
+            if (enemy.property.canGainRegeneration) {
                 str += "        1 input to keep track of regeneration\n";
             }
-            if (enemy.canGainMetallicize) {
+            if (enemy.property.canGainMetallicize) {
                 str += "        1 input to keep track of metallicize\n";
             }
             str += "        " + enemy.numOfMoves + " inputs to keep track of current move from enemy\n";
@@ -2079,19 +2079,19 @@ public class GameState implements State {
                 if (prop.enemyStrengthEotCanChange) {
                     x[idx++] = enemy.getLoseStrengthEot() / (float) 20.0;
                 }
-                if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
+                if (enemy.property.canGainStrength || prop.enemyStrengthCanChange) {
                     x[idx++] = enemy.getStrength() / (float) 20.0;
                 }
-                if (enemy.canGainBlock) {
+                if (enemy.property.canGainBlock) {
                     x[idx++] = enemy.getBlock() / (float) 20.0;
                 }
-                if (enemy.hasArtifact) {
+                if (enemy.property.hasArtifact) {
                     x[idx++] = enemy.getArtifact() / 3.0f;
                 }
-                if (enemy.canGainRegeneration) {
+                if (enemy.property.canGainRegeneration) {
                     x[idx++] = enemy.getRegeneration() / (float) 10.0;
                 }
-                if (enemy.canGainMetallicize) {
+                if (enemy.property.canGainMetallicize) {
                     x[idx++] = enemy.getMetallicize() / (float) 14.0;
                 }
                 for (int i = 0; i < enemy.numOfMoves; i++) {
@@ -2129,19 +2129,19 @@ public class GameState implements State {
                 if (prop.enemyStrengthEotCanChange) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.canGainStrength || prop.enemyStrengthCanChange) {
+                if (enemy.property.canGainStrength || prop.enemyStrengthCanChange) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.canGainBlock) {
+                if (enemy.property.canGainBlock) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.hasArtifact) {
+                if (enemy.property.hasArtifact) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.canGainRegeneration) {
+                if (enemy.property.canGainRegeneration) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy.canGainMetallicize) {
+                if (enemy.property.canGainMetallicize) {
                     x[idx++] = -0.1f;
                 }
                 for (int i = 0; i < enemy.numOfMoves; i++) {

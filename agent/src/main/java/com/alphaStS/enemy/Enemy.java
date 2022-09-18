@@ -134,9 +134,8 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public Enemy markAsBurningElite() {
+        property.applyBurningEliteBuff();
         maxHealth = (int) (maxHealth * 1.25);
-        canGainMetallicize = true;
-        canGainRegeneration = true;
         return this;
     }
 
@@ -153,15 +152,19 @@ public abstract class Enemy extends EnemyReadOnly {
         public static int RUSH_1 = 2;
         public static int RUSH_2 = 3;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+            defaultProperty.canVulnerable = true;
+            defaultProperty.canGainStrength = true;
+        }
+
         public GremlinNob() {
             this(90);
         }
 
         public GremlinNob(int health) {
             super(health, 4);
-            isElite = true;
-            canVulnerable = true;
-            canGainStrength = true;
         }
 
         public GremlinNob(GremlinNob other) {
@@ -238,16 +241,20 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SIPHON_SOUL = 5;
         static int STUNNED = 6;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+            defaultProperty.canGainBlock = true;
+            defaultProperty.changePlayerStrength = true;
+            defaultProperty.changePlayerDexterity = true;
+        }
+
         public Lagavulin() {
             this(116);
         }
 
         public Lagavulin(int health) {
             super(health, 6);
-            isElite = true;
-            canGainBlock = true;
-            changePlayerStrength = true;
-            changePlayerDexterity = true;
         }
 
         public Lagavulin(Lagavulin other) {
@@ -339,6 +346,13 @@ public abstract class Enemy extends EnemyReadOnly {
         public final static int BEAM = 0;
         public final static int BOLT = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+            defaultProperty.canDaze = true;
+            defaultProperty.hasArtifact = true;
+        }
+
         int startMove;
 
         public Sentry(int startMove) {
@@ -349,8 +363,6 @@ public abstract class Enemy extends EnemyReadOnly {
             super(health, 2);
             this.startMove = startMove;
             artifact = 1;
-            canDaze = true;
-            hasArtifact = true;
         }
 
         public Sentry(Sentry other) {
@@ -414,6 +426,12 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SEAR_3 = 7;
         static int INFERNAL_1 = 8;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         boolean afterFirstInfernal;
 
         public Hexaghost() {
@@ -422,8 +440,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Hexaghost(int health) {
             super(health, 9);
-            canGainStrength = true;
-            canGainBlock = true;
             afterFirstInfernal = false;
         }
 
@@ -518,6 +534,14 @@ public abstract class Enemy extends EnemyReadOnly {
         static int ROLL_ATTACK = 5;
         static int TWIN_SLAM = 6;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.isElite = true;
+            defaultProperty.canGainBlock = true;
+            defaultProperty.canVulnerable = true;
+            defaultProperty.canWeaken = true;
+        }
+
         int modeShiftDmg;
         int maxModeShiftDmg;
 
@@ -535,10 +559,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public TheGuardian(int health) {
             super(health, 7);
-            isElite = true;
-            canGainBlock = true;
-            canVulnerable = true;
-            canWeaken = true;
             modeShiftDmg = 40;
             maxModeShiftDmg = 40;
         }
@@ -685,6 +705,11 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SLAM = 2;
         static int SPLIT = 3;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canSlime = true;
+        }
+
         private int splitHealth;
 
         public SlimeBoss() {
@@ -693,7 +718,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public SlimeBoss(int health) {
             super(health, 4);
-            canSlime = true;
         }
 
         public SlimeBoss(SlimeBoss other) {
@@ -802,6 +826,12 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 1;
         private static final int SPLIT = 2;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canSlime = true;
+            defaultProperty.canFrail = true;
+        }
+
         private int splitMaxHealth;
 
         public LargeSpikeSlime() {
@@ -811,8 +841,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public LargeSpikeSlime(int health) {
             super(health, 3);
             moveHistory = new int[] {-1};
-            canSlime = true;
-            canFrail = true;
             splitMaxHealth = maxHealth;
         }
 
@@ -912,6 +940,12 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int FLAME_TACKLE = 0;
         private static final int LICK = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canSlime = true;
+            defaultProperty.canFrail = true;
+        }
+
         public MediumSpikeSlime() {
             this(34);
         }
@@ -919,8 +953,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public MediumSpikeSlime(int health) {
             super(health, 2);
             moveHistory = new int[] {-1};
-            canSlime = true;
-            canFrail = true;
         }
 
         public MediumSpikeSlime(int health, boolean startDead) {
@@ -1034,6 +1066,12 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 2;
         private static final int SPLIT = 3;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canSlime = true;
+            defaultProperty.canWeaken = true;
+        }
+
         private int splitMaxHealth;
 
         public LargeAcidSlime() {
@@ -1043,8 +1081,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public LargeAcidSlime(int health) {
             super(health, 3);
             moveHistory = new int[] {-1};
-            canSlime = true;
-            canWeaken = true;
             splitMaxHealth = maxHealth;
         }
 
@@ -1155,6 +1191,12 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int TACKLE = 1;
         private static final int LICK = 2;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canSlime = true;
+            defaultProperty.canWeaken = true;
+        }
+
         public MediumAcidSlime() {
             this(34);
         }
@@ -1162,8 +1204,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public MediumAcidSlime(int health) {
             super(health, 3);
             moveHistory = new int[] {-1};
-            canSlime = true;
-            canWeaken = true;
         }
 
         public MediumAcidSlime(int health, boolean startDead) {
@@ -1241,6 +1281,11 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int TACKLE = 0;
         private static final int LICK = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canWeaken = true;
+        }
+
         public SmallAcidSlime() {
             this(13);
         }
@@ -1252,7 +1297,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public SmallAcidSlime(SmallAcidSlime other) {
             this(other.health);
             setSharedFields(other);
-            canWeaken = true;
         }
 
         @Override public Enemy copy() {
@@ -1298,6 +1342,12 @@ public abstract class Enemy extends EnemyReadOnly {
         public static final int SCRAPE = 1;
         public static final int ENTANGLE = 2;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canVulnerable = true;
+            defaultProperty.canEntangle = true;
+        }
+
         private boolean usedEntangle;
 
         public RedSlaver() {
@@ -1306,8 +1356,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public RedSlaver(int health) {
             super(health, 3);
-            canVulnerable = true;
-            canEntangle = true;
             moveHistory = new int[] {-1};
         }
 
@@ -1400,13 +1448,17 @@ public abstract class Enemy extends EnemyReadOnly {
         public static final int STAB = 0;
         public static final int RAKE = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canWeaken = true;
+        }
+
         public BlueSlaver() {
             this(52);
         }
 
         public BlueSlaver(int health) {
             super(health, 2);
-            canWeaken = true;
             moveHistory = new int[] {-1};
         }
 
@@ -1471,10 +1523,14 @@ public abstract class Enemy extends EnemyReadOnly {
             this(46);
         }
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         public JawWorm(int health) {
             super(health, 3);
-            canGainStrength = true;
-            canGainBlock = true;
             moveHistory = new int[] {-1};
         }
 
@@ -1552,13 +1608,17 @@ public abstract class Enemy extends EnemyReadOnly {
         public static final int INCANTATION = 0;
         public static final int DARK_STRIKE = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+        }
+
         public Cultist() {
             this(56);
         }
 
         public Cultist(int health) {
             super(health, 2);
-            canGainStrength = true;
         }
 
         public Cultist(Cultist other) {
@@ -1617,6 +1677,12 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int GROW = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+            defaultProperty.canGainBlock = true;
+        }
+
         int d = 8;
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
@@ -1648,8 +1714,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public RedLouse(int health) {
             super(health, 2);
-            canGainStrength = true;
-            canGainBlock = true;
             moveHistory = new int[] {-1};
         }
 
@@ -1724,6 +1788,11 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int SPIT_WEB = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canWeaken = true;
+        }
+
         int d = 8;
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
@@ -1755,7 +1824,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public GreenLouse(int health) {
             super(health, 2);
-            canWeaken = true;
             moveHistory = new int[] {-1};
         }
 
@@ -1830,6 +1898,12 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int GROW = 1;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canVulnerable = true;
+            defaultProperty.canGainStrength = true;
+        }
+
         boolean isDead;
 
         public FungiBeast() {
@@ -1838,8 +1912,6 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public FungiBeast(int health) {
             super(health, 2);
-            canVulnerable = true;
-            canGainStrength = true;
             moveHistory = new int[] {-1};
         }
 
@@ -1921,13 +1993,17 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int SMOKE_BOMB = 3;
         static final int ESCAPE = 4;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainBlock = true;
+        }
+
         public Looter() {
             this(50);
         }
 
         public Looter(int health) {
             super(health, 5);
-            canGainBlock = true;
         }
 
         public Looter(Looter other) {
@@ -1994,14 +2070,18 @@ public abstract class Enemy extends EnemyReadOnly {
     public static class FatGremlin extends Enemy {
         static final int SMASH = 0;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canWeaken = true;
+            defaultProperty.canFrail = true;
+        }
+
         public FatGremlin() {
             this(18);
         }
 
         public FatGremlin(int health) {
             super(health, 1);
-            canWeaken = true;
-            canFrail = true;
         }
 
         public FatGremlin(FatGremlin other) {
@@ -2044,13 +2124,17 @@ public abstract class Enemy extends EnemyReadOnly {
     public static class MadGremlin extends Enemy {
         static final int SCRATCH = 0;
 
+        static {
+            defaultProperty = new EnemyProperty();
+            defaultProperty.canGainStrength = true;
+        }
+
         public MadGremlin() {
             this(25);
         }
 
         public MadGremlin(int health) {
             super(health, 1);
-            canGainStrength = true;
         }
 
         public MadGremlin(MadGremlin other) {
@@ -2216,7 +2300,7 @@ public abstract class Enemy extends EnemyReadOnly {
             var enemies = state.getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 if (enemies.get(i).getName().contains("Gremlin")) {
-                    enemies.get(i).canGainBlock = true;
+                    enemies.get(i).property.canGainBlock = true;
                 }
             }
         }
