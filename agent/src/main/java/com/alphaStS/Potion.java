@@ -263,7 +263,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     if (cardIdx < 0) {
                         return;
                     }
-                    if (state.prop.makingRealMove) {
+                    if (state.prop.makingRealMove || state.prop.stateDescOn) {
                         if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                         state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
                     }
@@ -271,7 +271,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     curState.playCard(action, -1, true,false, false, false);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                        if (curState.prop.makingRealMove) {
+                        if (curState.prop.makingRealMove || state.prop.stateDescOn) {
                             curState.getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : curState.getEnemiesForRead().get(enemyIdx).getName())
                                     .append(" (").append(enemyIdx).append(")");
                         }

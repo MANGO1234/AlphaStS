@@ -686,7 +686,7 @@ public class GameState implements State {
                 cardIdx = deckArr[i];
                 deck[deckArr[i]] -= 1;
                 hand[deckArr[i]] += 1;
-                if (prop.makingRealMove) {
+                if (prop.makingRealMove || prop.stateDescOn) {
                     if (firstRandomDraw) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Draw ");
                         firstRandomDraw = false;
@@ -2795,7 +2795,7 @@ public class GameState implements State {
                 int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
                 if (idx >= 0) {
                     var enemy = getEnemiesForWrite().getForWrite(idx);
-                    if (prop.makingRealMove && enemiesAlive > 1) {
+                    if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
                     }
                     playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
@@ -2819,7 +2819,7 @@ public class GameState implements State {
                 int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
                 if (idx >= 0) {
                     var enemy = getEnemiesForWrite().getForWrite(idx);
-                    if (prop.makingRealMove && enemiesAlive > 1) {
+                    if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
                     }
                     playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);

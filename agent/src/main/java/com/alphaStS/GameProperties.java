@@ -29,6 +29,7 @@ public class GameProperties implements Cloneable {
     public RandomGen random;
     public RandomGen realMoveRandomGen;
     public boolean makingRealMove;
+    public boolean stateDescOn;
     public Card[] cardDict;
     public List<Potion> potions;
     public EnemyList originalEnemies;

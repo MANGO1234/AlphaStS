@@ -435,7 +435,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (cardIdx < 0) {
                 return GameActionCtx.PLAY_CARD;
             }
-            if (state.prop.makingRealMove) {
+            if (state.prop.makingRealMove || state.prop.stateDescOn) {
                 if (state.getStateDesc().length() > 0) state.getStateDesc().append(", ");
                 state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
             }
@@ -449,7 +449,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 curState.playCard(action, -1, true, false, false, true);
                 while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                     int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                    if (curState.prop.makingRealMove) {
+                    if (curState.prop.makingRealMove || curState.prop.stateDescOn) {
                         curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
                     }
                     curState.playCard(action, enemyIdx, true, false, false, true);
@@ -674,7 +674,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     if (!enemy.isAlive()) continue;
                     if (j == enemy_j) {
                         state.playerDoDamageToEnemy(enemy, 3);
-                        if (moreThan1Enemy && state.prop.makingRealMove) {
+                        if (moreThan1Enemy && (state.prop.makingRealMove || state.prop.stateDescOn)) {
                             state.getStateDesc().append(state.getStateDesc().length() > 0 ? ", " : "").append(enemy.getName() + "(" + enemyIdx + ")");
                         }
                         break;

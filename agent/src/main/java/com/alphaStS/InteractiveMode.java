@@ -35,162 +35,11 @@ public class InteractiveMode {
         boolean printState = true;
         boolean printAction = true;
         while (true) {
-            if (state.isTerminal() != 0) {
-                System.out.println("Game finished. Result is " + (state.isTerminal() == 1 ? "Win." : "Loss."));
-            }
             if (printState) {
-                int enemyIdx = 0;
-                System.out.println("Enemies Alive: " + state.enemiesAlive);
-                for (var enemy : state.getEnemiesForRead()) {
-                    if (!enemy.isAlive()) {
-                        continue;
-                    }
-                    System.out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
-                    System.out.println("  HP: " + enemy.getHealth());
-                    if (enemy.getStrength() != 0) {
-                        System.out.println("  Strength: " + enemy.getStrength());
-                    }
-                    if (enemy.getBlock() > 0) {
-                        System.out.println("  Block: " + enemy.getBlock());
-                    }
-                    if (enemy.getArtifact() > 0) {
-                        System.out.println("  Artifact: " + enemy.getArtifact());
-                    }
-                    if (enemy.getVulnerable() > 0) {
-                        System.out.println("  Vulnerable: " + enemy.getVulnerable());
-                    }
-                    if (enemy.getWeak() > 0) {
-                        System.out.println("  Weak: " + enemy.getWeak());
-                    }
-                    if (enemy.getRegeneration() > 0) {
-                        System.out.println("  Regeneration: " + enemy.getRegeneration());
-                    }
-                    if (enemy.getMetallicize() > 0) {
-                        System.out.println("  Metallicize: " + enemy.getMetallicize());
-                    }
-                    if (enemy.getLoseStrengthEot() != 0) {
-                        System.out.println("  Gain Strength EOT: " + -enemy.getLoseStrengthEot());
-                    }
-                    if (enemy instanceof Enemy.RedLouse louse) {
-                        if (!louse.hasCurledUp()) {
-                            System.out.println("  Curl Up: " + louse.getCurlUpAmount());
-                        }
-                    } else if (enemy instanceof Enemy.GreenLouse louse) {
-                        if (!louse.hasCurledUp()) {
-                            System.out.println("  Curl Up: " + louse.getCurlUpAmount());
-                        }
-                    } else if (enemy instanceof Enemy.TheGuardian guardian) {
-                        System.out.println("  Mode Shift Damage: " + guardian.getModeShiftDmg() + "/" + guardian.getMaxModeShiftDmg());
-                    }
-                    System.out.println("  Move: " + enemy.getMoveString(state));
-                    System.out.println();
-                }
-                System.out.println("Player");
-                System.out.println("  Energy: " + state.energy);
-                int maxPossibleHealth = state.getMaxPossibleHealth();
-                int health = state.getPlayeForRead().getHealth();
-                System.out.println("  HP: " + health + ((health != maxPossibleHealth) ? " (Max Possible HP=" + maxPossibleHealth + ")" : ""));
-                if (state.getPlayeForRead().getBlock() > 0) {
-                    System.out.println("  Block: " + state.getPlayeForRead().getBlock());
-                }
-                if (state.getOrbs() != null) {
-                    var orbs = state.getOrbs();
-                    System.out.print("  Orbs (" + orbs.length + "): ");
-                    for (int i = orbs.length - 1; i >= 0; i--) {
-                        System.out.print((i == orbs.length - 1 ? "" : ", ") + OrbType.values()[orbs[i]].displayName);
-                    }
-                    System.out.println();
-                }
-                if (state.getPlayeForRead().getStrength() != 0) {
-                    System.out.println("  Strength: " + state.getPlayeForRead().getStrength());
-                }
-                if (state.getPlayeForRead().getDexterity() != 0) {
-                    System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
-                }
-                if (state.getFocus() > 0) {
-                    System.out.println("  Focus: " + state.getFocus());
-                }
-                if (state.getPlayeForRead().getVulnerable() > 0) {
-                    System.out.println("  Vulnerable: " + state.getPlayeForRead().getVulnerable());
-                }
-                if (state.getPlayeForRead().getWeak() > 0) {
-                    System.out.println("  Weak: " + state.getPlayeForRead().getWeak());
-                }
-                if (state.getPlayeForRead().getFrail() > 0) {
-                    System.out.println("  Frail: " + state.getPlayeForRead().getFrail());
-                }
-                if (state.buffs != 0) {
-                    System.out.println("  Buffs:");
-                    for (PlayerBuff buff : PlayerBuff.BUFFS) {
-                        if ((state.buffs & buff.mask()) != 0) {
-                            System.out.println("    - " + buff.name());
-                        }
-                    }
-                }
-                if (state.prop.counterHandlersNonNull.length > 0) {
-                    System.out.println("  Other:");
-                    for (int i = 0; i < state.prop.counterHandlers.length; i++) {
-                        if (state.prop.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
-                            String counterStr = state.prop.counterHandlers[i].getDisplayString(state);
-                            System.out.println("    - " + state.prop.counterNames[i] + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[i]));
-                        }
-                    }
-                    if (state.getPlayeForRead().isEntangled()) {
-                        System.out.println("  - Entangled");
-                    }
-                    if (state.getPlayeForRead().cannotDrawCard()) {
-                        System.out.println("  - Cannot Draw Card");
-                    }
-                }
-                System.out.println();
-                if (state.getDrawOrderForRead().size() > 0) {
-                    System.out.print("Draw Order: [");
-                    for (int i = state.getDrawOrderForRead().size() - 1; i >= 0; i--) {
-                        if (i != state.getDrawOrderForRead().size() - 1) {
-                            System.out.print(", ");
-                        }
-                        System.out.print(state.prop.cardDict[state.getDrawOrderForRead().ithCardFromTop(i)].cardName);
-                    }
-                    System.out.println("]");
-                }
-                System.out.println("Hand");
-                for (int i = 0; i < state.hand.length; i++) {
-                    if (state.hand[i] > 0) {
-                        System.out.println("  " + state.hand[i] + " " + state.prop.cardDict[i].cardName);
-                    }
-                }
-                if (state.stateDesc != null) {
-                    System.out.println("Previous Turn: " + state.stateDesc);
-                }
+                printState(state);
             }
             if (printAction) {
-                for (int i = 0; i < state.getLegalActions().length; i++) {
-                    if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
-                            state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
-                            state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
-                            state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
-                            state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
-                            state.getAction(i).type() == GameActionType.BEGIN_TURN ||
-                            state.getAction(i).type() == GameActionType.USE_POTION ||
-                            state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
-                            state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
-                            state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
-                        System.out.println(i + ". " + state.getActionString(i));
-                    } else if (state.getAction(i).type() == GameActionType.END_TURN) {
-                        System.out.println("e. End Turn");
-                    } else {
-                        System.out.println(state.getAction(i));
-                        throw new RuntimeException();
-                    }
-                }
-                System.out.println("a. Show Deck");
-                System.out.println("s. Show Discard");
-                for (int i = 0; i < state.getExhaustForRead().length; i++) {
-                    if (state.getExhaustForRead()[i] > 0) {
-                        System.out.println("x. Show Exhaust");
-                        break;
-                    }
-                }
+                printAction(state);
                 printAction = true;
                 printState = false;
             }
@@ -317,6 +166,8 @@ public class InteractiveMode {
                         System.out.println(l);
                     }
                 }
+            } else if (line.equals("tree explore")) {
+                exploreTree(state, reader, modelDir);
             } else if (line.equals("tree") || line.startsWith("tree ")) {
                 printTree(state, line, modelDir);
             } else if (line.startsWith("n ")) {
@@ -354,6 +205,10 @@ public class InteractiveMode {
                 state.prop.testNewFeature = false;
             } else if (line.equals("test on")) {
                 state.prop.testNewFeature = true;
+            } else if (line.equals("stateDesc off")) {
+                state.prop.stateDescOn = false;
+            }  else if (line.equals("stateDesc on")) {
+                state.prop.stateDescOn = true;
             } else if (line.equals("desc")) {
                 System.out.println(state.getNNInputDesc());
             } else if (line.equals("")) {
@@ -363,7 +218,7 @@ public class InteractiveMode {
                     var _state = state;
                     var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
                     var actions = actionsOrig.stream().map(String::toLowerCase).toList();
-                    var actionStr = FuzzyMatch.getBestFuzzyMatch(line, actions);
+                    var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
                     if (actionStr != null) {
                         System.out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
                         action = actions.indexOf(actionStr);
@@ -380,6 +235,165 @@ public class InteractiveMode {
                 } else {
                     System.out.println("Unknown Command.");
                 }
+            }
+        }
+    }
+
+    private static void printState(GameState state) {
+        if (state.isTerminal() != 0) {
+            System.out.println("Battle finished. Result is " + (state.isTerminal() == 1 ? "Win." : "Loss."));
+        }
+        int enemyIdx = 0;
+        System.out.println("Enemies Alive: " + state.enemiesAlive);
+        for (var enemy : state.getEnemiesForRead()) {
+            if (!enemy.isAlive()) {
+                continue;
+            }
+            System.out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
+            System.out.println("  HP: " + enemy.getHealth());
+            if (enemy.getStrength() != 0) {
+                System.out.println("  Strength: " + enemy.getStrength());
+            }
+            if (enemy.getBlock() > 0) {
+                System.out.println("  Block: " + enemy.getBlock());
+            }
+            if (enemy.getArtifact() > 0) {
+                System.out.println("  Artifact: " + enemy.getArtifact());
+            }
+            if (enemy.getVulnerable() > 0) {
+                System.out.println("  Vulnerable: " + enemy.getVulnerable());
+            }
+            if (enemy.getWeak() > 0) {
+                System.out.println("  Weak: " + enemy.getWeak());
+            }
+            if (enemy.getRegeneration() > 0) {
+                System.out.println("  Regeneration: " + enemy.getRegeneration());
+            }
+            if (enemy.getMetallicize() > 0) {
+                System.out.println("  Metallicize: " + enemy.getMetallicize());
+            }
+            if (enemy.getLoseStrengthEot() != 0) {
+                System.out.println("  Gain Strength EOT: " + -enemy.getLoseStrengthEot());
+            }
+            if (enemy instanceof Enemy.RedLouse louse) {
+                if (!louse.hasCurledUp()) {
+                    System.out.println("  Curl Up: " + louse.getCurlUpAmount());
+                }
+            } else if (enemy instanceof Enemy.GreenLouse louse) {
+                if (!louse.hasCurledUp()) {
+                    System.out.println("  Curl Up: " + louse.getCurlUpAmount());
+                }
+            } else if (enemy instanceof Enemy.TheGuardian guardian) {
+                System.out.println("  Mode Shift Damage: " + guardian.getModeShiftDmg() + "/" + guardian.getMaxModeShiftDmg());
+            }
+            System.out.println("  Move: " + enemy.getMoveString(state));
+            System.out.println();
+        }
+        System.out.println("Player");
+        System.out.println("  Energy: " + state.energy);
+        int maxPossibleHealth = state.getMaxPossibleHealth();
+        int health = state.getPlayeForRead().getHealth();
+        System.out.println("  HP: " + health + ((health != maxPossibleHealth) ? " (Max Possible HP=" + maxPossibleHealth + ")" : ""));
+        if (state.getPlayeForRead().getBlock() > 0) {
+            System.out.println("  Block: " + state.getPlayeForRead().getBlock());
+        }
+        if (state.getOrbs() != null) {
+            var orbs = state.getOrbs();
+            System.out.print("  Orbs (" + orbs.length + "): ");
+            for (int i = orbs.length - 1; i >= 0; i--) {
+                System.out.print((i == orbs.length - 1 ? "" : ", ") + OrbType.values()[orbs[i]].displayName);
+            }
+            System.out.println();
+        }
+        if (state.getPlayeForRead().getStrength() != 0) {
+            System.out.println("  Strength: " + state.getPlayeForRead().getStrength());
+        }
+        if (state.getPlayeForRead().getDexterity() != 0) {
+            System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
+        }
+        if (state.getFocus() > 0) {
+            System.out.println("  Focus: " + state.getFocus());
+        }
+        if (state.getPlayeForRead().getVulnerable() > 0) {
+            System.out.println("  Vulnerable: " + state.getPlayeForRead().getVulnerable());
+        }
+        if (state.getPlayeForRead().getWeak() > 0) {
+            System.out.println("  Weak: " + state.getPlayeForRead().getWeak());
+        }
+        if (state.getPlayeForRead().getFrail() > 0) {
+            System.out.println("  Frail: " + state.getPlayeForRead().getFrail());
+        }
+        if (state.buffs != 0) {
+            System.out.println("  Buffs:");
+            for (PlayerBuff buff : PlayerBuff.BUFFS) {
+                if ((state.buffs & buff.mask()) != 0) {
+                    System.out.println("    - " + buff.name());
+                }
+            }
+        }
+        if (state.prop.counterHandlersNonNull.length > 0) {
+            System.out.println("  Other:");
+            for (int i = 0; i < state.prop.counterHandlers.length; i++) {
+                if (state.prop.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
+                    String counterStr = state.prop.counterHandlers[i].getDisplayString(state);
+                    System.out.println("    - " + state.prop.counterNames[i] + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[i]));
+                }
+            }
+            if (state.getPlayeForRead().isEntangled()) {
+                System.out.println("  - Entangled");
+            }
+            if (state.getPlayeForRead().cannotDrawCard()) {
+                System.out.println("  - Cannot Draw Card");
+            }
+        }
+        System.out.println();
+        if (state.getDrawOrderForRead().size() > 0) {
+            System.out.print("Draw Order: [");
+            for (int i = state.getDrawOrderForRead().size() - 1; i >= 0; i--) {
+                if (i != state.getDrawOrderForRead().size() - 1) {
+                    System.out.print(", ");
+                }
+                System.out.print(state.prop.cardDict[state.getDrawOrderForRead().ithCardFromTop(i)].cardName);
+            }
+            System.out.println("]");
+        }
+        System.out.println("Hand");
+        for (int i = 0; i < state.hand.length; i++) {
+            if (state.hand[i] > 0) {
+                System.out.println("  " + state.hand[i] + " " + state.prop.cardDict[i].cardName);
+            }
+        }
+        if (state.stateDesc != null) {
+            System.out.println("Previous Turn: " + state.stateDesc);
+        }
+    }
+
+    private static void printAction(GameState state) {
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
+                    state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
+                    state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
+                    state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
+                    state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                    state.getAction(i).type() == GameActionType.BEGIN_TURN ||
+                    state.getAction(i).type() == GameActionType.USE_POTION ||
+                    state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
+                    state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
+                    state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
+                System.out.println(i + ". " + state.getActionString(i));
+            } else if (state.getAction(i).type() == GameActionType.END_TURN) {
+                System.out.println("e. End Turn");
+            } else {
+                System.out.println(state.getAction(i));
+                throw new RuntimeException();
+            }
+        }
+        System.out.println("a. Show Deck");
+        System.out.println("s. Show Discard");
+        for (int i = 0; i < state.getExhaustForRead().length; i++) {
+            if (state.getExhaustForRead()[i] > 0) {
+                System.out.println("x. Show Exhaust");
+                break;
             }
         }
     }
@@ -429,7 +443,7 @@ public class InteractiveMode {
                     continue;
                 } else {
                     var cards = Arrays.stream(state.prop.cardDict).map((c) -> c.cardName.toLowerCase()).toList();
-                    var card = FuzzyMatch.getBestFuzzyMatch(line, cards);
+                    var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
                     if (card != null) {
                         drawOrder.add(cards.indexOf(card));
                         continue;
@@ -465,7 +479,7 @@ public class InteractiveMode {
             } else {
                 var enemiesOrig = Arrays.stream(idxes).mapToObj((i) -> state.getEnemiesForRead().get(i).getName() + " (" + i + ")").toList();
                 var enemies = enemiesOrig.stream().map(String::toLowerCase).toList();
-                var enemy = FuzzyMatch.getBestFuzzyMatch(line, enemies);
+                var enemy = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), enemies);
                 if (enemy != null) {
                     System.out.println("Fuzzy Match: " + enemiesOrig.get(enemies.indexOf(enemy)));
                     return idxes[enemies.indexOf(enemy)];
@@ -499,7 +513,7 @@ public class InteractiveMode {
             } else {
                 var movesOrig = IntStream.range(0, curEnemy.numOfMoves).mapToObj((i) -> curEnemy.getMoveString(state, i)).toList();
                 var moves = movesOrig.stream().map((x) -> x.toLowerCase(Locale.ROOT)).toList();
-                var move = FuzzyMatch.getBestFuzzyMatch(line, moves);
+                var move = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), moves);
                 if (move != null) {
                     System.out.println("Fuzzy Match: " + movesOrig.get(moves.indexOf(move)));
                     state.getEnemiesForWrite().getForWrite(curEnemyIdx).setMove(moves.indexOf(move));
@@ -826,6 +840,139 @@ public class InteractiveMode {
         }
         session.playGames(state1, numberOfGames, nodeCount, true);
         state1.prop.randomization = prevRandomization;
+    }
+
+    private static void exploreTree(GameState root, BufferedReader reader, String modelDir) throws IOException {
+        boolean printAction = true;
+        boolean printState = true;
+        var saves = new ArrayList<ArrayList<State>>();
+        for (int i = 0; i < 10; i++) {
+            saves.add(null);
+        }
+        var hist = new ArrayList<State>();
+        hist.add(root);
+        while (true) {
+            var s = hist.get(hist.size() - 1);
+            if (s instanceof GameState state) {
+                if (printState) {
+                    if (state.getStateDesc().length() > 0) {
+                        System.out.println(state.getStateDesc());
+                    }
+                    System.out.println(state);
+                }
+                if (printAction) {
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (state.ns[i] == null) {
+                            continue;
+                        }
+                        if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
+                                state.getAction(i).type() == GameActionType.SELECT_ENEMY ||
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                                state.getAction(i).type() == GameActionType.BEGIN_TURN ||
+                                state.getAction(i).type() == GameActionType.USE_POTION ||
+                                state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
+                                state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
+                            System.out.println(i + ". " + state.getActionString(i));
+                        } else if (state.getAction(i).type() == GameActionType.END_TURN) {
+                            System.out.println("e. End Turn");
+                        } else {
+                            System.out.println(state.getAction(i));
+                            throw new RuntimeException();
+                        }
+                    }
+                    printState = false;
+                    printAction = false;
+                }
+                System.out.print("> ");
+                String line = reader.readLine();
+                if (line.equals("exit")) {
+                    return;
+                }
+                if (line.equals("tree") || line.startsWith("tree ")) {
+                    printTree(state, line, modelDir);
+                } else if (line.equals("b")) {
+                    hist.remove(hist.size() - 1);
+                    printState = true;
+                    printAction = true;
+                } else if (line.startsWith("save ")) {
+                    int idx = parseInt(line.substring(5), -1);
+                    if (idx >= 0 && idx <= 9) {
+                        saves.set(idx, new ArrayList<>(hist));
+                    }
+                } else if (line.startsWith("restore ")) {
+                    int idx = parseInt(line.substring(8), -1);
+                    if (idx >= 0 && idx <= 9 && saves.get(idx) != null) {
+                        hist = new ArrayList<>(saves.get(idx));
+                        printState = true;
+                        printAction = true;
+                    }
+                } else {
+                    int action = parseInt(line, -1);
+                    if (action < 0 || action >= state.getLegalActions().length) {
+                        var _state = state;
+                        var actionsOrig = IntStream.range(0, state.getLegalActions().length).filter((i) -> _state.ns[i] != null)
+                                .mapToObj(_state::getActionString).toList();
+                        var actions = actionsOrig.stream().map(String::toLowerCase).toList();
+                        var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
+                        if (actionStr != null) {
+                            System.out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
+                            action = actions.indexOf(actionStr);
+                        }
+                    }
+                    if (action >= 0 && action <= state.getLegalActions().length && state.ns[action] != null) {
+                        printState = true;
+                        printAction = true;
+                        hist.add(state.ns[action]);
+                    } else {
+                        System.out.println("Unknown Command.");
+                    }
+                }
+            } else if (s instanceof ChanceState cs) {
+                var chanceOutcomes = cs.cache.values().stream().sorted((a, b) -> {
+                    var aStr = a.state.getStateDescStr();
+                    aStr = aStr.length() == 0 ? a.state.toString() : aStr;
+                    var bStr = b.state.getStateDescStr();
+                    bStr = bStr.length() == 0 ? b.state.toString() : bStr;
+                    return aStr.compareTo(bStr);
+                }).toList();
+                if (printState) {
+                    for (int i = 0; i < chanceOutcomes.size(); i++) {
+                        var str = chanceOutcomes.get(i).state.getStateDesc();
+                        System.out.println(i + ". " + (str.length() == 0 ? chanceOutcomes.get(i).state : str));
+                    }
+                    printAction = false;
+                }
+                System.out.print("> ");
+                String line = reader.readLine();
+                if (line.equals("exit")) {
+                    return;
+                }
+                if (line.equals("")) {
+
+                } else {
+                    int outcome = parseInt(line, -1);
+                    if (outcome < 0 || outcome >= chanceOutcomes.size()) {
+                        var outcomesOrig = chanceOutcomes.stream().map((x) -> x.state.getStateDesc().length() == 0 ? x.state.toString() : x.state.getStateDescStr()).toList();
+                        var outcomes = outcomesOrig.stream().map(String::toLowerCase).toList();
+                        var outcomeStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), outcomes);
+                        if (outcomeStr != null) {
+                            System.out.println("Fuzzy Match: " + outcomesOrig.get(outcomes.indexOf(outcomeStr)));
+                            outcome = outcomes.indexOf(outcomeStr);
+                        }
+                    }
+                    if (outcome >= 0 && outcome <= chanceOutcomes.size()) {
+                        printState = true;
+                        printAction = true;
+                        hist.add(chanceOutcomes.get(outcome).state);
+                    } else {
+                        System.out.println("Unknown Command.");
+                    }
+                }
+            }
+        }
     }
 
     private static void printTree(GameState state, String line, String modelDir) {
