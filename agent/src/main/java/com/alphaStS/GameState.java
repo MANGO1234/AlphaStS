@@ -9,10 +9,7 @@ import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
-import com.alphaStS.utils.BigRational;
-import com.alphaStS.utils.CircularArray;
-import com.alphaStS.utils.DrawOrder;
-import com.alphaStS.utils.DrawOrderReadOnly;
+import com.alphaStS.utils.*;
 
 import java.util.*;
 
@@ -134,6 +131,7 @@ public class GameState implements State {
     float[] policy; // policy from NN
     float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
     Map<GameState, State> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
+    Map<GameState, List<Tuple<GameState, Integer>>> transpositionsParent;
     int terminal_action; // detected a win from child, no need to waste more time search
     SearchFrontier searchFrontier;
 
@@ -438,6 +436,7 @@ public class GameState implements State {
         // mcts related fields
         terminal_action = -100;
         transpositions = new HashMap<>();
+        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
     }
 
     private int[] findCardThatCanHealIdxes(List<CardCount> cards, List<Relic> relics) {
@@ -646,8 +645,10 @@ public class GameState implements State {
         GameState clone = new GameState(this);
         if (keepTranspositions) {
             clone.transpositions = transpositions;
+            clone.transpositionsParent = transpositionsParent;
         } else {
             clone.transpositions = new HashMap<>();
+            if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) clone.transpositionsParent = new HashMap<>();
         }
         return clone;
     }
@@ -1122,6 +1123,7 @@ public class GameState implements State {
         if (isStochastic) {
             if (!(Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || prop.testNewFeature)) || (action.type() == GameActionType.BEGIN_TURN || action.type() == GameActionType.BEGIN_BATTLE)) {
                 transpositions = new HashMap<>();
+                if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
             }
             searchFrontier = null;
         }
@@ -1484,7 +1486,19 @@ public class GameState implements State {
         if (focus > 0) {
             str.append(", focus=").append(focus);
         }
-        str.append(", energy=").append(energy).append(", ctx=").append(actionCtx).append(", ").append(getPlayeForRead());
+        str.append(", energy=").append(energy);
+        if (actionCtx != GameActionCtx.PLAY_CARD) {
+            str.append(", ctx=").append(actionCtx);
+            if (actionCtx == GameActionCtx.SELECT_ENEMY || actionCtx == GameActionCtx.SELECT_CARD_HAND ||
+                    actionCtx == GameActionCtx.SELECT_CARD_EXHAUST || actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
+                if (currentAction.type() == GameActionType.PLAY_CARD) {
+                    str.append("[").append(prop.cardDict[currentAction.idx()].cardName).append("]");
+                } else if (currentAction.type() == GameActionType.USE_POTION) {
+                    str.append("[").append(prop.potions.get(currentAction.idx())).append("]");
+                }
+            }
+        }
+        str.append(", ").append(getPlayeForRead());
         str.append(", [");
         int eAlive = 0;
         for (var enemy : enemies) {
@@ -2404,6 +2418,7 @@ public class GameState implements State {
             Arrays.fill(ns, null);
         }
         transpositions = new HashMap<>();
+        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
         searchFrontier = null;
     }
 
@@ -2424,6 +2439,7 @@ public class GameState implements State {
         ns = null;
         total_n = 0;
         transpositions = new HashMap<>();
+        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
         legalActions = null;
         terminal_action = -100;
         searchFrontier = null;
@@ -2996,7 +3012,8 @@ class ChanceState implements State {
 //            }
         } else {
             if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
-                    (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature))) {
+                    (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
+                    (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
                 var new_total_q_comb = 0.0;
                 var new_total_q_win = 0.0;
                 var new_total_q_health = 0.0;

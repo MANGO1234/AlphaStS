@@ -1,9 +1,11 @@
 package com.alphaStS;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
 import cc.mallet.types.Dirichlet;
+import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
@@ -67,6 +69,8 @@ public class MCTS {
 
         State nextState = state.ns[action];
         GameState state2;
+        GameState transpositionKey = null;
+        GameState transposedState = null;
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
@@ -76,9 +80,17 @@ public class MCTS {
                     if (s == null) {
                         state.ns[action] = new ChanceState(state2, state, action);
                         state.transpositions.put(state2, state2);
+                        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                            var parents = new ArrayList<Tuple<GameState, Integer>>();
+                            state.transpositionsParent.put(state2, parents);
+                            parents.add(new Tuple<>(state, action));
+                        }
                         this.search2_r(state2, training, remainingCalls, false);
                         ((ChanceState) (state.ns[action])).correctV(state2, v);
                     } else {
+                        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                            state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
+                        }
                         state2 = (GameState) s;
                         state.ns[action] = new ChanceState(state2, state, action);
                         this.search2_r(state2, training, remainingCalls, false);
@@ -99,19 +111,35 @@ public class MCTS {
                         var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(parentState, cState);
+                        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                            var parents = new ArrayList<Tuple<GameState, Integer>>();
+                            state.transpositionsParent.put(parentState, parents);
+                            parents.add(new Tuple<>(state, action));
+                        }
                         this.search2_r(state2, training, remainingCalls, false);
                         cState.correctV(state2, v);
                     } else {
                         state.ns[action] = state2;
                         state.transpositions.put(state2, state2);
+                        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                            var parents = new ArrayList<Tuple<GameState, Integer>>();
+                            state.transpositionsParent.put(state2, parents);
+                            parents.add(new Tuple<>(state, action));
+                        }
                         this.search2_r(state2, training, remainingCalls, false);
                     }
                 } else if (s instanceof GameState ns) {
+                    if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                        state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
+                    }
                     state.ns[action] = ns;
                     v[GameState.V_COMB_IDX] = ns.total_q_comb / (ns.total_n + 1);
                     v[GameState.V_WIN_IDX] = ns.total_q_win / (ns.total_n + 1);
                     v[GameState.V_HEALTH_IDX] = ns.total_q_health / (ns.total_n + 1);
                 } else if (s instanceof ChanceState ns) {
+                    if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                        state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
+                    }
                     state.ns[action] = ns;
                     v[GameState.V_COMB_IDX] = ns.total_q_comb / ns.total_n;
                     v[GameState.V_WIN_IDX] = ns.total_q_win / ns.total_n;
@@ -121,9 +149,19 @@ public class MCTS {
         } else {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
-//                    state2 = cState.getNextState(true);
-//                    this.search2_r(state2, training, remainingCalls, false);
-//                    cState.correctV(state2, v);
+                    if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                        state2 = cState.getNextState(true);
+                        this.search2_r(state2, training, remainingCalls, false);
+                        cState.correctV(state2, v);
+                        if (state.getAction(action).type() == GameActionType.END_TURN) {
+                            var newS = state.clone(true);
+                            newS.doAction(action);
+                            transpositionKey = newS;
+                            transposedState = state2;
+                        } else {
+                            Integer.parseInt(null);
+                        }
+                    }
                     v[GameState.V_COMB_IDX] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
                     v[GameState.V_WIN_IDX] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[GameState.V_HEALTH_IDX] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
@@ -131,10 +169,21 @@ public class MCTS {
                     state2 = cState.getNextState(true);
                     this.search2_r(state2, training, remainingCalls, false);
                     cState.correctV(state2, v);
+                    if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                        var parents = state2.transpositionsParent.get(state2);
+                        if (parents != null && parents.size() > 1) {
+                            transpositionKey = state2;
+                            transposedState = state2;
+                        }
+                    }
                 }
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
-//                    this.search2_r(nState, training, remainingCalls, false);
+                    if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                        this.search2_r(nState, training, remainingCalls, false);
+                        transpositionKey = nState;
+                        transposedState = nState;
+                    }
                     v[GameState.V_COMB_IDX] = nState.total_q_comb / (nState.total_n + 1) * (state.n[action] + 1) - state.q_comb[action];
                     v[GameState.V_WIN_IDX] = nState.total_q_win / (nState.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
                     v[GameState.V_HEALTH_IDX] = nState.total_q_health / (nState.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
@@ -169,7 +218,47 @@ public class MCTS {
         state.total_q_comb += v[GameState.V_COMB_IDX];
         state.total_q_win += v[GameState.V_WIN_IDX];
         state.total_q_health += v[GameState.V_HEALTH_IDX];
+        if (transpositionKey != null) {
+            updateTranspositions(transpositionKey, transposedState, state, action);
+        }
         numberOfPossibleActions = numberOfActions;
+    }
+
+    private void updateTranspositions(GameState transpositionKey, GameState state, GameState curParentState, int action) {
+        var parents = transpositionKey.transpositionsParent.get(transpositionKey);
+        if (parents == null) {
+            return;
+        }
+        for (var parent : parents) {
+            if (parent.v1().equals(curParentState) && parent.v2() == action) {
+                continue;
+            }
+            if (parent.v1().ns[parent.v2()] instanceof GameState) {
+                var v_combChange = state.total_q_comb / (state.total_n + 1) * parent.v1().n[parent.v2()] - parent.v1().q_comb[parent.v2()];
+                var v_winChange = state.total_q_win / (state.total_n + 1) * parent.v1().n[parent.v2()] - parent.v1().q_win[parent.v2()];
+                var v_healthChange = state.total_q_health / (state.total_n + 1) * parent.v1().n[parent.v2()] - parent.v1().q_health[parent.v2()];
+                parent.v1().q_comb[parent.v2()] += v_combChange;
+                parent.v1().q_win[parent.v2()] += v_winChange;
+                parent.v1().q_health[parent.v2()] += v_healthChange;
+                parent.v1().total_q_comb += v_combChange;
+                parent.v1().total_q_win += v_winChange;
+                parent.v1().total_q_health += v_healthChange;
+                updateTranspositions(parent.v1(), parent.v1(), null, -1);
+            } else if (parent.v1().ns[parent.v2()] instanceof ChanceState cs) {
+                var v = new double[20];
+                cs.correctV(state, v);
+                var v_combChange = cs.total_q_comb / cs.total_n * parent.v1().n[parent.v2()] - parent.v1().q_comb[parent.v2()];
+                var v_winChange = cs.total_q_win / cs.total_n * parent.v1().n[parent.v2()] - parent.v1().q_win[parent.v2()];
+                var v_healthChange = cs.total_q_health / cs.total_n * parent.v1().n[parent.v2()] - parent.v1().q_health[parent.v2()];
+                parent.v1().q_comb[parent.v2()] += v_combChange;
+                parent.v1().q_win[parent.v2()] += v_winChange;
+                parent.v1().q_health[parent.v2()] += v_healthChange;
+                parent.v1().total_q_comb += v_combChange;
+                parent.v1().total_q_win += v_winChange;
+                parent.v1().total_q_health += v_healthChange;
+                updateTranspositions(parent.v1(), parent.v1(), null, -1);
+            }
+        }
     }
 
     void search3(GameState state, boolean training, int remainingCalls) {
@@ -216,10 +305,25 @@ public class MCTS {
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
-            if (state2.isStochastic && (true || state.getAction(action).type() == GameActionType.BEGIN_TURN || state.getAction(action).type() == GameActionType.BEGIN_BATTLE)) {
-                state.ns[action] = new ChanceState(state2, state, action);
-                this.search3_r(state2, training, remainingCalls, false);
-                ((ChanceState) (state.ns[action])).correctV(state2, v);
+            if (state2.isStochastic) {
+                if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
+                    var s = state.transpositions.get(state2);
+                    if (s == null) {
+                        state.ns[action] = new ChanceState(state2, state, action);
+                        state.transpositions.put(state2, state2);
+                        this.search3_r(state2, training, remainingCalls, false);
+                        ((ChanceState) (state.ns[action])).correctV(state2, v);
+                    } else {
+                        state2 = (GameState) s;
+                        state.ns[action] = new ChanceState(state2, state, action);
+                        this.search3_r(state2, training, remainingCalls, false);
+                        ((ChanceState) (state.ns[action])).correctV(state2, v);
+                    }
+                } else {
+                    state.ns[action] = new ChanceState(state2, state, action);
+                    this.search3_r(state2, training, remainingCalls, false);
+                    ((ChanceState) (state.ns[action])).correctV(state2, v);
+                }
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
