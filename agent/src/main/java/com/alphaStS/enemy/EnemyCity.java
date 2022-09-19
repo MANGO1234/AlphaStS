@@ -14,16 +14,6 @@ public class EnemyCity {
         private static final int EXECUTE = 5;
         private static final int ANGER = 6;
 
-        static {
-            defaultProperty = new EnemyProperty(7, true);
-            defaultProperty.canGainStrength = true;
-            defaultProperty.canGainMetallicize = true;
-            defaultProperty.canWeaken = true;
-            defaultProperty.canVulnerable = true;
-            defaultProperty.canFrail = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         private int numOfDefensiveStance;
         private int numTurns;
         private boolean angered;
@@ -33,12 +23,17 @@ public class EnemyCity {
         }
 
         public TheChamp(int health) {
-            super(health);
+            super(health, 7, true);
+            property.canGainStrength = true;
+            property.canGainMetallicize = true;
+            property.canWeaken = true;
+            property.canVulnerable = true;
+            property.canFrail = true;
+            property.canGainBlock = true;
         }
 
         public TheChamp(TheChamp other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             numOfDefensiveStance = other.numOfDefensiveStance;
             numTurns = other.numTurns;
             angered = other.angered;
@@ -175,24 +170,19 @@ public class EnemyCity {
         static final int RALLY = 1;
         static final int STAB = 2;
 
-        static {
-            defaultProperty = new EnemyProperty(3, false);
-            defaultProperty.isElite = true;
-            defaultProperty.canGainStrength = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         public GremlinLeader() {
             this(155);
         }
 
         public GremlinLeader(int health) {
-            super(health);
+            super(health, 3, false);
+            property.isElite = true;
+            property.canGainStrength = true;
+            property.canGainBlock = true;
         }
 
         public GremlinLeader(GremlinLeader other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -384,11 +374,6 @@ public class EnemyCity {
         static final int MULTI_STAB = 0;
         static final int SINGLE_STAB = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, true);
-            defaultProperty.isElite = true;
-        }
-
         private int stabCount;
 
         public BookOfStabbing() {
@@ -396,13 +381,13 @@ public class EnemyCity {
         }
 
         public BookOfStabbing(int health) {
-            super(health);
+            super(health, 2, true);
+            property.isElite = true;
             stabCount = 1;
         }
 
         public BookOfStabbing(BookOfStabbing other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             stabCount = other.stabCount;
         }
 
@@ -495,23 +480,18 @@ public class EnemyCity {
     public static class Taskmaster extends Enemy {
         static final int SCOURING_WHIP = 0;
 
-        static {
-            defaultProperty = new EnemyProperty(1, false);
-            defaultProperty.isElite = true;
-            defaultProperty.canGainStrength = true;
-        }
-
         public Taskmaster() {
             this(64);
         }
 
         public Taskmaster(int health) {
-            super(health);
+            super(health, 1, false);
+            property.isElite = true;
+            property.canGainStrength = true;
         }
 
         public Taskmaster(Taskmaster other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -565,11 +545,6 @@ public class EnemyCity {
         static int HEADBUTT = 4;
         static int FLY = 5;
 
-        static {
-            defaultProperty = new EnemyProperty(5, true);
-            defaultProperty.canGainStrength = true;
-        }
-
         int flying = 4;
 
         public int getFlying() {
@@ -581,12 +556,12 @@ public class EnemyCity {
         }
 
         public Byrd(int health) {
-            super(health);
+            super(health, 5, true);
+            property.canGainStrength = true;
         }
 
         public Byrd(Byrd other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             flying = other.flying;
         }
 
@@ -736,26 +711,21 @@ public class EnemyCity {
         static int SLAM = 2;
         static int HARDEN = 3;
 
-        static {
-            defaultProperty = new EnemyProperty(4, false);
-            defaultProperty.canFrail = true;
-            defaultProperty.canGainBlock = true;
-            defaultProperty.hasArtifact = true;
-        }
-
         public SphericGuardian() {
             this(20);
         }
 
         public SphericGuardian(int health) {
-            super(health);
+            super(health, 4, false);
+            property.canFrail = true;
+            property.canGainBlock = true;
+            property.hasArtifact = true;
             artifact = 3;
             block = 40;
         }
 
         public SphericGuardian(SphericGuardian other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -813,24 +783,19 @@ public class EnemyCity {
         static int FELL = 2;
         static int STUNNED = 3;
 
-        static {
-            defaultProperty = new EnemyProperty(4, true);
-            defaultProperty.canFrail = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         public ShelledParasite() {
             this(75);
         }
 
         public ShelledParasite(int health) {
-            super(health);
+            super(health, 4, true);
+            property.canFrail = true;
+            property.canGainBlock = true;
             metallicize = 14;
         }
 
         public ShelledParasite(ShelledParasite other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -920,21 +885,16 @@ public class EnemyCity {
     public static class Pointy extends Enemy {
         static int ATTACK = 0;
 
-        static {
-            defaultProperty = new EnemyProperty(1, false);
-        }
-
         public Pointy() {
             this(34);
         }
 
         public Pointy(int health) {
-            super(health);
+            super(health, 1, false);
         }
 
         public Pointy(Pointy other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -975,22 +935,17 @@ public class EnemyCity {
         static int CROSS_SLASH_1 = 2;
         static int CROSS_SLASH_2 = 3;
 
-        static {
-            defaultProperty = new EnemyProperty(4, false);
-            defaultProperty.canWeaken = true;
-        }
-
         public Romeo() {
             this(41);
         }
 
         public Romeo(int health) {
-            super(health);
+            super(health, 4, false);
+            property.canWeaken = true;
         }
 
         public Romeo(Romeo other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1043,23 +998,18 @@ public class EnemyCity {
         static int LUNGE = 1;
         static int MAUL = 2;
 
-        static {
-            defaultProperty = new EnemyProperty(3, false);
-            defaultProperty.changePlayerDexterity = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         public Bear() {
             this(44);
         }
 
         public Bear(int health) {
-            super(health);
+            super(health, 3, false);
+            property.changePlayerDexterity = true;
+            property.canGainBlock = true;
         }
 
         public Bear(Bear other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1116,25 +1066,20 @@ public class EnemyCity {
         static int DEBILITATE = 3;
         static int DRAIN = 4;
 
-        static {
-            defaultProperty = new EnemyProperty(5, false);
-            defaultProperty.canGainStrength = true;
-            defaultProperty.canWeaken = true;
-            defaultProperty.canVulnerable = true;
-            defaultProperty.canDaze = true;
-        }
-
         public Chosen() {
             this(103);
         }
 
         public Chosen(int health) {
-            super(health);
+            super(health, 5, false);
+            property.canGainStrength = true;
+            property.canWeaken = true;
+            property.canVulnerable = true;
+            property.canDaze = true;
         }
 
         public Chosen(Chosen other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {

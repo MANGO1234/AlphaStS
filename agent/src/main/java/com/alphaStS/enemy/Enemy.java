@@ -5,8 +5,13 @@ import com.alphaStS.*;
 import java.util.List;
 
 public abstract class Enemy extends EnemyReadOnly {
-    public Enemy(int health) {
-        super(health);
+    public Enemy(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
+        super(health, numOfMoves, useLast2MovesForMoveSelection);
+    }
+
+    public Enemy(Enemy other) {
+        super(other);
+        copyFieldsFrom(other);
     }
 
     public abstract void nextMove(GameState state, RandomGen random);
@@ -154,24 +159,19 @@ public abstract class Enemy extends EnemyReadOnly {
         public static int RUSH_1 = 2;
         public static int RUSH_2 = 3;
 
-        static {
-            defaultProperty = new EnemyProperty(4, false);
-            defaultProperty.isElite = true;
-            defaultProperty.canVulnerable = true;
-            defaultProperty.canGainStrength = true;
-        }
-
         public GremlinNob() {
             this(90);
         }
 
         public GremlinNob(int health) {
-            super(health);
+            super(health, 4, false);
+            property.isElite = true;
+            property.canVulnerable = true;
+            property.canGainStrength = true;
         }
 
         public GremlinNob(GremlinNob other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -243,25 +243,20 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SIPHON_SOUL = 5;
         static int STUNNED = 6;
 
-        static {
-            defaultProperty = new EnemyProperty(6, false);
-            defaultProperty.isElite = true;
-            defaultProperty.canGainBlock = true;
-            defaultProperty.changePlayerStrength = true;
-            defaultProperty.changePlayerDexterity = true;
-        }
-
         public Lagavulin() {
             this(116);
         }
 
         public Lagavulin(int health) {
-            super(health);
+            super(health, 4, false);
+            property.isElite = true;
+            property.canGainBlock = true;
+            property.changePlayerStrength = true;
+            property.changePlayerDexterity = true;
         }
 
         public Lagavulin(Lagavulin other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -348,13 +343,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public final static int BEAM = 0;
         public final static int BOLT = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, false);
-            defaultProperty.isElite = true;
-            defaultProperty.canDaze = true;
-            defaultProperty.hasArtifact = true;
-        }
-
         int startMove;
 
         public Sentry(int startMove) {
@@ -362,14 +350,17 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public Sentry(int health, int startMove) {
-            super(health);
+            super(health, 2, false);
+            property.isElite = true;
+            property.canDaze = true;
+            property.hasArtifact = true;
             this.startMove = startMove;
             artifact = 1;
         }
 
         public Sentry(Sentry other) {
-            this(other.health, other.startMove);
-            setSharedFields(other);
+            super(other);
+            startMove = other.startMove;
         }
 
         @Override public Enemy copy() {
@@ -428,12 +419,6 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SEAR_3 = 7;
         static int INFERNAL_1 = 8;
 
-        static {
-            defaultProperty = new EnemyProperty(9, false);
-            defaultProperty.canGainStrength = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         boolean afterFirstInfernal;
 
         public Hexaghost() {
@@ -441,13 +426,14 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public Hexaghost(int health) {
-            super(health);
+            super(health, 9, false);
+            property.canGainStrength = true;
+            property.canGainBlock = true;
             afterFirstInfernal = false;
         }
 
         public Hexaghost(Hexaghost other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             afterFirstInfernal = other.afterFirstInfernal;
         }
 
@@ -536,14 +522,6 @@ public abstract class Enemy extends EnemyReadOnly {
         static int ROLL_ATTACK = 5;
         static int TWIN_SLAM = 6;
 
-        static {
-            defaultProperty = new EnemyProperty(7, false);
-            defaultProperty.isElite = true;
-            defaultProperty.canGainBlock = true;
-            defaultProperty.canVulnerable = true;
-            defaultProperty.canWeaken = true;
-        }
-
         int modeShiftDmg;
         int maxModeShiftDmg;
 
@@ -560,14 +538,17 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public TheGuardian(int health) {
-            super(health);
+            super(health, 7, false);
+            property.isElite = true;
+            property.canGainBlock = true;
+            property.canVulnerable = true;
+            property.canWeaken = true;
             modeShiftDmg = 40;
             maxModeShiftDmg = 40;
         }
 
         public TheGuardian(TheGuardian other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             modeShiftDmg = other.modeShiftDmg;
             maxModeShiftDmg = other.maxModeShiftDmg;
         }
@@ -707,11 +688,6 @@ public abstract class Enemy extends EnemyReadOnly {
         static int SLAM = 2;
         static int SPLIT = 3;
 
-        static {
-            defaultProperty = new EnemyProperty(4, false);
-            defaultProperty.canSlime = true;
-        }
-
         private int splitHealth;
 
         public SlimeBoss() {
@@ -719,12 +695,13 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public SlimeBoss(int health) {
-            super(health);
+            super(health, 4, false);
+            property.canSlime = true;
         }
 
         public SlimeBoss(SlimeBoss other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
+            splitHealth = other.splitHealth;
         }
 
         @Override public Enemy copy() {
@@ -817,7 +794,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx++] = splitHealth / (float) 75.0;
+            input[idx] = splitHealth / (float) 75.0;
             return 1;
         }
 
@@ -828,12 +805,6 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 1;
         private static final int SPLIT = 2;
 
-        static {
-            defaultProperty = new EnemyProperty(3, true);
-            defaultProperty.canSlime = true;
-            defaultProperty.canFrail = true;
-        }
-
         private int splitMaxHealth;
 
         public LargeSpikeSlime() {
@@ -841,13 +812,14 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public LargeSpikeSlime(int health) {
-            super(health);
+            super(health, 3, true);
+            property.canSlime = true;
+            property.canFrail = true;
             splitMaxHealth = property.maxHealth;
         }
 
         public LargeSpikeSlime(LargeSpikeSlime other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             splitMaxHealth = other.splitMaxHealth;
         }
 
@@ -941,18 +913,14 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int FLAME_TACKLE = 0;
         private static final int LICK = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, true);
-            defaultProperty.canSlime = true;
-            defaultProperty.canFrail = true;
-        }
-
         public MediumSpikeSlime() {
             this(34);
         }
 
         public MediumSpikeSlime(int health) {
-            super(health);
+            super(health, 2, true);
+            property.canSlime = true;
+            property.canFrail = true;
         }
 
         public MediumSpikeSlime(int health, boolean startDead) {
@@ -961,8 +929,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public MediumSpikeSlime(MediumSpikeSlime other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1018,21 +985,16 @@ public abstract class Enemy extends EnemyReadOnly {
     public static class SmallSpikeSlime extends Enemy {
         private static final int TACKLE = 0;
 
-        static {
-            defaultProperty = new EnemyProperty(1, false);
-        }
-
         public SmallSpikeSlime() {
             this(15);
         }
 
         public SmallSpikeSlime(int health) {
-            super(health);
+            super(health, 1, false);
         }
 
         public SmallSpikeSlime(SmallSpikeSlime other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1070,12 +1032,6 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int LICK = 2;
         private static final int SPLIT = 3;
 
-        static {
-            defaultProperty = new EnemyProperty(3, true);
-            defaultProperty.canSlime = true;
-            defaultProperty.canWeaken = true;
-        }
-
         private int splitMaxHealth;
 
         public LargeAcidSlime() {
@@ -1083,7 +1039,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public LargeAcidSlime(int health) {
-            super(health);
+            super(health, 3, true);
+            property.canSlime = true;
+            property.canWeaken = true;
             splitMaxHealth = property.maxHealth;
         }
 
@@ -1093,8 +1051,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public LargeAcidSlime(LargeAcidSlime other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             splitMaxHealth = other.splitMaxHealth;
         }
 
@@ -1194,18 +1151,14 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int TACKLE = 1;
         private static final int LICK = 2;
 
-        static {
-            defaultProperty = new EnemyProperty(3, true);
-            defaultProperty.canSlime = true;
-            defaultProperty.canWeaken = true;
-        }
-
         public MediumAcidSlime() {
             this(34);
         }
 
         public MediumAcidSlime(int health) {
-            super(health);
+            super(health, 3, true);
+            property.canSlime = true;
+            property.canWeaken = true;
         }
 
         public MediumAcidSlime(int health, boolean startDead) {
@@ -1215,8 +1168,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
 
         public MediumAcidSlime(MediumAcidSlime other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1283,22 +1235,17 @@ public abstract class Enemy extends EnemyReadOnly {
         private static final int TACKLE = 0;
         private static final int LICK = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, false);
-            defaultProperty.canWeaken = true;
-        }
-
         public SmallAcidSlime() {
             this(13);
         }
 
         public SmallAcidSlime(int health) {
-            super(health);
+            super(health, 2, false);
+            property.canWeaken = true;
         }
 
         public SmallAcidSlime(SmallAcidSlime other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1344,12 +1291,6 @@ public abstract class Enemy extends EnemyReadOnly {
         public static final int SCRAPE = 1;
         public static final int ENTANGLE = 2;
 
-        static {
-            defaultProperty = new EnemyProperty(3, true);
-            defaultProperty.canVulnerable = true;
-            defaultProperty.canEntangle = true;
-        }
-
         private boolean usedEntangle;
 
         public RedSlaver() {
@@ -1357,12 +1298,13 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public RedSlaver(int health) {
-            super(health);
+            super(health, 3, true);
+            property.canVulnerable = true;
+            property.canEntangle = true;
         }
 
         public RedSlaver(RedSlaver other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             usedEntangle = other.usedEntangle;
         }
 
@@ -1449,22 +1391,17 @@ public abstract class Enemy extends EnemyReadOnly {
         public static final int STAB = 0;
         public static final int RAKE = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, true);
-            defaultProperty.canWeaken = true;
-        }
-
         public BlueSlaver() {
             this(52);
         }
 
         public BlueSlaver(int health) {
-            super(health);
+            super(health, 2, true);
+            property.canWeaken = true;
         }
 
         public BlueSlaver(BlueSlaver other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1523,19 +1460,14 @@ public abstract class Enemy extends EnemyReadOnly {
             this(46);
         }
 
-        static {
-            defaultProperty = new EnemyProperty(3, true);
-            defaultProperty.canGainStrength = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         public JawWorm(int health) {
-            super(health);
+            super(health, 3, true);
+            property.canGainStrength = true;
+            property.canGainBlock = true;
         }
 
         public JawWorm(JawWorm other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1607,22 +1539,17 @@ public abstract class Enemy extends EnemyReadOnly {
         public static final int INCANTATION = 0;
         public static final int DARK_STRIKE = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, false);
-            defaultProperty.canGainStrength = true;
-        }
-
         public Cultist() {
             this(56);
         }
 
         public Cultist(int health) {
-            super(health);
+            super(health, 2, false);
+            property.canGainStrength = true;
         }
 
         public Cultist(Cultist other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -1676,12 +1603,6 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int GROW = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, true);
-            defaultProperty.canGainStrength = true;
-            defaultProperty.canGainBlock = true;
-        }
-
         int d = 8;
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
@@ -1712,15 +1633,17 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public RedLouse(int health) {
-            super(health);
+            super(health, 2, true);
+            property.canGainStrength = true;
+            property.canGainBlock = true;
         }
 
         public RedLouse(RedLouse other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             d = other.d;
             curlUpAmount = other.curlUpAmount;
             hasCurledUp = other.hasCurledUp;
+            tookAttackDamage = other.tookAttackDamage;
         }
 
         @Override public Enemy copy() {
@@ -1786,11 +1709,6 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int SPIT_WEB = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, true);
-            defaultProperty.canWeaken = true;
-        }
-
         int d = 8;
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
@@ -1821,15 +1739,16 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public GreenLouse(int health) {
-            super(health);
+            super(health, 2, true);
+            property.canWeaken = true;
         }
 
         public GreenLouse(GreenLouse other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             d = other.d;
             curlUpAmount = other.curlUpAmount;
             hasCurledUp = other.hasCurledUp;
+            tookAttackDamage = other.tookAttackDamage;
         }
 
         @Override public Enemy copy() {
@@ -1895,12 +1814,6 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int GROW = 1;
 
-        static {
-            defaultProperty = new EnemyProperty(2, true);
-            defaultProperty.canVulnerable = true;
-            defaultProperty.canGainStrength = true;
-        }
-
         boolean isDead;
 
         public FungiBeast() {
@@ -1908,12 +1821,13 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         public FungiBeast(int health) {
-            super(health);
+            super(health, 2, true);
+            property.canVulnerable = true;
+            property.canGainStrength = true;
         }
 
         public FungiBeast(FungiBeast other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             isDead = other.isDead;
         }
 
@@ -1989,22 +1903,17 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int SMOKE_BOMB = 3;
         static final int ESCAPE = 4;
 
-        static {
-            defaultProperty = new EnemyProperty(5, false);
-            defaultProperty.canGainBlock = true;
-        }
-
         public Looter() {
             this(50);
         }
 
         public Looter(int health) {
-            super(health);
+            super(health, 5, false);
+            property.canGainBlock = true;
         }
 
         public Looter(Looter other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -2066,23 +1975,18 @@ public abstract class Enemy extends EnemyReadOnly {
     public static class FatGremlin extends Enemy {
         static final int SMASH = 0;
 
-        static {
-            defaultProperty = new EnemyProperty(1, false);
-            defaultProperty.canWeaken = true;
-            defaultProperty.canFrail = true;
-        }
-
         public FatGremlin() {
             this(18);
         }
 
         public FatGremlin(int health) {
-            super(health);
+            super(health, 1, false);
+            property.canWeaken = true;
+            property.canFrail = true;
         }
 
         public FatGremlin(FatGremlin other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -2120,22 +2024,17 @@ public abstract class Enemy extends EnemyReadOnly {
     public static class MadGremlin extends Enemy {
         static final int SCRATCH = 0;
 
-        static {
-            defaultProperty = new EnemyProperty(1, false);
-            defaultProperty.canGainStrength = true;
-        }
-
         public MadGremlin() {
             this(25);
         }
 
         public MadGremlin(int health) {
-            super(health);
+            super(health, 1, false);
+            property.canGainStrength = true;
         }
 
         public MadGremlin(MadGremlin other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -2179,21 +2078,16 @@ public abstract class Enemy extends EnemyReadOnly {
     public static class SneakyGremlin extends Enemy {
         static final int PUNCTURE = 0;
 
-        static {
-            defaultProperty = new EnemyProperty(1, false);
-        }
-
         public SneakyGremlin() {
             this(15);
         }
 
         public SneakyGremlin(int health) {
-            super(health);
+            super(health, 1, false);
         }
 
         public SneakyGremlin(SneakyGremlin other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -2228,23 +2122,18 @@ public abstract class Enemy extends EnemyReadOnly {
 
     public static class ShieldGremlin extends Enemy {
         static final int PROTECT = 0;
-        static final int SHIELD_BASH = 0;
-
-        static {
-            defaultProperty = new EnemyProperty(2, false);
-        }
+        static final int SHIELD_BASH = 1;
 
         public ShieldGremlin() {
             this(17);
         }
 
         public ShieldGremlin(int health) {
-            super(health);
+            super(health, 2, false);
         }
 
         public ShieldGremlin(ShieldGremlin other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {
@@ -2315,21 +2204,16 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int CHARGING_2 = 1;
         static final int ULTIMATE_BLAST = 2;
 
-        static {
-            defaultProperty = new EnemyProperty(3, false);
-        }
-
         public GremlinWizard() {
             this(26);
         }
 
         public GremlinWizard(int health) {
-            super(health);
+            super(health, 3, false);
         }
 
         public GremlinWizard(GremlinWizard other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
         }
 
         @Override public Enemy copy() {

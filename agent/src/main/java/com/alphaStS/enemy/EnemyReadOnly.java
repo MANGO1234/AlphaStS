@@ -57,8 +57,7 @@ public abstract class EnemyReadOnly {
         }
     }
 
-    protected static EnemyProperty defaultProperty;
-    public EnemyProperty property = defaultProperty;
+    public EnemyProperty property;
     protected int health;
     protected int block;
     protected int strength;
@@ -71,12 +70,16 @@ public abstract class EnemyReadOnly {
     protected int move = -1;
     protected int lastMove = -1;
 
-    public EnemyReadOnly(int health) {
+    public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;
-        property = property.clone();
+        property = new EnemyProperty(numOfMoves, useLast2MovesForMoveSelection);
         property.maxHealth = health;
         property.origMaxHealth = health;
         property.origHealth = health;
+    }
+
+    public EnemyReadOnly(EnemyReadOnly other) {
+        this.property = other.property;
     }
 
     public abstract void doMove(GameState state);
@@ -94,19 +97,19 @@ public abstract class EnemyReadOnly {
 
     public abstract String getName();
 
-    protected void setSharedFields(Enemy other) {
+    protected void copyFieldsFrom(Enemy other) {
         property = other.property;
         health = other.health;
         block = other.block;
         strength = other.strength;
         vulnerable = other.vulnerable;
         weak = other.weak;
-        loseStrengthEot = other.loseStrengthEot;
         artifact = other.artifact;
-        move = other.move;
-        lastMove = other.lastMove;
+        loseStrengthEot = other.loseStrengthEot;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
+        move = other.move;
+        lastMove = other.lastMove;
     }
 
     public int getHealth() {

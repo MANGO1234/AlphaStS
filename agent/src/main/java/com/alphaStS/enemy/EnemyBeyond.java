@@ -13,11 +13,6 @@ public class EnemyBeyond {
         private static final int SLUDGE = 4;
         private static final int TACKLE = 5;
 
-        static {
-            defaultProperty = new EnemyProperty(6, true);
-            defaultProperty.canGainStrength = true;
-        }
-
         private boolean awakened;
 
         public AwakenedOne() {
@@ -25,13 +20,13 @@ public class EnemyBeyond {
         }
 
         public AwakenedOne(int health) {
-            super(health);
+            super(health, 6, true);
+            property.canGainStrength = true;
             strength = 2;
         }
 
         public AwakenedOne(EnemyBeyond.AwakenedOne other) {
-            this(other.health);
-            setSharedFields(other);
+            super(other);
             awakened = other.awakened;
         }
 
