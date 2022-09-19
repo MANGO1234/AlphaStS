@@ -992,6 +992,12 @@ public class GameState implements State {
                 enemy2.endTurn(turnNum);
                 if (!prop.hasRunicDome) {
                     enemy2.nextMove(this, getSearchRandomGen());
+                } else {
+                    // for enemy like GremlinLeader, we need to choose move based on the beginning of turn
+                    // currently doing it like this so instead of saving last 2 moves so that
+                    // enemyChooseMove leading to multiple tree where the turn is the same (since nn is passed in the same info)
+                    // we have one tree that has a chance event on beginning of turn
+                    enemy2.saveStateForNextMove(this);
                 }
             }
         }

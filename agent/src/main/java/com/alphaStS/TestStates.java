@@ -815,8 +815,12 @@ public class TestStates {
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addEnemy(new EnemyCity.BookOfStabbing());
         EnemyEncounter.addSlaversEliteFight(builder);
-        EnemyEncounter.addGremlinLeaderFight(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3}, new int[] {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19});
+        EnemyEncounter.addGremlinLeaderFight2(builder);
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+                List.of(new Tuple<>(0, -1)),
+                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
+                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
+        ));
         randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
         builder.setRandomization(randomization);
         builder.addRelic(new Relic.CrackedOrb());

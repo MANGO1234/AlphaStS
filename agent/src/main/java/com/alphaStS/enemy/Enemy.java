@@ -16,6 +16,7 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public abstract void nextMove(GameState state, RandomGen random);
+    public void saveStateForNextMove(GameState state) {}
 
     public void damage(int n, GameState state) {
         if (health <= 0) {

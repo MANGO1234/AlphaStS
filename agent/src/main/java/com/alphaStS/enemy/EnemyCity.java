@@ -170,6 +170,8 @@ public class EnemyCity {
         static final int RALLY = 1;
         static final int STAB = 2;
 
+        int startOfTurnEnemiesAlive = -1;
+
         public GremlinLeader() {
             this(155);
         }
@@ -183,6 +185,7 @@ public class EnemyCity {
 
         public GremlinLeader(GremlinLeader other) {
             super(other);
+            startOfTurnEnemiesAlive = other.startOfTurnEnemiesAlive;
         }
 
         @Override public Enemy copy() {
@@ -209,6 +212,10 @@ public class EnemyCity {
             }
         }
 
+        @Override public void saveStateForNextMove(GameState state) {
+            startOfTurnEnemiesAlive = state.enemiesAlive;
+        }
+
         @Override public void doMove(GameState state) {
             if (move == ENCOURAGE) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -219,63 +226,106 @@ public class EnemyCity {
                 }
             } else if (move == RALLY) {
                 state.setIsStochastic();
-                var enemies = state.getEnemiesForWrite();
-                var startIdx = 0;
-                for (int i = 0; i < enemies.size(); i++) {
-                    if (enemies.get(i) instanceof Enemy.MadGremlin) {
-                        startIdx = i;
-                        break;
-                    }
-                }
-                for (int i = 0; i < 2; i++) {
-                    int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader);
-                    var idx = -1;
-                    if (r < 2) { // Mad Gremlin
-                        idx = startIdx + 2;
-                        if (!enemies.get(startIdx).isAlive()) {
-                            idx = startIdx;
-                        } else if (!enemies.get(startIdx + 1).isAlive()) {
-                            idx = startIdx + 1;
-                        }
-                    } else if (r < 4) { // Sneaky Gremlin
-                        idx = startIdx + 5;
-                        if (!enemies.get(startIdx + 3).isAlive()) {
-                            idx = startIdx + 3;
-                        } else if (!enemies.get(startIdx + 4).isAlive()) {
-                            idx = startIdx + 4;
-                        }
-                    } else if (r < 6) { // Fat Gremlin
-                        idx = startIdx + 8;
-                        if (!enemies.get(startIdx + 6).isAlive()) {
-                            idx = startIdx + 6;
-                        } else if (!enemies.get(startIdx + 7).isAlive()) {
-                            idx = startIdx + 7;
-                        }
-                    } else if (r < 7) { // Shield Gremlin
-                        idx = startIdx + 11;
-                        if (!enemies.get(startIdx + 9).isAlive()) {
-                            idx = startIdx + 9;
-                        } else if (!enemies.get(startIdx + 10).isAlive()) {
-                            idx = startIdx + 10;
-                        }
-                    } else { // Gremlin Wizard
-                        idx = startIdx + 14;
-                        if (!enemies.get(startIdx + 12).isAlive()) {
-                            idx = startIdx + 12;
-                        } else if (!enemies.get(startIdx + 13).isAlive()) {
-                            idx = startIdx + 13;
+                if (true) {
+                    var enemies = state.getEnemiesForWrite();
+                    var startIdx = 0;
+                    for (int i = 0; i < enemies.size(); i++) {
+                        if (enemies.get(i) instanceof Enemy.MergedEnemy m && m.possibleEnemies.get(0) instanceof Enemy.MadGremlin) {
+                            startIdx = i;
+                            break;
                         }
                     }
-                    state.reviveEnemy(idx);
-                    if (state.enemiesAlive == 4) {
+                    for (int i = 0; i < 2; i++) {
+                        int j;
+                        for (j = 0; j < 3; j++) {
+                            if (!enemies.get(startIdx + j).isAlive()) {
+                                state.reviveEnemy(startIdx + j);
+                                break;
+                            }
+                        }
+                        int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader);
+                        if (r < 2) { // Mad Gremlin
+                            ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(0);
+                        } else if (r < 4) { // Sneaky Gremlin
+                            ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(1);
+                        } else if (r < 6) { // Fat Gremlin
+                            ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(2);
+                        } else if (r < 7) { // Shield Gremlin
+                            ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(3);
+                        } else { // Gremlin Wizard
+                            ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(4);
+                        }
+                    }
+                    if (state.enemiesAlive != 4) {
                         var j = 0;
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            if (enemy.health > 0) {
+                            if (enemy.getHealth() > 0) {
                                 j += 1;
                             }
                         }
-                        if (j < 4) {
-                            System.out.println("!!!!! ENEMIES_ALIVE IS WRONG " + state.enemiesAlive + ": " + j);
+                        if (state.enemiesAlive != j) {
+                            System.out.println("!!!!! ENEMIES_ALIVE IS WRONG " + state.enemiesAlive + ": " + j + ": " + state + ": " + startOfTurnEnemiesAlive);
+                        }
+                    }
+                } else {
+                    var enemies = state.getEnemiesForWrite();
+                    var startIdx = 0;
+                    for (int i = 0; i < enemies.size(); i++) {
+                        if (enemies.get(i) instanceof Enemy.MadGremlin) {
+                            startIdx = i;
+                            break;
+                        }
+                    }
+                    for (int i = 0; i < 2; i++) {
+                        int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader);
+                        var idx = -1;
+                        if (r < 2) { // Mad Gremlin
+                            idx = startIdx + 2;
+                            if (!enemies.get(startIdx).isAlive()) {
+                                idx = startIdx;
+                            } else if (!enemies.get(startIdx + 1).isAlive()) {
+                                idx = startIdx + 1;
+                            }
+                        } else if (r < 4) { // Sneaky Gremlin
+                            idx = startIdx + 5;
+                            if (!enemies.get(startIdx + 3).isAlive()) {
+                                idx = startIdx + 3;
+                            } else if (!enemies.get(startIdx + 4).isAlive()) {
+                                idx = startIdx + 4;
+                            }
+                        } else if (r < 6) { // Fat Gremlin
+                            idx = startIdx + 8;
+                            if (!enemies.get(startIdx + 6).isAlive()) {
+                                idx = startIdx + 6;
+                            } else if (!enemies.get(startIdx + 7).isAlive()) {
+                                idx = startIdx + 7;
+                            }
+                        } else if (r < 7) { // Shield Gremlin
+                            idx = startIdx + 11;
+                            if (!enemies.get(startIdx + 9).isAlive()) {
+                                idx = startIdx + 9;
+                            } else if (!enemies.get(startIdx + 10).isAlive()) {
+                                idx = startIdx + 10;
+                            }
+                        } else { // Gremlin Wizard
+                            idx = startIdx + 14;
+                            if (!enemies.get(startIdx + 12).isAlive()) {
+                                idx = startIdx + 12;
+                            } else if (!enemies.get(startIdx + 13).isAlive()) {
+                                idx = startIdx + 13;
+                            }
+                        }
+                        state.reviveEnemy(idx);
+                        if (state.enemiesAlive != 4) {
+                            var j = 0;
+                            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                                if (enemy.getHealth() > 0) {
+                                    j += 1;
+                                }
+                            }
+                            if (j < 4) {
+                                System.out.println("!!!!! ENEMIES_ALIVE IS WRONG " + state.enemiesAlive + ": " + j + ": " + state);
+                            }
                         }
                     }
                 }
@@ -285,7 +335,8 @@ public class EnemyCity {
         }
 
         private void nextMove(GameState state, RandomGen random, int r) {
-            if (state.enemiesAlive == 1) { // 0 gremlin
+            int enemiesAlive = startOfTurnEnemiesAlive >= 0 ? startOfTurnEnemiesAlive : state.enemiesAlive;
+            if (enemiesAlive == 1) { // 0 gremlin
                 if (r < 75) {
                     if (move != RALLY) {
                         move = RALLY;
@@ -297,7 +348,7 @@ public class EnemyCity {
                 } else {
                     move = RALLY;
                 }
-            } else if (state.enemiesAlive == 2) { // 1 gremlin
+            } else if (enemiesAlive == 2) { // 1 gremlin
                 if (r < 50) {
                     if (move != RALLY) {
                         move = RALLY;
