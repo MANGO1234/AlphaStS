@@ -1741,9 +1741,14 @@ public class GameState implements State {
             if (enemy.property.canGainMetallicize) {
                 inputLen += 1; // enemy metallicize
             }
-            inputLen += enemy.property.numOfMoves; // enemy moves
-            if (enemy.property.useLast2MovesForMoveSelection) {
-                inputLen += enemy.property.numOfMoves;
+            if (enemy instanceof Enemy.MergedEnemy m) {
+                inputLen += m.possibleEnemies.size();
+                inputLen += enemy.property.numOfMoves; // enemy moves
+            } else {
+                inputLen += enemy.property.numOfMoves; // enemy moves
+                if (enemy.property.useLast2MovesForMoveSelection) {
+                    inputLen += enemy.property.numOfMoves;
+                }
             }
             inputLen += enemy.getNNInputLen(prop);
             if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
@@ -1876,7 +1881,11 @@ public class GameState implements State {
             str += "    " + prop.select1OutOf3CardsIdxes.length + " inputs to keep track of selecting cards from 1 out of 3 cards";
         }
         for (var enemy : enemies) {
-            str += "    *** " + enemy.getName() + " ***\n";
+            if (enemy instanceof Enemy.MergedEnemy m) {
+                str += "    *** " + m.getDescName() + " ***\n";
+            } else {
+                str += "    *** " + enemy.getName() + " ***\n";
+            }
             str += "        1 input to keep track of health\n";
             if (prop.enemyCanGetVuln) {
                 str += "        1 input to keep track of vulnerable\n";
@@ -1902,9 +1911,21 @@ public class GameState implements State {
             if (enemy.property.canGainMetallicize) {
                 str += "        1 input to keep track of metallicize\n";
             }
-            str += "        " + enemy.property.numOfMoves + " inputs to keep track of current move from enemy\n";
-            if (enemy.property.useLast2MovesForMoveSelection) {
-                str += "        " + enemy.property.numOfMoves + " inputs to keep track of move history from enemy\n";
+            if (enemy instanceof Enemy.MergedEnemy m) {
+                str += "        " + m.possibleEnemies.size() + " input to keep track of current enemy\n";
+                for (int i = 0; i < m.possibleEnemies.size(); i++) {
+                    str += "        %s inputs to keep track of current move from %s\n".formatted(m.possibleEnemies.get(i).property.numOfMoves,
+                            m.possibleEnemies.get(i).getName());
+                    if (m.possibleEnemies.get(i).property.useLast2MovesForMoveSelection) {
+                        str += "        %d inputs to keep track of last move from %s\n".formatted(m.possibleEnemies.get(i).property.numOfMoves,
+                                m.possibleEnemies.get(i).getName());
+                    }
+                }
+            } else {
+                str += "        " + enemy.property.numOfMoves + " inputs to keep track of current move from enemy\n";
+                if (enemy.property.useLast2MovesForMoveSelection) {
+                    str += "        " + enemy.property.numOfMoves + " inputs to keep track of last move from enemy\n";
+                }
             }
             String desc = enemy.getNNInputDesc(prop);
             if (desc != null) {
@@ -2094,19 +2115,53 @@ public class GameState implements State {
                 if (enemy.property.canGainMetallicize) {
                     x[idx++] = enemy.getMetallicize() / (float) 14.0;
                 }
-                for (int i = 0; i < enemy.property.numOfMoves; i++) {
-                    if (enemy.getMove() == i) {
-                        x[idx++] = 0.5f;
-                    } else {
-                        x[idx++] = -0.5f;
+                if (enemy instanceof Enemy.MergedEnemy m) {
+                    x[idx + m.currentEnemyIdx] = 1.0f;
+                    idx += m.possibleEnemies.size();
+                    for (int pIdx = 0; pIdx < m.possibleEnemies.size(); pIdx++) {
+                        if (pIdx == m.currentEnemyIdx) {
+                            for (int i = 0; i < m.possibleEnemies.get(pIdx).property.numOfMoves; i++) {
+                                if (m.getMove() == i) {
+                                    x[idx++] = 0.5f;
+                                } else {
+                                    x[idx++] = -0.5f;
+                                }
+                            }
+                            if (m.possibleEnemies.get(pIdx).property.useLast2MovesForMoveSelection) {
+                                for (int i = 0; i < m.possibleEnemies.get(pIdx).property.numOfMoves; i++) {
+                                    if (m.getLastMove() == i) {
+                                        x[idx++] = 0.5f;
+                                    } else {
+                                        x[idx++] = -0.5f;
+                                    }
+                                }
+                            }
+                        } else {
+                            for (int i = 0; i < m.possibleEnemies.get(pIdx).property.numOfMoves; i++) {
+                                x[idx++] = -0.5f;
+                            }
+                            if (m.possibleEnemies.get(pIdx).property.useLast2MovesForMoveSelection) {
+                                for (int i = 0; i < m.possibleEnemies.get(pIdx).property.numOfMoves; i++) {
+                                    x[idx++] = -0.5f;
+                                }
+                            }
+                        }
                     }
-                }
-                if (enemy.property.useLast2MovesForMoveSelection) {
+                } else {
                     for (int i = 0; i < enemy.property.numOfMoves; i++) {
-                        if (enemy.getLastMove() == i) {
+                        if (enemy.getMove() == i) {
                             x[idx++] = 0.5f;
                         } else {
                             x[idx++] = -0.5f;
+                        }
+                    }
+                    if (enemy.property.useLast2MovesForMoveSelection) {
+                        for (int i = 0; i < enemy.property.numOfMoves; i++) {
+                            if (enemy.getLastMove() == i) {
+                                x[idx++] = 0.5f;
+                            } else {
+                                x[idx++] = -0.5f;
+                            }
                         }
                     }
                 }
@@ -2142,12 +2197,26 @@ public class GameState implements State {
                 if (enemy.property.canGainMetallicize) {
                     x[idx++] = -0.1f;
                 }
-                for (int i = 0; i < enemy.property.numOfMoves; i++) {
-                    x[idx++] = -0.1f;
-                }
-                if (enemy.property.useLast2MovesForMoveSelection) {
+                if (enemy instanceof Enemy.MergedEnemy m) {
+                    idx += m.possibleEnemies.size();
+                    for (int pIdx = 0; pIdx < m.possibleEnemies.size(); pIdx++) {
+                        for (int i = 0; i < m.possibleEnemies.get(pIdx).property.numOfMoves; i++) {
+                            x[idx++] = -0.1f;
+                        }
+                        if (m.possibleEnemies.get(pIdx).property.useLast2MovesForMoveSelection) {
+                            for (int i = 0; i < m.possibleEnemies.get(pIdx).property.numOfMoves; i++) {
+                                x[idx++] = -0.1f;
+                            }
+                        }
+                    }
+                } else {
                     for (int i = 0; i < enemy.property.numOfMoves; i++) {
                         x[idx++] = -0.1f;
+                    }
+                    if (enemy.property.useLast2MovesForMoveSelection) {
+                        for (int i = 0; i < enemy.property.numOfMoves; i++) {
+                            x[idx++] = -0.1f;
+                        }
                     }
                 }
                 for (int i = 0; i < enemy.getNNInputLen(prop); i++) {

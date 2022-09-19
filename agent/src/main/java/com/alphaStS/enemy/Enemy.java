@@ -2,6 +2,7 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Enemy extends EnemyReadOnly {
@@ -149,6 +150,261 @@ public abstract class Enemy extends EnemyReadOnly {
     public void randomize(RandomGen random, boolean training) {
     }
 
+    // used to implement an enemy that can "morph" to one of several enemies to reduce network size for fights
+    // involving gremlin. Can and will be buggy for other combination of enemies.
+    public static class MergedEnemy extends Enemy {
+        public List<Enemy> possibleEnemies;
+        public Enemy currentEnemy;
+        public int currentEnemyIdx;
+
+        public MergedEnemy(List<Enemy> possibleEnemies) {
+            super(0, possibleEnemies.stream().mapToInt((enemy) -> enemy.property.numOfMoves).reduce(0, Integer::sum), false);
+            this.possibleEnemies = possibleEnemies;
+            property.maxHealth = possibleEnemies.stream().mapToInt((enemy) -> enemy.property.maxHealth).reduce(0, Math::max);
+            property.origHealth = property.maxHealth;
+            property.origMaxHealth = property.maxHealth;
+            // todo: on isELite and isMinion
+            property.isElite = possibleEnemies.stream().anyMatch((e) -> e.property.isElite);
+            property.isMinion = possibleEnemies.stream().anyMatch((e) -> e.property.isMinion);
+            property.canVulnerable = possibleEnemies.stream().anyMatch((e) -> e.property.canVulnerable);
+            property.canEntangle = possibleEnemies.stream().anyMatch((e) -> e.property.canEntangle);
+            property.canWeaken = possibleEnemies.stream().anyMatch((e) -> e.property.canWeaken);
+            property.canFrail = possibleEnemies.stream().anyMatch((e) -> e.property.canFrail);
+            property.canSlime = possibleEnemies.stream().anyMatch((e) -> e.property.canSlime);
+            property.canDaze = possibleEnemies.stream().anyMatch((e) -> e.property.canDaze);
+            property.canGainStrength = possibleEnemies.stream().anyMatch((e) -> e.property.canGainStrength);
+            property.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.property.canGainRegeneration);
+            property.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.property.canGainMetallicize);
+            property.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.property.canGainBlock);
+            property.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerStrength);
+            property.changePlayerDexterity = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerDexterity);
+            property.hasBurningEliteBuff = possibleEnemies.stream().anyMatch((e) -> e.property.hasBurningEliteBuff);
+            property.hasArtifact = possibleEnemies.stream().anyMatch((e) -> e.property.hasArtifact);
+            setEnemy(0);
+        }
+
+        public MergedEnemy(MergedEnemy other) {
+            super(other);
+            possibleEnemies = other.possibleEnemies;
+            currentEnemy = other.currentEnemy.copy();
+            currentEnemyIdx = other.currentEnemyIdx;
+        }
+
+        public void setEnemy(int idx) {
+            currentEnemy = possibleEnemies.get(idx).copy();
+            currentEnemyIdx = idx;
+        }
+
+        public EnemyProperty getEnemyProperty(int idx) {
+            return possibleEnemies.get(idx).property;
+        }
+
+        public String getDescName() {
+            return "Merged Enemy (" + String.join(", ", possibleEnemies.stream().map(Enemy::getName).toList()) + ")";
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            currentEnemy.nextMove(state, random);
+        }
+
+        @Override public void doMove(GameState state) {
+            currentEnemy.doMove(state);
+        }
+
+        @Override public Enemy copy() {
+            return new MergedEnemy(this);
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            return currentEnemy.getMoveString(state, move);
+        }
+
+        @Override public String getName() {
+            return currentEnemy.getName();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            for (var e : possibleEnemies) {
+                e.gamePropertiesSetup(state);
+            }
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            var cards = new ArrayList<Card>();
+            for (var e : possibleEnemies) {
+                cards.addAll(e.getPossibleGeneratedCards());
+            }
+            return cards;
+        }
+
+        // ******************* generated delegate methods follow ****************
+
+        @Override public void damage(int n, GameState state) {
+            currentEnemy.damage(n, state);
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            currentEnemy.nonAttackDamage(n, blockable, state);
+        }
+
+        @Override public void gainBlock(int n) {
+            currentEnemy.gainBlock(n);
+        }
+
+        @Override public void gainStrength(int n) {
+            currentEnemy.gainStrength(n);
+        }
+
+        @Override public void setHealth(int hp) {
+            currentEnemy.setHealth(hp);
+        }
+
+        @Override public void setRegeneration(int regen) {
+            currentEnemy.setRegeneration(regen);
+        }
+
+        @Override public void setMetallicize(int n) {
+            currentEnemy.setMetallicize(n);
+        }
+
+        @Override public void setBurningHealthBuff(boolean b) {
+            currentEnemy.setBurningHealthBuff(b);
+        }
+
+        @Override public void gainMetallicize(int n) {
+            currentEnemy.gainMetallicize(n);
+        }
+
+        @Override public void removeAllDebuffs() {
+            currentEnemy.removeAllDebuffs();
+        }
+
+        @Override public void setMove(int move) {
+            currentEnemy.setMove(move);
+        }
+
+        @Override public void startTurn() {
+            currentEnemy.startTurn();
+        }
+
+        @Override public void endTurn(int turnNum) {
+            currentEnemy.endTurn(turnNum);
+        }
+
+        @Override public void heal(int hp) {
+            currentEnemy.heal(hp);
+        }
+
+        @Override public void react(GameState state, Card card) {
+            currentEnemy.react(state, card);
+        }
+
+        @Override public boolean applyDebuff(GameState state, DebuffType type, int n) {
+            return currentEnemy.applyDebuff(state, type, n);
+        }
+
+        @Override public Enemy markAsBurningElite() {
+            return currentEnemy.markAsBurningElite();
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            currentEnemy.randomize(random, training);
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return currentEnemy.getNNInputLen(prop);
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return currentEnemy.getNNInputDesc(prop);
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            return currentEnemy.writeNNInput(prop, input, idx);
+        }
+
+        @Override public String getMoveString(GameState state) {
+            return currentEnemy.getMoveString(state);
+        }
+
+        @Override public int getHealth() {
+            return currentEnemy.getHealth();
+        }
+
+        @Override public int getBlock() {
+            return currentEnemy.getBlock();
+        }
+
+        @Override public int getStrength() {
+            return currentEnemy.getStrength();
+        }
+
+        @Override public int getLoseStrengthEot() {
+            return currentEnemy.getLoseStrengthEot();
+        }
+
+        @Override public int getVulnerable() {
+            return currentEnemy.getVulnerable();
+        }
+
+        @Override public int getWeak() {
+            return currentEnemy.getWeak();
+        }
+
+        @Override public int getRegeneration() {
+            return currentEnemy.getRegeneration();
+        }
+
+        @Override public int getMetallicize() {
+            return currentEnemy.getMetallicize();
+        }
+
+        @Override public int getArtifact() {
+            return currentEnemy.getArtifact();
+        }
+
+        @Override public boolean hasBurningHealthBuff() {
+            return currentEnemy.hasBurningHealthBuff();
+        }
+
+        @Override public int getMove() {
+            return currentEnemy.getMove();
+        }
+
+        @Override public int getLastMove() {
+            return currentEnemy.getLastMove();
+        }
+
+        @Override public boolean isAlive() {
+            return currentEnemy.isAlive();
+        }
+
+        @Override public boolean isTargetable() {
+            return currentEnemy.isTargetable();
+        }
+
+        @Override public String toString(GameState state) {
+            return currentEnemy.toString(state);
+        }
+
+        @Override public String toString() {
+            return currentEnemy.toString();
+        }
+
+        @Override public boolean equals(Object o) {
+            if (this == o)
+                return true;
+            if (o == null || getClass() != o.getClass())
+                return false;
+            MergedEnemy enemy = (MergedEnemy) o;
+            return enemy.currentEnemyIdx == ((MergedEnemy) o).currentEnemyIdx && currentEnemy.equals(enemy.currentEnemy);
+        }
+
+        @Override public int hashCode() {
+            return currentEnemy.hashCode();
+        }
+    }
+
     // ******************************************************************************************
     // ******************************************************************************************
     // ******************************************************************************************
@@ -202,8 +458,15 @@ public abstract class Enemy extends EnemyReadOnly {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
-                    if (card.cardType == Card.SKILL && state.getEnemiesForRead().get(idx).getMove() > 0) {
-                        state.getEnemiesForWrite().getForWrite(idx).gainStrength(3);
+                    if (card.cardType == Card.SKILL) {
+                        var e = state.getEnemiesForRead().get(idx);
+                        if (e instanceof MergedEnemy m) {
+                            if (m.currentEnemy instanceof GremlinNob && e.getMove() > 0) {
+                                state.getEnemiesForWrite().getForWrite(idx).gainStrength(3);
+                            }
+                        } else if (e.getMove() > 0) {
+                            state.getEnemiesForWrite().getForWrite(idx).gainStrength(3);
+                        }
                     }
                 }
             });
