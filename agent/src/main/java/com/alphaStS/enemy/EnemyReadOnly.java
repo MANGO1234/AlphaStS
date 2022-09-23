@@ -95,6 +95,10 @@ public abstract class EnemyReadOnly {
         return getMoveString(state, this.move);
     }
 
+    public String getLastMoveString(GameState state) {
+        return getMoveString(state, this.move);
+    }
+
     public abstract String getName();
 
     protected void copyFieldsFrom(Enemy other) {
@@ -177,7 +181,16 @@ public abstract class EnemyReadOnly {
             str += ", gainStrEot=" + -loseStrengthEot;
         }
         if (move >= 0) {
-            str += ", move=" + getMoveString(state);
+            if (state.prop.hasRunicDome) {
+                str += ", lastMove=" + getMoveString(state);
+            } else {
+                str += ", move=" + getMoveString(state);
+            }
+            if (property.useLast2MovesForMoveSelection) {
+                if (lastMove >= 0) {
+                    str += " [prev=" + getLastMoveString(state) + "]";
+                }
+            }
         }
         if (block > 0) {
             str += ", block=" + block;

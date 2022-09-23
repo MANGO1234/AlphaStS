@@ -364,7 +364,7 @@ public class InteractiveMode {
             }
         }
         if (state.stateDesc != null) {
-            System.out.println("Previous Turn: " + state.stateDesc);
+            System.out.println("From Previous Action: " + state.stateDesc);
         }
     }
 
@@ -379,7 +379,8 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.USE_POTION ||
                     state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
-                    state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
+                    state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
+                    state.getAction(i).type() == GameActionType.END_USING_POTION) {
                 System.out.println(i + ". " + state.getActionString(i));
             } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                 System.out.println("e. End Turn");

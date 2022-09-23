@@ -3087,7 +3087,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
                 @Override void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
-                        state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
                     }
                 }
             });

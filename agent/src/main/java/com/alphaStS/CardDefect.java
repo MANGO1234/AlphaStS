@@ -180,6 +180,7 @@ public class CardDefect {
 
         public _BootSequenceT(String cardName, int n) {
             super(cardName, Card.SKILL, 0);
+            this.exhaustWhenPlayed = true;
             this.innate = true;
             this.n = n;
         }
@@ -383,7 +384,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // we split counter into two component, 1 for the remaining duplicated cards this turn, and 1 for number of duplicated cards per turn
+            // we split counter into two component, 1 for number of duplicated cards per turn and 1 for the number of cards played this turn (up to the max)
             state.getCounterForWrite()[counterIdx] += 1 << 16;
             return GameActionCtx.PLAY_CARD;
         }
@@ -393,7 +394,7 @@ public class CardDefect {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int counter = state.getCounterForRead()[counterIdx];
                     input[idx] = (counter >> 16) / 8.0f;
-                    input[idx + 1] = (counter & ((1 << 16) - 1)) / 8.0f;
+                    input[idx + 1] = Math.min((counter >> 16), (counter & ((1 << 16) - 1))) / 8.0f;
                     return idx + 2;
                 }
                 @Override public int getInputLenDelta() {
@@ -406,26 +407,34 @@ public class CardDefect {
             });
             state.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
-                    if (cloned) {
+                    if (cloned) { // todo: think only echo formed card doesn't count toward card played
                         return;
                     }
-                    int remain = (state.getCounterForRead()[counterIdx] & ((1 << 16) - 1));
-                    if (remain > 0) {
+                    boolean isEcho = card instanceof CardDefect.EchoForm;
+                    if (isEcho) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                    int cardsPlayThisTurn = (state.getCounterForRead()[counterIdx] & ((1 << 16) - 1));
+                    if (cardsPlayThisTurn < state.getCounterForRead()[counterIdx] >> 16) {
                         state.addGameActionToStartOfDeque(curState -> {
                             var cardIdx = curState.prop.findCardIndex(card);
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             if (curState.playCard(action, lastIdx, false,true, false, false)) {
-                                curState.getCounterForWrite()[counterIdx] -= 1;
                                 curState.runActionsInQueueIfNonEmpty();
+                            } else {
+                                curState.getCounterForWrite()[counterIdx]--;
                             }
                         });
+                        if (!isEcho) {
+                            state.getCounterForWrite()[counterIdx]++;
+                        }
                     }
                 }
             });
             state.addStartOfTurnHandler("EchoForm", new GameEventHandler() {
                 @Override void handle(GameState state) {
                     int counter = state.getCounterForRead()[counterIdx];
-                    state.getCounterForWrite()[counterIdx] = (counter >> 16) + (counter & (((1 << 16) - 1) << 16));
+                    state.getCounterForWrite()[counterIdx] = counter & (((1 << 16) - 1) << 16);
                 }
             });
         }

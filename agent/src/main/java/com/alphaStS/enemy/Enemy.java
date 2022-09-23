@@ -438,7 +438,7 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state) {
             if (move == SKULL_BASH) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == RUSH_1 || move == RUSH_2) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
             }
@@ -852,8 +852,8 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 36, 1);
             } else if (move == VENT_STEAM) {
                 var player = state.getPlayerForWrite();
-                player.applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
-                player.applyDebuff(state, DebuffType.WEAK, 2 + 1);
+                player.applyDebuff(state, DebuffType.VULNERABLE, 2);
+                player.applyDebuff(state, DebuffType.WEAK, 2);
             } else if (move == WHIRL_WIND) {
                 state.enemyDoDamageToPlayer(this, 5, 4);
             } else if (move == DEFENSIVE_MODE) {
@@ -1116,7 +1116,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.addCardToDiscard(state.prop.slimeCardIdx);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 3 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 3);
             } else if (move == SPLIT) {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
@@ -1205,7 +1205,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 10, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
             }
         }
 
@@ -1345,7 +1345,7 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
             } else if (move == SPLIT) {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
@@ -1446,7 +1446,7 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
             }
         }
 
@@ -1520,7 +1520,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 4, 1);
             } else if (move == LICK) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
             }
         }
 
@@ -1585,9 +1585,9 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 14, 1);
             } else if (move == SCRAPE) {
                 state.enemyDoDamageToPlayer(this, 9, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == ENTANGLE) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.ENTANGLED, 1 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.ENTANGLED, 1);
                 usedEntangle = true;
             }
         }
@@ -1677,7 +1677,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 13, 1);
             } else if (move == RAKE) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
             }
         }
 
@@ -2023,7 +2023,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == SPIT_WEB) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
             }
         }
 
@@ -2260,8 +2260,8 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state) {
             if (move == SMASH) {
                 state.enemyDoDamageToPlayer(this, 5, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1 + 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
             }
         }
 

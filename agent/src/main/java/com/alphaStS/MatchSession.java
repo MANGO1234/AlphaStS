@@ -342,6 +342,7 @@ public class MatchSession {
                         }
                         matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
                         matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
+                        matchLogWriter.write("Seed: " + result.seed + "\n");
                         boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
                         if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
                             for (GameStep step : steps) {
@@ -1678,37 +1679,6 @@ public class MatchSession {
                 scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
                 scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 game_i += 1;
-                if (matchLogWriter != null) {
-                    int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
-                    try {
-                        matchLogWriter.write("*** Match " + game_i + " ***\n");
-                        if (origState.prop.randomization != null) {
-                            if (combinedInfoMap.size() > 1) {
-                                matchLogWriter.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
-                            }
-                        }
-                        matchLogWriter.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-                        matchLogWriter.write("Damage Taken: " + damageTaken + "\n");
-                        boolean usingLine = steps.stream().anyMatch((s) -> s.lines != null);
-                        if (usingLine && LOG_GAME_USING_LINES_FORMAT) {
-                            for (GameStep step : steps) {
-                                if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
-                                if (step.lines != null) {
-                                    matchLogWriter.write(step.state() + "\n");
-                                    for (int i = 0; i < Math.min(step.lines.size(), 5); i++) {
-                                        matchLogWriter.write("  " + (i + 1) + ". " + step.lines.get(i) + "\n");
-                                    }
-                                }
-                            }
-                        } else {
-                            printGame(matchLogWriter, steps);
-                        }
-                        matchLogWriter.write("\n");
-                        matchLogWriter.write("\n");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
             } else {
                 r = result.remoteR;
                 scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(result.remoteStats, origState);

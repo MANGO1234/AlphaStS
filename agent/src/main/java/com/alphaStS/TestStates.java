@@ -813,23 +813,24 @@ public class TestStates {
         builder.addCard(new CardDefect.Consume(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
-        EnemyEncounter.addSlaversEliteFight(builder);
+//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        EnemyEncounter.addSlaversEliteFight(builder);
         EnemyEncounter.addGremlinLeaderFight2(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-                List.of(new Tuple<>(0, -1)),
-                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
-                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
-        ));
-        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
-        builder.setRandomization(randomization);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+//                List.of(new Tuple<>(0, -1)),
+//                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
+//                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
+//        ));
+//        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
+        builder.setRandomization(builder.getRandomization().collapse("Random Gremlins"));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.RunicDome());
         builder.addPotion(new Potion.DistilledChaos());
-        builder.setPlayer(new Player(23, 37));
+        builder.addPotion(new Potion.GamblersBrew());
+        builder.setPlayer(new Player(60, 74));
         return new GameState(builder);
     }
 }

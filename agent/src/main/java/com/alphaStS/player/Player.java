@@ -1,6 +1,7 @@
 package com.alphaStS.player;
 
 import com.alphaStS.DebuffType;
+import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameState;
 import com.alphaStS.PlayerBuff;
 
@@ -79,10 +80,11 @@ public class Player extends PlayerReadOnly {
             artifact--;
             return;
         }
+        // add 1 to some debuff so they don't get cleared after enemies do their move
         switch (type) {
-        case VULNERABLE -> this.vulnerable += n;
-        case WEAK -> this.weak += n;
-        case FRAIL -> this.frail += n;
+        case VULNERABLE -> this.vulnerable += state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.vulnerable == 0 ? n + 1 : n;
+        case WEAK -> this.weak += state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.weak == 0 ? n + 1 : n;
+        case FRAIL -> this.frail += state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.frail == 0 ? n + 1 : n;
         case LOSE_STRENGTH -> this.gainStrength(-n);
         case LOSE_DEXTERITY -> this.gainDexterity(-n);
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;

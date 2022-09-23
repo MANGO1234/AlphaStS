@@ -1,0 +1,13 @@
+package com.alphaStS;
+
+public enum GameActionCtx {
+    BEGIN_BATTLE,
+    PLAY_CARD,
+    SELECT_ENEMY,
+    SELECT_CARD_DISCARD,
+    SELECT_CARD_HAND,
+    SELECT_CARD_EXHAUST,
+    SELECT_CARD_1_OUT_OF_3,
+    SELECT_SCENARIO,
+    BEGIN_TURN,
+}

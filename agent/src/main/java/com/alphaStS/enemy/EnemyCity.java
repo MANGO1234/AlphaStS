@@ -49,11 +49,11 @@ public class EnemyCity {
                 gainMetallicize(7);
             } else if (move == FACE_SLAP) {
                 state.enemyDoDamageToPlayer(this, 14, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2 + 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == TAUNT) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2 + 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == HEAVY_SLASH) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == GLOAT) {
@@ -334,7 +334,11 @@ public class EnemyCity {
             }
         }
 
-        private void nextMove(GameState state, RandomGen random, int r) {
+        /*
+            the following logic is the same as the slay the spire code, however it calls the rng whether it's needed or not
+            and there will be ChanceNode in the tree with, so reworked to not have rng in ChanceNode
+         */
+        private void nextMove2(GameState state, RandomGen random, int r) {
             int enemiesAlive = startOfTurnEnemiesAlive >= 0 ? startOfTurnEnemiesAlive : state.enemiesAlive;
             if (enemiesAlive == 1) { // 0 gremlin
                 if (r < 75) {
@@ -353,7 +357,7 @@ public class EnemyCity {
                     if (move != RALLY) {
                         move = RALLY;
                     } else {
-                        nextMove(state, random, 50 + random.nextInt(50, RandomGenCtx.EnemyChooseMove));
+                        nextMove2(state, random, 50 + random.nextInt(50, RandomGenCtx.EnemyChooseMove));
                     }
                 } else if (r < 80) {
                     if (move != ENCOURAGE) {
@@ -364,7 +368,7 @@ public class EnemyCity {
                 } else if (move != STAB) {
                     move = STAB;
                 } else {
-                    nextMove(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove));
+                    nextMove2(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove));
                 }
             } else {
                 if (r < 66) {
@@ -381,9 +385,66 @@ public class EnemyCity {
             }
         }
 
-        @Override public void nextMove(GameState state, RandomGen random) {
+        public void nextMove2(GameState state, RandomGen random) {
             state.setIsStochastic();
-            nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
+            nextMove2(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove));
+        }
+
+        private void nextMoveFor1Gremlin(GameState state, RandomGen random, int r) {
+            if (r < 50) {
+                if (move != RALLY) {
+                    move = RALLY;
+                } else {
+                    nextMoveFor1Gremlin(state, random, 50 + random.nextInt(50, RandomGenCtx.EnemyChooseMove));
+                }
+            } else if (r < 80) {
+                if (move != ENCOURAGE) {
+                    move = ENCOURAGE;
+                } else {
+                    move = STAB;
+                }
+            } else if (move != STAB) {
+                move = STAB;
+            } else {
+                nextMoveFor1Gremlin(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove));
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int enemiesAlive = startOfTurnEnemiesAlive >= 0 ? startOfTurnEnemiesAlive : state.enemiesAlive;
+            if (enemiesAlive == 1) { // 0 gremlin
+                if (move == RALLY) {
+                    move = STAB;
+                } else if (move == STAB) {
+                    move = RALLY;
+                } else {
+                    state.setIsStochastic();
+                    int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                    if (r < 75) {
+                        move = RALLY;
+                    } else {
+                        move = STAB;
+                    }
+                }
+            } else if (enemiesAlive == 2) { // 1 gremlin
+                state.setIsStochastic();
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                nextMoveFor1Gremlin(state, random, r);
+            } else {
+                if (move == ENCOURAGE) {
+                    move = STAB;
+                } else if (move == STAB) {
+                    move = ENCOURAGE;
+                } else {
+                    state.setIsStochastic();
+                    int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                    if (r < 66) {
+                        move = ENCOURAGE;
+                    } else {
+                        move = STAB;
+                    }
+                }
+            }
         }
 
         @Override public String getMoveString(GameState state, int move) {
@@ -418,6 +479,33 @@ public class EnemyCity {
                     enemies.get(i).property.canGainStrength = true;
                 }
             }
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            return s.subSequence(0, s.length() - 1) + ", startEnemies=" + startOfTurnEnemiesAlive + "}";
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            if (prop.hasRunicDome) {
+                return 1;
+            }
+            return 0;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            if (prop.hasRunicDome) {
+                return "1 input to keep track of gremlin count at the beginning of turn (because of Runic Dome)";
+            }
+            return null;
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            if (prop.hasRunicDome) {
+                input[idx] = (startOfTurnEnemiesAlive - 1) / 3f;
+                return 1;
+            }
+            return 0;
         }
     }
 
@@ -788,7 +876,7 @@ public class EnemyCity {
                 gainBlock(35);
             } else if (move == ATTACK_DEBUFF) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 5 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 5);
             } else if (move == SLAM) {
                 state.enemyDoDamageToPlayer(this, 11, 2);
             } else if (move == HARDEN) {
@@ -860,7 +948,7 @@ public class EnemyCity {
                 heal(state.enemyDoDamageToPlayer(this, 12, 1));
             } else if (move == FELL) {
                 state.enemyDoDamageToPlayer(this, 21, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
             } else if (move == STUNNED) {
                 // do nothing
             }
@@ -1006,7 +1094,7 @@ public class EnemyCity {
         @Override public void doMove(GameState state) {
             if (move == AGONIZING_SLASH) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3);
             } else if (move == CROSS_SLASH_1 || move == CROSS_SLASH_2) {
                 state.enemyDoDamageToPlayer(this, 17, 1);
             }
@@ -1145,9 +1233,9 @@ public class EnemyCity {
             } else if (move == ZAP) {
                 state.enemyDoDamageToPlayer(this, 21, 1);
             } else if (move == DEBILITATE) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == DRAIN) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3 + 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3);
                 gainStrength(3);
             }
         }

@@ -462,4 +462,37 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             }
         }
     }
+
+    public static class GamblersBrew extends Potion {
+        public GamblersBrew() {
+            selectFromHand = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (idx >= 0 && idx < state.prop.cardDict.length) {
+                state.discardCardFromHand(idx);
+                state.getCounterForWrite()[counterIdx]++;
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+            state.draw(state.getCounterForRead()[counterIdx]);
+            state.getCounterForWrite()[counterIdx] = 0;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Gambler's Brew";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("GamblersBrew", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
 }
