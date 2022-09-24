@@ -99,6 +99,9 @@ public class InteractiveMode {
             } else if (line.equals("eh")) {
                 setEnemyHealth(reader, state, history);
                 printState = true;
+            } else if (line.equals("eho")) {
+                setEnemyHealthOriginal(reader, state, history);
+                printState = true;
             } else if (line.startsWith("louse-curl ")) {
                 String[] s = line.split(" ");
                 if (s.length == 3) {
@@ -555,6 +558,40 @@ public class InteractiveMode {
         }
     }
 
+    private static void setEnemyHealthOriginal(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        int curEnemyIdx = selectEnemy(reader, state, history,false);
+        if (curEnemyIdx < 0) {
+            return;
+        }
+
+        while (true) {
+            System.out.print("Health: ");
+            String line = reader.readLine();
+            history.add(line);
+            if (line.equals("b")) {
+                return;
+            }
+            int hpOrig = parseInt(line, -1);
+            if (hpOrig >= 0) {
+                int oldHp = state.getEnemiesForWrite().getForWrite(curEnemyIdx).getHealth();
+                int oldHpOrig = state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth;
+                state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth = hpOrig;
+                int hp = Math.max(0, Math.min(state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.maxHealth, oldHp + (hpOrig - oldHpOrig)));
+                if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
+                    state.reviveEnemy(curEnemyIdx);
+                    state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
+                } else {
+                    if (hp == 0) {
+                        state.killEnemy(curEnemyIdx);
+                    } else {
+                        state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
+                    }
+                }
+                return;
+            }
+        }
+    }
+
     private static void setPotionUtility(GameState state, String line) {
         var s = line.substring(4).split(" ");
         var potionIdx = -1;
@@ -701,6 +738,7 @@ public class InteractiveMode {
         for (int i = 0; i < state.getEnemiesForRead().size(); i ++) {
             if (state.getEnemiesForRead().get(i).isAlive()) {
                 System.out.println(idx + ". " + state.getEnemiesForRead().get(i).getName() + "(" + i + ")");
+                idx++;
             }
         }
         while (true) {

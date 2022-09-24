@@ -1005,16 +1005,6 @@ public class GameState implements State {
         }
     }
 
-    public byte getPotionCount() {
-        byte ret = 0;
-        if (potionsState != null) {
-            for (int i = 0; i < potionsState.length; i += 3) {
-                ret += potionsState[i];
-            }
-        }
-        return ret;
-    }
-
     private void endTurn() {
         if (prop.cardDict.length != prop.realCardsLen) {
             for (int i = prop.realCardsLen; i < prop.cardDict.length; i++) {
@@ -1434,6 +1424,20 @@ public class GameState implements State {
         return calc_q(out);
     }
 
+    public byte getPotionCount() {
+        byte ret = 0;
+        if (potionsState != null) {
+            for (int i = 0; i < potionsState.length; i += 3) {
+                ret += potionsState[i];
+            }
+        }
+        return ret;
+    }
+
+    public int getNumCardsInDeck() {
+        return deckArrLen;
+    }
+
     @Override public String toString() {
         boolean first;
         StringBuilder str = new StringBuilder("{");
@@ -1758,6 +1762,9 @@ public class GameState implements State {
             if (enemy.property.canGainMetallicize) {
                 inputLen += 1; // enemy metallicize
             }
+            if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
+                inputLen += 1; // enemy max health since heal can't go over max health
+            }
             if (enemy instanceof Enemy.MergedEnemy m) {
                 inputLen += m.possibleEnemies.size();
                 inputLen += enemy.property.numOfMoves; // enemy moves
@@ -1927,6 +1934,9 @@ public class GameState implements State {
             }
             if (enemy.property.canGainMetallicize) {
                 str += "        1 input to keep track of metallicize\n";
+            }
+            if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
+                str += "        1 input to keep track of enemy max health\n";
             }
             if (enemy instanceof Enemy.MergedEnemy m) {
                 str += "        " + m.possibleEnemies.size() + " input to keep track of current enemy\n";
@@ -2132,6 +2142,9 @@ public class GameState implements State {
                 if (enemy.property.canGainMetallicize) {
                     x[idx++] = enemy.getMetallicize() / (float) 14.0;
                 }
+                if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
+                    x[idx++] = enemy.property.origHealth / (float) enemy.property.maxHealth;
+                }
                 if (enemy instanceof Enemy.MergedEnemy m) {
                     x[idx + m.currentEnemyIdx] = 1.0f;
                     idx += m.possibleEnemies.size();
@@ -2212,6 +2225,9 @@ public class GameState implements State {
                     x[idx++] = -0.1f;
                 }
                 if (enemy.property.canGainMetallicize) {
+                    x[idx++] = -0.1f;
+                }
+                if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
                     x[idx++] = -0.1f;
                 }
                 if (enemy instanceof Enemy.MergedEnemy m) {

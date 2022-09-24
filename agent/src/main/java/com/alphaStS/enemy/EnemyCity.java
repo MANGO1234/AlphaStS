@@ -930,6 +930,7 @@ public class EnemyCity {
             super(health, 4, true);
             property.canFrail = true;
             property.canGainBlock = true;
+            property.canHeal = true;
             metallicize = 14;
         }
 

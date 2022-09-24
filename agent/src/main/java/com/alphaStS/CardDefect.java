@@ -214,15 +214,100 @@ public class CardDefect {
         }
     }
 
-    // Go for the Eyes
+    private static abstract class _GoForTheEyeT extends Card {
+        private final int n1;
+        private final int n2;
+
+        public _GoForTheEyeT(String cardName, int n1, int n2) {
+            super(cardName, Card.ATTACK, 0);
+            this.n1 = n1;
+            this.n2 = n2;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getEnemiesForWrite().get(idx).getMoveString(state).contains("Attack")) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n2);
+            }
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class GoForTheEye extends CardDefect._GoForTheEyeT {
+        public GoForTheEye() {
+            super("Go For The Eye", 3, 1);
+        }
+    }
+
+    public static class GoForTheEyeP extends CardDefect._GoForTheEyeT {
+        public GoForTheEyeP() {
+            super("Go For The Eye+", 4, 2);
+        }
+    }
+
     // Hologram
-    // Leap
+
+    private static class _LeapT extends Card {
+        private final int n;
+
+        public _LeapT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Leap extends CardDefect._LeapT {
+        public Leap() {
+            super("Leap", 9);
+        }
+    }
+
+    public static class LeapP extends CardDefect._LeapT {
+        public LeapP() {
+            super("Leap+", 12);
+        }
+    }
+
     // Rebound
     // Recursion
     // Stack
     // Steam Barrier
     // Streamline
-    // Sweeping Beam
+
+    private static class _SweepingBeamT extends Card {
+        private final int n;
+
+        public _SweepingBeamT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SweepingBeam extends CardDefect._SweepingBeamT {
+        public SweepingBeam() {
+            super("Sweeping Beam", 6);
+        }
+    }
+
+    public static class SweepingBeamP extends CardDefect._SweepingBeamT {
+        public SweepingBeamP() {
+            super("Sweeping Beam+", 9);
+        }
+    }
 
     private static class _TurboT extends Card {
         private final int n;
@@ -255,8 +340,60 @@ public class CardDefect {
         }
     }
 
-    // Aggregate
-    // Auto-Shields
+    private static abstract class _AggregateT extends Card {
+        private final int n;
+
+        public _AggregateT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(state.getNumCardsInDeck() / n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Aggregate extends CardDefect._AggregateT {
+        public Aggregate() {
+            super("Aggregate", 4);
+        }
+    }
+
+    public static class AggregateP extends CardDefect._AggregateT {
+        public AggregateP() {
+            super("Aggregate+", 3);
+        }
+    }
+
+    private static class _AutoShieldsT extends Card {
+        private final int n;
+
+        public _AutoShieldsT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getPlayeForRead().getBlock() == 0) {
+                state.getPlayerForWrite().gainBlock(n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class AutoShields extends CardDefect._AutoShieldsT {
+        public AutoShields() {
+            super("Auto Shields", 11);
+        }
+    }
+
+    public static class AutoShieldsP extends CardDefect._AutoShieldsT {
+        public AutoShieldsP() {
+            super("Auto Shields+", 15);
+        }
+    }
+
     // Blizzard
 
     private static class _BootSequenceT extends Card {
@@ -289,8 +426,63 @@ public class CardDefect {
 
     // Bullseye
     // Capacitor
-    // Chaos
-    // Chill
+
+    private static abstract class _ChaosT extends Card {
+        private final int n;
+
+        public _ChaosT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.channelOrb(OrbType.getRandom(state));
+            if (n > 1) {
+                state.channelOrb(OrbType.getRandom(state));
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Chaos extends CardDefect._ChaosT {
+        public Chaos() {
+            super("Chaos", 1);
+        }
+    }
+
+    public static class ChaosP extends CardDefect._ChaosT {
+        public ChaosP() {
+            super("Chaos+", 2);
+        }
+    }
+
+    private static abstract class _ChillT extends Card {
+        public _ChillT(String cardName, boolean innate) {
+            super(cardName, Card.SKILL, 0);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForRead()) {
+                if (enemy.isAlive()) {
+                    state.channelOrb(OrbType.FROST);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Chill extends CardDefect._ChillT {
+        public Chill() {
+            super("Chill", false);
+        }
+    }
+
+    public static class ChillP extends CardDefect._ChillT {
+        public ChillP() {
+            super("Chill+", true);
+        }
+    }
 
     private static abstract class _ConsumeT extends Card {
         private final int n;
@@ -303,7 +495,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainOrbSlot(-1);
-            state.gainFocus(2);
+            state.gainFocus(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -321,13 +513,112 @@ public class CardDefect {
     }
 
     // Darkness
-    // Defragment
-    // Doom and Gloom
-    // Double Energy
+
+    private static abstract class _DefragmentT extends Card {
+        private final int n;
+
+        public _DefragmentT(String cardName, int n) {
+            super(cardName, Card.POWER, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainFocus(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Defragment extends CardDefect._DefragmentT {
+        public Defragment() {
+            super("Defragment", 1);
+        }
+    }
+
+    public static class DefragmentP extends CardDefect._DefragmentT {
+        public DefragmentP() {
+            super("Defragment+", 2);
+        }
+    }
+
+    private static abstract class _DoomAndGloomT extends Card {
+        private final int n;
+
+        public _DoomAndGloomT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 2);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            state.channelOrb(OrbType.DARK);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DoomAndGloom extends CardDefect._DoomAndGloomT {
+        public DoomAndGloom() {
+            super("Doom And Gloom", 10);
+        }
+    }
+
+    public static class DoomAndGloomP extends CardDefect._DoomAndGloomT {
+        public DoomAndGloomP() {
+            super("Doom And Gloom+", 14);
+        }
+    }
+
+    private static abstract class _DoubleEnergyT extends Card {
+        public _DoubleEnergyT(String cardName, int n) {
+            super(cardName, Card.SKILL, n);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(state.energy);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DoubleEnergy extends CardDefect._DoubleEnergyT {
+        public DoubleEnergy() {
+            super("Double Energy", 1);
+        }
+    }
+
+    public static class DoubleEnergyP extends CardDefect._DoubleEnergyT {
+        public DoubleEnergyP() {
+            super("Double Energy+", 0);
+        }
+    }
+
     // Equilibrium
     // FTL
     // Force Field
-    // Fusion
+
+    private static abstract class _FusionT extends Card {
+        public _FusionT(String cardName, int n) {
+            super(cardName, Card.SKILL, n);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.channelOrb(OrbType.PLASMA);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Fusion extends CardDefect._FusionT {
+        public Fusion() {
+            super("Fusion", 2);
+        }
+    }
+
+    public static class FusionP extends CardDefect._FusionT {
+        public FusionP() {
+            super("Fusion+", 1);
+        }
+    }
+
     // Genetic Algorithm
 
     private static abstract class _GlacierT extends Card {
@@ -393,9 +684,104 @@ public class CardDefect {
 
     // Overclock
     // Recycle
-    // Reinforced Body
-    // Reprogram
-    // Rip and Tear
+
+    private static abstract class _ReinforcedBodyT extends Card {
+        private final int n;
+
+        public _ReinforcedBodyT(String cardName, int n) {
+            super(cardName, Card.SKILL, -1);
+            this.n = n;
+            isXCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var player = state.getPlayerForWrite();
+            for (int i = 0; i < energyUsed; i++) {
+                player.gainBlock(n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ReinforcedBody extends CardDefect._ReinforcedBodyT {
+        public ReinforcedBody() {
+            super("Reinforced Body", 7);
+        }
+    }
+
+    public static class ReinforcedBodyP extends CardDefect._ReinforcedBodyT {
+        public ReinforcedBodyP() {
+            super("Reinforced Body+", 9);
+        }
+    }
+
+    private static abstract class _ReprogramT extends Card {
+        private final int n;
+
+        public _ReprogramT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+            changePlayerStrength = true;
+            changePlayerDexterity = true;
+            // todo: changePlayerFocus
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, n);
+            state.getPlayerForWrite().gainStrength(n);
+            state.getPlayerForWrite().gainDexterity(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Reprogram extends CardDefect._ReprogramT {
+        public Reprogram() {
+            super("Reprogram", 1);
+        }
+    }
+
+    public static class ReprogramP extends CardDefect._ReprogramT {
+        public ReprogramP() {
+            super("Reprogram+", 2);
+        }
+    }
+
+    private static abstract class _RipAndTearT extends Card {
+        private final int n;
+
+        public _RipAndTearT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            boolean stochastic = state.isStochastic;
+            var i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
+            if (state.prop.makingRealMove && !stochastic && state.isStochastic) {
+                state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+            }
+            i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
+            if (state.prop.makingRealMove && !stochastic && state.isStochastic) {
+                state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class RipAndTear extends CardDefect._RipAndTearT {
+        public RipAndTear() {
+            super("Rip And Tear", 7);
+        }
+    }
+
+    public static class RipAndTearP extends CardDefect._RipAndTearT {
+        public RipAndTearP() {
+            super("Rip And Tear+", 9);
+        }
+    }
+
     // Scrape
 
     private static abstract class _SelfRepairT extends Card {
@@ -506,7 +892,35 @@ public class CardDefect {
         }
     }
 
-    // Tempest
+    private static abstract class _TempestT extends Card {
+        private final int n;
+
+        public _TempestT(String cardName, int n) {
+            super(cardName, Card.SKILL, -1);
+            this.n = n;
+            isXCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < energyUsed + n; i++) {
+                state.channelOrb(OrbType.LIGHTNING);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Tempest extends CardDefect._TempestT {
+        public Tempest() {
+            super("Tempest", 0);
+        }
+    }
+
+    public static class TempestP extends CardDefect._TempestT {
+        public TempestP() {
+            super("Tempest+", 1);
+        }
+    }
+
     // White Noise
     // All for One
     // Amplify
@@ -551,18 +965,47 @@ public class CardDefect {
 
     public static class BiasedCognition extends CardDefect._BiasedCognitionT {
         public BiasedCognition() {
-            super("BiasedCognition", 4);
+            super("Biased Cognition", 4);
         }
     }
 
     public static class BiasedCognitionP extends CardDefect._BiasedCognitionT {
         public BiasedCognitionP() {
-            super("BiasedCognition+", 5);
+            super("Biased Cognition+", 5);
         }
     }
 
     // Buffer
-    // Core Surge
+
+    private static abstract class _CoreSurgeT extends Card {
+        private final int n;
+
+        public _CoreSurgeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+            selectEnemy = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getPlayerForWrite().gainArtifact(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CoreSurge extends CardDefect._CoreSurgeT {
+        public CoreSurge() {
+            super("Core Surge", 11);
+        }
+    }
+
+    public static class CoreSurgeP extends CardDefect._CoreSurgeT {
+        public CoreSurgeP() {
+            super("Core Surge+", 15);
+        }
+    }
+
     // Creative AI
 
     private static abstract class _EchoFormT extends Card {
@@ -647,11 +1090,96 @@ public class CardDefect {
 
     // Electrodynamics
     // Fission
-    // Hyperbeam
+
+    private static abstract class _HyperBeamT extends Card {
+        private final int n;
+
+        public _HyperBeamT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 2);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            state.gainFocus(-3);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class HyperBeam extends CardDefect._HyperBeamT {
+        public HyperBeam() {
+            super("Hyperbeam", 26);
+        }
+    }
+
+    public static class HyperBeamP extends CardDefect._HyperBeamT {
+        public HyperBeamP() {
+            super("Hyperbeam+", 34);
+        }
+    }
+
     // Machine Learning
-    // Meteor Strike
+
+    private static abstract class _MeteorStrikeT extends Card {
+        private final int n;
+
+        public _MeteorStrikeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 5);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.channelOrb(OrbType.PLASMA);
+            state.channelOrb(OrbType.PLASMA);
+            state.channelOrb(OrbType.PLASMA);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MeteorStrike extends CardDefect._MeteorStrikeT {
+        public MeteorStrike() {
+            super("Meteor Strike", 24);
+        }
+    }
+
+    public static class MeteorStrikeP extends CardDefect._MeteorStrikeT {
+        public MeteorStrikeP() {
+            super("Meteor Strike+", 30);
+        }
+    }
+
     // Multi-Cast
-    // Rainbow
+
+    private static abstract class _RainbowT extends Card {
+        public _RainbowT(String cardName, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 2);
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.channelOrb(OrbType.LIGHTNING);
+            state.channelOrb(OrbType.FROST);
+            state.channelOrb(OrbType.DARK);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Rainbow extends CardDefect._RainbowT {
+        public Rainbow() {
+            super("Rainbow", true);
+        }
+    }
+
+    public static class RainbowP extends CardDefect._RainbowT {
+        public RainbowP() {
+            super("Rainbow+", false);
+        }
+    }
+
     // Reboot
     // Seek
     // Thunder Strike

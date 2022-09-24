@@ -115,7 +115,7 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     protected void heal(int hp) {
-        health += Math.min(hp, property.origHealth - health);
+        health += Math.min(hp, Math.max(0, property.origHealth - health));
     }
 
     public void react(GameState state, Card card) {
@@ -179,6 +179,7 @@ public abstract class Enemy extends EnemyReadOnly {
             property.canDaze = possibleEnemies.stream().anyMatch((e) -> e.property.canDaze);
             property.canGainStrength = possibleEnemies.stream().anyMatch((e) -> e.property.canGainStrength);
             property.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.property.canGainRegeneration);
+            property.canHeal = possibleEnemies.stream().anyMatch((e) -> e.property.canHeal);
             property.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.property.canGainMetallicize);
             property.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.property.canGainBlock);
             property.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerStrength);

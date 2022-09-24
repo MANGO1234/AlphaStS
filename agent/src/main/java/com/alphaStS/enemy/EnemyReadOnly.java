@@ -24,6 +24,7 @@ public abstract class EnemyReadOnly {
         public boolean canDaze = false;
         public boolean canGainStrength = false;
         public boolean canGainRegeneration = false;
+        public boolean canHeal = false;
         public boolean canGainMetallicize = false;
         public boolean canGainBlock = false;
         public boolean changePlayerStrength = false;
