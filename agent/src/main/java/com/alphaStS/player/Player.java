@@ -92,6 +92,8 @@ public class Player extends PlayerReadOnly {
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         case ENTANGLED -> this.entangled = n;
         case HEX -> this.hexed = true;
+        case LOSE_FOCUS -> state.gainFocus(-n);
+        case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] += n;
         }
     }
 

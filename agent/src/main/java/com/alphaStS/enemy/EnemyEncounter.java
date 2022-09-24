@@ -472,15 +472,21 @@ public class EnemyEncounter {
         });
     }
 
-    public static void addSentrieFight(GameStateBuilder builder) {
-        addSentrieFight(builder, false);
+    public static void addSentriesFight(GameStateBuilder builder) {
+        addSentriesFight(builder, false);
     }
 
-    public static void addSentrieFight(GameStateBuilder builder, boolean burning) {
+    public static void addSentriesFight(GameStateBuilder builder, boolean burning) {
         var start = builder.getEnemies().size();
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-        builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        if (burning) {
+            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM).markAsBurningElite());
+            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+        } else {
+            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
+            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+        }
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
                 order[start] = start + 2;

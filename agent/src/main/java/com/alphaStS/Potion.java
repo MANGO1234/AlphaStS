@@ -185,8 +185,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
-    public static class DrawPotion extends Potion {
-        public DrawPotion() {
+    public static class SwiftPotion extends Potion {
+        public SwiftPotion() {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -196,7 +196,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public String toString() {
-            return "Draw Potion";
+            return "Swift Potion";
         }
     }
 

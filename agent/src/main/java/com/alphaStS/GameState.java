@@ -380,6 +380,7 @@ public class GameState implements State {
         Collections.sort(prop.endOfBattleHandlers);
         Collections.sort(prop.startOfTurnHandlers);
         Collections.sort(prop.preEndTurnHandlers);
+        Collections.sort(prop.endOfTurnHandlers);
         Collections.sort(prop.onBlockHandlers);
         Collections.sort(prop.onExhaustHandlers);
         Collections.sort(prop.onBlockHandlers);
@@ -1061,6 +1062,9 @@ public class GameState implements State {
                 enemy2.startTurn();
                 enemy2.doMove(this, enemy2);
             }
+        }
+        for (GameEventHandler handler : prop.endOfTurnHandlers) {
+            handler.handle(this);
         }
         getPlayerForWrite().endTurn(this);
         if (!prop.hasIceCream) {
@@ -2403,6 +2407,17 @@ public class GameState implements State {
         if (prop.gameEventHandlers.get(handlerName + "StartOfTurn") == null) {
             prop.gameEventHandlers.put(handlerName + "StartOfTurn", handler);
             prop.startOfTurnHandlers.add(handler);
+        }
+    }
+
+    public void addEndOfTurnHandler(GameEventHandler handler) {
+        prop.endOfTurnHandlers.add(handler);
+    }
+
+    public void addEndOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (prop.gameEventHandlers.get(handlerName + "EndOfTurn") == null) {
+            prop.gameEventHandlers.put(handlerName + "EndOfTurn", handler);
+            prop.endOfTurnHandlers.add(handler);
         }
     }
 

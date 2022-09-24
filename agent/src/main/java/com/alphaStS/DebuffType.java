@@ -11,4 +11,6 @@ public enum DebuffType {
     LOSE_DEXTERITY_EOT,
     ENTANGLED,
     HEX,
+    LOSE_FOCUS,
+    LOSE_FOCUS_PER_TURN,
 }

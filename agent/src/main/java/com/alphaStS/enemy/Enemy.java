@@ -143,6 +143,10 @@ public abstract class Enemy extends EnemyReadOnly {
         return true;
     }
 
+    public void setBlock(int n) {
+        block = n;
+    }
+
     public Enemy markAsBurningElite() {
         property.applyBurningEliteBuff();
         return this;

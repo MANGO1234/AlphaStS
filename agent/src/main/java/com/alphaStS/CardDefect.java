@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 
 import java.util.List;
@@ -49,9 +50,65 @@ public class CardDefect {
         }
     }
 
-    // Ball Lightning
+    private static abstract class _BallLightningT extends Card {
+        private final int n;
+
+        public _BallLightningT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.channelOrb(OrbType.LIGHTNING);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BallLightning extends CardDefect._BallLightningT {
+        public BallLightning() {
+            super("Ball Lightning", 7);
+        }
+    }
+
+    public static class BallLightningP extends CardDefect._BallLightningT {
+        public BallLightningP() {
+            super("Ball Lightning+", 10);
+        }
+    }
+
     // Barrage
-    // Beam Cell
+
+    private static abstract class _BeamCellT extends Card {
+        private final int n1;
+        private final int n2;
+
+        public _BeamCellT(String cardName, int n1, int n2) {
+            super(cardName, Card.ATTACK, 0);
+            this.n1 = n1;
+            this.n2 = n2;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BeamCell extends CardDefect._BeamCellT {
+        public BeamCell() {
+            super("Beam Cell", 3, 1);
+        }
+    }
+
+    public static class BeamCellP extends CardDefect._BeamCellT {
+        public BeamCellP() {
+            super("Beam Cell+", 4, 2);
+        }
+    }
 
     private static class _ChargeBatteryT extends Card {
         private final int n;
@@ -129,7 +186,34 @@ public class CardDefect {
     }
 
     // Compile Driver
-    // Coolheaded
+
+    private static abstract class _CoolheadedT extends Card {
+        private final int n;
+
+        public _CoolheadedT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.channelOrb(OrbType.FROST);
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Coolheaded extends CardDefect._CoolheadedT {
+        public Coolheaded() {
+            super("Coolheaded", 1);
+        }
+    }
+
+    public static class CoolheadedP extends CardDefect._CoolheadedT {
+        public CoolheadedP() {
+            super("Coolheaded+", 2);
+        }
+    }
+
     // Go for the Eyes
     // Hologram
     // Leap
@@ -277,7 +361,36 @@ public class CardDefect {
     // Heatsinks
     // Hello World
     // Loop
-    // Melter
+
+    private static abstract class _MelterT extends Card {
+        private final int n;
+
+        public _MelterT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
+            enemy.setBlock(0);
+            state.playerDoDamageToEnemy(enemy, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Melter extends CardDefect._MelterT {
+        public Melter() {
+            super("Melter", 10);
+        }
+    }
+
+    public static class MelterP extends CardDefect._MelterT {
+        public MelterP() {
+            super("Melter+", 14);
+        }
+    }
+
     // Overclock
     // Recycle
     // Reinforced Body
@@ -334,7 +447,32 @@ public class CardDefect {
         }
     }
 
-    // Skim
+    private static abstract class _SkimT extends Card {
+        private final int n;
+
+        public _SkimT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Skim extends CardDefect._SkimT {
+        public Skim() {
+            super("Skim", 3);
+        }
+    }
+
+    public static class SkimP extends CardDefect._SkimT {
+        public SkimP() {
+            super("Skim+", 4);
+        }
+    }
+
     // Static Discharge
     // Storm
 
@@ -372,7 +510,57 @@ public class CardDefect {
     // White Noise
     // All for One
     // Amplify
-    // Biased Cognition
+
+    private static abstract class _BiasedCognitionT extends Card {
+        private final int n;
+
+        public _BiasedCognitionT(String cardName, int n) {
+            super(cardName, Card.POWER, 1);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainFocus(n);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS_PER_TURN, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("BiasedLoseFocus", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addEndOfTurnHandler("LoseFocusPerTurn", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.loseFocusPerTurnCounterIdx = idx;
+        }
+    }
+
+    public static class BiasedCognition extends CardDefect._BiasedCognitionT {
+        public BiasedCognition() {
+            super("BiasedCognition", 4);
+        }
+    }
+
+    public static class BiasedCognitionP extends CardDefect._BiasedCognitionT {
+        public BiasedCognitionP() {
+            super("BiasedCognition+", 5);
+        }
+    }
+
     // Buffer
     // Core Surge
     // Creative AI

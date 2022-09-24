@@ -87,6 +87,7 @@ public class GameProperties implements Cloneable {
     public boolean hasMeatOnBone;
     public boolean hasBurningBlood;
 
+    public int loseFocusPerTurnCounterIdx;
     public int normalityCounterIdx = -1;
     public int penNibCounterIdx = -1;
 
@@ -103,6 +104,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
     public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
+    public List<GameEventHandler> endOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
     public List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
     public List<GameEventHandler> onEnemyDeathHandlers = new ArrayList<>();
