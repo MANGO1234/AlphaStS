@@ -208,8 +208,8 @@ public abstract class Enemy extends EnemyReadOnly {
             currentEnemy.nextMove(state, random);
         }
 
-        @Override public void doMove(GameState state) {
-            currentEnemy.doMove(state);
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            currentEnemy.doMove(state, self);
         }
 
         @Override public Enemy copy() {
@@ -435,7 +435,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new GremlinNob(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == SKULL_BASH) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
@@ -554,7 +554,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ATTACK_1 || move == ATTACK_2) {
                 state.enemyDoDamageToPlayer(this, 20, 1);
             } else if (move == SIPHON_SOUL) {
@@ -631,7 +631,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new Sentry(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
             } else if (move == BOLT) {
@@ -705,7 +705,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new Hexaghost(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DIVIDER) {
                 int n = state.getPlayeForRead().getHealth() / 12 + 1;
                 state.enemyDoDamageToPlayer(this, n, 6);
@@ -845,7 +845,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CHARGING_UP) {
                 gainBlock(9);
             } else if (move == FIERCE_BASH) {
@@ -986,7 +986,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == GOOP_SPRAY) {
                 for (int i = 0; i < 5; i++) {
                     state.addCardToDiscard(state.prop.slimeCardIdx);
@@ -1110,7 +1110,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == FLAME_TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
@@ -1200,7 +1200,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new MediumSpikeSlime(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == FLAME_TACKLE) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
@@ -1265,7 +1265,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new SmallSpikeSlime(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             state.enemyDoDamageToPlayer(this, 6, 1);
         }
 
@@ -1337,7 +1337,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CORROSIVE_SPIT) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
@@ -1439,7 +1439,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new MediumAcidSlime(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CORROSIVE_SPIT) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
                 state.addCardToDiscard(state.prop.slimeCardIdx);
@@ -1516,7 +1516,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new SmallAcidSlime(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 4, 1);
             } else if (move == LICK) {
@@ -1580,7 +1580,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new RedSlaver(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STAB) {
                 state.enemyDoDamageToPlayer(this, 14, 1);
             } else if (move == SCRAPE) {
@@ -1672,7 +1672,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new BlueSlaver(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STAB) {
                 state.enemyDoDamageToPlayer(this, 13, 1);
             } else if (move == RAKE) {
@@ -1738,7 +1738,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new JawWorm(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == 0) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == 1) {
@@ -1827,7 +1827,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == INCANTATION) {
             } else if (move == DARK_STRIKE) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
@@ -1914,7 +1914,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new RedLouse(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == GROW) {
@@ -2019,7 +2019,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new GreenLouse(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, d, 1);
             } else if (move == SPIT_WEB) {
@@ -2099,7 +2099,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new FungiBeast(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
             } else if (move == GROW) {
@@ -2184,7 +2184,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new Looter(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == MUG_1 || move == MUG_2) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
             } else if (move == LUNGE) {
@@ -2257,7 +2257,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new FatGremlin(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == SMASH) {
                 state.enemyDoDamageToPlayer(this, 5, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
@@ -2313,7 +2313,7 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == SCRATCH) {
                 state.enemyDoDamageToPlayer(this, 5, 1);
             }
@@ -2358,7 +2358,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new SneakyGremlin(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == PUNCTURE) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
             }
@@ -2404,7 +2404,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new ShieldGremlin(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == PROTECT) {
                 if (state.enemiesAlive == 1) { // can only be shield gremlin
                     gainBlock(11);
@@ -2415,7 +2415,7 @@ public abstract class Enemy extends EnemyReadOnly {
                         r = state.getSearchRandomGen().nextInt(state.enemiesAlive - 1, RandomGenCtx.ShieldGremlin);
                     }
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy != this) {
+                        if (enemy != self) {
                             if ((--r) < 0) {
                                 enemy.gainBlock(11);
                                 break;
@@ -2484,7 +2484,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return new GremlinWizard(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ULTIMATE_BLAST) {
                 state.enemyDoDamageToPlayer(this, 30, 1);
             }

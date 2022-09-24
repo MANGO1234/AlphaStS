@@ -1059,7 +1059,7 @@ public class GameState implements State {
                     isStochastic = oldIsStochastic | isStochastic;
                 }
                 enemy2.startTurn();
-                enemy2.doMove(this);
+                enemy2.doMove(this, enemy2);
             }
         }
         getPlayerForWrite().endTurn(this);
@@ -1639,7 +1639,7 @@ public class GameState implements State {
             inputLen += prop.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY;
         }
         for (int i = 2; i < prop.actionsByCtx.length; i++) {
-            if (prop.actionsByCtx[i] != null && i != GameActionCtx.BEGIN_TURN.ordinal()) {
+            if (prop.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
                 inputLen += 1;
             }
         }
@@ -1794,7 +1794,7 @@ public class GameState implements State {
             str += "    " + prop.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY + " inputs to keep track of known card at top of deck\n";
         }
         for (int i = 2; i < prop.actionsByCtx.length; i++) {
-            if (prop.actionsByCtx[i] != null && i != GameActionCtx.BEGIN_TURN.ordinal()) {
+            if (prop.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
                 str += "    1 input to keep track of ctx " + GameActionCtx.values()[i] + "\n";
             }
         }
@@ -1991,7 +1991,7 @@ public class GameState implements State {
             }
         }
         for (int i = 2; i < prop.actionsByCtx.length; i++) {
-            if (prop.actionsByCtx[i] != null && i != GameActionCtx.BEGIN_TURN.ordinal()) {
+            if (prop.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
                 x[idx++] = actionCtx.ordinal() == i ? 0.5f : -0.5f;
             }
         }
@@ -3182,7 +3182,7 @@ class ChanceState implements State {
             }
         }
         state.doAction(parentAction);
-        if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
+        if (!state.isStochastic && state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
         if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.prop.testNewFeature)) {

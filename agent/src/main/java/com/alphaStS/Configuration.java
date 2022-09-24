@@ -31,4 +31,6 @@ public class Configuration {
     public static boolean UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
     public static boolean TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
     public static boolean TRAINING_RESCORE_SEARCH_FOR_BEST_LINE = false;
+
+    public static boolean ADD_BEGIN_TURN_CTX_TO_NN_INPUT = true;
 }

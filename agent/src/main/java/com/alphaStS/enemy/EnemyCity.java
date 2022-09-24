@@ -43,7 +43,7 @@ public class EnemyCity {
             return new TheChamp(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DEFENSIVE_STANCE) {
                 gainBlock(20);
                 gainMetallicize(7);
@@ -216,7 +216,7 @@ public class EnemyCity {
             startOfTurnEnemiesAlive = state.enemiesAlive;
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ENCOURAGE) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     enemy.gainStrength(5);
@@ -538,7 +538,7 @@ public class EnemyCity {
             return super.equals(o) && stabCount == ((BookOfStabbing) o).stabCount;
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == MULTI_STAB) {
                 state.enemyDoDamageToPlayer(this, 7, stabCount);
             } else if (move == SINGLE_STAB) {
@@ -637,7 +637,7 @@ public class EnemyCity {
             return new Taskmaster(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == SCOURING_WHIP) {
                 state.enemyDoDamageToPlayer(this, 7, 1);
                 gainStrength(1);
@@ -729,7 +729,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CAW) {
                gainStrength(1);
             } else if (move == PECK) {
@@ -871,7 +871,7 @@ public class EnemyCity {
             return new SphericGuardian(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ACTIVATE) {
                 gainBlock(35);
             } else if (move == ATTACK_DEBUFF) {
@@ -941,7 +941,7 @@ public class EnemyCity {
             return new ShelledParasite(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DOUBLE_STRIKE) {
                 state.enemyDoDamageToPlayer(this, 7, 2);
             } else if (move == SUCK) {
@@ -1040,7 +1040,7 @@ public class EnemyCity {
             return new Pointy(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == ATTACK) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
             }
@@ -1091,7 +1091,7 @@ public class EnemyCity {
             return new Romeo(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == AGONIZING_SLASH) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3);
@@ -1155,7 +1155,7 @@ public class EnemyCity {
             return new Bear(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BEAR_HUG) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, 4);
             } else if (move == LUNGE) {
@@ -1225,7 +1225,7 @@ public class EnemyCity {
             return new Chosen(this);
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == HEX) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.HEX, 1);
             } else if (move == POKE) {

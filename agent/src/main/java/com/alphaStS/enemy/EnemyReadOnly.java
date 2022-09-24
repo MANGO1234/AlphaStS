@@ -82,7 +82,7 @@ public abstract class EnemyReadOnly {
         this.property = other.property;
     }
 
-    public abstract void doMove(GameState state);
+    public abstract void doMove(GameState state, EnemyReadOnly self);
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
     public void gamePropertiesSetup(GameState state) {}

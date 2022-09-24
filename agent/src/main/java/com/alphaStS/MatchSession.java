@@ -1498,7 +1498,7 @@ public class MatchSession {
     public static void printGame(Writer writer, List<GameStep> steps) throws IOException {
         for (int i = 0; i < steps.size(); i++) {
             var step = steps.get(i);
-            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN) continue;
+            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN && !step.state().isStochastic) continue;
             writer.write(step.state() + "\n");
             if (step.v != null) {
                 writer.write(Arrays.toString(step.v) + "\n");

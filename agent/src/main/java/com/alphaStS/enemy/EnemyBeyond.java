@@ -77,7 +77,7 @@ public class EnemyBeyond {
             });
         }
 
-        @Override public void doMove(GameState state) {
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == SLASH) {
                 state.enemyDoDamageToPlayer(this, 20, 1);
             } else if (move == SOUL_STRIKE) {

@@ -128,6 +128,22 @@ else:
     model.save(f'{SAVES_DIR}/iteration0')
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
 
+
+def init_layer(layer_name):
+    for layer in model.layers:
+        if layer.name == layer_name:
+            layer.set_weights([layer.kernel_initializer(shape=np.asarray(layer.kernel.shape)),
+                               layer.bias_initializer(shape=np.asarray(layer.bias.shape))])
+
+
+def reset_model(model):
+    layer = model.get_layer('exp_win_head')
+    init_layer(layer)
+    layer = model.get_layer('exp_health_head')
+    init_layer(layer)
+    layer = model.get_layer('layer2')
+    init_layer(layer)
+
 start = time.time()
 # np.set_printoptions(threshold=np.inf)
 
@@ -244,6 +260,9 @@ if DO_TRAINING:
             agent_output = agent_output[split + 20:]
 
         print(f'Iteration {training_info["iteration"]}')
+        if True and (training_info["iteration"] - 21) % 15 == 0:
+            print("Model layers reset!!!")
+            reset_model(model)
         split = agent_output.find('--------------------')
         # print(agent_output[2 if agent_output[0] == 13 else 0: split + 20])
         agent_output = agent_output[split + 20:]
