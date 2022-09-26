@@ -170,7 +170,7 @@ public class Main {
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
         if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES && state.prop.randomization != null) {
-            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 3);
+//            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 3);
         }
 
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
@@ -185,7 +185,7 @@ public class Main {
             session.training = TEST_TRAINING_AGENT;
             if (TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("training_matches.txt.gz");
-            } else if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
+            } else if (!TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("matches.txt.gz");
             }
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
@@ -200,6 +200,9 @@ public class Main {
             session.setTrainingDataLogFile("training_data.txt.gz");
             session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
             session.POLICY_CAP_ON = false;
+            if (iteration < 16) {
+                Configuration.TRAINING_SKIP_OPENING_TURNS = false;
+            }
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);

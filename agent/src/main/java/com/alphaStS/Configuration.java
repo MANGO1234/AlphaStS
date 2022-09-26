@@ -31,6 +31,10 @@ public class Configuration {
     public static boolean UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
     public static boolean TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
     public static boolean TRAINING_RESCORE_SEARCH_FOR_BEST_LINE = false;
+    public static boolean TRAINING_SKIP_OPENING_TURNS = false;
+    public static int TRAINING_SKIP_OPENING_TURNS_UPTO = 3;
+    public static float TRAINING_SKIP_OPENING_PST = 1.2f;
+    public static double TRAINING_SKIP_OPENING_GAMES_INCREASE_RATIO = 1.1;
 
     public static boolean ADD_BEGIN_TURN_CTX_TO_NN_INPUT = true;
 }

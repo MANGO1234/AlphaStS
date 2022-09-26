@@ -137,4 +137,8 @@ public class Player extends PlayerReadOnly {
         origHealth = hp;
         health = hp;
     }
+
+    public void setMaxHealth(int maxHealth) {
+        this.maxHealth = maxHealth;
+    }
 }

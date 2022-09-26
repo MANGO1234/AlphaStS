@@ -190,9 +190,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Nunchaku extends Relic {
         int n;
+        int healthReward;
 
-        public Nunchaku(int n) {
+        public Nunchaku(int n, int healthReward) {
             this.n = n;
+            this.healthReward = healthReward;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -233,7 +235,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
-                    v[GameState.V_HEALTH_IDX] += 2 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                    v[GameState.V_HEALTH_IDX] += healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
                 }
             });
         }
@@ -991,6 +993,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     state.channelOrb(OrbType.LIGHTNING);
+                }
+            });
+        }
+    }
+
+    public static class DataDisk extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.gainFocus(1);
                 }
             });
         }

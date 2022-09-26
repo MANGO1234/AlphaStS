@@ -820,8 +820,15 @@ public class MatchSession {
         state.doEval(mcts.model);
         boolean quickPass = false;
         var bannedActions = new HashSet<GameAction>();
+        int turnsToSkip = 0;
+        if (Configuration.TRAINING_SKIP_OPENING_TURNS && Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO > 0) {
+            turnsToSkip = state.prop.random.nextInt(Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO + 1, RandomGenCtx.Other);
+        }
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
+            if (!doNotExplore && state.turnNum <= turnsToSkip) {
+                todo = 1;
+            }
 //            if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
 //                todo = (quickPass ? nodeCount * 5 / 4 : nodeCount * 5) - state.total_n;
 //            }
@@ -837,7 +844,20 @@ public class MatchSession {
 
             int action;
             int greedyAction;
-            if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+            if (!doNotExplore && Configuration.TRAINING_SKIP_OPENING_TURNS && state.turnNum <= turnsToSkip) {
+                var policy = Model.softmax(state.policy, Configuration.TRAINING_SKIP_OPENING_PST);
+                double t = state.prop.random.nextFloat(null);
+                double k = 0;
+                int i;
+                for (i = 0; i < policy.length; i++) {
+                    k += policy[i];
+                    if (k >= t) {
+                        break;
+                    }
+                }
+                action = i;
+                greedyAction = i;
+            } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                 action = MCTS.getActionRandomOrTerminalSelectScenario(state);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, null);
             } else if (doNotExplore || quickPass || state.turnNum >= 100) {
@@ -856,6 +876,10 @@ public class MatchSession {
             var step = new GameStep(state, action);
             step.trainingWriteCount = !quickPass ? 1 : 0;
             step.isExplorationMove = greedyAction != action;
+            if (!doNotExplore && state.turnNum <= turnsToSkip) {
+                step.trainingWriteCount = 0;
+                step.trainingSkipOpening = true;
+            }
             steps.add(step);
             if (state.getAction(action).type() == GameActionType.END_TURN) {
                 quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other, null) > 0;
@@ -902,6 +926,9 @@ public class MatchSession {
             state = steps.get(i).state();
             state.clearNextStates();
             if (state.isStochastic && i > 0) {
+                if (steps.get(i - 1).trainingSkipOpening) {
+                    break;
+                }
                 var prevState = steps.get(i - 1).state();
                 var prevAction = steps.get(i - 1).action();
                 var cState = (ChanceState) prevState.ns[prevAction];
@@ -1071,6 +1098,9 @@ public class MatchSession {
         for (Tuple<String, Integer> server : getRemoteServers()) {
             remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
             startRemotePlayTrainingGameThread(server.v1(), server.v2(), nodeCount, numToPlay, deq);
+        }
+        if (Configuration.TRAINING_SKIP_OPENING_TURNS) {
+            numOfGames = (int) (numOfGames * Configuration.TRAINING_SKIP_OPENING_GAMES_INCREASE_RATIO);
         }
 
         var trainingGame_i = 0;
@@ -1444,14 +1474,19 @@ public class MatchSession {
             }
             newState.isStochastic = true;
         } else {
-            newState = (GameState) nextState;
-            if (clone) {
-                var s = newState;
-                newState = newState.clone(false);
-                newState.stateDesc = s.stateDesc;
-                newState.searchFrontier = null;
+            if (nextState == null) {
+                newState = state.clone(false);
+                newState.doAction(action);
+            } else {
+                newState = (GameState) nextState;
+                if (clone) {
+                    var s = newState;
+                    newState = newState.clone(false);
+                    newState.stateDesc = s.stateDesc;
+                    newState.searchFrontier = null;
+                }
+                newState.isStochastic = false;
             }
-            newState.isStochastic = false;
         }
         return newState;
     }
@@ -1500,7 +1535,7 @@ public class MatchSession {
             var step = steps.get(i);
             if (step.state().actionCtx == GameActionCtx.BEGIN_TURN && !step.state().isStochastic) continue;
             writer.write(step.state() + "\n");
-            if (step.v != null) {
+            if (!step.trainingSkipOpening) {
                 writer.write(Arrays.toString(step.v) + "\n");
             }
             if (step.action() >= 0) {

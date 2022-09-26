@@ -7,6 +7,7 @@ public final class GameStep {
     private final int action;
     public boolean takenFromChanceStateCache;
     public int trainingWriteCount;
+    public boolean trainingSkipOpening;
     public double[] v;
     public List<String> lines;
     public boolean isExplorationMove;

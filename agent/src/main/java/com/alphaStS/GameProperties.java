@@ -94,7 +94,7 @@ public class GameProperties implements Cloneable {
     // cached game properties for generating NN input
     public boolean battleTranceExist;
     public boolean energyRefillCanChange;
-    public boolean isSlimeBossFight;
+    public boolean healEndOfAct;
     public int inputLen;
     public int extraOutputLen;
 

@@ -420,6 +420,15 @@ public class GameState implements State {
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
+        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
+        if (prop.healEndOfAct) {
+            addEndOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    var d = state.getPlayeForRead().getMaxHealth() - state.getPlayeForRead().getHealth();
+                    state.getPlayerForWrite().heal(d - d / 4);
+                }
+            });
+        }
         prop.originalEnemies = new EnemyList(enemies);
         for (int i = 0; i < prop.originalEnemies.size(); i++) {
             prop.originalEnemies.getForWrite(i);
@@ -1279,7 +1288,7 @@ public class GameState implements State {
     }
 
     private boolean checkIfCanHeal() {
-        if (prop.hasBurningBlood) {
+        if (prop.hasBurningBlood || prop.healEndOfAct) {
             return true;
         }
         if (prop.selfRepairCounterIdx >= 0) {
@@ -1353,14 +1362,17 @@ public class GameState implements State {
                 // todo: feed and meat on bone interaction when they are together
                 // todo: self repair and meat on bone interaction when they are together
                 if (getPlayeForRead().getHealth() >= getPlayeForRead().getMaxHealth() / 2 + 12) {
-                    return Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+                    hp = Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+                } else if (getPlayeForRead().getHealth() + v < getPlayeForRead().getMaxHealth() / 2) {
+                    hp = getPlayeForRead().getHealth() + v + 12;
+                } else {
+                    hp = Math.min(getPlayeForRead().getMaxHealth(), Math.max(getPlayeForRead().getHealth() + v, getPlayeForRead().getMaxHealth() / 2 + 12));
                 }
-                if (getPlayeForRead().getHealth() + v < getPlayeForRead().getMaxHealth() / 2) {
-                    return getPlayeForRead().getHealth() + v + 12;
-                }
-                return Math.min(getPlayeForRead().getMaxHealth(), Math.max(getPlayeForRead().getHealth() + v, getPlayeForRead().getMaxHealth() / 2 + 12));
             } else {
                 hp = Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+            }
+            if (prop.healEndOfAct) {
+                hp += (getPlayeForRead().getMaxHealth() - hp) - (getPlayeForRead().getMaxHealth() - hp) / 4;
             }
             return hp;
         } else {

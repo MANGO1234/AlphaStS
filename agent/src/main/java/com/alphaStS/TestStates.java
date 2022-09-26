@@ -195,10 +195,10 @@ public class TestStates {
                 List.of(new CardCount(new Card.Carnage(), 1),
                         new CardCount(new Card.ShrugItOff(), 1))
         )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
-                (state) -> state.getPlayerForWrite().setHealth(41),
-                (state) -> state.getPlayerForWrite().setHealth(19),
-                (state) -> state.getPlayerForWrite().setHealth(19),
-                (state) -> state.getPlayerForWrite().setHealth(41)
+                (state) -> state.getPlayerForWrite().setOrigHealth(41),
+                (state) -> state.getPlayerForWrite().setOrigHealth(19),
+                (state) -> state.getPlayerForWrite().setOrigHealth(19),
+                (state) -> state.getPlayerForWrite().setOrigHealth(41)
         ))).setDescriptions(
                 "Health 41",
                 "Health 19, Upgrade Shrug It Off",
@@ -668,7 +668,7 @@ public class TestStates {
         builder.addCard(new Card.BattleTrance(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
-        builder.addRelic(new Relic.Nunchaku(2));
+        builder.addRelic(new Relic.Nunchaku(2, 2));
         EnemyEncounter.addSentriesFight(builder, true);
         //        builder.addEnemy(new Enemy.GremlinNob());
         builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
@@ -705,7 +705,7 @@ public class TestStates {
         builder.addCard(new Card.PowerThroughP(), 0);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
-        builder.addRelic(new Relic.Nunchaku(8));
+        builder.addRelic(new Relic.Nunchaku(8, 2));
         builder.addEnemy(new Enemy.Hexaghost());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new Card.Disarm(), 1), new CardCount(new Card.PowerThroughP(), 1)),
@@ -741,7 +741,7 @@ public class TestStates {
         builder.addCard(new Card.Havoc(), 0);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
-        builder.addRelic(new Relic.Nunchaku(7));
+        builder.addRelic(new Relic.Nunchaku(7, 2));
         builder.addRelic(new Relic.GremlinHorn());
         EnemyEncounter.addByrdsFight(builder);
         //        builder.addEnemy(new EnemyCity.BookOfStabbing());
@@ -843,27 +843,55 @@ public class TestStates {
         builder.addCard(new Card.DefendP(), 1);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.ZapP(), 0);
         builder.addCard(new CardDefect.DualCastP(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
-        builder.addCard(new CardDefect.BallLightning(), 1);
-        builder.addCard(new CardDefect.Skim(), 1);
+        builder.addCard(new CardDefect.GlacierP(), 0);
+        builder.addCard(new CardDefect.BallLightning(), 2);
+        builder.addCard(new CardDefect.Skim(), 2);
         builder.addCard(new CardDefect.MelterP(), 1);
         builder.addCard(new CardDefect.BeamCellP(), 1);
-        builder.addCard(new CardDefect.BiasedCognition(), 1);
+        builder.addCard(new CardDefect.BiasedCognition(), 0);
+        builder.addCard(new CardDefect.BiasedCognitionP(),1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
-        builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
-        EnemyEncounter.addSentriesFight(builder, true);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0 },
-                new int[] { 1, 2, 3 }
+        builder.addCard(new CardDefect.CoolheadedP(), 0);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addEnemy(new Enemy.TheGuardian());
+//        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(new CardCount(new CardDefect.BiasedCognition(), 1)),
+//                List.of(new CardCount(new CardDefect.BiasedCognition(), 0))
+//        ));
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.CoolheadedP(), 1), new CardCount(new CardDefect.Coolheaded(), 0),
+                        new CardCount(new CardDefect.GlacierP(), 0), new CardCount(new CardDefect.Glacier(), 1),
+                        new CardCount(new CardDefect.ZapP(), 0), new CardCount(new CardDefect.Zap(), 1)),
+                List.of(new CardCount(new CardDefect.CoolheadedP(), 0), new CardCount(new CardDefect.Coolheaded(), 1),
+                        new CardCount(new CardDefect.GlacierP(), 1), new CardCount(new CardDefect.Glacier(), 0),
+                        new CardCount(new CardDefect.ZapP(), 0), new CardCount(new CardDefect.Zap(), 1)),
+                List.of(new CardCount(new CardDefect.CoolheadedP(), 0), new CardCount(new CardDefect.Coolheaded(), 1),
+                        new CardCount(new CardDefect.GlacierP(), 0), new CardCount(new CardDefect.Glacier(), 1),
+                        new CardCount(new CardDefect.ZapP(), 1), new CardCount(new CardDefect.Zap(), 0)),
+                List.of(new CardCount(new CardDefect.CoolheadedP(), 0), new CardCount(new CardDefect.Coolheaded(), 1),
+                        new CardCount(new CardDefect.GlacierP(), 0), new CardCount(new CardDefect.Glacier(), 1),
+                        new CardCount(new CardDefect.ZapP(), 0), new CardCount(new CardDefect.Zap(), 1))
+        )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
+                (state) -> state.getPlayerForWrite().setOrigHealth(8),
+                (state) -> state.getPlayerForWrite().setOrigHealth(8),
+                (state) -> state.getPlayerForWrite().setOrigHealth(8),
+                (state) -> state.getPlayerForWrite().setOrigHealth(29)
+        ))).setDescriptions(
+                "Health 8, Upgrade Coolheaded",
+                "Health 8, Upgrade Glacier",
+                "Health 8, Upgrade Zap",
+                "Health 29"
         );
-        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
         builder.setRandomization(randomization);
-        builder.addPotion(new Potion.EnergyPotion());
         builder.addPotion(new Potion.SwiftPotion());
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.OddlySmoothStone());
-        builder.setPlayer(new Player(20, 20));
+        builder.addRelic(new Relic.DataDisk());
+        builder.addRelic(new Relic.Nunchaku(0, 1));
+        builder.setPlayer(new Player(8, 71));
         return new GameState(builder);
     }
 }

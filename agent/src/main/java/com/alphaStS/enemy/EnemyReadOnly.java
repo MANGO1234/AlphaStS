@@ -15,6 +15,7 @@ public abstract class EnemyReadOnly {
         public int origMaxHealth; // during randomization, property cloning can be set to change origHealth and hasBurningHealthBuff for that battle
         protected boolean hasBurningHealthBuff = false;
         public boolean isElite = false;
+        public boolean isBoss = false;
         public boolean isMinion = false;
         public boolean canVulnerable = false;
         public boolean canEntangle = false;
