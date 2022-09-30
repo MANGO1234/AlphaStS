@@ -82,6 +82,7 @@ public class GameProperties implements Cloneable {
     public boolean hasSacredBark;
     public boolean hasStrangeSpoon;
     public boolean hasTurnip;
+    public boolean hasTungstenRod;
     public boolean hasChampionBelt;
     public boolean hasPaperPhrog;
     public boolean hasMeatOnBone;

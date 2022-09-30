@@ -302,9 +302,12 @@ public class InteractiveMode {
         }
         if (state.getOrbs() != null) {
             var orbs = state.getOrbs();
-            System.out.print("  Orbs (" + orbs.length + "): ");
-            for (int i = orbs.length - 1; i >= 0; i--) {
-                System.out.print((i == orbs.length - 1 ? "" : ", ") + OrbType.values()[orbs[i]].displayName);
+            System.out.print("  Orbs (" + orbs.length / 2 + "): ");
+            for (int i = orbs.length - 2; i >= 0; i -= 2) {
+                System.out.print((i == orbs.length - 2 ? "" : ", ") + OrbType.values()[orbs[i]].displayName);
+                if (orbs[i] == OrbType.DARK.ordinal()) {
+                    System.out.print("(" + orbs[i + 1] + ")");
+                }
             }
             System.out.println();
         }

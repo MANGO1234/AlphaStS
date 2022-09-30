@@ -5,7 +5,33 @@ import java.util.Objects;
 
 public class CardColorless {
     // Bandage Up
-    // Blind
+
+    public static class Blind extends Card {
+        public Blind() {
+            super("Blind", Card.SKILL, 0);
+            selectEnemy = true;
+            weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+}
+
+    public static class BlindP extends Card {
+        public BlindP() {
+            super("Blind+", Card.SKILL, 0);
+            weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.WEAK, 2);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     private static abstract class _DarkShacklesT extends Card {
         private final int n;
@@ -39,28 +65,374 @@ public class CardColorless {
         }
     }
 
-    // Deep Breath
+    private static abstract class _DeepBreathT extends Card {
+        private final int n;
+
+        public _DeepBreathT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.reshuffle();
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DeepBreath extends _DeepBreathT {
+        public DeepBreath() {
+            super("Deep Breath", Card.SKILL, 0, 1);
+        }
+    }
+
+    public static class DeepBreathP extends _DeepBreathT {
+        public DeepBreathP() {
+            super("Deep Breath+", Card.SKILL, 0, 2);
+        }
+    }
+
     // Discovery
-    // Dramatic Entrance
+
+    private static abstract class _DramaticEntranceT extends Card {
+        private final int n;
+
+        public _DramaticEntranceT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            exhaustWhenPlayed = true;
+            innate = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DramaticEntrance extends _DramaticEntranceT {
+        public DramaticEntrance() {
+            super("Dramatic Entrance", Card.SKILL, 0, 8);
+        }
+    }
+
+    public static class DramaticEntranceP extends _DramaticEntranceT {
+        public DramaticEntranceP() {
+            super("Dramatic Entrance+", Card.SKILL, 0, 12);
+        }
+    }
+
     // Enlightenment
-    // Finesse
-    // Flash of Steel
+
+    private static abstract class _FinesseT extends Card {
+        private final int n;
+
+        public _FinesseT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Finesse extends _FinesseT {
+        public Finesse() {
+            super("Finesse", Card.SKILL, 0, 2);
+        }
+    }
+
+    public static class FinesseP extends _FinesseT {
+        public FinesseP() {
+            super("Finesse+", Card.SKILL, 0, 4);
+        }
+    }
+
+    private static abstract class _FlashOfSteelT extends Card {
+        private final int n;
+
+        public _FlashOfSteelT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FlashOfSteel extends _FlashOfSteelT {
+        public FlashOfSteel() {
+            super("Flash Of Steel", Card.ATTACK, 0, 3);
+        }
+    }
+
+    public static class FlashOfSteelP extends _FlashOfSteelT {
+        public FlashOfSteelP() {
+            super("Flash Of Steel+", Card.ATTACK, 0, 5);
+        }
+    }
+
     // Forethought
-    // Good Instincts
-    // Impatience
+
+    private static abstract class _GoodInstinctsT extends Card {
+        private final int n;
+
+        public _GoodInstinctsT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class GoodInstincts extends _GoodInstinctsT {
+        public GoodInstincts() {
+            super("Good Instincts", Card.SKILL, 0, 6);
+        }
+    }
+
+    public static class GoodInstinctsP extends _GoodInstinctsT {
+        public GoodInstinctsP() {
+            super("Good Instincts+", Card.SKILL, 0, 9);
+        }
+    }
+
+    private static abstract class _ImpatienceT extends Card {
+        private final int n;
+
+        public _ImpatienceT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < state.getHand().length; i++) {
+                if (state.getHand()[i] > 0 && state.prop.cardDict[i].cardType == Card.ATTACK) {
+                    return GameActionCtx.PLAY_CARD;
+                }
+            }
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Impatience extends _ImpatienceT {
+        public Impatience() {
+            super("Impatience", Card.SKILL, 0, 2);
+        }
+    }
+
+    public static class ImpatienceP extends _ImpatienceT {
+        public ImpatienceP() {
+            super("Impatience+", Card.SKILL, 0, 3);
+        }
+    }
+
     // Jack Of All Trades
     // Madness
-    // Mind Blast
-    // Panacea
+
+    private static abstract class _MindBlastT extends Card {
+        public _MindBlastT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost);
+            innate = true;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getNumCardsInDeck());
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MindBlast extends _MindBlastT {
+        public MindBlast() {
+            super("Mind Blast", Card.ATTACK, 2);
+        }
+    }
+
+    public static class MindBlastP extends _MindBlastT {
+        public MindBlastP() {
+            super("Mind Blast+", Card.ATTACK, 1);
+        }
+    }
+
+    private static abstract class _PanaceaT extends Card {
+        private final int n;
+
+        public _PanaceaT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainArtifact(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Panacea extends _PanaceaT {
+        public Panacea() {
+            super("Panacea", Card.SKILL, 0, 1);
+        }
+    }
+
+    public static class PanaceaP extends _PanaceaT {
+        public PanaceaP() {
+            super("Panacea+", Card.SKILL, 0, 2);
+        }
+    }
+
     // Panic Button
     // Purity
-    // Swift Strike
-    // Trip
-    // Apotheosis
+
+    private static abstract class _SwiftStrikeT extends Card {
+        private final int n;
+
+        public _SwiftStrikeT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SwiftStrike extends _SwiftStrikeT {
+        public SwiftStrike() {
+            super("Swift Strike", Card.ATTACK, 0, 7);
+        }
+    }
+
+    public static class SwiftStrikeP extends _SwiftStrikeT {
+        public SwiftStrikeP() {
+            super("Swift Strike+", Card.ATTACK, 0, 10);
+        }
+    }
+
+    public static class Trip extends Card {
+        public Trip() {
+            super("Trip", Card.SKILL, 0);
+            selectEnemy = true;
+            vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TripP extends Card {
+        public TripP() {
+            super("Trip+", Card.SKILL, 0);
+            vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    private static abstract class _ApotheosisT extends Card {
+        public _ApotheosisT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost);
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
+                    state.hand[i] = 0;
+                }
+                if (state.deck[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.deck[state.prop.upgradeIdxes[i]] += state.deck[i];
+                    state.deck[i] = 0;
+                }
+                if (state.discard[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.discard[state.prop.upgradeIdxes[i]] += state.discard[i];
+                    state.discard[i] = 0;
+                }
+                if (state.getExhaustForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getExhaustForWrite()[state.prop.upgradeIdxes[i]] += state.getExhaustForRead()[i];
+                    state.getExhaustForWrite()[i] = 0;
+                }
+            }
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.prop.upgradeIdxes[state.deckArr[i]] >= 0) {
+                    state.deckArr[i] = (short) state.prop.upgradeIdxes[state.deckArr[i]];
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
+        }
+    }
+
+    public static class Apotheosis extends CardColorless._ApotheosisT {
+        public Apotheosis() {
+            super("Apotheosis", Card.SKILL, 2);
+        }
+    }
+
+    public static class ApotheosisP extends CardColorless._ApotheosisT {
+        public ApotheosisP() {
+            super("Apotheosis+", Card.SKILL, 1);
+        }
+    }
+
     // Chrysalis
     // Hand of Greed
     // Magnetism
-    // Master Of Strategy
+
+    private static abstract class _MasterOfStrategyT extends Card {
+        private final int n;
+
+        public _MasterOfStrategyT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MasterOfStrategy extends CardColorless._MasterOfStrategyT {
+        public MasterOfStrategy() {
+            super("Master Of Strategy", Card.SKILL, 0, 3);
+        }
+    }
+
+    public static class MasterOfStrategyP extends CardColorless._MasterOfStrategyT {
+        public MasterOfStrategyP() {
+            super("Master Of Strategy+", Card.SKILL, 0, 4);
+        }
+    }
+
     // Mayhem
     // Metamorphosis
     // Panache
@@ -139,80 +511,6 @@ public class CardColorless {
     public static class RitualDaggerP extends _RitualDaggerT {
         public RitualDaggerP(int dmg) {
             super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5);
-        }
-    }
-
-    public static class Finess extends Card {
-        public Finess() {
-            super("Finess", Card.SKILL, 0);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(2);
-            state.draw(1);
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
-    public static class FinessP extends Card {
-        public FinessP() {
-            super("Finess+", Card.SKILL, 0);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(4);
-            state.draw(1);
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
-    private static abstract class _ApotheosisT extends Card {
-        public _ApotheosisT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost);
-            exhaustWhenPlayed = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
-                    state.hand[i] = 0;
-                }
-                if (state.deck[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.deck[state.prop.upgradeIdxes[i]] += state.deck[i];
-                    state.deck[i] = 0;
-                }
-                if (state.discard[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.discard[state.prop.upgradeIdxes[i]] += state.discard[i];
-                    state.discard[i] = 0;
-                }
-                if (state.getExhaustForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getExhaustForWrite()[state.prop.upgradeIdxes[i]] += state.getExhaustForRead()[i];
-                    state.getExhaustForWrite()[i] = 0;
-                }
-            }
-            for (int i = 0; i < state.deckArrLen; i++) {
-                if (state.prop.upgradeIdxes[state.deckArr[i]] >= 0) {
-                    state.deckArr[i] = (short) state.prop.upgradeIdxes[state.deckArr[i]];
-                }
-            }
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
-        }
-    }
-
-    public static class Apotheosis extends CardColorless._ApotheosisT {
-        public Apotheosis() {
-            super("Apotheosis", Card.SKILL, 2);
-        }
-    }
-
-    public static class ApotheosisP extends CardColorless._ApotheosisT {
-        public ApotheosisP() {
-            super("Apotheosis+", Card.SKILL, 1);
         }
     }
 }

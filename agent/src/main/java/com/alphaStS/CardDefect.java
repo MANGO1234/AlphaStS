@@ -78,7 +78,36 @@ public class CardDefect {
         }
     }
 
-    // Barrage
+    private static abstract class _BarrageT extends Card {
+        private final int n;
+
+        public _BarrageT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var orbs = state.getOrbs();
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Barrage extends CardDefect._BarrageT {
+        public Barrage() {
+            super("Barrage", 4);
+        }
+    }
+
+    public static class BarrageP extends CardDefect._BarrageT {
+        public BarrageP() {
+            super("Barrage+", 6);
+        }
+    }
 
     private static abstract class _BeamCellT extends Card {
         private final int n1;
@@ -185,7 +214,38 @@ public class CardDefect {
         }
     }
 
-    // Compile Driver
+    private static abstract class _CompiledDriverT extends Card {
+        private final int n;
+
+        public _CompiledDriverT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            var orbs = state.getOrbs();
+            int c = 0;
+            for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
+                c |= 1 << orbs[i];
+            }
+            state.draw(Integer.bitCount(c));
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CompiledDriver extends CardDefect._CompiledDriverT {
+        public CompiledDriver() {
+            super("Compiled Driver", 7);
+        }
+    }
+
+    public static class CompiledDriverP extends CardDefect._CompiledDriverT {
+        public CompiledDriverP() {
+            super("Compiled Driver+", 10);
+        }
+    }
 
     private static abstract class _CoolheadedT extends Card {
         private final int n;
@@ -246,7 +306,41 @@ public class CardDefect {
         }
     }
 
-    // Hologram
+    private static abstract class _HologramT extends Card {
+        private final int n;
+
+        public _HologramT(String cardName, int n, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 1);
+            this.n = n;
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            selectFromDiscardLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getPlayerForWrite().gainBlock(n);
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
+                    state.removeCardFromDiscard(idx);
+                    state.addCardToHand(idx);
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Hologram extends CardDefect._HologramT {
+        public Hologram() {
+            super("Hologram", 3, true);
+        }
+    }
+
+    public static class HologramP extends CardDefect._HologramT {
+        public HologramP() {
+            super("Hologram+", 5, false);
+        }
+    }
 
     private static class _LeapT extends Card {
         private final int n;
@@ -682,8 +776,63 @@ public class CardDefect {
         }
     }
 
-    // Overclock
-    // Recycle
+    private static abstract class _OverclockT extends Card {
+        private final int n;
+
+        public _OverclockT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(n);
+            state.addCardToDiscard(state.prop.burnCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new Burn());
+        }
+    }
+
+    public static class Overclock extends CardDefect._OverclockT {
+        public Overclock() {
+            super("Overclock", 2);
+        }
+    }
+
+    public static class OverclockP extends CardDefect._OverclockT {
+        public OverclockP() {
+            super("Overclock+", 3);
+        }
+    }
+
+    private static abstract class _RecycleT extends Card {
+        public _RecycleT(String cardName, int n) {
+            super(cardName, Card.SKILL, n);
+            selectFromHand = true;
+            canExhaustAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int cost = Math.max(0, state.prop.cardDict[idx].energyCost(state));
+            state.exhaustCardFromHand(idx);
+            state.gainEnergy(cost);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Recycle extends CardDefect._RecycleT {
+        public Recycle() {
+            super("Recycle", 1);
+        }
+    }
+
+    public static class RecycleP extends CardDefect._RecycleT {
+        public RecycleP() {
+            super("Recycle+", 0);
+        }
+    }
 
     private static abstract class _ReinforcedBodyT extends Card {
         private final int n;
@@ -700,6 +849,10 @@ public class CardDefect {
                 player.gainBlock(n);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            return state.energy;
         }
     }
 
@@ -906,6 +1059,10 @@ public class CardDefect {
                 state.channelOrb(OrbType.LIGHTNING);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            return state.energy;
         }
     }
 
@@ -1180,7 +1337,35 @@ public class CardDefect {
         }
     }
 
-    // Reboot
+    private static abstract class _RebootT extends Card {
+        private final int n;
+
+        public _RebootT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0);
+            exhaustWhenPlayed = true;
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.discardHand();
+            state.reshuffle();
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Reboot extends CardDefect._RebootT {
+        public Reboot() {
+            super("Reboot", 4);
+        }
+    }
+
+    public static class RebootP extends CardDefect._RebootT {
+        public RebootP() {
+            super("Reboot+", 6);
+        }
+    }
+
     // Seek
     // Thunder Strike
 }

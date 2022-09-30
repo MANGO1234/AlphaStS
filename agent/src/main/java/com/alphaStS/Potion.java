@@ -12,6 +12,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean vulnEnemy;
     boolean weakEnemy;
     boolean changePlayerStrength;
+    boolean changePlayerFocus;
     boolean changePlayerDexterity;
     boolean changePlayerDexterityEot;
     boolean changePlayerArtifact;
@@ -493,6 +494,21 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 1;
                 }
             });
+        }
+    }
+
+    public static class FocusPotion extends Potion {
+        public FocusPotion() {
+            changePlayerFocus = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.gainFocus(state.prop.hasSacredBark ? 4 : 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Focus Potion";
         }
     }
 }

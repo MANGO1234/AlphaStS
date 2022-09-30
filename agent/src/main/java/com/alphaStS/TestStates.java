@@ -894,4 +894,24 @@ public class TestStates {
         builder.setPlayer(new Player(8, 71));
         return new GameState(builder);
     }
+
+    public static GameState TestStateDefect3() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 3);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.BeamCell(), 1);
+        builder.addCard(new CardDefect.BootSequence(), 1);
+        builder.addCard(new CardDefect.DoomAndGloomP(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addEnemy(new Enemy.Lagavulin());
+        builder.addPotion(new Potion.FocusPotion());
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.TungstenRod());
+        builder.setPlayer(new Player(68, 68));
+        return new GameState(builder);
+    }
 }

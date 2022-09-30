@@ -168,7 +168,7 @@ public class GameState implements State {
         prop.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         if (builder.getCharacter() == CharacterEnum.DEFECT) {
             prop.maxNumOfOrbs = 3;
-            orbs = new short[3];
+            orbs = new short[3 * 2];
         }
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics, potions);
@@ -400,6 +400,7 @@ public class GameState implements State {
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
         prop.playerDexterityEotCanChange = potions.stream().anyMatch((x) -> x.changePlayerDexterityEot);
         prop.playerFocusCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerFocus);
+        prop.playerFocusCanChange |= potions.stream().anyMatch((x) -> x.changePlayerFocus);
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.property.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.property.canWeaken);
         prop.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.property.canFrail);
@@ -1450,6 +1451,14 @@ public class GameState implements State {
         return deckArrLen;
     }
 
+    public int getNumCardsInHand() {
+        int c = 0;
+        for (int i = 0; i < hand.length; i++) {
+            c += hand[i];
+        }
+        return c;
+    }
+
     @Override public String toString() {
         boolean first;
         StringBuilder str = new StringBuilder("{");
@@ -1511,8 +1520,11 @@ public class GameState implements State {
         }
         if (orbs != null) {
             str.append(", orbs=[");
-            for (int i = orbs.length - 1; i >= 0 ; i--) {
-                str.append(i == orbs.length - 1 ? "" : ", ").append(OrbType.values()[orbs[i]].abbrev);
+            for (int i = orbs.length - 2; i >= 0 ; i -= 2) {
+                str.append(i == orbs.length - 2 ? "" : ", ").append(OrbType.values()[orbs[i]].abbrev);
+                if (orbs[i] == OrbType.DARK.ordinal()) {
+                    str.append("(").append(orbs[i + 1]).append(")");
+                }
             }
             str.append("]");
         }
@@ -2025,14 +2037,16 @@ public class GameState implements State {
         x[idx++] = player.getHealth() / (float) player.getMaxHealth();
         x[idx++] = player.getBlock() / (float) 40.0;
         if (orbs != null) {
-            for (int i = 0; i < orbs.length; i++) {
-                if (orbs[i] > 0) {
+            for (int i = 0; i < orbs.length; i += 2) {
+                if (orbs[i] == OrbType.DARK.ordinal()) {
+                    x[idx + orbs[i]] = orbs[i + 1] / 50.0f;
+                } else if (orbs[i] > 0) {
                     x[idx + orbs[i]] = 0.5f;
                 }
                 idx += 5;
             }
         }
-        for (int i = orbs == null ? 0 : orbs.length; i < prop.maxNumOfOrbs; i++) {
+        for (int i = orbs == null ? 0 : orbs.length; i < prop.maxNumOfOrbs; i += 2) {
             x[idx] = 0.5f;
             idx += 5;
         }
@@ -2719,6 +2733,9 @@ public class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg = dmg * 3 / 4;
         }
+        if (dmg > 0 && prop.hasTungstenRod) {
+            dmg -= 1;
+        }
         for (int i = 0; i < times; i++) {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return totalDmgDealt;
@@ -2749,6 +2766,9 @@ public class GameState implements State {
     }
 
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable, Object source) {
+        if (dmg > 0 && prop.hasTungstenRod) {
+            dmg -= 1;
+        }
         var damageDealt = getPlayerForWrite().nonAttackDamage(dmg, blockable);
         if (dmg > 0) {
             for (OnDamageHandler handler : prop.onDamageHandlers) {
@@ -2929,13 +2949,19 @@ public class GameState implements State {
 
     public void channelOrb(OrbType orb) {
         if (orbs == null) return;
-        if (orbs[orbs.length - 1] != 0) {
+        if (orbs[orbs.length - 2] != 0) {
             evokeOrb(1);
-            orbs[orbs.length - 1] = (short) orb.ordinal();
+            orbs[orbs.length - 2] = (short) orb.ordinal();
+            if (orb == OrbType.DARK) {
+                orbs[orbs.length - 1] = 6;
+            }
         } else {
-            for (int i = 0; i < orbs.length; i++) {
+            for (int i = 0; i < orbs.length; i += 2) {
                 if (orbs[i] == 0) {
                     orbs[i] = (short) orb.ordinal();
+                    if (orb == OrbType.DARK) {
+                        orbs[i + 1] = 6;
+                    }
                     break;
                 }
             }
@@ -2957,18 +2983,27 @@ public class GameState implements State {
                     playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
                 }
             } else if (orbs[0] == OrbType.DARK.ordinal()) {
-                // todo: implement dark orb
+                Enemy minEnemy = null;
+                for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
+                    if (minEnemy == null || minEnemy.getHealth() > enemy.getHealth()) {
+                        minEnemy = enemy;
+                    }
+                }
+                if (minEnemy != null) {
+                    playerDoNonAttackDamageToEnemy(minEnemy, orbs[1], true);
+                }
             } else if (orbs[0] == OrbType.PLASMA.ordinal()) {
                 gainEnergy(2);
             }
         }
-        System.arraycopy(orbs, 1, orbs, 0, orbs.length - 1);
+        System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
+        orbs[orbs.length - 2] = 0;
         orbs[orbs.length - 1] = 0;
     }
 
     private void triggerOrbsPassiveEndOfTurn() {
         if (orbs == null) return;
-        for (int i = 0; i < orbs.length; i++) {
+        for (int i = 0; i < orbs.length; i += 2) {
             if (orbs[i] == OrbType.FROST.ordinal()) {
                 getPlayerForWrite().gainBlockNotFromCardPlay(2 + focus);
             } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
@@ -2981,7 +3016,7 @@ public class GameState implements State {
                     playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
                 }
             } else if (orbs[i] == OrbType.DARK.ordinal()) {
-                // todo: implement dark orb
+                orbs[i + 1] += Math.max(0, 6 + focus);
             }
         }
     }
@@ -2991,13 +3026,13 @@ public class GameState implements State {
             return;
         }
         if (n < 0) {
-            if (orbs.length + n == 0) {
+            if (orbs.length / 2 + n == 0) {
                 orbs = null;
             } else {
-                orbs = Arrays.copyOf(orbs, orbs.length + n);
+                orbs = Arrays.copyOf(orbs, orbs.length + n * 2);
             }
         } else {
-            var newOrbs = new short[orbs.length + 1];
+            var newOrbs = new short[orbs.length + 2];
             System.arraycopy(newOrbs, 0, orbs, 0, orbs.length);
             orbs = newOrbs;
         }

@@ -700,7 +700,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // todo: Stone Calendar
     // todo: Threadand Needle
     // todo: Torii
-    // todo: Tungsten Rod
+
+    public static class TungstenRod extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasTungstenRod = true;
+        }
+    }
 
     public static class Turnip extends Relic {
         @Override public void startOfGameSetup(GameState state) {
