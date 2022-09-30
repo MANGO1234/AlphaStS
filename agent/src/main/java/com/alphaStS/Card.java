@@ -802,17 +802,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
     }
 
-    public static class WarCry extends Card {
-        public WarCry() {
-            super("War Cry", Card.SKILL, 0);
+    private static abstract class _WarcryT extends Card {
+        private final int n;
+
+        public _WarcryT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+            exhaustWhenPlayed = true;
             selectFromHand = true;
             selectFromHandLater = true;
-            exhaustWhenPlayed = true;
+            putCardOnTopDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(1);
+                state.draw(n);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
                 state.removeCardFromHand(idx);
@@ -822,23 +826,15 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
     }
 
-    public static class WarCryP extends Card {
-        public WarCryP() {
-            super("War Cry+", Card.SKILL, 0);
-            selectFromHand = true;
-            selectFromHandLater = true;
-            exhaustWhenPlayed = true;
+    public static class Warcry extends Card._WarcryT {
+        public Warcry() {
+            super("Warcry", Card.SKILL, 0, 1);
         }
+    }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.draw(2);
-                return GameActionCtx.SELECT_CARD_HAND;
-            } else {
-                state.removeCardFromHand(idx);
-                state.putCardOnTopOfDeck(idx);
-                return GameActionCtx.PLAY_CARD;
-            }
+    public static class WarcryP extends Card._WarcryT {
+        public WarcryP() {
+            super("Warcry+", Card.SKILL, 0, 2);
         }
     }
 

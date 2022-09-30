@@ -613,7 +613,7 @@ public class TestStates {
         builder.addCard(new Card.Thunderclap(), 1);
         builder.addCard(new Card.Uppercut(), 1);
         builder.addCard(new Card.UppercutP(), 0);
-        builder.addCard(new CardColorless.Finess(), 1);
+        builder.addCard(new CardColorless.Finesse(), 1);
         builder.addCard(new Card.IronWave(), 0);
         builder.addRelic(new Relic.Vajira());
         EnemyEncounter.addSentriesFight(builder);
@@ -625,7 +625,7 @@ public class TestStates {
                 new int[] { 4 }
         );
         GameStateRandomization scenarios = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new CardColorless.Finess(), 1)),
+                List.of(new CardCount(new CardColorless.Finesse(), 1)),
                 List.of(new CardCount(new Card.IronWave(), 1))
         ));
         scenarios = scenarios.doAfter(new GameStateRandomization.CardCountRandomization(List.of(

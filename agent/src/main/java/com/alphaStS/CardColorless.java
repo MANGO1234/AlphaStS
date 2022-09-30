@@ -435,12 +435,107 @@ public class CardColorless {
 
     // Mayhem
     // Metamorphosis
-    // Panache
+
+    private static abstract class _PanacheT extends Card {
+        private final int n;
+
+        public _PanacheT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n << 3;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Panache", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public String getDisplayString(GameState state) {
+                    int counter = state.getCounterForRead()[counterIdx];
+                    return (counter & ((1 << 16) - 1)) + "/" + (counter >> 16);
+                }
+            });
+            state.addEndOfTurnHandler("Panache", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] &= ~7;
+                }
+            });
+            state.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                    if (state.getCounterForRead()[counterIdx] >> 3 == 0) {
+                        return;
+                    }
+                    var counter = state.getCounterForWrite();
+                    counter[counterIdx]++;
+                    if ((counter[counterIdx] & 7) == 5) {
+                        counter[counterIdx] -= 5;
+                        for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, counter[counterIdx] >> 3, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Panache extends CardColorless._PanacheT {
+        public Panache() {
+            super("Panache", Card.POWER, 0, 10);
+        }
+    }
+
+    public static class PanacheP extends CardColorless._PanacheT {
+        public PanacheP() {
+            super("Panache+", Card.POWER, 0, 14);
+        }
+    }
+
     // Sadistic Nature
     // Secret Technique
     // Secret Weapon
     // The Bomb
-    // Thinking Ahead
+
+    private static abstract class _ThinkingAheadT extends Card {
+        public _ThinkingAheadT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
+            super(cardName, cardType, energyCost);
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            selectFromHand = true;
+            selectFromHandLater = true;
+            putCardOnTopDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(2);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.removeCardFromHand(idx);
+                state.putCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class ThinkingAhead extends CardColorless._ThinkingAheadT {
+        public ThinkingAhead() {
+            super("Thinking Ahead", Card.SKILL, 0, true);
+        }
+    }
+
+    public static class ThinkingAheadP extends CardColorless._ThinkingAheadT {
+        public ThinkingAheadP() {
+            super("Thinking Ahead+", Card.SKILL, 0, false);
+        }
+    }
+
     // Transmutation
     // Violence
 

@@ -29,7 +29,7 @@ public class CardUpgrade {
         map.put(new Card.Thunderclap(), new Card.ThunderclapP());
         map.put(new Card.TrueGrit(), new Card.TrueGritP());
         map.put(new Card.TwinStrike(), new Card.TwinStrikeP());
-        map.put(new Card.WarCry(), new Card.WarCryP());
+        map.put(new Card.Warcry(), new Card.WarcryP());
         map.put(new Card.WildStrike(), new Card.WildStrikeP());
         map.put(new Card.BattleTrance(), new Card.BattleTranceP());
         map.put(new Card.BloodForBlood(), new Card.BloodForBloodP());
