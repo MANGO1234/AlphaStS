@@ -856,12 +856,11 @@ public class MatchSession {
             int action;
             int greedyAction;
             if (!doNotExplore && Configuration.TRAINING_SKIP_OPENING_TURNS && state.turnNum <= turnsToSkip) {
-                var policy = Model.softmax(state.policy, Configuration.TRAINING_SKIP_OPENING_PST);
                 double t = state.prop.random.nextFloat(null);
                 double k = 0;
                 int i;
-                for (i = 0; i < policy.length; i++) {
-                    k += policy[i];
+                for (i = 0; i < state.policy.length; i++) {
+                    k += state.policy[i];
                     if (k >= t) {
                         break;
                     }
@@ -1099,6 +1098,9 @@ public class MatchSession {
     public void playTrainingGames(GameState origState, int numOfGames, int nodeCount, String path) throws IOException {
         File file = new File(path);
         file.delete();
+        if (Configuration.TRAINING_SKIP_OPENING_TURNS) {
+            numOfGames = (int) (numOfGames * Configuration.TRAINING_SKIP_OPENING_GAMES_INCREASE_RATIO);
+        }
         var stream = new DataOutputStream(new FramedLZ4CompressorOutputStream(new BufferedOutputStream(new FileOutputStream(path))));
         var deq = new LinkedBlockingDeque<TrainingGameResult>();
         var session = this;
@@ -1122,11 +1124,9 @@ public class MatchSession {
             remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
             startRemotePlayTrainingGameThread(server.v1(), server.v2(), nodeCount, numToPlay, deq);
         }
-        if (Configuration.TRAINING_SKIP_OPENING_TURNS) {
-            numOfGames = (int) (numOfGames * Configuration.TRAINING_SKIP_OPENING_GAMES_INCREASE_RATIO);
-        }
 
         var trainingGame_i = 0;
+        var positionsCount = 0;
         while (trainingGame_i < numOfGames) {
             TrainingGameResult result;
             try {
@@ -1145,8 +1145,8 @@ public class MatchSession {
                 }
                 pruneForcedPlayouts(steps);
                 changeWritingCountBasedOnPolicySurprise(steps);
-                writeTrainingData(stream, steps);
-                writeTrainingData(stream, game.augmentedSteps);
+                positionsCount += writeTrainingData(stream, steps);
+                positionsCount += writeTrainingData(stream, game.augmentedSteps);
             } else {
                 if (trainingDataWriter != null && trainingGame_i <= 100) {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " (Remote) ***\n");
@@ -1159,12 +1159,16 @@ public class MatchSession {
                 System.out.println(trainingGame_i + " games finished...");
             }
         }
+        System.out.println(positionsCount + " training positions generated.");
         stream.flush();
         stream.close();
         remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
     }
 
     private void changeWritingCountBasedOnPolicySurprise(List<GameStep> steps) {
+        if (!Configuration.TRAINING_POLICY_SURPRISE_WEIGHTING) {
+            return;
+        }
         var totalKLD = steps.stream().filter((x) -> x.trainingWriteCount > 0).map((x) -> (calcKld(x.state()) + 0.05)).mapToDouble(Double::doubleValue).sum();
         var totalCount = steps.stream().filter((x) -> x.trainingWriteCount > 0).count();
         steps.stream().filter((x) -> x.trainingWriteCount > 0).forEach((x) -> {
@@ -1365,9 +1369,13 @@ public class MatchSession {
         }
     }
 
-    private static void writeTrainingData(DataOutputStream stream, List<GameStep> game) throws IOException {
+    private static int writeTrainingData(DataOutputStream stream, List<GameStep> game) throws IOException {
+        int count = 0;
         for (int i = game.size() - 2; i >= 0; i--) {
             var step = game.get(i);
+            if (step.trainingWriteCount > 0) {
+                count += 1;
+            }
             if (step.trainingWriteCount <= 0) {
                 continue;
             }
@@ -1488,6 +1496,7 @@ public class MatchSession {
                 }
             }
         }
+        return count;
     }
 
     private GameState getNextState(GameState state, MCTS mcts, int action, boolean clone) {

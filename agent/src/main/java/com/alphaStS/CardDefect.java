@@ -615,6 +615,7 @@ public class CardDefect {
         public _DefragmentT(String cardName, int n) {
             super(cardName, Card.POWER, 1);
             this.n = n;
+            this.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -877,7 +878,7 @@ public class CardDefect {
             this.n = n;
             changePlayerStrength = true;
             changePlayerDexterity = true;
-            // todo: changePlayerFocus
+            changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1088,6 +1089,7 @@ public class CardDefect {
 
         public _BiasedCognitionT(String cardName, int n) {
             super(cardName, Card.POWER, 1);
+            this.changePlayerFocus = true;
             this.n = n;
         }
 
@@ -1255,6 +1257,7 @@ public class CardDefect {
         public _HyperBeamT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2);
             this.n = n;
+            this.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

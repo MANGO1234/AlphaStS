@@ -200,6 +200,14 @@ public class InteractiveMode {
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
                 runGamesCmp(reader, modelDir, line);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+            } else if (line.startsWith("seed ")) {
+                try {
+                    long seed = Long.parseLong(line.substring(5));
+                    state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seed);
+                    System.out.println("Set seed to " + seed + ".");
+                } catch (NumberFormatException e) {
+                    System.out.println("Cannot parse seed.");
+                }
             } else if (line.equals("rng off")) {
                 ((RandomGenInteractive) state.prop.random).rngOn = false;
             } else if (line.equals("rng on")) {
