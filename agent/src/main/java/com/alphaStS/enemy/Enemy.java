@@ -696,7 +696,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Hexaghost(int health) {
             super(health, 9, false);
-            property.isBoss = true;
+//            property.isBoss = true;
             property.canGainStrength = true;
             property.canGainBlock = true;
             afterFirstInfernal = false;
@@ -809,7 +809,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public TheGuardian(int health) {
             super(health, 7, false);
-            property.isBoss = true;
+//            property.isBoss = true;
             property.canGainBlock = true;
             property.canVulnerable = true;
             property.canWeaken = true;
@@ -966,7 +966,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public SlimeBoss(int health) {
             super(health, 4, false);
-            property.isBoss = true;
+//            property.isBoss = true;
             property.canSlime = true;
         }
 

@@ -313,6 +313,7 @@ public class CardDefect {
             super(cardName, Card.SKILL, 1);
             this.n = n;
             this.exhaustWhenPlayed = exhaustWhenPlayed;
+            selectFromDiscard = true;
             selectFromDiscardLater = true;
         }
 

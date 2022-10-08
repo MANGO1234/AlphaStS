@@ -739,56 +739,66 @@ public class MatchSession {
     }
 
     private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
-        return calcExpectedValue2(cState, generatedState, mcts, vCur);
-//        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
-//        while (cState.total_n < 300) {
-//            mcts.search(cState.getNextState(false), false, 1000);
-//        }
-//        double[] est = new double[vCur.length];
-//        double[] out = new double[vCur.length];
-//        for (ChanceState.Node node : cState.cache.values()) {
-//            if (node.state != stateActual) {
-//                out[GameState.V_COMB_IDX] = node.state.total_q_comb / (node.state.total_n + 1);
-//                out[GameState.V_WIN_IDX] = node.state.total_q_win / (node.state.total_n + 1);
-//                out[GameState.V_HEALTH_IDX] = node.state.total_q_health / (node.state.total_n + 1);
-//                for (int i = 0; i < est.length; i++) {
-//                    est[i] += out[i] * node.n;
-//                }
-//            }
-//        }
-//        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / cState.total_node_n;
-//        for (int i = 0; i < est.length; i++) {
-//            est[i] /= cState.total_node_n;
-//            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
-//        }
-////        System.out.println(cState);
-////        System.out.println(Arrays.toString(est));
-////        cState = new ChanceState(null, cState.parentState, cState.parentAction);
-////        System.out.println(Arrays.toString(calcExpectedValue2(cState, generatedState, mcts, vCur)));
-//
-//        //  var prevSize = cState.cache.size();
-//        //  for (int j = 1; j < 900; j++) {
-//        //      cState.getNextState(prevState, prevAction);
-//        //  }
-//        //  est_v_win = 0;
-//        //  est_v_health = 0;
-//        //  for (ChanceState.Node node : cState.cache.values()) {
-//        //      if (node.state != state) {
-//        //          node.state.doEval(session.mcts.get(_ii).model);
-//        //          node.state.get_v(out);
-//        //          est_v_win += out[0] * node.n;
-//        //          est_v_health += out[1] * node.n;
-//        //      }
-//        //  }
-//        //  est_v_win /= cState.total_n;
-//        //  est_v_health /= cState.total_n;
-//        //  p = ((float) cState.getCount(state)) / cState.total_n;
-//        //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
-//        //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
-//        //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
-//        //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
-//        //  }
-//        return est;
+//        return calcExpectedValue2(cState, generatedState, mcts, vCur);
+        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
+        int k = 0;
+        while (k++ < 100 && cState.total_n < 100) {
+            mcts.search(cState.getNextState(false), false, 1000);
+        }
+        while (k++ < 1000) {
+            cState.getNextState(false);
+        }
+        double[] est = new double[vCur.length];
+        double[] out = new double[vCur.length];
+        int nodeCount = 0;
+        for (ChanceState.Node node : cState.cache.values()) {
+            if (node.state.policy == null) {
+                continue;
+            }
+            if (node.state != stateActual) {
+                out[GameState.V_COMB_IDX] = node.state.total_q_comb / (node.state.total_n + 1);
+                out[GameState.V_WIN_IDX] = node.state.total_q_win / (node.state.total_n + 1);
+                out[GameState.V_HEALTH_IDX] = node.state.total_q_health / (node.state.total_n + 1);
+                for (int i = 0; i < est.length; i++) {
+                    est[i] += out[i] * node.n;
+                }
+            }
+            nodeCount += node.n;
+        }
+        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / nodeCount;
+        for (int i = 0; i < est.length; i++) {
+            est[i] /= nodeCount;
+            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
+        }
+//        System.out.println(cState);
+//        System.out.println(Arrays.toString(est));
+//        cState = new ChanceState(null, cState.parentState, cState.parentAction);
+//        System.out.println(Arrays.toString(calcExpectedValue2(cState, generatedState, mcts, vCur)));
+//        System.out.println("************");
+
+        //  var prevSize = cState.cache.size();
+        //  for (int j = 1; j < 900; j++) {
+        //      cState.getNextState(prevState, prevAction);
+        //  }
+        //  est_v_win = 0;
+        //  est_v_health = 0;
+        //  for (ChanceState.Node node : cState.cache.values()) {
+        //      if (node.state != state) {
+        //          node.state.doEval(session.mcts.get(_ii).model);
+        //          node.state.get_v(out);
+        //          est_v_win += out[0] * node.n;
+        //          est_v_health += out[1] * node.n;
+        //      }
+        //  }
+        //  est_v_win /= cState.total_n;
+        //  est_v_health /= cState.total_n;
+        //  p = ((float) cState.getCount(state)) / cState.total_n;
+        //  var v_win2 = Math.min(v_win * p + (float) est_v_win, 1);
+        //  var v_health2 = Math.min(v_health * p + (float) est_v_health, 1);
+        //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
+        //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
+        //  }
+        return est;
     }
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {
@@ -918,11 +928,12 @@ public class MatchSession {
                         lastChanceState = cState;
                         state = steps.get(i).state().clone(false);
                         state.setSearchRandomGen(steps.get(i).searchRandomGenMCTS);
+                        state.policyMod = steps.get(i).state().policyMod;
                         mcts.exploredActions = new HashMap<>();
                         mcts.exploredActions.put(steps.get(i).action(), vCur);
                         mcts.exploredActions.put(MCTS.getActionWithMaxNodesOrTerminal(steps.get(i).state(), null), ret);
                         for (int j = 0; j < nodeCount; j++) {
-                            mcts.search(state, false, nodeCount - j);
+                            mcts.search(state, true, nodeCount - j);
                         }
                         mcts.exploredActions = null;
                         steps.get(i).setState(state);
@@ -1127,11 +1138,13 @@ public class MatchSession {
             if (result.game != null) {
                 var game = result.game;
                 var steps = game.steps;
+                changeWritingCountBasedOnPolicySurprise(steps);
                 if (trainingDataWriter != null && trainingGame_i <= 100) {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     writeTrainingGameRecord(trainingDataWriter, origState, game, steps);
                 }
                 pruneForcedPlayouts(steps);
+                changeWritingCountBasedOnPolicySurprise(steps);
                 writeTrainingData(stream, steps);
                 writeTrainingData(stream, game.augmentedSteps);
             } else {
@@ -1160,7 +1173,6 @@ public class MatchSession {
     }
 
     private void writeTrainingGameRecord(Writer writer, GameState origState, Game game, List<GameStep> steps) {
-        changeWritingCountBasedOnPolicySurprise(steps);
         try {
             var state = steps.get(steps.size() - 1).state();
             if (origState.prop.preBattleRandomization != null) {
@@ -1288,9 +1300,11 @@ public class MatchSession {
             throw new RuntimeException(e);
         }
         var gameRecordWriter = new StringWriter();
+        changeWritingCountBasedOnPolicySurprise(steps);
         writeTrainingGameRecord(gameRecordWriter, origState, game, steps);
         pruneForcedPlayouts(steps);
         var byteStream = new ByteArrayOutputStream();
+        changeWritingCountBasedOnPolicySurprise(steps);
         writeTrainingData(new DataOutputStream(byteStream), steps);
         writeTrainingData(new DataOutputStream(byteStream), game.augmentedSteps);
         return new TrainingGameResult(null, null, gameRecordWriter.toString(), byteStream.toByteArray());
@@ -1560,8 +1574,8 @@ public class MatchSession {
             var step = steps.get(i);
             if (step.state().actionCtx == GameActionCtx.BEGIN_TURN && !step.state().isStochastic) continue;
             writer.write(step.state() + "\n");
-            if (!step.trainingSkipOpening) {
-                writer.write(Arrays.toString(step.v) + "\n");
+            if (step.v != null && !step.trainingSkipOpening) {
+                writer.write(Arrays.toString(step.v) + ", " + step.trainingWriteCount + "\n");
             }
             if (step.action() >= 0) {
                 var nextStep = steps.get(i + 1);

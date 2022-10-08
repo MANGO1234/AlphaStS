@@ -983,7 +983,7 @@ public class InteractiveMode {
                 if (printState) {
                     for (int i = 0; i < chanceOutcomes.size(); i++) {
                         var str = chanceOutcomes.get(i).state.getStateDesc();
-                        System.out.println(i + ". " + (str.length() == 0 ? chanceOutcomes.get(i).state : str));
+                        System.out.println(i + ". " + (str.length() == 0 ? chanceOutcomes.get(i).state : str) + " (" + chanceOutcomes.get(i).n + "/" + chanceOutcomes.get(i).state.total_n + ")");
                     }
                     printAction = false;
                 }

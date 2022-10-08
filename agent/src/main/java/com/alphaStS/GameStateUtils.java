@@ -315,7 +315,7 @@ public class GameStateUtils {
                 writer.write(String.format("    \"%s\" -> \"%s\" [label=\"%s\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), System.identityHashCode(node.state) + ":" + node.state.hashCode(), lineBreak(label, 40)));
                 printDagGraphvizH(node.state, depth, writer, writtenNodes, stopAtChanceNode);
             }
-        } else if (s instanceof GameState state) {
+        } else if (s instanceof GameState state && state.n != null) {
             var list = new ArrayList<int[]>();
             for (int i = 0; i < state.n.length; i++) {
                 list.add(new int[] { state.n[i], i });

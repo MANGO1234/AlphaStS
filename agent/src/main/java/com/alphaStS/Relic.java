@@ -261,6 +261,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class PenNib extends Relic {
+        int n;
+        int healthReward;
+
+        public PenNib(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("PenNib", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -283,6 +291,26 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
+                }
+            });
+            if (healthReward > 0) {
+                state.prop.addExtraTrainingTarget("PenNib", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                        if (enemiesAllDead) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
+                        } else {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        v[GameState.V_HEALTH_IDX] += healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
         }
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {

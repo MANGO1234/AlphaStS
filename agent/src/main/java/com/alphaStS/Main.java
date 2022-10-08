@@ -203,6 +203,9 @@ public class Main {
             if (iteration < 16) {
                 Configuration.TRAINING_SKIP_OPENING_TURNS = false;
             }
+            if (iteration >= 15) {
+                Configuration.TRAINING_POLICY_SURPRISE_WEIGHTING = true;
+            }
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
