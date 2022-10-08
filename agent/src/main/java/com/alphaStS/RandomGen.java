@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
@@ -100,21 +101,30 @@ public abstract class RandomGen {
         }
 
         public long getSeed(RandomGenCtx ctx) {
-            long seed;
-            try {
-                Field field = Random.class.getDeclaredField("seed");
-                field.setAccessible(true);
-                AtomicLong scrambledSeed = (AtomicLong) field.get(random);
-                seed = scrambledSeed.get();
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            return seed ^ 0x5DEECE66DL;
+            return RandomGen.getRandomSeed(random);
         }
 
         public long getStartingSeed() {
             return startingSeed;
         }
+    }
+
+    private static long getRandomSeed(Random r) {
+        long seed;
+        try {
+            Field field = Random.class.getDeclaredField("seed");
+            field.setAccessible(true);
+            AtomicLong scrambledSeed = (AtomicLong) field.get(r);
+            seed = scrambledSeed.get();
+            seed ^= 0x5DEECE66DL;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return seed ^ 0x5DEECE66DL;
+    }
+
+    private static Random getRandomClone(Random r) {
+        return new Random(getRandomSeed(r));
     }
 
     public static class RandomGenByCtx extends RandomGen {
@@ -127,6 +137,13 @@ public abstract class RandomGen {
             Random random = new Random(seed);
             for (int i = 0; i < RandomGenCtx.values().length; i++) {
                 randoms.add(new RandomGenMemory(random.nextLong()));
+            }
+        }
+
+        public RandomGenByCtx(RandomGenByCtx other) {
+            startingSeed = other.startingSeed;
+            for (int i = 0; i < RandomGenCtx.values().length; i++) {
+                randoms.add(other.randoms.get(i).getCopy());
             }
         }
 
@@ -151,7 +168,7 @@ public abstract class RandomGen {
         }
 
         public RandomGen getCopy() {
-            throw new UnsupportedOperationException();
+            return new RandomGenByCtx(this);
         }
 
         public RandomGen createWithSeed(long seed) {
@@ -189,11 +206,18 @@ public abstract class RandomGen {
     // after calling timeTravelToStart, will return the same result for the same sequence of next* calls as the original
     public static class RandomGenMemory extends RandomGen {
         Random random;
-        private final List<Arg> memory = new ArrayList<>();
+        private final List<Arg> memory;
         private int currentIdx = -1;
 
         public RandomGenMemory(long seed) {
             random = new Random(seed);
+            memory = new ArrayList<>();
+        }
+
+        public RandomGenMemory(RandomGenMemory other) {
+            random = getRandomClone(other.random);
+            currentIdx = other.currentIdx;
+            memory = new ArrayList<>(other.memory);
         }
 
         public boolean nextBoolean(RandomGenCtx ctx) {
@@ -261,7 +285,7 @@ public abstract class RandomGen {
         }
 
         public RandomGen getCopy() {
-            throw new UnsupportedOperationException();
+            return new RandomGenMemory(this);
         }
 
         public RandomGen createWithSeed(long seed) {

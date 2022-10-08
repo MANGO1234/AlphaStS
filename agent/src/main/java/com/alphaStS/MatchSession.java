@@ -808,14 +808,14 @@ public class MatchSession {
         if (state.prop.preBattleRandomization != null) {
             preBattle_r = state.prop.preBattleRandomization.randomize(state);
         }
-        if (!doNotExplore) {
-            int rr = state.prop.random.nextInt(3, RandomGenCtx.Other);
-            if (rr == 0) {
-                nodeCount /= 2;
-            } else if (rr == 2) {
-                nodeCount += nodeCount / 2;
-            }
-        }
+//        if (!doNotExplore) {
+//            int rr = state.prop.random.nextInt(3, RandomGenCtx.Other);
+//            if (rr == 0) {
+//                nodeCount /= 2;
+//            } else if (rr == 2) {
+//                nodeCount += nodeCount / 2;
+//            }
+//        }
 
         state.doEval(mcts.model);
         boolean quickPass = false;
@@ -826,6 +826,7 @@ public class MatchSession {
         }
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
+            RandomGen randomGenClone = state.getSearchRandomGen().getCopy();
             if (!doNotExplore && state.turnNum <= turnsToSkip) {
                 todo = 1;
             }
@@ -876,6 +877,7 @@ public class MatchSession {
             var step = new GameStep(state, action);
             step.trainingWriteCount = !quickPass ? 1 : 0;
             step.isExplorationMove = greedyAction != action;
+            step.searchRandomGenMCTS = randomGenClone;
             if (!doNotExplore && state.turnNum <= turnsToSkip) {
                 step.trainingWriteCount = 0;
                 step.trainingSkipOpening = true;
@@ -914,12 +916,22 @@ public class MatchSession {
                     if (ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
                         vCur = ret;
                         lastChanceState = cState;
+                        state = steps.get(i).state().clone(false);
+                        state.setSearchRandomGen(steps.get(i).searchRandomGenMCTS);
+                        mcts.exploredActions = new HashMap<>();
+                        mcts.exploredActions.put(steps.get(i).action(), vCur);
+                        mcts.exploredActions.put(MCTS.getActionWithMaxNodesOrTerminal(steps.get(i).state(), null), ret);
+                        for (int j = 0; j < nodeCount; j++) {
+                            mcts.search(state, false, nodeCount - j);
+                        }
+                        mcts.exploredActions = null;
+                        steps.get(i).setState(state);
                     }
-                    for (GameStep step : extraSteps) {
-                        step.v = ret;
-                        step.trainingWriteCount = 1;
-                    }
-                    augmentedSteps.addAll(extraSteps);
+//                    for (GameStep step : extraSteps) {
+//                        step.v = ret;
+//                        step.trainingWriteCount = 1;
+//                    }
+//                    augmentedSteps.addAll(extraSteps);
                 }
             }
             steps.get(i).v = vCur;
@@ -1139,7 +1151,16 @@ public class MatchSession {
         remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
     }
 
+    private void changeWritingCountBasedOnPolicySurprise(List<GameStep> steps) {
+        var totalKLD = steps.stream().filter((x) -> x.trainingWriteCount > 0).map((x) -> (calcKld(x.state()) + 0.05)).mapToDouble(Double::doubleValue).sum();
+        var totalCount = steps.stream().filter((x) -> x.trainingWriteCount > 0).count();
+        steps.stream().filter((x) -> x.trainingWriteCount > 0).forEach((x) -> {
+            x.trainingWriteCount = (calcKld(x.state()) + 0.05) / totalKLD * totalCount;
+        });
+    }
+
     private void writeTrainingGameRecord(Writer writer, GameState origState, Game game, List<GameStep> steps) {
+        changeWritingCountBasedOnPolicySurprise(steps);
         try {
             var state = steps.get(steps.size() - 1).state();
             if (origState.prop.preBattleRandomization != null) {
@@ -1294,7 +1315,7 @@ public class MatchSession {
             if (step.action() < 0 || step.state().terminal_action >= 0) {
                 break;
             }
-            if (step.trainingWriteCount <= 0) {
+            if (step.trainingWriteCount <= 0 || step.state().policyMod == null) {
                 continue;
             }
             state = step.state();
@@ -1327,16 +1348,20 @@ public class MatchSession {
                 }
             }
             state.total_n -= del_n;
-            if (calcKld(state) > 0.5) {
-                //                    step.trainingWriteCount = 2;
-            }
         }
     }
 
     private static void writeTrainingData(DataOutputStream stream, List<GameStep> game) throws IOException {
         for (int i = game.size() - 2; i >= 0; i--) {
             var step = game.get(i);
-            for (int write_count = 0; write_count < step.trainingWriteCount; write_count++) {
+            if (step.trainingWriteCount <= 0) {
+                continue;
+            }
+            int totalWriteCount = ((int) step.trainingWriteCount);
+            if ((step.trainingWriteCount - (int) step.trainingWriteCount) < step.state().prop.random.nextFloat(null)) {
+                totalWriteCount += 1;
+            }
+            for (int writeCount = 0; writeCount < totalWriteCount; writeCount++) {
                 var state = game.get(i).state();
                 var x = state.getNNInput();
                 for (int j = 0; j < x.length; j++) {

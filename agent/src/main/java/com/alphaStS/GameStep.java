@@ -3,14 +3,15 @@ package com.alphaStS;
 import java.util.List;
 
 public final class GameStep {
-    private final GameState state;
+    private GameState state;
     private final int action;
     public boolean takenFromChanceStateCache;
-    public int trainingWriteCount;
+    public double trainingWriteCount;
     public boolean trainingSkipOpening;
     public double[] v;
     public List<String> lines;
     public boolean isExplorationMove;
+    public RandomGen searchRandomGenMCTS;
     public StringBuilder actionDesc;
 
     GameStep(GameState state, int action) {
@@ -20,6 +21,10 @@ public final class GameStep {
 
     public GameState state() {
         return state;
+    }
+
+    public void setState(GameState state) {
+        this.state = state;
     }
 
     public int action() {

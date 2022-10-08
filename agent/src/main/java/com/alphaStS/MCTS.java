@@ -3,6 +3,7 @@ package com.alphaStS;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.utils.Tuple;
@@ -12,6 +13,8 @@ import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 import static java.lang.Math.sqrt;
 
 public class MCTS {
+    public Map<Integer, double[]> exploredActions = null;
+    public double[] exploredV;
     Model model;
     int numberOfPossibleActions;
     private final double[] v = new double[20];
@@ -23,6 +26,7 @@ public class MCTS {
     }
 
     void search(GameState state, boolean training, int remainingCalls) {
+        exploredV = null;
         search2(state, training, remainingCalls);
     }
 
@@ -32,6 +36,15 @@ public class MCTS {
     }
 
     void search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
+        if (exploredV != null) {
+            v[GameState.V_COMB_IDX] = exploredV[GameState.V_COMB_IDX];
+            v[GameState.V_WIN_IDX] = exploredV[GameState.V_WIN_IDX];
+            v[GameState.V_HEALTH_IDX] = exploredV[GameState.V_HEALTH_IDX];
+            state.total_q_comb += v[GameState.V_COMB_IDX];
+            state.total_q_win += v[GameState.V_WIN_IDX];
+            state.total_q_health += v[GameState.V_HEALTH_IDX];
+            return;
+        }
         if (state.terminal_action >= 0) {
             v[GameState.V_COMB_IDX] = state.q_comb[state.terminal_action] / state.n[state.terminal_action];
             v[GameState.V_WIN_IDX] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
@@ -68,6 +81,9 @@ public class MCTS {
 
         State nextState = state.ns[action];
         GameState state2;
+        if (isRoot && exploredActions != null && exploredActions.containsKey(action)) {
+            exploredV = exploredActions.get(action);
+        }
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
