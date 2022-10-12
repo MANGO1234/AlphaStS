@@ -131,6 +131,21 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class BlockPotion extends Potion {
+        public int getBlockAmount(GameState state) {
+            return state.prop.hasSacredBark ? 24 : 12;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getPlayerForWrite().gainBlock(getBlockAmount(state));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Block Potion";
+        }
+    }
+
     public static class BloodPotion extends Potion {
         int heal;
 

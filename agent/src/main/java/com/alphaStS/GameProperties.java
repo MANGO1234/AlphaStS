@@ -9,6 +9,7 @@ public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
     public boolean doingComparison;
     public boolean testPotionOutput;
+    public boolean curriculumTraining;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
@@ -60,6 +61,8 @@ public class GameProperties implements Cloneable {
     public int echoFormPCardIdx = -1;
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodPIndexes;
+    public int[] streamlineIndexes;
+    public int[] streamlinePIndexes;
     public int[] infernalBladeIndexes;
     public int[] healCardsIdxes;
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
@@ -68,6 +71,7 @@ public class GameProperties implements Cloneable {
     public int nunchakuCounterIdx = -1;
     public int echoFormCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
+    public int equilibriumCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -82,6 +86,7 @@ public class GameProperties implements Cloneable {
     public boolean hasSacredBark;
     public boolean hasStrangeSpoon;
     public boolean hasTurnip;
+    public boolean hasTorri;
     public boolean hasTungstenRod;
     public boolean hasChampionBelt;
     public boolean hasPaperPhrog;

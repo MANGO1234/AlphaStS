@@ -829,6 +829,9 @@ public class MCTS {
             double p_prime = policy[i] * (1 - ratio) + p * ratio;
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
             double cpuct = state.prop.cpuct;
+            if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
+                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
+            }
             // cpuct = Math.min(3 * Math.sqrt(state.varianceS / state.total_n), 0.5);
             double u = state.total_n > 0 ? q + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
             if (training && isRoot) {

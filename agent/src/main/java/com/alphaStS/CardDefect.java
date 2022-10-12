@@ -373,7 +373,68 @@ public class CardDefect {
     // Recursion
     // Stack
     // Steam Barrier
-    // Streamline
+
+    public static class Streamline extends Card {
+        private Streamline(int energyCost) {
+            super("Streamline (" + energyCost + ")", Card.ATTACK, energyCost);
+            selectEnemy = true;
+        }
+
+        public Streamline() {
+            this(2);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 15);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new Streamline(2), new Streamline(1), new Streamline(0));
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.streamlineIndexes = new int[3];
+            for (int i = 0; i < 3; i++) {
+                state.prop.streamlineIndexes[i] = state.prop.findCardIndex(new Streamline(i));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            return energyCost > 0 ? prop.streamlineIndexes[energyCost - 1] : -1;
+        }
+    }
+
+    public static class StreamlineP extends Card {
+        private StreamlineP(int energyCost) {
+            super("Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost);
+            selectEnemy = true;
+        }
+
+        public StreamlineP() {
+            this(2);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new StreamlineP(2), new StreamlineP(1), new StreamlineP(0));
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.streamlinePIndexes = new int[3];
+            for (int i = 0; i < 3; i++) {
+                state.prop.streamlinePIndexes[i] = state.prop.findCardIndex(new StreamlineP(i));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            return energyCost > 0 ? prop.streamlinePIndexes[energyCost - 1] : -1;
+        }
+    }
 
     private static class _SweepingBeamT extends Card {
         private final int n;
@@ -607,7 +668,34 @@ public class CardDefect {
         }
     }
 
-    // Darkness
+    private static abstract class _DarknessT extends Card {
+        private final boolean triggerDarkPassive;
+
+        public _DarknessT(String cardName, boolean triggerDarkPassive) {
+            super(cardName, Card.SKILL, 1);
+            this.triggerDarkPassive = triggerDarkPassive;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.channelOrb(OrbType.DARK);
+            if (triggerDarkPassive) {
+                state.triggerDarkPassive();
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Darkness extends CardDefect._DarknessT {
+        public Darkness() {
+            super("Darkness", false);
+        }
+    }
+
+    public static class DarknessP extends CardDefect._DarknessT {
+        public DarknessP() {
+            super("Darkness+", true);
+        }
+    }
 
     private static abstract class _DefragmentT extends Card {
         private final int n;
@@ -688,7 +776,57 @@ public class CardDefect {
         }
     }
 
-    // Equilibrium
+    private static abstract class _EquilibirumT extends Card {
+        private final int n;
+
+        public _EquilibirumT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Equilibrium", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.equilibriumCounterIdx = idx;
+        }
+    }
+
+    public static class Equilibirum extends CardDefect._EquilibirumT {
+        public Equilibirum() {
+            super("Equilibirum", 13);
+        }
+    }
+
+    public static class EquilibirumP extends CardDefect._EquilibirumT {
+        public EquilibirumP() {
+            super("Equilibirum+", 16);
+        }
+    }
+
     // FTL
     // Force Field
 

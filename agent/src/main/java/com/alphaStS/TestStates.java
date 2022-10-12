@@ -5,6 +5,7 @@ import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
+import com.alphaStS.utils.Tuple;
 
 import java.util.List;
 
@@ -798,10 +799,10 @@ public class TestStates {
     public static GameState TestStateDefect() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);
-        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Strike(), 2);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.SunderP(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
@@ -831,6 +832,64 @@ public class TestStates {
         builder.addPotion(new Potion.DistilledChaos());
         builder.addPotion(new Potion.GamblersBrew());
         builder.setPlayer(new Player(60, 74));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateDefect1p1() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Strike(), 2);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.SunderP(), 2);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.TurboP(), 0);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.BootSequenceP(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 2);
+        builder.addCard(new CardDefect.Consume(), 1);
+        builder.addCard(new CardDefect.ConsumeP(), 0);
+        builder.addCard(new CardDefect.EquilibirumP(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addCard(new CardDefect.RebootP(), 1);
+        builder.addCard(new CardDefect.StreamlineP(), 0);
+        builder.addCard(new CardDefect.Darkness(), 1);
+        builder.addCard(new CardDefect.DarknessP(), 0);
+        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        EnemyEncounter.addSlaversEliteFight(builder);
+//        EnemyEncounter.addGremlinLeaderFight2(builder);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+//            List.of(new Tuple<>(0, -1)),
+////            List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1))
+////            List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1))
+////            List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
+//        ));
+//        GameState randomization = randomization.followByIf(1, builder.getRandomization().collapse("Random Gremlins"));
+//        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(new CardCount(new CardDefect.Reboot(), 0), new CardCount(new CardDefect.RebootP(), 1),
+//                        new CardCount(new CardDefect.Darkness(), 0), new CardCount(new CardDefect.DarknessP(), 0)),
+//                List.of(new CardCount(new CardDefect.Reboot(), 0), new CardCount(new CardDefect.RebootP(), 1),
+//                        new CardCount(new CardDefect.Darkness(), 1), new CardCount(new CardDefect.DarknessP(), 0)),
+//                List.of(new CardCount(new CardDefect.Reboot(), 1), new CardCount(new CardDefect.RebootP(), 0),
+//                        new CardCount(new CardDefect.Darkness(), 0), new CardCount(new CardDefect.DarknessP(), 1))
+//        )).doAfter(randomization);
+//        builder.setRandomization(randomization);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.RunicDome());
+        builder.addRelic(new Relic.Torii());
+        builder.addRelic(new Relic.RunicCapacitor());
+        builder.addPotion(new Potion.BlockPotion());
+        builder.addPotion(new Potion.BlockPotion());
+        builder.addPotion(new Potion.GamblersBrew());
+        builder.addPotion(new Potion.WeakPotion());
+        builder.setPlayer(new Player(62, 76));
         return new GameState(builder);
     }
 

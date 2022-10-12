@@ -272,8 +272,8 @@ public class EnemyEncounter {
         }
 
         @Override public int randomize(GameState state) {
-            var a = state.getSearchRandomGen().nextInt(8, RandomGenCtx.BeginningOfGameRandomization, this);
-            var b = state.getSearchRandomGen().nextInt(8, RandomGenCtx.BeginningOfGameRandomization, this);
+            var a = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, this);
+            var b = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, this);
             var i = a * 8 + b;
             var r = rMap.get(i);
             randomize(state, r);
@@ -493,5 +493,11 @@ public class EnemyEncounter {
                 order[start + 2] = start;
             }
         });
+    }
+
+    public static void addBronzeAutomatonFight(GameStateBuilder builder) {
+        builder.addEnemy(new EnemyCity.BronzeOrb());
+        builder.addEnemy(new EnemyCity.BronzeAutomaton());
+        builder.addEnemy(new EnemyCity.BronzeOrb());
     }
 }

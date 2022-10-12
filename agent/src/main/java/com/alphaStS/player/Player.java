@@ -1,9 +1,6 @@
 package com.alphaStS.player;
 
-import com.alphaStS.DebuffType;
-import com.alphaStS.GameActionCtx;
-import com.alphaStS.GameState;
-import com.alphaStS.PlayerBuff;
+import com.alphaStS.*;
 
 public class Player extends PlayerReadOnly {
     public Player(int health, int maxHealth) {
@@ -14,9 +11,16 @@ public class Player extends PlayerReadOnly {
         super(other);
     }
 
-    public int damage(int n) {
+    public int damage(GameProperties prop, int n) {
         int startHealth = health;
-        health -= Math.max(0, n - block);
+        int dmg = Math.max(0, n - block);
+        if (dmg <= 5 && dmg >= 2 && prop.hasTorri) {
+            dmg = 1;
+        }
+        if (dmg > 0 && prop.hasTungstenRod) {
+            dmg -= 1;
+        }
+        health -= dmg;
         block = Math.max(0, block - n);
         if (health < 0) {
             health = 0;
@@ -90,7 +94,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
-        case ENTANGLED -> this.entangled = n;
+        case ENTANGLED -> this.entangled = state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.entangled == 0 ? n + 1 : n;
         case HEX -> this.hexed = true;
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] += n;
@@ -108,7 +112,9 @@ public class Player extends PlayerReadOnly {
             frail -= 1;
         }
         cannotDrawCard = false;
-        entangled--;
+        if (entangled > 0) {
+            entangled -= 1;
+        }
         if (loseStrengthEot > 0) {
             applyDebuff(state, DebuffType.LOSE_STRENGTH, loseStrengthEot);
         }

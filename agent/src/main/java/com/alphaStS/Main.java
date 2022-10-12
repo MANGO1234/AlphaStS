@@ -204,10 +204,11 @@ public class Main {
                 Configuration.TRAINING_SKIP_OPENING_TURNS = false;
             }
             if (iteration >= 15) {
-                Configuration.TRAINING_POLICY_SURPRISE_WEIGHTING = true;
+                Configuration.TRAINING_POLICY_SURPRISE_WEIGHTING = false;
             }
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
+            state.prop.curriculumTraining = CURRICULUM_TRAINING_ON;
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
             session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
             long end = System.currentTimeMillis();

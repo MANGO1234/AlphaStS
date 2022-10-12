@@ -727,7 +727,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Shovel: No need to implement
     // todo: Stone Calendar
     // todo: Threadand Needle
-    // todo: Torii
+
+    public static class Torii extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasTorri = true;
+        }
+    }
 
     public static class TungstenRod extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -1036,6 +1041,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override void handle(GameState state) {
                     state.gainFocus(1);
+                }
+            });
+        }
+    }
+
+    public static class RunicCapacitor extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.maxNumOfOrbs = Math.max(state.prop.maxNumOfOrbs, 6);
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override void handle(GameState state) {
+                    state.gainOrbSlot(3);
                 }
             });
         }

@@ -881,6 +881,10 @@ public class GameState implements State {
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
         if (actionCtx == GameActionCtx.PLAY_CARD) {
+            int transformCardIdx = prop.cardDict[cardIdx].onPlayTransformCardIdx(prop);
+            if (transformCardIdx >= 0) {
+                cardIdx = transformCardIdx;
+            }
             if (cardPlayedSuccessfully) {
                 for (var handler : prop.onCardPlayedHandlers) {
                     handler.handle(this, prop.cardDict[cardIdx], lastSelectedIdx, cloned);
@@ -1036,7 +1040,7 @@ public class GameState implements State {
                         exhaustedCardHandle(i, false);
                     }
                     hand[i] -= handDup[i];
-                } else if (!prop.hasRunicPyramid) {
+                } else if (!prop.hasRunicPyramid && (prop.equilibriumCounterIdx < 0 || getCounterForRead()[prop.equilibriumCounterIdx] == 0)) {
                     discard[i] += handDup[i];
                     hand[i] -= handDup[i];
                 }
@@ -1403,7 +1407,11 @@ public class GameState implements State {
         var win = v[V_WIN_IDX];
         for (int i = 0; i < prop.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot) {
-                v[V_HEALTH_IDX] = Math.min(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+            }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BlockPotion pot) {
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - (pot.getBlockAmount(this) + 1 / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
         }
@@ -1416,14 +1424,14 @@ public class GameState implements State {
         if (prop.testPotionOutput) {
             for (int i = 0; i < prop.potions.size(); i++) {
                 //                health = Math.max(0, health - (1 - v[V_OTHER_IDX_START + i]) * (15 / (float) player.getMaxHealth()));
-                if (potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion)) {
+                if (potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion)) {
                     base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[V_OTHER_IDX_START + i];
                 }
             }
         }
         if (!prop.testPotionOutput) {
             for (int i = 0; i < prop.potions.size(); i++) {
-                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion)) {
+                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion)) {
                     base *= potionsState[i * 3 + 1] / 100.0;
                 }
             }
@@ -2374,7 +2382,7 @@ public class GameState implements State {
             for (int j = 0; j < discard[i]; j++) {
                 deckArr[deckArrLen++] = i;
             }
-            deck[i] = discard[i];
+            deck[i] += discard[i];
             discard[i] = 0;
         }
     }
@@ -2733,14 +2741,11 @@ public class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg = dmg * 3 / 4;
         }
-        if (dmg > 0 && prop.hasTungstenRod) {
-            dmg -= 1;
-        }
         for (int i = 0; i < times; i++) {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return totalDmgDealt;
             }
-            int dmgDealt = player.damage(dmg);
+            int dmgDealt = player.damage(prop, dmg);
             totalDmgDealt += dmgDealt;
             if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {
@@ -2899,7 +2904,7 @@ public class GameState implements State {
     public void reviveEnemy(int idx) {
         if (!getEnemiesForRead().get(idx).isAlive()) {
             getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
-            getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), false);
+            getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), prop.curriculumTraining);
             getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());
             adjustEnemiesAlive(1);
         } else {
@@ -3021,6 +3026,15 @@ public class GameState implements State {
         }
     }
 
+    public void triggerDarkPassive() {
+        if (orbs == null) return;
+        for (int i = 0; i < orbs.length; i += 2) {
+            if (orbs[i] == OrbType.DARK.ordinal()) {
+                orbs[i + 1] += Math.max(0, 6 + focus);
+            }
+        }
+    }
+
     public void gainOrbSlot(int n) {
         if (orbs == null) {
             return;
@@ -3032,8 +3046,8 @@ public class GameState implements State {
                 orbs = Arrays.copyOf(orbs, orbs.length + n * 2);
             }
         } else {
-            var newOrbs = new short[orbs.length + 2];
-            System.arraycopy(newOrbs, 0, orbs, 0, orbs.length);
+            var newOrbs = new short[orbs.length + n * 2];
+            System.arraycopy(orbs, 0, newOrbs, 0, orbs.length);
             orbs = newOrbs;
         }
     }
@@ -3236,7 +3250,7 @@ class ChanceState implements State {
         if (queue != null && queue.size() > 0) {
             return queue.remove(0);
         }
-        if (calledFromMCTS && cache.size() >= Math.ceil(Math.sqrt(total_n)) && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) {
+        if (calledFromMCTS && cache.size() >= Math.ceil(Math.pow(total_n, 0.3)) && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) {
             // instead of generating new nodes, revisit node, need testing
             var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
             var acc = 0;

@@ -161,6 +161,198 @@ public class EnemyCity {
         }
     }
 
+    public static class BronzeAutomaton extends Enemy {
+        private static final int SPAWN_ORBS = 0;
+        private static final int FLAIL_1 = 1;
+        private static final int BOOST_1 = 2;
+        private static final int FLAIL_2 = 3;
+        private static final int BOOST_2 = 4;
+        private static final int HYPER_BEAM = 5;
+        private static final int STUNNED = 6;
+
+        public BronzeAutomaton() {
+            this(320);
+        }
+
+        public BronzeAutomaton(int health) {
+            super(health, 7, false);
+            artifact = 3;
+            property.canGainStrength = true;
+            property.canGainBlock = true;
+            property.hasArtifact = true;
+        }
+
+        public BronzeAutomaton(BronzeAutomaton other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new BronzeAutomaton(this);
+        }
+
+        @Override public void damage(int n, GameState state) {
+            super.damage(n, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i);
+                }
+            }
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            super.nonAttackDamage(n, blockable, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i);
+                }
+            }
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == SPAWN_ORBS) {
+                var enemies = state.getEnemiesForWrite();
+                for (int i = 0; i < enemies.size(); i++) {
+                    if (enemies.get(i) instanceof BronzeOrb) {
+                        state.reviveEnemy(i);
+                    }
+                }
+            } else if (move == BOOST_1 || move == BOOST_2) {
+                gainStrength(4);
+                gainBlock(12);
+            } else if (move == FLAIL_1 || move == FLAIL_2) {
+                state.enemyDoDamageToPlayer(this, 8, 2);
+            } else if (move == HYPER_BEAM) {
+                state.enemyDoDamageToPlayer(this, 50, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            move++;
+            if (move > STUNNED) {
+                move = FLAIL_1;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SPAWN_ORBS) {
+                return "Spawn Orbs";
+            } else if (move == BOOST_1 || move == BOOST_2) {
+                return "Gain 4 Strength and 12 Block";
+            } else if (move == FLAIL_1 || move == FLAIL_2) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "*2";
+            } else if (move == HYPER_BEAM) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 50);
+            } else if (move == STUNNED) {
+                return "Stunned";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(20, RandomGenCtx.Other) + 1;
+            if (training && b < 20) {
+                health = (int) Math.round(((double) (health * b)) / 20);
+            } else {
+                health = 320;
+            }
+        }
+
+        @Override public String getName() {
+            return "Bronze Automaton";
+        }
+    }
+
+    public static class BronzeOrb extends Enemy {
+        private static final int STASIS = 0;
+        private static final int BEAM = 1;
+        private static final int SUPPORT_BEAM = 2;
+
+        private boolean usedStasis;
+        private int stasisCardIdx;
+
+        public BronzeOrb() {
+            this(60);
+        }
+
+        public BronzeOrb(int health) {
+            super(health, 3, true);
+            this.health = 0;
+        }
+
+        public BronzeOrb(BronzeOrb other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new BronzeOrb(this);
+        }
+
+        @Override public void damage(int n, GameState state) {
+            int prevHealth = health;
+            super.damage(n, state);
+            if (prevHealth > 0 && health <= 0 && usedStasis) {
+                state.addCardToHand(stasisCardIdx);
+            }
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            int prevHealth = health;
+            super.damage(n, state);
+            if (prevHealth > 0 && health <= 0 && usedStasis) {
+                state.addCardToHand(stasisCardIdx);
+            }
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == STASIS) {
+                // todo: rarity
+                usedStasis = true;
+            } else if (move == BEAM) {
+                state.enemyDoDamageToPlayer(this, 8, 1);
+            } else if (move == SUPPORT_BEAM) {
+                var enemies = state.getEnemiesForWrite();
+                for (int i = 0; i < enemies.size(); i++) {
+                    if (enemies.get(i) instanceof BronzeAutomaton ba) {
+                        ba.gainBlock(12);
+                    }
+                }
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove = move + 1;
+            // todo
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == STASIS) {
+                return "Stasis";
+            } else if (move == BEAM) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8);
+            } else if (move == SUPPORT_BEAM) {
+                return "Support Beam";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training) {
+            int b = random.nextInt(6, RandomGenCtx.Other) + 1;
+            if (training && b < 10) {
+                health = (int) Math.round(((double) (health * b)) / 10);
+            } else {
+                health = 54 + random.nextInt(7, RandomGenCtx.Other);
+            }
+        }
+
+        @Override public String getName() {
+            return "Bronze Orb";
+        }
+    }
+
     // ******************************************************************************************
     // ******************************************************************************************
     // ******************************************************************************************
@@ -243,7 +435,7 @@ public class EnemyCity {
                                 break;
                             }
                         }
-                        int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader);
+                        int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, null);
                         if (r < 2) { // Mad Gremlin
                             ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(0);
                         } else if (r < 4) { // Sneaky Gremlin
@@ -277,7 +469,7 @@ public class EnemyCity {
                         }
                     }
                     for (int i = 0; i < 2; i++) {
-                        int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader);
+                        int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, null);
                         var idx = -1;
                         if (r < 2) { // Mad Gremlin
                             idx = startIdx + 2;

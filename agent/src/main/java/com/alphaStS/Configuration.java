@@ -22,6 +22,8 @@ public class Configuration {
     public static int SLEEP_PER_GAME_TRAINING = 0;
     public static boolean USE_REMOTE_SERVERS = true;
 
+    public static boolean CPUCT_SCALING = false;
+    public static boolean TEST_CPUCT_SCALING = true;
     public static boolean USE_PROGRESSIVE_WIDENING = false;
     public static boolean TEST_PROGRESSIVE_WIDENING = true;
     public static boolean TRANSPOSITION_ACROSS_CHANCE_NODE = false;

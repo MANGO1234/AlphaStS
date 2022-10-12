@@ -474,7 +474,8 @@ public class InteractiveMode {
         int[] idxes = new int[onlyAlive ? state.enemiesAlive : state.getEnemiesForRead().size()];
         for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
             if (!onlyAlive || state.getEnemiesForRead().get(i).isAlive()) {
-                System.out.println(idx + ". " + state.getEnemiesForRead().get(i).getName() + " (" + idx + ")");
+                String a = !onlyAlive ? " (hp=" + state.getEnemiesForRead().get(i).getHealth() + ")" : "";
+                System.out.println(idx + ". " + state.getEnemiesForRead().get(i).getName() + " (" + idx + ")" + a);
                 idxes[idx++] = i;
             }
         }
@@ -711,6 +712,27 @@ public class InteractiveMode {
                 } else {
                     return r;
                 }
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
+    static int selectGremlinForGremlinLeaderEncounter(BufferedReader reader, GameStateRandomization randomization, List<String> history) throws IOException {
+        System.out.println("0. Mad Gremlin");
+        System.out.println("1. Sneaky Gremlin");
+        System.out.println("2. Fat Gremlin");
+        System.out.println("3. Shield Gremlin");
+        System.out.println("4. Gremlin Wizard");
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < 5) {
+                if (r <= 3) {
+                    return r * 2;
+                }
+                return 7;
             }
             System.out.println("Unknown Command");
         }
@@ -1185,6 +1207,13 @@ public class InteractiveMode {
             case BeginningOfGameRandomization -> {
                 try {
                     return InteractiveMode.selectScenarioForRandomization(reader, (GameStateRandomization) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case GremlinLeader -> {
+                try {
+                    return InteractiveMode.selectGremlinForGremlinLeaderEncounter(reader, (GameStateRandomization) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

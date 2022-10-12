@@ -62,6 +62,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     void onExhaust(GameState state) {}
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    int onPlayTransformCardIdx(GameProperties prop) { return -1; }
     public boolean canSelectFromHand(Card card) { return true; }
     public void startOfGameSetup(GameState state) {}
 
@@ -120,6 +121,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         void onExhaust(GameState state) { card.onExhaust(state); }
         List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectFromHand(Card card) { return card.canSelectFromHand(card); }
         public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
     }
