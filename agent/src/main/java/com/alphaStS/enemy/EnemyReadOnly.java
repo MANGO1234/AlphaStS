@@ -98,7 +98,7 @@ public abstract class EnemyReadOnly {
     }
 
     public String getLastMoveString(GameState state) {
-        return getMoveString(state, this.move);
+        return getMoveString(state, this.lastMove);
     }
 
     public abstract String getName();

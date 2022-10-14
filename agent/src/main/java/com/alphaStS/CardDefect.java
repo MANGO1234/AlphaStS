@@ -8,7 +8,7 @@ import java.util.List;
 public class CardDefect {
     public static class DualCast extends Card {
         public DualCast() {
-            super("Dual Cast", Card.SKILL, 1);
+            super("Dual Cast", Card.SKILL, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -19,7 +19,7 @@ public class CardDefect {
 
     public static class DualCastP extends Card {
         public DualCastP() {
-            super("Dual Cast+", Card.SKILL, 0);
+            super("Dual Cast+", Card.SKILL, 0, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -30,7 +30,7 @@ public class CardDefect {
 
     public static class Zap extends Card {
         public Zap() {
-            super("Zap", Card.SKILL, 1);
+            super("Zap", Card.SKILL, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -41,7 +41,7 @@ public class CardDefect {
 
     public static class ZapP extends Card {
         public ZapP() {
-            super("Zap+", Card.SKILL, 0);
+            super("Zap+", Card.SKILL, 0, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -54,7 +54,7 @@ public class CardDefect {
         private final int n;
 
         public _BallLightningT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -82,7 +82,7 @@ public class CardDefect {
         private final int n;
 
         public _BarrageT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -114,7 +114,7 @@ public class CardDefect {
         private final int n2;
 
         public _BeamCellT(String cardName, int n1, int n2) {
-            super(cardName, Card.ATTACK, 0);
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n1 = n1;
             this.n2 = n2;
             selectEnemy = true;
@@ -143,7 +143,7 @@ public class CardDefect {
         private final int n;
 
         public _ChargeBatteryT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
         }
 
@@ -190,7 +190,7 @@ public class CardDefect {
         private final int n;
 
         public _ColdSnapT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -218,7 +218,7 @@ public class CardDefect {
         private final int n;
 
         public _CompiledDriverT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -251,7 +251,7 @@ public class CardDefect {
         private final int n;
 
         public _CoolheadedT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
         }
 
@@ -279,7 +279,7 @@ public class CardDefect {
         private final int n2;
 
         public _GoForTheEyeT(String cardName, int n1, int n2) {
-            super(cardName, Card.ATTACK, 0);
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n1 = n1;
             this.n2 = n2;
             selectEnemy = true;
@@ -310,7 +310,7 @@ public class CardDefect {
         private final int n;
 
         public _HologramT(String cardName, int n, boolean exhaustWhenPlayed) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
             this.exhaustWhenPlayed = exhaustWhenPlayed;
             selectFromDiscard = true;
@@ -347,7 +347,7 @@ public class CardDefect {
         private final int n;
 
         public _LeapT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
         }
 
@@ -376,7 +376,7 @@ public class CardDefect {
 
     public static class Streamline extends Card {
         private Streamline(int energyCost) {
-            super("Streamline (" + energyCost + ")", Card.ATTACK, energyCost);
+            super("Streamline (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -407,7 +407,7 @@ public class CardDefect {
 
     public static class StreamlineP extends Card {
         private StreamlineP(int energyCost) {
-            super("Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost);
+            super("Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -440,7 +440,7 @@ public class CardDefect {
         private final int n;
 
         public _SweepingBeamT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
         }
 
@@ -469,7 +469,7 @@ public class CardDefect {
         private final int n;
 
         public _TurboT(String cardName, int n) {
-            super(cardName, Card.SKILL, 0);
+            super(cardName, Card.SKILL, 0, Card.COMMON);
             this.n = n;
         }
 
@@ -500,7 +500,7 @@ public class CardDefect {
         private final int n;
 
         public _AggregateT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -526,7 +526,7 @@ public class CardDefect {
         private final int n;
 
         public _AutoShieldsT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -556,7 +556,7 @@ public class CardDefect {
         private final int n;
 
         public _BootSequenceT(String cardName, int n) {
-            super(cardName, Card.SKILL, 0);
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.exhaustWhenPlayed = true;
             this.innate = true;
             this.n = n;
@@ -587,7 +587,7 @@ public class CardDefect {
         private final int n;
 
         public _ChaosT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -614,7 +614,7 @@ public class CardDefect {
 
     private static abstract class _ChillT extends Card {
         public _ChillT(String cardName, boolean innate) {
-            super(cardName, Card.SKILL, 0);
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.innate = innate;
         }
 
@@ -644,7 +644,7 @@ public class CardDefect {
         private final int n;
 
         public _ConsumeT(String cardName, int n) {
-            super(cardName, Card.SKILL, 2);
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.n = n;
             this.changePlayerFocus = true;
         }
@@ -672,7 +672,7 @@ public class CardDefect {
         private final boolean triggerDarkPassive;
 
         public _DarknessT(String cardName, boolean triggerDarkPassive) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.triggerDarkPassive = triggerDarkPassive;
         }
 
@@ -701,7 +701,7 @@ public class CardDefect {
         private final int n;
 
         public _DefragmentT(String cardName, int n) {
-            super(cardName, Card.POWER, 1);
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.n = n;
             this.changePlayerFocus = true;
         }
@@ -728,7 +728,7 @@ public class CardDefect {
         private final int n;
 
         public _DoomAndGloomT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 2);
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -755,7 +755,7 @@ public class CardDefect {
 
     private static abstract class _DoubleEnergyT extends Card {
         public _DoubleEnergyT(String cardName, int n) {
-            super(cardName, Card.SKILL, n);
+            super(cardName, Card.SKILL, n, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -780,7 +780,7 @@ public class CardDefect {
         private final int n;
 
         public _EquilibirumT(String cardName, int n) {
-            super(cardName, Card.SKILL, 2);
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -832,7 +832,7 @@ public class CardDefect {
 
     private static abstract class _FusionT extends Card {
         public _FusionT(String cardName, int n) {
-            super(cardName, Card.SKILL, n);
+            super(cardName, Card.SKILL, n, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -859,7 +859,7 @@ public class CardDefect {
         private final int n;
 
         public _GlacierT(String cardName, int n) {
-            super(cardName, Card.SKILL, 2);
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -891,7 +891,7 @@ public class CardDefect {
         private final int n;
 
         public _MelterT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -920,7 +920,7 @@ public class CardDefect {
         private final int n;
 
         public _OverclockT(String cardName, int n) {
-            super(cardName, Card.SKILL, 0);
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -949,7 +949,7 @@ public class CardDefect {
 
     private static abstract class _RecycleT extends Card {
         public _RecycleT(String cardName, int n) {
-            super(cardName, Card.SKILL, n);
+            super(cardName, Card.SKILL, n, Card.UNCOMMON);
             selectFromHand = true;
             canExhaustAnyCard = true;
         }
@@ -978,7 +978,7 @@ public class CardDefect {
         private final int n;
 
         public _ReinforcedBodyT(String cardName, int n) {
-            super(cardName, Card.SKILL, -1);
+            super(cardName, Card.SKILL, -1, Card.UNCOMMON);
             this.n = n;
             isXCost = true;
         }
@@ -1012,7 +1012,7 @@ public class CardDefect {
         private final int n;
 
         public _ReprogramT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
             changePlayerStrength = true;
             changePlayerDexterity = true;
@@ -1043,7 +1043,7 @@ public class CardDefect {
         private final int n;
 
         public _RipAndTearT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -1081,7 +1081,7 @@ public class CardDefect {
         private final int n;
 
         public _SelfRepairT(String cardName, int n) {
-            super(cardName, Card.POWER, 1);
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.n = n;
             healPlayer = true;
         }
@@ -1130,7 +1130,7 @@ public class CardDefect {
         private final int n;
 
         public _SkimT(String cardName, int n) {
-            super(cardName, Card.SKILL, 1);
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -1159,7 +1159,7 @@ public class CardDefect {
         private final int n;
 
         public _SunderT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 3);
+            super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -1189,7 +1189,7 @@ public class CardDefect {
         private final int n;
 
         public _TempestT(String cardName, int n) {
-            super(cardName, Card.SKILL, -1);
+            super(cardName, Card.SKILL, -1, Card.UNCOMMON);
             this.n = n;
             isXCost = true;
         }
@@ -1226,7 +1226,7 @@ public class CardDefect {
         private final int n;
 
         public _BiasedCognitionT(String cardName, int n) {
-            super(cardName, Card.POWER, 1);
+            super(cardName, Card.POWER, 1, Card.RARE);
             this.changePlayerFocus = true;
             this.n = n;
         }
@@ -1279,7 +1279,7 @@ public class CardDefect {
         private final int n;
 
         public _CoreSurgeT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 1);
+            super(cardName, Card.ATTACK, 1, Card.RARE);
             this.n = n;
             selectEnemy = true;
             exhaustWhenPlayed = true;
@@ -1308,7 +1308,7 @@ public class CardDefect {
 
     private static abstract class _EchoFormT extends Card {
         public _EchoFormT(String cardName, boolean ethereal) {
-            super(cardName, Card.POWER, 3);
+            super(cardName, Card.POWER, 3, Card.RARE);
             this.ethereal = ethereal;
         }
 
@@ -1393,7 +1393,7 @@ public class CardDefect {
         private final int n;
 
         public _HyperBeamT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 2);
+            super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
             this.changePlayerFocus = true;
         }
@@ -1425,7 +1425,7 @@ public class CardDefect {
         private final int n;
 
         public _MeteorStrikeT(String cardName, int n) {
-            super(cardName, Card.ATTACK, 5);
+            super(cardName, Card.ATTACK, 5, Card.RARE);
             this.n = n;
             selectEnemy = true;
         }
@@ -1455,7 +1455,7 @@ public class CardDefect {
 
     private static abstract class _RainbowT extends Card {
         public _RainbowT(String cardName, boolean exhaustWhenPlayed) {
-            super(cardName, Card.SKILL, 2);
+            super(cardName, Card.SKILL, 2, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
         }
 
@@ -1483,7 +1483,7 @@ public class CardDefect {
         private final int n;
 
         public _RebootT(String cardName, int n) {
-            super(cardName, Card.SKILL, 0);
+            super(cardName, Card.SKILL, 0, Card.RARE);
             exhaustWhenPlayed = true;
             this.n = n;
         }

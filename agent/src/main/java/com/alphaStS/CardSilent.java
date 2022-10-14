@@ -3,7 +3,7 @@ package com.alphaStS;
 public class CardSilent {
     public static class Neutralize extends Card {
         public Neutralize() {
-            super("Neutralize", Card.ATTACK, 0);
+            super("Neutralize", Card.ATTACK, 0, Card.COMMON);
             this.weakEnemy = true;
             this.selectEnemy = true;
         }
@@ -17,7 +17,7 @@ public class CardSilent {
 
     public static class NeutralizeP extends Card {
         public NeutralizeP() {
-            super("Neutralize+", Card.ATTACK, 0);
+            super("Neutralize+", Card.ATTACK, 0, Card.COMMON);
             this.weakEnemy = true;
             this.selectEnemy = true;
         }
@@ -33,7 +33,7 @@ public class CardSilent {
         private final int n;
 
         public _SurvivorT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
             this.selectFromHand = true;
             this.selectFromHandLater = true;
@@ -67,7 +67,7 @@ public class CardSilent {
         private final int n;
 
         public _AcrobaticsT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
             this.selectFromHand = true;
             this.selectFromHandLater = true;

@@ -1047,25 +1047,29 @@ public class GameState implements State {
             }
         }
         var enemies = getEnemiesForWrite();
+        var aliveEnemies = new ArrayList<Integer>();
         for (int i = 0; i < enemies.size(); i++) {
             var enemy = enemies.get(i);
             if (enemy.isAlive()) {
-                var enemy2 = enemies.getForWrite(i);
-                if (prop.hasRunicDome) {
-                    var oldIsStochastic = isStochastic;
-                    isStochastic = false;
-                    enemy2.nextMove(this, getSearchRandomGen());
-                    if (isStochastic && prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
-                        rgi.selectEnemyMove(this, enemy2, i);
-                    }
-                    if (isStochastic) {
-                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName() + " (" + i + ") choose move " + enemy2.getMoveString(this));
-                    }
-                    isStochastic = oldIsStochastic | isStochastic;
-                }
-                enemy2.startTurn();
-                enemy2.doMove(this, enemy2);
+                aliveEnemies.add(i);
             }
+        }
+        for (int i = 0; i < aliveEnemies.size(); i++) {
+            var enemy2 = enemies.getForWrite(aliveEnemies.get(i));
+            if (prop.hasRunicDome) {
+                var oldIsStochastic = isStochastic;
+                isStochastic = false;
+                enemy2.nextMove(this, getSearchRandomGen());
+                if (isStochastic && prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
+                    rgi.selectEnemyMove(this, enemy2, aliveEnemies.get(i));
+                }
+                if (isStochastic) {
+                    getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(aliveEnemies.get(i)).append(") choose move ").append(enemy2.getMoveString(this));
+                }
+                isStochastic = oldIsStochastic | isStochastic;
+            }
+            enemy2.startTurn();
+            enemy2.doMove(this, enemy2);
         }
         for (GameEventHandler handler : prop.endOfTurnHandlers) {
             handler.handle(this);
@@ -1411,7 +1415,7 @@ public class GameState implements State {
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BlockPotion pot) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - (pot.getBlockAmount(this) + 1 / (float) player.getMaxHealth()), 0);
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
         }
@@ -2904,8 +2908,11 @@ public class GameState implements State {
     public void reviveEnemy(int idx) {
         if (!getEnemiesForRead().get(idx).isAlive()) {
             getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
+            setIsStochastic();
             getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), prop.curriculumTraining);
-            getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());
+            if (!prop.hasRunicDome) {
+                getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());
+            }
             adjustEnemiesAlive(1);
         } else {
             Integer.parseInt(null);

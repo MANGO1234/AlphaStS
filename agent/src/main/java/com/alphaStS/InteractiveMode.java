@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
@@ -296,6 +297,14 @@ public class InteractiveMode {
                 }
             } else if (enemy instanceof Enemy.TheGuardian guardian) {
                 System.out.println("  Mode Shift Damage: " + guardian.getModeShiftDmg() + "/" + guardian.getMaxModeShiftDmg());
+            } else if (enemy instanceof EnemyCity.BronzeOrb orb) {
+                if (!orb.usedStasis()) {
+                    System.out.println("  Stasis: Not Used");
+                } else if (orb.getStasisCard() >= 0) {
+                    System.out.println("  Stasis: Used (" + state.prop.cardDict[orb.getStasisCard()].cardName + ")");
+                } else {
+                    System.out.println("  Stasis: Used");
+                }
             }
             System.out.println("  Move: " + enemy.getMoveString(state));
             System.out.println();
@@ -889,13 +898,13 @@ public class InteractiveMode {
         session.startingAction = startingAction1;
         session.origStateCmp = state2;
         session.startingActionCmp = startingAction2;
-        var prevRandomization = state1.prop.randomization;
-        if (randomizationScenario >= 0) {
-            state1.prop.randomization = state1.prop.randomization.fixR(randomizationScenario);
-        }
         if (state1 == null || state2 == null) {
             System.out.println("States not set");
             return;
+        }
+        var prevRandomization = state1.prop.randomization;
+        if (randomizationScenario >= 0) {
+            state1.prop.randomization = state1.prop.randomization.fixR(randomizationScenario);
         }
         System.out.println(state1);
         if (startingAction1 >= 0) {
@@ -1177,7 +1186,7 @@ public class InteractiveMode {
     }
 
     public static class RandomGenInteractive extends RandomGen.RandomGenPlain {
-        boolean rngOn = true;
+        public boolean rngOn = true;
         private final BufferedReader reader;
         private final List<String> history;
 
@@ -1266,6 +1275,31 @@ public class InteractiveMode {
                 if (0 <= r && r < enemy.property.numOfMoves) {
                     enemy.setMove(r);
                     return;
+                }
+                System.out.println("Unknown Move");
+            }
+        }
+
+        public int selectBronzeOrbStasis(GameState state, byte[] cards, int rarity, Enemy enemy, int enemyIdx) {
+            System.out.println("Select card for " + enemy.getName() + " (" + enemyIdx + ")" + " to take");
+            int j = 0;
+            for (int i = 0; i < cards.length; i++) {
+                if (cards[i] > 0 && rarity == state.prop.cardDict[i].rarity) {
+                    System.out.println(j++ + ". " + state.prop.cardDict[i].cardName);
+                }
+            }
+            while (true) {
+                System.out.print("> ");
+                String line;
+                try {
+                    line = reader.readLine();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+                history.add(line);
+                int r = parseInt(line, -1);
+                if (0 <= r && r < j) {
+                    return r;
                 }
                 System.out.println("Unknown Move");
             }

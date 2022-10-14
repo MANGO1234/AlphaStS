@@ -13,6 +13,7 @@ public enum RandomGenCtx {
     WarpedTongs,
     ShieldGremlin,
     GremlinLeader,
+    BronzeOrb,
     Chaos,
     SkillPotion,
     Misc,

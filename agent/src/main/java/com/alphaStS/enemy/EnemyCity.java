@@ -270,7 +270,7 @@ public class EnemyCity {
         private static final int SUPPORT_BEAM = 2;
 
         private boolean usedStasis;
-        private int stasisCardIdx;
+        private int stasisCardIdx = -1;
 
         public BronzeOrb() {
             this(60);
@@ -283,16 +283,26 @@ public class EnemyCity {
 
         public BronzeOrb(BronzeOrb other) {
             super(other);
+            usedStasis = other.usedStasis;
+            stasisCardIdx = other.stasisCardIdx;
         }
 
         @Override public Enemy copy() {
             return new BronzeOrb(this);
         }
 
+        public boolean usedStasis() {
+            return usedStasis;
+        }
+
+        public int getStasisCard() {
+            return stasisCardIdx;
+        }
+
         @Override public void damage(int n, GameState state) {
             int prevHealth = health;
             super.damage(n, state);
-            if (prevHealth > 0 && health <= 0 && usedStasis) {
+            if (prevHealth > 0 && health <= 0 && usedStasis && stasisCardIdx >= 0) {
                 state.addCardToHand(stasisCardIdx);
             }
         }
@@ -300,30 +310,90 @@ public class EnemyCity {
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             int prevHealth = health;
             super.damage(n, state);
-            if (prevHealth > 0 && health <= 0 && usedStasis) {
+            if (prevHealth > 0 && health <= 0 && usedStasis && stasisCardIdx >= 0) {
                 state.addCardToHand(stasisCardIdx);
             }
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STASIS) {
-                // todo: rarity
+                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscard() : state.getDeck();
+                var cardRarityCounts = new int[Card.RARE + 1];
+                var cardRarityDiffCount = new int[Card.RARE + 1];
+                for (int i = 0; i < cards.length; i++) {
+                    cardRarityCounts[state.prop.cardDict[i].rarity] += cards[i];
+                    if (cards[i] > 0) {
+                        cardRarityDiffCount[state.prop.cardDict[i].rarity]++;
+                    }
+                }
+                int rarity = -1;
+                for (int i = Card.RARE; i >= 0; i--) {
+                    if (cardRarityCounts[i] > 0) {
+                        rarity = i;
+                        break;
+                    }
+                }
+                if (rarity >= 0) {
+                    int r = 0;
+                    if (cardRarityDiffCount[rarity] > 1) {
+                        if (state.prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
+                            int idx = rgi.selectBronzeOrbStasis(state, cards, rarity,this, state.getEnemiesForRead().find(self));
+                            int j = 0;
+                            for (int i = 0; i < cards.length; i++) {
+                                if (rarity == state.prop.cardDict[i].rarity) {
+                                    if (j == idx) {
+                                        break;
+                                    }
+                                    j++;
+                                    r += cards[i];
+                                }
+                            }
+                        } else {
+                            state.setIsStochastic();
+                            r = state.getSearchRandomGen().nextInt(cardRarityCounts[rarity], RandomGenCtx.BronzeOrb, this);
+                        }
+                    }
+                    int acc = 0;
+                    for (int i = 0; i < cards.length; i++) {
+                        if (rarity == state.prop.cardDict[i].rarity) {
+                            acc += cards[i];
+                            if (acc > r) {
+                                state.removeCardFromDeck(i);
+                                stasisCardIdx = i;
+                                break;
+                            }
+                        }
+                    }
+                    if (stasisCardIdx >= 0) {
+                        state.getStateDesc().append(state.getStateDesc().length() > 0 ? "; " : "").append("Stasis Took ").append(state.prop.cardDict[stasisCardIdx].cardName);
+                    }
+                }
                 usedStasis = true;
             } else if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
             } else if (move == SUPPORT_BEAM) {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
-                    if (enemies.get(i) instanceof BronzeAutomaton ba) {
-                        ba.gainBlock(12);
+                    if (enemies.get(i) instanceof BronzeAutomaton) {
+                        enemies.getForWrite(i).gainBlock(12);
                     }
                 }
             }
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            int newMove = move + 1;
-            // todo
+            int newMove;
+            state.setIsStochastic();
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+            if (!this.usedStasis && r >= 25) {
+                newMove = STASIS;
+            } else if (r >= 70 && !(move == SUPPORT_BEAM && lastMove == SUPPORT_BEAM)) {
+                newMove = SUPPORT_BEAM;
+            } else if (!(move == BEAM && lastMove == BEAM)) {
+                newMove = BEAM;
+            } else {
+                newMove = SUPPORT_BEAM;
+            }
             lastMove = move;
             move = newMove;
         }
@@ -342,7 +412,7 @@ public class EnemyCity {
         @Override public void randomize(RandomGen random, boolean training) {
             int b = random.nextInt(6, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
-                health = (int) Math.round(((double) (health * b)) / 10);
+                health = (int) Math.round(((double) (property.maxHealth * b)) / 6);
             } else {
                 health = 54 + random.nextInt(7, RandomGenCtx.Other);
             }
@@ -350,6 +420,37 @@ public class EnemyCity {
 
         @Override public String getName() {
             return "Bronze Orb";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (!usedStasis) {
+                return s.subSequence(0, s.length() - 1) + ", stasisNotUsed}";
+            } else if (stasisCardIdx >= 0) {
+                return s.subSequence(0, s.length() - 1) + ", stasisCard=" + state.prop.cardDict[stasisCardIdx].cardName + "}";
+            } else {
+                return s;
+            }
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && usedStasis == ((BronzeOrb) o).usedStasis && stasisCardIdx == ((BronzeOrb) o).stasisCardIdx;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1 + prop.realCardsLen;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1+" + prop.realCardsLen + " inputs to keep track of stasis used + stasis card";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = usedStasis ? 0.5f : 0;
+            if (stasisCardIdx >= 0) {
+                input[idx + 1 + stasisCardIdx] = 0.5f;
+            }
+            return 1 + prop.realCardsLen;
         }
     }
 

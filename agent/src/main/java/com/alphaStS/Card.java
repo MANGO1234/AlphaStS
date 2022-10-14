@@ -13,9 +13,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static int CURSE = 3;
     public static int STATUS = 4;
 
+    public static int COMMON = 0;
+    public static int UNCOMMON = 1;
+    public static int RARE = 2;
+
     public final int cardType;
-    String cardName;
+    public final String cardName;
     int energyCost;
+    public final int rarity;
     public boolean ethereal = false;
     public boolean innate = false;
     public boolean exhaustWhenPlayed = false;
@@ -49,10 +54,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         vArrayIdx = idx;
     }
 
-    public Card(String cardName, int cardType, int energyCost) {
+    public Card(String cardName, int cardType, int energyCost, int rarity) {
         this.cardType = cardType;
         this.cardName = cardName;
         this.energyCost = energyCost;
+        this.rarity = rarity;
     }
 
     public int energyCost(GameState state) {
@@ -89,7 +95,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public final Card card;
 
         public CardTmpChangeCost(Card card, int energyCost) {
-            super(card.cardName + " (Tmp " + energyCost + ")", card.cardType, energyCost);
+            super(card.cardName + " (Tmp " + energyCost + ")", card.cardType, energyCost, card.rarity);
             this.card = card;
             ethereal = card.ethereal;
             innate = card.innate;
@@ -128,7 +134,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Bash extends Card {
         public Bash() {
-            super("Bash", Card.ATTACK, 2);
+            super("Bash", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
             vulnEnemy = true;
         }
@@ -143,7 +149,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BashP extends Card {
         public BashP() {
-            super("Bash+", Card.ATTACK, 2);
+            super("Bash+", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
             vulnEnemy = true;
         }
@@ -158,7 +164,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Strike extends Card {
         public Strike() {
-            super("Strike", Card.ATTACK, 1);
+            super("Strike", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -170,7 +176,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class StrikeP extends Card {
         public StrikeP() {
-            super("Strike+", Card.ATTACK, 1);
+            super("Strike+", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -182,7 +188,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Defend extends Card {
         public Defend() {
-            super("Defend", Card.SKILL, 1);
+            super("Defend", Card.SKILL, 1,  Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -193,7 +199,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DefendP extends Card {
         public DefendP() {
-            super("Defend+", Card.SKILL, 1);
+            super("Defend+", Card.SKILL, 1, Card.COMMON);
             energyCost = 1;
         }
 
@@ -205,7 +211,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Anger extends Card {
         public Anger() {
-            super("Anger", Card.ATTACK, 0);
+            super("Anger", Card.ATTACK, 0, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -218,7 +224,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class AngerP extends Card {
         public AngerP() {
-            super("Anger+", Card.ATTACK, 0);
+            super("Anger+", Card.ATTACK, 0, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -231,7 +237,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Armanent extends Card {
         public Armanent() {
-            super("Armanent", Card.SKILL, 1);
+            super("Armanent", Card.SKILL, 1, Card.COMMON);
             selectFromHand = true;
         }
 
@@ -255,7 +261,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ArmanentP extends Card {
         public ArmanentP() {
-            super("Armanent+", Card.SKILL, 1);
+            super("Armanent+", Card.SKILL, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -276,7 +282,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BodySlam extends Card {
         public BodySlam() {
-            super("Body Slam", Card.ATTACK, 1);
+            super("Body Slam", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -288,7 +294,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BodySlamP extends Card {
         public BodySlamP() {
-            super("Body Slam+", Card.ATTACK, 0);
+            super("Body Slam+", Card.ATTACK, 0, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -300,7 +306,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Clash extends Card {
         public Clash() {
-            super("Clash", Card.ATTACK, -1);
+            super("Clash", Card.ATTACK, -1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -321,7 +327,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ClashP extends Card {
         public ClashP() {
-            super("Clash+", Card.ATTACK, -1);
+            super("Clash+", Card.ATTACK, -1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -342,7 +348,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Cleave extends Card {
         public Cleave() {
-            super("Cleave", Card.ATTACK, 1);
+            super("Cleave", Card.ATTACK, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -355,7 +361,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class CleaveP extends Card {
         public CleaveP() {
-            super("Cleave+", Card.ATTACK, 1);
+            super("Cleave+", Card.ATTACK, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -368,7 +374,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Clothesline extends Card {
         public Clothesline() {
-            super("Clothesline", Card.ATTACK, 2);
+            super("Clothesline", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
             weakEnemy = true;
         }
@@ -383,7 +389,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ClotheslineP extends Card {
         public ClotheslineP() {
-            super("Clothesline+", Card.ATTACK, 2);
+            super("Clothesline+", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
             weakEnemy = true;
         }
@@ -398,7 +404,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Flex extends Card {
         public Flex() {
-            super("Flex", Card.SKILL, 0);
+            super("Flex", Card.SKILL, 0, Card.COMMON);
             changePlayerStrength = true;
             changePlayerStrengthEot = true;
         }
@@ -413,7 +419,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FlexP extends Card {
         public FlexP() {
-            super("Flex+", Card.SKILL, 0);
+            super("Flex+", Card.SKILL, 0, Card.COMMON);
             changePlayerStrength = true;
         }
 
@@ -428,7 +434,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     // todo: test
     private static abstract class _HavocT extends Card {
         public _HavocT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             canExhaustAnyCard = true;
         }
 
@@ -475,7 +481,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Headbutt extends Card {
         public Headbutt() {
-            super("Headbutt", Card.ATTACK, 1);
+            super("Headbutt", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
             selectFromDiscard = true;
             selectFromDiscardLater = true;
@@ -496,7 +502,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class HeadbuttP extends Card {
         public HeadbuttP() {
-            super("Headbutt+", Card.ATTACK, 1);
+            super("Headbutt+", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
             selectFromDiscard = true;
             selectFromDiscardLater = true;
@@ -516,7 +522,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class HeavyBlade extends Card {
         public HeavyBlade() {
-            super("Heavy Blade", Card.ATTACK, 2);
+            super("Heavy Blade", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -528,7 +534,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class HeavyBladeP extends Card {
         public HeavyBladeP() {
-            super("Heavy Blade+", Card.ATTACK, 2);
+            super("Heavy Blade+", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -540,7 +546,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class IronWave extends Card {
         public IronWave() {
-            super("Iron Wave", Card.ATTACK, 1);
+            super("Iron Wave", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -553,7 +559,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class IronWaveP extends Card {
         public IronWaveP() {
-            super("Iron Wave+", Card.ATTACK, 1);
+            super("Iron Wave+", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -566,7 +572,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PerfectedStrike extends Card {
         public PerfectedStrike() {
-            super("Perfected Strike", Card.ATTACK, 2);
+            super("Perfected Strike", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -586,7 +592,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PerfectedStrikeP extends Card {
         public PerfectedStrikeP() {
-            super("Perfected Strike+", Card.ATTACK, 2);
+            super("Perfected Strike+", Card.ATTACK, 2, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -606,7 +612,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PommelStrike extends Card {
         public PommelStrike() {
-            super("Pommel Strike", Card.ATTACK, 1);
+            super("Pommel Strike", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -619,7 +625,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PommelStrikeP extends Card {
         public PommelStrikeP() {
-            super("Pommel Strike+", Card.ATTACK, 1);
+            super("Pommel Strike+", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -632,7 +638,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ShrugItOff extends Card {
         public ShrugItOff() {
-            super("Shrug It Off", Card.SKILL, 1);
+            super("Shrug It Off", Card.SKILL, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -644,7 +650,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ShrugItOffP extends Card {
         public ShrugItOffP() {
-            super("Shrug It Off+", Card.SKILL, 1);
+            super("Shrug It Off+", Card.SKILL, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -658,7 +664,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _SwordBoomerangT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
         }
 
@@ -679,7 +685,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     if (j == enemy_j) {
                         state.playerDoDamageToEnemy(enemy, 3);
                         if (moreThan1Enemy && (state.prop.makingRealMove || state.prop.stateDescOn)) {
-                            state.getStateDesc().append(state.getStateDesc().length() > 0 ? ", " : "").append(enemy.getName() + "(" + enemyIdx + ")");
+                            state.getStateDesc().append(state.getStateDesc().length() > 0 ? ", " : "").append(enemy.getName())
+                                    .append("(").append(enemyIdx).append(")");
                         }
                         break;
                     }
@@ -704,7 +711,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Thunderclap extends Card {
         public Thunderclap() {
-            super("Thunderclap", Card.ATTACK, 1);
+            super("Thunderclap", Card.ATTACK, 1, Card.COMMON);
             vulnEnemy = true;
         }
 
@@ -719,7 +726,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ThunderclapP extends Card {
         public ThunderclapP() {
-            super("Thunderclap+", Card.ATTACK, 1);
+            super("Thunderclap+", Card.ATTACK, 1, Card.COMMON);
             vulnEnemy = true;
         }
 
@@ -734,7 +741,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class TrueGrit extends Card {
         public TrueGrit() {
-            super("True Grit", Card.SKILL, 1);
+            super("True Grit", Card.SKILL, 1, Card.COMMON);
             canExhaustAnyCard = true;
         }
 
@@ -764,7 +771,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class TrueGritP extends Card {
         public TrueGritP() {
-            super("True Grit+", Card.SKILL, 1);
+            super("True Grit+", Card.SKILL, 1, Card.COMMON);
             selectFromHand = true;
             canExhaustAnyCard = true;
         }
@@ -778,7 +785,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class TwinStrike extends Card {
         public TwinStrike() {
-            super("Twin Strike", Card.ATTACK, 1);
+            super("Twin Strike", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -792,7 +799,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class TwinStrikeP extends Card {
         public TwinStrikeP() {
-            super("Twin Strike+", Card.ATTACK, 1);
+            super("Twin Strike+", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -808,7 +815,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _WarcryT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
             exhaustWhenPlayed = true;
             selectFromHand = true;
@@ -842,7 +849,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class WildStrike extends Card {
         public WildStrike() {
-            super("Wild Strike", Card.ATTACK, 1);
+            super("Wild Strike", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -859,7 +866,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class WildStrikeP extends Card {
         public WildStrikeP() {
-            super("Wild Strike+", Card.ATTACK, 1);
+            super("Wild Strike+", Card.ATTACK, 1, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -876,7 +883,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BattleTrance extends Card {
         public BattleTrance() {
-            super("Battle Trance", Card.SKILL, 0);
+            super("Battle Trance", Card.SKILL, 0, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -888,7 +895,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BattleTranceP extends Card {
         public BattleTranceP() {
-            super("Battle Trance+", Card.SKILL, 0);
+            super("Battle Trance+", Card.SKILL, 0, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -904,7 +911,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         private BloodForBlood(int energyCost) {
-            super("Blood For Blood (" + energyCost + ")", Card.ATTACK, energyCost);
+            super("Blood For Blood (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -947,7 +954,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         private BloodForBloodP(int energyCost) {
-            super("Blood For Blood+ (" + energyCost + ")", Card.ATTACK, energyCost);
+            super("Blood For Blood+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -986,7 +993,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Bloodletting extends Card {
         public Bloodletting() {
-            super("Bloodletting", Card.SKILL, 0);
+            super("Bloodletting", Card.SKILL, 0, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -998,7 +1005,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BloodlettingP extends Card {
         public BloodlettingP() {
-            super("Bloodletting+", Card.SKILL, 0);
+            super("Bloodletting+", Card.SKILL, 0, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1010,7 +1017,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BurningPact extends Card {
         public BurningPact() {
-            super("Burning Pact", Card.SKILL, 1);
+            super("Burning Pact", Card.SKILL, 1, Card.UNCOMMON);
             selectFromHand =  true;
             canExhaustAnyCard = true;
         }
@@ -1024,7 +1031,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BurningPactP extends Card {
         public BurningPactP() {
-            super("Burning Pact+", Card.SKILL, 1);
+            super("Burning Pact+", Card.SKILL, 1, Card.UNCOMMON);
             selectFromHand =  true;
             canExhaustAnyCard = true;
         }
@@ -1038,7 +1045,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Carnage extends Card {
         public Carnage() {
-            super("Carnage", Card.ATTACK, 2);
+            super("Carnage", Card.ATTACK, 2, Card.UNCOMMON);
             selectEnemy = true;
             ethereal = true;
         }
@@ -1051,7 +1058,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class CarnageP extends Card {
         public CarnageP() {
-            super("Carnage+", Card.ATTACK, 2);
+            super("Carnage+", Card.ATTACK, 2, Card.UNCOMMON);
             selectEnemy = true;
             ethereal = true;
         }
@@ -1066,7 +1073,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _CombustT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -1119,7 +1126,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DarkEmbrace extends Card {
         public DarkEmbrace() {
-            super("Dark Embrace", Card.POWER, 2);
+            super("Dark Embrace", Card.POWER, 2, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1147,7 +1154,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DarkEmbraceP extends Card {
         public DarkEmbraceP() {
-            super("Dark Embrace+", Card.POWER, 1);
+            super("Dark Embrace+", Card.POWER, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1175,7 +1182,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Disarm extends Card {
         public Disarm() {
-            super("Disarm", Card.SKILL, 1);
+            super("Disarm", Card.SKILL, 1, Card.UNCOMMON);
             exhaustWhenPlayed = true;
             selectEnemy = true;
             affectEnemyStrength = true;
@@ -1189,7 +1196,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DisarmP extends Card {
         public DisarmP() {
-            super("Disarm+", Card.SKILL, 1);
+            super("Disarm+", Card.SKILL, 1, Card.UNCOMMON);
             exhaustWhenPlayed = true;
             selectEnemy = true;
             affectEnemyStrength = true;
@@ -1203,7 +1210,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Dropkick extends Card {
         public Dropkick() {
-            super("Dropkick", Card.ATTACK, 1);
+            super("Dropkick", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1220,7 +1227,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DropkickP extends Card {
         public DropkickP() {
-            super("Dropkick+", Card.ATTACK, 1);
+            super("Dropkick+", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1237,7 +1244,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DualWield extends Card {
         public DualWield() {
-            super("Dual Wield", Card.SKILL, 1);
+            super("Dual Wield", Card.SKILL, 1, Card.UNCOMMON);
             selectFromHand = true;
         }
 
@@ -1257,7 +1264,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class DualWieldP extends Card {
         public DualWieldP() {
-            super("Dual Wield+", Card.SKILL, 1);
+            super("Dual Wield+", Card.SKILL, 1, Card.UNCOMMON);
             selectFromHand = true;
         }
 
@@ -1278,7 +1285,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Entrench extends Card {
         public Entrench() {
-            super("Entrench", Card.SKILL, 2);
+            super("Entrench", Card.SKILL, 2, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1290,7 +1297,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class EntrenchP extends Card {
         public EntrenchP() {
-            super("Entrench+", Card.SKILL, 1);
+            super("Entrench+", Card.SKILL, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1304,7 +1311,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _EvolveT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -1347,7 +1354,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FeelNoPain extends Card {
         public FeelNoPain() {
-            super("Feel No Pain", Card.POWER, 1);
+            super("Feel No Pain", Card.POWER, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1375,7 +1382,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FeelNoPainP extends Card {
         public FeelNoPainP() {
-            super("Feel No Pain+", Card.POWER, 1);
+            super("Feel No Pain+", Card.POWER, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1405,7 +1412,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _FireBreathingT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -1451,7 +1458,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FlameBarrier extends Card {
         public FlameBarrier() {
-            super("Flame Barrier", Card.SKILL, 2);
+            super("Flame Barrier", Card.SKILL, 2, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1487,7 +1494,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FlameBarrierP extends Card {
         public FlameBarrierP() {
-            super("Flame Barrier+", Card.SKILL, 2);
+            super("Flame Barrier+", Card.SKILL, 2, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1523,7 +1530,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class GhostlyArmor extends Card {
         public GhostlyArmor() {
-            super("Ghostly Armor", Card.SKILL, 1);
+            super("Ghostly Armor", Card.SKILL, 1, Card.UNCOMMON);
             ethereal = true;
         }
 
@@ -1535,7 +1542,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class GhostlyArmorP extends Card {
         public GhostlyArmorP() {
-            super("Ghostly Armor+", Card.SKILL, 1);
+            super("Ghostly Armor+", Card.SKILL, 1, Card.UNCOMMON);
             ethereal = true;
         }
 
@@ -1547,7 +1554,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Hemokinesis extends Card {
         public Hemokinesis() {
-            super("Hemokinesis", Card.ATTACK, 1);
+            super("Hemokinesis", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1560,7 +1567,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class HemokinesisP extends Card {
         public HemokinesisP() {
-            super("Hemokinesis+", Card.ATTACK, 1);
+            super("Hemokinesis+", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1573,7 +1580,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     private abstract static class _InfernalBladeT extends Card {
         public _InfernalBladeT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -1666,7 +1673,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Inflame extends Card {
         public Inflame() {
-            super("Inflame", Card.POWER, 1);
+            super("Inflame", Card.POWER, 1, Card.UNCOMMON);
             changePlayerStrength = true;
         }
 
@@ -1678,7 +1685,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class InflameP extends Card {
         public InflameP() {
-            super("Inflame+", Card.POWER, 1);
+            super("Inflame+", Card.POWER, 1, Card.UNCOMMON);
             changePlayerStrength = true;
         }
 
@@ -1690,7 +1697,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Intimidate extends Card {
         public Intimidate() {
-            super("Intimidate", Card.SKILL, 0);
+            super("Intimidate", Card.SKILL, 0, Card.UNCOMMON);
             weakEnemy = true;
         }
 
@@ -1704,7 +1711,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class IntimidateP extends Card {
         public IntimidateP() {
-            super("Intimidate+", Card.SKILL, 0);
+            super("Intimidate+", Card.SKILL, 0, Card.UNCOMMON);
             weakEnemy = true;
         }
 
@@ -1718,7 +1725,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Metallicize extends Card {
         public Metallicize() {
-            super("Metallicize", Card.POWER, 1);
+            super("Metallicize", Card.POWER, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1746,7 +1753,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class MetallicizeP extends Card {
         public MetallicizeP() {
-            super("Metallicize+", Card.POWER, 1);
+            super("Metallicize+", Card.POWER, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1774,7 +1781,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PowerThrough extends Card {
         public PowerThrough() {
-            super("Power Through", Card.SKILL, 1);
+            super("Power Through", Card.SKILL, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1791,7 +1798,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PowerThroughP extends Card {
         public PowerThroughP() {
-            super("Power Through+", Card.SKILL, 1);
+            super("Power Through+", Card.SKILL, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1808,7 +1815,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Pummel extends Card {
         public Pummel() {
-            super("Pummel", Card.ATTACK, 1);
+            super("Pummel", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
@@ -1823,7 +1830,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class PummelP extends Card {
         public PummelP() {
-            super("Pummel+", Card.ATTACK, 1);
+            super("Pummel+", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
@@ -1840,7 +1847,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _RageT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -1889,7 +1896,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     // todo: need to think of a way to implement rampage (with card generation -> nn input being fixed)
     public static class Rampage extends Card {
         public Rampage() {
-            super("Rampage", Card.ATTACK, 1);
+            super("Rampage", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1901,7 +1908,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class RampageP extends Card {
         public RampageP() {
-            super("Rampage+", Card.ATTACK, 1);
+            super("Rampage+", Card.ATTACK, 1, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1913,7 +1920,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class RecklessCharge extends Card {
         public RecklessCharge() {
-            super("Reckless Charge", Card.ATTACK, 0);
+            super("Reckless Charge", Card.ATTACK, 0, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1930,7 +1937,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class RecklessChargeP extends Card {
         public RecklessChargeP() {
-            super("Reckless Charge+", Card.ATTACK, 0);
+            super("Reckless Charge+", Card.ATTACK, 0, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -1949,7 +1956,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _RuptureT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             changePlayerStrength = true;
             this.n = n;
         }
@@ -1996,7 +2003,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public SearingBlow(int numberOfUpgrades) {
-            super(numberOfUpgrades == 0 ? "Searing Blow" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2);
+            super(numberOfUpgrades == 0 ? "Searing Blow" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2, Card.UNCOMMON);
             n = numberOfUpgrades;
             selectEnemy = true;
         }
@@ -2009,7 +2016,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SecondWind extends Card {
         public SecondWind() {
-            super("Second Wind", Card.SKILL, 1);
+            super("Second Wind", Card.SKILL, 1, Card.UNCOMMON);
             exhaustNonAttacks = true;
         }
 
@@ -2028,7 +2035,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SecondWindP extends Card {
         public SecondWindP() {
-            super("Second Wind+", Card.SKILL, 1);
+            super("Second Wind+", Card.SKILL, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2046,7 +2053,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SeeingRed extends Card {
         public SeeingRed() {
-            super("Seeing Red", Card.SKILL, 1);
+            super("Seeing Red", Card.SKILL, 1, Card.UNCOMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -2058,7 +2065,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SeeingRedP extends Card {
         public SeeingRedP() {
-            super("Seeing Red+", Card.SKILL, 0);
+            super("Seeing Red+", Card.SKILL, 0, Card.UNCOMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -2070,7 +2077,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Sentinel extends Card {
         public Sentinel() {
-            super("Sentinel", Card.SKILL, 1);
+            super("Sentinel", Card.SKILL, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2085,7 +2092,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SentinelP extends Card {
         public SentinelP() {
-            super("Sentinel+", Card.SKILL, 1);
+            super("Sentinel+", Card.SKILL, 1, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2100,7 +2107,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SeverSoul extends Card {
         public SeverSoul() {
-            super("Sever Soul", Card.ATTACK, 2);
+            super("Sever Soul", Card.ATTACK, 2, Card.UNCOMMON);
             selectEnemy = true;
             exhaustNonAttacks = true;
         }
@@ -2120,7 +2127,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SeverSoulP extends Card {
         public SeverSoulP() {
-            super("Sever Soul+", Card.ATTACK, 2);
+            super("Sever Soul+", Card.ATTACK, 2, Card.UNCOMMON);
             selectEnemy = true;
         }
 
@@ -2139,7 +2146,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Shockwave extends Card {
         public Shockwave() {
-            super("Shockwave", Card.SKILL, 2);
+            super("Shockwave", Card.SKILL, 2, Card.UNCOMMON);
             exhaustWhenPlayed = true;
             vulnEnemy = true;
             weakEnemy = true;
@@ -2156,7 +2163,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ShockwaveP extends Card {
         public ShockwaveP() {
-            super("Shockwave+", Card.SKILL, 2);
+            super("Shockwave+", Card.SKILL, 2, Card.UNCOMMON);
             exhaustWhenPlayed = true;
             vulnEnemy = true;
             weakEnemy = true;
@@ -2173,7 +2180,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SpotWeakness extends Card {
         public SpotWeakness() {
-            super("Spot Weakness", Card.SKILL, 1);
+            super("Spot Weakness", Card.SKILL, 1, Card.UNCOMMON);
             selectEnemy = true;
             changePlayerStrength = true;
         }
@@ -2188,7 +2195,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class SpotWeaknessP extends Card {
         public SpotWeaknessP() {
-            super("Spot Weakness+", Card.SKILL, 1);
+            super("Spot Weakness+", Card.SKILL, 1, Card.UNCOMMON);
             selectEnemy = true;
             changePlayerStrength = true;
         }
@@ -2203,7 +2210,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Uppercut extends Card {
         public Uppercut() {
-            super("Uppercut", Card.ATTACK, 2);
+            super("Uppercut", Card.ATTACK, 2, Card.UNCOMMON);
             selectEnemy = true;
             vulnEnemy = true;
             weakEnemy = true;
@@ -2220,7 +2227,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class UppercutP extends Card {
         public UppercutP() {
-            super("Uppercut+", Card.ATTACK, 2);
+            super("Uppercut+", Card.ATTACK, 2, Card.UNCOMMON);
             selectEnemy = true;
             vulnEnemy = true;
             weakEnemy = true;
@@ -2237,7 +2244,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Whirlwind extends Card {
         public Whirlwind() {
-            super("Whirlwind", Card.ATTACK, -1);
+            super("Whirlwind", Card.ATTACK, -1, Card.UNCOMMON);
             isXCost = true;
         }
 
@@ -2257,7 +2264,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class WhirlwindP extends Card {
         public WhirlwindP() {
-            super("Whirlwind+", Card.ATTACK, -1);
+            super("Whirlwind+", Card.ATTACK, -1, Card.UNCOMMON);
             isXCost = true;
         }
 
@@ -2277,7 +2284,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Barricade extends Card {
         public Barricade() {
-            super("Barricade", Card.POWER, 3);
+            super("Barricade", Card.POWER, 3, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2288,7 +2295,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BarricadeP extends Card {
         public BarricadeP() {
-            super("Barricade+", Card.POWER, 2);
+            super("Barricade+", Card.POWER, 2, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2299,7 +2306,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Berserk extends Card {
         public Berserk() {
-            super("Berserk", Card.POWER, 0);
+            super("Berserk", Card.POWER, 0, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2311,7 +2318,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BerserkP extends Card {
         public BerserkP() {
-            super("Berserk+", Card.POWER, 0);
+            super("Berserk+", Card.POWER, 0, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2323,7 +2330,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Bludgeon extends Card {
         public Bludgeon() {
-            super("Bludgeon", Card.ATTACK, 3);
+            super("Bludgeon", Card.ATTACK, 3, Card.RARE);
             selectEnemy = true;
         }
 
@@ -2335,7 +2342,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BludgeonP extends Card {
         public BludgeonP() {
-            super("Bludgeon+", Card.ATTACK, 3);
+            super("Bludgeon+", Card.ATTACK, 3, Card.RARE);
             selectEnemy = true;
         }
 
@@ -2347,7 +2354,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     private static abstract class _BrutalityT extends Card {
         public _BrutalityT(String cardName, int cardType, int energyCost, boolean innate) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.innate = innate;
         }
 
@@ -2391,7 +2398,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Corruption extends Card {
         public Corruption() {
-            super("Corruption", Card.POWER, 3);
+            super("Corruption", Card.POWER, 3, Card.RARE);
             exhaustSkill = true;
         }
 
@@ -2403,7 +2410,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class CorruptionP extends Card {
         public CorruptionP() {
-            super("Corruption+", Card.POWER, 2);
+            super("Corruption+", Card.POWER, 2, Card.RARE);
             exhaustSkill = true;
         }
 
@@ -2417,7 +2424,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _DemonFormT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             changePlayerStrength = true;
             this.n = n;
         }
@@ -2461,7 +2468,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _DoubleTapT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.n = n;
         }
 
@@ -2514,7 +2521,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Exhume extends Card {
         public Exhume() {
-            super("Exhume", Card.SKILL, 1);
+            super("Exhume", Card.SKILL, 1, Card.RARE);
             selectFromExhaust = true;
             exhaustWhenPlayed = true;
         }
@@ -2528,7 +2535,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ExhumeP extends Card {
         public ExhumeP() {
-            super("Exhume+", Card.SKILL, 0);
+            super("Exhume+", Card.SKILL, 0, Card.RARE);
             selectFromExhaust = true;
             exhaustWhenPlayed = true;
         }
@@ -2540,13 +2547,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
     }
 
-    // todo: nn reward
     public static abstract class _FeedT extends Card {
         private final int n;
         private final int hpInc;
 
         public _FeedT(String cardName, int cardType, int energyCost, int n, int hpInc) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.n = n;
             this.hpInc = hpInc;
             healPlayer = true;
@@ -2609,7 +2615,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FiendFire extends Card {
         public FiendFire() {
-            super("Fiend Fire", Card.ATTACK, 2);
+            super("Fiend Fire", Card.ATTACK, 2, Card.RARE);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
@@ -2627,7 +2633,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class FiendFireP extends Card {
         public FiendFireP() {
-            super("Fiend Fire+", Card.ATTACK, 2);
+            super("Fiend Fire+", Card.ATTACK, 2, Card.RARE);
             selectEnemy = true;
             exhaustWhenPlayed = true;
         }
@@ -2645,7 +2651,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Immolate extends Card {
         public Immolate() {
-            super("Immolate", Card.ATTACK, 2);
+            super("Immolate", Card.ATTACK, 2, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2663,7 +2669,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ImmolateP extends Card {
         public ImmolateP() {
-            super("Immolate+", Card.ATTACK, 2);
+            super("Immolate+", Card.ATTACK, 2, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2681,7 +2687,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Impervious extends Card {
         public Impervious() {
-            super("Impervious", Card.SKILL, 2);
+            super("Impervious", Card.SKILL, 2, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
@@ -2693,7 +2699,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ImperviousP extends Card {
         public ImperviousP() {
-            super("Impervious+", Card.SKILL, 2);
+            super("Impervious+", Card.SKILL, 2, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
@@ -2707,7 +2713,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int n;
 
         public _JuggernautT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.n = n;
         }
 
@@ -2759,7 +2765,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class LimitBreak extends Card {
         public LimitBreak() {
-            super("Limit Break", Card.SKILL, 1);
+            super("Limit Break", Card.SKILL, 1, Card.RARE);
             exhaustWhenPlayed = true;
             changePlayerStrength = true;
         }
@@ -2773,7 +2779,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class LimitBreakP extends Card {
         public LimitBreakP() {
-            super("Limit Break+", Card.SKILL, 1);
+            super("Limit Break+", Card.SKILL, 1, Card.RARE);
             changePlayerStrength = true;
         }
 
@@ -2786,7 +2792,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Offering extends Card {
         public Offering() {
-            super("Offering", Card.SKILL, 0);
+            super("Offering", Card.SKILL, 0, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
@@ -2799,7 +2805,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class OfferingP extends Card {
         public OfferingP() {
-            super("Offering+", Card.SKILL, 0);
+            super("Offering+", Card.SKILL, 0, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
@@ -2812,7 +2818,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Reaper extends Card {
         public Reaper() {
-            super("Reaper", Card.ATTACK, 2);
+            super("Reaper", Card.ATTACK, 2, Card.RARE);
             healPlayer = true;
             exhaustWhenPlayed = true;
         }
@@ -2831,7 +2837,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class ReaperP extends Card {
         public ReaperP() {
-            super("Reaper+", Card.ATTACK, 2);
+            super("Reaper+", Card.ATTACK, 2, Card.RARE);
             healPlayer = true;
             exhaustWhenPlayed = true;
         }
@@ -2854,7 +2860,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Burn extends Card {
         public Burn() {
-            super("Burn", Card.STATUS, -1);
+            super("Burn", Card.STATUS, -1, Card.COMMON);
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2872,7 +2878,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class BurnP extends Card {
         public BurnP() {
-            super("Burn+", Card.STATUS, -1);
+            super("Burn+", Card.STATUS, -1, Card.COMMON);
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2890,27 +2896,28 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Dazed extends Card {
         public Dazed() {
-            super("Dazed", Card.STATUS, -1);
+            super("Dazed", Card.STATUS, -1, Card.COMMON);
             ethereal = true;
         }
     }
 
     public static class Slime extends Card {
         public Slime() {
-            super("Slime", Card.STATUS, 1);
+            super("Slime", Card.STATUS, 1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
     }
 
     public static class Wound extends Card {
         public Wound() {
-            super("Wound", Card.STATUS, -1);
+            super("Wound", Card.STATUS, -1, Card.COMMON);
         }
     }
 
     public static class Void extends Card {
         public Void() {
-            super("Void", Card.STATUS, -1);
+            super("Void", Card.STATUS, -1, Card.COMMON);
+            ethereal = true;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -2930,7 +2937,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class AscendersBane extends Card {
         public AscendersBane() {
-            super("Ascender's Bane", Card.CURSE, -1);
+            super("Ascender's Bane", Card.CURSE, -1, Card.COMMON);
             ethereal = true;
             exhaustWhenPlayed = true;
         }
@@ -2938,7 +2945,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Clumsy extends Card {
         public Clumsy() {
-            super("Clumsy", Card.CURSE, -1);
+            super("Clumsy", Card.CURSE, -1, Card.COMMON);
             ethereal = true;
             exhaustWhenPlayed = true;
         }
@@ -2946,7 +2953,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Necronomicurse extends Card {
         public Necronomicurse() {
-            super("Necronomicurse", Card.CURSE, -1);
+            super("Necronomicurse", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -2963,7 +2970,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Decay extends Card {
         public Decay() {
-            super("Decay", Card.CURSE, -1);
+            super("Decay", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -2982,7 +2989,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Doubt extends Card {
         public Doubt() {
-            super("Doubt", Card.CURSE, -1);
+            super("Doubt", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -3000,7 +3007,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Normality extends Card {
         public Normality() {
-            super("Normality", Card.CURSE, -1);
+            super("Normality", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -3034,7 +3041,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Pain extends Card {
         public Pain() {
-            super("Pain", Card.CURSE, -1);
+            super("Pain", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -3053,7 +3060,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Regret extends Card {
         public Regret() {
-            super("Regret", Card.CURSE, -1);
+            super("Regret", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -3076,7 +3083,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Shame extends Card {
         public Shame() {
-            super("Shame", Card.CURSE, -1);
+            super("Shame", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
 
@@ -3094,7 +3101,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Writhe extends Card {
         public Writhe() {
-            super("Writhe", Card.CURSE, -1);
+            super("Writhe", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
             innate = true;
         }
@@ -3102,28 +3109,28 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Parasite extends Card {
         public Parasite() {
-            super("Parasite", Card.CURSE, -1);
+            super("Parasite", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
     }
 
     public static class Injury extends Card {
         public Injury() {
-            super("Injury", Card.CURSE, -1);
+            super("Injury", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
     }
 
     public static class CurseOfTheBell extends Card {
         public CurseOfTheBell() {
-            super("Curse of The Bell", Card.CURSE, -1);
+            super("Curse of The Bell", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
     }
 
     private abstract static class _FakeInfernalBladeT extends Card {
         public _FakeInfernalBladeT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             exhaustWhenPlayed = true;
         }
 

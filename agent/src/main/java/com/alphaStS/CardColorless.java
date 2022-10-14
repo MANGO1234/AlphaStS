@@ -8,7 +8,7 @@ public class CardColorless {
 
     public static class Blind extends Card {
         public Blind() {
-            super("Blind", Card.SKILL, 0);
+            super("Blind", Card.SKILL, 0, Card.UNCOMMON);
             selectEnemy = true;
             weakEnemy = true;
         }
@@ -21,7 +21,7 @@ public class CardColorless {
 
     public static class BlindP extends Card {
         public BlindP() {
-            super("Blind+", Card.SKILL, 0);
+            super("Blind+", Card.SKILL, 0, Card.UNCOMMON);
             weakEnemy = true;
         }
 
@@ -37,7 +37,7 @@ public class CardColorless {
         private final int n;
 
         public _DarkShacklesT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
             this.exhaustWhenPlayed = true;
             this.selectEnemy = true;
@@ -69,7 +69,7 @@ public class CardColorless {
         private final int n;
 
         public _DeepBreathT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -98,7 +98,7 @@ public class CardColorless {
         private final int n;
 
         public _DramaticEntranceT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
             exhaustWhenPlayed = true;
             innate = true;
@@ -130,7 +130,7 @@ public class CardColorless {
         private final int n;
 
         public _FinesseT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -157,7 +157,7 @@ public class CardColorless {
         private final int n;
 
         public _FlashOfSteelT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -187,7 +187,7 @@ public class CardColorless {
         private final int n;
 
         public _GoodInstinctsT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -213,7 +213,7 @@ public class CardColorless {
         private final int n;
 
         public _ImpatienceT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -245,7 +245,7 @@ public class CardColorless {
 
     private static abstract class _MindBlastT extends Card {
         public _MindBlastT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             innate = true;
             selectEnemy = true;
         }
@@ -272,7 +272,7 @@ public class CardColorless {
         private final int n;
 
         public _PanaceaT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
             exhaustWhenPlayed = true;
         }
@@ -302,7 +302,7 @@ public class CardColorless {
         private final int n;
 
         public _SwiftStrikeT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -327,7 +327,7 @@ public class CardColorless {
 
     public static class Trip extends Card {
         public Trip() {
-            super("Trip", Card.SKILL, 0);
+            super("Trip", Card.SKILL, 0, Card.UNCOMMON);
             selectEnemy = true;
             vulnEnemy = true;
         }
@@ -340,7 +340,7 @@ public class CardColorless {
 
     public static class TripP extends Card {
         public TripP() {
-            super("Trip+", Card.SKILL, 0);
+            super("Trip+", Card.SKILL, 0, Card.UNCOMMON);
             vulnEnemy = true;
         }
 
@@ -354,7 +354,7 @@ public class CardColorless {
 
     private static abstract class _ApotheosisT extends Card {
         public _ApotheosisT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
@@ -410,7 +410,7 @@ public class CardColorless {
         private final int n;
 
         public _MasterOfStrategyT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.n = n;
             exhaustWhenPlayed = true;
         }
@@ -440,7 +440,7 @@ public class CardColorless {
         private final int n;
 
         public _PanacheT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.n = n;
         }
 
@@ -505,7 +505,7 @@ public class CardColorless {
 
     private static abstract class _ThinkingAheadT extends Card {
         public _ThinkingAheadT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
             selectFromHand = true;
             selectFromHandLater = true;
@@ -544,7 +544,7 @@ public class CardColorless {
         private final int heal;
 
         public _BiteT(String cardName, int cardType, int energyCost, int n, int heal) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
             this.heal = heal;
             this.selectEnemy = true;
@@ -575,7 +575,7 @@ public class CardColorless {
         private final int dmgInc;
 
         public _RitualDaggerT(String cardName, int cardType, int energyCost, int n, int dmgInc) {
-            super(cardName, cardType, energyCost);
+            super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
             this.dmgInc = dmgInc;
             this.selectEnemy = true;
