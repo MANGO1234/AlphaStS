@@ -1508,6 +1508,50 @@ public class CardDefect {
         }
     }
 
-    // Seek
+    public static class Seek extends Card {
+        public Seek() {
+            super("Seek", Card.SKILL, 0, Card.RARE);
+            exhaustWhenPlayed = true;
+            selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.removeCardFromDeck(idx);
+            state.addCardToHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SeekP extends Card {
+        public SeekP() {
+            super("Seek+", Card.SKILL, 0, Card.RARE);
+            exhaustWhenPlayed = true;
+            selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.removeCardFromDeck(idx);
+            state.addCardToHand(idx);
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForWrite()[counterIdx] == 2) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+            return GameActionCtx.SELECT_CARD_DECK;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Seek+", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
     // Thunder Strike
 }

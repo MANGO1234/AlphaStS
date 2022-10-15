@@ -28,6 +28,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean selectEnemy;
     public boolean selectFromDiscard;
     public boolean selectFromExhaust;
+    public boolean selectFromDeck;
     public boolean selectFromHand;
     public boolean isXCost;
     public boolean selectFromDiscardLater;

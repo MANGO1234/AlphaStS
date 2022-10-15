@@ -500,4 +500,10 @@ public class EnemyEncounter {
         builder.addEnemy(new EnemyCity.BronzeAutomaton());
         builder.addEnemy(new EnemyCity.BronzeOrb());
     }
+
+    public static void addDarklingsFight(GameStateBuilder builder) {
+        builder.addEnemy(new EnemyBeyond.Darkling(false));
+        builder.addEnemy(new EnemyBeyond.Darkling(true));
+        builder.addEnemy(new EnemyBeyond.Darkling(false));
+    }
 }

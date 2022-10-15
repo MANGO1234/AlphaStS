@@ -33,6 +33,7 @@ public abstract class EnemyReadOnly {
         public boolean hasBurningEliteBuff = false;
         public boolean hasArtifact = false;
         public boolean useLast2MovesForMoveSelection;
+        public boolean canSelfRevive;
 
         public EnemyProperty(int numOfMoves, boolean useLast2MovesForMoveSelection) {
             this.numOfMoves = numOfMoves;

@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.OrbType;
@@ -57,6 +58,8 @@ public class InteractiveMode {
                 state = state.clone(false);
                 for (int i = 0; i < state.getLegalActions().length; i++) {
                     if (state.getAction(i).type() == GameActionType.END_TURN) {
+                        history.add("# End of Turn");
+                        history.add("# " + state);
                         state.prop.makingRealMove = true;
                         state.doAction(i);
                         state.prop.makingRealMove = false;
@@ -68,10 +71,13 @@ public class InteractiveMode {
                         state.prop.makingRealMove = true;
                         state.doAction(i);
                         state.prop.makingRealMove = false;
+                        history.add("# Start of Turn");
+                        history.add("# " + state);
                         break;
                     }
                 }
                 printState = true;
+            } else if (line.startsWith("#")) {
             } else if (line.equals("a")) {
                 System.out.println("Deck");
                 for (int i = 0; i < state.deck.length; i++) {
@@ -103,42 +109,11 @@ public class InteractiveMode {
             } else if (line.equals("eho")) {
                 setEnemyHealthOriginal(reader, state, history);
                 printState = true;
-            } else if (line.startsWith("louse-curl ")) {
-                String[] s = line.split(" ");
-                if (s.length == 3) {
-                    int enemyIdx = parseInt(s[1], -1);
-                    int n = parseInt(s[2], -1);
-                    if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
-                        if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.RedLouse louse) {
-                            louse.setCurlUpAmount(n);
-                        }
-                    }
-                    if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
-                        if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.GreenLouse louse) {
-                            louse.setCurlUpAmount(n);
-                        }
-                    }
-                }
-                printState = true;
-            } else if (line.startsWith("louse-dmg ")) {
-                String[] s = line.split(" ");
-                if (s.length == 3) {
-                    int enemyIdx = parseInt(s[1], -1);
-                    int n = Integer.parseInt(s[2], -1);
-                    if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
-                        if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.RedLouse louse) {
-                            louse.setD(n);
-                        }
-                    }
-                    if (enemyIdx >= 0 && enemyIdx < state.getEnemiesForWrite().size() && n >= 0) {
-                        if (state.getEnemiesForWrite().get(enemyIdx) instanceof Enemy.GreenLouse louse) {
-                            louse.setD(n);
-                        }
-                    }
-                }
-                printState = true;
             } else if (line.equals("em")) {
                 setEnemyMove(reader, state, history);
+                printState = true;
+            } else if (line.equals("eo")) {
+                setEnemyOther(reader, state, history);
                 printState = true;
             } else if (line.startsWith("ph ")) {
                 int hp = parseInt(line.substring(3), -1);
@@ -258,11 +233,11 @@ public class InteractiveMode {
         int enemyIdx = 0;
         System.out.println("Enemies Alive: " + state.enemiesAlive);
         for (var enemy : state.getEnemiesForRead()) {
-            if (!enemy.isAlive()) {
+            if (!(enemy.isAlive() || enemy.property.canSelfRevive)) {
                 continue;
             }
             System.out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
-            System.out.println("  HP: " + enemy.getHealth());
+            System.out.println("  HP: " + enemy.getHealth() + "/" + enemy.property.origHealth);
             if (enemy.getStrength() != 0) {
                 System.out.println("  Strength: " + enemy.getStrength());
             }
@@ -304,6 +279,10 @@ public class InteractiveMode {
                     System.out.println("  Stasis: Used (" + state.prop.cardDict[orb.getStasisCard()].cardName + ")");
                 } else {
                     System.out.println("  Stasis: Used");
+                }
+            } else if (enemy instanceof EnemyBeyond.Darkling darkling) {
+                if (darkling.getNipDamage() > 0) {
+                    System.out.println("  Nip Damage: " + darkling.getNipDamage());
                 }
             }
             System.out.println("  Move: " + enemy.getMoveString(state));
@@ -398,6 +377,7 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                    state.getAction(i).type() == GameActionType.SELECT_CARD_DECK ||
                     state.getAction(i).type() == GameActionType.BEGIN_TURN ||
                     state.getAction(i).type() == GameActionType.USE_POTION ||
                     state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
@@ -412,13 +392,10 @@ public class InteractiveMode {
                 throw new RuntimeException();
             }
         }
-        System.out.println("a. Show Deck");
-        System.out.println("s. Show Discard");
-        for (int i = 0; i < state.getExhaustForRead().length; i++) {
-            if (state.getExhaustForRead()[i] > 0) {
-                System.out.println("x. Show Exhaust");
-                break;
-            }
+        System.out.println("a. Show Deck (" + state.getNumCardsInDeck() + ")");
+        System.out.println("s. Show Discard (" + state.getNumCardsInDiscard() + ")");
+        if (state.getNumCardsInExhaust() > 0) {
+            System.out.println("x. Show Exhaust (" + state.getNumCardsInExhaust() + ")");
         }
     }
 
@@ -546,6 +523,76 @@ public class InteractiveMode {
                 }
             }
             System.out.println("Unknown Command.");
+        }
+    }
+
+    private static void setEnemyOther(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        int curEnemyIdx = selectEnemy(reader, state, history,false);
+        if (curEnemyIdx < 0) {
+            return;
+        }
+
+        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.RedLouse ||
+                state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.GreenLouse) {
+            while (true) {
+                System.out.print("0. Curl-Up");
+                System.out.print("1. Damage");
+                String line = reader.readLine();
+                history.add(line);
+                if (line.equals("b")) {
+                    return;
+                }
+                int r = parseInt(line, -1);
+                if (r == 0) {
+                    System.out.println("Curl-Up Amount: ");
+                    line = reader.readLine();
+                    history.add(line);
+                    if (line.equals("b")) {
+                        return;
+                    }
+                    int n = parseInt(line, -1);
+                    if (n > 0) {
+                        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.RedLouse louse) {
+                            louse.setCurlUpAmount(n);
+                        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.GreenLouse louse) {
+                            louse.setCurlUpAmount(n);
+                        }
+                        return;
+                    }
+                } else if (r == 1) {
+                    System.out.println("Damage: ");
+                    line = reader.readLine();
+                    history.add(line);
+                    if (line.equals("b")) {
+                        return;
+                    }
+                    int n = parseInt(line, -1);
+                    if (n > 0) {
+                        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.RedLouse louse) {
+                            louse.setD(n);
+                        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.GreenLouse louse) {
+                            louse.setD(n);
+                        }
+                        return;
+                    }
+                }
+            }
+        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyBeyond.Darkling darkling) {
+            while (true) {
+                System.out.println("Nip Damage: ");
+                String line = reader.readLine();
+                history.add(line);
+                if (line.equals("b")) {
+                    return;
+                }
+                int n = parseInt(line, -1);
+                if (n > 0) {
+                    darkling.setNipDamage(n);
+                    return;
+                }
+            }
+        } else {
+            System.out.println("Nothing to change.");
         }
     }
 
@@ -951,6 +998,7 @@ public class InteractiveMode {
                                 state.getAction(i).type() == GameActionType.SELECT_CARD_HAND ||
                                 state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
                                 state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                                state.getAction(i).type() == GameActionType.SELECT_CARD_DECK ||
                                 state.getAction(i).type() == GameActionType.BEGIN_TURN ||
                                 state.getAction(i).type() == GameActionType.USE_POTION ||
                                 state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||

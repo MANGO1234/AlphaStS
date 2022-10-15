@@ -905,26 +905,18 @@ public class TestStates {
         builder.addCard(new CardDefect.SunderP(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
-        builder.addCard(new CardDefect.TurboP(), 0);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.BootSequenceP(), 1);
         builder.addCard(new CardDefect.EchoForm(), 2);
-        builder.addCard(new CardDefect.Consume(), 0);
         builder.addCard(new CardDefect.ConsumeP(), 1);
         builder.addCard(new CardDefect.EquilibirumP(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.RebootP(), 1);
-        builder.addCard(new CardDefect.StreamlineP(), 0);
         builder.addCard(new CardDefect.Darkness(), 1);
-        builder.addCard(new CardDefect.DarknessP(), 0);
-        builder.addCard(new CardDefect.Aggregate(), 0);
-        EnemyEncounter.addBronzeAutomatonFight(builder);
-        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new CardDefect.Aggregate(), 0)),
-                List.of(new CardCount(new CardDefect.Aggregate(), 1))
-        ));
-        builder.setRandomization(randomization);
+        builder.addCard(new CardDefect.Aggregate(), 1);
+        builder.addCard(new CardDefect.Seek(), 1);
+        EnemyEncounter.addDarklingsFight(builder);
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
@@ -932,10 +924,11 @@ public class TestStates {
         builder.addRelic(new Relic.RunicDome());
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.RunicCapacitor());
+        builder.addRelic(new Relic.PhilosophersStone());
         builder.addPotion(new Potion.BlockPotion());
         builder.addPotion(new Potion.BlockPotion());
         builder.addPotion(new Potion.GamblersBrew());
-        builder.setPlayer(new Player(73, 76));
+        builder.setPlayer(new Player(76, 76));
         return new GameState(builder);
     }
 
