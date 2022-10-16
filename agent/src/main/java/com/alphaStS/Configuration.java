@@ -12,6 +12,7 @@ public class Configuration {
     public static float TRAINING_PERCENTAGE_NO_TEMPERATURE = 0.2f;
     public static boolean TRAINING_FORCED_PLAYOUT_ON = true;
     public static boolean CARD_IN_HAND_IN_NN_INPUT = true;
+    public static boolean CARD_IN_DECK_IN_NN_INPUT = true;
 
     public static float UTIL_FOR_RITUAL_DAGGER = 0.4f;
     public static float PRE_BATTLE_SCENARIO_TEMP = 0f;
@@ -32,7 +33,7 @@ public class Configuration {
     public static boolean TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION = true;
     public static boolean UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
     public static boolean TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
-    public static boolean TRAINING_RESCORE_SEARCH_FOR_BEST_LINE = false;
+    public static boolean TRAINING_RESCORE_SEARCH_FOR_BEST_LINE = true;
     public static boolean TRAINING_SKIP_OPENING_TURNS = false;
     public static int TRAINING_SKIP_OPENING_TURNS_UPTO = 3;
     public static double TRAINING_SKIP_OPENING_GAMES_INCREASE_RATIO = 1.25;

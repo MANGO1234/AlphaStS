@@ -60,7 +60,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class AncientTeaSet extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.energy += 2;
                 }
             });
@@ -77,7 +77,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addStartOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.turnNum > 1 && (state.buffs & PlayerBuff.ART_OF_WAR.mask()) != 0) {
                         state.gainEnergy(1);
                     }
@@ -91,9 +91,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             vulnEnemy = true;
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(state, DebuffType.VULNERABLE, 1 + 1);
+                        enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
                     }
                 }
             });
@@ -103,7 +103,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class BagOfPreparation extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.turnNum == 1) {
                         state.draw(2);
                     }
@@ -118,7 +118,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Thorn", this, null);
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] += 3;
                 }
             });
@@ -165,7 +165,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addStartOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
                     if (counter[counterIdx] == 3) {
@@ -221,7 +221,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
@@ -251,7 +251,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Orichalcum extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addPreEndOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getBlock() == 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
                     }
@@ -292,7 +292,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
@@ -324,7 +324,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class PreservedInsect extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (isEliteFight(state)) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             enemy.setHealth(enemy.getHealth() * 3 / 4);
@@ -383,7 +383,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(card));
                 }
             });
@@ -415,7 +415,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class GremlinHorn extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addOnEnemyDeathHandler("GremlinHorn", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.gainEnergy(1);
                     state.draw(1);
                 }
@@ -435,7 +435,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addStartOfTurnHandler("HornCleat", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.turnNum == 2) {
                         state.getPlayerForWrite().gainBlock(14);
                     }
@@ -495,7 +495,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addPreEndOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -529,7 +529,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addPreEndOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -542,7 +542,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             state.prop.hasMeatOnBone = true;
             state.addEndOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
                         state.getPlayerForWrite().heal(12);
                     }
@@ -554,7 +554,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class MercuryHourglass extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         state.playerDoNonAttackDamageToEnemy(enemy, 3, true);
                     }
@@ -592,7 +592,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addPreEndOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -629,7 +629,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.addPreEndOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -908,9 +908,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             weakEnemy = true;
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(state, DebuffType.WEAK, 1 + 1);
+                        enemy.applyDebuff(state, DebuffType.WEAK, 1);
                     }
                 }
             });
@@ -923,7 +923,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class WarpedTongs extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     int nonUpgradedCardCount = 0;
                     for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                         if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
@@ -965,7 +965,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             state.prop.hasBurningBlood = true;
             state.addEndOfBattleHandler("BurningBlood", new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.healPlayer(6);
                 }
             });
@@ -975,7 +975,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class RingOfSerpant extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.turnNum == 1) {
                         var idx = state.prop.findCardIndex(new CardSilent.Survivor());
                         if (idx >= 0 && (state.hand[idx] > 0 || state.deck[idx] > 0)) {
@@ -1029,7 +1029,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class CrackedOrb extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.channelOrb(OrbType.LIGHTNING);
                 }
             });
@@ -1039,7 +1039,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class DataDisk extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.gainFocus(1);
                 }
             });
@@ -1050,7 +1050,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             state.prop.maxNumOfOrbs = Math.max(state.prop.maxNumOfOrbs, 6);
             state.addStartOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.gainOrbSlot(3);
                 }
             });

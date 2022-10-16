@@ -464,7 +464,7 @@ public class CardColorless {
                 }
             });
             state.addEndOfTurnHandler("Panache", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] &= ~7;
                 }
             });

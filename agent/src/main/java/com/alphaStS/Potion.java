@@ -344,7 +344,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             });
             state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });

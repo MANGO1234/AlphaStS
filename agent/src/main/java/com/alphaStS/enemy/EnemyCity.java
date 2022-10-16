@@ -215,7 +215,8 @@ public class EnemyCity {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof BronzeOrb) {
-                        state.reviveEnemy(i);
+                        state.reviveEnemy(i, false);
+                        state.getEnemiesForWrite().getForWrite(i).reviveReset();
                     }
                 }
             } else if (move == BOOST_1 || move == BOOST_2) {
@@ -472,6 +473,7 @@ public class EnemyCity {
         public GremlinLeader(int health) {
             super(health, 3, false);
             property.isElite = true;
+            property.actNumber = 2;
             property.canGainStrength = true;
             property.canGainBlock = true;
         }
@@ -532,7 +534,8 @@ public class EnemyCity {
                         int j;
                         for (j = 0; j < 3; j++) {
                             if (!enemies.get(startIdx + j).isAlive()) {
-                                state.reviveEnemy(startIdx + j);
+                                state.reviveEnemy(startIdx + j, false);
+                                state.getEnemiesForWrite().getForWrite(startIdx + j).reviveReset();
                                 break;
                             }
                         }
@@ -608,7 +611,8 @@ public class EnemyCity {
                                 idx = startIdx + 13;
                             }
                         }
-                        state.reviveEnemy(idx);
+                        state.reviveEnemy(idx, false);
+                        state.getEnemiesForWrite().getForWrite(idx).reviveReset();
                         if (state.enemiesAlive != 4) {
                             var j = 0;
                             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -815,6 +819,7 @@ public class EnemyCity {
         public BookOfStabbing(int health) {
             super(health, 2, true);
             property.isElite = true;
+            property.actNumber = 2;
             stabCount = 1;
         }
 
@@ -919,6 +924,7 @@ public class EnemyCity {
         public Taskmaster(int health) {
             super(health, 1, false);
             property.isElite = true;
+            property.actNumber = 2;
             property.canGainStrength = true;
         }
 

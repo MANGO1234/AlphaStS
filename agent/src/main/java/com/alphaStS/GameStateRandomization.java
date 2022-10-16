@@ -323,10 +323,8 @@ public interface GameStateRandomization {
                 if (enemy.hasBurningHealthBuff()) {
                     enemy.setHealth((int) (enemy.getHealth() * 1.25));
                 }
-                if (enemy.getHealth() != enemy.property.maxHealth) {
-                    enemy.property = enemy.property.clone();
-                    enemy.property.origHealth = enemy.getHealth();
-                }
+                enemy.property = enemy.property.clone();
+                enemy.property.origHealth = enemy.getHealth();
             }
             return 0;
         }
@@ -565,7 +563,6 @@ public interface GameStateRandomization {
         }
     }
 
-    // todo: floor
     class BurningEliteRandomization implements GameStateRandomization {
         @Override public int randomize(GameState state) {
             int r = state.getSearchRandomGen().nextInt(4, RandomGenCtx.BeginningOfGameRandomization, this);
@@ -591,7 +588,7 @@ public interface GameStateRandomization {
                         if (enemy.property.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.property.origMaxHealth);
-                            enemy.gainStrength(2);
+                            enemy.gainStrength(enemy.property.actNumber + 1);
                             enemy.setMetallicize(0);
                             enemy.setRegeneration(0);
                         }
@@ -603,7 +600,7 @@ public interface GameStateRandomization {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.property.origMaxHealth);
                             enemy.gainStrength(-enemy.getStrength());
-                            enemy.setMetallicize(4);
+                            enemy.setMetallicize(2 * enemy.property.actNumber + 2);
                             enemy.setRegeneration(0);
                         }
                     }
@@ -615,7 +612,7 @@ public interface GameStateRandomization {
                             enemy.setHealth(enemy.property.origMaxHealth);
                             enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(0);
-                            enemy.setRegeneration(3);
+                            enemy.setRegeneration(2 * enemy.property.actNumber + 1);
                         }
                     }
                 }
@@ -625,9 +622,9 @@ public interface GameStateRandomization {
         @Override public Map<Integer, Info> listRandomizations() {
             var map = new HashMap<Integer, Info>();
             map.put(0, new Info(1.0 / 4, "+25% Health"));
-            map.put(1, new Info(1.0 / 4, "+2 Strength"));
-            map.put(2, new Info(1.0 / 4, "+4 Metallicize"));
-            map.put(3, new Info(1.0 / 4, "+3 Regeneration"));
+            map.put(1, new Info(1.0 / 4, "+Strength"));
+            map.put(2, new Info(1.0 / 4, "+Metallicize"));
+            map.put(3, new Info(1.0 / 4, "+Regeneration"));
             return map;
         }
     }

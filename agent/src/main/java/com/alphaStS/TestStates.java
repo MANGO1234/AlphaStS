@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enums.CharacterEnum;
@@ -916,7 +917,23 @@ public class TestStates {
         builder.addCard(new CardDefect.Darkness(), 1);
         builder.addCard(new CardDefect.Aggregate(), 1);
         builder.addCard(new CardDefect.Seek(), 1);
-        EnemyEncounter.addDarklingsFight(builder);
+        builder.addCard(new CardDefect.Hologram(), 1);
+        builder.addCard(new CardDefect.RecursionP(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 1);
+        builder.addCard(new CardDefect.BarrageP(), 0);
+        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
+        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
+        EnemyEncounter.addReptomancerFight(builder, true);
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.CoolheadedP(), 1)),
+                List.of(new CardCount(new CardDefect.BarrageP(), 1))
+        )).fixR(0);
+        randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+                List.of(new Tuple<>(0, -1)),
+                List.of(new Tuple<>(1, -1)),
+                List.of(new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1), new Tuple<>(5, -1), new Tuple<>(6, -1))
+        )).doAfter(randomization);
+        builder.setRandomization(new GameStateRandomization.BurningEliteRandomization().doAfter(randomization));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
@@ -927,8 +944,9 @@ public class TestStates {
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addPotion(new Potion.BlockPotion());
         builder.addPotion(new Potion.BlockPotion());
+        builder.addPotion(new Potion.SpeedPotion());
         builder.addPotion(new Potion.GamblersBrew());
-        builder.setPlayer(new Player(76, 76));
+        builder.setPlayer(new Player(72, 72));
         return new GameState(builder);
     }
 

@@ -506,4 +506,27 @@ public class EnemyEncounter {
         builder.addEnemy(new EnemyBeyond.Darkling(true));
         builder.addEnemy(new EnemyBeyond.Darkling(false));
     }
+
+    public static void addReptomancerFight(GameStateBuilder builder, boolean burning) {
+//        var start = builder.getEnemies().size();
+        if (burning) {
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
+            builder.addEnemy(new EnemyBeyond.Reptomancer().markAsBurningElite());
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
+        } else {
+            builder.addEnemy(new EnemyBeyond.Dagger());
+            builder.addEnemy(new EnemyBeyond.Dagger());
+            builder.addEnemy(new EnemyBeyond.Dagger());
+            builder.addEnemy(new EnemyBeyond.Reptomancer());
+            builder.addEnemy(new EnemyBeyond.Dagger());
+        }
+//        builder.addEnemyReordering((state, order) -> {
+//            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
+//                order[start] = start + 2;
+//                order[start + 2] = start;
+//            }
+//        });
+    }
 }

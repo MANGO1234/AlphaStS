@@ -89,9 +89,11 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var orbs = state.getOrbs();
-            var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
-                state.playerDoDamageToEnemy(enemy, n);
+            if (orbs != null) {
+                var enemy = state.getEnemiesForWrite().getForWrite(idx);
+                for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
+                    state.playerDoDamageToEnemy(enemy, n);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -164,7 +166,7 @@ public class CardDefect {
                 }
             });
             state.addStartOfTurnHandler("ChargeBattery", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.gainEnergy(state.getCounterForWrite()[counterIdx]);
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
@@ -370,7 +372,31 @@ public class CardDefect {
     }
 
     // Rebound
-    // Recursion
+
+    private static class _RecursionT extends Card {
+        public _RecursionT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.COMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.triggerRightmostOrbActive();
+            state.rotateOrbToBack();
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Recursion extends CardDefect._RecursionT {
+        public Recursion() {
+            super("Recursion", 1);
+        }
+    }
+
+    public static class RecursionP extends CardDefect._RecursionT {
+        public RecursionP() {
+            super("Recursion+", 0);
+        }
+    }
+
     // Stack
     // Steam Barrier
 
@@ -801,7 +827,7 @@ public class CardDefect {
                 }
             });
             state.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
                     }
@@ -853,7 +879,48 @@ public class CardDefect {
         }
     }
 
-    // Genetic Algorithm
+    // todo: add reward
+    private static abstract class _GeneticAlgorithmT extends Card {
+        private final int block;
+        private final int blockInc;
+
+        public _GeneticAlgorithmT(String cardName, int block, int blockInc) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            this.blockInc = blockInc;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.getCounterForWrite()[counterIdx] += blockInc;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var name = cardName.substring(0, cardName.indexOf(' '));
+            if (name.endsWith("+")) {
+                name = name.substring(0, name.length() - 1);
+            }
+            state.prop.registerCounter(name, this, null);
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+        }
+    }
+
+    public static class GeneticAlgorithm extends CardDefect._GeneticAlgorithmT {
+        public GeneticAlgorithm(int dmg, int block) {
+            super("Genetic Algorithm (" + block + ")", block, 2);
+        }
+    }
+
+    public static class GeneticAlgorithmP extends CardDefect._GeneticAlgorithmT {
+        public GeneticAlgorithmP(int dmg, int block) {
+            super("Genetic Algorithm+ (" + block + ")", block, 3);
+        }
+    }
 
     private static abstract class _GlacierT extends Card {
         private final int n;
@@ -1102,7 +1169,7 @@ public class CardDefect {
                 }
             });
             state.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1249,7 +1316,7 @@ public class CardDefect {
                 }
             });
             state.addEndOfTurnHandler("LoseFocusPerTurn", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1313,8 +1380,13 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // we split counter into two component, 1 for number of duplicated cards per turn and 1 for the number of cards played this turn (up to the max)
-            state.getCounterForWrite()[counterIdx] += 1 << 16;
+            // we split counter into three component, 1 for number of duplicated cards per turn and 1 for the number of cards played this turn (up to the max)
+            // and negative means the current played card is echoed (todo: register multiple counter so code is clearer and not a mess)
+            if (state.getCounterForWrite()[counterIdx] < 0) {
+                state.getCounterForWrite()[counterIdx] = -(-state.getCounterForWrite()[counterIdx] + (1 << 16));
+            } else {
+                state.getCounterForWrite()[counterIdx] += 1 << 16;
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1322,20 +1394,33 @@ public class CardDefect {
             state.prop.registerCounter("EchoForm", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int counter = state.getCounterForRead()[counterIdx];
+                    float playingClonedCard = 0.0f;
+                    if (counter < 0) {
+                        counter *= -1;
+                        playingClonedCard = 0.5f;
+                    }
                     input[idx] = (counter >> 16) / 8.0f;
                     input[idx + 1] = Math.min((counter >> 16), (counter & ((1 << 16) - 1))) / 8.0f;
-                    return idx + 2;
+                    input[idx + 2] = playingClonedCard;
+                    return idx + 3;
                 }
                 @Override public int getInputLenDelta() {
-                    return 2;
+                    return 3;
                 }
                 @Override public String getDisplayString(GameState state) {
                     int counter = state.getCounterForRead()[counterIdx];
-                    return (counter & ((1 << 16) - 1)) + "/" + (counter >> 16);
+                    if (counter < 0) {
+                        return (-counter & ((1 << 16) - 1)) + "/" + (-counter >> 16) + "/echoingCard";
+                    } else {
+                        return (counter & ((1 << 16) - 1)) + "/" + (counter >> 16);
+                    }
                 }
             });
             state.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                    if (state.getCounterForRead()[counterIdx] < 0) {
+                        state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];
+                    }
                     if (cloned) { // todo: think only echo formed card doesn't count toward card played
                         return;
                     }
@@ -1348,9 +1433,11 @@ public class CardDefect {
                         state.addGameActionToStartOfDeque(curState -> {
                             var cardIdx = curState.prop.findCardIndex(card);
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
                             if (curState.playCard(action, lastIdx, false,true, false, false)) {
                                 curState.runActionsInQueueIfNonEmpty();
                             } else {
+                                curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
                                 curState.getCounterForWrite()[counterIdx]--;
                             }
                         });
@@ -1361,7 +1448,7 @@ public class CardDefect {
                 }
             });
             state.addStartOfTurnHandler("EchoForm", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     int counter = state.getCounterForRead()[counterIdx];
                     state.getCounterForWrite()[counterIdx] = counter & (((1 << 16) - 1) << 16);
                 }

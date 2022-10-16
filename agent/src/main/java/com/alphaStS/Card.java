@@ -1100,7 +1100,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addPreEndOfTurnHandler(name, new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     var counter = state.getCounterForRead()[counterIdx];
                     var selfDmg = counter >> 16;
                     var enemyDmg = counter & ((1 << 16) - 1);
@@ -1146,7 +1146,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.draw(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1174,7 +1174,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.draw(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1374,7 +1374,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addOnExhaustHandler("FNP", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1402,7 +1402,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addOnExhaustHandler("FNP", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1486,7 +1486,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addStartOfTurnHandler("FlameBarrier", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -1522,7 +1522,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addStartOfTurnHandler("FlameBarrier", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -1745,7 +1745,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1773,7 +1773,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -1875,7 +1875,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addPreEndOfTurnHandler("Rage", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -2376,7 +2376,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addStartOfTurnHandler("Brutality", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     int n = state.getCounterForRead()[counterIdx];
                     state.doNonAttackDamageToPlayer(n, false, _this);
                     state.draw(n);
@@ -2446,7 +2446,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addStartOfTurnHandler("DemonForm", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
                 }
             });
@@ -2734,7 +2734,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addOnBlockHandler("Juggernaut", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     int i = 0;
                     if (state.enemiesAlive > 1) {
                         i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyJuggernaut, state);
@@ -2868,7 +2868,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var cardIndex = state.prop.findCardIndex(this);
             var _this = this;
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(2, true, _this);
                     }
@@ -2886,7 +2886,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var cardIndex = state.prop.findCardIndex(this);
             var _this = this;
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(4, true, _this);
                     }
@@ -2979,7 +2979,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var cardIndex = state.prop.findCardIndex(this);
             var _this = this;
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.doNonAttackDamageToPlayer(2, true, _this);
                     }
@@ -2997,7 +2997,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
                     }
@@ -3028,7 +3028,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 }
             });
             state.addPreEndOfTurnHandler("Normality", new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
             });
@@ -3069,7 +3069,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var cardIndex = state.prop.findCardIndex(this);
             var _this = this;
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     int numOfCards = 0;
                     for (int n : state.hand) {
                         numOfCards += n;
@@ -3091,7 +3091,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override public void startOfGameSetup(GameState state) {
             var cardIndex = state.prop.findCardIndex(this);
             state.addPreEndOfTurnHandler(new GameEventHandler(1) {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     for (int i = 0; i < state.hand[cardIndex]; i++) {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
                     }

@@ -284,8 +284,25 @@ public class InteractiveMode {
                 if (darkling.getNipDamage() > 0) {
                     System.out.println("  Nip Damage: " + darkling.getNipDamage());
                 }
+            } else if (enemy instanceof EnemyBeyond.GiantHead giantHead) {
+                if (giantHead.getMove() != EnemyBeyond.GiantHead.IT_IS_TIME) {
+                    System.out.println("  Turn(s) Until Large Attack: " + giantHead.getTurnUntilLargeAttack());
+                }
+                if (giantHead.getSlow() > 0) {
+                    System.out.println("  Slow: " + giantHead.getSlow());
+                }
+            } else if (enemy instanceof EnemyBeyond.Nemesis nemesis) {
+                if (nemesis.isIntangible()) {
+                    System.out.println("  Intangible");
+                }
             }
-            System.out.println("  Move: " + enemy.getMoveString(state));
+            if (state.prop.hasRunicDome) {
+                System.out.println("  Last Move: " + enemy.getMoveString(state));
+                System.out.println("  Last Last Move: " + enemy.getLastMoveString(state));
+            } else {
+                System.out.println("  Move: " + enemy.getMoveString(state));
+                System.out.println("  Last Move: " + enemy.getLastMoveString(state));
+            }
             System.out.println();
         }
         System.out.println("Player");
@@ -612,7 +629,7 @@ public class InteractiveMode {
             int hp = parseInt(line, -1);
             if (hp >= 0) {
                 if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
-                    state.reviveEnemy(curEnemyIdx);
+                    state.reviveEnemy(curEnemyIdx, true);
                     state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                 } else {
                     if (hp == 0) {
@@ -646,7 +663,7 @@ public class InteractiveMode {
                 state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth = hpOrig;
                 int hp = Math.max(0, Math.min(state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.maxHealth, oldHp + (hpOrig - oldHpOrig)));
                 if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
-                    state.reviveEnemy(curEnemyIdx);
+                    state.reviveEnemy(curEnemyIdx, true);
                     state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                 } else {
                     if (hp == 0) {

@@ -114,6 +114,19 @@ public abstract class Enemy extends EnemyReadOnly {
         }
     }
 
+    public void reviveReset() {
+        block = 0;
+        strength = 0;
+        vulnerable = 0;
+        weak = 0;
+        artifact = 0;
+        regeneration = 0;
+        metallicize = 0;
+        loseStrengthEot = 0;
+        move = -1;
+        lastMove = -1;
+    }
+
     protected void heal(int hp) {
         health += Math.min(hp, Math.max(0, property.origHealth - health));
     }
@@ -428,6 +441,7 @@ public abstract class Enemy extends EnemyReadOnly {
         public GremlinNob(int health) {
             super(health, 4, false);
             property.isElite = true;
+            property.actNumber = 1;
             property.canVulnerable = true;
             property.canGainStrength = true;
         }
@@ -519,6 +533,7 @@ public abstract class Enemy extends EnemyReadOnly {
         public Lagavulin(int health) {
             super(health, 4, false);
             property.isElite = true;
+            property.actNumber = 1;
             property.canGainBlock = true;
             property.changePlayerStrength = true;
             property.changePlayerDexterity = true;
@@ -621,6 +636,7 @@ public abstract class Enemy extends EnemyReadOnly {
         public Sentry(int health, int startMove) {
             super(health, 2, false);
             property.isElite = true;
+            property.actNumber = 1;
             property.canDaze = true;
             property.hasArtifact = true;
             this.startMove = startMove;

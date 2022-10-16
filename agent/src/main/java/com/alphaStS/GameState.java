@@ -15,22 +15,6 @@ import java.util.*;
 
 import static com.alphaStS.utils.Utils.formatFloat;
 
-abstract class GameEventHandler implements Comparable<GameEventHandler> {
-    private int priority;
-
-    protected GameEventHandler(int priority) {
-        this.priority = priority;
-    }
-
-    protected GameEventHandler() {}
-
-    abstract void handle(GameState state);
-
-    @Override public int compareTo(GameEventHandler other) {
-        return Integer.compare(priority, other.priority);
-    }
-}
-
 enum GameActionType {
     BEGIN_BATTLE,
     PLAY_CARD,
@@ -433,7 +417,7 @@ public class GameState implements State {
         prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
         if (prop.healEndOfAct) {
             addEndOfBattleHandler(new GameEventHandler() {
-                @Override void handle(GameState state) {
+                @Override public void handle(GameState state) {
                     var d = state.getPlayeForRead().getMaxHealth() - state.getPlayeForRead().getHealth();
                     state.getPlayerForWrite().heal(d - d / 4);
                 }
@@ -850,7 +834,6 @@ public class GameState implements State {
                 } else if (possibleChoicesCount == 1) {
                     setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else {
-                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
@@ -869,7 +852,6 @@ public class GameState implements State {
                 } else if (possibleChoicesCount == 1) {
                     setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else {
-                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
@@ -886,7 +868,6 @@ public class GameState implements State {
                 } else if (possibleChoicesCount == 1) {
                     setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else {
-                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
@@ -903,7 +884,6 @@ public class GameState implements State {
                 } else if (possibleChoicesCount == 1) {
                     setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
                 } else {
-                    cardPlayedSuccessfully = false;
                     break;
                 }
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
@@ -1032,7 +1012,9 @@ public class GameState implements State {
             var enemy = enemies.get(i);
             if (enemy.isAlive() || enemy.property.canSelfRevive) {
                 var enemy2 = enemies.getForWrite(i);
-                enemy2.endTurn(turnNum);
+                if (turnNum > 1) {
+                    enemy2.endTurn(turnNum);
+                }
                 if (!prop.hasRunicDome) {
                     enemy2.nextMove(this, getSearchRandomGen());
                 } else {
@@ -1078,21 +1060,21 @@ public class GameState implements State {
             }
         }
         var enemies = getEnemiesForWrite();
-        int atLeastOneAlive = 0;
+        int[] livingEnemies = new int[enemies.size()];
+        int livingEnemiesCount = 0;
+        boolean atLeastOneAlive = false;
         for (int i = 0; i < enemies.size(); i++) {
             var enemy = enemies.get(i);
-            if (enemy.isAlive()) {
-                atLeastOneAlive++;
-                break;
+            if (enemy.isAlive() || enemy.property.canSelfRevive) {
+                livingEnemies[livingEnemiesCount++] = i;
+                if (enemy.isAlive()) {
+                    atLeastOneAlive = true;
+                }
             }
         }
-        if (atLeastOneAlive > 0) {
-            for (int i = 0; i < enemies.size(); i++) {
-                var enemy = enemies.get(i);
-                if (!enemy.isAlive() && !enemy.property.canSelfRevive) {
-                    continue;
-                }
-                var enemy2 = enemies.getForWrite(i);
+        if (atLeastOneAlive) {
+            for (int i = 0; i < livingEnemiesCount; i++) {
+                var enemy2 = enemies.getForWrite(livingEnemies[i]);
                 if (prop.hasRunicDome) {
                     var oldIsStochastic = isStochastic;
                     isStochastic = false;
@@ -1738,6 +1720,9 @@ public class GameState implements State {
         if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
             inputLen += 1;
         }
+        if (Configuration.CARD_IN_DECK_IN_NN_INPUT) {
+            inputLen += 1;
+        }
         inputLen += prop.discardIdxes.length;
         if (prop.selectFromExhaust) {
             inputLen += prop.realCardsLen;
@@ -1902,6 +1887,9 @@ public class GameState implements State {
         str += "    " + hand.length + " inputs for cards in hand\n";
         if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
             str += "    1 input for number of cards in hand\n";
+        }
+        if (Configuration.CARD_IN_DECK_IN_NN_INPUT) {
+            str += "    1 input for number of cards in deck\n";
         }
         str += "    " + prop.discardIdxes.length + " inputs to keep track of cards in discard\n";
         if (prop.selectFromExhaust) {
@@ -2092,6 +2080,9 @@ public class GameState implements State {
         }
         if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
             x[idx++] = (cardsInHand - 5) / 10.0f;
+        }
+        if (Configuration.CARD_IN_DECK_IN_NN_INPUT) {
+            x[idx++] = getNumCardsInDeck() / 40.0f;
         }
         for (int i = 0; i < prop.discardIdxes.length; i++) {
             x[idx++] = discard[prop.discardIdxes[i]] / (float) 10.0;
@@ -2545,6 +2536,7 @@ public class GameState implements State {
             prop.startOfBattleHandlers.add(handler);
         }
     }
+
     public void addEndOfBattleHandler(GameEventHandler handler) {
         prop.endOfBattleHandlers.add(handler);
     }
@@ -3008,13 +3000,16 @@ public class GameState implements State {
         }
     }
 
-    public void reviveEnemy(int idx) {
+    public void reviveEnemy(int idx, boolean getNextMove) {
         if (!getEnemiesForRead().get(idx).isAlive()) {
             getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
             setIsStochastic();
-            getEnemiesForWrite().getForWrite(idx).randomize(getSearchRandomGen(), prop.curriculumTraining);
-            if (!prop.hasRunicDome) {
-                getEnemiesForWrite().getForWrite(idx).nextMove(this, getSearchRandomGen());
+            var enemy = getEnemiesForWrite().getForWrite(idx);
+            enemy.randomize(getSearchRandomGen(), prop.curriculumTraining);
+            enemy.property = enemy.property.clone();
+            enemy.property.origHealth = enemy.getHealth();
+            if (getNextMove && !prop.hasRunicDome) {
+                enemy.nextMove(this, getSearchRandomGen());
             }
             adjustEnemiesAlive(1);
         } else {
@@ -3083,37 +3078,58 @@ public class GameState implements State {
         }
     }
 
+    public void triggerRightmostOrbActive() {
+        if (orbs == null) return;
+        if (orbs[0] == OrbType.FROST.ordinal()) {
+            getPlayerForWrite().gainBlockNotFromCardPlay(5 + focus);
+        } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
+            int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
+            if (idx >= 0) {
+                var enemy = getEnemiesForWrite().getForWrite(idx);
+                if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
+                    getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
+                }
+                playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
+            }
+        } else if (orbs[0] == OrbType.DARK.ordinal()) {
+            Enemy minEnemy = null;
+            for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
+                if (minEnemy == null || minEnemy.getHealth() > enemy.getHealth()) {
+                    minEnemy = enemy;
+                }
+            }
+            if (minEnemy != null) {
+                playerDoNonAttackDamageToEnemy(minEnemy, orbs[1], true);
+            }
+        } else if (orbs[0] == OrbType.PLASMA.ordinal()) {
+            gainEnergy(2);
+        }
+    }
+
     public void evokeOrb(int times) {
         if (orbs == null) return;
         for (int i = 0; i < times; i++) {
-            if (orbs[0] == OrbType.FROST.ordinal()) {
-                getPlayerForWrite().gainBlockNotFromCardPlay(5 + focus);
-            } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
-                int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
-                if (idx >= 0) {
-                    var enemy = getEnemiesForWrite().getForWrite(idx);
-                    if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
-                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
-                    }
-                    playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
-                }
-            } else if (orbs[0] == OrbType.DARK.ordinal()) {
-                Enemy minEnemy = null;
-                for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
-                    if (minEnemy == null || minEnemy.getHealth() > enemy.getHealth()) {
-                        minEnemy = enemy;
-                    }
-                }
-                if (minEnemy != null) {
-                    playerDoNonAttackDamageToEnemy(minEnemy, orbs[1], true);
-                }
-            } else if (orbs[0] == OrbType.PLASMA.ordinal()) {
-                gainEnergy(2);
-            }
+            triggerRightmostOrbActive();
         }
         System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
         orbs[orbs.length - 2] = 0;
         orbs[orbs.length - 1] = 0;
+    }
+
+    public void rotateOrbToBack() {
+        if (orbs == null || orbs[0] == 0) return;
+        short orb1 = orbs[0];
+        short orb2 = orbs[1];
+        System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
+        orbs[orbs.length - 2] = 0;
+        orbs[orbs.length - 1] = 0;
+        for (int i = 0; i < orbs.length; i += 2) {
+            if (orbs[i] == 0) {
+                orbs[i] = orb1;
+                orbs[i + 1] = orb2;
+                break;
+            }
+        }
     }
 
     private void triggerOrbsPassiveEndOfTurn() {
