@@ -576,7 +576,51 @@ public class CardDefect {
         }
     }
 
-    // Blizzard
+    private static class _BlizzardT extends Card {
+        private final int n;
+
+        public _BlizzardT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int c = state.getCounterForRead()[counterIdx];
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n * c);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Blizzard", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.blizzardCounterIdx = idx;
+        }
+    }
+
+    public static class Blizzard extends CardDefect._BlizzardT {
+        public Blizzard() {
+            super("Blizzard", 2);
+        }
+    }
+
+    public static class BlizzardP extends CardDefect._BlizzardT {
+        public BlizzardP() {
+            super("Blizzard+", 3);
+        }
+    }
 
     private static class _BootSequenceT extends Card {
         private final int n;
@@ -645,10 +689,14 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var count = 0;
             for (var enemy : state.getEnemiesForRead()) {
                 if (enemy.isAlive()) {
-                    state.channelOrb(OrbType.FROST);
+                    count++;
                 }
+            }
+            for (int i = 0; i < count; i++) {
+                state.channelOrb(OrbType.FROST);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -826,7 +874,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
+            state.prop.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
@@ -1315,7 +1363,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.addEndOfTurnHandler("LoseFocusPerTurn", new GameEventHandler() {
+            state.prop.addEndOfTurnHandler("LoseFocusPerTurn", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
                 }
@@ -1640,5 +1688,51 @@ public class CardDefect {
         }
     }
 
-    // Thunder Strike
+    private static class _ThunderStrikeT extends Card {
+        private final int n;
+
+        public _ThunderStrikeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int c = state.getCounterForRead()[counterIdx];
+            for (int i = 0; i < c; i++) {
+                var j = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemySwordBoomerang);
+                var enemy = state.getEnemiesForWrite().getForWrite(j);
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("ThunderStrike", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.thunderStrikeCounterIdx = idx;
+        }
+    }
+
+    public static class ThunderStrike extends CardDefect._ThunderStrikeT {
+        public ThunderStrike() {
+            super("Thunder Strike", 7);
+        }
+    }
+
+    public static class ThunderStrikeP extends CardDefect._ThunderStrikeT {
+        public ThunderStrikeP() {
+            super("Thunder Strike+", 9);
+        }
+    }
 }

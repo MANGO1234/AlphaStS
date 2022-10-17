@@ -34,7 +34,7 @@ enum GameActionType {
 record GameAction(GameActionType type, int idx) { // idx is either cardIdx, enemyIdx, potionIdx, etc.
 }
 
-public class GameState implements State {
+public final class GameState implements State {
     public static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
     public static final boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
@@ -2559,17 +2559,6 @@ public class GameState implements State {
         }
     }
 
-    public void addEndOfTurnHandler(GameEventHandler handler) {
-        prop.endOfTurnHandlers.add(handler);
-    }
-
-    public void addEndOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "EndOfTurn") == null) {
-            prop.gameEventHandlers.put(handlerName + "EndOfTurn", handler);
-            prop.endOfTurnHandlers.add(handler);
-        }
-    }
-
     public void addPreEndOfTurnHandler(GameEventHandler handler) {
         prop.preEndTurnHandlers.add(handler);
     }
@@ -2840,6 +2829,9 @@ public class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg = dmg * 3 / 4;
         }
+        if (prop.intangibleCounterIdx >= 0 && getCounterForRead()[prop.intangibleCounterIdx] > 0 && dmg > 0) {
+            dmg = 1;
+        }
         for (int i = 0; i < times; i++) {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return totalDmgDealt;
@@ -2866,10 +2858,16 @@ public class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg = dmg * 3 / 4;
         }
+        if (prop.intangibleCounterIdx >= 0 && getCounterForRead()[prop.intangibleCounterIdx] > 0 && dmg > 0) {
+            dmg = 1;
+        }
         return dmg;
     }
 
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable, Object source) {
+        if (prop.intangibleCounterIdx >= 0 && getCounterForRead()[prop.intangibleCounterIdx] > 0 && dmg > 0) {
+            dmg = 1;
+        }
         if (dmg > 0 && prop.hasTungstenRod) {
             dmg -= 1;
         }
@@ -3041,7 +3039,7 @@ public class GameState implements State {
     }
 
     public double getVOther(int vArrayIdx) {
-        return v_other[vArrayIdx];
+        return v_other == null ? 0 : v_other[vArrayIdx];
     }
 
     public void setIsStochastic() {
@@ -3075,6 +3073,11 @@ public class GameState implements State {
                     break;
                 }
             }
+        }
+        if (prop.blizzardCounterIdx >= 0 && orb == OrbType.FROST) {
+            getCounterForWrite()[prop.blizzardCounterIdx]++;
+        } else if (prop.thunderStrikeCounterIdx >= 0 && orb == OrbType.LIGHTNING) {
+            getCounterForWrite()[prop.thunderStrikeCounterIdx]++;
         }
     }
 
@@ -3129,6 +3132,11 @@ public class GameState implements State {
                 orbs[i + 1] = orb2;
                 break;
             }
+        }
+        if (prop.blizzardCounterIdx >= 0 && orb1 == OrbType.FROST.ordinal()) {
+            getCounterForWrite()[prop.blizzardCounterIdx]++;
+        } else if (prop.thunderStrikeCounterIdx >= 0 && orb1 == OrbType.LIGHTNING.ordinal()) {
+            getCounterForWrite()[prop.thunderStrikeCounterIdx]++;
         }
     }
 

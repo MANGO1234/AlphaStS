@@ -121,7 +121,7 @@ public class Model {
                 System.err.println(Arrays.toString(o.legalActions()));
                 System.err.println(Arrays.toString(state.getLegalActions()));
                 for (int i = 0; i < state.getLegalActions().length; i++) {
-                    System.out.println(state.getActionString(i));
+                    System.err.println(state.getActionString(i));
                 }
                 Integer.parseInt(null);
             }

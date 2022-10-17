@@ -717,7 +717,55 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Incense Burner
+    public static class IncenseBurner extends Relic {
+        int n;
+
+        public IncenseBurner(int n) {
+            this.n = n;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("IncenseBurner", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] + 1) / 6.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.prop.registerIntangibleCounter();
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx]++;
+                    if (state.getCounterForWrite()[counterIdx] == 6) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                        state.getCounterForWrite()[state.prop.intangibleCounterIdx]++;
+                    }
+                }
+            });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
+                }
+            });
+            state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                    if (enemiesAllDead) {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 5.0;
+                    } else {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    v[GameState.V_HEALTH_IDX] += 10 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                }
+            });
+        }
+    }
+
     // todo: Lizard Tail
     // Mango: No need to implement
     // Old Coin: No need to implement

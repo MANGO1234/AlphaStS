@@ -22,6 +22,7 @@ public class EnemyBeyond {
         public AwakenedOne(int health) {
             super(health, 6, true);
             property.canGainStrength = true;
+            property.canSelfRevive = true;
             strength = 2;
         }
 
@@ -38,7 +39,9 @@ public class EnemyBeyond {
             super.damage(n, state);
             if (health <= 0) {
                 if (!awakened) {
-                    move = REBIRTH;
+                    if (!state.prop.hasRunicDome) {
+                        move = REBIRTH;
+                    }
                 } else {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         state.killEnemy(i);
@@ -51,7 +54,9 @@ public class EnemyBeyond {
             super.nonAttackDamage(n, blockable, state);
             if (health <= 0) {
                 if (!awakened) {
-                    move = REBIRTH;
+                    if (!state.prop.hasRunicDome) {
+                        move = REBIRTH;
+                    }
                 } else {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         state.killEnemy(i);
@@ -102,7 +107,9 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
-            if (move == -1) {
+            if (health == 0) {
+                newMove = REBIRTH;
+            } else if (move == -1) {
                 newMove = SLASH;
             } else if (!awakened) {
                 state.setIsStochastic();
@@ -188,6 +195,20 @@ public class EnemyBeyond {
 
         @Override public boolean equals(Object o) {
             return super.equals(o) && awakened == ((EnemyBeyond.AwakenedOne) o).awakened;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 2;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of whether Awakened One has awakened";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = awakened ? 0.5f : 0;
+            input[idx + 1] = (awakened ? health : (320 + health)) / 640f;
+            return 2;
         }
     }
 

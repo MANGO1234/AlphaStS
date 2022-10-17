@@ -463,7 +463,7 @@ public class CardColorless {
                     return (counter & ((1 << 16) - 1)) + "/" + (counter >> 16);
                 }
             });
-            state.addEndOfTurnHandler("Panache", new GameEventHandler() {
+            state.prop.addEndOfTurnHandler("Panache", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] &= ~7;
                 }

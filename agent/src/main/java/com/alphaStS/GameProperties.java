@@ -72,6 +72,9 @@ public class GameProperties implements Cloneable {
     public int echoFormCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
     public int equilibriumCounterIdx = -1;
+    public int blizzardCounterIdx = -1;
+    public int thunderStrikeCounterIdx = -1;
+    public int intangibleCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -245,5 +248,38 @@ public class GameProperties implements Cloneable {
             registrants.get(i).getValue().setVArrayIdx(extraOutputLen++);
             extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));
         }
+    }
+
+
+    public void addEndOfTurnHandler(GameEventHandler handler) {
+        endOfTurnHandlers.add(handler);
+    }
+
+    public void addEndOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "EndOfTurn") == null) {
+            gameEventHandlers.put(handlerName + "EndOfTurn", handler);
+            endOfTurnHandlers.add(handler);
+        }
+    }
+
+    private static CounterRegistrant IntangibleCounterRegistrant = (gameProperties, idx) -> gameProperties.intangibleCounterIdx = idx;
+
+    public void registerIntangibleCounter() {
+        registerCounter("Intangible", IntangibleCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = idx / 8.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addEndOfTurnHandler("Intangible", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                if (state.getCounterForRead()[state.prop.intangibleCounterIdx] > 0) {
+                    state.getCounterForWrite()[state.prop.intangibleCounterIdx]--;
+                }
+            }
+        });
     }
 }
