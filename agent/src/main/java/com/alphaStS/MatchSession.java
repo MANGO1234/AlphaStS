@@ -1380,7 +1380,7 @@ public class MatchSession {
                 continue;
             }
             int totalWriteCount = ((int) step.trainingWriteCount);
-            if ((step.trainingWriteCount - (int) step.trainingWriteCount) < step.state().prop.random.nextFloat(null)) {
+            if (step.trainingWriteCount != Math.floor((int) step.trainingWriteCount) && (step.trainingWriteCount - (int) step.trainingWriteCount) < step.state().prop.random.nextFloat(null)) {
                 totalWriteCount += 1;
             }
             for (int writeCount = 0; writeCount < totalWriteCount; writeCount++) {
