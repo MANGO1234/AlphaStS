@@ -28,6 +28,7 @@ public class MatchSession {
     private final static boolean USE_NEW_SEARCH = false;
 
     public boolean training;
+    public int difficulty;
     Writer matchLogWriter;
     Writer trainingDataWriter;
     String logDir;
@@ -188,7 +189,7 @@ public class MatchSession {
                 steps.get(i - 1).actionDesc = steps.get(i).state().stateDesc;
             }
         }
-        return new Game(steps, preBattle_r, r, null, true);
+        return new Game(steps, preBattle_r, r, null, 0, 0);
     }
 
     // when comparing game searchRandomGen can get out of sync, make sure it's synced as much as possible
@@ -236,7 +237,7 @@ public class MatchSession {
         return null;
     }
 
-    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, boolean noExploration) {}
+    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty) {}
     public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats) {}
     public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
@@ -805,7 +806,10 @@ public class MatchSession {
         var steps = new ArrayList<GameStep>();
         var augmentedSteps = new ArrayList<GameStep>();
         var state = origState.clone(false);
+        state.prop = state.prop.clone();
         boolean doNotExplore = state.prop.random.nextFloat(RandomGenCtx.Other) < Configuration.TRAINING_PERCENTAGE_NO_TEMPERATURE;
+        boolean noMoreExplore = false;
+        int noTemperatureTurn = doNotExplore ? 0 : -1;
         int r = 0;
         int preBattle_r = 0;
         if (state.prop.realMoveRandomGen != null) {
@@ -818,14 +822,6 @@ public class MatchSession {
         if (state.prop.preBattleRandomization != null) {
             preBattle_r = state.prop.preBattleRandomization.randomize(state);
         }
-//        if (!doNotExplore) {
-//            int rr = state.prop.random.nextInt(3, RandomGenCtx.Other);
-//            if (rr == 0) {
-//                nodeCount /= 2;
-//            } else if (rr == 2) {
-//                nodeCount += nodeCount / 2;
-//            }
-//        }
 
         state.doEval(mcts.model);
         boolean quickPass = false;
@@ -834,15 +830,18 @@ public class MatchSession {
         if (Configuration.TRAINING_SKIP_OPENING_TURNS && Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO > 0) {
             turnsToSkip = state.prop.random.nextInt(Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO + 1, RandomGenCtx.Other);
         }
+        int prevTurnNum = 1;
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
             RandomGen randomGenClone = state.getSearchRandomGen().getCopy();
             if (!doNotExplore && state.turnNum <= turnsToSkip) {
                 todo = 1;
             }
-//            if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
-//                todo = (quickPass ? nodeCount * 5 / 4 : nodeCount * 5) - state.total_n;
-//            }
+            if (!doNotExplore && !noMoreExplore && state.turnNum != prevTurnNum && state.prop.random.nextFloat(null) < 0.02) {
+                noTemperatureTurn = prevTurnNum;
+               noMoreExplore = true;
+            }
+            prevTurnNum = state.turnNum;
             for (int i = 0; i < todo; i++) {
                 mcts.search(state, !quickPass, todo - i);
                 if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
@@ -870,7 +869,7 @@ public class MatchSession {
             } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                 action = MCTS.getActionRandomOrTerminalSelectScenario(state);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, null);
-            } else if (doNotExplore || quickPass || state.turnNum >= 100) {
+            } else if (doNotExplore || noMoreExplore || quickPass || state.turnNum >= 100) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
                 greedyAction = action;
             } else {
@@ -913,6 +912,9 @@ public class MatchSession {
         var vLen = state.get_v_len();
         double[] vCur = new double[vLen];
         state.get_v(vCur);
+        int turnNum = state.turnNum;
+        int health = state.getPlayeForRead().getHealth();
+        int win = state.isTerminal() > 0 ? 1 : 0;
         ChanceState lastChanceState = null;
         for (int i = steps.size() - 2; i >= 0; i--) {
             if (!SLOW_TRAINING_WINDOW && steps.get(i).isExplorationMove) {
@@ -944,7 +946,7 @@ public class MatchSession {
 //                    augmentedSteps.addAll(extraSteps);
                 }
             }
-            steps.get(i).v = vCur;
+            steps.get(i).v = Arrays.copyOf(vCur, vCur.length);
             state = steps.get(i).state();
             state.clearNextStates();
             if (state.isStochastic && i > 0) {
@@ -965,7 +967,7 @@ public class MatchSession {
             steps.get(0).trainingWriteCount = 0;
         }
 
-        return new Game(steps, preBattle_r, r, augmentedSteps, doNotExplore);
+        return new Game(steps, preBattle_r, r, augmentedSteps, noTemperatureTurn, state.prop.difficulty);
     }
 
     private double calcKld(GameState state) {
@@ -1092,7 +1094,7 @@ public class MatchSession {
             steps.get(0).trainingWriteCount = 0;
         }
 
-        return new Game(steps, preBattle_r, r, null, true);
+        return new Game(steps, preBattle_r, r, null, -1, 0);
     }
 
     public void playTrainingGames(GameState origState, int numOfGames, int nodeCount, String path) throws IOException {
@@ -1138,6 +1140,9 @@ public class MatchSession {
             if (result.game != null) {
                 var game = result.game;
                 var steps = game.steps;
+                if (steps.get(steps.size() - 1).state().isTerminal() > 0) {
+                    difficulty = Math.max(difficulty, game.difficulty);
+                }
                 changeWritingCountBasedOnPolicySurprise(steps);
                 if (trainingDataWriter != null && trainingGame_i <= 100) {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
@@ -1191,8 +1196,8 @@ public class MatchSession {
                     writer.write("Battle Randomization: " + info.get(game.battle_r).desc() + "\n");
                 }
             }
-            if (!TRAINING_WITH_LINE && game.noExploration) {
-                writer.write("No Temperature Moves\n");
+            if (!TRAINING_WITH_LINE && game.noTemperatureTurn >= 0) {
+                writer.write("No Temperature Moves From Turn " + game.noTemperatureTurn + "\n");
             }
             writer.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
             writer.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");

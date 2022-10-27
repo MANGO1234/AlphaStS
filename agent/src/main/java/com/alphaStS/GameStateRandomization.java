@@ -1,7 +1,6 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 
@@ -312,19 +311,66 @@ public interface GameStateRandomization {
 
     class EnemyRandomization implements GameStateRandomization {
         private final boolean curriculumTraining;
+        private final int minDifficulty;
+        private final int maxDifficulty;
 
-        public EnemyRandomization(boolean curriculumTraining) {
+        public EnemyRandomization(boolean curriculumTraining, int minDifficulty, int maxDifficulty) {
             this.curriculumTraining = curriculumTraining;
+            this.minDifficulty = minDifficulty;
+            this.maxDifficulty = maxDifficulty;
         }
 
         @Override public int randomize(GameState state) {
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.randomize(state.getSearchRandomGen(), curriculumTraining);
-                if (enemy.hasBurningHealthBuff()) {
-                    enemy.setHealth((int) (enemy.getHealth() * 1.25));
+            if (!curriculumTraining || minDifficulty <= 0) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.randomize(state.getSearchRandomGen(), curriculumTraining, -1);
+                    if (enemy.hasBurningHealthBuff()) {
+                        enemy.setHealth((int) (enemy.getHealth() * 1.25));
+                    }
+                    enemy.property = enemy.property.clone();
+                    enemy.property.origHealth = enemy.getHealth();
                 }
-                enemy.property = enemy.property.clone();
-                enemy.property.origHealth = enemy.getHealth();
+            } else if (minDifficulty == maxDifficulty) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.randomize(state.getSearchRandomGen(), false, -1);
+                    if (enemy.hasBurningHealthBuff()) {
+                        enemy.setHealth((int) (enemy.getHealth() * 1.25));
+                    }
+                    enemy.property = enemy.property.clone();
+                    enemy.property.origHealth = enemy.getHealth();
+                }
+            } else {
+                int enemiesAlive = 0;
+                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemiesAlive++;
+                }
+                int[] maxDifficulties = new int[enemiesAlive];
+                int[] difficulties = new int[enemiesAlive];
+                int i = 0;
+                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    maxDifficulties[i++] = enemy.getMaxRandomizeDifficulty();
+                }
+                var allowed = new ArrayList<Integer>();
+                for (int j = 0; j < enemiesAlive; j++) {
+                    allowed.add(j);
+                }
+                state.prop.difficulty = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
+                for (int j = 0; j < state.prop.difficulty - enemiesAlive; j++) {
+                    i = state.getSearchRandomGen().nextInt(allowed.size(), RandomGenCtx.Other); // currently equal probability
+                    difficulties[allowed.get(i)]++;
+                    if (difficulties[allowed.get(i)] == maxDifficulties[allowed.get(i)] - 1) {
+                        allowed.remove(allowed.get(i));
+                    }
+                }
+                i = 0;
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.randomize(state.getSearchRandomGen(), true, difficulties[i++] + 1);
+                    if (enemy.hasBurningHealthBuff()) {
+                        enemy.setHealth((int) (enemy.getHealth() * 1.25));
+                    }
+                    enemy.property = enemy.property.clone();
+                    enemy.property.origHealth = enemy.getHealth();
+                }
             }
             return 0;
         }

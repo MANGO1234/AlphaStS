@@ -133,6 +133,7 @@ public class GameProperties implements Cloneable {
     public int maxNumOfOrbs;
 
     public double cpuct = 0.1;
+    public int difficulty;
 
     public GameProperties clone() {
         try {

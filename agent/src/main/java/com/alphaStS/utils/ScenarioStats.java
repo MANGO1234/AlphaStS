@@ -26,6 +26,7 @@ public class ScenarioStats {
     public double finalQComb;
     public long modelCalls;
     public long totalTurns;
+    public long totalTurnsInWins;
 
     public boolean hasState2;
     public long numberOfDivergences;
@@ -88,6 +89,7 @@ public class ScenarioStats {
         finalQComb += stat.finalQComb;
         modelCalls += stat.modelCalls;
         totalTurns += stat.totalTurns;
+        totalTurnsInWins += stat.totalTurnsInWins;
 
         hasState2 |= stat.hasState2;
         win += stat.win;
@@ -124,6 +126,7 @@ public class ScenarioStats {
         GameState state = steps.get(steps.size() - 1).state();
         this.modelCalls += modelCalls;
         totalTurns += state.turnNum;
+        totalTurnsInWins += (state.isTerminal() == 1 ? state.turnNum : 0);
         if (damageCount == null) {
             damageCount = new HashMap<>();
             potionsUsed = new int[state.prop.potions.size()];
@@ -299,6 +302,7 @@ public class ScenarioStats {
         }
         System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb / (numOfGames - deathCount)));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
+        System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
 
         if (hasState2) {
             System.out.println(indent + "Compared Network Nodes/Turns: " + modelCalls2 + "/" + totalTurns2 + "/" + (((double) modelCalls2) / totalTurns2));

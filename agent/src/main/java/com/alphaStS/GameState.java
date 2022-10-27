@@ -1288,7 +1288,7 @@ public final class GameState implements State {
 
     void get_v(double[] out) {
         var player = getPlayeForRead();
-        if (player.getHealth() <= 0 || turnNum > 30) {
+        if (player.getHealth() <= 0 || turnNum >= 512) {
             Arrays.fill(out, 0);
             return;
         }
@@ -1431,7 +1431,7 @@ public final class GameState implements State {
     }
 
     public int isTerminal() {
-        if (getPlayeForRead().getHealth() <= 0 || turnNum > 30) {
+        if (getPlayeForRead().getHealth() <= 0 || turnNum >= 512) {
             return -1;
         } else {
             for (var enemy : enemies) {
@@ -1527,6 +1527,7 @@ public final class GameState implements State {
     @Override public String toString() {
         boolean first;
         StringBuilder str = new StringBuilder("{");
+        str.append("turn=").append(turnNum).append(", ");
         str.append("hand=[");
         first = true;
         for (int i = 0; i < hand.length; i++) {
@@ -3022,7 +3023,7 @@ public final class GameState implements State {
             getEnemiesForWrite().replace(idx, prop.originalEnemies.getForWrite(idx));
             setIsStochastic();
             var enemy = getEnemiesForWrite().getForWrite(idx);
-            enemy.randomize(getSearchRandomGen(), prop.curriculumTraining);
+            enemy.randomize(getSearchRandomGen(), prop.curriculumTraining, -1);
             enemy.property = enemy.property.clone();
             enemy.property.origHealth = enemy.getHealth();
             if (getNextMove && !prop.hasRunicDome) {

@@ -165,7 +165,9 @@ public abstract class Enemy extends EnemyReadOnly {
         return this;
     }
 
-    public void randomize(RandomGen random, boolean training) {
+    public abstract void randomize(RandomGen random, boolean training, int difficulty);
+    public int getMaxRandomizeDifficulty() {
+        return 0;
     }
 
     // used to implement an enemy that can "morph" to one of several enemies to reduce network size for fights
@@ -326,8 +328,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return currentEnemy.markAsBurningElite();
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
-            currentEnemy.randomize(random, training);
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            currentEnemy.randomize(random, training, difficulty);
+        }
+
+        @Override public int getMaxRandomizeDifficulty() {
+            return currentEnemy.getMaxRandomizeDifficulty();
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
@@ -503,7 +509,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(10, RandomGenCtx.Other) + 1;
             if (b < 10 && training) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -609,7 +615,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(10, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -679,7 +685,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(4, RandomGenCtx.Other) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
@@ -785,7 +791,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 int b = random.nextInt(25, RandomGenCtx.Other) + 1;
                 health = 264 * b / 25;
@@ -921,7 +927,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = training ? random.nextInt(25, RandomGenCtx.Other) + 1 : 25;
             health = 250 * b / 25;
         }
@@ -1060,7 +1066,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(15, RandomGenCtx.Other) + 1;
             health = 10 * (training ? b : 15);
             if (health <= property.maxHealth / 2) {
@@ -1186,7 +1192,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 67 + random.nextInt(7, RandomGenCtx.Other);
             splitMaxHealth = health;
         }
@@ -1260,7 +1266,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 29 + random.nextInt(6, RandomGenCtx.Other);
         }
 
@@ -1303,7 +1309,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 11 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -1423,7 +1429,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 68 + random.nextInt(5, RandomGenCtx.Other);
             splitMaxHealth = health;
         }
@@ -1509,7 +1515,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 29 + random.nextInt(6, RandomGenCtx.Other);
         }
 
@@ -1564,7 +1570,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 9 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -1647,7 +1653,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(3, RandomGenCtx.Other) + 1;
             if (training && b < 3) {
                 health = (int) Math.round(((double) (health * b)) / 3);
@@ -1728,7 +1734,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(3, RandomGenCtx.Other) + 1;
             if (training && b < 3) {
                 health = (int) Math.round(((double) (health * b)) / 3);
@@ -1813,7 +1819,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 42 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -1872,13 +1878,16 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(5, RandomGenCtx.Other) + 1;
-            if (training && b < 5) {
-                health = (int) Math.round(((double) (health * b)) / 5);
+        public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                health = (int) Math.round(((double) (health * difficulty)) / 5);
             } else {
                 health = 50 + random.nextInt(7, RandomGenCtx.Other);
             }
+        }
+
+        @Override public int getMaxRandomizeDifficulty() {
+            return 5;
         }
 
         public String getName() {
@@ -1981,7 +1990,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 11 + random.nextInt(6, RandomGenCtx.Other);
             d = 6 + random.nextInt(3, RandomGenCtx.Other);
             curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
@@ -2086,7 +2095,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 12 + random.nextInt(7, RandomGenCtx.Other);
             d = 6 + random.nextInt(3, RandomGenCtx.Other);
             curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
@@ -2174,7 +2183,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 24 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -2250,7 +2259,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 46 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -2299,7 +2308,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 14 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -2353,7 +2362,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 21 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -2398,7 +2407,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 11 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -2468,7 +2477,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 13 + random.nextInt(5, RandomGenCtx.Other);
         }
 
@@ -2528,7 +2537,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 22 + random.nextInt(5, RandomGenCtx.Other);
         }
 

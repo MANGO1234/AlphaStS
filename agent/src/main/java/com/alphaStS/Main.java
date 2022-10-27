@@ -1,11 +1,14 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.utils.Utils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -109,7 +112,7 @@ public class Main {
         }
 
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
-            state.prop.randomization = new GameStateRandomization.EnemyRandomization(false).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
             var s = new ArrayList<Short>();
@@ -139,16 +142,47 @@ public class Main {
 
         ObjectMapper mapper = new ObjectMapper();
         String curIterationDir = SAVES_DIR + "/iteration0";
+        String prevIterationDir = SAVES_DIR + "/iteration0";
         try {
             JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
             iteration = iteration < 0 ? root.get("iteration").asInt() : iteration;
             curIterationDir = SAVES_DIR + "/iteration" + (iteration - 1);
+            prevIterationDir = SAVES_DIR + "/iteration" + (iteration - 2);
             File f = new File(SAVES_DIR + "/desc.txt");
             if (!f.exists()) {
                 writeStateDescription(f, state);
             }
         } catch (FileNotFoundException e) {
             System.out.println("Unable to find neural network.");
+        }
+        int minDifficulty = -1;
+        int maxDifficulty = -1;
+        boolean automatedCurriculumTraining = true;
+        int totalDifficulty = 0;
+        int enemiesAlive = 0;
+        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+            if (enemy.getMaxRandomizeDifficulty() <= 0) {
+                automatedCurriculumTraining = false;
+                break;
+            }
+            totalDifficulty += enemy.getMaxRandomizeDifficulty();
+            enemiesAlive++;
+        }
+        if (automatedCurriculumTraining) {
+            if (iteration == 1) {
+                minDifficulty = enemiesAlive;
+                maxDifficulty = (enemiesAlive + totalDifficulty + 1) / 2;
+            } else {
+                try {
+                    JsonNode root = mapper.readTree(new File(prevIterationDir + "/training.json"));
+                    if (root.get("minDifficulty") != null) {
+                        minDifficulty = root.get("minDifficulty").asInt();
+                        maxDifficulty = root.get("maxDifficulty").asInt();
+                    }
+                } catch (FileNotFoundException e) {
+                    System.out.println("Unable to find neural network.");
+                }
+            }
         }
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
@@ -208,9 +242,30 @@ public class Main {
             }
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
-            state.prop.curriculumTraining = CURRICULUM_TRAINING_ON;
-            state.prop.randomization = new GameStateRandomization.EnemyRandomization(CURRICULUM_TRAINING_ON).doAfter(state.prop.randomization);
+            state.prop.curriculumTraining = CURRICULUM_TRAINING_ON || automatedCurriculumTraining;
+            state.prop.randomization = new GameStateRandomization.EnemyRandomization(state.prop.curriculumTraining, minDifficulty, maxDifficulty).doAfter(state.prop.randomization);
             session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
+            if (automatedCurriculumTraining) {
+                if (minDifficulty == totalDifficulty) {
+                } else if (session.difficulty < minDifficulty) {
+                    minDifficulty -= (minDifficulty - session.difficulty) / 4;
+                } else {
+                    if (session.difficulty == maxDifficulty) {
+                        minDifficulty = minDifficulty + (session.difficulty - minDifficulty + 3) / 4;
+                        maxDifficulty = session.difficulty + (totalDifficulty - session.difficulty + 3) / 4;
+                    } else {
+                        maxDifficulty = (session.difficulty + maxDifficulty + 1) / 2;
+                    }
+                }
+                ObjectNode node = mapper.createObjectNode();
+                node.put("minDifficulty", minDifficulty);
+                node.put("maxDifficulty", maxDifficulty);
+                node.put("difficulty", session.difficulty);
+                try (var writer = new BufferedWriter(new FileWriter(curIterationDir + "/training.json"))) {
+                    writer.write(node.toString());
+                }
+            }
+
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
             for (int i = 0; i < session.mcts.size(); i++) {

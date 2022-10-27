@@ -115,7 +115,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(20, RandomGenCtx.Other) + 1;
             if (training && b < 20) {
                 health = (int) Math.round(((double) (health * b)) / 20);
@@ -251,7 +251,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(20, RandomGenCtx.Other) + 1;
             if (training && b < 20) {
                 health = (int) Math.round(((double) (health * b)) / 20);
@@ -410,7 +410,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(6, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (property.maxHealth * b)) / 6);
@@ -755,7 +755,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(10, RandomGenCtx.Other) + 1;
             if (training && b < 10) {
                 health = (int) Math.round(((double) (health * b)) / 10);
@@ -873,10 +873,10 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(10, RandomGenCtx.Other) + 1;
-            if (training && b < 10) {
-                health = (int) Math.round(((double) (health * b)) / 10);
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                difficulty = random.nextInt(10, RandomGenCtx.Other) + 1;
+                health = (int) Math.round(((double) (health * difficulty)) / 10);
             } else {
                 health = 168 + random.nextInt(5, RandomGenCtx.Other);
             }
@@ -957,7 +957,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(4, RandomGenCtx.Other) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
@@ -1107,7 +1107,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int a = random.nextInt(8, RandomGenCtx.Other, null);
             health = 26 + a;
             if (training) {
@@ -1204,7 +1204,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 block = random.nextInt(6, RandomGenCtx.Other, null) * 8;
             }
@@ -1310,7 +1310,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 health = (int) ((random.nextInt(7, RandomGenCtx.Other, null) + 1) / 7.0 * 75);
             }
@@ -1357,7 +1357,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 health = (int) ((random.nextInt(3, RandomGenCtx.Other, null) + 1) / 3.0 * 34);
             }
@@ -1418,7 +1418,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
@@ -1484,7 +1484,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
             if (training && b < 4) {
                 health = (int) Math.round(((double) (health * b)) / 4);
@@ -1577,7 +1577,7 @@ public class EnemyCity {
             return "Unknown";
         }
 
-        public void randomize(RandomGen random, boolean training) {
+        public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(6, RandomGenCtx.Other, null) + 1;
             if (training && b < 6) {
                 health = (int) Math.round(((double) (health * b)) / 6);

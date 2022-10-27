@@ -761,19 +761,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
-            state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                    if (enemiesAllDead) {
-                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 5.0;
-                    } else {
-                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
-                    }
-                }
+           state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
+               @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                   if (enemiesAllDead) {
+                       v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 5.0;
+                   } else {
+                       v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                   }
+               }
 
-                @Override public void updateQValues(GameState state, double[] v) {
-                    v[GameState.V_HEALTH_IDX] += 10 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
-                }
-            });
+               @Override public void updateQValues(GameState state, double[] v) {
+                   v[GameState.V_HEALTH_IDX] += 10 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+               }
+           });
         }
     }
 

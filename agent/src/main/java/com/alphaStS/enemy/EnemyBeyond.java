@@ -175,22 +175,33 @@ public class EnemyBeyond {
             return health > 0 && move != REBIRTH;
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
-            int b = random.nextInt(32, RandomGenCtx.Other) + 1;
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
-                if (b < 16) {
+                if (difficulty <= 16) {
                     awakened = true;
-                    health = (int) Math.round(((double) (health * b)) / 16);
+                    health = (int) Math.round(((double) (health * difficulty)) / 16);
                 } else {
-                    health = (int) Math.round(((double) (health * (b - 16))) / 20);
+                    health = (int) Math.round(((double) (health * (difficulty - 16))) / 16);
                 }
             } else {
                 health = 320;
             }
         }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 32;
+        }
+
         @Override public String getName() {
             return "Awakened One";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (!awakened) {
+                return s;
+            }
+            return s.subSequence(0, s.length() - 1) + ", awakened}";
         }
 
         @Override public boolean equals(Object o) {
@@ -317,10 +328,10 @@ public class EnemyBeyond {
             });
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(25, RandomGenCtx.Other) + 1;
-                health = (int) Math.round((health * b) / 25.0);
+                int b = random.nextInt(26, RandomGenCtx.Other) + 1;
+                health = (int) Math.round((health * b) / 26.0);
             } else {
                 health = 520;
             }
@@ -594,7 +605,7 @@ public class EnemyBeyond {
 
         public List<Card> getPossibleGeneratedCards() { return List.of(new Card.Burn()); }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 int b = random.nextInt(10, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 10.0);
@@ -768,7 +779,7 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 int b = random.nextInt(10, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 10.0);
@@ -830,7 +841,7 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 int b = random.nextInt(4, RandomGenCtx.Other) + 1;
                 health = (int) Math.round((health * b) / 4.0);
@@ -916,7 +927,7 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(15, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round((health * b) / 15.0);
@@ -1073,7 +1084,7 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
-        @Override public void randomize(RandomGen random, boolean training) {
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(6, RandomGenCtx.Other) + 1;
             if (training) {
                 health = (int) Math.round((health * b) / 6.0);
