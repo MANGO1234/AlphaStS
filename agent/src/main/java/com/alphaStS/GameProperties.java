@@ -103,6 +103,7 @@ public class GameProperties implements Cloneable {
     public int penNibCounterIdx = -1;
 
     // cached game properties for generating NN input
+    public int shieldAndSpireFacingIdx = -1;
     public boolean battleTranceExist;
     public boolean energyRefillCanChange;
     public boolean healEndOfAct;
@@ -168,7 +169,7 @@ public class GameProperties implements Cloneable {
         return v == null ? -1 : v;
     }
 
-    interface CounterRegistrant {
+    public interface CounterRegistrant {
         void setCounterIdx(GameProperties gameProperties, int idx);
     }
 

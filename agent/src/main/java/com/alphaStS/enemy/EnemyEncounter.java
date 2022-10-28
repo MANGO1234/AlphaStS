@@ -534,4 +534,9 @@ public class EnemyEncounter {
 //            }
 //        });
     }
+
+    public static void addShieldAndSpearFight(GameStateBuilder builder) {
+        builder.addEnemy(new EnemyEnding.SpireShield());
+        builder.addEnemy(new EnemyEnding.SpireSpear());
+    }
 }

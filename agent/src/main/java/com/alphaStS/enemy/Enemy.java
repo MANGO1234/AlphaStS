@@ -212,6 +212,7 @@ public abstract class Enemy extends EnemyReadOnly {
             property.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.property.canGainBlock);
             property.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerStrength);
             property.changePlayerDexterity = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerDexterity);
+            property.changePlayerFocus = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerFocus);
             property.hasBurningEliteBuff = possibleEnemies.stream().anyMatch((e) -> e.property.hasBurningEliteBuff);
             property.hasArtifact = possibleEnemies.stream().anyMatch((e) -> e.property.hasArtifact);
             setEnemy(0);

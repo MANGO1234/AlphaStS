@@ -1,9 +1,6 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyBeyond;
-import com.alphaStS.enemy.EnemyCity;
-import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
 
@@ -295,6 +292,10 @@ public class InteractiveMode {
                 if (nemesis.isIntangible()) {
                     System.out.println("  Intangible");
                 }
+            } else if (enemy instanceof EnemyEnding.CorruptHeart heart) {
+                System.out.println("  Invincible: " + heart.getInvincible());
+                System.out.println("  Beat Of Death: " + heart.getBeatOfDeath());
+                System.out.println("  Buff Count: " + heart.getBuffCount());
             }
             if (state.prop.hasRunicDome) {
                 System.out.println("  Last Move: " + enemy.getMoveString(state));
@@ -330,7 +331,7 @@ public class InteractiveMode {
         if (state.getPlayeForRead().getDexterity() != 0) {
             System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
         }
-        if (state.getFocus() > 0) {
+        if (state.getFocus() != 0) {
             System.out.println("  Focus: " + state.getFocus());
         }
         if (state.getPlayeForRead().getVulnerable() > 0) {

@@ -15,6 +15,7 @@ public enum RandomGenCtx {
     GremlinLeader,
     BronzeOrb,
     Chaos,
+    ShieldAndSpire,
     SkillPotion,
     Misc,
     CommonNumberVR,

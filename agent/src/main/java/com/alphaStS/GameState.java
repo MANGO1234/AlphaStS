@@ -1,10 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.Action.GameEnvironmentAction;
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyList;
-import com.alphaStS.enemy.EnemyListReadOnly;
-import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.player.Player;
@@ -396,6 +393,7 @@ public final class GameState implements State {
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
         prop.playerDexterityEotCanChange = potions.stream().anyMatch((x) -> x.changePlayerDexterityEot);
         prop.playerFocusCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerFocus);
+        prop.playerFocusCanChange |= enemiesArg.stream().anyMatch((x) -> x.property.changePlayerFocus);
         prop.playerFocusCanChange |= potions.stream().anyMatch((x) -> x.changePlayerFocus);
         prop.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.property.canVulnerable);
         prop.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.property.canWeaken);
@@ -817,6 +815,7 @@ public final class GameState implements State {
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
                         setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                        onSelectEnemy(selectIdx);
                         selectIdx = -1;
                     } else {
                         cardPlayedSuccessfully = false;
@@ -826,6 +825,7 @@ public final class GameState implements State {
                 } else if (targetableEnemies == 1) {
                     lastSelectedIdx = idx;
                     setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action);
+                    onSelectEnemy(idx);
                 } else {
                     cardPlayedSuccessfully = false;
                     break;
@@ -956,9 +956,11 @@ public final class GameState implements State {
                 }
                 if (selectIdx >= 0) {
                     setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    onSelectEnemy(selectIdx);
                     selectIdx = -1;
                 } else if (targetableEnemies == 1) {
                     setActionCtx(prop.potions.get(potionIdx).use(this, idx), action);
+                    onSelectEnemy(idx);
                 } else {
                     break;
                 }
@@ -1284,6 +1286,16 @@ public final class GameState implements State {
             return action >= 0 && action < a.length;
         }
         return false;
+    }
+
+    public void onSelectEnemy(int idx) {
+        if (prop.shieldAndSpireFacingIdx >= 0) {
+            if (getEnemiesForRead().get(idx) instanceof EnemyEnding.SpireShield) {
+                getCounterForWrite()[prop.shieldAndSpireFacingIdx] = 1;
+            } else if (getEnemiesForRead().get(idx) instanceof EnemyEnding.SpireSpear) {
+                getCounterForWrite()[prop.shieldAndSpireFacingIdx] = 2;
+            }
+        }
     }
 
     int get_v_len() {
@@ -2816,6 +2828,13 @@ public final class GameState implements State {
         if (enemy.isAlive()) {
             enemy.damage(dmg, this);
             if (!enemy.isAlive()) {
+                if (prop.shieldAndSpireFacingIdx >= 0) {
+                    if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireShield) {
+                        getCounterForWrite()[prop.shieldAndSpireFacingIdx] = 2;
+                    } else if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireSpear) {
+                        getCounterForWrite()[prop.shieldAndSpireFacingIdx] = 1;
+                    }
+                }
                 adjustEnemiesAlive(-1);
                 for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
                     handler.handle(this);
@@ -2861,6 +2880,13 @@ public final class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg = dmg * 3 / 4;
         }
+        if (prop.shieldAndSpireFacingIdx >= 0) {
+            if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
+                dmg = dmg + dmg / 2;
+            } else if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
+                dmg = dmg + dmg / 2;
+            }
+        }
         if (prop.intangibleCounterIdx >= 0 && getCounterForRead()[prop.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;
         }
@@ -2889,6 +2915,13 @@ public final class GameState implements State {
         }
         if (enemy.getWeak() > 0) {
             dmg = dmg * 3 / 4;
+        }
+        if (prop.shieldAndSpireFacingIdx >= 0) {
+            if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
+                dmg = dmg + dmg / 2;
+            } else if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
+                dmg = dmg + dmg / 2;
+            }
         }
         if (prop.intangibleCounterIdx >= 0 && getCounterForRead()[prop.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;

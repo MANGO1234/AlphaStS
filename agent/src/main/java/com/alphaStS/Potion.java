@@ -137,7 +137,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getPlayerForWrite().gainBlock(getBlockAmount(state));
+            state.getPlayerForWrite().gainBlockNotFromCardPlay(getBlockAmount(state));
             return GameActionCtx.PLAY_CARD;
         }
 

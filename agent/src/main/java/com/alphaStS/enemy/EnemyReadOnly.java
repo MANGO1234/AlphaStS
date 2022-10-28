@@ -31,6 +31,7 @@ public abstract class EnemyReadOnly {
         public boolean canGainPlatedArmor = false;
         public boolean canGainBlock = false;
         public boolean changePlayerStrength = false;
+        public boolean changePlayerFocus = false;
         public boolean changePlayerDexterity = false;
         public boolean hasBurningEliteBuff = false;
         public boolean hasArtifact = false;
