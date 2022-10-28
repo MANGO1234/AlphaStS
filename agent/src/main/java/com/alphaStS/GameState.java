@@ -1082,6 +1082,11 @@ public final class GameState implements State {
         }
         if (atLeastOneAlive) {
             for (int i = 0; i < livingEnemiesCount; i++) {
+                if (enemies.getForWrite(livingEnemies[i]).getHealth() > 0) {
+                    enemies.getForWrite(livingEnemies[i]).startTurn();
+                }
+            }
+            for (int i = 0; i < livingEnemiesCount; i++) {
                 var enemy2 = enemies.getForWrite(livingEnemies[i]);
                 if (prop.hasRunicDome) {
                     var oldIsStochastic = isStochastic;
@@ -1095,7 +1100,6 @@ public final class GameState implements State {
                     }
                     isStochastic = oldIsStochastic | isStochastic;
                 }
-                enemy2.startTurn();
                 enemy2.doMove(this, enemy2);
             }
         }
@@ -1869,6 +1873,9 @@ public final class GameState implements State {
             if (enemy.property.canGainMetallicize) {
                 inputLen += 1; // enemy metallicize
             }
+            if (enemy.property.canGainPlatedArmor) {
+                inputLen += 1; // enemy plated armor
+            }
             if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
                 inputLen += 1; // enemy max health since heal can't go over max health
             }
@@ -2051,6 +2058,9 @@ public final class GameState implements State {
             }
             if (enemy.property.canGainMetallicize) {
                 str += "        1 input to keep track of metallicize\n";
+            }
+            if (enemy.property.canGainPlatedArmor) {
+                str += "        1 input to keep track of plated armor\n";
             }
             if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
                 str += "        1 input to keep track of enemy max health\n";
@@ -2271,6 +2281,9 @@ public final class GameState implements State {
                 if (enemy.property.canGainMetallicize) {
                     x[idx++] = enemy.getMetallicize() / (float) 14.0;
                 }
+                if (enemy.property.canGainPlatedArmor) {
+                    x[idx++] = enemy.getPlatedArmor() / (float) 14.0;
+                }
                 if (enemy.property.canGainRegeneration || enemy.property.canHeal) {
                     x[idx++] = enemy.property.origHealth / (float) enemy.property.maxHealth;
                 }
@@ -2354,6 +2367,9 @@ public final class GameState implements State {
                     x[idx++] = -0.1f;
                 }
                 if (enemy.property.canGainMetallicize) {
+                    x[idx++] = -0.1f;
+                }
+                if (enemy.property.canGainPlatedArmor) {
                     x[idx++] = -0.1f;
                 }
                 if (enemy.property.canGainRegeneration || enemy.property.canHeal) {

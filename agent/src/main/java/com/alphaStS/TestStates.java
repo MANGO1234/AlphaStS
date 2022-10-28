@@ -925,7 +925,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new Card.Parasite(), 1);
-        EnemyEncounter.addAwakenedOneFight(builder);
+        EnemyEncounter.addDonuAndDecaFight(builder);
 //        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
 //        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
 //        EnemyEncounter.addReptomancerFight(builder, true);
@@ -947,14 +947,14 @@ public class TestStates {
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.RunicCapacitor());
         builder.addRelic(new Relic.PhilosophersStone());
-        builder.addRelic(new Relic.IncenseBurner(5));
+        builder.addRelic(new Relic.IncenseBurner(5, Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD));
         builder.addRelic(new Relic.TheBoot());
         builder.addRelic(new Relic.Shuriken());
         builder.addPotion(new Potion.BlockPotion());
         builder.addPotion(new Potion.BlockPotion());
         builder.addPotion(new Potion.SpeedPotion());
         builder.addPotion(new Potion.GamblersBrew());
-        builder.setPlayer(new Player(68, 72));
+        builder.setPlayer(new Player(72, 72));
         return new GameState(builder);
     }
 

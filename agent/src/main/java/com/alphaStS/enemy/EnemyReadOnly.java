@@ -28,6 +28,7 @@ public abstract class EnemyReadOnly {
         public boolean canGainRegeneration = false;
         public boolean canHeal = false;
         public boolean canGainMetallicize = false;
+        public boolean canGainPlatedArmor = false;
         public boolean canGainBlock = false;
         public boolean changePlayerStrength = false;
         public boolean changePlayerDexterity = false;
@@ -70,6 +71,7 @@ public abstract class EnemyReadOnly {
     protected int artifact;
     protected int regeneration;
     protected int metallicize;
+    protected int platedArmor;
     protected int loseStrengthEot;
     protected int move = -1;
     protected int lastMove = -1;
@@ -116,6 +118,7 @@ public abstract class EnemyReadOnly {
         loseStrengthEot = other.loseStrengthEot;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
+        platedArmor = other.platedArmor;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -150,6 +153,10 @@ public abstract class EnemyReadOnly {
 
     public int getMetallicize() {
         return metallicize;
+    }
+
+    public int getPlatedArmor() {
+        return platedArmor;
     }
 
     public int getArtifact() {
@@ -214,6 +221,9 @@ public abstract class EnemyReadOnly {
         if (metallicize > 0) {
             str += ", metallicize=" + metallicize;
         }
+        if (platedArmor > 0) {
+            str += ", platedArmor=" + platedArmor;
+        }
         return str + '}';
     }
 
@@ -245,6 +255,9 @@ public abstract class EnemyReadOnly {
         }
         if (metallicize > 0) {
             str += ", metallicize=" + metallicize;
+        }
+        if (platedArmor > 0) {
+            str += ", platedArmor=" + platedArmor;
         }
         return str + '}';
     }

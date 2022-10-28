@@ -22,8 +22,12 @@ public abstract class Enemy extends EnemyReadOnly {
         if (health <= 0) {
             return;
         }
-        health -= Math.max(0, n - block);
+        int dmg = n - block;
+        health -= Math.max(0, dmg);
         block = Math.max(0, block - n);
+        if (dmg > 0 && platedArmor > 0) {
+            platedArmor--;
+        }
         if (health <= 0) {
             health = 0;
         }
@@ -78,6 +82,10 @@ public abstract class Enemy extends EnemyReadOnly {
         metallicize += n;
     }
 
+    public void gainPlatedArmor(int n) {
+        platedArmor += n;
+    }
+
     public void removeAllDebuffs() {
         vulnerable = 0;
         weak = 0;
@@ -109,6 +117,9 @@ public abstract class Enemy extends EnemyReadOnly {
         if (metallicize > 0) {
             gainBlock(metallicize);
         }
+        if (platedArmor > 0) {
+            gainBlock(platedArmor);
+        }
         if (regeneration > 0) {
             heal(regeneration);
         }
@@ -122,6 +133,7 @@ public abstract class Enemy extends EnemyReadOnly {
         artifact = 0;
         regeneration = 0;
         metallicize = 0;
+        platedArmor = 0;
         loseStrengthEot = 0;
         move = -1;
         lastMove = -1;
@@ -196,6 +208,7 @@ public abstract class Enemy extends EnemyReadOnly {
             property.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.property.canGainRegeneration);
             property.canHeal = possibleEnemies.stream().anyMatch((e) -> e.property.canHeal);
             property.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.property.canGainMetallicize);
+            property.canGainPlatedArmor = possibleEnemies.stream().anyMatch((e) -> e.property.canGainPlatedArmor);
             property.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.property.canGainBlock);
             property.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerStrength);
             property.changePlayerDexterity = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerDexterity);

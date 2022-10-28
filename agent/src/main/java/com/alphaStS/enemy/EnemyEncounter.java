@@ -432,6 +432,11 @@ public class EnemyEncounter {
         builder.addEnemy(new EnemyBeyond.AwakenedOne());
     }
 
+    public static void addDonuAndDecaFight(GameStateBuilder builder) {
+        builder.addEnemy(new EnemyBeyond.Deca());
+        builder.addEnemy(new EnemyBeyond.Donu());
+    }
+
     public static void addSlimeBossFight(GameStateBuilder builder) {
         builder.addEnemy(new Enemy.SlimeBoss());
         builder.addEnemy(new Enemy.LargeSpikeSlime(75, true));

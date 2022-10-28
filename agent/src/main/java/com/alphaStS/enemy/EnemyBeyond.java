@@ -223,6 +223,155 @@ public class EnemyBeyond {
         }
     }
 
+    public static class Donu extends Enemy {
+        private static final int CIRCLE_OF_POWER = 0;
+        private static final int BEAM = 1;
+
+        public Donu() {
+            this(265);
+        }
+
+        public Donu(int health) {
+            super(health, 2, false);
+            artifact = 3;
+            property.canGainStrength = true;
+            property.canGainPlatedArmor = true;
+            property.hasArtifact = true;
+        }
+
+        public Donu(EnemyBeyond.Donu other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.Donu(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == CIRCLE_OF_POWER) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.gainStrength(3);
+                }
+            } else if (move == BEAM) {
+                state.enemyDoDamageToPlayer(this, 12, 2);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move == -1 || move == BEAM) {
+                newMove = CIRCLE_OF_POWER;
+            } else {
+                newMove = BEAM;
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == CIRCLE_OF_POWER) {
+                return "All Enemies Gain 3 Strength";
+            } else if (move == BEAM) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12) + "x2";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
+                if (difficulty <= 16) {
+                    health = (int) Math.round(((double) (health * difficulty)) / 16);
+                } else {
+                    health = (int) Math.round(((double) (health * (difficulty - 16))) / 16);
+                }
+            } else {
+                health = 265;
+            }
+        }
+
+        @Override public String getName() {
+            return "Donu";
+        }
+    }
+
+
+    public static class Deca extends Enemy {
+        private static final int SQUARE_OF_PROTECTION = 0;
+        private static final int BEAM = 1;
+
+        public Deca() {
+            this(265);
+        }
+
+        public Deca(int health) {
+            super(health, 2, false);
+            artifact = 3;
+            property.canGainStrength = true;
+            property.canGainPlatedArmor = true;
+            property.canDaze = true;
+            property.hasArtifact = true;
+        }
+
+        public Deca(EnemyBeyond.Deca other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.Deca(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == SQUARE_OF_PROTECTION) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.gainBlock(16);
+                    enemy.gainPlatedArmor(3);
+                }
+            } else if (move == BEAM) {
+                state.enemyDoDamageToPlayer(this, 12, 2);
+                state.addCardToDiscard(state.prop.dazedCardIdx);
+                state.addCardToDiscard(state.prop.dazedCardIdx);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move == -1 || move == SQUARE_OF_PROTECTION) {
+                newMove = BEAM;
+            } else {
+                newMove = SQUARE_OF_PROTECTION;
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SQUARE_OF_PROTECTION) {
+                return "All Enemies Gain 16 Block and 3 Metallicize";
+            } else if (move == BEAM) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12) + "x2+Dazed 2";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
+                if (difficulty <= 16) {
+                    health = (int) Math.round(((double) (health * difficulty)) / 16);
+                } else {
+                    health = (int) Math.round(((double) (health * (difficulty - 16))) / 16);
+                }
+            } else {
+                health = 265;
+            }
+        }
+
+        @Override public String getName() {
+            return "Deca";
+        }
+    }
+
     // ******************************************************************************************
     // ******************************************************************************************
     // ******************************************************************************************

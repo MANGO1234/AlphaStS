@@ -34,7 +34,7 @@ class ServerRequest {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.BasicGremlinNobState2();
+        var state = TestStates.TestStateDefect1p2();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
             return;
