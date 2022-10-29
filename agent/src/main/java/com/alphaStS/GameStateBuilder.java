@@ -19,6 +19,7 @@ public class GameStateBuilder {
     private GameStateRandomization randomization = null;
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
+    private GameEventHandler startOfGameSetupHandler = null;
 
     public GameStateBuilder() {
     }
@@ -101,5 +102,13 @@ public class GameStateBuilder {
 
     public CharacterEnum getCharacter() {
         return character;
+    }
+
+    public void setStartOfGameSetup(GameEventHandler handler) {
+        startOfGameSetupHandler = handler;
+    }
+
+    public GameEventHandler getStartOfGameSetup() {
+        return startOfGameSetupHandler;
     }
 }

@@ -937,7 +937,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // todo: Enchiridion
     // Face Of Cleric: No need to implement
     // Golden Idol: No need to implement
-    // todo: Gremlin Visage
+
+    public static class GremlinVisage extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
+                }
+            });
+        }
+    }
+
     // todo: Mark of The Bloom
     // todo: Mutagenic Strength
     // Nloth's Gift: No need to implement

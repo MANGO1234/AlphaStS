@@ -363,7 +363,7 @@ public class EnemyBeyond {
         private static final int ATTACK = 1;
         private static final int SCYTHE = 2;
 
-        private boolean intangible;
+        private boolean intangible = true;
         private int scytheCooldown = 0;
 
         public Nemesis() {

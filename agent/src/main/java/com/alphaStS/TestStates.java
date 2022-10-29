@@ -1038,4 +1038,34 @@ public class TestStates {
         builder.setPlayer(new Player(68, 68));
         return new GameState(builder);
     }
+
+    public static GameState TestStateDefectReddit() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.SunderP(), 1);
+        builder.addCard(new CardDefect.Claw(), 1);
+        builder.addCard(new CardDefect.MeteorStrike(), 1);
+        builder.addCard(new CardDefect.BallLightning(), 1);
+        builder.addEnemy(new Enemy.Lagavulin());
+        builder.addPotion(new Potion.BlessingOfTheForge());
+        builder.addPotion(new Potion.EnergyPotion());
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.GremlinVisage());
+        builder.setPlayer(new Player(45, 45));
+        builder.setStartOfGameSetup(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Ball Lightning"));
+                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Zap"));
+                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Strike"));
+                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
+                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
+            }
+        });
+        return new GameState(builder);
+    }
 }

@@ -96,10 +96,10 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public void endTurn(int turnNum) {
-        if (vulnerable > 0) {
+        if (turnNum > 1 && vulnerable > 0) {
             vulnerable -= 1;
         }
-        if (weak > 0) {
+        if (turnNum > 1 && weak > 0) {
             weak -= 1;
         }
         if (loseStrengthEot != 0) {

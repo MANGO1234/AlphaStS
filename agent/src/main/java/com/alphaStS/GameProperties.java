@@ -63,6 +63,8 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodPIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
+    public int[] clawIndexes;
+    public int[] clawPIndexes;
     public int[] infernalBladeIndexes;
     public int[] healCardsIdxes;
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();

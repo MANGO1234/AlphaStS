@@ -155,6 +155,9 @@ public final class GameState implements State {
             prop.maxNumOfOrbs = 3;
             orbs = new short[3 * 2];
         }
+        if (builder.getStartOfGameSetup() != null) {
+            addStartOfBattleHandler(builder.getStartOfGameSetup());
+        }
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics, potions);
         cards.sort((o1, o2) -> {
@@ -341,7 +344,7 @@ public final class GameState implements State {
         }
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
         prop.healCardsIdxes = findCardThatCanHealIdxes(cards, relics);
-        prop.upgradeIdxes = findUpgradeIdxes(cards, relics);
+        prop.upgradeIdxes = findUpgradeIdxes(cards, relics, potions);
         prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
         prop.discardReverseIdxes = new int[prop.realCardsLen];
         for (int i = 0; i < prop.discardIdxes.length; i++) {
@@ -452,9 +455,9 @@ public final class GameState implements State {
         return r;
     }
 
-    private int[] findUpgradeIdxes(List<CardCount> cards, List<Relic> relics) {
+    private int[] findUpgradeIdxes(List<CardCount> cards, List<Relic> relics, List<Potion> potions) {
         if (cards.stream().noneMatch((x) -> x.card().cardName.contains("Armanent") || x.card().cardName.contains("Apotheosis")) &&
-            relics.stream().noneMatch((x) -> x instanceof Relic.WarpedTongs)) {
+            relics.stream().noneMatch((x) -> x instanceof Relic.WarpedTongs) && potions.stream().noneMatch((x) -> x instanceof Potion.BlessingOfTheForge)) {
             return null;
         }
         int[] r = new int[cards.size()];
@@ -1012,9 +1015,7 @@ public final class GameState implements State {
             var enemy = enemies.get(i);
             if (enemy.isAlive() || enemy.property.canSelfRevive) {
                 var enemy2 = enemies.getForWrite(i);
-                if (turnNum > 1) {
-                    enemy2.endTurn(turnNum);
-                }
+                enemy2.endTurn(turnNum);
                 if (!prop.hasRunicDome) {
                     enemy2.nextMove(this, getSearchRandomGen());
                 } else {
