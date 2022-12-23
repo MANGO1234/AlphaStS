@@ -345,7 +345,7 @@ public final class GameState implements State {
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
         prop.healCardsIdxes = findCardThatCanHealIdxes(cards, relics);
         prop.upgradeIdxes = findUpgradeIdxes(cards, relics, potions);
-        prop.discardIdxes = findDiscardToKeepTrackOf(cards, enemiesArg);
+        prop.discardIdxes = findDiscardToKeepTrackOf(cards, potions, enemiesArg);
         prop.discardReverseIdxes = new int[prop.realCardsLen];
         for (int i = 0; i < prop.discardIdxes.length; i++) {
             prop.discardReverseIdxes[prop.discardIdxes[i]] = i;
@@ -471,7 +471,7 @@ public final class GameState implements State {
         return r;
     }
 
-    private int[] findDiscardToKeepTrackOf(List<CardCount> cards, List<Enemy> enemies) {
+    private int[] findDiscardToKeepTrackOf(List<CardCount> cards, List<Potion> potions, List<Enemy> enemies) {
         Set<Integer> l = new HashSet<>();
         for (Enemy enemy : enemies) {
             if (enemy.property.canDaze) {
@@ -510,6 +510,13 @@ public final class GameState implements State {
             }
             var gen = cards.get(i).card().getPossibleGeneratedCards(cards.stream().map(CardCount::card).toList());
             l.addAll(gen.stream().map((x) -> prop.findCardIndex(x)).toList());
+        }
+        for (Potion potion : potions) {
+            if (potion.selectFromDiscard) {
+                for (int j = 0; j < cards.size(); j++) {
+                    l.add(j);
+                }
+            }
         }
         if (prop.upgradeIdxes != null) {
             for (int i = 0; i < prop.upgradeIdxes.length; i++) {

@@ -578,11 +578,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int count = 0;
+            int count = 1; // 1 because the played card is not in hand anymore
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
-                    count += state.discard[state.prop.discardReverseIdxes[state.prop.strikeCardIdxes[i]]];
+                    count += state.discard[state.prop.strikeCardIdxes[i]];
                     count += state.deck[state.prop.strikeCardIdxes[i]];
                 }
             }
@@ -598,7 +598,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int count = 0;
+            int count = 1; // 1 because the played card is not in hand anymore
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {

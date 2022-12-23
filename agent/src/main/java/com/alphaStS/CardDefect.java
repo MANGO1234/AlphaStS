@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CardDefect {
@@ -187,40 +188,52 @@ public class CardDefect {
     }
 
     public static class Claw extends Card {
+        public int limit;
         private int dmg;
 
         public Claw() {
             this(3);
         }
 
-        public Claw(int dmg) {
+        public Claw(int dmg, int limit) {
             super("Claw (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
+            this.limit = limit;
             selectEnemy = true;
+        }
+
+        public Claw(int dmg) {
+            this(dmg, 7);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
-            for (int i = 0; i < 6; i++) {
-                state.deck[state.prop.clawIndexes[i]] += state.deck[state.prop.clawIndexes[i + 1]];
-                state.deck[state.prop.clawIndexes[i + 1]] = 0;
-                state.hand[state.prop.clawIndexes[i]] += state.hand[state.prop.clawIndexes[i + 1]];
-                state.hand[state.prop.clawIndexes[i + 1]] = 0;
-                state.discard[state.prop.clawIndexes[i]] += state.discard[state.prop.clawIndexes[i + 1]];
-                state.discard[state.prop.clawIndexes[i + 1]] = 0;
-                var exhaust = state.getExhaustForWrite();
-                exhaust[state.prop.clawIndexes[i]] += exhaust[state.prop.clawIndexes[i + 1]];
-                exhaust[state.prop.clawIndexes[i + 1]] = 0;
+            var exhaust = state.getExhaustForWrite();
+            for (int i = limit - 1; i > 0; i--) {
+                for (int j = 0; j < state.getDeck()[state.prop.clawIndexes[i - 1]]; j++) {
+                    state.addCardToDeck(state.prop.clawIndexes[i]);
+                }
+                state.setCardCountInDeck(state.prop.clawIndexes[i - 1], 0);
+                state.hand[state.prop.clawIndexes[i]] += state.hand[state.prop.clawIndexes[i - 1]];
+                state.hand[state.prop.clawIndexes[i - 1]] = 0;
+                state.discard[state.prop.clawIndexes[i]] += state.discard[state.prop.clawIndexes[i - 1]];
+                state.discard[state.prop.clawIndexes[i - 1]] = 0;
+                exhaust[state.prop.clawIndexes[i]] += exhaust[state.prop.clawIndexes[i - 1]];
+                exhaust[state.prop.clawIndexes[i - 1]] = 0;
             }
             return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return List.of(new Claw(3), new Claw(5), new Claw(7), new Claw(9), new Claw(11), new Claw(13), new Claw(15));
+            var c = new ArrayList<Card>();
+            for (int i = 0; i < limit; i++) {
+                c.add(new Claw(3 + i * 2, limit));
+            }
+            return c;
         }
 
         @Override public void startOfGameSetup(GameState state) {
-            state.prop.clawIndexes = new int[7];
+            state.prop.clawIndexes = new int[limit];
             for (int i = 0; i < state.prop.clawIndexes.length; i++) {
                 state.prop.clawIndexes[i] = state.prop.findCardIndex(new Claw(3 + i * 2));
             }
@@ -228,53 +241,65 @@ public class CardDefect {
 
         @Override public int onPlayTransformCardIdx(GameProperties prop) {
             int i = (dmg - 3) / 2;
-            return i < 6 ? prop.clawIndexes[i + 1] : -1;
+            return i < limit - 1 ? prop.clawIndexes[i + 1] : -1;
         }
     }
 
     public static class ClawP extends Card {
+        public int limit;
         private int dmg;
 
         public ClawP() {
             this(5);
         }
 
-        public ClawP(int dmg) {
+        public ClawP(int dmg, int limit) {
             super("Claw+ (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
+            this.limit = limit;
             selectEnemy = true;
+        }
+
+        public ClawP(int dmg) {
+            this(dmg, 7);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
-            for (int i = 0; i < 6; i++) {
-                state.deck[state.prop.clawPIndexes[i]] += state.deck[state.prop.clawPIndexes[i + 1]];
-                state.deck[state.prop.clawPIndexes[i + 1]] = 0;
-                state.hand[state.prop.clawPIndexes[i]] += state.hand[state.prop.clawPIndexes[i + 1]];
-                state.hand[state.prop.clawPIndexes[i + 1]] = 0;
-                state.discard[state.prop.clawPIndexes[i]] += state.discard[state.prop.clawPIndexes[i + 1]];
-                state.discard[state.prop.clawPIndexes[i + 1]] = 0;
-                var exhaust = state.getExhaustForWrite();
-                exhaust[state.prop.clawPIndexes[i]] += exhaust[state.prop.clawPIndexes[i + 1]];
-                exhaust[state.prop.clawPIndexes[i + 1]] = 0;
+            var exhaust = state.getExhaustForWrite();
+            for (int i = limit - 1; i > 0; i--) {
+                for (int j = 0; j < state.getDeck()[state.prop.clawPIndexes[i - 1]]; j++) {
+                    state.addCardToDeck(state.prop.clawPIndexes[i]);
+                }
+                state.setCardCountInDeck(state.prop.clawPIndexes[i - 1], 0);
+                state.hand[state.prop.clawPIndexes[i]] += state.hand[state.prop.clawPIndexes[i - 1]];
+                state.hand[state.prop.clawPIndexes[i - 1]] = 0;
+                state.discard[state.prop.clawPIndexes[i]] += state.discard[state.prop.clawPIndexes[i - 1]];
+                state.discard[state.prop.clawPIndexes[i - 1]] = 0;
+                exhaust[state.prop.clawPIndexes[i]] += exhaust[state.prop.clawPIndexes[i - 1]];
+                exhaust[state.prop.clawPIndexes[i - 1]] = 0;
             }
             return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return List.of(new ClawP(5), new ClawP(7), new ClawP(9), new ClawP(11), new ClawP(13), new ClawP(15), new ClawP(17));
+            var c = new ArrayList<Card>();
+            for (int i = 0; i < limit; i++) {
+                c.add(new Claw(5 + i * 2, limit));
+            }
+            return c;
         }
 
         @Override public void startOfGameSetup(GameState state) {
-            state.prop.clawPIndexes = new int[7];
+            state.prop.clawPIndexes = new int[limit];
             for (int i = 0; i < state.prop.clawPIndexes.length; i++) {
-                state.prop.clawPIndexes[i] = state.prop.findCardIndex(new Claw(3 + i * 2));
+                state.prop.clawPIndexes[i] = state.prop.findCardIndex(new Claw(5 + i * 2));
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop) {
             int i = (dmg - 5) / 2;
-            return i < 6 ? prop.clawPIndexes[i + 1] : -1;
+            return i < limit - 1 ? prop.clawPIndexes[i + 1] : -1;
         }
     }
 

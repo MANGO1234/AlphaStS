@@ -153,6 +153,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Dream Catcher: No need to implement
 
     public static class HappyFlower extends Relic {
+        private final int n;
+
+        public HappyFlower(int n) {
+            this.n = n;
+        }
+
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("HappyFlower", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -162,6 +168,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
                 @Override public int getInputLenDelta() {
                     return 1;
+                }
+            });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
                 }
             });
             state.addStartOfTurnHandler(new GameEventHandler() {
