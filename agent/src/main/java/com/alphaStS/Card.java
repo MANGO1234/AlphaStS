@@ -2577,21 +2577,18 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     if (enemiesAllDead) {
                         v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
                     } else {
-                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                        int minFeed = state.getCounterForRead()[counterIdx];
+                        int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
+                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, state.getVOther(vArrayIdx)));
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
                     }
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
-                    double max_v = Math.min(0.25, v[GameState.V_OTHER_IDX_START + vArrayIdx]);
-                    var idx = state.prop.findCardIndex("Feed");
-                    if (state.getExhaustForRead()[idx] > 0 || state.getExhaustForRead()[state.prop.findCardIndex("Feed+")] > 0 ) {
-                        max_v = state.getCounterForRead()[counterIdx] / 16.0;
-                    } else if (state.getExhaustForRead()[state.prop.findCardIndex("Armanent+")] > 0) {
-                        if (state.getHand()[idx] > 0 || state.getDiscard()[idx] > 0 || state.getDeck()[idx] > 0) {
-                            max_v = Math.min(3 / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]);
-                        }
-                    }
-                    v[GameState.V_HEALTH_IDX] += 2 * 16 * max_v / state.getPlayeForRead().getMaxHealth();
+                    int minFeed = state.getCounterForRead()[counterIdx];
+                    int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
+                    double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                    v[GameState.V_HEALTH_IDX] += 2 * 16 * vFeed / state.getPlayeForRead().getMaxHealth();
                 }
             });
         }
@@ -2599,6 +2596,43 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             counterIdx = idx;
             gameProperties.feedCounterIdx = idx;
+        }
+
+        public static int getMaxPossibleFeedRemaining(GameState state) {
+            if (state.isTerminal() != 0) {
+                return 0;
+            }
+            var idx = state.prop.findCardIndex("Feed");
+            var idx2 = state.prop.findCardIndex("Armanent");
+            var idx3 = state.prop.findCardIndex("Armanent+");
+            var remain = 0;
+            if (idx > 0) {
+                boolean canUpgrade = false;
+                if (idx2 > 0 && (state.getHand()[idx2] > 0 || state.getDiscard()[idx2] > 0 || state.getDeck()[idx2] > 0)) {
+                    canUpgrade = true;
+                }
+                if (idx3 > 0 && (state.getHand()[idx3] > 0 || state.getDiscard()[idx3] > 0 || state.getDeck()[idx3] > 0)) {
+                    canUpgrade = true;
+                }
+                remain += state.getHand()[idx] * (canUpgrade ? 4 : 3);
+                remain += state.getDeck()[idx] * (canUpgrade ? 4 : 3);
+                remain += state.getDiscard()[idx] * (canUpgrade ? 4 : 3);
+                var curAction = state.getCurrentAction();
+                if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idx) {
+                    remain += canUpgrade ? 4 : 3;
+                }
+            }
+            idx = state.prop.findCardIndex("Feed+");
+            if (idx > 0) {
+                remain += state.getHand()[idx] * 4;
+                remain += state.getDeck()[idx] * 4;
+                remain += state.getDiscard()[idx] * 4;
+                var curAction = state.getCurrentAction();
+                if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idx) {
+                    remain += 4;
+                }
+            }
+            return remain;
         }
     }
 

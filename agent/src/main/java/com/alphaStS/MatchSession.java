@@ -739,37 +739,37 @@ public class MatchSession {
     }
 
     private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
-//        return calcExpectedValue2(cState, generatedState, mcts, vCur);
-        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
-        int k = 0;
-        while (k++ < 100 && cState.total_n < 100) {
-            mcts.search(cState.getNextState(false), false, 1000);
-        }
-        while (k++ < 1000) {
-            cState.getNextState(false);
-        }
-        double[] est = new double[vCur.length];
-        double[] out = new double[vCur.length];
-        int nodeCount = 0;
-        for (ChanceState.Node node : cState.cache.values()) {
-            if (node.state.policy == null) {
-                continue;
-            }
-            if (node.state != stateActual) {
-                out[GameState.V_COMB_IDX] = node.state.total_q_comb / (node.state.total_n + 1);
-                out[GameState.V_WIN_IDX] = node.state.total_q_win / (node.state.total_n + 1);
-                out[GameState.V_HEALTH_IDX] = node.state.total_q_health / (node.state.total_n + 1);
-                for (int i = 0; i < est.length; i++) {
-                    est[i] += out[i] * node.n;
-                }
-            }
-            nodeCount += node.n;
-        }
-        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / nodeCount;
-        for (int i = 0; i < est.length; i++) {
-            est[i] /= nodeCount;
-            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
-        }
+        return calcExpectedValue2(cState, generatedState, mcts, vCur);
+//        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
+//        int k = 0;
+//        while (k++ < 100 && cState.total_n < 100) {
+//            mcts.search(cState.getNextState(false), false, 1000);
+//        }
+//        while (k++ < 1000) {
+//            cState.getNextState(false);
+//        }
+//        double[] est = new double[vCur.length];
+//        double[] out = new double[vCur.length];
+//        int nodeCount = 0;
+//        for (ChanceState.Node node : cState.cache.values()) {
+//            if (node.state.policy == null) {
+//                continue;
+//            }
+//            if (node.state != stateActual) {
+//                out[GameState.V_COMB_IDX] = node.state.total_q_comb / (node.state.total_n + 1);
+//                out[GameState.V_WIN_IDX] = node.state.total_q_win / (node.state.total_n + 1);
+//                out[GameState.V_HEALTH_IDX] = node.state.total_q_health / (node.state.total_n + 1);
+//                for (int i = 0; i < est.length; i++) {
+//                    est[i] += out[i] * node.n;
+//                }
+//            }
+//            nodeCount += node.n;
+//        }
+//        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / nodeCount;
+//        for (int i = 0; i < est.length; i++) {
+//            est[i] /= nodeCount;
+//            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
+//        }
 //        System.out.println(cState);
 //        System.out.println(Arrays.toString(est));
 //        cState = new ChanceState(null, cState.parentState, cState.parentAction);
@@ -798,7 +798,7 @@ public class MatchSession {
         //  if ((v_win - v_win2) > 0.02 || (v_health - v_health2) > 0.0) {
         //      System.out.println((v_win - v_win2) + "," + (v_health - v_health2) + "," + cState.cache.size() + "," + prevSize);
         //  }
-        return est;
+//        return est;
     }
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts) {

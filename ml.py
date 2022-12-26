@@ -71,6 +71,16 @@ def softmax_cross_entropy_with_logits(y_true, y_pred):
     return loss
 
 
+def mse_ignoring_out_of_bound(y_true, y_pred):
+    # allow agent to output negative values to ignore training data for losses when training
+    p = y_pred
+    pi = y_true
+    zero = tf.zeros(shape=tf.shape(pi), dtype=tf.float32)
+    where = tf.less(pi, zero - 2)
+    pi = tf.where(where, p, pi)
+    return tf.keras.losses.MeanSquaredError()(p, pi)
+
+
 if os.path.exists(f'{SAVES_DIR}/training.json'):
     with open(f'{SAVES_DIR}/training.json', 'r') as f:
         training_info = json.load(f)
@@ -84,7 +94,7 @@ else:
         json.dump(training_info, f)
 
 if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
-    custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits}
+    custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits, "mse_ignoring_out_of_bound": mse_ignoring_out_of_bound}
     with keras.utils.custom_object_scope(custom_objects):
         model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
         # model.optimizer.lr.assign(0.01)

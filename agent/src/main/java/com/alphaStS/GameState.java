@@ -1364,7 +1364,8 @@ public final class GameState implements State {
                 for (int i = 0; i < prop.healCardsIdxes.length; i++) {
                     // todo: need to take take feed+ into account
                     if (prop.cardDict[prop.healCardsIdxes[i]].cardName.startsWith("Feed")) {
-                        if (getExhaustForRead()[prop.findCardIndex("Armanent+")] > 0) {
+                        int idx = prop.findCardIndex("Armanent+");
+                        if (idx < 0 || getExhaustForRead()[idx] > 0) {
                             v += 3;
                         } else {
                             v += 4;
@@ -1652,8 +1653,14 @@ public final class GameState implements State {
         }
         str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
         if (v_other != null) {
+            double[] o = new double[20];
+            get_v(o);
             for (int i = 0; i < v_other.length; i++) {
-                str.append("/").append(formatFloat(v_other[i]));
+                if (v_other[i] == o[V_OTHER_IDX_START + i]) {
+                    str.append("/").append(formatFloat(v_other[i]));
+                } else {
+                    str.append("/").append(formatFloat(v_other[i])).append("->").append(formatFloat(o[V_OTHER_IDX_START + i]));
+                }
             }
         }
         str.append(")");
@@ -2970,6 +2977,10 @@ public final class GameState implements State {
             drawOrderCloned = true;
         }
         return drawOrder;
+    }
+
+    public GameAction getCurrentAction() {
+        return currentAction;
     }
 
     public RandomGen getSearchRandomGen() {
