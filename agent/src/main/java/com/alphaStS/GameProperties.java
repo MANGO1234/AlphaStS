@@ -71,6 +71,8 @@ public class GameProperties implements Cloneable {
     public int ritualDaggerCounterIdx = -1;
     public int feedCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
+    public int incenseBurnerCounterIdx = -1;
+    public int incenseBurnerRewardType = -1;
     public int echoFormCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
     public int equilibriumCounterIdx = -1;
@@ -249,7 +251,8 @@ public class GameProperties implements Cloneable {
     public void compilerExtraTrainingTarget() {
         var registrants = trainingTargetsRegistrantMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         for (int i = 0; i < registrants.size(); i++) {
-            registrants.get(i).getValue().setVArrayIdx(extraOutputLen++);
+            registrants.get(i).getValue().setVArrayIdx(extraOutputLen);
+            extraOutputLen += trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets();
             extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));
         }
     }

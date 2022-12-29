@@ -1165,9 +1165,11 @@ public final class GameState implements State {
             prop.preBattleScenarios.randomize(this, prop.preBattleGameScenariosList.get(action.idx()).getKey());
             setActionCtx(GameActionCtx.BEGIN_BATTLE, null);
         } else if (action.type() == GameActionType.BEGIN_TURN) {
-            startTurn();
-            setActionCtx(GameActionCtx.PLAY_CARD, null);
-            runActionsInQueueIfNonEmpty();
+            if (isTerminal() == 0) {
+                startTurn();
+                setActionCtx(GameActionCtx.PLAY_CARD, null);
+                runActionsInQueueIfNonEmpty();
+            }
         } else if (action.type() == GameActionType.END_USING_POTION) {
             setActionCtx(prop.potions.get(currentAction.idx()).use(this, prop.cardDict.length), action);
         }
@@ -1306,6 +1308,16 @@ public final class GameState implements State {
         var player = getPlayeForRead();
         if (player.getHealth() <= 0 || turnNum >= 512) {
             Arrays.fill(out, 0);
+            if (prop.extraOutputLen > 0) {
+                int cur = 0;
+                for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
+                    int n = prop.extraTrainingTargets.get(i).getNumberOfTargets();
+                    if (n > 1) {
+                        out[V_OTHER_IDX_START + cur + n - 1] = 1;
+                    }
+                    cur += n;
+                }
+            }
             return;
         }
         boolean enemiesAllDead = true;
@@ -1672,12 +1684,26 @@ public final class GameState implements State {
         if (v_other != null) {
             double[] o = new double[20];
             get_v(o);
-            for (int i = 0; i < v_other.length; i++) {
-                if (v_other[i] == o[V_OTHER_IDX_START + i]) {
-                    str.append("/").append(formatFloat(v_other[i]));
+            int idx = 0;
+            for (var target : prop.extraTrainingTargets) {
+                int n = target.getNumberOfTargets();
+                if (n == 1) {
+                    if (v_other[idx] == o[V_OTHER_IDX_START + idx]) {
+                        str.append("/").append(formatFloat(v_other[idx]));
+                    } else {
+                        str.append("/").append(formatFloat(v_other[idx])).append("->").append(formatFloat(o[V_OTHER_IDX_START + idx]));
+                    }
                 } else {
-                    str.append("/").append(formatFloat(v_other[i])).append("->").append(formatFloat(o[V_OTHER_IDX_START + i]));
+                    str.append("/[");
+                    for (int i = 0; i < n; i++) {
+                        if (i > 0) {
+                            str.append(',');
+                        }
+                        str.append(formatFloat(v_other[idx + i]));
+                    }
+                    str.append(']');
                 }
+                idx += n;
             }
         }
         str.append(")");

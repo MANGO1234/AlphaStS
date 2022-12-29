@@ -1394,8 +1394,20 @@ public class MatchSession {
                 for (int j = 0; j < x.length; j++) {
                     stream.writeFloat(x[j]);
                 }
-                for (int j = 1; j < step.v.length; j++) {
+                for (int j = 1; j < GameState.V_OTHER_IDX_START; j++) {
                     stream.writeFloat((float) ((step.v[j] * 2) - 1));
+                }
+                int v_idx = GameState.V_OTHER_IDX_START;
+                for (var target : state.prop.extraTrainingTargets) {
+                    int n = target.getNumberOfTargets();
+                    if (n == 1) {
+                        stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
+                    } else {
+                        for (int j = 0; j < n; j++) {
+                            stream.writeFloat((float) step.v[v_idx + j]);
+                        }
+                    }
+                    v_idx += n;
                 }
                 int idx = 0;
                 if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
@@ -1586,7 +1598,7 @@ public class MatchSession {
     public static void printGame(Writer writer, List<GameStep> steps) throws IOException {
         for (int i = 0; i < steps.size(); i++) {
             var step = steps.get(i);
-            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN && !step.state().isStochastic) continue;
+            if (step.state().actionCtx == GameActionCtx.BEGIN_TURN && !step.state().isStochastic && step.state().isTerminal() == 0) continue;
             writer.write(step.state() + "\n");
             if (step.v != null && !step.trainingSkipOpening) {
                 writer.write(Arrays.toString(step.v) + ", " + step.trainingWriteCount + "\n");

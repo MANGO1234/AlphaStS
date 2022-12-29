@@ -730,7 +730,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class IncenseBurner extends Relic {
         public static int DEFAULT_REWARD = 0;
-        public static int SHIELD_AND_SPEAR_REWARD = 0;
+        public static int SHIELD_AND_SPEAR_REWARD = 1;
 
         int n;
         int rewardType = DEFAULT_REWARD;
@@ -748,11 +748,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.prop.registerCounter("IncenseBurner", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
-                    input[idx] = (counter[counterIdx] + 1) / 6.0f;
-                    return idx + 1;
+                    input[counter[counterIdx]] = 1;
+                    return idx + 6;
                 }
                 @Override public int getInputLenDelta() {
-                    return 1;
+                    return 6;
                 }
             });
             state.prop.registerIntangibleCounter();
@@ -765,6 +765,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
+            state.prop.incenseBurnerRewardType = rewardType;
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
@@ -785,49 +786,41 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 });
             } else if (rewardType == SHIELD_AND_SPEAR_REWARD) {
-                // todo: actually use softmax probabilty instead of 3 counters...
-                state.prop.addExtraTrainingTarget("IncenseBurner3", this, new TrainingTarget() {
+                state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
                         if (enemiesAllDead) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] == 3 ? 1 : 0;
+                            for (int i = 0; i < 7; i++) {
+                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
+                            }
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
                         } else {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                            for (int i = 0; i < 7; i++) {
+                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
+                            }
                         }
                     }
 
                     @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] = 2 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
-                    }
-                });
-                state.prop.addExtraTrainingTarget("IncenseBurner4", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] == 4 ? 1 : 0;
-                        } else {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
-                        }
+                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
+                        v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                        v[GameState.V_HEALTH_IDX] += v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
                     }
 
-                    @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += v[GameState.V_HEALTH_IDX] * v[GameState.V_OTHER_IDX_START + vArrayIdx];
-                    }
-                });
-                state.prop.addExtraTrainingTarget("IncenseBurner5", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] == 5 ? 1 : 0;
-                        } else {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
-                        }
-                    }
-
-                    @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += 1 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                    @Override public int getNumberOfTargets() {
+                        return 7;
                     }
                 });
             } else {
                 throw new IllegalStateException();
             }
+        }
+
+        @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
+            super.setCounterIdx(properties, counterIdx);
+            properties.incenseBurnerCounterIdx = counterIdx;
         }
     }
 

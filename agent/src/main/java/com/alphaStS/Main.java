@@ -36,7 +36,10 @@ public class Main {
     public static void main(String[] args) throws IOException {
         var state = TestStates.TestStateDefect1p2();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions + "," + state.prop.extraOutputLen);
+            System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
+            for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
+                System.out.print("," + state.prop.extraTrainingTargets.get(i).getNumberOfTargets());
+            }
             return;
         }
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
@@ -180,7 +183,6 @@ public class Main {
                         maxDifficulty = root.get("maxDifficulty").asInt();
                     }
                 } catch (FileNotFoundException e) {
-                    System.out.println("Unable to find neural network.");
                 }
             }
         }

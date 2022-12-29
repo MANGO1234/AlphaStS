@@ -55,7 +55,8 @@ p = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-
 lens_str = p.stdout.decode('ascii').split(',')
 input_len = int(lens_str[0])
 num_of_actions = int(lens_str[1])
-v_other_len = int(lens_str[2])
+v_other_lens = [int(l) for l in lens_str[2:]]
+v_other_len = sum(v_other_lens)
 print(f'input_len={input_len}, policy_len={num_of_actions}, v_other_len={v_other_len}')
 
 
@@ -69,6 +70,10 @@ def softmax_cross_entropy_with_logits(y_true, y_pred):
     pi = tf.where(where, zero, pi)
     loss = tf.nn.softmax_cross_entropy_with_logits(labels=pi, logits=p)
     return loss
+
+
+def softmax_cross_entropy_with_logits_simple(y_true, y_pred):
+    return tf.nn.softmax_cross_entropy_with_logits(labels=y_true, logits=y_pred)
 
 
 def mse_ignoring_out_of_bound(y_true, y_pred):
@@ -94,7 +99,8 @@ else:
         json.dump(training_info, f)
 
 if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
-    custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits, "mse_ignoring_out_of_bound": mse_ignoring_out_of_bound}
+    custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits,
+                      "softmax_cross_entropy_with_logits_simple": softmax_cross_entropy_with_logits_simple, "mse_ignoring_out_of_bound": mse_ignoring_out_of_bound}
     with keras.utils.custom_object_scope(custom_objects):
         model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
         # model.optimizer.lr.assign(0.01)
@@ -119,17 +125,25 @@ else:
     exp_win_head = layers.Dense(1, name="exp_win_head", use_bias=True, activation='tanh')(x)
     exp_health_head = layers.Dense(1, name="exp_health_head", use_bias=True, activation='tanh')(x)
     policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
-    exp_other_heads = [layers.Dense(1, name=f"exp_other_head{i}", use_bias=True, activation='tanh')(x) for i in range(v_other_len)]
-    model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
+    exp_other_heads = []
     loss = {
         'exp_health_head': 'mean_squared_error',
         'exp_win_head': 'mean_squared_error',
         'policy_head': softmax_cross_entropy_with_logits
     }
     loss_weights = {'exp_health_head': 0.45, 'policy_head': 0.1, 'exp_win_head': 0.45}
-    for i in range(v_other_len):
-        loss[f'exp_other_head{i}'] = 'mean_squared_error'
-        loss_weights[f'exp_other_head{i}'] = 0.25
+    idx = 0
+    for v_other in v_other_lens:
+        if v_other == 1:
+            loss[f'exp_other_head{idx}'] = 'mean_squared_error'
+            exp_other_heads.append(layers.Dense(1, name=f"exp_other_head{idx}", use_bias=True, activation='tanh')(x))
+            loss_weights[f'exp_other_head{idx}'] = 0.25
+        else:
+            loss[f'exp_other_head{idx}'] = softmax_cross_entropy_with_logits_simple
+            exp_other_heads.append(layers.Dense(v_other, name=f"exp_other_head{idx}", use_bias=True, activation='linear')(x))
+            loss_weights[f'exp_other_head{idx}'] = 0.25
+        idx += v_other
+    model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
     model.compile(
         loss=loss,
         loss_weights=loss_weights,
@@ -176,7 +190,14 @@ def get_training_samples(training_pool, iteration, file_path):
         p_fmt = '>' + ('f' * num_of_actions)
         p = struct.unpack(p_fmt, content[offset + 4 * (input_len + 2 + v_other_len):offset + 4 * (input_len + 2 + v_other_len + num_of_actions)])
         offset += 4 * (input_len + 2 + v_other_len + num_of_actions)
-        target = [list(x), v[0], v[1], list(p), [v_other for v_other in v[2:]]]
+        target = [list(x), v[0], v[1], list(p), []]
+        idx = 2
+        for v_other in v_other_lens:
+            if v_other == 1:
+                target[4].append(v[idx])
+            else:
+                target[4].append(list(v[idx:idx + v_other]))
+            idx += v_other
         training_pool.append((iteration, target))
     if len(content) != offset:
         print(f'{len(content) - offset} bytes remaining for decoding')
@@ -304,20 +325,20 @@ if DO_TRAINING:
             exp_win_head_train = []
             policy_head_train = []
             exp_other_heads_train = []
-            for i in range(v_other_len):
+            for i in range(len(v_other_lens)):
                 exp_other_heads_train.append([])
             for _, (x, v_win, v_health, p, v_others) in minibatch:
                 x_train.append(np.asarray(x))
                 exp_health_head_train.append(np.asarray(v_health).reshape(1))
                 exp_win_head_train.append(np.asarray(v_win).reshape(1))
                 policy_head_train.append(np.asarray(p).reshape(num_of_actions))
-                for i in range(v_other_len):
-                    exp_other_heads_train[i].append(np.asarray(v_others[i]).reshape(1))
+                for i in range(len(v_other_lens)):
+                    exp_other_heads_train[i].append(np.asarray(v_others[i]).reshape(v_other_lens[i]))
             x_train = np.asarray(x_train)
             exp_health_head_train = np.asarray(exp_health_head_train)
             exp_win_head_train = np.asarray(exp_win_head_train)
             policy_head_train = np.asarray(policy_head_train)
-            for i in range(v_other_len):
+            for i in range(len(v_other_lens)):
                 exp_other_heads_train[i] = np.asarray(exp_other_heads_train[i])
             target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
             fit_result = model.fit(np.asarray(x_train), target, epochs=1)

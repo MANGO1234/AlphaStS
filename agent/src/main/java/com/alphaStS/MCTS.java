@@ -233,9 +233,27 @@ public class MCTS {
     }
 
     public boolean cannotImproveState(GameState state) {
-        return state.playerTurnStartPotionCount == state.getPotionCount() &&
-                state.playerTurnStartMaxPossibleHealth == state.getPlayeForRead().getHealth() &&
-                (state.prop.nunchakuCounterIdx < 0 || state.getCounterForRead()[state.prop.nunchakuCounterIdx] == 9);
+        if (state.playerTurnStartPotionCount != state.getPotionCount()) {
+            return false;
+        }
+        if (state.playerTurnStartMaxPossibleHealth != state.getPlayeForRead().getHealth()) {
+            return false;
+        }
+        if (state.prop.nunchakuCounterIdx >= 0 && state.getCounterForRead()[state.prop.nunchakuCounterIdx] < 9) {
+            return false;
+        }
+        if (state.prop.incenseBurnerCounterIdx >= 0) {
+            if (state.prop.incenseBurnerRewardType == Relic.IncenseBurner.DEFAULT_REWARD) {
+                if (state.getCounterForRead()[state.prop.incenseBurnerCounterIdx] < 5) {
+                    return false;
+                }
+            } else if (state.prop.incenseBurnerRewardType == Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD) {
+                if (state.getCounterForRead()[state.prop.incenseBurnerCounterIdx] != 4) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private void updateTranspositions(GameState transpositionKey, GameState state, GameState curParentState, int action) {

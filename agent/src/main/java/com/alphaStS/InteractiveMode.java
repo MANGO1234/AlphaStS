@@ -1008,7 +1008,7 @@ public class InteractiveMode {
                 }
                 if (printAction) {
                     for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (state.ns[i] == null) {
+                        if (state.ns == null || state.ns[i] == null) {
                             continue;
                         }
                         if (state.getAction(i).type() == GameActionType.PLAY_CARD ||
@@ -1041,9 +1041,11 @@ public class InteractiveMode {
                 if (line.equals("tree") || line.startsWith("tree ")) {
                     printTree(state, line, modelDir);
                 } else if (line.equals("b")) {
-                    hist.remove(hist.size() - 1);
-                    printState = true;
-                    printAction = true;
+                    if (hist.size() > 1) {
+                        hist.remove(hist.size() - 1);
+                        printState = true;
+                        printAction = true;
+                    }
                 } else if (line.startsWith("save ")) {
                     int idx = parseInt(line.substring(5), -1);
                     if (idx >= 0 && idx <= 9) {
@@ -1060,8 +1062,7 @@ public class InteractiveMode {
                     int action = parseInt(line, -1);
                     if (action < 0 || action >= state.getLegalActions().length) {
                         var _state = state;
-                        var actionsOrig = IntStream.range(0, state.getLegalActions().length).filter((i) -> _state.ns[i] != null)
-                                .mapToObj(_state::getActionString).toList();
+                        var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
                         var actions = actionsOrig.stream().map(String::toLowerCase).toList();
                         var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
                         if (actionStr != null) {

@@ -57,11 +57,27 @@ public class Model {
             sum += val;
             tmp[i] = val;
         }
-        float[] output = new float[input.length];
-        for (int i = 0; i < output.length; i++) {
-            output[i] = (float) (tmp[i] / sum);
+        for (int i = 0; i < input.length; i++) {
+            input[i] = (float) (tmp[i] / sum);
         }
-        return output;
+        return input;
+    }
+
+    public static void softmax(double[] input, int start, int len) {
+        double[] tmp = new double[len];
+        double max = Float.MIN_VALUE;
+        for (int i = 0; i < len; i++) {
+            max = Math.max(max, input[start + i]);
+        }
+        double sum = 0.0;
+        for (int i = 0; i < len; i++) {
+            double val = Math.exp(input[start + i] - max);
+            sum += val;
+            tmp[i] = val;
+        }
+        for (int i = 0; i < len; i++) {
+            input[start + i] = (float) (tmp[i] / sum);
+        }
     }
 
     public static float[] softmax(float[] input, float temp) {
@@ -173,9 +189,20 @@ public class Model {
             double[] v_other = null;
             if (output.size() > 3 && state.prop.extraOutputLen > 0) {
                 v_other = new double[state.prop.extraOutputLen];
-                for (int i = 0; i < v_other.length; i++) {
-                    float value = ((float[][]) output.get(3 + i).getValue())[0][0];
-                    v_other[i] = (value + 1) / 2;
+                int idx = 0;
+                for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
+                    int n = state.prop.extraTrainingTargets.get(i).getNumberOfTargets();
+                    if (n == 1) {
+                        float value = ((float[][]) output.get(3 + i).getValue())[0][0];
+                        v_other[idx] = (value + 1) / 2;
+                    } else {
+                        float[] v = ((float[][]) output.get(3 + i).getValue())[0];
+                        for (int j = 0; j < n; j++) {
+                            v_other[idx + j] = v[j];
+                        }
+                        softmax(v_other, idx, n);
+                    }
+                    idx += n;
                 }
             }
 
