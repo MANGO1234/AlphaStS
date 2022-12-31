@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.*;
@@ -55,7 +54,6 @@ public class Main {
         boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
         boolean GAMES_ADD_POTION_RANDOMIZATION = false;
         boolean GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = false;
-        int POTION_STEPS = 1;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
@@ -122,13 +120,13 @@ public class Main {
             for (int i = 0; i < state.prop.potions.size(); i++) {
                 s.add((short) 80);
             }
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).doAfter(state.prop.randomization);
+            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions).doAfter(state.prop.randomization);
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
             var s = new ArrayList<Short>();
             for (int i = 0; i < state.prop.potions.size(); i++) {
                 s.add((short) 80);
             }
-            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions, POTION_STEPS, s).doAfter(state.prop.preBattleRandomization);
+            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions).doAfter(state.prop.preBattleRandomization);
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;

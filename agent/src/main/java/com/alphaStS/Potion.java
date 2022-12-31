@@ -1,6 +1,5 @@
 package com.alphaStS;
 
-import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.Tuple;
 
 import java.util.Arrays;
@@ -21,6 +20,26 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean selectFromHand;
     boolean selectFromDiscard;
     int counterIdx = -1;
+    private short basePenaltyRatio = 80;
+    private int penaltyRatioSteps = 1;
+
+    public short getBasePenaltyRatio() {
+        return basePenaltyRatio;
+    }
+
+    public Potion setBasePenaltyRatio(int basePenaltyRatio) {
+        this.basePenaltyRatio = (short) basePenaltyRatio;
+        return this;
+    }
+
+    public int getPenaltyRatioSteps() {
+        return penaltyRatioSteps;
+    }
+
+    public Potion setPenaltyRatioSteps(int penaltyRatioSteps) {
+        this.penaltyRatioSteps = penaltyRatioSteps;
+        return this;
+    }
 
     public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;

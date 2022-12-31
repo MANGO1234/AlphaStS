@@ -280,11 +280,7 @@ public class EnemyBeyond {
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
-                if (difficulty <= 16) {
-                    health = (int) Math.round(((double) (health * difficulty)) / 16);
-                } else {
-                    health = (int) Math.round(((double) (health * (difficulty - 16))) / 16);
-                }
+                health = (int) Math.round(((double) (health * difficulty)) / 12);
             } else {
                 health = 265;
             }
@@ -357,11 +353,7 @@ public class EnemyBeyond {
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
-                if (difficulty <= 16) {
-                    health = (int) Math.round(((double) (health * difficulty)) / 16);
-                } else {
-                    health = (int) Math.round(((double) (health * (difficulty - 16))) / 16);
-                }
+                health = (int) Math.round(((double) (health * difficulty)) / 12);
             } else {
                 health = 265;
             }

@@ -947,9 +947,9 @@ public class TestStates {
         builder.addRelic(new Relic.IncenseBurner(5, Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD));
         builder.addRelic(new Relic.TheBoot());
         builder.addRelic(new Relic.Shuriken());
-        builder.addPotion(new Potion.BlockPotion());
-        builder.addPotion(new Potion.BlockPotion());
-        builder.addPotion(new Potion.SpeedPotion());
+        builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.SpeedPotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.GamblersBrew());
         builder.setPlayer(new Player(72, 72));
         return new GameState(builder);
