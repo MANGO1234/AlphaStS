@@ -23,6 +23,9 @@ public abstract class Enemy extends EnemyReadOnly {
             return;
         }
         int dmg = n - block;
+        if (state.prop.hasBoot && dmg > 0 && dmg < 5) {
+            dmg = 5;
+        }
         health -= Math.max(0, dmg);
         block = Math.max(0, block - n);
         if (dmg > 0 && platedArmor > 0) {

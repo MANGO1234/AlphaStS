@@ -261,7 +261,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Orichalcum extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.addPreEndOfTurnHandler(new GameEventHandler(0) {
                 @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getBlock() == 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
@@ -731,6 +731,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class IncenseBurner extends Relic {
         public static int DEFAULT_REWARD = 0;
         public static int SHIELD_AND_SPEAR_REWARD = 1;
+        public static int HEART = 2;
 
         int n;
         int rewardType = DEFAULT_REWARD;
@@ -805,6 +806,34 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
                         v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
                         v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                        v[GameState.V_HEALTH_IDX] += v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
+                    }
+
+                    @Override public int getNumberOfTargets() {
+                        return 7;
+                    }
+                });
+            } else if (rewardType == HEART) {
+                state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                        if (enemiesAllDead) {
+                            for (int i = 0; i < 7; i++) {
+                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
+                            }
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
+                        } else {
+                            for (int i = 0; i < 7; i++) {
+                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
+                            }
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        v[GameState.V_HEALTH_IDX] += 0.02 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                        v[GameState.V_HEALTH_IDX] += 0.02 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
+                        v[GameState.V_HEALTH_IDX] += 0.2 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
                         v[GameState.V_HEALTH_IDX] += v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
                         v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
                     }
@@ -1164,7 +1193,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class RunicCapacitor extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.prop.maxNumOfOrbs = Math.max(state.prop.maxNumOfOrbs, 6);
+            state.prop.maxNumOfOrbs = Math.min(state.prop.maxNumOfOrbs + 3, 10);
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.gainOrbSlot(3);

@@ -289,4 +289,12 @@ public class GameProperties implements Cloneable {
             }
         });
     }
+
+    public void registerMetallicizeHandler(GameState state, int counterIdx) {
+        state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+            }
+        });
+    }
 }

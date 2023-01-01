@@ -120,7 +120,7 @@ public abstract class RandomGen {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return seed ^ 0x5DEECE66DL;
+        return seed;
     }
 
     private static Random getRandomClone(Random r) {

@@ -165,6 +165,21 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class PotionOfCapacity extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.gainOrbSlot(state.prop.hasSacredBark ? 4 : 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Potion Of Capacity";
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.prop.maxNumOfOrbs = Math.min(state.prop.maxNumOfOrbs + 2, 10);
+        }
+    }
+
     public static class BloodPotion extends Potion {
         int heal;
 
@@ -362,11 +377,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 1;
                 }
             });
-            state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
-                }
-            });
+            state.prop.registerMetallicizeHandler(state, counterIdx);
         }
     }
 

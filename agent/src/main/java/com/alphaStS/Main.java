@@ -137,7 +137,7 @@ public class Main {
                 state.prop.randomization = state.prop.randomization.doAfter(state.prop.preBattleScenarios);
             }
             state.prop.preBattleScenarios = null;
-            state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null);
+            state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
         }
 //        state.prop.randomization = state.prop.randomization.fixR(0, 2, 4);
 
@@ -227,7 +227,7 @@ public class Main {
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
             state.prop.preBattleScenarios = preBattleScenarios;
             state.prop.randomization = randomization;
-            state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null);
+            state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
         }
 
         if (GENERATE_TRAINING_GAMES) {

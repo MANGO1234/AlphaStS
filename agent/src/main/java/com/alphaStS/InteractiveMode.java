@@ -911,7 +911,7 @@ public class InteractiveMode {
 
     private static void runGamesCmpSetup(GameState state, String line) {
         String[] s = line.split(" ");
-        if (s.length < 1) {
+        if (s.length <= 1) {
             return;
         }
         int startingAction = -1;

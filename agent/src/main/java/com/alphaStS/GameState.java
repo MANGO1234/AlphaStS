@@ -44,6 +44,7 @@ public final class GameState implements State {
     StringBuilder stateDesc;
     public GameProperties prop;
     GameActionCtx actionCtx;
+    boolean actionCardIsCloned;
 
     byte[] deck;
     byte[] hand;
@@ -116,7 +117,7 @@ public final class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
+        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx&& actionCardIsCloned == gameState.actionCardIsCloned && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
     }
 
     @Override public int hashCode() {
@@ -607,6 +608,7 @@ public final class GameState implements State {
         prop = other.prop;
 
         actionCtx = other.actionCtx;
+        actionCardIsCloned = other.actionCardIsCloned;
         deck = Arrays.copyOf(other.deck, other.deck.length);
         hand = Arrays.copyOf(other.hand, other.hand.length);
         discard = Arrays.copyOf(other.discard, other.discard.length);
@@ -745,16 +747,18 @@ public final class GameState implements State {
         return prop.cardDict[cardIdx].energyCost(this);
     }
 
-    public void setActionCtx(GameActionCtx ctx, GameAction action) {
+    public void setActionCtx(GameActionCtx ctx, GameAction action, boolean actionCardIsCloned) {
         switch (ctx) {
         case PLAY_CARD -> {
             currentAction = null;
             select1OutOf3CardsIdxes = 0;
             actionCtx = ctx;
+            this.actionCardIsCloned = false;
         }
         case BEGIN_BATTLE, SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_DECK, SELECT_CARD_1_OUT_OF_3 -> {
             currentAction = action;
             actionCtx = ctx;
+            this.actionCardIsCloned = actionCardIsCloned;
         }
         case SELECT_SCENARIO, BEGIN_TURN -> actionCtx = ctx;
         }
@@ -788,15 +792,15 @@ public final class GameState implements State {
                 action = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             }
             if (prop.cardDict[cardIdx].selectEnemy) {
-                setActionCtx(GameActionCtx.SELECT_ENEMY, action);
+                setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloned);
             } else if (prop.cardDict[cardIdx].selectFromHand && !prop.cardDict[cardIdx].selectFromHandLater) {
-                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action);
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, cloned);
             } else if (prop.cardDict[cardIdx].selectFromDiscard && !prop.cardDict[cardIdx].selectFromDiscardLater) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action);
+                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, cloned);
             } else if (prop.cardDict[cardIdx].selectFromExhaust) {
-                setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action);
+                setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action, cloned);
             } else if (prop.cardDict[cardIdx].selectFromDeck) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DECK, action);
+                setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, cloned);
             }
         }
 
@@ -814,17 +818,17 @@ public final class GameState implements State {
                     var e = getEnemiesForRead().get(selectIdx);
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
-                        setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                        setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                         onSelectEnemy(selectIdx);
                         selectIdx = -1;
                     } else {
                         cardPlayedSuccessfully = false;
                         targetHalfAlive = e.property.canSelfRevive;
-                        setActionCtx(GameActionCtx.PLAY_CARD, action);
+                        setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
                     }
                 } else if (targetableEnemies == 1) {
                     lastSelectedIdx = idx;
-                    setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action, cloned);
                     onSelectEnemy(idx);
                 } else {
                     cardPlayedSuccessfully = false;
@@ -837,12 +841,12 @@ public final class GameState implements State {
                     lastIdx = discard[j] > 0 ? j : lastIdx;
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
                 } else {
                     break;
                 }
@@ -855,12 +859,12 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
                 } else {
                     break;
                 }
@@ -871,12 +875,12 @@ public final class GameState implements State {
                     lastIdx = exhaust[j] > 0 ? j : lastIdx;
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
                 } else {
                     break;
                 }
@@ -887,17 +891,17 @@ public final class GameState implements State {
                     lastIdx = deck[j] > 0 ? j : lastIdx;
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(prop.cardDict[cardIdx].play(this, -1, energyCost), action);
+                setActionCtx(prop.cardDict[cardIdx].play(this, -1, energyCost), action, cloned);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
@@ -936,11 +940,11 @@ public final class GameState implements State {
         int potionIdx = action.idx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (prop.potions.get(potionIdx).selectEnemy) {
-                setActionCtx(GameActionCtx.SELECT_ENEMY, action);
+                setActionCtx(GameActionCtx.SELECT_ENEMY, action, false);
             } else if (prop.potions.get(potionIdx).selectFromHand) {
-                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action);
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
             } else if (prop.potions.get(potionIdx).selectFromDiscard) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action);
+                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, false);
             }
         }
 
@@ -955,11 +959,11 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     onSelectEnemy(selectIdx);
                     selectIdx = -1;
                 } else if (targetableEnemies == 1) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, idx), action);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, idx), action, false);
                     onSelectEnemy(idx);
                 } else {
                     break;
@@ -971,12 +975,12 @@ public final class GameState implements State {
                     lastIdx = discard[j] > 0 ? j : lastIdx;
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, false);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, lastIdx), action);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, lastIdx), action, false);
                 } else {
                     break;
                 }
@@ -989,17 +993,17 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, false);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
                 break;
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(prop.potions.get(potionIdx).use(this, -1), action);
+                setActionCtx(prop.potions.get(potionIdx).use(this, -1), action, false);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
         runActionsInQueueIfNonEmpty();
@@ -1058,6 +1062,7 @@ public final class GameState implements State {
         byte[] handDup = Arrays.copyOf(hand, hand.length);
         for (int i = 0; i < hand.length; i++) {
             if (handDup[i] > 0) {
+                prop.cardDict[i].onDiscard(this, handDup[i]);
                 if (prop.cardDict[i].ethereal) {
                     for (int count = 0; count < handDup[i]; count++) {
                         exhaustedCardHandle(i, false);
@@ -1126,52 +1131,52 @@ public final class GameState implements State {
                 handler.handle(this);
             }
             startTurn();
-            setActionCtx(GameActionCtx.PLAY_CARD, null);
+            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
         } else if (action.type() == GameActionType.END_TURN) {
-            setActionCtx(GameActionCtx.BEGIN_TURN, null);
+            setActionCtx(GameActionCtx.BEGIN_TURN, null, false);
             endTurn();
 //            startTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
             playCard(action, -1, true, false, true, false);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, false, true, false);
+                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, false, true, false);
+                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, false, true, false);
+                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(currentAction, action.idx(), true, false, true, false);
+            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false);
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
-            playCard(currentAction, action.idx(), true, false, true, false);
+            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             addCardToHand(action.idx());
-            setActionCtx(GameActionCtx.PLAY_CARD, null);
+            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
         } else if (action.type() == GameActionType.USE_POTION) {
             potionsState[action.idx() * 3] = 0;
             usePotion(action, -1);
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             prop.preBattleScenarios.randomize(this, prop.preBattleGameScenariosList.get(action.idx()).getKey());
-            setActionCtx(GameActionCtx.BEGIN_BATTLE, null);
+            setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             if (isTerminal() == 0) {
                 startTurn();
-                setActionCtx(GameActionCtx.PLAY_CARD, null);
+                setActionCtx(GameActionCtx.PLAY_CARD, null, false);
                 runActionsInQueueIfNonEmpty();
             }
         } else if (action.type() == GameActionType.END_USING_POTION) {
-            setActionCtx(prop.potions.get(currentAction.idx()).use(this, prop.cardDict.length), action);
+            setActionCtx(prop.potions.get(currentAction.idx()).use(this, prop.cardDict.length), action, false);
         }
         legalActions = null;
         v_other = null;
@@ -2847,9 +2852,6 @@ public final class GameState implements State {
         }
         if (player.getWeak() > 0) {
             dmg = dmg * 3 / 4;
-        }
-        if (prop.hasBoot && dmg < 5) {
-            dmg = 5;
         }
         if (enemy.isAlive()) {
             enemy.damage(dmg, this);
