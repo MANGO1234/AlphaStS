@@ -40,4 +40,5 @@ public class Configuration {
 
     public static boolean ADD_BEGIN_TURN_CTX_TO_NN_INPUT = true;
     public static boolean TRAINING_POLICY_SURPRISE_WEIGHTING = false;
+    public static boolean USE_FIGHT_PROGRESS_WHEN_LOSING = false;
 }

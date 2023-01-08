@@ -22,6 +22,7 @@ public class InteractiveMode {
         MCTS mcts = new MCTS();
         mcts.setModel(model);
         List<String> history = new ArrayList<>();
+        List<String> cmdQueue = new ArrayList<>();
         if (state.prop.realMoveRandomGen != null) {
             state.setSearchRandomGen(state.prop.realMoveRandomGen.createWithSeed(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc)));
         } else if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
@@ -35,7 +36,8 @@ public class InteractiveMode {
         boolean printAction = true;
         while (true) {
             if (printState) {
-                printState(state);
+                printState(state, states);
+                printAction = true;
             }
             if (printAction) {
                 printAction(state);
@@ -43,13 +45,19 @@ public class InteractiveMode {
                 printState = false;
             }
             System.out.print("> ");
-            String line = reader.readLine();
+            String line;
+            if (cmdQueue.size() > 0) {
+                System.out.println(cmdQueue.get(0));
+                line = cmdQueue.remove(0);
+            } else {
+                line = reader.readLine();
+            }
             if (line.equals("exit")) {
                 return;
             }
             history.add(line);
 
-            if (line.equals("e")) {
+            if (line.equals("e") || line.equals("End Turn")) {
                 states.add(state);
                 state.clearAllSearchInfo();
                 state = state.clone(false);
@@ -154,7 +162,7 @@ public class InteractiveMode {
             } else if (line.startsWith("nn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
-                runNNPV(state, mcts, line);
+                runNNPV(state, mcts, line, cmdQueue);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
@@ -209,7 +217,8 @@ public class InteractiveMode {
                     }
                 }
                 if (action >= 0 && action <= state.getLegalActions().length) {
-                    printState = true;
+                    printState = cmdQueue.size() == 0;
+                    printAction = printState;
                     states.add(state);
                     state.clearAllSearchInfo();
                     state = state.clone(false);
@@ -223,13 +232,14 @@ public class InteractiveMode {
         }
     }
 
-    private static void printState(GameState state) {
+    private static void printState(GameState state, List<GameState> states) {
         if (state.isTerminal() != 0) {
             System.out.println("Battle finished. Result is " + (state.isTerminal() == 1 ? "Win." : "Loss."));
         }
-        int enemyIdx = 0;
+        int enemyIdx = 0, enemyArrayIdx = -1;
         System.out.println("Enemies Alive: " + state.enemiesAlive);
         for (var enemy : state.getEnemiesForRead()) {
+            enemyArrayIdx++;
             if (!(enemy.isAlive() || enemy.property.canSelfRevive)) {
                 continue;
             }
@@ -297,12 +307,17 @@ public class InteractiveMode {
                 System.out.println("  Beat Of Death: " + heart.getBeatOfDeath());
                 System.out.println("  Buff Count: " + heart.getBuffCount());
             }
-            if (state.prop.hasRunicDome) {
-                System.out.println("  Last Move: " + enemy.getMoveString(state));
-                System.out.println("  Last Last Move: " + enemy.getLastMoveString(state));
-            } else {
-                System.out.println("  Move: " + enemy.getMoveString(state));
-                System.out.println("  Last Move: " + enemy.getLastMoveString(state));
+            if (states.size() > 0) {
+                GameState prevState = states.get(states.size() - 1);
+                String prevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getMove());
+                String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
+                if (state.prop.hasRunicDome) {
+                    System.out.println("  Last Move: " + prevMove);
+                    System.out.println("  Last Last Move: " + prevPrevMove);
+                } else {
+                    System.out.println("  Move: " + prevMove);
+                    System.out.println("  Last Move: " + prevPrevMove);
+                }
             }
             System.out.println();
         }
@@ -1177,10 +1192,16 @@ public class InteractiveMode {
         System.out.println(state);
     }
 
-    private static void runNNPV(GameState state, MCTS mcts, String line) {
+    private static List<String> pv = new ArrayList<>();
+    private static void runNNPV(GameState state, MCTS mcts, String line, List<String> cmdQueue) {
+        if (line.substring(3).equals("exec")) {
+            cmdQueue.addAll(pv);
+            return;
+        }
         int count = parseInt(line.substring(3), 1);
         GameState s = state;
         int move_i = 0;
+        pv.clear();
         do {
             for (int i = s.total_n; i < count; i++) {
                 mcts.search(s, false, -1);
@@ -1192,6 +1213,7 @@ public class InteractiveMode {
             int max_n = s.n[action];
             System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
                     ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
+            pv.add(s.getActionString(action));
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
                 break;

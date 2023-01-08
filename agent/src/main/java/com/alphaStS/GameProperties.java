@@ -108,6 +108,7 @@ public class GameProperties implements Cloneable {
     public int shieldAndSpireFacingIdx = -1;
     public boolean battleTranceExist;
     public boolean energyRefillCanChange;
+    public boolean isHeartFight;
     public boolean healEndOfAct;
     public int inputLen;
     public int extraOutputLen;
@@ -183,6 +184,7 @@ public class GameProperties implements Cloneable {
         int addToInput(GameState state, float[] input, int idx);
         int getInputLenDelta();
         default String getDisplayString(GameState state) { return null; }
+        default void onRegister() { }
     }
 
     Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
@@ -235,6 +237,7 @@ public class GameProperties implements Cloneable {
         nnInputHandlersName = names.toArray(new String[] {});
         for (int i = 0; i < nnInputHandlersName.length; i++) {
             nnInputHandlers[i] = nnInputHandlerMap.get(nnInputHandlersName[i]);
+            nnInputHandlers[i].onRegister();
         }
     }
 
@@ -248,7 +251,7 @@ public class GameProperties implements Cloneable {
         }
     }
 
-    public void compilerExtraTrainingTarget() {
+    public void compileExtraTrainingTarget() {
         var registrants = trainingTargetsRegistrantMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         for (int i = 0; i < registrants.size(); i++) {
             registrants.get(i).getValue().setVArrayIdx(extraOutputLen);

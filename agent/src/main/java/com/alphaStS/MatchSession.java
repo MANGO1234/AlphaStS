@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.lz4.FramedLZ4CompressorOutputStream;
 
@@ -709,7 +710,7 @@ public class MatchSession {
         return new Tuple<>(combinedInfoMap, battleInfoMap);
     }
 
-    boolean SLOW_TRAINING_WINDOW;
+    boolean USE_Z_TRAINING;
     boolean POLICY_CAP_ON;
     boolean TRAINING_WITH_LINE;
 
@@ -917,7 +918,7 @@ public class MatchSession {
         int win = state.isTerminal() > 0 ? 1 : 0;
         ChanceState lastChanceState = null;
         for (int i = steps.size() - 2; i >= 0; i--) {
-            if (!SLOW_TRAINING_WINDOW && steps.get(i).isExplorationMove) {
+            if (!USE_Z_TRAINING && steps.get(i).isExplorationMove) {
                 List<GameStep> extraSteps = new ArrayList<>();
                 ChanceState cState = findBestLineChanceState(steps.get(i).state(), nodeCount, mcts, extraSteps);
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
@@ -958,7 +959,7 @@ public class MatchSession {
                 var cState = (ChanceState) prevState.ns[prevAction];
                 lastChanceState = cState;
 
-                if (!SLOW_TRAINING_WINDOW) {
+                if (!USE_Z_TRAINING) {
                     vCur = calcExpectedValue(cState, state, mcts, vCur);
                 }
             }
@@ -1084,7 +1085,7 @@ public class MatchSession {
             steps.get(i).v = vCur;
             state = steps.get(i).state();
             state.clearNextStates();
-            if (!SLOW_TRAINING_WINDOW && state.isStochastic && i > 0) {
+            if (!USE_Z_TRAINING && state.isStochastic && i > 0) {
                 var prevState = steps.get(i - 1).state();
                 var prevAction = steps.get(i - 1).action();
                 vCur = calcExpectedValue((ChanceState) prevState.ns[prevAction], state, mcts, vCur);
@@ -1561,6 +1562,64 @@ public class MatchSession {
             File file = new File(logDir + "/" + fileName);
             file.delete();
             matchLogWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(logDir + "/" + fileName, true)));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void readMatchLogFile(String path, GameState origState) {
+        try {
+            List<List<GameStep>> games = new ArrayList<>();
+            var reader = new BufferedReader(new InputStreamReader(new GzipCompressorInputStream(new FileInputStream(path))));
+            String l = reader.readLine();
+            List<GameStep> game = null;
+            GameState state = null;
+            while (l != null) {
+                if (l.startsWith("Seed: ")) {
+                    if (game != null) {
+                        games.add(game);
+                    }
+                    game = new ArrayList<>();
+                    state = origState.clone(false);
+                    state.prop = state.prop.clone();
+                    var randomGen = new RandomGen.RandomGenByCtx(Long.parseLong(l.substring(6)));
+                    state.prop.realMoveRandomGen = randomGen;
+                    randomGen.useNewCommonNumberVR = true;
+                    state.prop.testNewFeature = true;
+                } else if (l.startsWith("action=")) {
+                    var action = l.substring(7);
+                    if (action.indexOf('(') >= 0) {
+                        action = action.substring(0, action.indexOf('(') - 1);
+                    }
+                    int idx = -1;
+                    if (state.actionCtx == GameActionCtx.BEGIN_TURN && !action.equals("Begin Turn")) {
+                        game.add(new GameStep(state, 0));
+                        state = state.clone(false);
+                        state.doAction(0);
+                    }
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (state.getActionString(i).equals(action)) {
+                            idx = i;
+                            break;
+                        }
+                    }
+                    if (idx < 0) {
+                        System.out.println(games.size());
+                        System.out.println(game);
+                        System.out.println(state);
+                        System.out.println(action);
+                        throw new IllegalStateException();
+                    }
+                    game.add(new GameStep(state, idx));
+                    state = state.clone(false);
+                    state.doAction(idx);
+                }
+                l = reader.readLine();
+            }
+            if (game != null) {
+                games.add(game);
+            }
+            games.add(game);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

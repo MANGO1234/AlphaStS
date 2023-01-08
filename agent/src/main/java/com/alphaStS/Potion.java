@@ -376,8 +376,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
+                @Override public void onRegister() {
+                    state.prop.registerMetallicizeHandler(state, counterIdx);
+                }
             });
-            state.prop.registerMetallicizeHandler(state, counterIdx);
         }
     }
 

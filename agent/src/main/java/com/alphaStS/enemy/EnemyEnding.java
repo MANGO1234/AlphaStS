@@ -323,6 +323,7 @@ public class EnemyEnding {
                     artifact += 2;
                 } else if (buffCount == 1) {
                     beatOfDeath++;
+                } else if (buffCount == 2) {
                 } else if (buffCount == 3) {
                     gainStrength(10);
                 } else {
@@ -386,11 +387,12 @@ public class EnemyEnding {
             });
             state.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (source instanceof CorruptHeart && isAttack && damageDealt > 0) {
+                    if (source instanceof CorruptHeart && ((CorruptHeart) source).buffCount >= 2 && isAttack && damageDealt > 0) {
                         state.addCardToDiscard(state.prop.woundCardIdx);
                     }
                 }
             });
+            state.prop.isHeartFight = true;
         }
 
         public List<Card> getPossibleGeneratedCards() { return List.of(new Card.Burn(), new Card.Wound(), new Card.Dazed(), new Card.Slime(), new Card.Void()); }
@@ -401,12 +403,15 @@ public class EnemyEnding {
         }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(40, RandomGenCtx.Other) + 1;
-            if (training && b < 40) {
-                health = (int) Math.round(((double) (health * b)) / 40);
+            if (training) {
+                health = (int) Math.round(health * difficulty / 40);
             } else {
                 health = 800;
             }
+        }
+
+        @Override public int getMaxRandomizeDifficulty() {
+            return 40;
         }
 
         @Override public String getName() {

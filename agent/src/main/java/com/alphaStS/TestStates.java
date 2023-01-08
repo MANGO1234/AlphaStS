@@ -3,7 +3,6 @@ package com.alphaStS;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
-import com.alphaStS.utils.Tuple;
 
 import java.util.List;
 
@@ -974,7 +973,7 @@ public class TestStates {
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.RebootP(), 1);
-        builder.addCard(new CardDefect.DarknessP(), 1);
+        builder.addCard(new CardDefect.Darkness(), 1);
         builder.addCard(new CardDefect.Aggregate(), 1);
         builder.addCard(new CardDefect.Aggregate(), 1);
         builder.addCard(new CardDefect.SeekP(), 1);
@@ -983,7 +982,7 @@ public class TestStates {
         builder.addCard(new CardDefect.CoolheadedP(), 1);
         builder.addCard(new CardDefect.SkimP(), 1);
         builder.addCard(new CardDefect.BeamCellP(), 1);
-        builder.addCard(new CardDefect.BlizzardP(), 1);
+        builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new Card.Parasite(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
@@ -995,7 +994,7 @@ public class TestStates {
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.RunicCapacitor());
         builder.addRelic(new Relic.PhilosophersStone());
-        builder.addRelic(new Relic.IncenseBurner(4, Relic.IncenseBurner.HEART));
+        builder.addRelic(new Relic.IncenseBurner(4, Relic.IncenseBurner.HEART_REWARD));
         builder.addRelic(new Relic.TheBoot());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.DataDisk());
@@ -1003,6 +1002,60 @@ public class TestStates {
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(70));
         builder.addPotion(new Potion.GamblersBrew().setBasePenaltyRatio(80));
+        builder.setPlayer(new Player(72, 72));
+        return new GameState(builder);
+    }
+
+
+    public static GameState TestStateDefect1p4() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.StrikeP(), 2);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.SunderP(), 2);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.BootSequenceP(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 2);
+        builder.addCard(new CardDefect.ConsumeP(), 1);
+        builder.addCard(new CardDefect.EquilibirumP(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addCard(new CardDefect.RebootP(), 1);
+        builder.addCard(new CardDefect.Darkness(), 1);
+        builder.addCard(new CardDefect.Aggregate(), 1);
+        builder.addCard(new CardDefect.Aggregate(), 1);
+        builder.addCard(new CardDefect.SeekP(), 1);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.RecursionP(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.Blizzard(), 1);
+        builder.addCard(new CardColorless.Impatience(), 1);
+        builder.addCard(new Card.Parasite(), 1);
+        builder.addEnemy(new EnemyEnding.CorruptHeart());
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.RunicDome());
+        builder.addRelic(new Relic.Torii());
+        builder.addRelic(new Relic.RunicCapacitor());
+        builder.addRelic(new Relic.PhilosophersStone());
+        builder.addRelic(new Relic.IncenseBurner(4, Relic.IncenseBurner.NO_REWARD));
+        builder.addRelic(new Relic.TheBoot());
+        builder.addRelic(new Relic.Shuriken());
+        builder.addRelic(new Relic.DataDisk());
+        builder.addRelic(new Relic.BirdFacedUrn());
+        builder.addPotion(new Potion.PotionOfCapacity().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.GamblersBrew().setBasePenaltyRatio(100));
         builder.setPlayer(new Player(72, 72));
         return new GameState(builder);
     }

@@ -731,7 +731,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class IncenseBurner extends Relic {
         public static int DEFAULT_REWARD = 0;
         public static int SHIELD_AND_SPEAR_REWARD = 1;
-        public static int HEART = 2;
+        public static int HEART_REWARD = 2;
+        public static int NO_REWARD = 3;
 
         int n;
         int rewardType = DEFAULT_REWARD;
@@ -802,11 +803,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
-                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                        v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                        v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
                         v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
-                        v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
-                        v[GameState.V_HEALTH_IDX] += v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                        v[GameState.V_HEALTH_IDX] += 0.2 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                        v[GameState.V_HEALTH_IDX] += 0.3 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
                         v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
                     }
 
@@ -814,7 +815,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         return 7;
                     }
                 });
-            } else if (rewardType == HEART) {
+            } else if (rewardType == HEART_REWARD) {
                 state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
                         if (enemiesAllDead) {
@@ -842,6 +843,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         return 7;
                     }
                 });
+            } else if (rewardType == NO_REWARD) {
             } else {
                 throw new IllegalStateException();
             }

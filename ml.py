@@ -29,6 +29,7 @@ PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
 SINGLE_THREADED = getFlag('-st')
 ITERATION_COUNT = int(getFlagValue('-c', 5))
+Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
 NODE_COUNT = int(getFlagValue('-n', 1000))
 SAVES_DIR = getFlagValue('-dir', './saves')
 
@@ -266,8 +267,8 @@ if DO_TRAINING:
             else:
                 matches_count = 5000
             agent_args += ['-tm', '-c', str(matches_count), '-n', '1']
-        if training_info['iteration'] < SLOW_WINDOW_END:
-            agent_args += ['-slow']
+        if Z_TRAIN_WINDOW_END > 0:
+            agent_args += ['-z_train', str(Z_TRAIN_WINDOW_END)]
         if training_info['iteration'] < CURRICULUM_TRAINING_END:
             agent_args += ['-curriculum_training']
         if training_info['iteration'] < USE_LINE_SEARCH_TO_TRAIN_END:

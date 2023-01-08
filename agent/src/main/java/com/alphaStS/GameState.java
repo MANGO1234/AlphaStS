@@ -92,10 +92,12 @@ public final class GameState implements State {
     double[] q_comb; // total q value propagated from each child
     double[] q_win; // total v_win value propagated from each child
     double[] q_health; // total v_health value propagated from each child
+    double[] q_progress; // total v_progress value propagated from each child
     double[][] q_other; // total q value propagated from each child
     double total_q_comb; // sum of q_win array
     double total_q_win; // sum of q_win array
     double total_q_health; // sum of q_health _array
+    double total_q_progress; // sum of q_progress _array
     double[] total_q_other; // sum of q_other array
     int[] n; // visit count for each child
     State[] ns; // the state object for each child (either GameState or ChanceState)
@@ -429,7 +431,22 @@ public final class GameState implements State {
         for (int i = 0; i < prop.originalEnemies.size(); i++) {
             prop.originalEnemies.getForWrite(i);
         }
-        prop.compilerExtraTrainingTarget();
+        if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+            prop.addExtraTrainingTarget("fightProgress", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {}
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                    if (enemiesAllDead) {
+                        v[GameState.V_OTHER_IDX_START] = 1;
+                    } else {
+                        v[GameState.V_OTHER_IDX_START] = state.getVOther(0);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {}
+            });
+        }
+        prop.compileExtraTrainingTarget();
         prop.inputLen = getNNInputLen();
 
         // mcts related fields
@@ -978,7 +995,7 @@ public final class GameState implements State {
                     setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action, false);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, -1), action, false);
                 } else if (possibleChoicesCount == 1) {
                     setActionCtx(prop.potions.get(potionIdx).use(this, lastIdx), action, false);
                 } else {
@@ -996,7 +1013,7 @@ public final class GameState implements State {
                     setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action, false);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, -1), action, false);
                 } else {
                     break;
                 }
@@ -1062,13 +1079,16 @@ public final class GameState implements State {
         byte[] handDup = Arrays.copyOf(hand, hand.length);
         for (int i = 0; i < hand.length; i++) {
             if (handDup[i] > 0) {
-                prop.cardDict[i].onDiscard(this, handDup[i]);
+                if (prop.cardDict[i].alwaysDiscard) {
+                    prop.cardDict[i].onDiscard(this, handDup[i]);
+                }
                 if (prop.cardDict[i].ethereal) {
                     for (int count = 0; count < handDup[i]; count++) {
                         exhaustedCardHandle(i, false);
                     }
                     hand[i] -= handDup[i];
-                } else if (!prop.hasRunicPyramid && (prop.equilibriumCounterIdx < 0 || getCounterForRead()[prop.equilibriumCounterIdx] == 0)) {
+                } else if (prop.cardDict[i].alwaysDiscard ||
+                        (!prop.hasRunicPyramid && (prop.equilibriumCounterIdx < 0 || getCounterForRead()[prop.equilibriumCounterIdx] == 0))) {
                     discard[i] += handDup[i];
                     hand[i] -= handDup[i];
                 }
@@ -1322,6 +1342,15 @@ public final class GameState implements State {
                     }
                     cur += n;
                 }
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    int totalMaxHp = 0;
+                    int totalCurHp = 0;
+                    for (EnemyReadOnly enemy : enemies) {
+                        totalCurHp += enemy.getHealth();
+                        totalMaxHp += enemy.property.maxHealth;
+                    }
+                    out[GameState.V_OTHER_IDX_START] = (1 - ((double) totalCurHp) / totalMaxHp);
+                }
             }
             return;
         }
@@ -1480,11 +1509,11 @@ public final class GameState implements State {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
         for (int i = 0; i < prop.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot && !prop.isHeartFight) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BlockPotion pot) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BlockPotion pot && !prop.isHeartFight) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
@@ -1721,16 +1750,20 @@ public final class GameState implements State {
                 var p_str2 = policyMod != null && policyMod != policy ? formatFloat(policyMod[i]) : null;
                 var q_win_str = formatFloat(n[i] == 0 ? 0 : q_win[i] / n[i]);
                 var q_health_str = formatFloat(n[i] == 0 ? 0 : q_health[i] / n[i]);
+                var q_progress_str = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING ? formatFloat(n[i] == 0 ? 0 : q_progress[i] / n[i]) : null;
                 var q_str = formatFloat(n[i] == 0 ? 0 : q_comb[i] / n[i]);
                 if (!first) {
                     str.append(", ");
                 }
                 first = false;
-                if (p_str2 == null) {
-                    str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/').append(p_str).append('/').append(n[i]);
-                } else {
-                    str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/').append(p_str).append('/').append(p_str2).append('/').append(n[i]);
+                str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/');
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    str.append(q_progress_str).append('/');
                 }
+                if (p_str2 != null) {
+                    str.append(p_str2).append('/');
+                }
+                str.append(p_str).append('/').append(n[i]);
                 str.append(" (").append(getActionString(i)).append(")");
             }
             str.append(']');
@@ -1767,6 +1800,7 @@ public final class GameState implements State {
         v_other = output.v_other();
         q_comb = new double[policy.length];
         q_health = new double[policy.length];
+        q_progress = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING ? new double[policy.length] : null;
         q_win = new double[policy.length];
         if (v_other != null) {
             q_other = new double[policy.length][v_other.length];
@@ -2739,6 +2773,7 @@ public final class GameState implements State {
         v_other = null;
         q_comb = null;
         q_health = null;
+        q_progress = null;
         q_win = null;
         q_other = null;
         total_q_comb = 0;
@@ -3343,6 +3378,7 @@ class ChanceState implements State {
     double total_q_win;
     double total_q_health;
     double total_q_comb;
+    double total_q_progress;
     double varianceM;
     double varianceS;
     List<GameState> queue;
@@ -3398,19 +3434,25 @@ class ChanceState implements State {
             var new_total_q_comb = 0.0;
             var new_total_q_win = 0.0;
             var new_total_q_health = 0.0;
+            var new_total_q_progress = 0.0;
             var nnn = 0;
             for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
                 new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
                 new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
                 new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+                new_total_q_progress += entry.getValue().state.total_q_progress / (entry.getValue().state.total_n + 1) * entry.getValue().n;
                 nnn += entry.getValue().n;
             }
             new_total_q_comb = new_total_q_comb / nnn * total_n;
             new_total_q_win = new_total_q_win / nnn * total_n;
             new_total_q_health = new_total_q_health / nnn * total_n;
+            new_total_q_progress = new_total_q_progress / nnn * total_n;
             v[GameState.V_WIN_IDX] = new_total_q_win - total_q_win;
             v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
             v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
+            if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                v[GameState.V_OTHER_IDX_START] = new_total_q_progress - total_q_progress;
+            }
 
 //            var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
 //            var node_cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
@@ -3437,19 +3479,25 @@ class ChanceState implements State {
                 var new_total_q_comb = 0.0;
                 var new_total_q_win = 0.0;
                 var new_total_q_health = 0.0;
+                var new_total_q_progress = 0.0;
                 var nnn = 0;
                 for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
                     new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
                     new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
                     new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+                    new_total_q_progress += entry.getValue().state.total_q_progress / (entry.getValue().state.total_n + 1) * entry.getValue().n;
                     nnn += entry.getValue().n;
                 }
                 new_total_q_comb = new_total_q_comb / nnn * total_n;
                 new_total_q_win = new_total_q_win / nnn * total_n;
                 new_total_q_health = new_total_q_health / nnn * total_n;
+                new_total_q_progress = new_total_q_progress / nnn * total_n;
                 v[GameState.V_WIN_IDX] = new_total_q_win - total_q_win;
                 v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
                 v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    v[GameState.V_OTHER_IDX_START] = new_total_q_progress - total_q_progress;
+                }
 
 //                var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
 //                var node_cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
@@ -3474,6 +3522,9 @@ class ChanceState implements State {
         total_q_comb += v[GameState.V_COMB_IDX];
         total_q_win += v[GameState.V_WIN_IDX];
         total_q_health += v[GameState.V_HEALTH_IDX];
+        if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+            total_q_progress += v[GameState.V_OTHER_IDX_START];
+        }
     }
 
     GameState getNextState(boolean calledFromMCTS) {

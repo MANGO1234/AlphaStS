@@ -43,12 +43,18 @@ public class MCTS {
             state.total_q_comb += v[GameState.V_COMB_IDX];
             state.total_q_win += v[GameState.V_WIN_IDX];
             state.total_q_health += v[GameState.V_HEALTH_IDX];
+            if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                state.total_q_progress += v[GameState.V_OTHER_IDX_START];
+            }
             return;
         }
         if (state.terminal_action >= 0) {
             v[GameState.V_COMB_IDX] = state.q_comb[state.terminal_action] / state.n[state.terminal_action];
             v[GameState.V_WIN_IDX] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
             v[GameState.V_HEALTH_IDX] = state.q_health[state.terminal_action] / state.n[state.terminal_action];
+            if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                v[GameState.V_OTHER_IDX_START] = 1;
+            }
             numberOfPossibleActions = 1;
             return;
         }
@@ -57,6 +63,9 @@ public class MCTS {
             state.total_q_comb = v[GameState.V_COMB_IDX];
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
+            if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                state.total_q_progress = v[GameState.V_OTHER_IDX_START];
+            }
             if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
@@ -68,6 +77,9 @@ public class MCTS {
             state.total_q_comb = v[GameState.V_COMB_IDX];
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
+            if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                state.total_q_progress = v[GameState.V_OTHER_IDX_START];
+            }
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v[GameState.V_COMB_IDX];
             state.varianceS = 0;
@@ -150,6 +162,9 @@ public class MCTS {
                     v[GameState.V_COMB_IDX] = ns.total_q_comb / (ns.total_n + 1);
                     v[GameState.V_WIN_IDX] = ns.total_q_win / (ns.total_n + 1);
                     v[GameState.V_HEALTH_IDX] = ns.total_q_health / (ns.total_n + 1);
+                    if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                        v[GameState.V_OTHER_IDX_START] = ns.total_q_progress / (ns.total_n + 1);
+                    }
                 } else if (s instanceof ChanceState ns) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
                         state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
@@ -158,6 +173,9 @@ public class MCTS {
                     v[GameState.V_COMB_IDX] = ns.total_q_comb / ns.total_n;
                     v[GameState.V_WIN_IDX] = ns.total_q_win / ns.total_n;
                     v[GameState.V_HEALTH_IDX] = ns.total_q_health / ns.total_n;
+                    if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                        v[GameState.V_OTHER_IDX_START] = ns.total_q_progress / ns.total_n;
+                    }
                 }
             }
         } else {
@@ -178,6 +196,9 @@ public class MCTS {
                     v[GameState.V_COMB_IDX] = cState.total_q_comb / cState.total_n * (state.n[action] + 1) - state.q_comb[action];
                     v[GameState.V_WIN_IDX] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[GameState.V_HEALTH_IDX] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
+                    if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                        v[GameState.V_OTHER_IDX_START] = cState.total_q_progress / cState.total_n * (state.n[action] + 1) - state.q_progress[action];
+                    }
                 } else {
                     state2 = cState.getNextState(true);
                     this.search2_r(state2, training, remainingCalls, false);
@@ -198,6 +219,9 @@ public class MCTS {
                     v[GameState.V_COMB_IDX] = nState.total_q_comb / (nState.total_n + 1) * (state.n[action] + 1) - state.q_comb[action];
                     v[GameState.V_WIN_IDX] = nState.total_q_win / (nState.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
                     v[GameState.V_HEALTH_IDX] = nState.total_q_health / (nState.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
+                    if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                        v[GameState.V_OTHER_IDX_START] = nState.total_q_progress / (nState.total_n + 1) * (state.n[action] + 1) - state.q_progress[action];
+                    }
                 } else {
                     this.search2_r(nState, training, remainingCalls, false);
                 }
@@ -207,6 +231,9 @@ public class MCTS {
         state.q_comb[action] += v[GameState.V_COMB_IDX];
         state.q_win[action] += v[GameState.V_WIN_IDX];
         state.q_health[action] += v[GameState.V_HEALTH_IDX];
+        if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+            state.q_progress[action] += v[GameState.V_OTHER_IDX_START];
+        }
         state.n[action] += 1;
         state.total_n += 1;
         var newVarianceM = state.varianceM + (v[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
@@ -224,15 +251,25 @@ public class MCTS {
                 v[GameState.V_COMB_IDX] = q_comb_total - state.total_q_comb;
                 v[GameState.V_WIN_IDX] = q_win_total - state.total_q_win;
                 v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    double q_progress_total = state.q_progress[action] / state.n[action] * (state.total_n + 1);
+                    v[GameState.V_OTHER_IDX_START] = q_progress_total - state.total_q_progress;
+                }
             }
         }
         state.total_q_comb += v[GameState.V_COMB_IDX];
         state.total_q_win += v[GameState.V_WIN_IDX];
         state.total_q_health += v[GameState.V_HEALTH_IDX];
+        if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+            state.total_q_progress += v[GameState.V_OTHER_IDX_START];
+        }
         numberOfPossibleActions = numberOfActions;
     }
 
     public boolean cannotImproveState(GameState state) {
+        if (state.prop.isHeartFight) {
+            return true;
+        }
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {
             return false;
         }
@@ -247,7 +284,8 @@ public class MCTS {
                 if (state.getCounterForRead()[state.prop.incenseBurnerCounterIdx] < 5) {
                     return false;
                 }
-            } else if (state.prop.incenseBurnerRewardType == Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD) {
+            } else if (state.prop.incenseBurnerRewardType == Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD ||
+                    state.prop.incenseBurnerRewardType == Relic.IncenseBurner.HEART_REWARD) {
                 if (state.getCounterForRead()[state.prop.incenseBurnerCounterIdx] != 4) {
                     return false;
                 }
@@ -839,6 +877,19 @@ public class MCTS {
         int numberOfActions = 0;
         double p = 1.0 / state.getLegalActions().length;
         double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
+        boolean allBelow1Per = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING;
+        if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (policy[i] <= 0) {
+                    continue;
+                }
+                double q_win = state.n[i] > 0 ? state.q_win[i] / state.n[i] : 1;
+                if (q_win >= 0.01) {
+                    allBelow1Per = false;
+                    break;
+                }
+            }
+        }
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
@@ -846,6 +897,9 @@ public class MCTS {
             numberOfActions += 1;
             double p_prime = policy[i] * (1 - ratio) + p * ratio;
             double q = state.n[i] > 0 ? state.q_comb[i] / state.n[i] : Math.max(state.total_q_comb / (state.total_n + 1), 0);
+            if (allBelow1Per) {
+                q = state.n[i] > 0 ? state.q_progress[i] / state.n[i] : Math.max(state.total_q_progress / (state.total_n + 1), 0);
+            }
             double cpuct = state.prop.cpuct;
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
                 cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);

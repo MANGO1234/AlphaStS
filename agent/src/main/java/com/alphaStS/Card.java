@@ -25,6 +25,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean innate = false;
     public boolean exhaustWhenPlayed = false;
     public boolean exhaustNonAttacks = false;
+    public boolean alwaysDiscard = false;
     public boolean selectEnemy;
     public boolean selectFromDiscard;
     public boolean selectFromExhaust;
@@ -1744,8 +1745,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
+                @Override public void onRegister() {
+                    state.prop.registerMetallicizeHandler(state, counterIdx);
+                }
             });
-            state.prop.registerMetallicizeHandler(state, counterIdx);
         }
     }
 
@@ -1768,8 +1771,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
+                @Override public void onRegister() {
+                    state.prop.registerMetallicizeHandler(state, counterIdx);
+                }
             });
-            state.prop.registerMetallicizeHandler(state, counterIdx);
         }
     }
 
@@ -2889,6 +2894,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class Burn extends Card {
         public Burn() {
             super("Burn", Card.STATUS, -1, Card.COMMON);
+            alwaysDiscard = true;
         }
 
         @Override public void onDiscard(GameState state, int count) {
@@ -2901,6 +2907,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class BurnP extends Card {
         public BurnP() {
             super("Burn+", Card.STATUS, -1, Card.COMMON);
+            alwaysDiscard = true;
         }
 
         @Override public void onDiscard(GameState state, int count) {
@@ -2988,6 +2995,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Decay() {
             super("Decay", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
+            alwaysDiscard = true;
         }
 
         @Override public void onDiscard(GameState state, int count) {
@@ -3001,6 +3009,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Doubt() {
             super("Doubt", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
+            alwaysDiscard = true;
         }
 
         @Override public void onDiscard(GameState state, int count) {
@@ -3068,6 +3077,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Regret() {
             super("Regret", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
+            alwaysDiscard = true;
         }
 
         @Override public void onDiscard(GameState state, int count) {
@@ -3085,6 +3095,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Shame() {
             super("Shame", Card.CURSE, -1, Card.COMMON);
             exhaustWhenPlayed = true;
+            alwaysDiscard = true;
         }
 
         @Override public void onDiscard(GameState state, int count) {

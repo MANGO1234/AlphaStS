@@ -33,7 +33,7 @@ class ServerRequest {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.TestStateDefect1p2();
+        var state = TestStates.TestStateDefect1p4();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
@@ -48,7 +48,7 @@ public class Main {
         boolean TEST_TRAINING_AGENT = false;
         boolean PLAY_GAMES = false;
         boolean PLAY_A_GAME = false;
-        boolean SLOW_TRAINING_WINDOW = false;
+        int Z_TRAINING_UPTO_ITERATION = 20;
         boolean CURRICULUM_TRAINING_ON = false;
         boolean TRAINING_WITH_LINE = false;
         boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
@@ -87,8 +87,9 @@ public class Main {
                 SAVES_DIR = args[i + 1];
                 i++;
             }
-            if (args[i].equals("-slow")) {
-                SLOW_TRAINING_WINDOW = true;
+            if (args[i].equals("-z_train")) {
+                Z_TRAINING_UPTO_ITERATION = Integer.parseInt(args[i + 1]);
+                i++;
             }
             if (args[i].equals("-curriculum_training")) {
                 CURRICULUM_TRAINING_ON = true;
@@ -232,7 +233,7 @@ public class Main {
 
         if (GENERATE_TRAINING_GAMES) {
             session.setTrainingDataLogFile("training_data.txt.gz");
-            session.SLOW_TRAINING_WINDOW = SLOW_TRAINING_WINDOW;
+            session.USE_Z_TRAINING = iteration <= Z_TRAINING_UPTO_ITERATION;
             session.POLICY_CAP_ON = false;
             if (iteration < 16) {
                 Configuration.TRAINING_SKIP_OPENING_TURNS = false;
