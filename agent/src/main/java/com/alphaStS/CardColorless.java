@@ -386,7 +386,7 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
         }
     }
 

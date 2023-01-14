@@ -16,6 +16,7 @@ public enum RandomGenCtx {
     BronzeOrb,
     Chaos,
     ShieldAndSpire,
+    Snecko,
     SkillPotion,
     Misc,
     CommonNumberVR,

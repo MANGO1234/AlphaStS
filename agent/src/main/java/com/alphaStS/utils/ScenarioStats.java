@@ -22,6 +22,7 @@ public class ScenarioStats {
     public int feedKilledEnemy;
     public int feedHealTotal;
     public int nunchakuCounter;
+    public int happyFlowerCounter;
     public Map<Integer, Integer> damageCount;
     public double finalQComb;
     public long modelCalls;
@@ -47,6 +48,10 @@ public class ScenarioStats {
     public int lossByNunchaku;
     public long winByNunchakuAmt;
     public long lossByNunchakuAmt;
+    public int winByHappyFlower;
+    public int lossByHappyFlower;
+    public long winByHappyFlowerAmt;
+    public long lossByHappyFlowerAmt;
     public List<Double> winQs = new ArrayList<>();
     public List<Double> lossQs = new ArrayList<>();
     public long modelCalls2;
@@ -82,6 +87,7 @@ public class ScenarioStats {
         feedKilledEnemy += stat.feedKilledEnemy;
         feedHealTotal += stat.feedHealTotal;
         nunchakuCounter += stat.nunchakuCounter;
+        happyFlowerCounter += stat.happyFlowerCounter;
         for (var dmg : stat.damageCount.keySet()) {
             damageCount.putIfAbsent(dmg, 0);
             damageCount.computeIfPresent(dmg, (k, v) -> v + 1);
@@ -116,6 +122,10 @@ public class ScenarioStats {
         lossByNunchaku += stat.lossByNunchaku;
         winByNunchakuAmt += stat.winByNunchakuAmt;
         lossByNunchakuAmt += stat.lossByNunchakuAmt;
+        winByHappyFlower += stat.winByHappyFlower;
+        lossByHappyFlower += stat.lossByHappyFlower;
+        winByHappyFlowerAmt += stat.winByHappyFlowerAmt;
+        lossByHappyFlowerAmt += stat.lossByHappyFlowerAmt;
         winQs.addAll(stat.winQs);
         lossQs.addAll(stat.lossQs);
         modelCalls2 += stat.modelCalls2;
@@ -158,6 +168,9 @@ public class ScenarioStats {
             }
             if (state.prop.hasCounter("Nunchaku")) {
                 nunchakuCounter += state.getCounterForRead()[state.prop.getCounterIdx("Nunchaku")];
+            }
+            if (state.prop.hasCounter("HappyFlower")) {
+                happyFlowerCounter += state.getCounterForRead()[state.prop.getCounterIdx("HappyFlower")];
             }
         }
     }
@@ -246,6 +259,20 @@ public class ScenarioStats {
                     }
                 }
             }
+
+            if (state.prop.happyFlowerCounterIdx >= 0) {
+                var happyFlowerCounter1 = state.getCounterForRead()[state.prop.happyFlowerCounterIdx];
+                var happyFlowerCounter2 = state2.getCounterForRead()[state.prop.happyFlowerCounterIdx];
+                if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && happyFlowerCounter1 != happyFlowerCounter2) {
+                    if (happyFlowerCounter1 > happyFlowerCounter2) {
+                        winByHappyFlower++;
+                        winByHappyFlowerAmt += happyFlowerCounter1 - happyFlowerCounter2;
+                    } else {
+                        lossByHappyFlower++;
+                        lossByHappyFlowerAmt += happyFlowerCounter2 - happyFlowerCounter1;
+                    }
+                }
+            }
         }
 
         int meanTotalDmg = 0;
@@ -300,6 +327,9 @@ public class ScenarioStats {
         if (state.prop.hasCounter("Nunchaku")) {
             System.out.println(indent + "Average Nunchaku Counter: " + String.format("%.5f", ((double) nunchakuCounter) / (numOfGames - deathCount)));
         }
+        if (state.prop.hasCounter("HappyFlower")) {
+            System.out.println(indent + "Average Happy Flower Counter: " + String.format("%.5f", ((double) happyFlowerCounter) / (numOfGames - deathCount)));
+        }
         System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb / (numOfGames - deathCount)));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
         System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
@@ -323,6 +353,9 @@ public class ScenarioStats {
             }
             if (state.prop.nunchakuCounterIdx >= 0) {
                 System.out.println(indent + "Win/Loss Nunchaku: " + winByNunchaku + "/" + lossByNunchaku + " (" + winByNunchakuAmt / (double) winByNunchaku + "/" + lossByNunchakuAmt / (double) lossByNunchaku + "/" + (winByNunchakuAmt - lossByNunchakuAmt) / (double) (winByNunchaku + lossByNunchaku) + ")");
+            }
+            if (state.prop.happyFlowerCounterIdx >= 0) {
+                System.out.println(indent + "Win/Loss Happy Flower: " + winByHappyFlower + "/" + lossByHappyFlower + " (" + winByHappyFlowerAmt / (double) winByHappyFlower + "/" + lossByHappyFlowerAmt / (double) lossByHappyFlower + "/" + (winByHappyFlowerAmt - lossByHappyFlowerAmt) / (double) (winByHappyFlower + lossByHappyFlower) + ")");
             }
             DescriptiveStatistics ds = new DescriptiveStatistics();
             winDmgs.forEach(ds::addValue);

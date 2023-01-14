@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
+import com.alphaStS.utils.Tuple;
 
 import java.util.List;
 
@@ -757,6 +758,59 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestState16() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.Anger(), 1);
+        builder.addCard(new Card.AngerP(), 1);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.BattleTranceP(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 2);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.PowerThroughP(), 1);
+        builder.addCard(new Card.Feed(8), 1);
+        builder.addCard(new Card.FiendFireP(), 1);
+        builder.addCard(new Card.Sentinel(), 1);
+        builder.addCard(new Card.PommelStrikeP(), 1);
+        builder.addCard(new Card.DemonFormP(), 1);
+        builder.addCard(new Card.Evolve(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.Nunchaku(9, 8));
+        builder.addRelic(new Relic.GremlinHorn());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.HappyFlower(0, 8));
+        builder.addRelic(new Relic.HornCleat());
+        builder.addEnemy(new EnemyCity.TheChamp());
+//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        EnemyEncounter.addSlaversEliteFight(builder);
+//        EnemyEncounter.addGremlinLeaderFight2(builder);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+//                List.of(new Tuple<>(0, -1)),
+//                List.of(new Tuple<>(0, -1), new Tuple<>(1, -1), new Tuple<>(2, -1)),
+//                List.of(new Tuple<>(3, 0), new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, -1))
+//        ));
+//        randomization = randomization.followByIf(0, builder.getRandomization().collapse("Random Gremlins"));
+//        GameStateRandomization randomization2 = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(),
+//                List.of(new CardCount(new Card.HeadbuttP(), 1)),
+//                List.of(new CardCount(new Card.TrueGritP(), 1))
+//        ));
+//        builder.setRandomization(randomization.doAfter(randomization2));
+//        builder.addPotion(new Potion.LiquidMemory());
+//        builder.addPotion(new Potion.SneckoPotion());
+        builder.setPlayer(new Player(97, 101));
+        return new GameState(builder);
+    }
+
     public static GameState TestState17() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
@@ -1163,7 +1217,7 @@ public class TestStates {
         builder.addRelic(new Relic.GremlinVisage());
         builder.addRelic(new Relic.BagOfMarbles());
         builder.addRelic(new Relic.AncientTeaSet());
-        builder.addRelic(new Relic.HappyFlower(2));
+        builder.addRelic(new Relic.HappyFlower(2, 2));
         builder.setPlayer(new Player(39, 39));
         builder.setStartOfGameSetup(new GameEventHandler() {
             @Override public void handle(GameState state) {

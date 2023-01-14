@@ -166,6 +166,13 @@ def reset_model(model):
     init_layer(layer)
     layer = model.get_layer('exp_health_head')
     init_layer(layer)
+    layer = model.get_layer('policy_head')
+    init_layer(layer)
+    idx = 0
+    for v_other in v_other_lens:
+        layer = model.get_layer(f'exp_other_head{idx}')
+        init_layer(layer)
+        idx += v_other
     layer = model.get_layer('layer2')
     init_layer(layer)
 

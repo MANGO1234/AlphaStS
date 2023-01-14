@@ -685,9 +685,9 @@ public interface GameStateRandomization {
 
         public CampfireRandomization(Player player, List<CardCount> possibleCards, List<Card> cards) {
             if (cards == null) {
-                this.cards = possibleCards.stream().map(CardCount::card).filter((card) -> CardUpgrade.map.containsKey(card)).toList();
+                this.cards = possibleCards.stream().map(CardCount::card).filter((card) -> card.getUpgrade() != null).toList();
             } else {
-                this.cards = cards.stream().filter((card) -> CardUpgrade.map.containsKey(card)).toList();
+                this.cards = cards.stream().filter((card) -> card.getUpgrade() != null).toList();
             }
             startingCardCount = new HashMap<>();
             for (Card card : cards) {

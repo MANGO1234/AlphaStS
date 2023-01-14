@@ -47,6 +47,7 @@ public class GameProperties implements Cloneable {
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] skillPotionIdxes;
+    public int[][] sneckoIdxes;
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;
     public int[] strikeCardIdxes;
@@ -71,6 +72,7 @@ public class GameProperties implements Cloneable {
     public int ritualDaggerCounterIdx = -1;
     public int feedCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
+    public int happyFlowerCounterIdx = -1;
     public int incenseBurnerCounterIdx = -1;
     public int incenseBurnerRewardType = -1;
     public int echoFormCounterIdx = -1;

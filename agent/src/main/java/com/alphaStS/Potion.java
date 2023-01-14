@@ -2,9 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.utils.Tuple;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean selectCard1OutOf3;
@@ -260,7 +258,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             for (int i = 0; i < state.hand.length; i++) {
                 cardsInHand += state.hand[i];
             }
-            if (cardsInHand >= GameState.HAND_LIMIT) {
+            if (cardsInHand >= GameState.HAND_LIMIT || idx < 0) {
                 return GameActionCtx.PLAY_CARD; // tested, potion is wasted
             }
             if (state.prop.tmpCostCardIdxes[idx] >= 0) {
@@ -349,7 +347,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
 
         @Override public String toString() {
@@ -508,6 +506,71 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             for (int i = 0; i < cards.size(); i++) {
                 state.prop.skillPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
             }
+        }
+    }
+
+    public static class SneckoPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.draw(5);
+            var hand = state.getHand();
+            for (int i = 0; i < hand.length; i++) {
+                if (hand[i] > 0) {
+                    for (int j = 0; j < hand[i]; j++) {
+                        state.removeCardFromHand(i);
+                        var snecko = state.prop.sneckoIdxes[i];
+                        state.addCardToHand(snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko) + 1]);
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var newCards = new ArrayList<Card>();
+            cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost)).forEach((x) -> {
+                for (int i = 0; i < 4; i++) {
+                    if (x.energyCost == i) {
+                        continue;
+                    }
+                    newCards.add(new Card.CardPermChangeCost(x, i));
+                }
+            });
+            return newCards;
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.prop.sneckoIdxes = new int[state.prop.cardDict.length][];
+            var m = new HashMap<String, int[]>();
+            for (int i = 0; i < state.prop.cardDict.length; i++) {
+                var card = state.prop.cardDict[i];
+                if (!(card instanceof Card.CardPermChangeCost) && !(card instanceof Card.CardTmpChangeCost)) {
+                    var a = new int[] { 1, i, -1, -1, -1 };
+                    m.put(card.cardName, a);
+                    state.prop.sneckoIdxes[i] = a;
+                }
+            }
+            for (int i = 0; i < state.prop.cardDict.length; i++) {
+                var card = state.prop.cardDict[i];
+                if (card instanceof Card.CardPermChangeCost c) {
+                    var a = m.get(c.card.cardName);
+                    a[++a[0]] = i;
+                    state.prop.sneckoIdxes[i] = a;
+                }
+            }
+            for (int i = 0; i < state.prop.cardDict.length; i++) {
+                var card = state.prop.cardDict[i];
+                if (card instanceof Card.CardTmpChangeCost c) {
+                    if (c.card instanceof Card.CardPermChangeCost cc) {
+                        state.prop.sneckoIdxes[i] = m.get(cc.card.cardName);
+                    } else {
+                        state.prop.sneckoIdxes[i] = m.get(c.card.cardName);
+                    }
+                }
+            }
+        }
+
+        @Override public String toString() {
+            return "Snecko Potion";
         }
     }
 

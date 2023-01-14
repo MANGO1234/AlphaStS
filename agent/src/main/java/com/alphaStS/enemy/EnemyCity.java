@@ -47,6 +47,7 @@ public class EnemyCity {
             if (move == DEFENSIVE_STANCE) {
                 gainBlock(20);
                 gainMetallicize(7);
+                numOfDefensiveStance++;
             } else if (move == FACE_SLAP) {
                 state.enemyDoDamageToPlayer(this, 14, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
@@ -80,7 +81,6 @@ public class EnemyCity {
             } else {
                 int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 if (move != DEFENSIVE_STANCE && numOfDefensiveStance < 2 && r < 30) {
-                    numOfDefensiveStance++;
                     newMove = DEFENSIVE_STANCE;
                 } else if ((move != GLOAT && move != DEFENSIVE_STANCE) && r < 30) {
                     newMove = GLOAT;
@@ -1498,6 +1498,174 @@ public class EnemyCity {
         }
     }
 
+    public static class Centurion extends Enemy {
+        static int SLASH = 0;
+        static int FURY = 1;
+        static int DEFEND = 2;
+
+        public Centurion() {
+            this(83);
+        }
+
+        public Centurion(int health) {
+            super(health, 3, false);
+            property.canGainBlock = true;
+            property.canGainStrength = true;
+            property.canHeal = true;
+        }
+
+        public Centurion(Centurion other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new Centurion(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == SLASH) {
+                state.enemyDoDamageToPlayer(this, 14, 1);
+            } else if (move == FURY) {
+                state.enemyDoDamageToPlayer(this, 7, 3);
+            } else if (move == DEFEND) {
+                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    if (enemy != self) {
+                        enemy.gainBlock(20);
+                    }
+                }
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+            state.setIsStochastic();
+            if (r < 65) {
+                boolean mysticAlive = false;
+                for (var enemy : state.getEnemiesForRead()) {
+                    if (enemy.isAlive() && enemy instanceof EnemyCity.Mystic) {
+                        mysticAlive = true;
+                    }
+                }
+                lastMove = move;
+                move = mysticAlive ? DEFEND : FURY;
+            } else {
+                lastMove = move;
+                move = SLASH;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SLASH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 14);
+            } else if (move == FURY) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7) + "x3";
+            } else if (move == DEFEND) {
+                return "Ally Gain 20 Block";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
+            if (training && b < 4) {
+                health = (int) Math.round(((double) (health * b)) / 4);
+            } else {
+                health = 78 + random.nextInt(6, RandomGenCtx.Other, null);
+            }
+        }
+
+        public String getName() {
+            return "Centurion";
+        }
+    }
+
+    public static class Mystic extends Enemy {
+        static int HEAL = 0;
+        static int BUFF = 1;
+        static int ATTACK_DEBUFF = 2;
+
+        public Mystic() {
+            this(58);
+        }
+
+        public Mystic(int health) {
+            super(health, 3, true);
+            property.canGainStrength = true;
+            property.canFrail = true;
+            property.canHeal = true;
+        }
+
+        public Mystic(Mystic other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new Mystic(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == HEAL) {
+                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.heal(20);
+                }
+            } else if (move == BUFF) {
+                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.gainStrength(4);
+                }
+            } else if (move == ATTACK_DEBUFF) {
+                state.enemyDoDamageToPlayer(this, 9, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int maxDiff = 0;
+            for (var enemy : state.getEnemiesForRead()) {
+                maxDiff = Math.max(enemy.property.origHealth - enemy.getHealth(), maxDiff);
+            }
+            int newMove;
+            if (maxDiff > 20 && move != HEAL && lastMove != HEAL) {
+                newMove = HEAL;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                state.setIsStochastic();
+                if (r >= 40 && move != ATTACK_DEBUFF) {
+                    newMove = ATTACK_DEBUFF;
+                } else if (move != BUFF || lastMove != BUFF) {
+                    newMove = BUFF;
+                } else {
+                    newMove = ATTACK_DEBUFF;
+                }
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == HEAL) {
+                return "Ally Heal 20";
+            } else if (move == BUFF) {
+                return "Ally Gain 4 Str";
+            } else if (move == ATTACK_DEBUFF) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 9) + "+Frail 2";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(2, RandomGenCtx.Other, null) + 1;
+            if (training && b < 2) {
+                health = (int) Math.round(((double) (health * b)) / 4);
+            } else {
+                health = 50 + random.nextInt(9, RandomGenCtx.Other, null);
+            }
+        }
+
+        public String getName() {
+            return "Mystic";
+        }
+    }
+
     public static class Chosen extends Enemy {
         static int HEX = 0;
         static int POKE = 1;
@@ -1594,7 +1762,7 @@ public class EnemyCity {
             state.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
                 @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
                     if (card.cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
-                        state.addCardToDiscard(state.prop.dazedCardIdx);
+                        state.addCardToDeck(state.prop.dazedCardIdx);
                     }
                 }
             });

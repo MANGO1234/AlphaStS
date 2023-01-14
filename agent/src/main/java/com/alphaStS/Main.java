@@ -33,7 +33,7 @@ class ServerRequest {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.TestStateDefect1p4();
+        var state = TestStates.TestState16();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {

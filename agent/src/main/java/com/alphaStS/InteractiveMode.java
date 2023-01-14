@@ -309,12 +309,14 @@ public class InteractiveMode {
             }
             if (states.size() > 0) {
                 GameState prevState = states.get(states.size() - 1);
-                String prevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getMove());
-                String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
                 if (state.prop.hasRunicDome) {
+                    String prevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getMove());
+                    String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
                     System.out.println("  Last Move: " + prevMove);
                     System.out.println("  Last Last Move: " + prevPrevMove);
                 } else {
+                    String prevMove = state.getEnemiesForRead().get(enemyArrayIdx).getMoveString(state, enemy.getMove());
+                    String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
                     System.out.println("  Move: " + prevMove);
                     System.out.println("  Last Move: " + prevPrevMove);
                 }

@@ -153,10 +153,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Dream Catcher: No need to implement
 
     public static class HappyFlower extends Relic {
-        private final int n;
+        int n;
+        int healthReward;
 
-        public HappyFlower(int n) {
+        public HappyFlower(int n, int healthReward) {
             this.n = n;
+            this.healthReward = healthReward;
         }
 
         @Override public void startOfGameSetup(GameState state) {
@@ -185,6 +187,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
+
+            state.prop.addExtraTrainingTarget("HappyFlower", this, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                    if (enemiesAllDead) {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 3.0;
+                    } else {
+                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    v[GameState.V_HEALTH_IDX] += healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
+            super.setCounterIdx(properties, counterIdx);
+            properties.happyFlowerCounterIdx = counterIdx;
         }
     }
 
@@ -1100,7 +1121,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
 

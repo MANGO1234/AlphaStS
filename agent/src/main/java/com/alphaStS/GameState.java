@@ -479,7 +479,7 @@ public final class GameState implements State {
         int[] r = new int[cards.size()];
         Arrays.fill(r, -1);
         for (int i = 0; i < r.length; i++) {
-            var upgrade = CardUpgrade.map.get(cards.get(i).card());
+            var upgrade = cards.get(i).card().getUpgrade();
             if (upgrade != null) {
                 r[i] = prop.findCardIndex(upgrade);
             }
@@ -1411,7 +1411,10 @@ public final class GameState implements State {
             return true;
         }
         for (int i = 0; i < prop.healCardsIdxes.length; i++) {
-            if (hand[prop.healCardsIdxes[i]] > 0 || deck[prop.healCardsIdxes[i]] > 0 || discard[prop.healCardsIdxes[i]] > 0) {
+            if (hand[prop.healCardsIdxes[i]] > 0) {
+                return true;
+            }
+            if (prop.healCardsIdxes[i] < prop.realCardsLen && (deck[prop.healCardsIdxes[i]] > 0 || discard[prop.healCardsIdxes[i]] > 0)) {
                 return true;
             }
         }

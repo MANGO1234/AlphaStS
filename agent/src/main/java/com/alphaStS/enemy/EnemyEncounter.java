@@ -377,9 +377,15 @@ public class EnemyEncounter {
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
         gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(),
                 new Enemy.ShieldGremlin(), new Enemy.GremlinWizard());
+        for (var gremlin : gremlinList) {
+            gremlin.property.isMinion = true;
+        }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
         gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(),
                 new Enemy.ShieldGremlin(), new Enemy.GremlinWizard());
+        for (var gremlin : gremlinList) {
+            gremlin.property.isMinion = true;
+        }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
         builder.addEnemy(new EnemyCity.GremlinLeader());
         builder.setRandomization(new GremlinLeaderRandomization2(builder.getEnemies(), start).doAfter(builder.getRandomization()));
@@ -475,6 +481,11 @@ public class EnemyEncounter {
                 }
             }
         });
+    }
+
+    public static void addCenturionAndMysticFight(GameStateBuilder builder) {
+        builder.addEnemy(new EnemyCity.Centurion());
+        builder.addEnemy(new EnemyCity.Mystic());
     }
 
     public static void addSentriesFight(GameStateBuilder builder) {

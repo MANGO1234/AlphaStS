@@ -279,6 +279,9 @@ public class MCTS {
         if (state.prop.nunchakuCounterIdx >= 0 && state.getCounterForRead()[state.prop.nunchakuCounterIdx] < 9) {
             return false;
         }
+        if (state.prop.happyFlowerCounterIdx >= 0 && state.getCounterForRead()[state.prop.happyFlowerCounterIdx] < 2) {
+            return false;
+        }
         if (state.prop.incenseBurnerCounterIdx >= 0) {
             if (state.prop.incenseBurnerRewardType == Relic.IncenseBurner.DEFAULT_REWARD) {
                 if (state.getCounterForRead()[state.prop.incenseBurnerCounterIdx] < 5) {

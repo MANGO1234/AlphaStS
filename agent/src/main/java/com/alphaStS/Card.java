@@ -74,6 +74,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean canSelectFromHand(Card card) { return true; }
     public void startOfGameSetup(GameState state) {}
     public void onDiscard(GameState state, int count) {}
+    public Card getUpgrade() { return CardUpgrade.map.get(this); }
 
     @Override public String toString() {
         return "Card{" +
@@ -107,6 +108,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             selectEnemy = card.selectEnemy;
             selectFromDiscard = card.selectFromDiscard;
             selectFromExhaust = card.selectFromExhaust;
+            selectFromDeck = card.selectFromDeck;
             selectFromHand = card.selectFromHand;
             selectFromDiscardLater = card.selectFromDiscardLater;
             selectFromHandLater = card.selectFromHandLater;
@@ -115,6 +117,50 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerStrength = card.changePlayerStrength;
             changePlayerStrengthEot = card.changePlayerStrengthEot;
             changePlayerDexterity = card.changePlayerDexterity;
+            changePlayerFocus = card.changePlayerFocus;
+            vulnEnemy = card.vulnEnemy;
+            weakEnemy = card.weakEnemy;
+            affectEnemyStrength = card.affectEnemyStrength;
+            affectEnemyStrengthEot = card.affectEnemyStrengthEot;
+            putCardOnTopDeck = card.putCardOnTopDeck;
+            healPlayer = card.healPlayer;
+        }
+
+        public void setCounterIdx(GameProperties gameProperties, int idx) {
+            card.setCounterIdx(gameProperties, idx);
+        }
+
+        GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
+        void onExhaust(GameState state) { card.onExhaust(state); }
+        List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
+        public boolean canSelectFromHand(Card card) { return card.canSelectFromHand(card); }
+        public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
+    }
+
+    public static class CardPermChangeCost extends Card {
+        public final Card card;
+
+        public CardPermChangeCost(Card card, int energyCost) {
+            super(card.cardName + " (Perm " + energyCost + ")", card.cardType, energyCost, card.rarity);
+            this.card = card;
+            ethereal = card.ethereal;
+            innate = card.innate;
+            exhaustWhenPlayed = card.exhaustWhenPlayed;
+            exhaustNonAttacks = card.exhaustNonAttacks;
+            selectEnemy = card.selectEnemy;
+            selectFromDiscard = card.selectFromDiscard;
+            selectFromExhaust = card.selectFromExhaust;
+            selectFromDeck = card.selectFromDeck;
+            selectFromHand = card.selectFromHand;
+            selectFromDiscardLater = card.selectFromDiscardLater;
+            selectFromHandLater = card.selectFromHandLater;
+            exhaustSkill = card.exhaustSkill;
+            canExhaustAnyCard = card.canExhaustAnyCard;
+            changePlayerStrength = card.changePlayerStrength;
+            changePlayerStrengthEot = card.changePlayerStrengthEot;
+            changePlayerDexterity = card.changePlayerDexterity;
+            changePlayerFocus = card.changePlayerFocus;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             affectEnemyStrength = card.affectEnemyStrength;
@@ -254,11 +300,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override public boolean canSelectFromHand(Card card) {
-            return CardUpgrade.map.get(card) != null;
+            return card.getUpgrade() != null;
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
 
@@ -279,7 +325,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return cards.stream().map((x) -> CardUpgrade.map.get(x)).filter(Objects::nonNull).toList();
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
 
@@ -309,7 +355,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Clash extends Card {
         public Clash() {
-            super("Clash", Card.ATTACK, -1, Card.COMMON);
+            super("Clash", Card.ATTACK, 0, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -324,13 +370,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     return -1;
                 }
             }
-            return 0;
+            return energyCost;
         }
     }
 
     public static class ClashP extends Card {
         public ClashP() {
-            super("Clash+", Card.ATTACK, -1, Card.COMMON);
+            super("Clash+", Card.ATTACK, 0, Card.COMMON);
             selectEnemy = true;
         }
 
@@ -345,7 +391,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     return -1;
                 }
             }
-            return 0;
+            return energyCost;
         }
     }
 
@@ -2549,11 +2595,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static abstract class _FeedT extends Card {
         private final int n;
         private final int hpInc;
+        protected final double healthRewardRatio;
 
-        public _FeedT(String cardName, int cardType, int energyCost, int n, int hpInc) {
+        public _FeedT(String cardName, int cardType, int energyCost, int n, int hpInc, double healthRewardRatio) {
             super(cardName, cardType, energyCost, Card.RARE);
             this.n = n;
             this.hpInc = hpInc;
+            this.healthRewardRatio = healthRewardRatio;
             healPlayer = true;
             exhaustWhenPlayed = true;
             selectEnemy = true;
@@ -2586,7 +2634,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     int minFeed = state.getCounterForRead()[counterIdx];
                     int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
                     double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
-                    v[GameState.V_HEALTH_IDX] += 2 * 16 * vFeed / state.getPlayeForRead().getMaxHealth();
+                    v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
                 }
             });
         }
@@ -2636,13 +2684,25 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Feed extends _FeedT {
         public Feed() {
-            super("Feed", Card.ATTACK, 1, 10, 3);
+            super("Feed", Card.ATTACK, 1, 10, 3, 2);
+        }
+
+        public Feed(double healthRewardRatio) {
+            super("Feed", Card.ATTACK, 1, 10, 3, healthRewardRatio);
+        }
+
+        public Card getUpgrade() {
+            return new Card.FeedP(healthRewardRatio);
         }
     }
 
     public static class FeedP extends _FeedT {
         public FeedP() {
-            super("Feed+", Card.ATTACK, 1, 12, 4);
+            super("Feed+", Card.ATTACK, 1, 12, 4, 2);
+        }
+
+        public FeedP(double healthRewardRatio) {
+            super("Feed+", Card.ATTACK, 1, 12, 4, healthRewardRatio);
         }
     }
 
