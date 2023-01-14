@@ -98,7 +98,12 @@ public class Player extends PlayerReadOnly {
         case HEX -> this.hexed = true;
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] += n;
+        case CONSTRICTED -> state.getCounterForWrite()[state.prop.constrictedCounterIdx] += n;
         }
+    }
+
+    public void preEndTurn(GameState state) {
+        cannotDrawCard = false;
     }
 
     public void endTurn(GameState state) {
@@ -111,7 +116,6 @@ public class Player extends PlayerReadOnly {
         if (frail > 0) {
             frail -= 1;
         }
-        cannotDrawCard = false;
         if (entangled > 0) {
             entangled -= 1;
         }

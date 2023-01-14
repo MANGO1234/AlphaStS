@@ -945,6 +945,7 @@ public class EnemyBeyond {
         public Dagger(int health) {
             super(health, 2, false);
             property.isElite = true;
+            property.isMinion = true;
             property.actNumber = 3;
         }
 
@@ -1096,6 +1097,113 @@ public class EnemyBeyond {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx + 1] = turnCount / 10.0f;
             return 1;
+        }
+    }
+
+    public static class SpireGrowth extends Enemy {
+        private static final int QUICK_TACKLE = 0;
+        private static final int SMASH = 1;
+        private static final int CONSTRICT = 2;
+
+        public SpireGrowth() {
+            this(190);
+        }
+
+        public SpireGrowth(int health) {
+            super(health, 3, true);
+        }
+
+        public SpireGrowth(EnemyBeyond.SpireGrowth other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.SpireGrowth(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == QUICK_TACKLE) {
+                state.enemyDoDamageToPlayer(this, 18, 1);
+            } else if (move == SMASH) {
+                state.enemyDoDamageToPlayer(this, 25, 1);
+            } else if (move == CONSTRICT) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.CONSTRICTED, 12);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (state.getCounterForRead()[state.prop.constrictedCounterIdx] == 0 && lastMove != CONSTRICT) {
+                newMove = CONSTRICT;
+            } else {
+                if (move == QUICK_TACKLE && lastMove == QUICK_TACKLE) {
+                    newMove = SMASH;
+                } else if (move == SMASH && lastMove == SMASH) {
+                    newMove = QUICK_TACKLE;
+                } else {
+                    int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                    newMove = r < 50 ? QUICK_TACKLE : SMASH;
+                }
+//                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+//                if (r < 50 && !(move == QUICK_TACKLE && lastMove == QUICK_TACKLE)) {
+//                    newMove = QUICK_TACKLE;
+//                } else if (!(move == SMASH && lastMove == SMASH)) {
+//                    newMove = SMASH;
+//                } else {
+//                    newMove = QUICK_TACKLE;
+//                }
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == QUICK_TACKLE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 18);
+            } else if (move == SMASH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 25);
+            } else if (move == CONSTRICT) {
+                return "Apply 12 Constricted";
+            }
+            return "Unknown";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("Constricted", new GameProperties.CounterRegistrant() {
+                @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+                    gameProperties.constrictedCounterIdx = idx;
+                }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int counter = state.getCounterForRead()[state.prop.constrictedCounterIdx];
+                    input[idx] = counter / 12.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addPreEndOfTurnHandler("Constricted", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[state.prop.constrictedCounterIdx] > 0) {
+                        state.getPlayerForWrite().nonAttackDamage(state.getCounterForRead()[state.prop.constrictedCounterIdx], true);
+                    }
+                }
+            });
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(9, RandomGenCtx.Other) + 1;
+            if (training) {
+                health = (int) Math.round((health * b) / 9.0);
+            } else {
+                health = 190;
+            }
+        }
+
+        @Override public String getName() {
+            return "Spire Growth";
         }
     }
 

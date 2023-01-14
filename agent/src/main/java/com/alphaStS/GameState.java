@@ -791,6 +791,9 @@ public final class GameState implements State {
         boolean cardPlayedSuccessfully = true;
         boolean targetHalfAlive = false;
         int energyCost = getCardEnergyCost(cardIdx);
+        if (prop.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[prop.velvetChokerCounterIndexIdx] >= 6) {
+            return false;
+        }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (!cloned) {
                 hand[cardIdx] -= 1;
@@ -1075,6 +1078,7 @@ public final class GameState implements State {
         for (GameEventHandler handler : prop.preEndTurnHandlers) {
             handler.handle(this);
         }
+        getPlayerForWrite().preEndTurn(this);
         triggerOrbsPassiveEndOfTurn();
         byte[] handDup = Arrays.copyOf(hand, hand.length);
         for (int i = 0; i < hand.length; i++) {
@@ -1217,9 +1221,6 @@ public final class GameState implements State {
         if (actionCtx == GameActionCtx.BEGIN_BATTLE || actionCtx == GameActionCtx.BEGIN_TURN) {
             return action == 0;
         } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-            if (prop.normalityCounterIdx >= 0 && counter[prop.normalityCounterIdx] >= 3) {
-                return false;
-            }
             GameAction[] a = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()];
             if (action < 0 || action >= a.length) {
                 return false;
@@ -1229,6 +1230,12 @@ public final class GameState implements State {
             } else if (a[action].type() == GameActionType.USE_POTION) {
                 return potionsState[a[action].idx() * 3] == 1;
             } else if (hand[a[action].idx()] > 0) {
+                if (prop.normalityCounterIdx >= 0 && counter[prop.normalityCounterIdx] >= 3) {
+                    return false;
+                }
+                if (prop.velvetChokerCounterIndexIdx >= 0 && counter[prop.velvetChokerCounterIndexIdx] >= 6) {
+                    return false;
+                }
                 int cost = getCardEnergyCost(a[action].idx());
                 if (getPlayeForRead().isEntangled() && prop.cardDict[a[action].idx()].cardType == Card.ATTACK) {
                     return false;
@@ -1428,7 +1435,7 @@ public final class GameState implements State {
             if (prop.healCardsIdxes != null) {
                 for (int i = 0; i < prop.healCardsIdxes.length; i++) {
                     // todo: need to take take feed+ into account
-                    if (prop.cardDict[prop.healCardsIdxes[i]].cardName.startsWith("Feed")) {
+                    if (prop.cardDict[prop.healCardsIdxes[i]].cardName.equals("Feed")) {
                         int idx = prop.findCardIndex("Armanent+");
                         if (idx < 0 || getExhaustForRead()[idx] > 0) {
                             v += 3;
@@ -3535,7 +3542,7 @@ class ChanceState implements State {
         if (queue != null && queue.size() > 0) {
             return queue.remove(0);
         }
-        if (calledFromMCTS && cache.size() >= Math.ceil(Math.pow(total_n, 0.3)) && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) {
+        if (calledFromMCTS && cache.size() >= Math.ceil(Math.pow(total_n, 0.3)) && Configuration.USE_PROGRESSIVE_WIDENING && parentState.prop.testNewFeature && false) {
             // instead of generating new nodes, revisit node, need testing
             var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
             var acc = 0;
@@ -3576,10 +3583,10 @@ class ChanceState implements State {
             total_n -= 1;
             return state;
         }
-        total_node_n += 1;
         var node = cache.get(state);
         if (node != null) {
             node.n += 1;
+            total_node_n += 1;
             node.revisit = false;
             if (node.state.stateDesc == null && state.stateDesc != null) {
                 node.state.stateDesc = state.stateDesc;
@@ -3594,6 +3601,20 @@ class ChanceState implements State {
             }
             return node.state;
         }
+        if (calledFromMCTS && cache.size() >= Math.ceil(Math.pow(total_n, 0.3)) && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) {
+            // instead of generating new nodes, revisit node, need testing
+            var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
+            var acc = 0;
+            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+                acc += entry.getValue().n;
+                if (acc > r) {
+                    entry.getValue().revisit = true;
+                    return entry.getValue().state;
+                }
+            }
+            Integer.parseInt(null);
+        }
+        total_node_n += 1;
         cache.put(state, new Node(state));
         if (parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
            state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));

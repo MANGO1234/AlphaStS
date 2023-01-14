@@ -811,6 +811,55 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestState16b() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.AngerP(), 1);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new Card.BattleTranceP(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 2);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.PowerThroughP(), 1);
+        builder.addCard(new Card.Feed(), 1);
+        builder.addCard(new Card.FiendFireP(), 1);
+        builder.addCard(new Card.Sentinel(), 1);
+        builder.addCard(new Card.PommelStrikeP(), 1);
+        builder.addCard(new Card.DemonFormP(), 1);
+        builder.addCard(new Card.Evolve(), 1);
+        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new Card.Offering(), 1);
+        builder.addCard(new Card.DarkEmbrace(), 1);
+        builder.addCard(new Card.FeelNoPain(), 2);
+        builder.addCard(new Card.ShockwaveP(), 1);
+        builder.addCard(new Card.WarcryP(), 2);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.Nunchaku(8, 2));
+        builder.addRelic(new Relic.GremlinHorn());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.HappyFlower(1, 2));
+        builder.addRelic(new Relic.HornCleat());
+        builder.addRelic(new Relic.VelvetChoker());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.ArtOfWar());
+        builder.addRelic(new Relic.PreservedInsect());
+        EnemyEncounter.addReptomancerFight(builder, false);
+//        builder.addPotion(new Potion.SneckoPotion());
+//        builder.addPotion(new Potion.LiquidMemory());
+//        builder.addPotion(new Potion.WeakPotion());
+        builder.setPlayer(new Player(126, 130));
+        return new GameState(builder);
+    }
+
     public static GameState TestState17() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);

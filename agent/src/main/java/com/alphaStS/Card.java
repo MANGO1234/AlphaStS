@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyBeyond;
 
 import java.util.List;
 import java.util.Objects;
@@ -2610,8 +2611,15 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
             if (!state.getEnemiesForRead().get(idx).property.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
-                state.getPlayerForWrite().heal(hpInc);
-                state.getCounterForWrite()[state.prop.feedCounterIdx] += hpInc;
+                if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling) {
+                    if (state.isTerminal() > 0) {
+                        state.getPlayerForWrite().heal(hpInc);
+                        state.getCounterForWrite()[state.prop.feedCounterIdx] += hpInc;
+                    }
+                } else {
+                    state.getPlayerForWrite().heal(hpInc);
+                    state.getCounterForWrite()[state.prop.feedCounterIdx] += hpInc;
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2634,7 +2642,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     int minFeed = state.getCounterForRead()[counterIdx];
                     int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
                     double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
-                    v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    if (true) {
+                        v[GameState.V_HEALTH_IDX] *= (0.8 + vFeed / 0.25 * 0.2);
+                    } else {
+                        v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    }
                 }
             });
         }
@@ -2714,11 +2726,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int[] cardToExhaust = new int[GameState.HAND_LIMIT];
+            int k = 0;
             for (int i = 0; i < state.hand.length; i++) {
-                while (state.hand[i] > 0) {
-                    state.exhaustCardFromHand(i);
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 7);
+                for (int j = 0; j < state.hand[i]; j++) {
+                    cardToExhaust[k++] = i;
                 }
+            }
+            for (int i = 0; i < k; i++) {
+                state.exhaustCardFromHand(cardToExhaust[i]);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(cardToExhaust[i]), 7);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2732,11 +2749,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int[] cardToExhaust = new int[GameState.HAND_LIMIT];
+            int k = 0;
             for (int i = 0; i < state.hand.length; i++) {
-                while (state.hand[i] > 0) {
-                    state.exhaustCardFromHand(i);
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
+                for (int j = 0; j < state.hand[i]; j++) {
+                    cardToExhaust[k++] = i;
                 }
+            }
+            for (int i = 0; i < k; i++) {
+                state.exhaustCardFromHand(cardToExhaust[i]);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
             }
             return GameActionCtx.PLAY_CARD;
         }

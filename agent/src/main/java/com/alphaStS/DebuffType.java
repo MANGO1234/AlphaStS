@@ -13,4 +13,5 @@ public enum DebuffType {
     HEX,
     LOSE_FOCUS,
     LOSE_FOCUS_PER_TURN,
+    CONSTRICTED,
 }

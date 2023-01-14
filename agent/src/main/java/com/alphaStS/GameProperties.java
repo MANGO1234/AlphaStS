@@ -73,6 +73,7 @@ public class GameProperties implements Cloneable {
     public int feedCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
     public int happyFlowerCounterIdx = -1;
+    public int velvetChokerCounterIndexIdx;
     public int incenseBurnerCounterIdx = -1;
     public int incenseBurnerRewardType = -1;
     public int echoFormCounterIdx = -1;
@@ -103,6 +104,7 @@ public class GameProperties implements Cloneable {
     public boolean hasBurningBlood;
 
     public int loseFocusPerTurnCounterIdx;
+    public int constrictedCounterIdx;
     public int normalityCounterIdx = -1;
     public int penNibCounterIdx = -1;
 

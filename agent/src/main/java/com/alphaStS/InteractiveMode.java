@@ -621,7 +621,7 @@ public class InteractiveMode {
                     return;
                 }
                 int n = parseInt(line, -1);
-                if (n > 0) {
+                if (n > 0 || n == -1) {
                     darkling.setNipDamage(n);
                     return;
                 }

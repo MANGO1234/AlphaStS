@@ -1036,7 +1036,37 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // Tiny House: No need to implement
-    // todo: Velvet Choker
+    public static class VelvetChoker extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.energyRefill += 1;
+            state.prop.registerCounter("VelvetChoker", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx + state.getCounterForRead()[counterIdx]] = 0.5f;
+                    return idx + 7;
+                }
+                @Override public int getInputLenDelta() {
+                    return 7;
+                }
+            });
+            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                    if (state.getCounterForRead()[counterIdx] < 6) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
+            super.setCounterIdx(properties, counterIdx);
+            properties.velvetChokerCounterIndexIdx = counterIdx;
+        }
+    }
 
     // **********************************************************************************************************************************************
     // ************************************************************** Event Relics ******************************************************************
