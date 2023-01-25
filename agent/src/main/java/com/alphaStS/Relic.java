@@ -446,8 +446,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GremlinHorn extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.addOnEnemyDeathHandler("GremlinHorn", new GameEventHandler() {
-                @Override public void handle(GameState state) {
+            state.addOnEnemyDeathHandler("GremlinHorn", new GameEventEnemyHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy) {
                     state.gainEnergy(1);
                     state.draw(1);
                 }

@@ -119,7 +119,17 @@ public final class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        return energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx&& actionCardIsCloned == gameState.actionCardIsCloned && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs) && ((gameActionDeque == null && gameState.gameActionDeque == null) || (gameActionDeque == null && gameState.gameActionDeque.size() == 0) || (gameActionDeque.size == 0 && gameState.gameActionDeque == null) || gameActionDeque.equals(gameState.gameActionDeque));
+        var e = energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx&& actionCardIsCloned == gameState.actionCardIsCloned && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs);
+        if (e) {
+            boolean dequeIsNull = gameActionDeque == null || gameActionDeque.size() == 0;
+            boolean oDequeIsNull = gameState.gameActionDeque == null || gameState.gameActionDeque.size() == 0;
+            if (dequeIsNull != oDequeIsNull) {
+                e = false;
+            } else if (!dequeIsNull) {
+                e = gameActionDeque.equals(gameState.gameActionDeque);
+            }
+        }
+        return e;
     }
 
     @Override public int hashCode() {
@@ -505,6 +515,9 @@ public final class GameState implements State {
             if (cards.get(i).card().ethereal && getCardEnergyCost(i) >= 0) {
                 l.add(i);
             }
+            if (cards.get(i).card().cardName.contains("Anger")) {
+                l.add(i);
+            }
             if (cards.get(i).card().exhaustNonAttacks) {
                 for (int j = 0; j < cards.size(); j++) {
                     if (cards.get(j).card().cardType != Card.ATTACK) {
@@ -682,7 +695,7 @@ public final class GameState implements State {
             return;
         }
 //        if (!prop.testNewFeature || deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
-            setIsStochastic();
+//            setIsStochastic();
 //        }
         int cardsInHand = 0;
         for (int i = 0; i < hand.length; i++) {
@@ -705,6 +718,7 @@ public final class GameState implements State {
                 cardIdx = i;
             } else {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
+                setIsStochastic();
                 if (prop.makingRealMove && prop.doingComparison) {
                     Arrays.sort(this.deckArr, 0, this.deckArrLen);
                 }
@@ -792,6 +806,8 @@ public final class GameState implements State {
         boolean targetHalfAlive = false;
         int energyCost = getCardEnergyCost(cardIdx);
         if (prop.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[prop.velvetChokerCounterIndexIdx] >= 6) {
+            return false;
+        } else if (prop.timeEaterCounterIdx >= 0 && getCounterForRead()[prop.timeEaterCounterIdx] == 12) {
             return false;
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
@@ -1060,7 +1076,12 @@ public final class GameState implements State {
                 }
             }
         }
-        draw(5);
+        if (prop.drawReductionCounterIdx >= 0 && getCounterForRead()[prop.drawReductionCounterIdx] > 0) {
+            draw(4);
+            getCounterForWrite()[prop.drawReductionCounterIdx]--;
+        } else {
+            draw(5);
+        }
         for (GameEventHandler handler : prop.startOfTurnHandlers) {
             handler.handle(this);
         }
@@ -1095,6 +1116,13 @@ public final class GameState implements State {
                         (!prop.hasRunicPyramid && (prop.equilibriumCounterIdx < 0 || getCounterForRead()[prop.equilibriumCounterIdx] == 0))) {
                     discard[i] += handDup[i];
                     hand[i] -= handDup[i];
+                }
+            }
+        }
+        if (prop.timeEaterCounterIdx >= 0 && getCounterForRead()[prop.timeEaterCounterIdx] == 12) {
+            for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
+                if (enemy instanceof EnemyBeyond.TimeEater) {
+                    enemy.gainStrength(2);
                 }
             }
         }
@@ -1137,6 +1165,9 @@ public final class GameState implements State {
         for (GameEventHandler handler : prop.endOfTurnHandlers) {
             handler.handle(this);
         }
+        if (prop.timeEaterCounterIdx >= 0 && getCounterForRead()[prop.timeEaterCounterIdx] == 12) {
+            getCounterForWrite()[prop.timeEaterCounterIdx] = 0;
+        }
         getPlayerForWrite().endTurn(this);
         if (!prop.hasIceCream) {
             energy = 0;
@@ -1159,6 +1190,7 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.END_TURN) {
             setActionCtx(GameActionCtx.BEGIN_TURN, null, false);
             endTurn();
+            runActionsInQueueIfNonEmpty();
 //            startTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
             playCard(action, -1, true, false, true, false);
@@ -1227,6 +1259,8 @@ public final class GameState implements State {
             }
             if (a[action].type() == GameActionType.END_TURN) {
                 return true;
+            } else if (prop.timeEaterCounterIdx >= 0 && counter[prop.timeEaterCounterIdx] >= 12) {
+                return false;
             } else if (a[action].type() == GameActionType.USE_POTION) {
                 return potionsState[a[action].idx() * 3] == 1;
             } else if (hand[a[action].idx()] > 0) {
@@ -2711,11 +2745,11 @@ public final class GameState implements State {
         }
     }
 
-    public void addOnEnemyDeathHandler(GameEventHandler handler) {
+    public void addOnEnemyDeathHandler(GameEventEnemyHandler handler) {
         prop.onEnemyDeathHandlers.add(handler);
     }
 
-    public void addOnEnemyDeathHandler(String handlerName, GameEventHandler handler) {
+    public void addOnEnemyDeathHandler(String handlerName, GameEventEnemyHandler handler) {
         if (prop.gameEventHandlers.get(handlerName + "OnEnemyDeath") == null) {
             prop.gameEventHandlers.put(handlerName + "OnEnemyDeath", handler);
             prop.onEnemyDeathHandlers.add(handler);
@@ -2900,6 +2934,11 @@ public final class GameState implements State {
         }
         if (enemy.isAlive()) {
             enemy.damage(dmg, this);
+            if (enemy.getHealth() == 0) {
+                for (var handler : prop.onEnemyDeathHandlers) {
+                    handler.handle(this, enemy);
+                }
+            }
             if (!enemy.isAlive()) {
                 if (prop.shieldAndSpireFacingIdx >= 0) {
                     if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireShield) {
@@ -2909,9 +2948,6 @@ public final class GameState implements State {
                     }
                 }
                 adjustEnemiesAlive(-1);
-                for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
-                    handler.handle(this);
-                }
                 return true;
             }
         }
@@ -2930,11 +2966,13 @@ public final class GameState implements State {
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
         if (enemy.isAlive()) {
             enemy.nonAttackDamage(dmg, blockable, this);
+            if (enemy.getHealth() == 0) {
+                for (var handler : prop.onEnemyDeathHandlers) {
+                    handler.handle(this, enemy);
+                }
+            }
             if (!enemy.isAlive()) {
                 adjustEnemiesAlive(-1);
-                for (GameEventHandler handler : prop.onEnemyDeathHandlers) {
-                    handler.handle(this);
-                }
             }
         }
     }
@@ -3133,10 +3171,15 @@ public final class GameState implements State {
         return stateDesc == null ? "" : stateDesc.toString();
     }
 
-    public void killEnemy(int i) {
+    public void killEnemy(int i, boolean triggerOnDeathHandler) {
         if (getEnemiesForRead().get(i).isAlive()) {
             getEnemiesForWrite().getForWrite(i).setHealth(0);
             adjustEnemiesAlive(-1);
+            if (triggerOnDeathHandler) {
+                for (var handler : prop.onEnemyDeathHandlers) {
+                    handler.handle(this, getEnemiesForRead().get(i));
+                }
+            }
         }
     }
 

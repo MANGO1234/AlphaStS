@@ -2643,9 +2643,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
                     double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
                     if (true) {
-                        v[GameState.V_HEALTH_IDX] *= (0.8 + vFeed / 0.25 * 0.2);
-                    } else {
                         v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    } else {
+                        v[GameState.V_HEALTH_IDX] *= (0.8 + vFeed / 0.25 * 0.2);
                     }
                 }
             });
@@ -2723,6 +2723,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             super("Fiend Fire", Card.ATTACK, 2, Card.RARE);
             selectEnemy = true;
             exhaustWhenPlayed = true;
+            canExhaustAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2746,6 +2747,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             super("Fiend Fire+", Card.ATTACK, 2, Card.RARE);
             selectEnemy = true;
             exhaustWhenPlayed = true;
+            canExhaustAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

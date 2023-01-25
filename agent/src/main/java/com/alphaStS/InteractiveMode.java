@@ -651,7 +651,7 @@ public class InteractiveMode {
                     state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                 } else {
                     if (hp == 0) {
-                        state.killEnemy(curEnemyIdx);
+                        state.killEnemy(curEnemyIdx, false);
                     } else {
                         state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                     }
@@ -685,7 +685,7 @@ public class InteractiveMode {
                     state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                 } else {
                     if (hp == 0) {
-                        state.killEnemy(curEnemyIdx);
+                        state.killEnemy(curEnemyIdx, false);
                     } else {
                         state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                     }

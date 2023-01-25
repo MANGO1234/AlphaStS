@@ -99,6 +99,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] += n;
         case CONSTRICTED -> state.getCounterForWrite()[state.prop.constrictedCounterIdx] += n;
+        case DRAW_REDUCTION -> state.getCounterForWrite()[state.prop.drawReductionCounterIdx] += n;
         }
     }
 

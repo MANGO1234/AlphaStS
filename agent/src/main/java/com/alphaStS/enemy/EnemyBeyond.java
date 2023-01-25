@@ -44,7 +44,7 @@ public class EnemyBeyond {
                     }
                 } else {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
-                        state.killEnemy(i);
+                        state.killEnemy(i, true);
                     }
                 }
             }
@@ -59,7 +59,7 @@ public class EnemyBeyond {
                     }
                 } else {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
-                        state.killEnemy(i);
+                        state.killEnemy(i, true);
                     }
                 }
             }
@@ -363,6 +363,190 @@ public class EnemyBeyond {
             return "Deca";
         }
     }
+
+    public static class TimeEater extends Enemy {
+        private static final int REVERBERATE = 0;
+        private static final int HEAD_SLAM = 1;
+        private static final int RIPPLE = 2;
+        private static final int HASTE = 3;
+
+        private boolean hasted;
+
+        public TimeEater() {
+            this(480);
+        }
+
+        public TimeEater(int health) {
+            super(health, 4, true);
+            property.canSlime = true;
+            property.canGainStrength = true;
+            property.canGainBlock = true;
+            property.canVulnerable = true;
+            property.canWeaken = true;
+            property.canFrail = true;
+        }
+
+        public TimeEater(EnemyBeyond.TimeEater other) {
+            super(other);
+            hasted = other.hasted;
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.TimeEater(this);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("DrawReduction", new GameProperties.CounterRegistrant() {
+                @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+                    gameProperties.drawReductionCounterIdx = idx;
+                }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[state.prop.drawReductionCounterIdx];
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.prop.registerCounter("TimeEater", new GameProperties.CounterRegistrant() {
+                @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+                    gameProperties.timeEaterCounterIdx = idx;
+                }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int counter = state.getCounterForRead()[state.prop.timeEaterCounterIdx];
+                    input[idx + counter] = 0.5f;
+                    return idx + 13;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 13;
+                }
+            });
+            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                    var c = state.getCounterForWrite();
+                    if (c[state.prop.timeEaterCounterIdx] == 12) {
+                        Integer.parseInt(null);
+                    }
+                    c[state.prop.timeEaterCounterIdx]++;
+                }
+            });
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == REVERBERATE) {
+                state.enemyDoDamageToPlayer(this, 8, 3);
+            } else if (move == HEAD_SLAM) {
+                state.enemyDoDamageToPlayer(this, 32, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.DRAW_REDUCTION, 2);
+                state.addCardToDiscard(state.prop.slimeCardIdx);
+                state.addCardToDiscard(state.prop.slimeCardIdx);
+            } else if (move == RIPPLE) {
+                gainBlock(20);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
+            } else if (move == HASTE) {
+                heal(480 / 2 - health);
+                gainBlock(32);
+                removeAllDebuffs();
+                hasted = true;
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove = -1;
+            if (health < property.maxHealth / 2 && !hasted) {
+                hasted = true;
+                newMove = HASTE;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                for (int i = 0; i < 1; i++) {
+                    if (r < 45) {
+                        if (move != REVERBERATE || lastMove != REVERBERATE) {
+                            newMove = REVERBERATE;
+                        } else {
+                            r = 50 + random.nextInt(50, RandomGenCtx.EnemyChooseMove);
+                            i = -1;
+                        }
+                    } else if (r < 80) {
+                        if (move != HEAD_SLAM) {
+                            newMove = HEAD_SLAM;
+                        } else if (random.nextInt(100, RandomGenCtx.EnemyChooseMove) <= 66) {
+                            newMove = REVERBERATE;
+                        } else {
+                            newMove = RIPPLE;
+                        }
+                    } else if (move != RIPPLE) {
+                        newMove = RIPPLE;
+                    } else {
+                        r = random.nextInt(75, RandomGenCtx.EnemyChooseMove);
+                        i = -1;
+                    }
+                }
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == REVERBERATE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "x3";
+            } else if (move == HEAD_SLAM) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 32) + "+Draw Reduce 1+Slime 2";
+            } else if (move == RIPPLE) {
+                return "Block 20+Vulnerable 1+Weaken 1+Frail 1";
+            } else if (move == HASTE) {
+                return "Heal+Block 32+Remove All Debuffs";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                int b = random.nextInt(24, RandomGenCtx.Other) + 1;
+                health = (int) Math.round((health * b) / 24.0);
+                if (health < 240) {
+                    hasted = true;
+                }
+            } else {
+                health = 480;
+            }
+        }
+
+        @Override public String getName() {
+            return "Time Eater";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (!hasted) {
+                return s;
+            }
+            return s.subSequence(0, s.length() - 1) + ", hasted}";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && hasted == ((EnemyBeyond.TimeEater) o).hasted;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of whether Time Eater has hasted";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = hasted ? 0.5f : 0;
+            return 1;
+        }
+    }
+
 
     // ******************************************************************************************
     // ******************************************************************************************
@@ -815,7 +999,7 @@ public class EnemyBeyond {
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
-                    state.killEnemy(i);
+                    state.killEnemy(i, true);
                 }
             }
         }
@@ -825,7 +1009,7 @@ public class EnemyBeyond {
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
-                    state.killEnemy(i);
+                    state.killEnemy(i, true);
                 }
             }
         }
@@ -900,8 +1084,8 @@ public class EnemyBeyond {
                     var enemies = state.getEnemiesForWrite();
                     for (int i = 0; i < enemies.size(); i++) {
                         if (enemies.get(i) instanceof Dagger) {
-                            state.killEnemy(i);
-                            state.killEnemy(i + 1);
+                            state.killEnemy(i, false);
+                            state.killEnemy(i + 1, false);
                             break;
                         }
                     }
@@ -963,7 +1147,7 @@ public class EnemyBeyond {
                 state.addCardToDiscard(state.prop.woundCardIdx);
             } else if (move == EXPLODE) {
                 state.enemyDoDamageToPlayer(this, 25, 1);
-                state.killEnemy(state.getEnemiesForRead().find(self));
+                state.killEnemy(state.getEnemiesForRead().find(self), true);
             }
         }
 

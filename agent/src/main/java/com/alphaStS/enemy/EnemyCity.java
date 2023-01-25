@@ -195,7 +195,7 @@ public class EnemyCity {
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
-                    state.killEnemy(i);
+                    state.killEnemy(i, true);
                 }
             }
         }
@@ -205,7 +205,7 @@ public class EnemyCity {
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
-                    state.killEnemy(i);
+                    state.killEnemy(i, true);
                 }
             }
         }
@@ -492,7 +492,7 @@ public class EnemyCity {
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
-                    state.killEnemy(i);
+                    state.killEnemy(i, true);
                 }
             }
         }
@@ -502,7 +502,7 @@ public class EnemyCity {
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
-                    state.killEnemy(i);
+                    state.killEnemy(i, true);
                 }
             }
         }
