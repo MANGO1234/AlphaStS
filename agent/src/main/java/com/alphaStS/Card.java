@@ -135,8 +135,19 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         void onExhaust(GameState state) { card.onExhaust(state); }
         List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
         int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
-        public boolean canSelectFromHand(Card card) { return card.canSelectFromHand(card); }
+        public boolean canSelectFromHand(Card card2) { return card.canSelectFromHand(card); }
         public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
+        public Card getUpgrade() {
+            var upgrade = card.getUpgrade();
+            if (upgrade == null) {
+                return null;
+            }
+            if (upgrade.energyCost == 0) {
+                return null;
+            }
+            // todo BloodForBlood + Tmp
+            return new CardTmpChangeCost(upgrade, 0);
+        }
     }
 
     public static class CardPermChangeCost extends Card {
@@ -178,8 +189,19 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         void onExhaust(GameState state) { card.onExhaust(state); }
         List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
         int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
-        public boolean canSelectFromHand(Card card) { return card.canSelectFromHand(card); }
+        public boolean canSelectFromHand(Card card2) { return card.canSelectFromHand(card); }
         public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
+        public Card getUpgrade() {
+            var upgrade = card.getUpgrade();
+            if (upgrade == null) {
+                return null;
+            }
+            if (upgrade.energyCost == energyCost || (upgrade.energyCost < energyCost && card.energyCost < upgrade.energyCost)) {
+                return upgrade;
+            }
+            // todo BloodForBlood + Perm
+            return new CardPermChangeCost(upgrade, energyCost);
+        }
     }
 
     public static class Bash extends Card {
@@ -2046,6 +2068,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     }
 
     public static class SearingBlow extends Card {
+        private final static int MAX_UPGRADES = 10;
         private final int n;
 
         public SearingBlow(int numberOfUpgrades) {
@@ -2057,6 +2080,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n * (n + 7) / 2 + 12);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public Card getUpgrade() {
+            return n >= MAX_UPGRADES ? null : new SearingBlow(n + 1);
         }
     }
 
@@ -2611,7 +2638,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
             if (!state.getEnemiesForRead().get(idx).property.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
-                if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling) {
+                if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
+                        state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
                         state.getPlayerForWrite().heal(hpInc);
                         state.getCounterForWrite()[state.prop.feedCounterIdx] += hpInc;
@@ -2626,29 +2654,31 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override public void startOfGameSetup(GameState state) {
             state.prop.registerCounter("Feed", this, null);
-            state.prop.addExtraTrainingTarget("Feed", this, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                    if (enemiesAllDead) {
-                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
-                    } else {
+            if (healthRewardRatio > 0) {
+                state.prop.addExtraTrainingTarget("Feed", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                        if (enemiesAllDead) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
+                        } else {
+                            int minFeed = state.getCounterForRead()[counterIdx];
+                            int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
+                            double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, state.getVOther(vArrayIdx)));
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
                         int minFeed = state.getCounterForRead()[counterIdx];
                         int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
-                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, state.getVOther(vArrayIdx)));
-                        v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
+                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                        if (true) {
+                            v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                        } else {
+                            v[GameState.V_HEALTH_IDX] *= (0.8 + vFeed / 0.25 * 0.2);
+                        }
                     }
-                }
-
-                @Override public void updateQValues(GameState state, double[] v) {
-                    int minFeed = state.getCounterForRead()[counterIdx];
-                    int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
-                    double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
-                    if (true) {
-                        v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
-                    } else {
-                        v[GameState.V_HEALTH_IDX] *= (0.8 + vFeed / 0.25 * 0.2);
-                    }
-                }
-            });
+                });
+            }
         }
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -2656,39 +2686,89 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             gameProperties.feedCounterIdx = idx;
         }
 
+        private static int getCardCount(GameState state, int idx) {
+            int count = 0;
+            count += state.getHand()[idx];
+            if (idx < state.prop.realCardsLen) {
+                count += state.getDiscard()[idx];
+                count += state.getDeck()[idx];
+            }
+            return count;
+        }
+
         public static int getMaxPossibleFeedRemaining(GameState state) {
             if (state.isTerminal() != 0) {
                 return 0;
             }
-            var idx = state.prop.findCardIndex("Feed");
-            var idx2 = state.prop.findCardIndex("Armanent");
-            var idx3 = state.prop.findCardIndex("Armanent+");
+            // todo: very very hacky
             var remain = 0;
-            if (idx > 0) {
-                boolean canUpgrade = false;
-                if (idx2 > 0 && (state.getHand()[idx2] > 0 || state.getDiscard()[idx2] > 0 || state.getDeck()[idx2] > 0)) {
+            var idxes = new int[5];
+
+            boolean canUpgrade = false;
+            state.prop.findCardIndex(idxes, "Armanent", "Armanent (Tmp 0)", "Armanent (Perm 0)", "Armanent (Perm 2)", "Armanent (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
-                }
-                if (idx3 > 0 && (state.getHand()[idx3] > 0 || state.getDiscard()[idx3] > 0 || state.getDeck()[idx3] > 0)) {
-                    canUpgrade = true;
-                }
-                remain += state.getHand()[idx] * (canUpgrade ? 4 : 3);
-                remain += state.getDeck()[idx] * (canUpgrade ? 4 : 3);
-                remain += state.getDiscard()[idx] * (canUpgrade ? 4 : 3);
-                var curAction = state.getCurrentAction();
-                if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idx) {
-                    remain += canUpgrade ? 4 : 3;
                 }
             }
-            idx = state.prop.findCardIndex("Feed+");
-            if (idx > 0) {
-                remain += state.getHand()[idx] * 4;
-                remain += state.getDeck()[idx] * 4;
-                remain += state.getDiscard()[idx] * 4;
-                var curAction = state.getCurrentAction();
-                if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idx) {
-                    remain += 4;
+            state.prop.findCardIndex(idxes, "Armanent+", "Armanent+ (Tmp 0)", "Armanent+ (Perm 0)", "Armanent+ (Perm 2)", "Armanent+ (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    canUpgrade = true;
                 }
+            }
+
+            int maxFeedable = 0;
+            int maxFeedableP = 0;
+            state.prop.findCardIndex(idxes, "Feed", "Feed (Tmp 0)", "Feed (Perm 0)", "Feed (Perm 2)", "Feed (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] < 0) {
+                    continue;
+                }
+                if (canUpgrade) {
+                    maxFeedableP += getCardCount(state, idxes[i]);
+                } else {
+                    maxFeedable += getCardCount(state, idxes[i]);
+                }
+                var curAction = state.getCurrentAction();
+                if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idxes[i]) {
+                    maxFeedable += 1;
+                }
+            }
+            state.prop.findCardIndex(idxes, "Feed+", "Feed+ (Tmp 0)", "Feed+ (Perm 0)", "Feed+ (Perm 2)", "Feed+ (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] < 0) {
+                    continue;
+                }
+                maxFeedableP += getCardCount(state, idxes[i]);
+                var curAction = state.getCurrentAction();
+                if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idxes[i]) {
+                    maxFeedableP += 4;
+                }
+            }
+
+            state.prop.findCardIndex(idxes, "Exhume", "Exhume (Tmp 0)", "Exhume (Perm 0)", "Exhume (Perm 2)", "Exhume (Perm 3)");
+            var exhumableFeeds = 0;
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0) {
+                    exhumableFeeds += getCardCount(state, idxes[i]);
+                }
+            }
+            state.prop.findCardIndex(idxes, "Exhume+", "Exhume+ (Tmp 0)", "Exhume+ (Perm 0)", "Exhume+ (Perm 2)", "Exhume+ (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0) {
+                    exhumableFeeds += getCardCount(state, idxes[i]);
+                }
+            }
+
+            if (canUpgrade) {
+                maxFeedableP += exhumableFeeds;
+            } else {
+                maxFeedable += exhumableFeeds;
+            }
+            remain += Math.min(state.enemiesAlive, maxFeedableP) * 4;
+            if (state.enemiesAlive > maxFeedableP) {
+                remain += Math.min(state.enemiesAlive - maxFeedableP, maxFeedable) * 3;
             }
             return remain;
         }

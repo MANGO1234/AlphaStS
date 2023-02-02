@@ -861,7 +861,9 @@ public class TestStates {
         return new GameState(builder);
     }
 
-    public static GameState TestState16c() {
+
+
+    public static GameState TestState16c2() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
         builder.addCard(new Card.AscendersBane(), 1);
@@ -908,6 +910,57 @@ public class TestStates {
         //        builder.addPotion(new Potion.LiquidMemory());
         //        builder.addPotion(new Potion.WeakPotion());
         builder.setPlayer(new Player(126, 134));
+        return new GameState(builder);
+    }
+
+    public static GameState TestState16c() {
+        var builder = new GameStateBuilder();
+        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new Card.AngerP(), 1);
+        builder.addCard(new Card.Thunderclap(), 1);
+        builder.addCard(new Card.UppercutP(), 1);
+        builder.addCard(new Card.IronWave(), 1);
+        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new Card.ArmanentP(), 1);
+        builder.addCard(new Card.BattleTrance(), 2);
+        builder.addCard(new Card.BattleTranceP(), 1);
+        builder.addCard(new Card.SwordBoomerang(), 2);
+        builder.addCard(new Card.Disarm(), 1);
+        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new Card.PowerThroughP(), 1);
+        builder.addCard(new Card.Feed(0), 1);
+        builder.addCard(new Card.FiendFireP(), 1);
+        builder.addCard(new Card.PommelStrikeP(), 2);
+        builder.addCard(new Card.DemonFormP(), 1);
+        builder.addCard(new Card.Evolve(), 1);
+        builder.addCard(new Card.ShrugItOff(), 2);
+        builder.addCard(new Card.Offering(), 1);
+        builder.addCard(new Card.DarkEmbraceP(), 1);
+        builder.addCard(new Card.FeelNoPain(), 2);
+        builder.addCard(new Card.ShockwaveP(), 1);
+        builder.addCard(new Card.WarcryP(), 2);
+        builder.addCard(new Card.Exhume(), 1);
+        builder.addCard(new CardColorless.DarkShackles(), 1);
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Lantern());
+        builder.addRelic(new Relic.Nunchaku(9, 0));
+        builder.addRelic(new Relic.GremlinHorn());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.HappyFlower(1, 0));
+        builder.addRelic(new Relic.HornCleat());
+        builder.addRelic(new Relic.VelvetChoker());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.ArtOfWar());
+        builder.addRelic(new Relic.ToyOrnithopter());
+        builder.addRelic(new Relic.InkBottle());
+        builder.addEnemy(new EnemyEnding.CorruptHeart());
+        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.RegenerationPotion().setBasePenaltyRatio(100));
+        builder.setPlayer(new Player(123, 144));
         return new GameState(builder);
     }
 

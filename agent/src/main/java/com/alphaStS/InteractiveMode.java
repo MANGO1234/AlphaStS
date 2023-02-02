@@ -232,7 +232,39 @@ public class InteractiveMode {
         }
     }
 
-    private static void printState(GameState state, List<GameState> states) {
+    public static void interactiveStart(List<GameStep> game, String modelDir) throws IOException {
+        int idx = 0;
+        GameState state = game.get(0).state();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        while (true) {
+            var states = game.stream().map(GameStep::state).limit(idx).toList();
+            printState(state, states);
+            if (idx > 0) {
+                System.out.println("Previous Action: " + game.get(idx - 1).state().getActionString(game.get(idx - 1).action()));
+            }
+            System.out.println();
+            System.out.println(state);
+            System.out.println();
+            System.out.print("> ");
+            String line;
+            line = reader.readLine();
+            if (line.equals("exit")) {
+                return;
+            } else if (line.equals("n")) {
+                if (idx < game.size() - 1) {
+                    idx++;
+                    state = game.get(idx).state();
+                }
+            } else if (line.equals("p")) {
+                if (idx > 0) {
+                    idx--;
+                    state = game.get(idx).state();
+                }
+            }
+        }
+    }
+
+        private static void printState(GameState state, List<GameState> states) {
         if (state.isTerminal() != 0) {
             System.out.println("Battle finished. Result is " + (state.isTerminal() == 1 ? "Win." : "Loss."));
         }

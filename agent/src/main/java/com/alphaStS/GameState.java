@@ -442,14 +442,16 @@ public final class GameState implements State {
             prop.originalEnemies.getForWrite(i);
         }
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-            prop.addExtraTrainingTarget("fightProgress", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {}
+            prop.addExtraTrainingTarget("FightProgress", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    prop.fightProgressVIdx = V_OTHER_IDX_START + idx;
+                }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
                     if (enemiesAllDead) {
-                        v[GameState.V_OTHER_IDX_START] = 1;
+                        v[state.prop.fightProgressVIdx] = 1;
                     } else {
-                        v[GameState.V_OTHER_IDX_START] = state.getVOther(0);
+                        v[state.prop.fightProgressVIdx] = state.getVOther(prop.fightProgressVIdx - V_OTHER_IDX_START);
                     }
                 }
 
@@ -475,7 +477,11 @@ public final class GameState implements State {
         int idx = 0;
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().healPlayer) {
-                r[idx++] = i;
+                if (cards.get(i).card().cardName.contains("Feed")) {
+                    r[idx++] = i;
+                } else {
+                    r[idx++] = -1;
+                }
             }
         }
         return r;
@@ -854,8 +860,8 @@ public final class GameState implements State {
                     var e = getEnemiesForRead().get(selectIdx);
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
-                        setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                         onSelectEnemy(selectIdx);
+                        setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                         selectIdx = -1;
                     } else {
                         cardPlayedSuccessfully = false;
@@ -864,8 +870,8 @@ public final class GameState implements State {
                     }
                 } else if (targetableEnemies == 1) {
                     lastSelectedIdx = idx;
-                    setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action, cloned);
                     onSelectEnemy(idx);
+                    setActionCtx(prop.cardDict[cardIdx].play(this, idx, energyCost), action, cloned);
                 } else {
                     cardPlayedSuccessfully = false;
                     break;
@@ -995,12 +1001,12 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     onSelectEnemy(selectIdx);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, selectIdx), action, false);
                     selectIdx = -1;
                 } else if (targetableEnemies == 1) {
-                    setActionCtx(prop.potions.get(potionIdx).use(this, idx), action, false);
                     onSelectEnemy(idx);
+                    setActionCtx(prop.potions.get(potionIdx).use(this, idx), action, false);
                 } else {
                     break;
                 }
@@ -1387,10 +1393,15 @@ public final class GameState implements State {
                     int totalMaxHp = 0;
                     int totalCurHp = 0;
                     for (EnemyReadOnly enemy : enemies) {
-                        totalCurHp += enemy.getHealth();
-                        totalMaxHp += enemy.property.maxHealth;
+                        if (enemy instanceof EnemyBeyond.AwakenedOne ao) {
+                            totalCurHp += ao.isAwakened() ? ao.getHealth() : (ao.getHealth() + enemy.property.maxHealth);
+                            totalMaxHp += enemy.property.maxHealth * 2;
+                        } else {
+                            totalCurHp += enemy.getHealth();
+                            totalMaxHp += enemy.property.maxHealth;
+                        }
                     }
-                    out[GameState.V_OTHER_IDX_START] = (1 - ((double) totalCurHp) / totalMaxHp);
+                    out[prop.fightProgressVIdx] = (1 - ((double) totalCurHp) / totalMaxHp);
                 }
             }
             return;
@@ -1439,6 +1450,9 @@ public final class GameState implements State {
         if (prop.hasBurningBlood || prop.healEndOfAct) {
             return true;
         }
+        if (prop.hasToyOrniphopter && prop.potions.size() > 0) {
+            return true;
+        }
         if (prop.selfRepairCounterIdx >= 0) {
             return true;
         }
@@ -1466,16 +1480,26 @@ public final class GameState implements State {
     public int getMaxPossibleHealth() {
         if (checkIfCanHeal()) {
             int v = 0;
+            if (prop.potions.size() > 0) {
+                for (int i = 0; i < prop.potions.size(); i++) {
+                    if (potionsState[i * 3] == 1 && prop.hasToyOrniphopter) {
+                        v += 5;
+                    }
+                    if (potionsState[i * 3] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot) {
+                        v += pot.getHealAmount(this);
+                    }
+                    if (potionsState[i * 3] == 1 && prop.potions.get(i) instanceof Potion.RegenerationPotion pot) {
+                        v += pot.getHealAmount(this);
+                    }
+                }
+            }
+            if (prop.feedCounterIdx >= 0) {
+                v += Card.Feed.getMaxPossibleFeedRemaining(this);
+            }
             if (prop.healCardsIdxes != null) {
                 for (int i = 0; i < prop.healCardsIdxes.length; i++) {
-                    // todo: need to take take feed+ into account
-                    if (prop.cardDict[prop.healCardsIdxes[i]].cardName.equals("Feed")) {
-                        int idx = prop.findCardIndex("Armanent+");
-                        if (idx < 0 || getExhaustForRead()[idx] > 0) {
-                            v += 3;
-                        } else {
-                            v += 4;
-                        }
+                    if (prop.healCardsIdxes[i] < 0) {
+                        continue;
                     }
                     // todo: need to count max strength
                     if (prop.cardDict[prop.healCardsIdxes[i]].cardName.startsWith("Reaper")) {
@@ -1557,6 +1581,10 @@ public final class GameState implements State {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.RegenerationPotion pot && !prop.isHeartFight) {
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+            }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BlockPotion pot && !prop.isHeartFight) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
@@ -1578,7 +1606,7 @@ public final class GameState implements State {
         }
         if (!prop.testPotionOutput) {
             for (int i = 0; i < prop.potions.size(); i++) {
-                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion)) {
+                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion) && !(prop.potions.get(i) instanceof Potion.RegenerationPotion)) {
                     base *= potionsState[i * 3 + 1] / 100.0;
                 }
             }
@@ -2912,6 +2940,9 @@ public final class GameState implements State {
     }
 
     public void putCardOnTopOfDeck(int idx) {
+        if (idx >= prop.realCardsLen) {
+            idx = prop.tmpCostCardIdxes[idx];
+        }
         deck[idx]++;
         deckArr[deckArrLen++] = (short) idx;
         getDrawOrderForWrite().pushOnTop(idx);
@@ -2940,13 +2971,6 @@ public final class GameState implements State {
                 }
             }
             if (!enemy.isAlive()) {
-                if (prop.shieldAndSpireFacingIdx >= 0) {
-                    if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireShield) {
-                        getCounterForWrite()[prop.shieldAndSpireFacingIdx] = 2;
-                    } else if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireSpear) {
-                        getCounterForWrite()[prop.shieldAndSpireFacingIdx] = 1;
-                    }
-                }
                 adjustEnemiesAlive(-1);
                 return true;
             }
@@ -3504,7 +3528,7 @@ class ChanceState implements State {
             v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
             v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
             if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                v[GameState.V_OTHER_IDX_START] = new_total_q_progress - total_q_progress;
+                v[parentState.prop.fightProgressVIdx] = new_total_q_progress - total_q_progress;
             }
 
 //            var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
@@ -3549,7 +3573,7 @@ class ChanceState implements State {
                 v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
                 v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                    v[GameState.V_OTHER_IDX_START] = new_total_q_progress - total_q_progress;
+                    v[parentState.prop.fightProgressVIdx] = new_total_q_progress - total_q_progress;
                 }
 
 //                var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
@@ -3576,7 +3600,7 @@ class ChanceState implements State {
         total_q_win += v[GameState.V_WIN_IDX];
         total_q_health += v[GameState.V_HEALTH_IDX];
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-            total_q_progress += v[GameState.V_OTHER_IDX_START];
+            total_q_progress += v[parentState.prop.fightProgressVIdx];
         }
     }
 

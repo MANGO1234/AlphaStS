@@ -69,6 +69,7 @@ public class GameProperties implements Cloneable {
     public int[] infernalBladeIndexes;
     public int[] healCardsIdxes;
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
+    public List<String> extraTrainingTargetsLabel = new ArrayList<>();
     public int ritualDaggerCounterIdx = -1;
     public int feedCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
@@ -144,6 +145,7 @@ public class GameProperties implements Cloneable {
 
     public double cpuct = 0.1;
     public int difficulty;
+    public int fightProgressVIdx;
 
     public GameProperties clone() {
         try {
@@ -176,6 +178,18 @@ public class GameProperties implements Cloneable {
         }
         Integer v = cardIndexCache.get(cardName);
         return v == null ? -1 : v;
+    }
+
+    public void findCardIndex(int[] idxes, String... cardNames) {
+        if (cardIndexCache.size() == 0) { // todo: move to construction
+            for (int i = 0; i < cardDict.length; i++) {
+                cardIndexCache.put(cardDict[i].cardName, i);
+            }
+        }
+        for (int i = 0; i < cardNames.length; i++) {
+            Integer v = cardIndexCache.get(cardNames[i]);
+            idxes[i] = v == null ? -1 : v;
+        }
     }
 
     public interface CounterRegistrant {
@@ -263,6 +277,7 @@ public class GameProperties implements Cloneable {
             registrants.get(i).getValue().setVArrayIdx(extraOutputLen);
             extraOutputLen += trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets();
             extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));
+            extraTrainingTargetsLabel.add(registrants.get(i).getKey());
         }
     }
 

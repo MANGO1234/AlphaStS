@@ -205,6 +205,47 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class RegenerationPotion extends Potion {
+        public RegenerationPotion() {
+            healPlayer = true;
+        }
+
+        public int getHealAmount(GameState state) {
+            int n = state.prop.hasSacredBark ? 10 : 5;
+            return n * (n + 1) / 2;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 10 : 5;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Regeneration Potion";
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("Regeneration", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int counter = state.getCounterForRead()[counterIdx];
+                    input[idx] = counter / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            // todo: when's timing of regeneration with regard to burn etc.
+            state.addPreEndOfTurnHandler("Regeneration", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().heal(state.getCounterForWrite()[counterIdx]--);
+                    }
+                }
+            });
+        }
+    }
+
     public static class AncientPotion extends Potion {
         public AncientPotion() {
             changePlayerArtifact = true;

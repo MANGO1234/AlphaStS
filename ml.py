@@ -9,6 +9,7 @@ import re
 import os
 import subprocess
 import struct
+import shutil
 import tensorflow as tf
 import numpy as np
 import lz4.frame
@@ -32,6 +33,9 @@ ITERATION_COUNT = int(getFlagValue('-c', 5))
 Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
 NODE_COUNT = int(getFlagValue('-n', 1000))
 SAVES_DIR = getFlagValue('-dir', './saves')
+USE_KAGGLE = getFlagValue('-kaggle')
+KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
+KAGGLE_DATASET_NAME = 'dataset'
 
 if SINGLE_THREADED:
     tf.config.threading.set_intra_op_parallelism_threads(1)
@@ -52,11 +56,19 @@ if platform.system() == 'Windows':
 
 CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
 
+
+def snake_case(s):
+    return ''.join(['_' + i.lower() if i.isupper()else i for i in s]).lstrip('_')
+
 p = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--get-lengths'], capture_output=True)
 lens_str = p.stdout.decode('ascii').split(',')
 input_len = int(lens_str[0])
 num_of_actions = int(lens_str[1])
-v_other_lens = [int(l) for l in lens_str[2:]]
+v_other_lens = []
+v_other_label = []
+for i in range(2, len(lens_str), 2):
+    v_other_label.append(snake_case(lens_str[i]))
+    v_other_lens.append(int(lens_str[i + 1]))
 v_other_len = sum(v_other_lens)
 print(f'input_len={input_len}, policy_len={num_of_actions}, v_other_len={v_other_len}')
 
@@ -99,9 +111,9 @@ else:
     with open(f'{SAVES_DIR}/training.json', 'w') as f:
         json.dump(training_info, f)
 
+custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits,
+                  "softmax_cross_entropy_with_logits_simple": softmax_cross_entropy_with_logits_simple, "mse_ignoring_out_of_bound": mse_ignoring_out_of_bound}
 if os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}'):
-    custom_objects = {"softmax_cross_entropy_with_logits": softmax_cross_entropy_with_logits,
-                      "softmax_cross_entropy_with_logits_simple": softmax_cross_entropy_with_logits_simple, "mse_ignoring_out_of_bound": mse_ignoring_out_of_bound}
     with keras.utils.custom_object_scope(custom_objects):
         model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}')
         # model.optimizer.lr.assign(0.01)
@@ -136,13 +148,13 @@ else:
     idx = 0
     for v_other in v_other_lens:
         if v_other == 1:
-            loss[f'exp_other_head{idx}'] = 'mean_squared_error'
-            exp_other_heads.append(layers.Dense(1, name=f"exp_other_head{idx}", use_bias=True, activation='tanh')(x))
-            loss_weights[f'exp_other_head{idx}'] = 0.25
+            loss[f'{v_other_label[idx]}_head'] = 'mean_squared_error'
+            exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(x))
+            loss_weights[f'{v_other_label[idx]}_head'] = 0.25
         else:
-            loss[f'exp_other_head{idx}'] = softmax_cross_entropy_with_logits_simple
-            exp_other_heads.append(layers.Dense(v_other, name=f"exp_other_head{idx}", use_bias=True, activation='linear')(x))
-            loss_weights[f'exp_other_head{idx}'] = 0.25
+            loss[f'{v_other_label[idx]}_head'] = softmax_cross_entropy_with_logits_simple
+            exp_other_heads.append(layers.Dense(v_other, name=f"{v_other_label[idx]}_head", use_bias=True, activation='linear')(x))
+            loss_weights[f'{v_other_label[idx]}_head'] = 0.25
         idx += v_other
     model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
     model.compile(
@@ -170,7 +182,7 @@ def reset_model(model):
     init_layer(layer)
     idx = 0
     for v_other in v_other_lens:
-        layer = model.get_layer(f'exp_other_head{idx}')
+        layer = model.get_layer(f'{v_other_label[idx]}_head')
         init_layer(layer)
         idx += v_other
     layer = model.get_layer('layer2')
@@ -215,14 +227,13 @@ def get_training_samples(training_pool, iteration, file_path):
 SLOW_WINDOW_END = 3
 TRAINING_WINDOW_SIZE = 6
 CURRICULUM_TRAINING_END = SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1
-USE_LINE_SEARCH_TO_TRAIN_END = 0
 
 
 def expire_training_samples(training_pool, iteration):
     if iteration < SLOW_WINDOW_END:
         cutoff = iteration - 1
     else:
-        cutoff = max(SLOW_WINDOW_END - 1, training_info['iteration'] - TRAINING_WINDOW_SIZE)
+        cutoff = max(SLOW_WINDOW_END - 1, iteration - TRAINING_WINDOW_SIZE)
     i = 0
     while i < len(training_pool):
         if training_pool[i][0] >= cutoff:
@@ -246,18 +257,160 @@ def save_stats(training_info, iteration, out):
     training_info['iteration_info'][str(iteration)]['dagger_killed_per'] = dagger_killed_per
     training_info['iteration_info'][str(iteration)]['avg_final_q'] = avg_final_q
 
+
+def init_kaggle(dataset_name):
+    if not os.path.exists(f'./kaggle/{dataset_name}/dataset-metadata.json'):
+        try:
+            os.mkdir(f'./kaggle/{dataset_name}')
+        except:
+            pass
+        with open(f'./kaggle/{dataset_name}/dataset-metadata.json', 'w') as f:
+            f.write('{\n')
+            f.write(f'    "title": "alphaStS-{dataset_name}",\n')
+            f.write(f'    "id": "{KAGGLE_USER_NAME}/alphaStS-{dataset_name}",\n')
+            f.write(f'    "licenses": [{{\n')
+            f.write(f'        "name": "CC0-1.0"\n')
+            f.write(f'    }}]\n')
+            f.write('}\n')
+        with open(f'./kaggle/{dataset_name}/training.json', 'w') as f:
+            pass
+        output = subprocess.run(['kaggle', 'datasets', 'create', '-p', f'./kaggle/{dataset_name}', '--dir-mode', 'tar'], capture_output=True)
+        print(output.stderr.decode('ascii'))
+        print(output.stdout.decode('ascii'))
+        wait_for_kaggle_dataset_to_be_ready(dataset_name)
+
+
+def copy_to_kaggle_folder(iter_dir, model, dataset_name):
+    iter_folder = os.path.split(os.path.split(iter_dir)[0])[1]
+    src = f'{iter_dir}.lz4'
+    dst = f'./kaggle/{dataset_name}/{iter_folder}/training_data.bin.lz4'
+    if not os.path.exists(os.path.split(dst)[0]):
+        try:
+            os.mkdir(os.path.split(dst)[0])
+        except:
+            pass
+    shutil.copyfile(src, dst)
+    if model is not None:
+        model.save(f'./kaggle/{dataset_name}/{iter_folder}')
+
+
+def expire_kaggle_folder(dataset_name, iteration):
+    if iteration < SLOW_WINDOW_END:
+        cutoff = iteration - 1
+    else:
+        cutoff = max(SLOW_WINDOW_END - 1, iteration - TRAINING_WINDOW_SIZE)
+    dir_list = os.listdir(f'./kaggle/{dataset_name}')
+    for p in dir_list:
+        if p.startswith('iteration'):
+            i = int(p[9:])
+            if i < cutoff or i > iteration:
+                shutil.rmtree(f'./kaggle/{dataset_name}/{p}')
+            elif i != iteration - 1:
+                for p2 in os.listdir(f'./kaggle/{dataset_name}/{p}'):
+                    if not p2.endswith('.lz4'):
+                        if os.path.isdir(f'./kaggle/{dataset_name}/{p}/{p2}'):
+                            shutil.rmtree(f'./kaggle/{dataset_name}/{p}/{p2}')
+                        else:
+                            os.remove(f'./kaggle/{dataset_name}/{p}/{p2}')
+
+
+def update_kaggle_dataset(dataset_name, iteration):
+    with open(f'./kaggle/{dataset_name}/training.json', 'w') as f:
+        json.dump({
+            'iteration': iteration,
+            'input_len': input_len,
+            'num_of_actions': num_of_actions,
+            'v_other_lens': v_other_lens,
+            'SLOW_WINDOW_END': SLOW_WINDOW_END,
+            'TRAINING_WINDOW_SIZE': TRAINING_WINDOW_SIZE,
+        }, f)
+    output = subprocess.run(['kaggle', 'datasets', 'version', '-p', f'./kaggle/{dataset_name}', '--dir-mode', 'tar', '-m', 'update'], capture_output=True)
+    print(output.stderr.decode('ascii'))
+    print(output.stdout.decode('ascii'))
+    wait_for_kaggle_dataset_to_be_ready(dataset_name)
+
+
+def wait_for_kaggle_dataset_to_be_ready(dataset_name):
+    while True:
+        output = subprocess.run(['kaggle', 'datasets', 'status', f'{KAGGLE_USER_NAME}/alphaStS-{dataset_name}'], capture_output=True)
+        if output.stderr is not None and len(output.stderr) > 0:
+            print(output.stderr.decode('ascii'))
+            raise "Error"
+        if output.stdout.decode('ascii') == 'ready':
+            break
+        time.sleep(1)
+
+
+def run_kaggle_kernel(dataset_name):
+    if not os.path.exists('./kaggle/kernel/kernel-metadata.json'):
+        try:
+            os.mkdir('./kaggle/kernel')
+        except:
+            pass
+        with open(f'./kaggle/kernel/kernel-metadata.json', 'w') as f:
+            f.write('{\n')
+            f.write(f'    "id": "{KAGGLE_USER_NAME}/alphaStS-kernel",')
+            f.write(f'    "title": "AlphaStS kernel",')
+            f.write(f'    "code_file": "ml_kaggle.ipynb",')
+            f.write(f'    "language": "python",')
+            f.write(f'    "kernel_type": "notebook",')
+            f.write(f'    "is_private": "true",')
+            f.write(f'    "enable_gpu": "true",')
+            f.write(f'    "enable_internet": "true",')
+            f.write(f'    "dataset_sources": ["{KAGGLE_USER_NAME}/alphaStS-dataset"],')
+            f.write(f'    "competition_sources": [],')
+            f.write(f'    "kernel_sources": []')
+            f.write('}\n')
+        shutil.copyfile('ml_kaggle.ipynb', './kaggle/kernel/ml_kaggle.ipynb')
+    output = subprocess.run(['kaggle', 'kernels', 'push', '-p', './kaggle/kernel'], capture_output=True)
+    print(output.stderr.decode('ascii'))
+    print(output.stdout.decode('ascii'))
+
+
+def wait_for_kaggle_kernel_to_finish():
+    while True:
+        output = subprocess.run(['kaggle', 'kernels', 'status', f'{KAGGLE_USER_NAME}/alphasts-kernel'], capture_output=True)
+        if output.stderr is not None and len(output.stderr) > 0:
+            print(output.stderr.decode('ascii'))
+            raise "Error"
+        o = output.stdout.decode('ascii')
+        if 'complete' in o:
+            return
+        elif 'error' in o:
+            retrieve_kaggle_kernel_output(False, 0)
+            raise "Error"
+        time.sleep(1)
+
+
+def retrieve_kaggle_kernel_output(copy_model, iteration):
+    output = subprocess.run(['kaggle', 'kernels', 'output', f'{KAGGLE_USER_NAME}/alphasts-kernel', '-p', './kaggle/output'], capture_output=True)
+    if output.stderr is not None and len(output.stderr) > 0:
+        print(output.stderr.decode('ascii'))
+        raise "Error"
+    print(output.stdout.decode('ascii'))
+    if copy_model:
+        if os.path.exists(f'{SAVES_DIR}/iteration{iteration}'):
+            shutil.rmtree(f'{SAVES_DIR}/iteration{iteration}')
+        shutil.copytree(f'./kaggle/output/iteration{iteration}', f'{SAVES_DIR}/iteration{iteration}')
+
+
 accumualted_time_base = 0
 if training_info['iteration'] > 1:
     accumualted_time_base = training_info['iteration_info'][str(int(training_info['iteration']) - 1)]['accumulated_time']
 
 if DO_TRAINING:
+    if USE_KAGGLE:
+        init_kaggle(KAGGLE_DATASET_NAME)
     training_pool = []
     start_window = 0
     if training_info['iteration'] >= SLOW_WINDOW_END:
         start_window = max(SLOW_WINDOW_END, training_info['iteration'] - TRAINING_WINDOW_SIZE)
         for i in range(start_window, training_info['iteration'] - 1):
             print(f'loading data from {SAVES_DIR}/iteration{i}/training_data.bin')
-            get_training_samples(training_pool, i, f'{SAVES_DIR}/iteration{i}/training_data.bin')
+            if USE_KAGGLE:
+                copy_to_kaggle_folder(f'{SAVES_DIR}/iteration{i}/training_data.bin', None, KAGGLE_DATASET_NAME)
+            else:
+                get_training_samples(training_pool, i, f'{SAVES_DIR}/iteration{i}/training_data.bin')
 
     start = time.time()
     for _iteration in range(training_info["iteration"], ITERATION_COUNT + 1):
@@ -278,8 +431,6 @@ if DO_TRAINING:
             agent_args += ['-z_train', str(Z_TRAIN_WINDOW_END)]
         if training_info['iteration'] < CURRICULUM_TRAINING_END:
             agent_args += ['-curriculum_training']
-        if training_info['iteration'] < USE_LINE_SEARCH_TO_TRAIN_END:
-            agent_args += ['-training_with_line']
         agent_output = ''
         p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         while p.poll() is None:
@@ -303,60 +454,62 @@ if DO_TRAINING:
             print("Model layers reset!!!")
             reset_model(model)
         split = agent_output.find('--------------------')
-        # print(agent_output[2 if agent_output[0] == 13 else 0: split + 20])
         agent_output = agent_output[split + 20:]
         split = agent_output.find('--------------------')
         if split >= 0:
-            # print(agent_output[2 if agent_output[0] == 13 else 0: split + 20])
             agent_output = agent_output[split + 20:]
 
-        get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')
-        training_pool = expire_training_samples(training_pool, training_info["iteration"])
         iteration_info['agent_time'] = round(time.time() - iter_start, 2)
         iteration_info['num_of_samples'] = len(training_pool)
         print(f'agent time={iteration_info["agent_time"]}')
-        print(f'number of samples={len(training_pool)}')
-        print(f'sample oldest iteration={training_pool[0][0]}')
 
         iter_start = time.time()
-        # for i in range(200 if training_info['iteration'] >= SLOW_WINDOW_END else 200):
-        #     if training_info['iteration'] >= SLOW_WINDOW_END:
-        #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
-        #     else:
-        #         minibatch = rand.sample(training_pool, len(training_pool) // 200)
-        #         # minibatch = training_pool
-        train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
-        for _i in range(train_iter):
-            minibatch = training_pool
-            x_train = []
-            exp_health_head_train = []
-            exp_win_head_train = []
-            policy_head_train = []
-            exp_other_heads_train = []
-            for i in range(len(v_other_lens)):
-                exp_other_heads_train.append([])
-            for _, (x, v_win, v_health, p, v_others) in minibatch:
-                x_train.append(np.asarray(x))
-                exp_health_head_train.append(np.asarray(v_health).reshape(1))
-                exp_win_head_train.append(np.asarray(v_win).reshape(1))
-                policy_head_train.append(np.asarray(p).reshape(num_of_actions))
+        if USE_KAGGLE:
+            copy_to_kaggle_folder(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin', model, KAGGLE_DATASET_NAME)
+            expire_kaggle_folder(KAGGLE_DATASET_NAME, training_info["iteration"])
+            update_kaggle_dataset(KAGGLE_DATASET_NAME, training_info["iteration"])
+            run_kaggle_kernel(KAGGLE_DATASET_NAME)
+            wait_for_kaggle_kernel_to_finish()
+            retrieve_kaggle_kernel_output(True, training_info["iteration"])
+            with keras.utils.custom_object_scope(custom_objects):
+                model = tf.keras.models.load_model(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
+        else:
+            get_training_samples(training_pool, training_info["iteration"] - 1, f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin')
+            training_pool = expire_training_samples(training_pool, training_info["iteration"])
+            print(f'number of samples={len(training_pool)}')
+            print(f'sample oldest iteration={training_pool[0][0]}')
+            train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
+            for _i in range(train_iter):
+                minibatch = training_pool
+                x_train = []
+                exp_health_head_train = []
+                exp_win_head_train = []
+                policy_head_train = []
+                exp_other_heads_train = []
                 for i in range(len(v_other_lens)):
-                    exp_other_heads_train[i].append(np.asarray(v_others[i]).reshape(v_other_lens[i]))
-            x_train = np.asarray(x_train)
-            exp_health_head_train = np.asarray(exp_health_head_train)
-            exp_win_head_train = np.asarray(exp_win_head_train)
-            policy_head_train = np.asarray(policy_head_train)
-            for i in range(len(v_other_lens)):
-                exp_other_heads_train[i] = np.asarray(exp_other_heads_train[i])
-            target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
-            fit_result = model.fit(np.asarray(x_train), target, epochs=1)
-        model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
+                    exp_other_heads_train.append([])
+                for _, (x, v_win, v_health, p, v_others) in minibatch:
+                    x_train.append(np.asarray(x))
+                    exp_health_head_train.append(np.asarray(v_health).reshape(1))
+                    exp_win_head_train.append(np.asarray(v_win).reshape(1))
+                    policy_head_train.append(np.asarray(p).reshape(num_of_actions))
+                    for i in range(len(v_other_lens)):
+                        exp_other_heads_train[i].append(np.asarray(v_others[i]).reshape(v_other_lens[i]))
+                x_train = np.asarray(x_train)
+                exp_health_head_train = np.asarray(exp_health_head_train)
+                exp_win_head_train = np.asarray(exp_win_head_train)
+                policy_head_train = np.asarray(policy_head_train)
+                for i in range(len(v_other_lens)):
+                    exp_other_heads_train[i] = np.asarray(exp_other_heads_train[i])
+                target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
+                fit_result = model.fit(np.asarray(x_train), target, epochs=1)
+                iteration_info['loss'] = fit_result.history['loss'][-1]
+            model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
 
         training_info['iteration'] += 1
         iteration_info['training_time'] = round(time.time() - iter_start, 2)
         iteration_info['accumulated_time'] = accumualted_time_base + round(time.time() - start, 2)
-        iteration_info['loss'] = fit_result.history['loss'][-1]
         print(f'training time={iteration_info["training_time"]}')
         print(f'accumulated time={iteration_info["accumulated_time"]}')
         with open(f'{SAVES_DIR}/training.json', 'w') as f:

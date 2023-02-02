@@ -22,6 +22,7 @@ public class EnemyEnding {
             property.canGainStrength = true;
             property.changePlayerStrength = true;
             property.changePlayerFocus = true;
+            property.isElite = true;
         }
 
         public SpireShield(SpireShield other) {
@@ -109,6 +110,7 @@ public class EnemyEnding {
             property.hasArtifact = true;
             property.canGainBlock = true;
             property.canGainStrength = true;
+            property.isElite = true;
         }
 
         public SpireSpear(SpireSpear other) {
@@ -214,6 +216,15 @@ public class EnemyEnding {
                         if (state.getEnemiesForRead().get(i).isAlive() && state.getEnemiesForRead().get(i) instanceof SpireSpear) {
                             state.getCounterForWrite()[state.prop.shieldAndSpireFacingIdx] = 2;
                         }
+                    }
+                }
+            });
+            state.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
+                @Override public void handle(GameState state2, EnemyReadOnly enemy) {
+                    if (enemy instanceof EnemyEnding.SpireShield) {
+                        state2.getCounterForWrite()[state2.prop.shieldAndSpireFacingIdx] = 2;
+                    } else {
+                        state2.getCounterForWrite()[state2.prop.shieldAndSpireFacingIdx] = 1;
                     }
                 }
             });

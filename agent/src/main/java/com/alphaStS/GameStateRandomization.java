@@ -453,7 +453,7 @@ public interface GameStateRandomization {
         public PotionsUtilityRandomization(List<Potion> potions) {
             GameStateRandomization randomization = null;
             for (int i = 0; i < potions.size(); i++) {
-                if (potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.BlockPotion) {
+                if (potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.BlockPotion || potions.get(i) instanceof Potion.RegenerationPotion) {
                     randomization = new PotionUtilityRandomization(potions.get(i), i, potions.get(i).getPenaltyRatioSteps(), potions.get(i).getBasePenaltyRatio()).fixR(1).doAfter(randomization);
                     continue;
                 }

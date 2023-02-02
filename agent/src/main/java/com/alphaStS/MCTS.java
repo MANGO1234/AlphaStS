@@ -44,7 +44,7 @@ public class MCTS {
             state.total_q_win += v[GameState.V_WIN_IDX];
             state.total_q_health += v[GameState.V_HEALTH_IDX];
             if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                state.total_q_progress += v[GameState.V_OTHER_IDX_START];
+                state.total_q_progress += v[state.prop.fightProgressVIdx];
             }
             return;
         }
@@ -53,7 +53,7 @@ public class MCTS {
             v[GameState.V_WIN_IDX] = state.q_win[state.terminal_action] / state.n[state.terminal_action];
             v[GameState.V_HEALTH_IDX] = state.q_health[state.terminal_action] / state.n[state.terminal_action];
             if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                v[GameState.V_OTHER_IDX_START] = 1;
+                v[state.prop.fightProgressVIdx] = 1;
             }
             numberOfPossibleActions = 1;
             return;
@@ -64,7 +64,7 @@ public class MCTS {
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
             if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                state.total_q_progress = v[GameState.V_OTHER_IDX_START];
+                state.total_q_progress = v[state.prop.fightProgressVIdx];
             }
             if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
@@ -78,7 +78,7 @@ public class MCTS {
             state.total_q_win = v[GameState.V_WIN_IDX];
             state.total_q_health = v[GameState.V_HEALTH_IDX];
             if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                state.total_q_progress = v[GameState.V_OTHER_IDX_START];
+                state.total_q_progress = v[state.prop.fightProgressVIdx];
             }
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v[GameState.V_COMB_IDX];
@@ -163,7 +163,7 @@ public class MCTS {
                     v[GameState.V_WIN_IDX] = ns.total_q_win / (ns.total_n + 1);
                     v[GameState.V_HEALTH_IDX] = ns.total_q_health / (ns.total_n + 1);
                     if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                        v[GameState.V_OTHER_IDX_START] = ns.total_q_progress / (ns.total_n + 1);
+                        v[state.prop.fightProgressVIdx] = ns.total_q_progress / (ns.total_n + 1);
                     }
                 } else if (s instanceof ChanceState ns) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
@@ -174,7 +174,7 @@ public class MCTS {
                     v[GameState.V_WIN_IDX] = ns.total_q_win / ns.total_n;
                     v[GameState.V_HEALTH_IDX] = ns.total_q_health / ns.total_n;
                     if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                        v[GameState.V_OTHER_IDX_START] = ns.total_q_progress / ns.total_n;
+                        v[state.prop.fightProgressVIdx] = ns.total_q_progress / ns.total_n;
                     }
                 }
             }
@@ -197,7 +197,7 @@ public class MCTS {
                     v[GameState.V_WIN_IDX] = cState.total_q_win / cState.total_n * (state.n[action] + 1) - state.q_win[action];
                     v[GameState.V_HEALTH_IDX] = cState.total_q_health / cState.total_n * (state.n[action] + 1) - state.q_health[action];
                     if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                        v[GameState.V_OTHER_IDX_START] = cState.total_q_progress / cState.total_n * (state.n[action] + 1) - state.q_progress[action];
+                        v[state.prop.fightProgressVIdx] = cState.total_q_progress / cState.total_n * (state.n[action] + 1) - state.q_progress[action];
                     }
                 } else {
                     state2 = cState.getNextState(true);
@@ -220,7 +220,7 @@ public class MCTS {
                     v[GameState.V_WIN_IDX] = nState.total_q_win / (nState.total_n + 1) * (state.n[action] + 1) - state.q_win[action];
                     v[GameState.V_HEALTH_IDX] = nState.total_q_health / (nState.total_n + 1) * (state.n[action] + 1) - state.q_health[action];
                     if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                        v[GameState.V_OTHER_IDX_START] = nState.total_q_progress / (nState.total_n + 1) * (state.n[action] + 1) - state.q_progress[action];
+                        v[state.prop.fightProgressVIdx] = nState.total_q_progress / (nState.total_n + 1) * (state.n[action] + 1) - state.q_progress[action];
                     }
                 } else {
                     this.search2_r(nState, training, remainingCalls, false);
@@ -232,7 +232,7 @@ public class MCTS {
         state.q_win[action] += v[GameState.V_WIN_IDX];
         state.q_health[action] += v[GameState.V_HEALTH_IDX];
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-            state.q_progress[action] += v[GameState.V_OTHER_IDX_START];
+            state.q_progress[action] += v[state.prop.fightProgressVIdx];
         }
         state.n[action] += 1;
         state.total_n += 1;
@@ -253,7 +253,7 @@ public class MCTS {
                 v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
                     double q_progress_total = state.q_progress[action] / state.n[action] * (state.total_n + 1);
-                    v[GameState.V_OTHER_IDX_START] = q_progress_total - state.total_q_progress;
+                    v[state.prop.fightProgressVIdx] = q_progress_total - state.total_q_progress;
                 }
             }
         }
@@ -261,7 +261,7 @@ public class MCTS {
         state.total_q_win += v[GameState.V_WIN_IDX];
         state.total_q_health += v[GameState.V_HEALTH_IDX];
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-            state.total_q_progress += v[GameState.V_OTHER_IDX_START];
+            state.total_q_progress += v[state.prop.fightProgressVIdx];
         }
         numberOfPossibleActions = numberOfActions;
     }

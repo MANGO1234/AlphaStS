@@ -37,7 +37,7 @@ public class Main {
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
-                System.out.print("," + state.prop.extraTrainingTargets.get(i).getNumberOfTargets());
+                System.out.print("," + state.prop.extraTrainingTargetsLabel.get(i) + "," + state.prop.extraTrainingTargets.get(i).getNumberOfTargets());
             }
             return;
         }
@@ -199,8 +199,11 @@ public class Main {
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(1, curIterationDir);
             var writer = new OutputStreamWriter(System.out);
-            MatchSession.printGame(writer, session.playGame(state, -1, null, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps());
+            var game = session.playGame(state, -1, null, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps();
+            MatchSession.printGame(writer, game);
             writer.flush();
+            interactiveStart(game, curIterationDir);
+            return;
         }
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);

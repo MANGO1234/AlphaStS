@@ -221,6 +221,10 @@ public class EnemyBeyond {
             input[idx + 1] = (awakened ? health : (320 + health)) / 640f;
             return 2;
         }
+
+        public boolean isAwakened() {
+            return awakened;
+        }
     }
 
     public static class Donu extends Enemy {
