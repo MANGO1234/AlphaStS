@@ -933,7 +933,7 @@ public class TestStates {
         builder.addCard(new Card.FiendFireP(), 1);
         builder.addCard(new Card.PommelStrikeP(), 2);
         builder.addCard(new Card.DemonFormP(), 1);
-        builder.addCard(new Card.Evolve(), 1);
+        builder.addCard(new Card.EvolveP(), 1);
         builder.addCard(new Card.ShrugItOff(), 2);
         builder.addCard(new Card.Offering(), 1);
         builder.addCard(new Card.DarkEmbraceP(), 1);

@@ -468,6 +468,7 @@ if DO_TRAINING:
             copy_to_kaggle_folder(f'{SAVES_DIR}/iteration{training_info["iteration"] - 1}/training_data.bin', model, KAGGLE_DATASET_NAME)
             expire_kaggle_folder(KAGGLE_DATASET_NAME, training_info["iteration"])
             update_kaggle_dataset(KAGGLE_DATASET_NAME, training_info["iteration"])
+            time.sleep(5)
             run_kaggle_kernel(KAGGLE_DATASET_NAME)
             wait_for_kaggle_kernel_to_finish()
             retrieve_kaggle_kernel_output(True, training_info["iteration"])

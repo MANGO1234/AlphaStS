@@ -2653,7 +2653,15 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override public void startOfGameSetup(GameState state) {
-            state.prop.registerCounter("Feed", this, null);
+            state.prop.registerCounter("Feed", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 16.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             if (healthRewardRatio > 0) {
                 state.prop.addExtraTrainingTarget("Feed", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
@@ -2816,7 +2824,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             for (int i = 0; i < k; i++) {
                 state.exhaustCardFromHand(cardToExhaust[i]);
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(cardToExhaust[i]), 7);
+                if (state.getEnemiesForWrite().get(idx).isAlive()) {
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 7);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2840,7 +2850,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             for (int i = 0; i < k; i++) {
                 state.exhaustCardFromHand(cardToExhaust[i]);
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
+                if (state.getEnemiesForWrite().get(idx).isAlive()) {
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }

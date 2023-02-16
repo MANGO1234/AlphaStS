@@ -210,6 +210,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             healPlayer = true;
         }
 
+        public int getRegenerationAmount(GameState state) {
+            return state.prop.hasSacredBark ? 10 : 5;
+        }
+
         public int getHealAmount(GameState state) {
             int n = state.prop.hasSacredBark ? 10 : 5;
             return n * (n + 1) / 2;
@@ -233,6 +237,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
                 @Override public int getInputLenDelta() {
                     return 1;
+                }
+                @Override public void onRegister() {
+                    state.prop.regenerationCounterIdx = counterIdx;
                 }
             });
             // todo: when's timing of regeneration with regard to burn etc.
@@ -553,13 +560,17 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class SneckoPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
-            var hand = state.getHand();
+            var hand = Arrays.copyOf(state.getHand(), state.getHand().length);
             for (int i = 0; i < hand.length; i++) {
                 if (hand[i] > 0) {
                     for (int j = 0; j < hand[i]; j++) {
                         state.removeCardFromHand(i);
                         var snecko = state.prop.sneckoIdxes[i];
-                        state.addCardToHand(snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko) + 1]);
+                        if (snecko[0] == 1) {
+                            state.addCardToHand(snecko[1]);
+                        } else {
+                            state.addCardToHand(snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(state, i)) + 1]);
+                        }
                     }
                 }
             }

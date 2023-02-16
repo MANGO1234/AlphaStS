@@ -72,6 +72,7 @@ public class GameProperties implements Cloneable {
     public List<String> extraTrainingTargetsLabel = new ArrayList<>();
     public int ritualDaggerCounterIdx = -1;
     public int feedCounterIdx = -1;
+    public int regenerationCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
     public int happyFlowerCounterIdx = -1;
     public int velvetChokerCounterIndexIdx;
@@ -246,7 +247,10 @@ public class GameProperties implements Cloneable {
             counterHandlers[i] = counterHandlerMap.get(counterNames[i]);
             for (CounterRegistrant registrant : counterRegistrants.get(counterNames[i])) {
                 registrant.setCounterIdx(this, i);
-                counterIdx.put(counterNames[i], i);
+            }
+            counterIdx.put(counterNames[i], i);
+            if (counterHandlers[i] != null) {
+                counterHandlers[i].onRegister();
             }
         }
         counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList()

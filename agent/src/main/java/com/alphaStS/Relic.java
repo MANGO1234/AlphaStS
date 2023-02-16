@@ -472,7 +472,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.addStartOfTurnHandler("HornCleat", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 2) {
-                        state.getPlayerForWrite().gainBlock(14);
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(14);
                     }
                 }
             });

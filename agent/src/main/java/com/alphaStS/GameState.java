@@ -976,11 +976,11 @@ public final class GameState implements State {
     }
 
     void usePotion(GameAction action, int selectIdx) {
-        if (prop.hasToyOrniphopter) {
-            getPlayerForWrite().heal(5);
-        }
         int potionIdx = action.idx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
+            if (prop.hasToyOrniphopter) {
+                getPlayerForWrite().heal(5);
+            }
             if (prop.potions.get(potionIdx).selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, false);
             } else if (prop.potions.get(potionIdx).selectFromHand) {
@@ -1480,6 +1480,7 @@ public final class GameState implements State {
     public int getMaxPossibleHealth() {
         if (checkIfCanHeal()) {
             int v = 0;
+            int maxPossibleRegen = 0;
             if (prop.potions.size() > 0) {
                 for (int i = 0; i < prop.potions.size(); i++) {
                     if (potionsState[i * 3] == 1 && prop.hasToyOrniphopter) {
@@ -1489,10 +1490,14 @@ public final class GameState implements State {
                         v += pot.getHealAmount(this);
                     }
                     if (potionsState[i * 3] == 1 && prop.potions.get(i) instanceof Potion.RegenerationPotion pot) {
-                        v += pot.getHealAmount(this);
+                        maxPossibleRegen += pot.getRegenerationAmount(this);
                     }
                 }
             }
+            if (prop.regenerationCounterIdx >= 0) {
+                maxPossibleRegen += getCounterForRead()[prop.regenerationCounterIdx];
+            }
+            v += maxPossibleRegen * (maxPossibleRegen + 1) / 2;
             if (prop.feedCounterIdx >= 0) {
                 v += Card.Feed.getMaxPossibleFeedRemaining(this);
             }
@@ -3502,7 +3507,7 @@ class ChanceState implements State {
 
     // currently doesn't do anything
     public void correctV(GameState state2, double[] v) {
-        var newVarianceM = varianceM + (v[GameState.V_COMB_IDX] - varianceM) / (total_n + 1);
+        var newVarianceM = varianceM + (v[GameState.V_COMB_IDX] - varianceM) / total_n;
         var newVarianceS = varianceS + (v[GameState.V_COMB_IDX] - varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
         varianceM = newVarianceM;
         varianceS = newVarianceS;

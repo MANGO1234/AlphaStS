@@ -888,6 +888,23 @@ public class InteractiveMode {
         }
     }
 
+    static int selectCostForSnecko(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
+        var snecko = arg.v1().prop.sneckoIdxes[arg.v2()];
+        for (int i = 1; i < snecko[0] + 1; i++) {
+            System.out.println((i - 1) + ". " + arg.v1().prop.cardDict[snecko[i]].cardName);
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < snecko[0]) {
+                return r;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
     static int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history, RandomGenCtx ctx) throws IOException {
         System.out.println("Select enemy for " + ctx);
         int idx = 0;
@@ -1353,6 +1370,13 @@ public class InteractiveMode {
             case SkillPotion -> {
                 try {
                     return InteractiveMode.selectCardsForSkillPotion(reader, (Tuple<GameState, Integer>) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case Snecko -> {
+                try {
+                    return InteractiveMode.selectCostForSnecko(reader, (Tuple<GameState, Integer>) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
