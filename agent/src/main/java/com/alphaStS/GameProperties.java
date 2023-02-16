@@ -58,6 +58,7 @@ public class GameProperties implements Cloneable {
     public int slimeCardIdx = -1;
     public int woundCardIdx = -1;
     public int voidCardIdx = -1;
+    public int shivCardIdx = -1;
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
     public int[] bloodForBloodIndexes;
@@ -105,6 +106,7 @@ public class GameProperties implements Cloneable {
     public boolean hasMeatOnBone;
     public boolean hasBurningBlood;
 
+    public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
     public int constrictedCounterIdx = -1;
     public int drawReductionCounterIdx = -1;

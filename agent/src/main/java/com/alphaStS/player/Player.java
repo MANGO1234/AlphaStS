@@ -93,6 +93,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_DEXTERITY -> this.gainDexterity(-n);
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
+        case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.prop.loseDexterityPerTurnCounterIdx] += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         case ENTANGLED -> this.entangled = state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.entangled == 0 ? n + 1 : n;
         case HEX -> this.hexed = true;

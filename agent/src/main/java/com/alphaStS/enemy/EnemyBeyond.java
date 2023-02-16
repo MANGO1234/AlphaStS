@@ -65,8 +65,8 @@ public class EnemyBeyond {
             }
         }
 
-        @Override public void startTurn() {
-            super.startTurn();
+        @Override public void startTurn(GameState state) {
+            super.startTurn(state);
             heal(15);
         }
 

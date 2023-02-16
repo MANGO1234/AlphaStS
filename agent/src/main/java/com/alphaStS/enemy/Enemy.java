@@ -102,7 +102,11 @@ public abstract class Enemy extends EnemyReadOnly {
         this.move = move;
     }
 
-    public void startTurn() {
+    public void startTurn(GameState state) {
+        if (poison > 0) {
+            state.playerDoNonAttackDamageToEnemy(this, poison, false);
+            poison--;
+        }
         block = 0;
     }
 
@@ -134,6 +138,7 @@ public abstract class Enemy extends EnemyReadOnly {
         vulnerable = 0;
         weak = 0;
         artifact = 0;
+        poison = 0;
         regeneration = 0;
         metallicize = 0;
         platedArmor = 0;
@@ -167,6 +172,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case WEAK -> this.weak += n;
         case LOSE_STRENGTH -> this.gainStrength(-n);
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
+        case POISON -> this.poison += n;
         }
         return true;
     }
@@ -321,8 +327,8 @@ public abstract class Enemy extends EnemyReadOnly {
             currentEnemy.setMove(move);
         }
 
-        @Override public void startTurn() {
-            currentEnemy.startTurn();
+        @Override public void startTurn(GameState state) {
+            currentEnemy.startTurn(state);
         }
 
         @Override public void endTurn(int turnNum) {

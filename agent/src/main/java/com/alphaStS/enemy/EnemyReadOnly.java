@@ -70,6 +70,7 @@ public abstract class EnemyReadOnly {
     protected int vulnerable;
     protected int weak;
     protected int artifact;
+    protected int poison;
     protected int regeneration;
     protected int metallicize;
     protected int platedArmor;
@@ -116,6 +117,7 @@ public abstract class EnemyReadOnly {
         vulnerable = other.vulnerable;
         weak = other.weak;
         artifact = other.artifact;
+        poison = other.poison;
         loseStrengthEot = other.loseStrengthEot;
         regeneration = other.regeneration;
         metallicize = other.metallicize;
@@ -162,6 +164,10 @@ public abstract class EnemyReadOnly {
 
     public int getArtifact() {
         return artifact;
+    }
+
+    public int getPoison() {
+        return poison;
     }
 
     public boolean hasBurningHealthBuff() {
@@ -216,6 +222,9 @@ public abstract class EnemyReadOnly {
         if (artifact > 0) {
             str += ", art=" + artifact;
         }
+        if (poison > 0) {
+            str += ", poison=" + poison;
+        }
         if (regeneration > 0) {
             str += ", regen=" + regeneration;
         }
@@ -251,6 +260,9 @@ public abstract class EnemyReadOnly {
         if (artifact > 0) {
             str += ", art=" + artifact;
         }
+        if (poison > 0) {
+            str += ", poison=" + poison;
+        }
         if (regeneration > 0) {
             str += ", regen=" + regeneration;
         }
@@ -273,10 +285,11 @@ public abstract class EnemyReadOnly {
             return true;
         }
         return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
-                strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact;
+                strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
+                poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(health, block, strength, vulnerable, weak, artifact, move, lastMove);
+        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, move, lastMove);
     }
 }

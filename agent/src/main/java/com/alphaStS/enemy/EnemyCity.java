@@ -1022,7 +1022,7 @@ public class EnemyCity {
             }
         }
 
-        @Override public void startTurn() {
+        @Override public void startTurn(GameState state) {
             if (flying > 0) {
                 flying = 4;
             }

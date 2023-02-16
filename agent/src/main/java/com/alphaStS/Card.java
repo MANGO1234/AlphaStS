@@ -43,6 +43,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean changePlayerFocus;
     public boolean vulnEnemy;
     public boolean weakEnemy;
+    public boolean poisonEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean putCardOnTopDeck;

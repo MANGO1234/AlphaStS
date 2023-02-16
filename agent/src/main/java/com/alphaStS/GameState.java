@@ -1165,7 +1165,9 @@ public final class GameState implements State {
                     }
                     isStochastic = oldIsStochastic | isStochastic;
                 }
-                enemy2.doMove(this, enemy2);
+                if (enemy2.isAlive()) {
+                    enemy2.doMove(this, enemy2);
+                }
             }
         }
         for (GameEventHandler handler : prop.endOfTurnHandlers) {

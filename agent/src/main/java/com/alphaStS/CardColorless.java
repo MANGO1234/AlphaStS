@@ -608,4 +608,32 @@ public class CardColorless {
             super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5);
         }
     }
+
+    private static abstract class _ShivT extends Card {
+        private final int n;
+
+        public _ShivT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+            this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Shiv extends _ShivT {
+        public Shiv() {
+            super("Shiv", Card.ATTACK, 0, 4);
+        }
+    }
+
+    public static class ShivP extends _ShivT {
+        public ShivP() {
+            super("Shiv+", Card.ATTACK, 0, 6);
+        }
+    }
 }
