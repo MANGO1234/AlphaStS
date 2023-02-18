@@ -322,8 +322,15 @@ public interface GameStateRandomization {
 
         @Override public int randomize(GameState state) {
             if (!curriculumTraining || minDifficulty <= 0) {
+                int c = 0;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    enemy.randomize(state.getSearchRandomGen(), curriculumTraining, -1);
+                    if (enemy.getMaxRandomizeDifficulty() > 0) {
+                        state.setIsStochastic();
+                        var r = state.getSearchRandomGen().nextInt(enemy.getMaxRandomizeDifficulty(), RandomGenCtx.Other) + 1;
+                        enemy.randomize(state.getSearchRandomGen(), curriculumTraining, r);
+                    } else {
+                        enemy.randomize(state.getSearchRandomGen(), curriculumTraining, -1);
+                    }
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }

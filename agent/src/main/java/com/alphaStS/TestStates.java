@@ -1383,4 +1383,35 @@ public class TestStates {
         });
         return new GameState(builder);
     }
+
+    public static GameState TestStateReddit() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.SILENT);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Defend(), 5);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardSilent.Survivor(), 1);
+        builder.addCard(new CardSilent.Neutralize(), 1);
+        builder.addCard(new CardSilent.DaggerSpray(), 1);
+        builder.addCard(new CardColorless.Apotheosis(), 0);
+        builder.addCard(new CardColorless.HandOfGreed(), 0);
+        EnemyEncounter.addSentriesFight(builder);
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        );
+        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardColorless.HandOfGreed(), 1),
+                        new CardCount(new CardColorless.Apotheosis(), 0)),
+                List.of(new CardCount(new CardColorless.HandOfGreed(), 0),
+                        new CardCount(new CardColorless.Apotheosis(), 1))
+        )).doAfter(randomization);
+        builder.setRandomization(randomization);
+        builder.addRelic(new Relic.RingOfSerpant());
+        builder.setPlayer(new Player(63, 63));
+        return new GameState(builder);
+    }
 }

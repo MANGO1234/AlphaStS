@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.EnemyBeyond;
+
 import java.util.List;
 import java.util.Objects;
 
@@ -403,7 +405,110 @@ public class CardColorless {
     }
 
     // Chrysalis
-    // Hand of Greed
+
+    private static abstract class _HandOfGreedT extends Card {
+        private int n;
+        protected final double healthRewardRatio = 0.1;
+
+        public _HandOfGreedT(String cardName, int cardType, int n) {
+            super(cardName, cardType, 2, Card.RARE);
+            this.n = n;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            if (!state.getEnemiesForRead().get(idx).property.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+                if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
+                        state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
+                    if (state.isTerminal() > 0) {
+                        state.getCounterForWrite()[counterIdx] += n;
+                    }
+                } else {
+                    state.getCounterForWrite()[counterIdx] += n;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("HandOFGreed", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.prop.addExtraTrainingTarget("HandOFGreed", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                        if (enemiesAllDead) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 100.0;
+                        } else {
+                            int minFeed = state.getCounterForRead()[counterIdx];
+                            int maxFeedRemaining = getMaxPossibleHandOfGreenRemaining(state, true);
+                            double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, state.getVOther(vArrayIdx)));
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        int minFeed = state.getCounterForRead()[counterIdx];
+                        int maxFeedRemaining = getMaxPossibleHandOfGreenRemaining(state, true);
+                        double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                        v[GameState.V_HEALTH_IDX] += 100 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+            gameProperties.feedCounterIdx = idx; // todo: tmp for stats
+            gameProperties.handOfGreedCounterIdx = idx;
+        }
+
+        private static int getCardCount(GameState state, int idx) {
+            int count = 0;
+            count += state.getHand()[idx];
+            if (idx < state.prop.realCardsLen) {
+                count += state.getDiscard()[idx];
+                count += state.getDeck()[idx];
+            }
+            return count;
+        }
+
+        public static int getMaxPossibleHandOfGreenRemaining(GameState state, boolean checkEndOfGame) {
+            if (checkEndOfGame && state.isTerminal() != 0) {
+                return 0;
+            }
+            // todo: very very hacky, temp
+            var idxes = new int[5];
+            state.prop.findCardIndex(idxes, "Hand Of Greed");
+            boolean canUpgrade = false;
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    canUpgrade = true;
+                }
+            }
+            return canUpgrade ? 20 * state.enemiesAlive : 0;
+        }
+    }
+
+    public static class HandOfGreed extends CardColorless._HandOfGreedT {
+        public HandOfGreed() {
+            super("Hand Of Greed", Card.ATTACK, 20);
+        }
+    }
+
+    public static class HandOfGreedP extends CardColorless._HandOfGreedT {
+        public HandOfGreedP() {
+            super("Hand Of Greed+", Card.ATTACK, 25);
+        }
+    }
+
     // Magnetism
 
     private static abstract class _MasterOfStrategyT extends Card {

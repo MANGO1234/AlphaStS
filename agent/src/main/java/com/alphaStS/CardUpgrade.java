@@ -84,6 +84,11 @@ public class CardUpgrade {
 
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
         map.put(new CardColorless.Apotheosis(), new CardColorless.ApotheosisP());
+        map.put(new CardColorless.HandOfGreed(), new CardColorless.HandOfGreedP());
+
+        map.put(new CardSilent.Survivor(), new CardSilent.SurvivorP());
+        map.put(new CardSilent.Neutralize(), new CardSilent.NeutralizeP());
+        map.put(new CardSilent.DaggerSpray(), new CardSilent.DaggerSprayP());
 
         map.put(new CardDefect.DualCast(), new CardDefect.DualCastP());
         map.put(new CardDefect.Zap(), new CardDefect.ZapP());

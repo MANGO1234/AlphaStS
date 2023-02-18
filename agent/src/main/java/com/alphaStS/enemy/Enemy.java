@@ -1922,7 +1922,7 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int GROW = 1;
 
-        int d = 8;
+        int d = -1;
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
         boolean tookAttackDamage = false;
@@ -1990,6 +1990,9 @@ public abstract class Enemy extends EnemyReadOnly {
             }
             lastMove = move;
             move = newMove;
+            if (d < 0 && move == BITE) {
+                d = 6 + random.nextInt(3, RandomGenCtx.Other);
+            }
         }
 
         @Override public void damage(int n, GameState state) {
@@ -2015,12 +2018,36 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 11 + random.nextInt(6, RandomGenCtx.Other);
-            d = 6 + random.nextInt(3, RandomGenCtx.Other);
             curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
         }
 
         public String getName() {
             return "Red Louse";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (d < 0) {
+                return s;
+            }
+            return s.subSequence(0, s.length() - 1) + ", biteDmg=" + d + "}";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && d == ((Enemy.RedLouse) o).d;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of Red Louse Bite damage";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = d < 0 ? -0.5f : d / 8.0f;
+            return 1;
         }
     }
 
@@ -2028,7 +2055,7 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int BITE = 0;
         static final int SPIT_WEB = 1;
 
-        int d = 8;
+        int d = -1;
         int curlUpAmount = 12;
         boolean hasCurledUp = false;
         boolean tookAttackDamage = false;
@@ -2095,6 +2122,9 @@ public abstract class Enemy extends EnemyReadOnly {
             }
             lastMove = move;
             move = newMove;
+            if (d < 0 && move == BITE) {
+                d = 6 + random.nextInt(3, RandomGenCtx.Other);
+            }
         }
 
         @Override public void damage(int n, GameState state) {
@@ -2120,12 +2150,36 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 12 + random.nextInt(7, RandomGenCtx.Other);
-            d = 6 + random.nextInt(3, RandomGenCtx.Other);
             curlUpAmount = 9 + random.nextInt(4, RandomGenCtx.Other);
         }
 
         public String getName() {
             return "Green Louse";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (d < 0) {
+                return s;
+            }
+            return s.subSequence(0, s.length() - 1) + ", biteDmg=" + d + "}";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && d == ((Enemy.GreenLouse) o).d;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of Green Louse Bite damage";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = d < 0 ? -0.5f : d / 8.0f;
+            return 1;
         }
     }
 

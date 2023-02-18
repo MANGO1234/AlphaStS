@@ -1148,7 +1148,7 @@ public final class GameState implements State {
         if (atLeastOneAlive) {
             for (int i = 0; i < livingEnemiesCount; i++) {
                 if (enemies.getForWrite(livingEnemies[i]).getHealth() > 0) {
-                    enemies.getForWrite(livingEnemies[i]).startTurn();
+                    enemies.getForWrite(livingEnemies[i]).startTurn(this);
                 }
             }
             for (int i = 0; i < livingEnemiesCount; i++) {

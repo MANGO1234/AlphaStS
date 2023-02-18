@@ -306,8 +306,8 @@ public class EnemyEnding {
             }
         }
 
-        @Override public void startTurn() {
-            super.startTurn();
+        @Override public void startTurn(GameState state) {
+            super.startTurn(state);
             invincible = 200;
         }
 
