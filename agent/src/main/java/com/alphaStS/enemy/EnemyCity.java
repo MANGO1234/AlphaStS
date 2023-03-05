@@ -215,7 +215,7 @@ public class EnemyCity {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof BronzeOrb) {
-                        state.reviveEnemy(i, false);
+                        state.reviveEnemy(i, false, -1);
                         state.getEnemiesForWrite().getForWrite(i).reviveReset();
                     }
                 }
@@ -534,7 +534,7 @@ public class EnemyCity {
                         int j;
                         for (j = 0; j < 3; j++) {
                             if (!enemies.get(startIdx + j).isAlive()) {
-                                state.reviveEnemy(startIdx + j, false);
+                                state.reviveEnemy(startIdx + j, false, -1);
                                 state.getEnemiesForWrite().getForWrite(startIdx + j).reviveReset();
                                 break;
                             }
@@ -611,7 +611,7 @@ public class EnemyCity {
                                 idx = startIdx + 13;
                             }
                         }
-                        state.reviveEnemy(idx, false);
+                        state.reviveEnemy(idx, false, -1);
                         state.getEnemiesForWrite().getForWrite(idx).reviveReset();
                         if (state.enemiesAlive != 4) {
                             var j = 0;
@@ -1760,8 +1760,8 @@ public class EnemyCity {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
-                    if (card.cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (state.prop.cardDict[cardIdx].cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
                         state.addCardToDeck(state.prop.dazedCardIdx);
                     }
                 }

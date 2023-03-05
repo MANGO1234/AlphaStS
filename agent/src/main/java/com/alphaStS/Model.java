@@ -20,7 +20,7 @@ public class Model {
 
         static {
             if (System.getProperty("os.name").startsWith("Windows")) {
-                MAX_ENTRIES = 250000;
+                MAX_ENTRIES = 25000;
             } else {
                 MAX_ENTRIES = 10000;
             }

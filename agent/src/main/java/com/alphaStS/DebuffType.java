@@ -11,6 +11,7 @@ public enum DebuffType {
     LOSE_STRENGTH_EOT,
     LOSE_DEXTERITY_EOT,
     POISON,
+    CORPSE_EXPLOSION,
     ENTANGLED,
     HEX,
     LOSE_FOCUS,

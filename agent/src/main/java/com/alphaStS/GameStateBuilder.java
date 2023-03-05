@@ -20,6 +20,7 @@ public class GameStateBuilder {
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
     private GameEventHandler startOfGameSetupHandler = null;
+    private int[] potionsScenarios;
 
     public GameStateBuilder() {
     }
@@ -62,6 +63,14 @@ public class GameStateBuilder {
 
     public List<Potion> getPotions() {
         return potions;
+    }
+
+    public void setPotionsScenarios(int... scenarios) {
+        potionsScenarios = scenarios;
+    }
+
+    public int[] getPotionsScenarios() {
+        return potionsScenarios;
     }
 
     public void setRandomization(GameStateRandomization randomization) {

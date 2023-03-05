@@ -185,7 +185,8 @@ public class MCTS {
                         state2 = cState.getNextState(true);
                         this.search2_r(state2, training, remainingCalls, false);
                         cState.correctV(state2, v);
-                        if (state.getAction(action).type() == GameActionType.END_TURN) {
+//                        if (state.getAction(action).type() == GameActionType.END_TURN) {
+                        if (true) {
                             var newS = state.clone(true);
                             newS.doAction(action);
                             updateTranspositions(newS, state2, state, action);

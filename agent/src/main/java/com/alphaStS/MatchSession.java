@@ -827,7 +827,7 @@ public class MatchSession {
         state.doEval(mcts.model);
         boolean quickPass = false;
         var bannedActions = new HashSet<GameAction>();
-        int turnsToSkip = 0;
+        int turnsToSkip = -1;
         if (Configuration.TRAINING_SKIP_OPENING_TURNS && Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO > 0) {
             turnsToSkip = state.prop.random.nextInt(Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO + 1, RandomGenCtx.Other);
         }

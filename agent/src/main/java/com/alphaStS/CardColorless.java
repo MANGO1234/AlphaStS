@@ -19,7 +19,7 @@ public class CardColorless {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, 2);
             return GameActionCtx.PLAY_CARD;
         }
-}
+    }
 
     public static class BlindP extends Card {
         public BlindP() {
@@ -48,9 +48,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, -n)) {
-                state.getEnemiesForWrite().getForWrite(idx).gainStrength(-n);
-            }
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -574,7 +572,7 @@ public class CardColorless {
                 }
             });
             state.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.getCounterForRead()[counterIdx] >> 3 == 0) {
                         return;
                     }

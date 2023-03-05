@@ -118,7 +118,7 @@ public abstract class Enemy extends EnemyReadOnly {
             weak -= 1;
         }
         if (loseStrengthEot != 0) {
-            applyDebuff(null, DebuffType.LOSE_STRENGTH, loseStrengthEot);
+            strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
         if (metallicize > 0) {
@@ -171,8 +171,12 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         case WEAK -> this.weak += n;
         case LOSE_STRENGTH -> this.gainStrength(-n);
-        case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
+        case LOSE_STRENGTH_EOT -> {
+            this.loseStrengthEot += n;
+            this.gainStrength(-n);
+        }
         case POISON -> this.poison += n;
+        case CORPSE_EXPLOSION -> this.corpseExplosion += n;
         }
         return true;
     }
@@ -506,8 +510,8 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
-                    if (card.cardType == Card.SKILL) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
                         var e = state.getEnemiesForRead().get(idx);
                         if (e instanceof MergedEnemy m) {
                             if (m.currentEnemy instanceof GremlinNob && e.getMove() > 0) {
@@ -958,8 +962,8 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
-                    if (card.cardType == Card.ATTACK) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var move = state.getEnemiesForRead().get(idx).move;
                         if (move == ROLL_ATTACK || move == TWIN_SLAM) {
                             state.doNonAttackDamageToPlayer(4, true, this);
@@ -1049,15 +1053,11 @@ public abstract class Enemy extends EnemyReadOnly {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof Enemy.LargeAcidSlime) {
-                        var enemy = enemies.getForWrite(i);
-                        enemy.health = health;
-                        ((Enemy.LargeAcidSlime) enemy).splitMaxHealth = health;
-                        state.adjustEnemiesAlive(1);
+                        state.reviveEnemy(i, false, health);
+                        ((Enemy.LargeAcidSlime) enemies.get(i)).splitMaxHealth = health;
                     } else if (enemies.get(i) instanceof Enemy.LargeSpikeSlime) {
-                        var enemy = enemies.getForWrite(i);
-                        enemy.health = health;
-                        ((Enemy.LargeSpikeSlime) enemy).splitMaxHealth = health;
-                        state.adjustEnemiesAlive(1);
+                        state.reviveEnemy(i, false, health);
+                        ((Enemy.LargeSpikeSlime) enemies.get(i)).splitMaxHealth = health;
                     }
                 }
                 splitHealth = health;
@@ -1123,6 +1123,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         private int splitMaxHealth;
 
+        public void setSplitMaxHealth(int splitMaxHealth) {
+            this.splitMaxHealth = splitMaxHealth;
+        }
+
         public LargeSpikeSlime() {
             this(73);
         }
@@ -1173,8 +1177,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof Enemy.MediumSpikeSlime) {
-                        enemies.getForWrite(i).health = health;
-                        state.adjustEnemiesAlive(1);
+                        state.reviveEnemy(i, false, health);
                     }
                 }
                 health = 0;
@@ -1402,8 +1405,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 var enemies = state.getEnemiesForWrite();
                 for (int i = 0; i < enemies.size(); i++) {
                     if (enemies.get(i) instanceof Enemy.MediumAcidSlime) {
-                        enemies.getForWrite(i).health = health;
-                        state.adjustEnemiesAlive(1);
+                        state.reviveEnemy(i, false, health);
                     }
                 }
                 health = 0;
@@ -2239,7 +2241,7 @@ public abstract class Enemy extends EnemyReadOnly {
             super.damage(n, state);
             if (!isDead && health <= 0) {
                 isDead = true;
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 3);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             }
         }
 
@@ -2247,7 +2249,7 @@ public abstract class Enemy extends EnemyReadOnly {
             super.nonAttackDamage(n, blockable, state);
             if (!isDead && health <= 0) {
                 isDead = true;
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 3);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             }
         }
 

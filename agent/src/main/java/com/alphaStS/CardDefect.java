@@ -1580,24 +1580,23 @@ public class CardDefect {
                 }
             });
             state.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.getCounterForRead()[counterIdx] < 0) {
                         state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];
                     }
                     if (cloned) { // todo: think only echo formed card doesn't count toward card played
                         return;
                     }
-                    boolean isEcho = card instanceof CardDefect.EchoForm;
+                    boolean isEcho = state.prop.cardDict[cardIdx] instanceof CardDefect.EchoForm;
                     if (isEcho) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
                     int cardsPlayThisTurn = (state.getCounterForRead()[counterIdx] & ((1 << 16) - 1));
                     if (cardsPlayThisTurn < state.getCounterForRead()[counterIdx] >> 16) {
                         state.addGameActionToStartOfDeque(curState -> {
-                            var cardIdx = curState.prop.findCardIndex(card);
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
-                            if (curState.playCard(action, lastIdx, false,true, false, false)) {
+                            if (curState.playCard(action, lastIdx, false,true, false, false, energyUsed)) {
                                 curState.runActionsInQueueIfNonEmpty();
                             } else {
                                 curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];

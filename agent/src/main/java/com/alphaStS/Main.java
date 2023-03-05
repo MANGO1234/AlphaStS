@@ -33,7 +33,7 @@ class ServerRequest {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.TestState16b();
+        var state = TestStates.TestStateSilent();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
@@ -105,7 +105,9 @@ public class Main {
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
-            GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
+            if (!(args.length > 0 && (args[0].equals("--i") || args[0].equals("-i")))) {
+                GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
+            }
             NUMBER_OF_NODES_PER_TURN = 100;
 //            iteration = 56;
 //            COMPARE_DIR = "../saves/iteration60";
@@ -117,17 +119,22 @@ public class Main {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.prop.randomization);
         }
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
-            var s = new ArrayList<Short>();
-            for (int i = 0; i < state.prop.potions.size(); i++) {
-                s.add((short) 80);
+            GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions);
+            if (state.prop.potionsScenarios != null) {
+                p = p.fixR(state.prop.potionsScenarios, 0);
             }
-            state.prop.randomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions).doAfter(state.prop.randomization);
+            state.prop.randomization = p.doAfter(state.prop.randomization);
         } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
-            var s = new ArrayList<Short>();
-            for (int i = 0; i < state.prop.potions.size(); i++) {
-                s.add((short) 80);
+            GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions);
+            if (state.prop.potionsScenarios != null) {
+                p = p.fixR(state.prop.potionsScenarios, 0);
             }
-            state.prop.preBattleRandomization = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions).doAfter(state.prop.preBattleRandomization);
+            state.prop.preBattleRandomization = p.doAfter(state.prop.preBattleRandomization);
+        }
+        if (GENERATE_TRAINING_GAMES) {
+            Configuration.CPUCT_SCALING = false;
+            Configuration.USE_PROGRESSIVE_WIDENING = false;
+            Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE = false;
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;
@@ -137,7 +144,6 @@ public class Main {
             } else {
                 state.prop.randomization = state.prop.randomization.doAfter(state.prop.preBattleScenarios);
             }
-            state.prop.preBattleScenarios = null;
             state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
         }
 //        state.prop.randomization = state.prop.randomization.fixR(0, 2, 4);
@@ -229,7 +235,6 @@ public class Main {
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
         }
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
-            state.prop.preBattleScenarios = preBattleScenarios;
             state.prop.randomization = randomization;
             state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
         }

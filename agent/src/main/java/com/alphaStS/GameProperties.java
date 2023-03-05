@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.EnemyList;
+import com.alphaStS.enums.CharacterEnum;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -24,6 +25,8 @@ public class GameProperties implements Cloneable {
     public boolean enemyCanGetWeakened;
     public boolean enemyStrengthCanChange;
     public boolean enemyStrengthEotCanChange;
+    public boolean enemyCanGetPoisoned;
+    public boolean enemyCanGetCorpseExplosion;
     public long possibleBuffs;
     public boolean needDeckOrderMemory;
     public boolean selectFromExhaust;
@@ -33,10 +36,12 @@ public class GameProperties implements Cloneable {
     public boolean stateDescOn;
     public Card[] cardDict;
     public List<Potion> potions;
+    public int[] potionsScenarios;
     public EnemyList originalEnemies;
     public int maxNumOfActions;
     public int totalNumOfActions;
     public GameAction[][] actionsByCtx;
+    public CharacterEnum character;
 
     // cached card indexes
     public int realCardsLen; // not including CardTmpCostChange (due to liquid memory)
@@ -59,15 +64,20 @@ public class GameProperties implements Cloneable {
     public int woundCardIdx = -1;
     public int voidCardIdx = -1;
     public int shivCardIdx = -1;
+    public int shivPCardIdx = -1;
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
+    public int wellLaidPlansCardIdx = -1;
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodPIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] clawIndexes;
     public int[] clawPIndexes;
+    public int[] glassKnifeIndexes;
+    public int[] glassKnifePIndexes;
     public int[] infernalBladeIndexes;
+    public int[] distractionIndexes;
     public int[] healCardsIdxes;
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
     public List<String> extraTrainingTargetsLabel = new ArrayList<>();
@@ -86,6 +96,11 @@ public class GameProperties implements Cloneable {
     public int blizzardCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
     public int intangibleCounterIdx = -1;
+    public int sneakyStrikeCounterIdx = -1;
+    public int eviscerateCounterIdx = -1;
+    public int wellLaidPlansCounterIdx = -1;
+    public int blurCounterIdx = -1;
+    public int phantasmalKillerCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -141,6 +156,7 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization randomization;
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
+    public int preBattleScenariosChosen = -1;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
     public List<BiConsumer<GameState, int[]>> enemiesReordering;
 

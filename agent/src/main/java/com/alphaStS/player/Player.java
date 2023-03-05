@@ -130,6 +130,8 @@ public class Player extends PlayerReadOnly {
         loseStrengthEot = 0;
         loseDexterityEot = 0;
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
+        } else if (state.prop.blurCounterIdx >= 0 && state.getCounterForRead()[state.prop.blurCounterIdx] > 0) {
+            state.getCounterForWrite()[state.prop.blurCounterIdx]--;
         } else if (state.prop.hasCaliper) {
             block = Math.max(block - 15, 0);
         } else {

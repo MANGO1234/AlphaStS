@@ -292,6 +292,12 @@ public class InteractiveMode {
             if (enemy.getWeak() > 0) {
                 System.out.println("  Weak: " + enemy.getWeak());
             }
+            if (enemy.getPoison() != 0) {
+                System.out.println("  Poison: " + enemy.getPoison());
+            }
+            if (enemy.getCorpseExplosion() > 0) {
+                System.out.println("  Corpse Explosion: " + enemy.getCorpseExplosion());
+            }
             if (enemy.getRegeneration() > 0) {
                 System.out.println("  Regeneration: " + enemy.getRegeneration());
             }
@@ -432,6 +438,27 @@ public class InteractiveMode {
                 System.out.println("  " + state.hand[i] + " " + state.prop.cardDict[i].cardName);
             }
         }
+        if (state.chosenCards != null) {
+            int c = 0;
+            for (int i = 0; i < state.chosenCards.length; i++) {
+                c += state.chosenCards[i];
+            }
+            if (c > 0) {
+                System.out.println("Chosen");
+                for (int i = 0; i < state.chosenCards.length; i++) {
+                    if (state.chosenCards[i] > 0) {
+                        System.out.println("  " + state.chosenCards[i] + " " + state.prop.cardDict[i].cardName);
+                    }
+                }
+            }
+        }
+        if (state.nightmareCards != null && state.nightmareCardsLen > 0) {
+            System.out.print("Nightmare: ");
+            for (int i = 0; i < state.nightmareCardsLen; i++) {
+                System.out.print((i == 0 ? "" : ", ") + state.prop.cardDict[state.nightmareCards[i]].cardName);
+            }
+            System.out.println();
+        }
         if (state.stateDesc != null) {
             System.out.println("From Previous Action: " + state.stateDesc);
         }
@@ -450,7 +477,7 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
                     state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
-                    state.getAction(i).type() == GameActionType.END_USING_POTION) {
+                    state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND) {
                 System.out.println(i + ". " + state.getActionString(i));
             } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                 System.out.println("e. End Turn");
@@ -679,8 +706,7 @@ public class InteractiveMode {
             int hp = parseInt(line, -1);
             if (hp >= 0) {
                 if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
-                    state.reviveEnemy(curEnemyIdx, true);
-                    state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
+                    state.reviveEnemy(curEnemyIdx, true, hp);
                 } else {
                     if (hp == 0) {
                         state.killEnemy(curEnemyIdx, false);
@@ -713,12 +739,14 @@ public class InteractiveMode {
                 state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth = hpOrig;
                 int hp = Math.max(0, Math.min(state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.maxHealth, oldHp + (hpOrig - oldHpOrig)));
                 if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
-                    state.reviveEnemy(curEnemyIdx, true);
-                    state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
+                    state.reviveEnemy(curEnemyIdx, true, hp);
                 } else {
                     if (hp == 0) {
                         state.killEnemy(curEnemyIdx, false);
                     } else {
+                        if (state.getEnemiesForWrite().getForWrite(curEnemyIdx) instanceof Enemy.LargeSpikeSlime s) {
+                            s.setSplitMaxHealth(hpOrig);
+                        }
                         state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);
                     }
                 }

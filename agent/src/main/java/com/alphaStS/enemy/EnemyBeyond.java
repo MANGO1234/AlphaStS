@@ -73,9 +73,9 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     var enemy = state.getEnemiesForRead().get(idx);
-                    if (card.cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
+                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
                         state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
                     }
                 }
@@ -430,7 +430,7 @@ public class EnemyBeyond {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     var c = state.getCounterForWrite();
                     if (c[state.prop.timeEaterCounterIdx] == 12) {
                         Integer.parseInt(null);
@@ -651,7 +651,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     ((GiantHead) state.getEnemiesForWrite().getForWrite(idx)).slow++;
                 }
             });
@@ -1032,7 +1032,7 @@ public class EnemyBeyond {
                     // enemy order is top left, top right, bottom left, reptomancer, bottom right (0, 1, 2, 3, 4)
                     // summon order is bottom right, bottom left, top right, top left  (4, 2, 1, 0)
                     if (!state.getEnemiesForRead().get(startIdx + SUMMON_ORDER[idx++]).isAlive()) {
-                        state.reviveEnemy(startIdx + SUMMON_ORDER[idx - 1], false);
+                        state.reviveEnemy(startIdx + SUMMON_ORDER[idx - 1], false, -1);
                         state.getEnemiesForWrite().getForWrite(startIdx + SUMMON_ORDER[idx - 1]).reviveReset();
                         summoned++;
                     }

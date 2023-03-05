@@ -1,6 +1,10 @@
 package com.alphaStS;
 
+import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class CardSilent {
@@ -40,6 +44,7 @@ public class CardSilent {
             this.n = n;
             this.selectFromHand = true;
             this.selectFromHandLater = true;
+            this.canDiscardAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -47,8 +52,7 @@ public class CardSilent {
                 state.getPlayerForWrite().gainBlock(n);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
-                state.removeCardFromHand(idx);
-                state.addCardToDiscard(idx);
+                state.discardCardFromHand(idx);
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -74,6 +78,7 @@ public class CardSilent {
             this.n = n;
             this.selectFromHand = true;
             this.selectFromHandLater = true;
+            this.canDiscardAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -81,8 +86,7 @@ public class CardSilent {
                 state.draw(n);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
-                state.removeCardFromHand(idx);
-                state.addCardToDiscard(idx);
+                state.discardCardFromHand(idx);
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -280,9 +284,149 @@ public class CardSilent {
         }
     }
 
-    // Dodge and Roll
-    // Flying Knee
-    // Outmaneuver
+    private static abstract class _DodgeAndRollT extends Card {
+        private final int n;
+
+        public _DodgeAndRollT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("DodgeAndRoll", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("DodgeAndRoll", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class DodgeAndRoll extends _DodgeAndRollT {
+        public DodgeAndRoll() {
+            super("Dodge And Roll", Card.SKILL, 1, 4);
+        }
+    }
+
+    public static class DodgeAndRollP extends _DodgeAndRollT {
+        public DodgeAndRollP() {
+            super("Dodge And Roll+", Card.SKILL, 1, 6);
+        }
+    }
+
+    private static abstract class _FlyingKneeT extends Card {
+        private final int n;
+
+        public _FlyingKneeT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.selectEnemy = true;
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("EnergyNextTurn", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 15.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.prop.addEndOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainEnergy(state.getCounterForRead()[counterIdx]);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class FlyingKnee extends _FlyingKneeT {
+        public FlyingKnee() {
+            super("Flying Knee", Card.ATTACK, 1, 8);
+        }
+    }
+
+    public static class FlyingKneeP extends _FlyingKneeT {
+        public FlyingKneeP() {
+            super("Flying Knee+", Card.ATTACK, 1, 11);
+        }
+    }
+
+    private static abstract class _OutmaneuverT extends Card {
+        private final int n;
+
+        public _OutmaneuverT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("EnergyNextTurn", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 15.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainEnergy(state.getCounterForRead()[counterIdx]);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Outmaneuver extends _OutmaneuverT {
+        public Outmaneuver() {
+            super("Outmaneuver", Card.SKILL, 1, 1);
+        }
+    }
+
+    public static class OutmaneuverP extends _OutmaneuverT {
+        public OutmaneuverP() {
+            super("Outmaneuver+", Card.SKILL, 1, 2);
+        }
+    }
 
     private static abstract class _PiercingWailT extends Card {
         private final int n;
@@ -290,6 +434,8 @@ public class CardSilent {
         public _PiercingWailT(String cardName, int cardType, int energyCost, int n) {
             super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
+            this.affectEnemyStrength = true;
+            this.affectEnemyStrengthEot = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -342,7 +488,39 @@ public class CardSilent {
         }
     }
 
-    // Prepared
+    private static abstract class _PreparedT extends Card {
+        private final int n;
+
+        public _PreparedT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+            this.selectFromHand = true;
+            this.selectFromHandLater = true;
+            this.canDiscardAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(n);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.discardCardFromHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Prepared extends _PreparedT {
+        public Prepared() {
+            super("Prepared", Card.SKILL, 0, 1);
+        }
+    }
+
+    public static class PreparedP extends _PreparedT {
+        public PreparedP() {
+            super("Prepared+", Card.SKILL, 0, 2);
+        }
+    }
 
     private static abstract class _QuickSlashT extends Card {
         private final int n;
@@ -362,13 +540,13 @@ public class CardSilent {
 
     public static class QuickSlash extends _QuickSlashT {
         public QuickSlash() {
-            super("Quick Slash", Card.SKILL, 1, 8);
+            super("Quick Slash", Card.ATTACK, 1, 8);
         }
     }
 
     public static class QuickSlashP extends _QuickSlashT {
         public QuickSlashP() {
-            super("Quick Slash+", Card.SKILL, 1, 12);
+            super("Quick Slash+", Card.ATTACK, 1, 12);
         }
     }
 
@@ -389,17 +567,67 @@ public class CardSilent {
 
     public static class Slice extends _SliceT {
         public Slice() {
-            super("Slice", Card.SKILL, 0, 6);
+            super("Slice", Card.ATTACK, 0, 6);
         }
     }
 
     public static class SliceP extends _SliceT {
         public SliceP() {
-            super("Slice+", Card.SKILL, 0, 9);
+            super("Slice+", Card.ATTACK, 0, 9);
         }
     }
 
-    // Sneaky Strike
+    private static abstract class _SneakyStrikeT extends Card {
+        private final int n;
+
+        public _SneakyStrikeT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            if (state.getCounterForRead()[counterIdx] > 0) {
+                state.gainEnergy(2);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("SneakyStrike", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister() {
+                    state.prop.sneakyStrikeCounterIdx = counterIdx;
+                }
+            });
+            state.prop.addEndOfTurnHandler("SneakyStrike", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[state.prop.sneakyStrikeCounterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class SneakyStrike extends _SneakyStrikeT {
+        public SneakyStrike() {
+            super("Sneaky Strike", Card.ATTACK, 2, 12);
+        }
+    }
+
+    public static class SneakyStrikeP extends _SneakyStrikeT {
+        public SneakyStrikeP() {
+            super("Sneaky Strike+", Card.ATTACK, 2, 16);
+        }
+    }
 
     private static abstract class _SuckerPunchT extends Card {
         private final int n;
@@ -433,7 +661,62 @@ public class CardSilent {
     }
 
     // Accuracy
-    // All-Out Attack
+
+    private static abstract class _AllOutAttackT extends Card {
+        private final int n;
+
+        public _AllOutAttackT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.canDiscardAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            var hand = state.getHand();
+            int diff = 0, c = 0;
+            for (int i = 0; i < hand.length; i++) {
+                if (hand[i] > 0) {
+                    diff++;
+                    c += hand[i];
+                }
+            }
+            if (diff == 1) {
+                for (int i = 0; i < hand.length; i++) {
+                    if (hand[i] > 0) {
+                        state.discardCardFromHand(i);
+                        break;
+                    }
+                }
+            } else if (diff > 1) {
+                state.setIsStochastic();
+                int k = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit);
+                int acc = 0;
+                for (int i = 0; i < hand.length; i++) {
+                    acc += hand[i];
+                    if (acc > k) {
+                        state.discardCardFromHand(i);
+                        break;
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class AllOutAttack extends _AllOutAttackT {
+        public AllOutAttack() {
+            super("All-Out Attack", Card.ATTACK, 1, 10);
+        }
+    }
+
+    public static class AllOutAttackP extends _AllOutAttackT {
+        public AllOutAttackP() {
+            super("All-Out Attack+", Card.ATTACK, 1, 14);
+        }
+    }
 
     private static abstract class _BackstabT extends Card {
         private final int n;
@@ -464,14 +747,227 @@ public class CardSilent {
         }
     }
 
-    // Blur
-    // Bouncing Flask
-    // Calculated Gamble
+    private static abstract class _BlurT extends Card {
+        private final int n;
+
+        public _BlurT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Blur", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister() {
+                    state.prop.blurCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Blur extends _BlurT {
+        public Blur() {
+            super("Blur", Card.SKILL, 1, 5);
+        }
+    }
+
+    public static class BlurP extends _BlurT {
+        public BlurP() {
+            super("Blur+", Card.SKILL, 1, 8);
+        }
+    }
+
+    private static abstract class _BouncingFlaskT extends Card {
+        private final int n;
+
+        public _BouncingFlaskT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.poisonEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < n; i++) {
+                idx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, 3);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BouncingFlask extends _BouncingFlaskT {
+        public BouncingFlask() {
+            super("Bouncing Flask", Card.SKILL, 2, 3);
+        }
+    }
+
+    public static class BouncingFlaskP extends _BouncingFlaskT {
+        public BouncingFlaskP() {
+            super("Bouncing Flask+", Card.SKILL, 2, 4);
+        }
+    }
+
+    private static abstract class _CalculatedGambleT extends Card {
+        public _CalculatedGambleT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            this.canDiscardAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int c = 0;
+            var hand = state.getHand();
+            for (int i = 0; i < hand.length; i++) {
+                for (int j = 0; j < hand[i]; j++) {
+                    c++;
+                    state.discardCardFromHand(i);
+                }
+            }
+            state.draw(c);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CalculatedGamble extends _CalculatedGambleT {
+        public CalculatedGamble() {
+            super("Calculated Gamble", Card.SKILL, 0, true);
+        }
+    }
+
+    public static class CalculatedGambleP extends _CalculatedGambleT {
+        public CalculatedGambleP() {
+            super("Calculated Gamble+", Card.SKILL, 0, false);
+        }
+    }
+
     // Caltrops
-    // Catalyst
+
+    private static abstract class _CatalystT extends Card {
+        private final int n;
+
+        public _CatalystT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.poisonEnemy = true;
+            this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var p = state.getEnemiesForRead().get(idx).getPoison();
+            if (p > 0) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, p * (n - 1));
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Catalyst extends _CatalystT {
+        public Catalyst() {
+            super("Catalyst", Card.SKILL, 1, 2);
+        }
+    }
+
+    public static class CatalystP extends _CatalystT {
+        public CatalystP() {
+            super("Catalyst+", Card.SKILL, 1, 3);
+        }
+    }
+
     // Choke
-    // Concentrate
-    // Crippling Cloud
+
+    private static abstract class _ConcentrateT extends Card {
+        private final int n;
+
+        public _ConcentrateT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+            this.selectFromHand = true;
+            this.canDiscardAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.discardCardFromHand(idx);
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForRead()[counterIdx] == n) {
+                state.gainEnergy(2);
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+            return GameActionCtx.SELECT_CARD_HAND;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Concentrate", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class Concentrate extends _ConcentrateT {
+        public Concentrate() {
+            super("Concentrate", Card.SKILL, 0, 3);
+        }
+    }
+
+    public static class ConcentrateP extends _ConcentrateT {
+        public ConcentrateP() {
+            super("Concentrate+", Card.SKILL, 0, 2);
+        }
+    }
+
+    private static abstract class _CripplingCloudT extends Card {
+        private final int n;
+
+        public _CripplingCloudT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.poisonEnemy = true;
+            this.weakEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.POISON, n);
+                enemy.applyDebuff(state, DebuffType.WEAK, 2);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CripplingCloud extends _CripplingCloudT {
+        public CripplingCloud() {
+            super("Crippling Cloud", Card.SKILL, 2, 4);
+        }
+    }
+
+    public static class CripplingCloudP extends _CripplingCloudT {
+        public CripplingCloudP() {
+            super("Crippling Cloud+", Card.SKILL, 2, 7);
+        }
+    }
 
     private static abstract class _DashT extends Card {
         private final int n;
@@ -501,10 +997,213 @@ public class CardSilent {
         }
     }
 
-    // Distraction
-    // Endless Agony
-    // Escape Plan
-    // Eviscerate
+    private static abstract class _DistractionT extends Card {
+        public _DistractionT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var r = state.getSearchRandomGen().nextInt(state.prop.distractionIndexes.length, RandomGenCtx.CardGeneration);
+            state.addCardToHand(state.prop.distractionIndexes[r]);
+            state.setIsStochastic();
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            if (state.prop.distractionIndexes == null) {
+                var cards = getPossibleGeneratedCards(null);
+                state.prop.distractionIndexes = new int[cards.size()];
+                for (int i = 0; i < cards.size(); i++) {
+                    state.prop.distractionIndexes[i] = state.prop.findCardIndex(cards.get(i));
+                }
+            }
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(
+                    new Card.CardTmpChangeCost(new CardSilent.Acrobatics(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.Backflip(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.BladeDance(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.CloakAndDagger(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.DeadlyPoison(), 0),
+                    new CardSilent.Deflect(),
+                    new Card.CardTmpChangeCost(new CardSilent.DodgeAndRoll(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.Outmaneuver(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.PiercingWail(), 0),
+                    new CardSilent.Prepared(),
+                    new Card.CardTmpChangeCost(new CardSilent.Blur(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.BouncingFlask(), 0),
+                    new CardSilent.CalculatedGamble(),
+                    new Card.CardTmpChangeCost(new CardSilent.Catalyst(), 0),
+                    new CardSilent.Concentrate(),
+                    new Card.CardTmpChangeCost(new CardSilent.CripplingCloud(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.Distraction(), 0),
+                    new CardSilent.EscapePlan(),
+                    new Card.CardTmpChangeCost(new CardSilent.Expertise(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.LegSweep(), 0),
+                    new CardSilent.Reflex(),
+                    new Card.CardTmpChangeCost(new CardSilent.Setup(), 0),
+                    new CardSilent.Tactician(),
+                    new Card.CardTmpChangeCost(new CardSilent.Terror(), 0),
+                    new CardSilent.Adrenaline(),
+                    new Card.CardTmpChangeCost(new CardSilent.BulletTime(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.Burst(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.CorpseExplosion(), 0),
+                    new CardSilent.Doppelganger(),
+                    new CardSilent.Malaise(),
+                    new Card.CardTmpChangeCost(new CardSilent.Nightmare(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.PhantasmalKiller(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.StormOfSteel(), 0)
+            );
+        }
+    }
+
+    public static class Distraction extends _DistractionT {
+        public Distraction() {
+            super("Distraction", Card.SKILL, 1);
+        }
+    }
+
+    public static class DistractionP extends _DistractionT {
+        public DistractionP() {
+            super("Distraction+", Card.SKILL, 0);
+        }
+    }
+
+    private static abstract class _EndlessAgonyT extends Card {
+        private final int n;
+        private boolean[] isEndlessAgony;
+
+        public _EndlessAgonyT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            isEndlessAgony = new boolean[state.prop.cardDict.length];
+            for (int i = 0; i < state.prop.cardDict.length; i++) {
+                if (state.prop.cardDict[i].cardName.contains("Endless Agony")) {
+                    isEndlessAgony[i] = true;
+                }
+            }
+            state.addOnCardDrawnHandler("EndlessAgony", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (isEndlessAgony[cardIdx]) {
+                        state.addCardToHand(cardIdx);
+                    }
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(this);
+        }
+    }
+
+    public static class EndlessAgony extends _EndlessAgonyT {
+        public EndlessAgony() {
+            super("Endless Agony", Card.ATTACK, 0, 4);
+        }
+    }
+
+    public static class EndlessAgonyP extends _EndlessAgonyT {
+        public EndlessAgonyP() {
+            super("Endless Agony+", Card.ATTACK, 0, 6);
+        }
+    }
+
+    private static abstract class _EscapePlanT extends Card {
+        private final int n;
+
+        public _EscapePlanT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var cardIdx = state.draw(1);
+            if (cardIdx >= 0 && state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                state.getPlayerForWrite().gainBlock(n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class EscapePlan extends _EscapePlanT {
+        public EscapePlan() {
+            super("Escape Plan", Card.SKILL, 0, 3);
+        }
+    }
+
+    public static class EscapePlanP extends _EscapePlanT {
+        public EscapePlanP() {
+            super("Escape Plan+", Card.SKILL, 0, 5);
+        }
+    }
+
+    private static abstract class _EviscerateT extends Card {
+        private final int n;
+
+        public _EviscerateT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            // todo: hmm doesn't work well with snecko...
+            return Math.max(energyCost - state.getCounterForRead()[state.prop.eviscerateCounterIdx], 0);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Eviscerate", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister() {
+                    state.prop.eviscerateCounterIdx = counterIdx;
+                }
+            });
+            state.prop.addEndOfTurnHandler("Eviscerate", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[state.prop.eviscerateCounterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Eviscerate extends _EviscerateT {
+        public Eviscerate() {
+            super("Eviscerate", Card.ATTACK, 3, 7);
+        }
+    }
+
+    public static class EviscerateP extends _EviscerateT {
+        public EviscerateP() {
+            super("Eviscerate+", Card.ATTACK, 3, 9);
+        }
+    }
 
     private static abstract class _ExpertiseT extends Card {
         private final int n;
@@ -698,7 +1397,35 @@ public class CardSilent {
     // Masterful Stab
     // Noxious Fumes
     // Predator
-    // Reflex
+
+    private static abstract class _ReflexT extends Card {
+        private final int n;
+
+        public _ReflexT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void onDiscard(GameState state) {
+            state.addGameActionToEndOfDeque(state1 -> state1.draw(n));
+        }
+    }
+
+    public static class Reflex extends _ReflexT {
+        public Reflex() {
+            super("Reflex", Card.SKILL, -1, 2);
+        }
+    }
+
+    public static class ReflexP extends _ReflexT {
+        public ReflexP() {
+            super("Reflex+", Card.SKILL, -1, 3);
+        }
+    }
 
     private static abstract class _RiddleWithHolesT extends Card {
         private final int n;
@@ -729,7 +1456,28 @@ public class CardSilent {
         }
     }
 
-    // Setup
+    private static abstract class _SetupT extends Card {
+        public _SetupT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // todo: implement this when I have time
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Setup extends _SetupT {
+        public Setup() {
+            super("Setup", Card.SKILL, 1);
+        }
+    }
+
+    public static class SetupP extends _SetupT {
+        public SetupP() {
+            super("Setup+", Card.SKILL, 0);
+        }
+    }
 
     private static abstract class _SkewerT extends Card {
         private final int n;
@@ -765,13 +1513,41 @@ public class CardSilent {
         }
     }
 
-    // Tactician
+    private static abstract class TRacticianT extends Card {
+        private final int n;
+
+        public TRacticianT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void onDiscard(GameState state) {
+            state.gainEnergy(n);
+        }
+    }
+
+    public static class Tactician extends TRacticianT {
+        public Tactician() {
+            super("Tactician", Card.SKILL, -1, 1);
+        }
+    }
+
+    public static class TacticianP extends TRacticianT {
+        public TacticianP() {
+            super("Tactician+", Card.SKILL, -1, 2);
+        }
+    }
 
     private static abstract class _TerrorT extends Card {
         public _TerrorT(String cardName, int cardType, int energyCost) {
             super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.vulnEnemy = true;
             this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -792,7 +1568,68 @@ public class CardSilent {
         }
     }
 
-    // Well-Laid Plans
+    private static abstract class _WellLaidPlansT extends Card {
+        private final int n;
+
+        public _WellLaidPlansT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.selectFromHand = true;
+            this.selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getCounterForWrite()[counterIdx] = Math.min(GameState.HAND_LIMIT, state.getCounterForRead()[counterIdx] + n);
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                state.removeCardFromHand(idx);
+                state.getChosenCardsForWrite()[idx]++;
+                state.getCounterForWrite()[counterIdx] += 1 << 5;
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+        }
+
+        public void startOfGameSetup(GameState state) {
+            state.chosenCards = new byte[state.prop.cardDict.length];
+            state.prop.registerCounter("WellLaidPlans", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = (state.getCounterForRead()[counterIdx] & 31) / 10.0f;
+                    input[idx + 1] = (state.getCounterForRead()[counterIdx] >> 5) / 10.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public String getDisplayString(GameState state) {
+                    return String.valueOf(state.getCounterForRead()[counterIdx] & 31);
+                }
+
+                @Override public void onRegister() {
+                    state.prop.wellLaidPlansCounterIdx = counterIdx;
+                }
+            });
+            state.prop.addEndOfTurnHandler("WellLaidPlans", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] &= 31;
+                }
+            });
+        }
+    }
+
+    public static class WellLaidPlans extends _WellLaidPlansT {
+        public WellLaidPlans() {
+            super("Well-Laid Plans", Card.POWER, 1, 1);
+        }
+    }
+
+    public static class WellLaidPlansP extends _WellLaidPlansT {
+        public WellLaidPlansP() {
+            super("Well-Laid Plans+", Card.POWER, 1, 2);
+        }
+    }
 
     private static abstract class _AThousandCutsT extends Card {
         private final int n;
@@ -808,8 +1645,18 @@ public class CardSilent {
         }
 
         public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("AThousandCuts", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.addOnCardPlayedHandler("AThousandCuts", new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
@@ -861,8 +1708,6 @@ public class CardSilent {
     }
 
     private static abstract class _AfterImageT extends Card {
-        private final boolean innate;
-
         public _AfterImageT(String cardName, int cardType, int energyCost, boolean innate) {
             super(cardName, cardType, energyCost, Card.RARE);
             this.innate = innate;
@@ -875,7 +1720,7 @@ public class CardSilent {
 
         public void startOfGameSetup(GameState state) {
             state.addOnCardPlayedHandler("AfterImage", new GameEventCardHandler() {
-                @Override public void handle(GameState state, Card card, int lastIdx, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                     }
@@ -897,9 +1742,159 @@ public class CardSilent {
     }
 
     // Alchemize
-    // Bullet Time
-    // Burst
-    // Corpse Explosion
+
+    private static abstract class _BulletTimeT extends Card {
+        public _BulletTimeT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var hand = state.getHand();
+            for (int i = 0; i < state.prop.realCardsLen; i++) {
+                if (state.prop.tmpCostCardIdxes[i] >= 0) {
+                    for (int j = 0; j < hand[i]; j++) {
+                        state.removeCardFromHand(i);
+                        state.addCardToHand(state.prop.tmpCostCardIdxes[i]);
+                    }
+                }
+            }
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
+        }
+    }
+
+    public static class BulletTime extends CardSilent._BulletTimeT {
+        public BulletTime() {
+            super("Bullet Time", Card.SKILL, 3);
+        }
+    }
+
+    public static class BulletTimeP extends CardSilent._BulletTimeT {
+        public BulletTimeP() {
+            super("BulletTime+", Card.SKILL, 2);
+        }
+    }
+
+    private static abstract class _BurstT extends Card {
+        private final int n;
+
+        public _BurstT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Burst", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
+                    input[idx + 1] = (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0 ? 0.5f : 0;
+                    return idx + 2;
+                }
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.addStartOfTurnHandler("Burst", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForWrite()[counterIdx] != 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.addOnCardPlayedHandler("Burst", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    var card = state.prop.cardDict[cardIdx];
+                    if (card.cardType != Card.SKILL || state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    if (cloned) {
+                        if ((state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                            state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                        }
+                    } else {
+                        var counters = state.getCounterForWrite();
+                        counters[counterIdx]--;
+                        counters[counterIdx] |= 1 << 8;
+                        state.addGameActionToEndOfDeque(curState -> {
+                            var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
+                            } else {
+                                state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Burst extends CardSilent._BurstT {
+        public Burst() {
+            super("Burst", Card.SKILL, 1, 1);
+        }
+    }
+
+    public static class BurstP extends CardSilent._BurstT {
+        public BurstP() {
+            super("Burst+", Card.SKILL, 1, 2);
+        }
+    }
+
+    private static abstract class _CorpseExplosionT extends Card {
+        private final int n;
+
+        public _CorpseExplosionT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.n = n;
+            this.selectEnemy = true;
+            this.poisonEnemy = true;
+            this.corpseExplosionEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.CORPSE_EXPLOSION, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.addOnEnemyDeathHandler("CorpseExplosion", new GameEventEnemyHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                    if (enemy.getCorpseExplosion() > 0) {
+                        var k = enemy.getCorpseExplosion();
+                        state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                            @Override public void doAction(GameState state) {
+                                for (Enemy e : state.getEnemiesForWrite().iterateOverAlive()) {
+                                    state.playerDoNonAttackDamageToEnemy(e, enemy.property.origHealth * k, true);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    public static class CorpseExplosion extends CardSilent._CorpseExplosionT {
+        public CorpseExplosion() {
+            super("Corpse Explosion", Card.SKILL, 2, 6);
+        }
+    }
+
+    public static class CorpseExplosionP extends CardSilent._CorpseExplosionT {
+        public CorpseExplosionP() {
+            super("Corpse Explosion+", Card.SKILL, 2, 9);
+        }
+    }
 
     private static abstract class _DieDieDieT extends Card {
         private final int n;
@@ -930,9 +1925,153 @@ public class CardSilent {
         }
     }
 
-    // Doppelganger
+    private static abstract class _DoppelgangerT extends Card {
+        private final boolean upgraded;
+
+        public _DoppelgangerT(String cardName, int cardType, int energyCost, boolean upgraded) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.upgraded = upgraded;
+            this.isXCost = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += energyUsed + (upgraded ? 1 : 0);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            return state.energy;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Doppelganger", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("Doppelganger", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainEnergy(state.getCounterForRead()[counterIdx]);
+                        state.draw(state.getCounterForRead()[counterIdx]);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Doppelganger extends _DoppelgangerT {
+        public Doppelganger() {
+            super("Doppelganger", Card.SKILL, -1, false);
+        }
+    }
+
+    public static class DoppelgangerP extends _DoppelgangerT {
+        public DoppelgangerP() {
+            super("Doppelganger+", Card.SKILL, -1, true);
+        }
+    }
+
     // Envenom
-    // Glass Knife
+
+    public static class GlassKnife extends Card {
+        public int limit;
+        private int dmg;
+
+        public GlassKnife() {
+            this(8);
+        }
+
+        public GlassKnife(int dmg, int limit) {
+            super("GlassKnife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
+            this.dmg = dmg;
+            this.limit = limit;
+            selectEnemy = true;
+        }
+
+        public GlassKnife(int dmg) {
+            this(dmg, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = dmg; i >= limit; i -= 2) {
+                c.add(new CardSilent.GlassKnife(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.glassKnifeIndexes = new int[(dmg - limit) / 2 + 1];
+            for (int i = 0; i < state.prop.glassKnifeIndexes.length; i++) {
+                state.prop.glassKnifeIndexes[i] = state.prop.findCardIndex(new CardSilent.GlassKnife(i * 2));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            int i = (dmg - limit) / 2;
+            return i > 0 ? prop.glassKnifeIndexes[i - 1] : -1;
+        }
+    }
+
+    public static class GlassKnifeP extends Card {
+        public int limit;
+        private int dmg;
+
+        public GlassKnifeP() {
+            this(12);
+        }
+
+        public GlassKnifeP(int dmg, int limit) {
+            super("GlassKnife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
+            this.dmg = dmg;
+            this.limit = limit;
+            selectEnemy = true;
+        }
+
+        public GlassKnifeP(int dmg) {
+            this(dmg, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = dmg; i >= limit; i -= 2) {
+                c.add(new CardSilent.GlassKnifeP(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.glassKnifePIndexes = new int[(dmg - limit) / 2 + 1];
+            for (int i = 0; i < state.prop.glassKnifePIndexes.length; i++) {
+                state.prop.glassKnifePIndexes[i] = state.prop.findCardIndex(new CardSilent.GlassKnifeP(i * 2));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            int i = (dmg - limit) / 2;
+            return i > 0 ? prop.glassKnifePIndexes[i - 1] : -1;
+        }
+    }
 
     private static abstract class _GrandFinaleT extends Card {
         private final int n;
@@ -988,11 +2127,15 @@ public class CardSilent {
             this.weakEnemy = true;
             this.affectEnemyStrength = true;
             this.selectEnemy = true;
+            this.delayUseEnergy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, energyUsed + (upgraded ? 1 : 0));
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, energyUsed + (upgraded ? 1 : 0));
+            int n = energyUsed + (upgraded ? 1 : 0);
+            if (n > 0) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, energyUsed + (upgraded ? 1 : 0));
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, energyUsed + (upgraded ? 1 : 0));
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1013,9 +2156,145 @@ public class CardSilent {
         }
     }
 
-    // Nightmare
-    // Phantasmal Killer
-    // Storm of Steel
+    private static abstract class _NightmareT extends Card {
+        public _NightmareT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            selectFromHand = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.addNightmareCard(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.nightmareCards = new short[1];
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i = 0; i < state.nightmareCardsLen; i++) {
+                        state.addCardToHand(state.nightmareCards[i]);
+                        state.addCardToHand(state.nightmareCards[i]);
+                        state.addCardToHand(state.nightmareCards[i]);
+                    }
+                    state.nightmareCardsLen = 0;
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return new ArrayList<>(cards);
+        }
+    }
+
+    public static class Nightmare extends _NightmareT {
+        public Nightmare() {
+            super("Nightmare", Card.SKILL, 3);
+        }
+    }
+
+    public static class NightmareP extends _NightmareT {
+        public NightmareP() {
+            super("Nightmare+", Card.SKILL, 2);
+        }
+    }
+
+    private static abstract class _PhantasmalKillerT extends Card {
+        public _PhantasmalKillerT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1 << 8;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("PhantasmalKiller", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = (state.getCounterForRead()[counterIdx] >> 8) / 10.0f;
+                    input[idx + 1] = (state.getCounterForRead()[counterIdx] & ((1 << 8) - 1)) / 2.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public void onRegister() {
+                    state.prop.phantasmalKillerCounterIdx = counterIdx;
+                }
+            });
+            state.prop.addEndOfTurnHandler("PhantasmalKiller", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if ((state.getCounterForRead()[counterIdx] & ((1 << 8) - 1)) > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+            state.addStartOfTurnHandler("PhantasmalKiller", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if ((state.getCounterForRead()[counterIdx] >> 8) > 0) {
+                        state.getCounterForWrite()[counterIdx] -= 1 << 8;
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class PhantasmalKiller extends _PhantasmalKillerT {
+        public PhantasmalKiller() {
+            super("Phantasmal Killer", Card.SKILL, 1);
+        }
+    }
+
+    public static class PhantasmalKillerP extends _PhantasmalKillerT {
+        public PhantasmalKillerP() {
+            super("Phantasmal Killer+", Card.SKILL, 0);
+        }
+    }
+
+    private static abstract class _StormOfSteelT extends Card {
+        private final boolean upgraded;
+
+        public _StormOfSteelT(String cardName, int cardType, int energyCost, boolean upgraded) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.upgraded = upgraded;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int c = 0;
+            var hand = state.getHand();
+            for (int i = 0; i < hand.length; i++) {
+                for (int j = 0; j < hand[i]; j++) {
+                    c++;
+                    state.discardCardFromHand(i);
+                }
+            }
+            for (int i = 0; i < c; i++) {
+                state.addCardToHand(upgraded ? state.prop.shivPCardIdx : state.prop.shivCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Shiv(), new CardColorless.ShivP());
+        }
+    }
+
+    public static class StormOfSteel extends _StormOfSteelT {
+        public StormOfSteel() {
+            super("Storm Of Steel", Card.SKILL, 1, false);
+        }
+    }
+
+    public static class StormOfSteelP extends _StormOfSteelT {
+        public StormOfSteelP() {
+            super("Storm Of Steel+", Card.SKILL, 1, true);
+        }
+    }
+
     // Tools of the Trade
     // Unload
 
@@ -1045,7 +2324,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.prop.addEndOfTurnHandler("LoseDexterityPerTurn", new GameEventHandler() {
+            state.prop.addEndOfTurnHandler("SneakyStrike", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, state.getCounterForRead()[counterIdx]);
                 }
@@ -1060,7 +2339,7 @@ public class CardSilent {
 
     public static class WraithForm extends _WraithFormT {
         public WraithForm() {
-            super("WraithForm", Card.SKILL, 3, 2);
+            super("WraithForm", Card.POWER, 3, 2);
         }
     }
 

@@ -31,6 +31,10 @@ public interface GameStateRandomization {
         return new GameStateRandomization.FixedRandomization(this, r);
     }
 
+    default GameStateRandomization fixR(int[] r, int k) {
+        return new GameStateRandomization.FixedRandomization(this, r);
+    }
+
     default GameStateRandomization followByIf(int r, GameStateRandomization b) {
         return new GameStateRandomization.FollowByIf(this, r, b);
     }

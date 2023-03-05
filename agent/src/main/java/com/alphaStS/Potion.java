@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.Tuple;
 
 import java.util.*;
@@ -14,6 +15,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean changePlayerDexterityEot;
     boolean changePlayerArtifact;
     boolean selectEnemy;
+    boolean poisonEnemy;
     boolean healPlayer;
     boolean selectFromHand;
     boolean selectFromDiscard;
@@ -44,8 +46,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public abstract GameActionCtx use(GameState state, int idx);
-    List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
-    List<Card> getPossibleSelect3OutOf1Cards(List<Card> cards) { return List.of(); }
+    List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) { return List.of(); }
+    List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
     public void gamePropertiesSetup(GameState state) {}
 
     public static class VulnerablePotion extends Potion {
@@ -95,6 +97,23 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Fire Potion";
+        }
+    }
+
+    public static class PoisonPotion extends Potion {
+        public PoisonPotion() {
+            selectEnemy = true;
+            poisonEnemy = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 12 : 6;
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Poison Potion";
         }
     }
 
@@ -328,7 +347,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             }
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
         }
 
@@ -364,14 +383,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
                     }
                     var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                    curState.playCard(action, -1, true,false, false, false);
+                    curState.playCard(action, -1, true,false, false, false, -1);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
                         if (curState.prop.makingRealMove || state.prop.stateDescOn) {
                             curState.getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : curState.getEnemiesForRead().get(enemyIdx).getName())
                                     .append(" (").append(enemyIdx).append(")");
                         }
-                        curState.playCard(action, enemyIdx, true,false, false, false);
+                        curState.playCard(action, enemyIdx, true,false, false, false, -1);
                     }
                 });
             }
@@ -394,7 +413,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
 
@@ -460,61 +479,55 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return "Skill Potion";
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            // todo: need to pass in character
-            return List.of(
-                    new Card.Armanent(),
-                    new Card.Flex(),
-                    new Card.Havoc(),
-                    new Card.ShrugItOff(),
-                    new Card.TrueGrit(),
-                    new Card.Warcry(),
-                    new Card.BattleTrance(),
-                    new Card.Bloodletting(),
-                    new Card.BurningPact(),
-                    new Card.Disarm(),
-                    new Card.DualWield(),
-                    new Card.Entrench(),
-                    new Card.FlameBarrier(),
-                    new Card.GhostlyArmor(),
-                    new Card.FakeInfernalBlade(),
-                    new Card.Intimidate(),
-                    new Card.PowerThrough(),
-                    new Card.Rage(),
-                    new Card.SecondWind(),
-                    new Card.SeeingRed(),
-                    new Card.Sentinel(),
-                    new Card.Shockwave(),
-                    new Card.SpotWeakness(),
-                    new Card.DoubleTap(),
-                    new Card.Exhume(),
-                    new Card.Impervious(),
-                    new Card.LimitBreak(),
-                    new Card.Offering(),
-                    new Card.CardTmpChangeCost(new Card.Armanent(), 0),
-                    new Card.CardTmpChangeCost(new Card.Havoc(), 0),
-                    new Card.CardTmpChangeCost(new Card.ShrugItOff(), 0),
-                    new Card.CardTmpChangeCost(new Card.TrueGrit(), 0),
-                    new Card.CardTmpChangeCost(new Card.BurningPact(), 0),
-                    new Card.CardTmpChangeCost(new Card.Disarm(), 0),
-                    new Card.CardTmpChangeCost(new Card.DualWield(), 0),
-                    new Card.CardTmpChangeCost(new Card.Entrench(), 0),
-                    new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0),
-                    new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0),
-                    new Card.CardTmpChangeCost(new Card.FakeInfernalBlade(), 0),
-                    new Card.CardTmpChangeCost(new Card.PowerThrough(), 0),
-                    new Card.CardTmpChangeCost(new Card.SecondWind(), 0),
-                    new Card.CardTmpChangeCost(new Card.Sentinel(), 0),
-                    new Card.CardTmpChangeCost(new Card.Shockwave(), 0),
-                    new Card.CardTmpChangeCost(new Card.SpotWeakness(), 0),
-                    new Card.CardTmpChangeCost(new Card.DoubleTap(), 0),
-                    new Card.CardTmpChangeCost(new Card.Exhume(), 0),
-                    new Card.CardTmpChangeCost(new Card.Impervious(), 0),
-                    new Card.CardTmpChangeCost(new Card.LimitBreak(), 0)
-            );
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var l = new ArrayList<Card>(c);
+            for (Card card : c) {
+                if (card instanceof Card.CardTmpChangeCost t) {
+                    l.add(t.card);
+                }
+            }
+            return l;
         }
 
-        @Override List<Card> getPossibleSelect3OutOf1Cards(List<Card> cards) {
+        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+            if (gameProperties.character == CharacterEnum.SILENT) {
+                return List.of(
+                        new Card.CardTmpChangeCost(new CardSilent.Acrobatics(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.Backflip(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.BladeDance(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.CloakAndDagger(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.DeadlyPoison(), 0),
+                        new CardSilent.Deflect(),
+                        new Card.CardTmpChangeCost(new CardSilent.DodgeAndRoll(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.Outmaneuver(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.PiercingWail(), 0),
+                        new CardSilent.Prepared(),
+                        new Card.CardTmpChangeCost(new CardSilent.Blur(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.BouncingFlask(), 0),
+                        new CardSilent.CalculatedGamble(),
+                        new Card.CardTmpChangeCost(new CardSilent.Catalyst(), 0),
+                        new CardSilent.Concentrate(),
+                        new Card.CardTmpChangeCost(new CardSilent.CripplingCloud(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.Distraction(), 0),
+                        new CardSilent.EscapePlan(),
+                        new Card.CardTmpChangeCost(new CardSilent.Expertise(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.LegSweep(), 0),
+                        new CardSilent.Reflex(),
+                        new Card.CardTmpChangeCost(new CardSilent.Setup(), 0),
+                        new CardSilent.Tactician(),
+                        new Card.CardTmpChangeCost(new CardSilent.Terror(), 0),
+                        new CardSilent.Adrenaline(),
+                        new Card.CardTmpChangeCost(new CardSilent.BulletTime(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.Burst(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.CorpseExplosion(), 0),
+                        new CardSilent.Doppelganger(),
+                        new CardSilent.Malaise(),
+                        new Card.CardTmpChangeCost(new CardSilent.Nightmare(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.PhantasmalKiller(), 0),
+                        new Card.CardTmpChangeCost(new CardSilent.StormOfSteel(), 0)
+                );
+            }
             // todo: need to pass in character
             return List.of(
                     new Card.CardTmpChangeCost(new Card.Armanent(), 0),
@@ -549,7 +562,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(Arrays.asList(state.prop.cardDict));
+            var cards = getPossibleSelect3OutOf1Cards(state.prop);
             state.prop.skillPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.prop.skillPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
