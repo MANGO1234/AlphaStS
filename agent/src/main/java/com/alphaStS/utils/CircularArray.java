@@ -73,6 +73,13 @@ public class CircularArray<T> {
         return (T) o;
     }
 
+    public T peekFirst() {
+        if (size == 0) {
+            return null;
+        }
+        return (T) arr[start];
+    }
+
     public void clear() {
         for (int i = end > start ? start : 0; i < end; i++) {
             arr[i] = null;

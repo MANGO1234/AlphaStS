@@ -28,7 +28,7 @@ public class Configuration {
     public static boolean USE_PROGRESSIVE_WIDENING = false;
     public static boolean TEST_PROGRESSIVE_WIDENING = false;
     public static boolean TRANSPOSITION_ACROSS_CHANCE_NODE = true;
-    public static boolean TEST_TRANSPOSITION_ACROSS_CHANCE_NODE = true;
+    public static boolean TEST_TRANSPOSITION_ACROSS_CHANCE_NODE = false;
     public static boolean NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION = false;
     public static boolean TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION = true;
     public static boolean UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
@@ -40,5 +40,5 @@ public class Configuration {
 
     public static boolean ADD_BEGIN_TURN_CTX_TO_NN_INPUT = true;
     public static boolean TRAINING_POLICY_SURPRISE_WEIGHTING = false;
-    public static boolean USE_FIGHT_PROGRESS_WHEN_LOSING = false;
+    public static boolean USE_FIGHT_PROGRESS_WHEN_LOSING = true;
 }

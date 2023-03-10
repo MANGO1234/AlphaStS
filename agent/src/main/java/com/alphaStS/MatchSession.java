@@ -126,19 +126,26 @@ public class MatchSession {
                         state = state.clone(false);
                         r = state.doAction(0);
                     } else {
-                        var doStartTurn = state.getAction(action).type() == GameActionType.END_TURN;
                         if (nodeCount == 1) {
                             state = state.clone(false);
                             state.doAction(action);
                         } else {
                             state = getNextState(state, mcts, action, steps.get(steps.size() - 1), false);
                         }
-                        if (doStartTurn) {
-                            state.doAction(0);
-                        }
                     }
                     state.prop.makingRealMove = false;
                     RefRet ret = syncWithRef(refGame, refGameIdx, steps, state, action);
+                    if (ret != null) {
+                        state = ret.state;
+                        refGameIdx = ret.refGameIdx;
+                    }
+                    steps.get(steps.size() - 1).state().clearNextStates();
+                }
+                if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
+                    steps.add(new GameStep(state, 0));
+                    state = state.clone(false);
+                    r = state.doAction(0);
+                    RefRet ret = syncWithRef(refGame, refGameIdx, steps, state, 0);
                     if (ret != null) {
                         state = ret.state;
                         refGameIdx = ret.refGameIdx;

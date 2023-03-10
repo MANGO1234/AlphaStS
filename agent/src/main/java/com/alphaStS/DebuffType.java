@@ -18,4 +18,5 @@ public enum DebuffType {
     LOSE_FOCUS_PER_TURN,
     CONSTRICTED,
     DRAW_REDUCTION,
+    SNECKO,
 }

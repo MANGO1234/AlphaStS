@@ -18,22 +18,24 @@ public abstract class Enemy extends EnemyReadOnly {
     public abstract void nextMove(GameState state, RandomGen random);
     public void saveStateForNextMove(GameState state) {}
 
-    public void damage(int n, GameState state) {
+    public int damage(double n, GameState state) {
         if (health <= 0) {
-            return;
+            return 0;
         }
-        int dmg = n - block;
+        int dmg = ((int) n) - block;
         if (state.prop.hasBoot && dmg > 0 && dmg < 5) {
             dmg = 5;
         }
-        health -= Math.max(0, dmg);
-        block = Math.max(0, block - n);
+        int dmgDone = Math.max(0, dmg);
+        health -= dmgDone;
+        block = Math.max(0, block - ((int) n));
         if (dmg > 0 && platedArmor > 0) {
             platedArmor--;
         }
         if (health <= 0) {
             health = 0;
         }
+        return dmgDone;
     }
 
     public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -121,7 +123,7 @@ public abstract class Enemy extends EnemyReadOnly {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
-        if (metallicize > 0) {
+        if (turnNum > 1 && metallicize > 0) {
             gainBlock(metallicize);
         }
         if (platedArmor > 0) {
@@ -175,7 +177,7 @@ public abstract class Enemy extends EnemyReadOnly {
             this.loseStrengthEot += n;
             this.gainStrength(-n);
         }
-        case POISON -> this.poison += n;
+        case POISON -> this.poison += n + (state.prop.hasSneckoSkull ? 1 : 0);
         case CORPSE_EXPLOSION -> this.corpseExplosion += n;
         }
         return true;
@@ -277,18 +279,18 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public List<Card> getPossibleGeneratedCards() {
-            var cards = new ArrayList<Card>();
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
+            var newCards = new ArrayList<Card>();
             for (var e : possibleEnemies) {
-                cards.addAll(e.getPossibleGeneratedCards());
+                newCards.addAll(e.getPossibleGeneratedCards(prop, cards));
             }
-            return cards;
+            return newCards;
         }
 
         // ******************* generated delegate methods follow ****************
 
-        @Override public void damage(int n, GameState state) {
-            currentEnemy.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            return currentEnemy.damage(n, state);
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -580,12 +582,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return new Lagavulin(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            var dmg = Math.max(0, n - block);
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if ((move == WAIT_1 || move == WAIT_2 || move == WAIT_3) && dmg > 0) {
                 move = STUNNED;
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -745,7 +747,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Hexaghost(int health) {
             super(health, 9, false);
-//            property.isBoss = true;
+            property.isBoss = true;
             property.canGainStrength = true;
             property.canGainBlock = true;
             afterFirstInfernal = false;
@@ -829,7 +831,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Hexaghost";
         }
 
-        public List<Card> getPossibleGeneratedCards() { return List.of(new Card.Burn(), new Card.BurnP()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn(), new Card.BurnP()); }
     }
 
     public static class TheGuardian extends Enemy {
@@ -858,7 +860,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public TheGuardian(int health) {
             super(health, 7, false);
-//            property.isBoss = true;
+            property.isBoss = true;
             property.canGainBlock = true;
             property.canVulnerable = true;
             property.canWeaken = true;
@@ -876,16 +878,16 @@ public abstract class Enemy extends EnemyReadOnly {
             return new TheGuardian(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            int oldHealth = health;
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (move != DEFENSIVE_MODE && move != ROLL_ATTACK && move != TWIN_SLAM) {
-                modeShiftDmg = Math.max(modeShiftDmg - (oldHealth - health), 0);
+                modeShiftDmg = Math.max(modeShiftDmg - dmg, 0);
                 if (modeShiftDmg == 0) {
                     move = DEFENSIVE_MODE;
                     gainBlock(20);
                 }
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -1015,7 +1017,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public SlimeBoss(int health) {
             super(health, 4, false);
-//            property.isBoss = true;
+            property.isBoss = true;
             property.canSlime = true;
         }
 
@@ -1028,11 +1030,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return new SlimeBoss(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (health <= property.maxHealth / 2) {
                 move = SPLIT;
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -1152,11 +1155,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return new LargeSpikeSlime(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -1378,11 +1382,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return new LargeAcidSlime(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (health <= splitMaxHealth / 2) {
                 move = SPLIT;
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -1997,9 +2002,9 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void damage(int n, GameState state) {
+        @Override public int damage(double n, GameState state) {
             tookAttackDamage = true;
-            super.damage(n, state);
+            return super.damage(n, state);
         }
 
         @Override public void react(GameState state, Card card) {
@@ -2129,9 +2134,9 @@ public abstract class Enemy extends EnemyReadOnly {
             }
         }
 
-        @Override public void damage(int n, GameState state) {
+        @Override public int damage(double n, GameState state) {
             tookAttackDamage = true;
-            super.damage(n, state);
+            return super.damage(n, state);
         }
 
         @Override public void react(GameState state, Card card) {
@@ -2237,12 +2242,13 @@ public abstract class Enemy extends EnemyReadOnly {
             move = newMove;
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (!isDead && health <= 0) {
                 isDead = true;
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -2416,12 +2422,12 @@ public abstract class Enemy extends EnemyReadOnly {
             return new MadGremlin(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            var dmg = Math.max(0, n - block);
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (dmg > 0) {
                 gainStrength(2);
             }
+            return dmg;
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {

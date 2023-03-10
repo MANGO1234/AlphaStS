@@ -594,8 +594,8 @@ public class MCTS {
         LineOfPlay maxLine = null;
         double maxU = 0.0;
         if (isRoot) numberOfPossibleActions = 0;
-        double p = 1.0 / state.searchFrontier.lines.size();
-        double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
+        double p_uniform = 1.0 / state.searchFrontier.lines.size();
+        double ratio = Math.min(((double) state.total_n) * state.total_n / 1000000.0, 1);
         int frontierNodes = 0;
         for (var line : lines) {
             if (line.numberOfActions == 0) {
@@ -627,10 +627,13 @@ public class MCTS {
             var parentLine = line.parentLines == null ? null : line.parentLines.get(0).line();
             double q = line.n > 0 ? line.q_comb / line.n : parentLine != null && parentLine.n > 0 ? parentLine.q_comb / parentLine.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
-            double p_prime = line.p_cur * (1 - ratio) + p * ratio;
+            double p_prime = line.p_cur * (1 - ratio) + p_uniform * ratio;
             double cpuct = state.prop.cpuct;
+            if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
+                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
+            }
             // cpuct = Math.min(5 * Math.sqrt(state.varianceS / state.total_n), 0.5);
-            double u = state.searchFrontier.total_n > 0 ? q + cpuct * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
+            double u = state.searchFrontier.total_n > 0 ? q + cpuct * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            if (training && isRoot) {
 //                var force_n = (int) Math.sqrt(0.5 * line.p_cur * state.searchFrontier.total_n);
@@ -713,7 +716,7 @@ public class MCTS {
             }
             return;
         }
-        if (state.policy == null && state.actionCtx != GameActionCtx.BEGIN_TURN) {
+        if (state.policy == null) {
             state.doEval(model);
             state.get_v(v);
             state.total_q_comb += v[GameState.V_COMB_IDX];
@@ -732,17 +735,6 @@ public class MCTS {
             state.varianceM = v[GameState.V_COMB_IDX];
             state.varianceS = 0;
             return;
-        }
-        if (state.policy == null && state.actionCtx == GameActionCtx.BEGIN_TURN) {
-            state.policy = new float[] {1};
-            state.policyMod = state.policy;
-            state.n = new int[] {0};
-            state.ns = new State[] {null};
-            state.q_win = new double[] {0};
-            state.q_health = new double[] {0};
-            state.q_comb = new double[] {0};
-            curLine.n = 1;
-            curLine.q_comb = 0;
         }
 
         float[] policy = state.policyMod;
@@ -782,8 +774,13 @@ public class MCTS {
 
         var nextState = state.clone(true);
         nextState.doAction(action);
-        if (nextState.isStochastic) {
-            var cState = new ChanceState(null, state, action);
+        if (nextState.isStochastic || nextState.actionCtx == GameActionCtx.BEGIN_TURN) {
+            var cState = nextState.isStochastic ? new ChanceState(null, state, action) : null;
+            if (!nextState.isStochastic) {
+                cState = new ChanceState(null, nextState, 0);
+                nextState = nextState.clone(false);
+                nextState.doAction(0);
+            }
             var transposedLine = parentState.searchFrontier.getLine(cState);
             if (transposedLine == null) {
                 cState.addToQueue(nextState);

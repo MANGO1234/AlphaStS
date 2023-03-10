@@ -23,6 +23,7 @@ public class EnemyBeyond {
             super(health, 6, true);
             property.canGainStrength = true;
             property.canSelfRevive = true;
+            property.isBoss = true;
             strength = 2;
         }
 
@@ -35,8 +36,8 @@ public class EnemyBeyond {
             return new EnemyBeyond.AwakenedOne(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            int dmg = super.damage(n, state);
             if (health <= 0) {
                 if (!awakened) {
                     if (!state.prop.hasRunicDome) {
@@ -48,6 +49,7 @@ public class EnemyBeyond {
                     }
                 }
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -101,7 +103,7 @@ public class EnemyBeyond {
             }
         }
 
-        @Override public List<Card> getPossibleGeneratedCards() {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
             return List.of(new Card.Void());
         }
 
@@ -241,6 +243,7 @@ public class EnemyBeyond {
             property.canGainStrength = true;
             property.canGainPlatedArmor = true;
             property.hasArtifact = true;
+            property.isBoss = true;
         }
 
         public Donu(EnemyBeyond.Donu other) {
@@ -311,6 +314,7 @@ public class EnemyBeyond {
             property.canGainPlatedArmor = true;
             property.canDaze = true;
             property.hasArtifact = true;
+            property.isBoss = true;
         }
 
         public Deca(EnemyBeyond.Deca other) {
@@ -388,6 +392,7 @@ public class EnemyBeyond {
             property.canVulnerable = true;
             property.canWeaken = true;
             property.canFrail = true;
+            property.isBoss = true;
         }
 
         public TimeEater(EnemyBeyond.TimeEater other) {
@@ -595,9 +600,9 @@ public class EnemyBeyond {
             return 3 - turn;
         }
 
-        @Override public void damage(int n, GameState state) {
-            n = (int) (n * ((10 + slow) / 10.0)); // todo: when is slow applied with respect to vulnerable, and is it rounding down?
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            n = n * ((10 + slow) / 10.0);
+            return super.damage(n, state);
         }
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
@@ -730,30 +735,29 @@ public class EnemyBeyond {
             return intangible;
         }
 
-        @Override public void damage(int n, GameState state) {
+        @Override public int damage(double n, GameState state) {
             int prevHp = health;
-            super.damage(n, state);
+            int dmg = super.damage(n, state);
             if (intangible) {
                 if (state.prop.hasBoot) {
-                    if (health - prevHp > 5) {
-                        setHealth(prevHp + 5);
+                    if (prevHp - health > 5) {
+                        setHealth(prevHp - 5);
+                        return 5;
                     }
-                } else if (health - prevHp > 1) {
-                    setHealth(prevHp + 1);
+                } else if (prevHp - health > 1) {
+                    setHealth(prevHp - 1);
+                    return 1;
                 }
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             int prevHp = health;
             super.nonAttackDamage(n, blockable, state);
             if (intangible) {
-                if (state.prop.hasBoot) {
-                    if (health - prevHp > 5) {
-                        setHealth(prevHp + 5);
-                    }
-                } else if (health - prevHp > 1) {
-                    setHealth(prevHp + 1);
+                if (prevHp - health > 1) {
+                    setHealth(prevHp - 1);
                 }
             }
         }
@@ -932,7 +936,7 @@ public class EnemyBeyond {
             intangible = !intangible;
         }
 
-        public List<Card> getPossibleGeneratedCards() { return List.of(new Card.Burn()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn()); }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
@@ -998,14 +1002,15 @@ public class EnemyBeyond {
             return new EnemyBeyond.Reptomancer(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            int dmg = super.damage(n, state);
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
                     state.killEnemy(i, true);
                 }
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -1160,7 +1165,7 @@ public class EnemyBeyond {
             move++;
         }
 
-        public List<Card> getPossibleGeneratedCards() { return List.of(new Card.Wound()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Wound()); }
 
         @Override public String getMoveString(GameState state, int move) {
             if (move == STAB) {
@@ -1285,6 +1290,77 @@ public class EnemyBeyond {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx + 1] = turnCount / 10.0f;
             return 1;
+        }
+    }
+
+    public static class OrbWalker extends Enemy {
+        private static final int LASER = 0;
+        private static final int CLAW = 1;
+
+        public OrbWalker() {
+            this(102);
+            property.canGainStrength = true;
+        }
+
+        public OrbWalker(int health) {
+            super(health, 2, true);
+        }
+
+        public OrbWalker(EnemyBeyond.OrbWalker other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.OrbWalker(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == LASER) {
+                state.enemyDoDamageToPlayer(this, 11, 1);
+                state.addCardToDiscard(state.prop.burnCardIdx);
+                state.addCardToDeck(state.prop.burnCardIdx);
+            } else if (move == CLAW) {
+                state.enemyDoDamageToPlayer(this, 16, 1);
+            }
+            gainStrength(5);
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move == LASER && lastMove == LASER) {
+                newMove = CLAW;
+            } else if (move == CLAW && lastMove == CLAW) {
+                newMove = LASER;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                newMove = r < 60 ? LASER : CLAW;
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == LASER) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 11) + "+Shuffle Burn";
+            } else if (move == CLAW) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 16);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                int b = random.nextInt(5, RandomGenCtx.Other) + 1;
+                health = (int) Math.round((health * b) / 5.0);
+            } else {
+                health = 92 + random.nextInt(11, RandomGenCtx.Other);
+            }
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn()); }
+
+        @Override public String getName() {
+            return "Orb Walker";
         }
     }
 
@@ -1436,12 +1512,13 @@ public class EnemyBeyond {
             d = n;
         }
 
-        @Override public void damage(int n, GameState state) {
+        @Override public int damage(double n, GameState state) {
             int prevHealth = health;
-            super.damage(n, state);
+            int dmg = super.damage(n, state);
             if (health <= 0 && prevHealth > 0) {
                 move = REGROW_1;
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {

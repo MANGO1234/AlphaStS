@@ -413,7 +413,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
 
@@ -590,48 +590,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            var newCards = new ArrayList<Card>();
-            cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost)).forEach((x) -> {
-                for (int i = 0; i < 4; i++) {
-                    if (x.energyCost == i) {
-                        continue;
-                    }
-                    newCards.add(new Card.CardPermChangeCost(x, i));
-                }
-            });
-            return newCards;
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return gameProperties.generateSneckoCards(cards);
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.sneckoIdxes = new int[state.prop.cardDict.length][];
-            var m = new HashMap<String, int[]>();
-            for (int i = 0; i < state.prop.cardDict.length; i++) {
-                var card = state.prop.cardDict[i];
-                if (!(card instanceof Card.CardPermChangeCost) && !(card instanceof Card.CardTmpChangeCost)) {
-                    var a = new int[] { 1, i, -1, -1, -1 };
-                    m.put(card.cardName, a);
-                    state.prop.sneckoIdxes[i] = a;
-                }
-            }
-            for (int i = 0; i < state.prop.cardDict.length; i++) {
-                var card = state.prop.cardDict[i];
-                if (card instanceof Card.CardPermChangeCost c) {
-                    var a = m.get(c.card.cardName);
-                    a[++a[0]] = i;
-                    state.prop.sneckoIdxes[i] = a;
-                }
-            }
-            for (int i = 0; i < state.prop.cardDict.length; i++) {
-                var card = state.prop.cardDict[i];
-                if (card instanceof Card.CardTmpChangeCost c) {
-                    if (c.card instanceof Card.CardPermChangeCost cc) {
-                        state.prop.sneckoIdxes[i] = m.get(cc.card.cardName);
-                    } else {
-                        state.prop.sneckoIdxes[i] = m.get(c.card.cardName);
-                    }
-                }
-            }
+            state.prop.setupSneckoIndexes();
         }
 
         @Override public String toString() {

@@ -481,7 +481,7 @@ public final class GameState implements State {
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
         prop.battleTranceExist = cards.stream().anyMatch((x) -> x.card().cardName.contains("Battle Trance"));
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
-        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
+//        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
         if (prop.healEndOfAct) {
             addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -562,7 +562,7 @@ public final class GameState implements State {
             if (enemy.property.canDaze) {
                 l.add(prop.findCardIndex(new Card.Dazed()));
             }
-            l.addAll(enemy.getPossibleGeneratedCards().stream().map(prop::findCardIndex).toList());
+            l.addAll(enemy.getPossibleGeneratedCards(prop, cards.stream().map(CardCount::card).toList()).stream().map(prop::findCardIndex).toList());
         }
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().exhaustWhenPlayed && getCardEnergyCost(i) >= 0) {
@@ -656,9 +656,6 @@ public final class GameState implements State {
         if (enemies.stream().anyMatch((x) -> x.property.canDaze)) {
             set.add(new CardCount(new Card.Dazed(), 0));
         }
-        for (Enemy enemy : enemies) {
-            set.addAll(enemy.getPossibleGeneratedCards().stream().map((c) -> new CardCount(c, 0)).toList());
-        }
         do {
             var newSet = new HashSet<>(set);
             for (CardCount c : set) {
@@ -679,6 +676,14 @@ public final class GameState implements State {
             }
             for (Potion potion : potions) {
                 for (Card possibleCard : potion.getPossibleGeneratedCards(prop, set.stream().map(CardCount::card).toList())) {
+                    newSet.add(new CardCount(possibleCard, 0));
+                    if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
+                        newSet.add(new CardCount(tmp.card, 0));
+                    }
+                }
+            }
+            for (Enemy enemy : enemies) {
+                for (Card possibleCard : enemy.getPossibleGeneratedCards(prop, set.stream().map(CardCount::card).toList())) {
                     newSet.add(new CardCount(possibleCard, 0));
                     if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
                         newSet.add(new CardCount(tmp.card, 0));
@@ -803,6 +808,17 @@ public final class GameState implements State {
                 deckArrLen -= 1;
                 drawnIdx = cardIdx;
             }
+            if (prop.sneckoDebuffCounterIdx >= 0 && getCounterForRead()[prop.sneckoDebuffCounterIdx] > 0) {
+                removeCardFromHand(cardIdx);
+                var snecko = prop.sneckoIdxes[cardIdx];
+                if (snecko[0] == 1) {
+                    cardIdx = snecko[1];
+                    addCardToHand(snecko[1]);
+                } else {
+                    cardIdx = snecko[getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(this, i)) + 1];
+                    addCardToHand(cardIdx);
+                }
+            }
             for (var handler : prop.onCardDrawnHandlers) {
                 handler.handle(this, cardIdx, -1, -1, false);
             }
@@ -874,7 +890,7 @@ public final class GameState implements State {
         int energyCost = overrideEnergyCost >= 0 ? overrideEnergyCost : getCardEnergyCost(cardIdx);
         if (prop.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[prop.velvetChokerCounterIndexIdx] >= 6) {
             return false;
-        } else if (prop.timeEaterCounterIdx >= 0 && getCounterForRead()[prop.timeEaterCounterIdx] == 12) {
+        } else if (prop.timeEaterCounterIdx >= 0 && getCounterForRead()[prop.timeEaterCounterIdx] == 12 && cardIdx != prop.wellLaidPlansCardIdx) {
             return false;
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
@@ -956,7 +972,7 @@ public final class GameState implements State {
             } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
                 int possibleChoicesCount = 0, lastIdx = 0;
                 for (int j = 0; j < hand.length; j++) {
-                    if (hand[j] > 0 && prop.cardDict[cardIdx].canSelectFromHand(prop.cardDict[j])) {
+                    if (hand[j] > 0 && prop.cardDict[cardIdx].canSelectCard(prop.cardDict[j])) {
                         possibleChoicesCount += 1;
                         lastIdx = j;
                     }
@@ -1003,8 +1019,10 @@ public final class GameState implements State {
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
                 int possibleChoicesCount = 0, lastIdx = 0;
                 for (int j = 0; j < deck.length; j++) {
-                    possibleChoicesCount += deck[j] > 0 ? 1 : 0;
-                    lastIdx = deck[j] > 0 ? j : lastIdx;
+                    if (deck[j] > 0 && prop.cardDict[cardIdx].canSelectCard(prop.cardDict[j])) {
+                        possibleChoicesCount += 1;
+                        lastIdx = j;
+                    }
                 }
                 if (selectIdx >= 0) {
                     setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
@@ -1051,6 +1069,8 @@ public final class GameState implements State {
                     runActionsInQueueIfNonEmpty();
                 }
             }
+        } else {
+            runActionsInQueueDuringCardPlayIfNonEmpty();
         }
         return cardPlayedSuccessfully || targetHalfAlive;
     }
@@ -1140,7 +1160,14 @@ public final class GameState implements State {
         }
     }
 
+    public void runActionsInQueueDuringCardPlayIfNonEmpty() {
+        while (gameActionDeque != null && gameActionDeque.size() > 0 && gameActionDeque.peekFirst().canHappenInsideCardPlay() && isTerminal() == 0) {
+            gameActionDeque.pollFirst().doAction(this);
+        }
+    }
+
     void startTurn() {
+        runActionsInQueueIfNonEmpty();
         turnNum++;
         playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
         playerTurnStartPotionCount = getPotionCount();
@@ -1188,6 +1215,7 @@ public final class GameState implements State {
         for (GameEventHandler handler : prop.preEndTurnHandlers) {
             handler.handle(this);
         }
+        runActionsInQueueIfNonEmpty();
         getPlayerForWrite().preEndTurn(this);
         triggerOrbsPassiveEndOfTurn();
         if (chosenCards != null) {
@@ -1218,6 +1246,11 @@ public final class GameState implements State {
                 if (prop.cardDict[i].alwaysDiscard) {
                     prop.cardDict[i].onDiscardEndOfTurn(this, handDup[i]);
                 }
+            }
+        }
+        runActionsInQueueIfNonEmpty();
+        for (int i = 0; i < hand.length; i++) {
+            if (handDup[i] > 0) {
                 if (prop.cardDict[i].ethereal) {
                     for (int count = 0; count < handDup[i]; count++) {
                         exhaustedCardHandle(i, false);
@@ -1444,7 +1477,7 @@ public final class GameState implements State {
             }
             if (currentAction.type() == GameActionType.PLAY_CARD) {
                 if (a[action].type() == GameActionType.SELECT_CARD_HAND && hand[a[action].idx()] > 0 &&
-                        prop.cardDict[currentAction.idx()].canSelectFromHand(prop.cardDict[action])) {
+                        prop.cardDict[currentAction.idx()].canSelectCard(prop.cardDict[action])) {
                     return true;
                 }
                 return currentAction.idx() == prop.wellLaidPlansCardIdx && a[action].type() == GameActionType.END_SELECT_CARD_HAND;
@@ -1472,7 +1505,7 @@ public final class GameState implements State {
             if (action < 0 || action >= a.length) {
                 return false;
             }
-            return deck[a[action].idx()] > 0;
+            return deck[a[action].idx()] > 0 && prop.cardDict[currentAction.idx()].canSelectCard(prop.cardDict[action]);
         } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -1554,6 +1587,10 @@ public final class GameState implements State {
                             totalCurHp += ao.isAwakened() ? ao.getHealth() : (ao.getHealth() + enemy.property.maxHealth);
                             totalMaxHp += enemy.property.maxHealth * 2;
                             addedMod = true;
+                        } else if (enemy instanceof EnemyCity.BronzeAutomaton ba) {
+                            if (ba.getMove() <= ba.SPAWN_ORBS) {
+                                totalCurHp += 60 * 2; // the orbs
+                            }
                         }
                         if (!addedMod) {
                             totalCurHp += enemy.getHealth();
@@ -2022,7 +2059,7 @@ public final class GameState implements State {
                 var p_str2 = policyMod != null && policyMod != policy ? formatFloat(policyMod[i]) : null;
                 var q_win_str = formatFloat(n[i] == 0 ? 0 : q_win[i] / n[i]);
                 var q_health_str = formatFloat(n[i] == 0 ? 0 : q_health[i] / n[i]);
-                var q_progress_str = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING ? formatFloat(n[i] == 0 ? 0 : q_progress[i] / n[i]) : null;
+                var q_progress_str = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING && q_progress != null ? formatFloat(n[i] == 0 ? 0 : q_progress[i] / n[i]) : null;
                 var q_str = formatFloat(n[i] == 0 ? 0 : q_comb[i] / n[i]);
                 if (!first) {
                     str.append(", ");
@@ -2082,6 +2119,10 @@ public final class GameState implements State {
         ns = new State[policy.length];
     }
 
+    private static boolean needChosenCardsInInput() {
+        return true;
+    }
+
     private int getNNInputLen() {
         int inputLen = 0;
         if (prop.preBattleScenarios != null) {
@@ -2099,9 +2140,9 @@ public final class GameState implements State {
         if (prop.selectFromExhaust) {
             inputLen += prop.realCardsLen;
         }
-//        if (chosenCards != null) {
-//            inputLen += chosenCards.length;
-//        }
+        if (needChosenCardsInInput() && chosenCards != null) {
+            inputLen += chosenCards.length;
+        }
         if (nightmareCards != null) {
             inputLen += prop.realCardsLen;
         }
@@ -2134,6 +2175,9 @@ public final class GameState implements State {
         }
         if (prop.playerDexterityEotCanChange) {
             inputLen += 1; // player lose dexterity eot
+        }
+        if (prop.playerPlatedArmorCanChange) {
+            inputLen += 1; // player plated armor
         }
         if (prop.playerCanGetVuln) {
             inputLen += 1; // player vulnerable
@@ -2285,6 +2329,9 @@ public final class GameState implements State {
         if (prop.selectFromExhaust) {
             str += "    " + prop.realCardsLen + " inputs for cards in exhaust\n";
         }
+        if (needChosenCardsInInput() && chosenCards != null) {
+            str += "    " + prop.realCardsLen + " inputs for cards that was chosen by Well Laid Plans\n";
+        }
         if (nightmareCards != null) {
             str += "    " + prop.realCardsLen + " inputs for cards that was targeted by nightmare\n";
         }
@@ -2319,6 +2366,9 @@ public final class GameState implements State {
         }
         if (prop.playerDexterityEotCanChange) {
             str += "    1 input to keep track of player lose dexterity eot debuff\n";
+        }
+        if (prop.playerPlatedArmorCanChange) {
+            str += "    1 input to keep track of player plated armor\n";
         }
         if (prop.playerCanGetVuln) {
             str += "    1 input to keep track of player vulnerable\n";
@@ -2500,11 +2550,11 @@ public final class GameState implements State {
                 x[idx++] = exhaust[i] / (float) 10.0;
             }
         }
-//        if (chosenCards != null) {
-//            for (int i = 0; i < chosenCards.length; i++) {
-//                x[idx++] = chosenCards[i] / (float) 10.0;
-//            }
-//        }
+        if (needChosenCardsInInput() && chosenCards != null) {
+            for (int i = 0; i < chosenCards.length; i++) {
+                x[idx++] = chosenCards[i] / (float) 10.0;
+            }
+        }
         if (nightmareCards != null) {
             for (int i = 0; i < nightmareCardsLen; i++) {
                 x[idx + nightmareCards[i]] += 0.1f;
@@ -2566,6 +2616,9 @@ public final class GameState implements State {
         }
         if (prop.playerDexterityEotCanChange) {
             x[idx++] = player.getLoseDexterityEot() / (float) 10.0;
+        }
+        if (prop.playerPlatedArmorCanChange) {
+            x[idx++] = player.getPlatedArmor() / (float) 10.0;
         }
         if (prop.playerCanGetVuln) {
             x[idx++] = player.getVulnerable() / (float) 10.0;
@@ -3171,6 +3224,20 @@ public final class GameState implements State {
             if (prop.eviscerateCounterIdx >= 0) {
                 getCounterForWrite()[prop.eviscerateCounterIdx] += 1;
             }
+            if (prop.hasTingsha) {
+                addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                    @Override public void doAction(GameState state) {
+                        var enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemySwordBoomerang);
+                        state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), 3, true);
+                    }
+                    @Override public boolean equals(Object o) {
+                        return o.getClass().equals(this.getClass());
+                    }
+                });
+            }
+            if (prop.hasToughBandages) {
+                getPlayerForWrite().gainBlockNotFromCardPlay(3);
+            }
         }
     }
 
@@ -3223,8 +3290,9 @@ public final class GameState implements State {
         getDrawOrderForWrite().pushOnTop(idx);
     }
 
-    public boolean playerDoDamageToEnemy(Enemy enemy, int dmg) {
+    public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
         var player = getPlayeForRead();
+        double dmg = dmgInt;
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
         }
@@ -3236,17 +3304,19 @@ public final class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getVulnerable() > 0) {
-            dmg = dmg + (prop.hasPaperPhrog ? dmg * 3 / 4 : dmg / 2);
+            dmg = dmg * (prop.hasPaperPhrog ? 1.75 : 1.5);
         }
         if (player.getWeak() > 0) {
-            dmg = dmg * 3 / 4;
+            dmg = dmg * 0.75;
         }
         if (enemy.isAlive()) {
-            enemy.damage(dmg, this);
+            int dmgDone = enemy.damage(dmg, this);
             if (enemy.getHealth() == 0) {
                 for (var handler : prop.onEnemyDeathHandlers) {
                     handler.handle(this, enemy);
                 }
+            } else if (dmgDone > 0 && prop.envenomCounterIdx >= 0 && getCounterForRead()[prop.envenomCounterIdx] > 0) {
+                enemy.applyDebuff(this, DebuffType.POISON, getCounterForRead()[prop.envenomCounterIdx]);
             }
             if (!enemy.isAlive()) {
                 adjustEnemiesAlive(-1);
@@ -3279,25 +3349,25 @@ public final class GameState implements State {
         }
     }
 
-    public int enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmg, int times) {
+    public int enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmgInt, int times) {
         int move = enemy.getMove();
         int totalDmgDealt = 0;
         var player = getPlayerForWrite();
-        dmg += enemy.getStrength();
+        double dmg = dmgInt + enemy.getStrength();
         if (dmg < 0) {
             dmg = 0;
         }
         if (player.getVulnerable() > 0) {
-            dmg = dmg + dmg / (prop.hasOddMushroom ? 4 : 2);
+            dmg *= 1.5;
         }
         if (enemy.getWeak() > 0) {
-            dmg = dmg * 3 / 4;
+            dmg *= prop.hasPaperCrane ? 0.6 : 0.75;
         }
         if (prop.shieldAndSpireFacingIdx >= 0) {
             if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
-                dmg = dmg + dmg / 2;
+                dmg *= 1.5;
             } else if (getCounterForRead()[prop.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
-                dmg = dmg + dmg / 2;
+                dmg *= 1.5;
             }
         }
         if (prop.intangibleCounterIdx >= 0 && getCounterForRead()[prop.intangibleCounterIdx] > 0 && dmg > 0) {
@@ -3307,7 +3377,7 @@ public final class GameState implements State {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return totalDmgDealt;
             }
-            int dmgDealt = player.damage(prop, dmg);
+            int dmgDealt = player.damage(prop, (int) dmg);
             totalDmgDealt += dmgDealt;
             if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : prop.onDamageHandlers) {
@@ -3728,6 +3798,7 @@ class ChanceState implements State {
         double prev_q_comb;
         double prev_q_win;
         double prev_q_health;
+        double prev_q_progress;
         boolean revisit = false;
 
         public Node(GameState state) {
@@ -3840,47 +3911,54 @@ class ChanceState implements State {
             if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
                     (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
                     (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
-                var new_total_q_comb = 0.0;
-                var new_total_q_win = 0.0;
-                var new_total_q_health = 0.0;
-                var new_total_q_progress = 0.0;
-                var nnn = 0;
-                for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
-                    new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-                    new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-                    new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-                    new_total_q_progress += entry.getValue().state.total_q_progress / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-                    nnn += entry.getValue().n;
-                }
-                new_total_q_comb = new_total_q_comb / nnn * total_n;
-                new_total_q_win = new_total_q_win / nnn * total_n;
-                new_total_q_health = new_total_q_health / nnn * total_n;
-                new_total_q_progress = new_total_q_progress / nnn * total_n;
-                v[GameState.V_WIN_IDX] = new_total_q_win - total_q_win;
-                v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
-                v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
-                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                    v[parentState.prop.fightProgressVIdx] = new_total_q_progress - total_q_progress;
-                }
+//                var new_total_q_comb = 0.0;
+//                var new_total_q_win = 0.0;
+//                var new_total_q_health = 0.0;
+//                var new_total_q_progress = 0.0;
+//                var nnn = 0;
+//                for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+//                    new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    new_total_q_progress += entry.getValue().state.total_q_progress / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    nnn += entry.getValue().n;
+//                }
+//                new_total_q_comb = new_total_q_comb / nnn * total_n;
+//                new_total_q_win = new_total_q_win / nnn * total_n;
+//                new_total_q_health = new_total_q_health / nnn * total_n;
+//                new_total_q_progress = new_total_q_progress / nnn * total_n;
+//                v[GameState.V_WIN_IDX] = new_total_q_win - total_q_win;
+//                v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
+//                v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
+//                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+//                    v[parentState.prop.fightProgressVIdx] = new_total_q_progress - total_q_progress;
+//                }
 
-//                var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
-//                var node_cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
-//                var node_cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
-//                var prev_q_comb = total_n == 1 ? 0 : total_q_comb / (total_n - 1);
-//                var prev_q_win = total_n == 1 ? 0 : total_q_win / (total_n - 1);
-//                var prev_q_health = total_n == 1 ? 0 :total_q_health / (total_n - 1);
-//                var new_q_comb = (prev_q_comb * (total_node_n - 1) - node.prev_q_comb * (node.n - 1))  / total_node_n + node_cur_q_comb * node.n / total_node_n;
-//                var new_q_win = (prev_q_win * (total_node_n - 1) - node.prev_q_win * (node.n - 1)) / total_node_n + node_cur_q_win * node.n / total_node_n;
-//                var new_q_health = (prev_q_health * (total_node_n - 1) - node.prev_q_health * (node.n - 1)) / total_node_n + node_cur_q_health * node.n / total_node_n;
-//                node.prev_q_comb = node_cur_q_comb;
-//                node.prev_q_win = node_cur_q_win;
-//                node.prev_q_health = node_cur_q_health;
-//                v[GameState.V_COMB_IDX] = new_q_comb * total_n - total_q_comb;
-//                v[GameState.V_WIN_IDX] = new_q_win * total_n - total_q_win;
-//                v[GameState.V_HEALTH_IDX] = new_q_health * total_n - total_q_health;
-//                            if (new_q_win * total_n - (total_q_win + v[GameState.V_WIN_IDX]) > 0.00000001) {
-//                                System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
-//                            }
+                var node_cur_q_comb = node.state.total_q_comb / (node.state.total_n + 1);
+                var node_cur_q_win = node.state.total_q_win / (node.state.total_n + 1);
+                var node_cur_q_health = node.state.total_q_health / (node.state.total_n + 1);
+                var node_cur_q_progress = node.state.total_q_progress / (node.state.total_n + 1);
+                var prev_q_comb = total_n == 1 ? 0 : total_q_comb / (total_n - 1);
+                var prev_q_win = total_n == 1 ? 0 : total_q_win / (total_n - 1);
+                var prev_q_health = total_n == 1 ? 0 : total_q_health / (total_n - 1);
+                var prev_q_progress = total_n == 1 ? 0 : total_q_progress / (total_n - 1);
+                var new_q_comb = (prev_q_comb * (total_node_n - 1) - node.prev_q_comb * (node.n - 1))  / total_node_n + node_cur_q_comb * node.n / total_node_n;
+                var new_q_win = (prev_q_win * (total_node_n - 1) - node.prev_q_win * (node.n - 1)) / total_node_n + node_cur_q_win * node.n / total_node_n;
+                var new_q_health = (prev_q_health * (total_node_n - 1) - node.prev_q_health * (node.n - 1)) / total_node_n + node_cur_q_health * node.n / total_node_n;
+                var new_q_progress = (prev_q_progress * (total_node_n - 1) - node.prev_q_progress * (node.n - 1)) / total_node_n + node_cur_q_progress * node.n / total_node_n;
+                node.prev_q_comb = node_cur_q_comb;
+                node.prev_q_win = node_cur_q_win;
+                node.prev_q_health = node_cur_q_health;
+                node.prev_q_progress = node_cur_q_progress;
+                v[GameState.V_COMB_IDX] = new_q_comb * total_n - total_q_comb;
+                v[GameState.V_WIN_IDX] = new_q_win * total_n - total_q_win;
+                v[GameState.V_HEALTH_IDX] = new_q_health * total_n - total_q_health;
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    v[parentState.prop.fightProgressVIdx] = new_q_progress * total_n - total_q_progress;
+                }
+                if (new_q_win * total_n - (total_q_win + v[GameState.V_WIN_IDX]) > 0.00000001) {
+                    System.out.println(prev_q_win + "," + total_n + "," + total_q_win / total_n);
+                }
             }
         }
         total_q_comb += v[GameState.V_COMB_IDX];

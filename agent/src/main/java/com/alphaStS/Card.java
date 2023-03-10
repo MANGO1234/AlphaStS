@@ -76,7 +76,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     void onExhaust(GameState state) {}
     List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
     int onPlayTransformCardIdx(GameProperties prop) { return -1; }
-    public boolean canSelectFromHand(Card card) { return true; }
+    public boolean canSelectCard(Card card) { return true; }
     public void startOfGameSetup(GameState state) {}
     public void onDiscard(GameState state) {}
     public void onDiscardEndOfTurn(GameState state, int count) {}
@@ -140,7 +140,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         void onExhaust(GameState state) { card.onExhaust(state); }
         List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
         int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
-        public boolean canSelectFromHand(Card card2) { return card.canSelectFromHand(card); }
+        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
@@ -194,7 +194,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         void onExhaust(GameState state) { card.onExhaust(state); }
         List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
         int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
-        public boolean canSelectFromHand(Card card2) { return card.canSelectFromHand(card); }
+        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
@@ -327,7 +327,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public boolean canSelectFromHand(Card card) {
+        @Override public boolean canSelectCard(Card card) {
             return card.getUpgrade() != null;
         }
 
@@ -832,7 +832,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             }
             int r = 1;
             if (diffCards > 1) {
-                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit, state) + 1;
+                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
                 state.setIsStochastic();
             }
             for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
@@ -1330,7 +1330,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public boolean canSelectFromHand(Card card) {
+        @Override public boolean canSelectCard(Card card) {
             return card.cardType == Card.ATTACK;
         }
 
@@ -1351,7 +1351,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public boolean canSelectFromHand(Card card) {
+        @Override public boolean canSelectCard(Card card) {
             return card.cardType == Card.ATTACK;
         }
 

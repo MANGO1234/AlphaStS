@@ -602,8 +602,67 @@ public class CardColorless {
     }
 
     // Sadistic Nature
-    // Secret Technique
-    // Secret Weapon
+
+    private static abstract class _SecretTechniqueT extends Card {
+        public _SecretTechniqueT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.removeCardFromDeck(idx);
+            state.addCardToHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return card.cardType == Card.SKILL;
+        }
+    }
+
+    public static class SecretTechnique extends CardColorless._SecretTechniqueT {
+        public SecretTechnique() {
+            super("Secret Technique", Card.SKILL, 0, true);
+        }
+    }
+
+    public static class SecretTechniqueP extends CardColorless._SecretTechniqueT {
+        public SecretTechniqueP() {
+            super("Secret Technique+", Card.SKILL, 0, false);
+        }
+    }
+
+    private static abstract class _SecretWeaponT extends Card {
+        public _SecretWeaponT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.removeCardFromDeck(idx);
+            state.addCardToHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return card.cardType == Card.ATTACK;
+        }
+    }
+
+    public static class SecretWeapon extends CardColorless._SecretWeaponT {
+        public SecretWeapon() {
+            super("Secret Weapon", Card.SKILL, 0, true);
+        }
+    }
+
+    public static class SecretWeaponP extends CardColorless._SecretWeaponT {
+        public SecretWeaponP() {
+            super("Secret Weapon+", Card.SKILL, 0, false);
+        }
+    }
+
     // The Bomb
 
     private static abstract class _ThinkingAheadT extends Card {

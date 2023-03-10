@@ -22,6 +22,9 @@ public class Player extends PlayerReadOnly {
         }
         health -= dmg;
         block = Math.max(0, block - n);
+        if (platedArmor > 0 && dmg > 0) {
+            platedArmor -= 1;
+        }
         if (health < 0) {
             health = 0;
         }
@@ -101,11 +104,15 @@ public class Player extends PlayerReadOnly {
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] += n;
         case CONSTRICTED -> state.getCounterForWrite()[state.prop.constrictedCounterIdx] += n;
         case DRAW_REDUCTION -> state.getCounterForWrite()[state.prop.drawReductionCounterIdx] += n;
+        case SNECKO -> state.getCounterForWrite()[state.prop.sneckoDebuffCounterIdx] = 1;
         }
     }
 
     public void preEndTurn(GameState state) {
         cannotDrawCard = false;
+        if (platedArmor > 0) {
+            gainBlockNotFromCardPlay(platedArmor);
+        }
     }
 
     public void endTurn(GameState state) {
@@ -141,6 +148,10 @@ public class Player extends PlayerReadOnly {
 
     public void gainArtifact(int n) {
         artifact += n;
+    }
+
+    public void gainPlatedArmor(int n) {
+        platedArmor += n;
     }
 
     public void setHealth(int hp) {

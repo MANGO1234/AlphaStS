@@ -14,10 +14,11 @@ public class PlayerReadOnly {
     protected int frail;
     protected int artifact;
     protected boolean cannotDrawCard;
-    protected int entangled;
     protected boolean hexed;
+    protected int entangled;
     protected int loseStrengthEot;
     protected int loseDexterityEot;
+    protected int platedArmor;
 
     public PlayerReadOnly(int health, int maxHealth) {
         this.maxHealth = maxHealth;
@@ -41,6 +42,7 @@ public class PlayerReadOnly {
         hexed = other.hexed;
         loseStrengthEot = other.loseStrengthEot;
         loseDexterityEot = other.loseDexterityEot;
+        platedArmor = other.platedArmor;
     }
 
     public int getMaxHealth() {
@@ -93,6 +95,10 @@ public class PlayerReadOnly {
 
     public int getLoseDexterityEot() {
         return loseDexterityEot;
+    }
+
+    public int getPlatedArmor() {
+        return platedArmor;
     }
 
     public boolean isEntangled() {

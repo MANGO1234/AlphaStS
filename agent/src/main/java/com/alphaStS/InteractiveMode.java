@@ -824,6 +824,27 @@ public class InteractiveMode {
         }
     }
 
+    static int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        int cardCount = 0;
+        var hand = state.getHand();
+        for (int i = 0; i < hand.length; i++) {
+            if (hand[i] > 0) {
+                System.out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
+                cardCount += state.hand[i];
+            }
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < cardCount) {
+                return r;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
     static int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int nonUpgradedCardCount = 0;
         for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
@@ -838,6 +859,27 @@ public class InteractiveMode {
             history.add(line);
             int r = parseInt(line, -1);
             if (r >= 0 && r < nonUpgradedCardCount) {
+                return r;
+            }
+            System.out.println("Unknown Command");
+        }
+    }
+
+    static int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        int cardCount = 0;
+        var hand = state.getHand();
+        for (int i = 0; i < hand.length; i++) {
+            if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
+                System.out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
+                cardCount += state.hand[i];
+            }
+        }
+        while (true) {
+            System.out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < cardCount) {
                 return r;
             }
             System.out.println("Unknown Command");
@@ -990,6 +1032,7 @@ public class InteractiveMode {
         }
         MatchSession session = new MatchSession(numberOfThreads, modelDir);
         session.startingAction = startingAction;
+        session.setMatchLogFile("matches.txt.gz");
         var prevRandomization = state.prop.randomization;
         if (randomizationScenario >= 0) {
             state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);
@@ -1374,9 +1417,23 @@ public class InteractiveMode {
                 return super.nextInt(bound, ctx, arg);
             }
             switch (ctx) {
-            case WarpedTongs -> {
+            case RandomCardHand -> {
+                try {
+                    return InteractiveMode.selectCardFromHand(reader, (GameState) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case RandomCardHandWarpedTongs -> {
                 try {
                     return InteractiveMode.selectCardForWarpedTongs(reader, (GameState) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case RandomCardHandMummifiedHand -> {
+                try {
+                    return InteractiveMode.selectCardForMummifiedHand(reader, (GameState) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

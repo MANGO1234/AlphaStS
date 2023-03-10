@@ -30,6 +30,7 @@ public class EnemyCity {
             property.canVulnerable = true;
             property.canFrail = true;
             property.canGainBlock = true;
+            property.isBoss = true;
         }
 
         public TheChamp(TheChamp other) {
@@ -162,7 +163,7 @@ public class EnemyCity {
     }
 
     public static class BronzeAutomaton extends Enemy {
-        private static final int SPAWN_ORBS = 0;
+        public static final int SPAWN_ORBS = 0;
         private static final int FLAIL_1 = 1;
         private static final int BOOST_1 = 2;
         private static final int FLAIL_2 = 3;
@@ -180,6 +181,7 @@ public class EnemyCity {
             property.canGainStrength = true;
             property.canGainBlock = true;
             property.hasArtifact = true;
+            property.isBoss = true;
         }
 
         public BronzeAutomaton(BronzeAutomaton other) {
@@ -190,14 +192,15 @@ public class EnemyCity {
             return new BronzeAutomaton(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
                     state.killEnemy(i, true);
                 }
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -300,17 +303,18 @@ public class EnemyCity {
             return stasisCardIdx;
         }
 
-        @Override public void damage(int n, GameState state) {
+        @Override public int damage(double n, GameState state) {
             int prevHealth = health;
-            super.damage(n, state);
+            var dmg = super.damage(n, state);
             if (prevHealth > 0 && health <= 0 && usedStasis && stasisCardIdx >= 0) {
                 state.addCardToHand(stasisCardIdx);
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             int prevHealth = health;
-            super.damage(n, state);
+            super.nonAttackDamage(n, blockable, state);
             if (prevHealth > 0 && health <= 0 && usedStasis && stasisCardIdx >= 0) {
                 state.addCardToHand(stasisCardIdx);
             }
@@ -487,14 +491,15 @@ public class EnemyCity {
             return new GremlinLeader(this);
         }
 
-        @Override public void damage(int n, GameState state) {
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (health <= 0) {
                 var enemies = state.getEnemiesForRead();
                 for (int i = 0; i < enemies.size(); i++) {
                     state.killEnemy(i, true);
                 }
             }
+            return dmg;
         }
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
@@ -899,7 +904,7 @@ public class EnemyCity {
             return 1;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards() {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
             return List.of(new Card.Wound());
         }
 
@@ -970,7 +975,7 @@ public class EnemyCity {
             return "Taskmaster";
         }
 
-        @Override public List<Card> getPossibleGeneratedCards() {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
             return List.of(new Card.Wound());
         }
     }
@@ -1007,19 +1012,18 @@ public class EnemyCity {
             return new Byrd(this);
         }
 
-        @Override public void damage(int n, GameState state) {
+        @Override public int damage(double n, GameState state) {
             if (flying == 0) {
-                super.damage(n, state);
-                return;
+                return super.damage(n, state);
             }
-            int oldHealth = health;
-            super.damage(n / 2, state);
-            if (oldHealth != health && flying > 0) {
+            var dmg = super.damage(n / 2, state);
+            if (dmg > 0 && flying > 0) {
                 flying--;
                 if (flying == 0) {
                     move = STUNNED;
                 }
             }
+            return dmg;
         }
 
         @Override public void startTurn(GameState state) {
@@ -1254,15 +1258,15 @@ public class EnemyCity {
             }
         }
 
-        @Override public void damage(int n, GameState state) {
-            var dmg = Math.max(0, n - block);
-            super.damage(n, state);
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
             if (dmg > 0) {
                 metallicize -= 1;
                 if (metallicize == 0) {
                     move = STUNNED;
                 }
             }
+            return dmg;
         }
 
         private int nextMove(GameState state, RandomGen random, int num) {
@@ -1318,6 +1322,96 @@ public class EnemyCity {
 
         public String getName() {
             return "Shelled Parasite";
+        }
+    }
+
+    public static class Snecko extends Enemy {
+        static int PERPLEXING_GLARE = 0;
+        static int TAIL_WHIP = 1;
+        static int BITE = 2;
+
+        public Snecko() {
+            this(125);
+        }
+
+        public Snecko(int health) {
+            super(health, 3, true);
+            property.canWeaken = true;
+            property.canVulnerable = true;
+        }
+
+        public Snecko(Snecko other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new Snecko(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == PERPLEXING_GLARE) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.SNECKO, 1);
+            } else if (move == TAIL_WHIP) {
+                state.enemyDoDamageToPlayer(this, 10, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+            } else if (move == BITE) {
+                state.enemyDoDamageToPlayer(this, 18, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move < 0) {
+                newMove = PERPLEXING_GLARE;
+            } else {
+                if (move == BITE && lastMove == BITE) {
+                    newMove = TAIL_WHIP;
+                } else {
+                    int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                    state.setIsStochastic();
+                    if (r < 40) {
+                        newMove = TAIL_WHIP;
+                    } else {
+                        newMove = BITE;
+                    }
+                }
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == PERPLEXING_GLARE) {
+                return "Confuse";
+            } else if (move == TAIL_WHIP) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 10) + "+Vulnerable 2+Weak 2";
+            } else if (move == BITE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 18);
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training, int difficulty) {
+            if (training) {
+                int b = random.nextInt(6, RandomGenCtx.Other, null) + 1;
+                health = (int) Math.round(((double) (health * b)) / 6);
+            } else {
+                health = 120 + random.nextInt(6, RandomGenCtx.Other, null);
+            }
+        }
+
+        public String getName() {
+            return "Snecko";
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
+            return prop.generateSneckoCards(cards);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.setupSneckoIndexes();
+            state.prop.registerSneckoDebuffCounter();
         }
     }
 

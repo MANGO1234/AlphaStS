@@ -17,6 +17,7 @@ public class GameProperties implements Cloneable {
     public boolean playerStrengthEotCanChange;
     public boolean playerDexterityEotCanChange;
     public boolean playerFocusCanChange;
+    public boolean playerPlatedArmorCanChange;
     public boolean playerCanGetVuln;
     public boolean playerCanGetWeakened;
     public boolean playerCanGetFrailed;
@@ -101,6 +102,8 @@ public class GameProperties implements Cloneable {
     public int wellLaidPlansCounterIdx = -1;
     public int blurCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
+    public int sneckoDebuffCounterIdx = -1;
+    public int envenomCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -121,6 +124,10 @@ public class GameProperties implements Cloneable {
     public boolean hasPaperPhrog;
     public boolean hasMeatOnBone;
     public boolean hasBurningBlood;
+    public boolean hasPaperCrane;
+    public boolean hasSneckoSkull;
+    public boolean hasTingsha;
+    public boolean hasToughBandages;
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
@@ -343,5 +350,66 @@ public class GameProperties implements Cloneable {
                 state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
             }
         });
+    }
+
+    public void registerSneckoDebuffCounter() {
+        registerCounter("Snecko", new GameProperties.CounterRegistrant() {
+            @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+                gameProperties.sneckoDebuffCounterIdx = idx;
+            }
+        }, new GameProperties.NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.prop.sneckoDebuffCounterIdx] > 0 ? 0.5f : 0.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+    }
+
+    public List<Card> generateSneckoCards(List<Card> cards) {
+        var newCards = new ArrayList<Card>();
+        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost)).forEach((x) -> {
+            for (int i = 0; i < 4; i++) {
+                if (x.energyCost == i) {
+                    continue;
+                }
+                newCards.add(new Card.CardPermChangeCost(x, i));
+            }
+        });
+        return newCards;
+    }
+
+    public void setupSneckoIndexes() {
+        sneckoIdxes = new int[cardDict.length][];
+        var m = new HashMap<String, int[]>();
+        for (int i = 0; i < cardDict.length; i++) {
+            var card = cardDict[i];
+            if (!(card instanceof Card.CardPermChangeCost) && !(card instanceof Card.CardTmpChangeCost)) {
+                var a = new int[] { 1, i, -1, -1, -1 };
+                m.put(card.cardName, a);
+                sneckoIdxes[i] = a;
+            }
+        }
+        for (int i = 0; i < cardDict.length; i++) {
+            var card = cardDict[i];
+            if (card instanceof Card.CardPermChangeCost c) {
+                var a = m.get(c.card.cardName);
+                a[++a[0]] = i;
+                sneckoIdxes[i] = a;
+            }
+        }
+        for (int i = 0; i < cardDict.length; i++) {
+            var card = cardDict[i];
+            if (card instanceof Card.CardTmpChangeCost c) {
+                if (c.card instanceof Card.CardPermChangeCost cc) {
+                    sneckoIdxes[i] = m.get(cc.card.cardName);
+                } else {
+                    sneckoIdxes[i] = m.get(c.card.cardName);
+                }
+            }
+        }
     }
 }

@@ -33,6 +33,7 @@ ITERATION_COUNT = int(getFlagValue('-c', 5))
 Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
 NODE_COUNT = int(getFlagValue('-n', 1000))
 SAVES_DIR = getFlagValue('-dir', './saves')
+SKIP_FIRST = getFlag('-skip_first')
 USE_KAGGLE = getFlagValue('-kaggle')
 KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
 KAGGLE_DATASET_NAME = 'dataset'
@@ -324,7 +325,7 @@ def update_kaggle_dataset(dataset_name, iteration):
             'SLOW_WINDOW_END': SLOW_WINDOW_END,
             'TRAINING_WINDOW_SIZE': TRAINING_WINDOW_SIZE,
         }, f)
-    output = subprocess.run(['kaggle', 'datasets', 'version', '-p', f'./kaggle/{dataset_name}', '--dir-mode', 'tar', '-m', 'update'], capture_output=True)
+    output = subprocess.run(['kaggle', 'datasets', 'version', '-p', f'./kaggle/{dataset_name}', '--delete-old-versions', '--dir-mode', 'tar', '-m', 'update'], capture_output=True)
     print(output.stderr.decode('ascii'))
     print(output.stdout.decode('ascii'))
     wait_for_kaggle_dataset_to_be_ready(dataset_name)
@@ -432,15 +433,18 @@ if DO_TRAINING:
         if training_info['iteration'] < CURRICULUM_TRAINING_END:
             agent_args += ['-curriculum_training']
         agent_output = ''
-        p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        while p.poll() is None:
-            line = p.stdout.readline().decode('ascii')
-            print(line, end='', flush=True)
-            agent_output += line
-        err = p.stderr.readlines()
-        if len(err) > 0:
-            [print(line.decode('ascii'), end='', flush=True) for line in err]
-            raise "agent error"
+        if not SKIP_FIRST:
+            p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            while p.poll() is None:
+                line = p.stdout.readline().decode('ascii')
+                print(line, end='', flush=True)
+                agent_output += line
+            err = p.stderr.readlines()
+            if len(err) > 0:
+                [print(line.decode('ascii'), end='', flush=True) for line in err]
+                raise "agent error"
+        else:
+            SKIP_FIRST = False
 
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             split = agent_output.find('--------------------')

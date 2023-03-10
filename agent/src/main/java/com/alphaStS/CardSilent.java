@@ -436,6 +436,7 @@ public class CardSilent {
             this.n = n;
             this.affectEnemyStrength = true;
             this.affectEnemyStrengthEot = true;
+            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -676,30 +677,21 @@ public class CardSilent {
                 state.playerDoDamageToEnemy(enemy, n);
             }
             var hand = state.getHand();
-            int diff = 0, c = 0;
+            int diffCards = 0, c = 0;
             for (int i = 0; i < hand.length; i++) {
-                if (hand[i] > 0) {
-                    diff++;
-                    c += hand[i];
-                }
+                c += hand[i];
+                diffCards += hand[i] > 0 ? 1 : 0;
             }
-            if (diff == 1) {
-                for (int i = 0; i < hand.length; i++) {
-                    if (hand[i] > 0) {
-                        state.discardCardFromHand(i);
-                        break;
-                    }
-                }
-            } else if (diff > 1) {
+            int r = 1;
+            if (diffCards > 1) {
+                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
                 state.setIsStochastic();
-                int k = state.getSearchRandomGen().nextInt(c, RandomGenCtx.TrueGrit);
-                int acc = 0;
-                for (int i = 0; i < hand.length; i++) {
-                    acc += hand[i];
-                    if (acc > k) {
-                        state.discardCardFromHand(i);
-                        break;
-                    }
+            }
+            for (int i = 0; i < hand.length; i++) {
+                r -= hand[i];
+                if (r <= 0) {
+                    state.discardCardFromHand(i);
+                    break;
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -832,7 +824,8 @@ public class CardSilent {
             int c = 0;
             var hand = state.getHand();
             for (int i = 0; i < hand.length; i++) {
-                for (int j = 0; j < hand[i]; j++) {
+                var upto = hand[i];
+                for (int j = 0; j < upto; j++) {
                     c++;
                     state.discardCardFromHand(i);
                 }
@@ -894,7 +887,7 @@ public class CardSilent {
         private final int n;
 
         public _ConcentrateT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.COMMON);
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
             this.selectFromHand = true;
             this.canDiscardAnyCard = true;
@@ -1096,9 +1089,16 @@ public class CardSilent {
             }
             state.addOnCardDrawnHandler("EndlessAgony", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
-                    if (isEndlessAgony[cardIdx]) {
-                        state.addCardToHand(cardIdx);
-                    }
+                    state.addGameActionToStartOfDeque(new GameEnvironmentAction() {
+                        @Override public void doAction(GameState state) {
+                            if (isEndlessAgony[cardIdx]) {
+                                state.addCardToHand(cardIdx);
+                            }
+                        }
+                        @Override public boolean canHappenInsideCardPlay() {
+                            return true;
+                        }
+                    });
                 }
             });
         }
@@ -1788,6 +1788,9 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getCounterForRead()[counterIdx] == 0) {
+                state.getCounterForWrite()[counterIdx] |= 1 << 9;
+            }
             state.getCounterForWrite()[counterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1814,6 +1817,10 @@ public class CardSilent {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     var card = state.prop.cardDict[cardIdx];
                     if (card.cardType != Card.SKILL || state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    if ((state.getCounterForRead()[counterIdx] & (1 << 9)) != 0) {
+                        state.getCounterForWrite()[counterIdx] ^= 1 << 9;
                         return;
                     }
                     if (cloned) {
@@ -1979,7 +1986,45 @@ public class CardSilent {
         }
     }
 
-    // Envenom
+    private static abstract class _EnvenomT extends Card {
+        public _EnvenomT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Envenom", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister() {
+                    state.prop.envenomCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Envenom extends _EnvenomT {
+        public Envenom() {
+            super("Envenom", Card.POWER, 2);
+        }
+    }
+
+    public static class EnvenomP extends _EnvenomT {
+        public EnvenomP() {
+            super("Envenom+", Card.POWER, 1);
+        }
+    }
 
     public static class GlassKnife extends Card {
         public int limit;
@@ -2267,7 +2312,8 @@ public class CardSilent {
             int c = 0;
             var hand = state.getHand();
             for (int i = 0; i < hand.length; i++) {
-                for (int j = 0; j < hand[i]; j++) {
+                var upto = hand[i];
+                for (int j = 0; j < upto; j++) {
                     c++;
                     state.discardCardFromHand(i);
                 }

@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.OrbType;
@@ -29,6 +30,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     private static boolean isEliteFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
             if (enemy.property.isElite) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isBossFight(GameState state) {
+        for (var enemy : state.getEnemiesForRead()) {
+            if (enemy.property.isBoss) {
                 return true;
             }
         }
@@ -142,7 +152,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (damageDealt <= 0) return;
                     if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
                         state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();
-                        state.draw(3);
+                        state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                            @Override public void doAction(GameState state) {
+                                state.draw(3);
+                            }
+                        });
                     }
                 }
             });
@@ -618,7 +632,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         }
                         if (diff > 1) {
                             state.setIsStochastic();
-                            var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.TrueGrit);
+                            var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
                             var acc = 0;
                             for (int i = 0; i < state.prop.realCardsLen; i++) {
                                 if (state.hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
@@ -930,7 +944,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Prayer Wheel: No need to implement
     // Shovel: No need to implement
     // todo: Stone Calendar
-    // todo: Threadand Needle
+
+    public static class ThreadAndNeedle extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.playerPlatedArmorCanChange = true;
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getPlayerForWrite().gainPlatedArmor(4);
+                }
+            });
+        }
+    }
 
     public static class Torii extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -1038,10 +1062,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class PhilosophersStone extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.energyRefill += 1;
-            var enemies = state.getEnemiesForWrite();
-            for (int i = 0; i < enemies.size(); i++) {
-                enemies.getForWrite(i).gainStrength(1);
-            }
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    var enemies = state.getEnemiesForWrite();
+                    for (int i = 0; i < enemies.size(); i++) {
+                        enemies.getForWrite(i).gainStrength(1);
+                    }
+                }
+            });
         }
     }
 
@@ -1067,7 +1095,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class SlaversCollar extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            if (isEliteFight(state)) {
+            if (isEliteFight(state) || isBossFight(state)) {
                 state.energyRefill += 1;
             }
         }
@@ -1177,7 +1205,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (nonUpgradedCardCount == 0) {
                         return;
                     }
-                    int r = state.getSearchRandomGen().nextInt(nonUpgradedCardCount, RandomGenCtx.WarpedTongs, state);
+                    int r = state.getSearchRandomGen().nextInt(nonUpgradedCardCount, RandomGenCtx.RandomCardHandWarpedTongs, state);
                     int acc = 0;
                     for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
                         if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
@@ -1260,6 +1288,34 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class ChampionBelt extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.hasChampionBelt = true;
+        }
+    }
+
+    // **********************************************************************************************************************************************
+    // ********************************************************** Snecko Specific Relics ************************************************************
+    // **********************************************************************************************************************************************
+
+    public static class PaperCrane extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasPaperCrane = true;
+        }
+    }
+
+    public static class SneckoSkull extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasSneckoSkull = true;
+        }
+    }
+
+    public static class Tingsha extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasTingsha = true;
+        }
+    }
+
+    public static class ToughBandages extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasToughBandages = true;
         }
     }
 

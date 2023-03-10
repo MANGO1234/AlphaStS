@@ -95,7 +95,7 @@ public abstract class EnemyReadOnly {
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
     public void gamePropertiesSetup(GameState state) {}
-    public List<Card> getPossibleGeneratedCards() { return List.of(); }
+    public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(); }
     public int getNNInputLen(GameProperties prop) { return 0; }
     public String getNNInputDesc(GameProperties prop) { return null; }
     public int writeNNInput(GameProperties prop, float[] input, int idx) { return 0; }
