@@ -676,7 +676,7 @@ public class CardSilent {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, n);
             }
-            var hand = state.getHand();
+            var hand = state.getHandForRead();
             int diffCards = 0, c = 0;
             for (int i = 0; i < hand.length; i++) {
                 c += hand[i];
@@ -822,7 +822,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int c = 0;
-            var hand = state.getHand();
+            var hand = state.getHandForRead();
             for (int i = 0; i < hand.length; i++) {
                 var upto = hand[i];
                 for (int j = 0; j < upto; j++) {
@@ -1246,7 +1246,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHand().length; i++) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
                 if (state.prop.cardDict[i].cardType == Card.SKILL) {
                     state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
                 }
@@ -1749,7 +1749,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var hand = state.getHand();
+            var hand = state.getHandForRead();
             for (int i = 0; i < state.prop.realCardsLen; i++) {
                 if (state.prop.tmpCostCardIdxes[i] >= 0) {
                     for (int j = 0; j < hand[i]; j++) {
@@ -2127,8 +2127,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0) {
                     return GameActionCtx.PLAY_CARD;
                 }
             }
@@ -2140,8 +2140,8 @@ public class CardSilent {
 
 
         public int energyCost(GameState state) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0) {
                     return -1;
                 }
             }
@@ -2310,7 +2310,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int c = 0;
-            var hand = state.getHand();
+            var hand = state.getHandForRead();
             for (int i = 0; i < hand.length; i++) {
                 var upto = hand[i];
                 for (int j = 0; j < upto; j++) {

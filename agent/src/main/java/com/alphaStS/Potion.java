@@ -322,8 +322,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             int cardsInHand = 0;
-            for (int i = 0; i < state.hand.length; i++) {
-                cardsInHand += state.hand[i];
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                cardsInHand += state.getHandForRead()[i];
             }
             if (cardsInHand >= GameState.HAND_LIMIT || idx < 0) {
                 return GameActionCtx.PLAY_CARD; // tested, potion is wasted
@@ -405,9 +405,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class BlessingOfTheForge extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
-                    state.hand[i] = 0;
+                if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
+                    state.getHandForWrite()[i] = 0;
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -573,7 +573,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class SneckoPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
-            var hand = Arrays.copyOf(state.getHand(), state.getHand().length);
+            var hand = Arrays.copyOf(state.getHandForRead(), state.getHandForRead().length);
             for (int i = 0; i < hand.length; i++) {
                 if (hand[i] > 0) {
                     for (int j = 0; j < hand[i]; j++) {

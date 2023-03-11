@@ -218,8 +218,8 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHand().length; i++) {
-                if (state.getHand()[i] > 0 && state.prop.cardDict[i].cardType == Card.ATTACK) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType == Card.ATTACK) {
                     return GameActionCtx.PLAY_CARD;
                 }
             }
@@ -360,9 +360,9 @@ public class CardColorless {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
-                    state.hand[i] = 0;
+                if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
+                    state.getHandForWrite()[i] = 0;
                 }
                 if (state.deck[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.deck[state.prop.upgradeIdxes[i]] += state.deck[i];
@@ -470,7 +470,7 @@ public class CardColorless {
 
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
-            count += state.getHand()[idx];
+            count += state.getHandForRead()[idx];
             if (idx < state.prop.realCardsLen) {
                 count += state.getDiscardForRead()[idx];
                 count += state.getDeck()[idx];

@@ -433,9 +433,9 @@ public class InteractiveMode {
             System.out.println("]");
         }
         System.out.println("Hand");
-        for (int i = 0; i < state.hand.length; i++) {
-            if (state.hand[i] > 0) {
-                System.out.println("  " + state.hand[i] + " " + state.prop.cardDict[i].cardName);
+        for (int i = 0; i < state.getHandForRead().length; i++) {
+            if (state.getHandForRead()[i] > 0) {
+                System.out.println("  " + state.getHandForRead()[i] + " " + state.prop.cardDict[i].cardName);
             }
         }
         if (state.chosenCards != null) {
@@ -804,7 +804,7 @@ public class InteractiveMode {
 
     private static void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
         for (int i = 0; i < state.prop.cardDict.length; i++) {
-            if (state.hand[i] > 0) {
+            if (state.getHandForRead()[i] > 0) {
                 System.out.println(i + ". " + state.prop.cardDict[i].cardName);
             }
         }
@@ -816,7 +816,7 @@ public class InteractiveMode {
                 return;
             }
             int idx = parseInt(line, -1);
-            if (idx >= 0 && idx < state.prop.cardDict.length && state.hand[idx] > 0) {
+            if (idx >= 0 && idx < state.prop.cardDict.length && state.getHandForRead()[idx] > 0) {
                 state.removeCardFromHand(idx);
                 return;
             }
@@ -826,11 +826,11 @@ public class InteractiveMode {
 
     static int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int cardCount = 0;
-        var hand = state.getHand();
+        var hand = state.getHandForRead();
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0) {
                 System.out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
-                cardCount += state.hand[i];
+                cardCount += state.getHandForRead()[i];
             }
         }
         while (true) {
@@ -848,9 +848,9 @@ public class InteractiveMode {
     static int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int nonUpgradedCardCount = 0;
         for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-            if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+            if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                 System.out.println(nonUpgradedCardCount + ". " + state.prop.cardDict[i].cardName);
-                nonUpgradedCardCount += state.hand[i];
+                nonUpgradedCardCount += state.getHandForRead()[i];
             }
         }
         while (true) {
@@ -867,11 +867,11 @@ public class InteractiveMode {
 
     static int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int cardCount = 0;
-        var hand = state.getHand();
+        var hand = state.getHandForRead();
         for (int i = 0; i < hand.length; i++) {
             if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
                 System.out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
-                cardCount += state.hand[i];
+                cardCount += hand[i];
             }
         }
         while (true) {

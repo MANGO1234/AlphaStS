@@ -344,9 +344,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.hand[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.hand[state.prop.upgradeIdxes[i]] += state.hand[i];
-                    state.hand[i] = 0;
+                if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
+                    state.getHandForWrite()[i] = 0;
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -393,8 +393,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public int energyCost(GameState state) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     return -1;
                 }
             }
@@ -414,8 +414,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public int energyCost(GameState state) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
                     return -1;
                 }
             }
@@ -656,7 +656,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 1; // 1 because the played card is not in hand anymore
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
-                count += state.hand[state.prop.strikeCardIdxes[i]];
+                count += state.getHandForRead()[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
                     count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
                     count += state.deck[state.prop.strikeCardIdxes[i]];
@@ -676,7 +676,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 1; // 1 because the played card is not in hand anymore
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
-                count += state.hand[state.prop.strikeCardIdxes[i]];
+                count += state.getHandForRead()[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
                     count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
                     count += state.deck[state.prop.strikeCardIdxes[i]];
@@ -826,17 +826,17 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             state.getPlayerForWrite().gainBlock(7);
             int c = 0;
             int diffCards = 0;
-            for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
-                c += state.hand[cardIdx];
-                diffCards += state.hand[cardIdx] > 0 ? 1 : 0;
+            for (int cardIdx = 0; cardIdx < state.getHandForRead().length; cardIdx++) {
+                c += state.getHandForRead()[cardIdx];
+                diffCards += state.getHandForRead()[cardIdx] > 0 ? 1 : 0;
             }
             int r = 1;
             if (diffCards > 1) {
                 r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
                 state.setIsStochastic();
             }
-            for (int cardIdx = 0; cardIdx < state.hand.length; cardIdx++) {
-                r -= state.hand[cardIdx];
+            for (int cardIdx = 0; cardIdx < state.getHandForRead().length; cardIdx++) {
+                r -= state.getHandForRead()[cardIdx];
                 if (r <= 0) {
                     state.exhaustCardFromHand(cardIdx);
                     break;
@@ -1012,8 +1012,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     for (int i = 0; i < 4; i++) {
                         state.deck[state.prop.bloodForBloodIndexes[i]] += state.deck[state.prop.bloodForBloodIndexes[i + 1]];
                         state.deck[state.prop.bloodForBloodIndexes[i + 1]] = 0;
-                        state.hand[state.prop.bloodForBloodIndexes[i]] += state.hand[state.prop.bloodForBloodIndexes[i + 1]];
-                        state.hand[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        if (state.getHandForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
+                            state.getHandForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getHandForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
+                            state.getHandForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        }
                         if (state.getDiscardForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
                             state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
                             state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
@@ -1057,8 +1059,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     for (int i = 0; i < 3; i++) {
                         state.deck[state.prop.bloodForBloodPIndexes[i]] += state.deck[state.prop.bloodForBloodPIndexes[i + 1]];
                         state.deck[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
-                        state.hand[state.prop.bloodForBloodPIndexes[i]] += state.hand[state.prop.bloodForBloodPIndexes[i + 1]];
-                        state.hand[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        if (state.getHandForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
+                            state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
+                            state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        }
                         if (state.getDiscardForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
                             state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
                             state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
@@ -2104,9 +2108,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.hand[i] > 0) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+                    while (state.getHandForRead()[i] > 0) {
                         state.exhaustCardFromHand(i);
                         state.getPlayerForWrite().gainBlock(5);
                     }
@@ -2122,9 +2126,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.hand[i] > 0) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+                    while (state.getHandForRead()[i] > 0) {
                         state.exhaustCardFromHand(i);
                         state.getPlayerForWrite().gainBlock(5);
                     }
@@ -2196,9 +2200,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.hand[i] > 0) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+                    while (state.getHandForRead()[i] > 0) {
                         state.exhaustCardFromHand(i);
                     }
                 }
@@ -2215,9 +2219,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.hand.length; i++) {
-                if (state.hand[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.hand[i] > 0) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+                    while (state.getHandForRead()[i] > 0) {
                         state.exhaustCardFromHand(i);
                     }
                 }
@@ -2706,7 +2710,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
-            count += state.getHand()[idx];
+            count += state.getHandForRead()[idx];
             if (idx < state.prop.realCardsLen) {
                 count += state.getDiscardForRead()[idx];
                 count += state.getDeck()[idx];
@@ -2827,8 +2831,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int[] cardToExhaust = new int[GameState.HAND_LIMIT];
             int k = 0;
-            for (int i = 0; i < state.hand.length; i++) {
-                for (int j = 0; j < state.hand[i]; j++) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                for (int j = 0; j < state.getHandForRead()[i]; j++) {
                     cardToExhaust[k++] = i;
                 }
             }
@@ -2853,8 +2857,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int[] cardToExhaust = new int[GameState.HAND_LIMIT];
             int k = 0;
-            for (int i = 0; i < state.hand.length; i++) {
-                for (int j = 0; j < state.hand[i]; j++) {
+            for (int i = 0; i < state.getHandForRead().length; i++) {
+                for (int j = 0; j < state.getHandForRead()[i]; j++) {
                     cardToExhaust[k++] = i;
                 }
             }
@@ -3250,7 +3254,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var _this = this;
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
-                    for (int i = 0; i < state.hand[cardIdx]; i++) {
+                    for (int i = 0; i < state.getHandForRead()[cardIdx]; i++) {
                         state.doNonAttackDamageToPlayer(1, false, _this);
                     }
                 }
@@ -3267,7 +3271,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override public void onDiscardEndOfTurn(GameState state, int count) {
             int numOfCards = 0;
-            for (int n : state.hand) {
+            for (int n : state.getHandForRead()) {
                 numOfCards += n;
             }
             for (int i = 0; i < count; i++) {

@@ -85,9 +85,9 @@ public class GameStateUtils {
         for (Card card : from.prop.cardDict) {
             cardMap.put(card, new CardChanges());
         }
-        for (int i = 0; i < from.hand.length; i++) {
-            if (from.hand[i] != to.hand[i]) {
-                cardMap.get(from.prop.cardDict[i]).hand = to.hand[i] - from.hand[i];
+        for (int i = 0; i < from.getHandForRead().length; i++) {
+            if (from.getHandForRead()[i] != to.getHandForRead()[i]) {
+                cardMap.get(from.prop.cardDict[i]).hand = to.getHandForRead()[i] - from.getHandForRead()[i];
             }
         }
         for (int i = 0; i < from.deck.length; i++) {

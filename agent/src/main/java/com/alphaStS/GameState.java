@@ -55,6 +55,7 @@ public final class GameState implements State {
     byte[] chosenCards; // well laid plans, todo: gambler's potion? to know about any potential discard effect
     short[] nightmareCards;
     short nightmareCardsLen;
+    private boolean handCloned;
     private boolean discardCloned;
     private boolean exhaustCloned;
     private boolean nightmareCardsCloned;
@@ -704,7 +705,7 @@ public final class GameState implements State {
         actionCtx = other.actionCtx;
         actionCardIsCloned = other.actionCardIsCloned;
         deck = Arrays.copyOf(other.deck, other.deck.length);
-        hand = Arrays.copyOf(other.hand, other.hand.length);
+        hand = other.hand;
         discard = other.discard;
         exhaust = other.exhaust;
         chosenCards = other.chosenCards;
@@ -730,6 +731,7 @@ public final class GameState implements State {
         other.enemiesCloned = false;
         other.counterCloned = false;
         other.playerCloned = false;
+        other.handCloned = false;
         other.discardCloned = false;
         other.exhaustCloned = false;
         other.drawOrderCloned = false;
@@ -794,7 +796,7 @@ public final class GameState implements State {
                 }
                 cardIdx = deckArr[i];
                 deck[deckArr[i]] -= 1;
-                hand[deckArr[i]] += 1;
+                getHandForWrite()[deckArr[i]] += 1;
                 if (prop.makingRealMove || prop.stateDescOn) {
                     if (firstRandomDraw) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Draw ");
@@ -843,7 +845,7 @@ public final class GameState implements State {
             var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
             i = deckArr[idx];
             deck[deckArr[idx]] -= 1;
-            hand[deckArr[idx]] += 1;
+            getHandForWrite()[deckArr[idx]] += 1;
             deckArr[idx] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
         }
@@ -896,7 +898,7 @@ public final class GameState implements State {
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (!cloned) {
-                hand[cardIdx] -= 1;
+                getHandForWrite()[cardIdx] -= 1;
             }
             if (energyCost < 0) {
                 if (runActionQueueOnEnd) {
@@ -1236,8 +1238,8 @@ public final class GameState implements State {
         if (prop.cardDict.length != prop.realCardsLen) {
             for (int i = prop.realCardsLen; i < prop.cardDict.length; i++) {
                 if (hand[i] > 0) {
-                    hand[prop.tmpCostCardIdxes[i]] += hand[i];
-                    hand[i] = 0;
+                    getHandForWrite()[prop.tmpCostCardIdxes[i]] += getHandForWrite()[i];
+                    getHandForWrite()[i] = 0;
                 }
             }
         }
@@ -1256,17 +1258,17 @@ public final class GameState implements State {
                     for (int count = 0; count < handDup[i]; count++) {
                         exhaustedCardHandle(i, false);
                     }
-                    hand[i] -= handDup[i];
+                    getHandForWrite()[i] -= handDup[i];
                     if (chosenCards != null && chosenCards[i] > 0) {
                         chosenCards[i] = 0;
                     }
                 } else if (!prop.cardDict[i].alwaysDiscard && chosenCards != null && chosenCards[i] > 0) {
                     getDiscardForWrite()[i] += handDup[i] - chosenCards[i];
-                    hand[i] -= handDup[i] - chosenCards[i];
+                    getHandForWrite()[i] -= handDup[i] - chosenCards[i];
                     chosenCards[i] = 0;
                 } else if (prop.cardDict[i].alwaysDiscard || isDiscardingCardEndOfTurn()) {
                     getDiscardForWrite()[i] += handDup[i];
-                    hand[i] -= handDup[i];
+                    getHandForWrite()[i] -= handDup[i];
                 }
             }
         }
@@ -1757,7 +1759,7 @@ public final class GameState implements State {
     }
 
     private int getNonExhaustCount(int cardIdx) {
-        return getHand()[cardIdx] + getDiscardForRead()[cardIdx] + getDeck()[cardIdx];
+        return getHandForRead()[cardIdx] + getDiscardForRead()[cardIdx] + getDeck()[cardIdx];
     }
 
     public int isTerminal() {
@@ -2902,7 +2904,7 @@ public final class GameState implements State {
 
     void exhaustCardFromHand(int cardIdx) {
         assert hand[cardIdx] > 0;
-        hand[cardIdx] -= 1;
+        getHandForWrite()[cardIdx] -= 1;
         exhaustedCardHandle(cardIdx, false);
     }
 
@@ -2924,7 +2926,7 @@ public final class GameState implements State {
     public boolean drawCardByIdx(int card_idx, boolean addToHand) {
         if (deck[card_idx] > 0) {
             deck[card_idx] -= 1;
-            if (addToHand) hand[card_idx] += 1;
+            if (addToHand) getHandForWrite()[card_idx] += 1;
             for (int i = 0; i < deckArrLen; i++) {
                 if (deckArr[i] == card_idx) {
                     deckArr[i] = deckArr[deckArrLen - 1];
@@ -2939,7 +2941,7 @@ public final class GameState implements State {
     public void undrawCardByIdx(int card_idx) {
         if (hand[card_idx] > 0) {
             deck[card_idx] += 1;
-            hand[card_idx] -= 1;
+            getHandForWrite()[card_idx] -= 1;
             deckArr[deckArrLen] = (short) card_idx;
             deckArrLen += 1;
         }
@@ -2948,7 +2950,7 @@ public final class GameState implements State {
     public void discardHand() {
         for (int i = 0; i < hand.length; i++) {
             getDiscardForWrite()[i] += hand[i];
-            hand[i] = 0;
+            getHandForWrite()[i] = 0;
         }
     }
 
@@ -3182,17 +3184,17 @@ public final class GameState implements State {
         if (cardsInHand >= GameState.HAND_LIMIT) {
             addCardToDiscard(idx);
         } else {
-            hand[idx]++;
+            getHandForWrite()[idx]++;
         }
     }
 
     private void addCardToHandNoCheck(int idx, int count) {
-        hand[idx] += count;
+        getHandForWrite()[idx] += count;
     }
 
     public void removeCardFromHand(int cardIndex) {
         if (hand[cardIndex] > 0) {
-            hand[cardIndex]--;
+            getHandForWrite()[cardIndex]--;
         }
     }
 
@@ -3210,7 +3212,7 @@ public final class GameState implements State {
 
     public void discardCardFromHand(int cardIndex) {
         if (hand[cardIndex] > 0) {
-            hand[cardIndex]--;
+            getHandForWrite()[cardIndex]--;
             if (cardIndex >= prop.realCardsLen) {
                 getDiscardForWrite()[prop.tmpCostCardIdxes[cardIndex]]++;
             } else {
@@ -3277,7 +3279,7 @@ public final class GameState implements State {
     }
 
     public void setCardCountInHand(int cardIndex, int count) {
-        hand[cardIndex] = (byte) count;
+        getHandForWrite()[cardIndex] = (byte) count;
     }
 
     public void putCardOnTopOfDeck(int idx) {
@@ -3439,7 +3441,15 @@ public final class GameState implements State {
         return deck;
     }
 
-    public byte[] getHand() {
+    public byte[] getHandForRead() {
+        return hand;
+    }
+
+    public byte[] getHandForWrite() {
+        if (!handCloned) {
+            hand = Arrays.copyOf(hand, hand.length);
+            handCloned = true;
+        }
         return hand;
     }
 
