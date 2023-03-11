@@ -433,13 +433,13 @@ public interface GameStateRandomization {
 
         @Override public void randomize(GameState state, int r) {
             if (r == 0) {
-                state.potionsState[potionIdx * 3] = 0;
-                state.potionsState[potionIdx * 3 + 1] = startingRatio;
-                state.potionsState[potionIdx * 3 + 2] = 0;
+                state.getPotionsStateForWrite()[potionIdx * 3] = 0;
+                state.getPotionsStateForWrite()[potionIdx * 3 + 1] = startingRatio;
+                state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 0;
             } else {
-                state.potionsState[potionIdx * 3] = 1;
-                state.potionsState[potionIdx * 3 + 1] = (short) (startingRatio - 5 * (r - 1));
-                state.potionsState[potionIdx * 3 + 2] = 1;
+                state.getPotionsStateForWrite()[potionIdx * 3] = 1;
+                state.getPotionsStateForWrite()[potionIdx * 3 + 1] = (short) (startingRatio - 5 * (r - 1));
+                state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 1;
             }
         }
 

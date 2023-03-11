@@ -59,7 +59,6 @@ public final class GameState implements State {
     private boolean handCloned;
     private boolean discardCloned;
     private boolean exhaustCloned;
-    private boolean nightmareCardsCloned;
     private boolean enemiesCloned;
     private EnemyList enemies;
     public int enemiesAlive;
@@ -70,6 +69,7 @@ public final class GameState implements State {
     private boolean counterCloned;
     private int[] counter;
     int select1OutOf3CardsIdxes; // 3 bytes inside an int
+    boolean potionsStateCloned;
     short[] potionsState;
     public boolean searchRandomGenCloned;
     public RandomGen searchRandomGen;
@@ -153,11 +153,11 @@ public final class GameState implements State {
 
     public void addNightmareCard(int idx) {
         if (idx >= prop.realCardsLen) {
-            nightmareCards = cardIdxArrAdd(nightmareCards, !nightmareCardsCloned, nightmareCardsLen, prop.tmpCostCardIdxes[idx]);
+            nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, prop.tmpCostCardIdxes[idx]);
         } else {
-            nightmareCards = cardIdxArrAdd(nightmareCards, !nightmareCardsCloned, nightmareCardsLen, idx);
+            nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, idx);
         }
-        nightmareCards = cardIdxArrAdd(nightmareCards, !nightmareCardsCloned, nightmareCardsLen, idx);
+        nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, idx);
         nightmareCardsLen++;
     }
 
@@ -728,7 +728,7 @@ public final class GameState implements State {
         if (other.gameActionDeque != null && other.gameActionDeque.size() > 0) {
             gameActionDeque = new CircularArray<>(other.gameActionDeque);
         }
-        potionsState = other.potionsState != null ? Arrays.copyOf(other.potionsState, other.potionsState.length) : null;
+        potionsState = other.potionsState;
         other.enemiesCloned = false;
         other.counterCloned = false;
         other.playerCloned = false;
@@ -737,6 +737,7 @@ public final class GameState implements State {
         other.discardCloned = false;
         other.exhaustCloned = false;
         other.drawOrderCloned = false;
+        other.potionsStateCloned = false;
 
         buffs = other.buffs;
         counter = other.counter;
@@ -1381,7 +1382,7 @@ public final class GameState implements State {
             addCardToHand(action.idx());
             setActionCtx(GameActionCtx.PLAY_CARD, null, false);
         } else if (action.type() == GameActionType.USE_POTION) {
-            potionsState[action.idx() * 3] = 0;
+            getPotionsStateForWrite()[action.idx() * 3] = 0;
             usePotion(action, -1);
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             prop.preBattleScenarios.randomize(this, prop.preBattleGameScenariosList.get(action.idx()).getKey());
@@ -3537,10 +3538,6 @@ public final class GameState implements State {
     }
 
     public EnemyListReadOnly getEnemiesForRead() {
-//        if (!enemiesCloned) {
-//            enemies = new EnemyList(enemies);
-//            enemiesCloned = true;
-//        }
         return enemies;
     }
 
@@ -3574,6 +3571,18 @@ public final class GameState implements State {
             drawOrderCloned = true;
         }
         return drawOrder;
+    }
+
+    public short[] getPotionsStateForRead() {
+        return potionsState;
+    }
+
+    public short[] getPotionsStateForWrite() {
+        if (!potionsStateCloned) {
+            potionsState = Arrays.copyOf(potionsState, potionsState.length);
+            potionsStateCloned = true;
+        }
+        return potionsState;
     }
 
     public GameAction getCurrentAction() {
