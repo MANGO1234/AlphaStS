@@ -55,6 +55,7 @@ public final class GameState implements State {
     byte[] chosenCards; // well laid plans, todo: gambler's potion? to know about any potential discard effect
     short[] nightmareCards;
     short nightmareCardsLen;
+    private boolean deckCloned;
     private boolean handCloned;
     private boolean discardCloned;
     private boolean exhaustCloned;
@@ -350,7 +351,7 @@ public final class GameState implements State {
             deck[i] = (byte) cards.get(i).count();
             deckArrLen += deck[i];
         }
-        deckArr = new short[deckArrLen + 60];
+        deckArr = new short[deckArrLen];
         int idx = 0;
         for (short i = 0; i < cards.size(); i++) {
             for (int j = 0; j < cards.get(i).count(); j++) {
@@ -704,14 +705,14 @@ public final class GameState implements State {
 
         actionCtx = other.actionCtx;
         actionCardIsCloned = other.actionCardIsCloned;
-        deck = Arrays.copyOf(other.deck, other.deck.length);
+        deck = other.deck;
         hand = other.hand;
         discard = other.discard;
         exhaust = other.exhaust;
         chosenCards = other.chosenCards;
         nightmareCards = other.nightmareCards;
         nightmareCardsLen = other.nightmareCardsLen;
-        deckArr = Arrays.copyOf(other.deckArr, other.deckArr.length);
+        deckArr = other.deckArr;
         deckArrLen = other.deckArrLen;
         energy = other.energy;
         turnNum = other.turnNum;
@@ -732,6 +733,7 @@ public final class GameState implements State {
         other.counterCloned = false;
         other.playerCloned = false;
         other.handCloned = false;
+        other.deckCloned = false;
         other.discardCloned = false;
         other.exhaustCloned = false;
         other.drawOrderCloned = false;
@@ -792,10 +794,10 @@ public final class GameState implements State {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
                 setIsStochastic();
                 if (prop.makingRealMove && prop.doingComparison) {
-                    Arrays.sort(this.deckArr, 0, this.deckArrLen);
+                    Arrays.sort(getDeckArrForWrite(), 0, this.deckArrLen);
                 }
                 cardIdx = deckArr[i];
-                deck[deckArr[i]] -= 1;
+                getDeckForWrite()[deckArr[i]] -= 1;
                 getHandForWrite()[deckArr[i]] += 1;
                 if (prop.makingRealMove || prop.stateDescOn) {
                     if (firstRandomDraw) {
@@ -807,7 +809,7 @@ public final class GameState implements State {
                     }
                     getStateDesc().append(prop.cardDict[deckArr[i]].cardName);
                 }
-                deckArr[i] = deckArr[deckArrLen - 1];
+                getDeckArrForWrite()[i] = deckArr[deckArrLen - 1];
                 deckArrLen -= 1;
                 drawnIdx = cardIdx;
             }
@@ -844,9 +846,9 @@ public final class GameState implements State {
         } else {
             var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
             i = deckArr[idx];
-            deck[deckArr[idx]] -= 1;
+            getDeckForWrite()[deckArr[idx]] -= 1;
             getHandForWrite()[deckArr[idx]] += 1;
-            deckArr[idx] = deckArr[deckArrLen - 1];
+            getDeckArrForWrite()[idx] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
         }
         return i;
@@ -1759,7 +1761,7 @@ public final class GameState implements State {
     }
 
     private int getNonExhaustCount(int cardIdx) {
-        return getHandForRead()[cardIdx] + getDiscardForRead()[cardIdx] + getDeck()[cardIdx];
+        return getHandForRead()[cardIdx] + getDiscardForRead()[cardIdx] + getDeckForRead()[cardIdx];
     }
 
     public int isTerminal() {
@@ -2925,11 +2927,11 @@ public final class GameState implements State {
 
     public boolean drawCardByIdx(int card_idx, boolean addToHand) {
         if (deck[card_idx] > 0) {
-            deck[card_idx] -= 1;
+            getDeckForWrite()[card_idx] -= 1;
             if (addToHand) getHandForWrite()[card_idx] += 1;
             for (int i = 0; i < deckArrLen; i++) {
                 if (deckArr[i] == card_idx) {
-                    deckArr[i] = deckArr[deckArrLen - 1];
+                    getDeckArrForWrite()[i] = deckArr[deckArrLen - 1];
                     deckArrLen -= 1;
                     return true;
                 }
@@ -2940,10 +2942,10 @@ public final class GameState implements State {
 
     public void undrawCardByIdx(int card_idx) {
         if (hand[card_idx] > 0) {
-            deck[card_idx] += 1;
             getHandForWrite()[card_idx] -= 1;
-            deckArr[deckArrLen] = (short) card_idx;
+            getDeckArrForWrite(deckArrLen + 1)[deckArrLen] = (short) card_idx;
             deckArrLen += 1;
+            getDeckForWrite()[card_idx] += 1;
         }
     }
 
@@ -2958,9 +2960,10 @@ public final class GameState implements State {
         var discard = getDiscardForWrite();
         for (short i = 0; i < discard.length; i++) {
             for (int j = 0; j < discard[i]; j++) {
-                deckArr[deckArrLen++] = i;
+                deckArrLen += 1;
+                getDeckArrForWrite(deckArrLen)[deckArrLen - 1] = i;
             }
-            deck[i] += discard[i];
+            getDeckForWrite()[i] += discard[i];
             discard[i] = 0;
         }
     }
@@ -3243,18 +3246,19 @@ public final class GameState implements State {
     }
 
     public void addCardToDeck(int idx) {
-        deck[idx]++;
-        deckArr[deckArrLen++] = (short) idx;
+        deckArrLen += 1;
+        getDeckArrForWrite(deckArrLen)[deckArrLen - 1] = (short) idx;
+        getDeckForWrite()[idx]++;
     }
 
     public void removeCardFromDeck(int cardIndex) {
         if (deck[cardIndex] > 0) {
-            deck[cardIndex]--;
+            getDeckForWrite()[cardIndex]--;
             for (int i = 0; i < deckArrLen; i++) {
                 if (deckArr[i] == cardIndex) {
                     var tmp = deckArr[i];
-                    deckArr[i] = deckArr[deckArrLen - 1];
-                    deckArr[deckArrLen - 1] = tmp;
+                    getDeckArrForWrite()[i] = deckArr[deckArrLen - 1];
+                    getDeckArrForWrite()[deckArrLen - 1] = tmp;
                     deckArrLen -= 1;
                     break;
                 }
@@ -3286,8 +3290,9 @@ public final class GameState implements State {
         if (idx >= prop.realCardsLen) {
             idx = prop.tmpCostCardIdxes[idx];
         }
-        deck[idx]++;
-        deckArr[deckArrLen++] = (short) idx;
+        deckArrLen += 1;
+        getDeckArrForWrite(deckArrLen)[deckArrLen - 1] = (short) idx;
+        getDeckForWrite()[idx]++;
         getDrawOrderForWrite().pushOnTop(idx);
     }
 
@@ -3437,8 +3442,45 @@ public final class GameState implements State {
         }
     }
 
-    public byte[] getDeck() {
+    public byte[] getDeckForRead() {
         return deck;
+    }
+
+    public byte[] getDeckForWrite() {
+        if (!deckCloned) {
+            deckArr = Arrays.copyOf(deckArr, deckArr.length);
+            deck = Arrays.copyOf(deck, deck.length);
+            deckCloned = true;
+        }
+        return deck;
+    }
+
+    public short[] getDeckArrForRead() {
+        return deckArr;
+    }
+
+    public short[] getDeckArrForWrite() {
+        if (!deckCloned) {
+            deckArr = Arrays.copyOf(deckArr, deckArr.length);
+            deck = Arrays.copyOf(deck, deck.length);
+            deckCloned = true;
+        }
+        return deckArr;
+    }
+
+    public short[] getDeckArrForWrite(int newArrLen) {
+        if (newArrLen >= deckArr.length) {
+            deckArr = Arrays.copyOf(deckArr, deckArr.length + 10);
+            if (!deckCloned) {
+                deck = Arrays.copyOf(deck, deck.length);
+                deckCloned = true;
+            }
+        } else if (!deckCloned) {
+            deckArr = Arrays.copyOf(deckArr, deckArr.length);
+            deck = Arrays.copyOf(deck, deck.length);
+            deckCloned = true;
+        }
+        return deckArr;
     }
 
     public byte[] getHandForRead() {

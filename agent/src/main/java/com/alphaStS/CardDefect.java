@@ -210,7 +210,7 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             var exhaust = state.getExhaustForWrite();
             for (int i = limit - 1; i > 0; i--) {
-                for (int j = 0; j < state.getDeck()[state.prop.clawIndexes[i - 1]]; j++) {
+                for (int j = 0; j < state.getDeckForRead()[state.prop.clawIndexes[i - 1]]; j++) {
                     state.addCardToDeck(state.prop.clawIndexes[i]);
                 }
                 state.setCardCountInDeck(state.prop.clawIndexes[i - 1], 0);
@@ -272,7 +272,7 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             var exhaust = state.getExhaustForWrite();
             for (int i = limit - 1; i > 0; i--) {
-                for (int j = 0; j < state.getDeck()[state.prop.clawPIndexes[i - 1]]; j++) {
+                for (int j = 0; j < state.getDeckForRead()[state.prop.clawPIndexes[i - 1]]; j++) {
                     state.addCardToDeck(state.prop.clawPIndexes[i]);
                 }
                 state.setCardCountInDeck(state.prop.clawPIndexes[i - 1], 0);

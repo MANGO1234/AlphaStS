@@ -322,7 +322,7 @@ public class EnemyCity {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STASIS) {
-                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscardForWrite() : state.getDeck();
+                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscardForWrite() : state.getDeckForWrite();
                 var cardRarityCounts = new int[Card.RARE + 1];
                 var cardRarityDiffCount = new int[Card.RARE + 1];
                 for (int i = 0; i < cards.length; i++) {

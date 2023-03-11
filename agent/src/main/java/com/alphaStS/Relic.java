@@ -774,7 +774,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DuVuDoll extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            for (int i : state.deckArr) {
+            for (int i : state.getDeckArrForRead()) {
                 if (state.prop.cardDict[i].cardType == Card.CURSE) {
                     state.getPlayerForWrite().gainStrength(1);
                 }

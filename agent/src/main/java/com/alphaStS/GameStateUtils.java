@@ -90,9 +90,9 @@ public class GameStateUtils {
                 cardMap.get(from.prop.cardDict[i]).hand = to.getHandForRead()[i] - from.getHandForRead()[i];
             }
         }
-        for (int i = 0; i < from.deck.length; i++) {
-            if (from.deck[i] != to.deck[i]) {
-                cardMap.get(from.prop.cardDict[i]).deck = to.deck[i] - from.deck[i];
+        for (int i = 0; i < from.getDeckForRead().length; i++) {
+            if (from.getDeckForRead()[i] != to.getDeckForRead()[i]) {
+                cardMap.get(from.prop.cardDict[i]).deck = to.getDeckForRead()[i] - from.getDeckForRead()[i];
             }
         }
         for (int i = 0; i < from.getDiscardForRead().length; i++) {

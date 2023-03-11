@@ -777,7 +777,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 gainBlock(12);
             } else if (move == INFERNAL_1) {
                 state.enemyDoDamageToPlayer(this, 3, 6);
-                var deck = state.getDeck();
+                var deck = state.getDeckForRead();
                 state.setCardCountInDeck(state.prop.burnPCardIdx, deck[state.prop.burnPCardIdx] + deck[state.prop.burnCardIdx]);
                 state.setCardCountInDeck(state.prop.burnCardIdx, 0);
                 var hand = state.getHandForRead();

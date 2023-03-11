@@ -85,9 +85,9 @@ public class InteractiveMode {
             } else if (line.startsWith("#")) {
             } else if (line.equals("a")) {
                 System.out.println("Deck");
-                for (int i = 0; i < state.deck.length; i++) {
-                    if (state.deck[i] > 0) {
-                        System.out.println("  " + state.deck[i] + " " + state.prop.cardDict[i].cardName);
+                for (int i = 0; i < state.getDeckForRead().length; i++) {
+                    if (state.getDeckForRead()[i] > 0) {
+                        System.out.println("  " + state.getDeckForRead()[i] + " " + state.prop.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("s")) {

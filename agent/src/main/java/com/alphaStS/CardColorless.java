@@ -364,9 +364,9 @@ public class CardColorless {
                     state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
                     state.getHandForWrite()[i] = 0;
                 }
-                if (state.deck[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.deck[state.prop.upgradeIdxes[i]] += state.deck[i];
-                    state.deck[i] = 0;
+                if (state.getDeckForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getDeckForWrite()[state.prop.upgradeIdxes[i]] += state.getDeckForWrite()[i];
+                    state.getDeckForWrite()[i] = 0;
                 }
                 if (state.getDiscardForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.getDiscardForWrite()[state.prop.upgradeIdxes[i]] += state.getDiscardForWrite()[i];
@@ -378,8 +378,8 @@ public class CardColorless {
                 }
             }
             for (int i = 0; i < state.deckArrLen; i++) {
-                if (state.prop.upgradeIdxes[state.deckArr[i]] >= 0) {
-                    state.deckArr[i] = (short) state.prop.upgradeIdxes[state.deckArr[i]];
+                if (state.prop.upgradeIdxes[state.getDeckArrForRead()[i]] >= 0) {
+                    state.getDeckArrForWrite()[i] = (short) state.prop.upgradeIdxes[state.getDeckArrForRead()[i]];
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -473,7 +473,7 @@ public class CardColorless {
             count += state.getHandForRead()[idx];
             if (idx < state.prop.realCardsLen) {
                 count += state.getDiscardForRead()[idx];
-                count += state.getDeck()[idx];
+                count += state.getDeckForRead()[idx];
             }
             return count;
         }

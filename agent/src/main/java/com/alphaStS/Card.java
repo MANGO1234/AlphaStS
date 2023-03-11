@@ -659,7 +659,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 count += state.getHandForRead()[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
                     count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
-                    count += state.deck[state.prop.strikeCardIdxes[i]];
+                    count += state.getDeckForRead()[state.prop.strikeCardIdxes[i]];
                 }
             }
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + 2 * count);
@@ -679,7 +679,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 count += state.getHandForRead()[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
                     count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
-                    count += state.deck[state.prop.strikeCardIdxes[i]];
+                    count += state.getDeckForRead()[state.prop.strikeCardIdxes[i]];
                 }
             }
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + 3 * count);
@@ -1010,8 +1010,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = 0; i < 4; i++) {
-                        state.deck[state.prop.bloodForBloodIndexes[i]] += state.deck[state.prop.bloodForBloodIndexes[i + 1]];
-                        state.deck[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        if (state.getDeckForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
+                            state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
+                            state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        }
                         if (state.getHandForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
                             state.getHandForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getHandForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
                             state.getHandForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
@@ -1057,8 +1059,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = 0; i < 3; i++) {
-                        state.deck[state.prop.bloodForBloodPIndexes[i]] += state.deck[state.prop.bloodForBloodPIndexes[i + 1]];
-                        state.deck[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        if (state.getDeckForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
+                            state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
+                            state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        }
                         if (state.getHandForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
                             state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
                             state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
@@ -2713,7 +2717,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             count += state.getHandForRead()[idx];
             if (idx < state.prop.realCardsLen) {
                 count += state.getDiscardForRead()[idx];
-                count += state.getDeck()[idx];
+                count += state.getDeckForRead()[idx];
             }
             return count;
         }
