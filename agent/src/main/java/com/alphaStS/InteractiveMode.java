@@ -92,9 +92,9 @@ public class InteractiveMode {
                 }
             } else if (line.equals("s")) {
                 System.out.println("Discard");
-                for (int i = 0; i < state.discard.length; i++) {
-                    if (state.discard[i] > 0) {
-                        System.out.println("  " + state.discard[i] + " " + state.prop.cardDict[i].cardName);
+                for (int i = 0; i < state.getDiscardForRead().length; i++) {
+                    if (state.getDiscardForRead()[i] > 0) {
+                        System.out.println("  " + state.getDiscardForRead()[i] + " " + state.prop.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("x")) {

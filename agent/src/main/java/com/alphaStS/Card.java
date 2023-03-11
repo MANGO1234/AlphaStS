@@ -570,7 +570,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9);
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
-                state.discard[idx] -= 1;
+                state.removeCardFromDiscard(idx);
                 state.putCardOnTopOfDeck(idx);
                 return GameActionCtx.PLAY_CARD;
             }
@@ -590,7 +590,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9);
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
-                state.discard[idx] -= 1;
+                state.removeCardFromDiscard(idx);
                 state.putCardOnTopOfDeck(idx);
                 return GameActionCtx.PLAY_CARD;
             }
@@ -658,7 +658,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
-                    count += state.discard[state.prop.strikeCardIdxes[i]];
+                    count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
                     count += state.deck[state.prop.strikeCardIdxes[i]];
                 }
             }
@@ -678,7 +678,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 count += state.hand[state.prop.strikeCardIdxes[i]];
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
-                    count += state.discard[state.prop.strikeCardIdxes[i]];
+                    count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
                     count += state.deck[state.prop.strikeCardIdxes[i]];
                 }
             }
@@ -1014,8 +1014,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                         state.deck[state.prop.bloodForBloodIndexes[i + 1]] = 0;
                         state.hand[state.prop.bloodForBloodIndexes[i]] += state.hand[state.prop.bloodForBloodIndexes[i + 1]];
                         state.hand[state.prop.bloodForBloodIndexes[i + 1]] = 0;
-                        state.discard[state.prop.bloodForBloodIndexes[i]] += state.discard[state.prop.bloodForBloodIndexes[i + 1]];
-                        state.discard[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        if (state.getDiscardForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
+                            state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
+                            state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
+                        }
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.prop.bloodForBloodIndexes[i]] += exhaust[state.prop.bloodForBloodIndexes[i + 1]];
                         exhaust[state.prop.bloodForBloodIndexes[i + 1]] = 0;
@@ -1057,8 +1059,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                         state.deck[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
                         state.hand[state.prop.bloodForBloodPIndexes[i]] += state.hand[state.prop.bloodForBloodPIndexes[i + 1]];
                         state.hand[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
-                        state.discard[state.prop.bloodForBloodPIndexes[i]] += state.discard[state.prop.bloodForBloodPIndexes[i + 1]];
-                        state.discard[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        if (state.getDiscardForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
+                            state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
+                            state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
+                        }
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.prop.bloodForBloodPIndexes[i]] += exhaust[state.prop.bloodForBloodPIndexes[i + 1]];
                         exhaust[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
@@ -2704,7 +2708,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             int count = 0;
             count += state.getHand()[idx];
             if (idx < state.prop.realCardsLen) {
-                count += state.getDiscard()[idx];
+                count += state.getDiscardForRead()[idx];
                 count += state.getDeck()[idx];
             }
             return count;

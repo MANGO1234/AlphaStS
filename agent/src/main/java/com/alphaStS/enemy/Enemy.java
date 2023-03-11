@@ -783,7 +783,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 var hand = state.getHand();
                 state.setCardCountInHand(state.prop.burnPCardIdx, hand[state.prop.burnPCardIdx] + hand[state.prop.burnCardIdx]);
                 state.setCardCountInHand(state.prop.burnCardIdx, 0);
-                var discard = state.getDiscard();
+                var discard = state.getDiscardForRead();
                 state.setCardCountInDiscard(state.prop.burnPCardIdx, discard[state.prop.burnPCardIdx] + discard[state.prop.burnCardIdx]);
                 state.setCardCountInDiscard(state.prop.burnCardIdx, 0);
                 state.addCardToDiscard(state.prop.burnPCardIdx);

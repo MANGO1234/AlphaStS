@@ -368,9 +368,9 @@ public class CardColorless {
                     state.deck[state.prop.upgradeIdxes[i]] += state.deck[i];
                     state.deck[i] = 0;
                 }
-                if (state.discard[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.discard[state.prop.upgradeIdxes[i]] += state.discard[i];
-                    state.discard[i] = 0;
+                if (state.getDiscardForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
+                    state.getDiscardForWrite()[state.prop.upgradeIdxes[i]] += state.getDiscardForWrite()[i];
+                    state.getDiscardForWrite()[i] = 0;
                 }
                 if (state.getExhaustForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.getExhaustForWrite()[state.prop.upgradeIdxes[i]] += state.getExhaustForRead()[i];
@@ -472,7 +472,7 @@ public class CardColorless {
             int count = 0;
             count += state.getHand()[idx];
             if (idx < state.prop.realCardsLen) {
-                count += state.getDiscard()[idx];
+                count += state.getDiscardForRead()[idx];
                 count += state.getDeck()[idx];
             }
             return count;

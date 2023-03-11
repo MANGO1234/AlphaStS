@@ -216,8 +216,10 @@ public class CardDefect {
                 state.setCardCountInDeck(state.prop.clawIndexes[i - 1], 0);
                 state.hand[state.prop.clawIndexes[i]] += state.hand[state.prop.clawIndexes[i - 1]];
                 state.hand[state.prop.clawIndexes[i - 1]] = 0;
-                state.discard[state.prop.clawIndexes[i]] += state.discard[state.prop.clawIndexes[i - 1]];
-                state.discard[state.prop.clawIndexes[i - 1]] = 0;
+                if (state.getDiscardForRead()[state.prop.clawIndexes[i - 1]] > 0) {
+                    state.getDiscardForWrite()[state.prop.clawIndexes[i]] += state.getDiscardForWrite()[state.prop.clawIndexes[i - 1]];
+                    state.getDiscardForWrite()[state.prop.clawIndexes[i - 1]] = 0;
+                }
                 exhaust[state.prop.clawIndexes[i]] += exhaust[state.prop.clawIndexes[i - 1]];
                 exhaust[state.prop.clawIndexes[i - 1]] = 0;
             }
@@ -274,8 +276,10 @@ public class CardDefect {
                 state.setCardCountInDeck(state.prop.clawPIndexes[i - 1], 0);
                 state.hand[state.prop.clawPIndexes[i]] += state.hand[state.prop.clawPIndexes[i - 1]];
                 state.hand[state.prop.clawPIndexes[i - 1]] = 0;
-                state.discard[state.prop.clawPIndexes[i]] += state.discard[state.prop.clawPIndexes[i - 1]];
-                state.discard[state.prop.clawPIndexes[i - 1]] = 0;
+                if (state.getDiscardForRead()[state.prop.clawPIndexes[i - 1]] > 0) {
+                    state.getDiscardForWrite()[state.prop.clawPIndexes[i]] += state.getDiscardForWrite()[state.prop.clawPIndexes[i - 1]];
+                    state.getDiscardForWrite()[state.prop.clawPIndexes[i - 1]] = 0;
+                }
                 exhaust[state.prop.clawPIndexes[i]] += exhaust[state.prop.clawPIndexes[i - 1]];
                 exhaust[state.prop.clawPIndexes[i - 1]] = 0;
             }

@@ -49,13 +49,14 @@ public final class GameState implements State {
     byte[] deck;
     byte[] hand;
     byte[] discard;
-    byte[] chosenCards; // well laid plans, todo: gambler's potion? to know about any potential discard effect
-    short[] nightmareCards;
-    short nightmareCardsLen;
-    private boolean exhaustCloned;
     private byte[] exhaust;
     short[] deckArr;
     int deckArrLen;
+    byte[] chosenCards; // well laid plans, todo: gambler's potion? to know about any potential discard effect
+    short[] nightmareCards;
+    short nightmareCardsLen;
+    private boolean discardCloned;
+    private boolean exhaustCloned;
     private boolean nightmareCardsCloned;
     private boolean enemiesCloned;
     private EnemyList enemies;
@@ -164,7 +165,8 @@ public final class GameState implements State {
         if (o == null || getClass() != o.getClass())
             return false;
         GameState gameState = (GameState) o;
-        var e = energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && actionCardIsCloned == gameState.actionCardIsCloned && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Arrays.equals(chosenCards, gameState.chosenCards) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs) && cardIdxArrEqual(nightmareCards, nightmareCardsLen, gameState.nightmareCards, gameState.nightmareCardsLen);
+        var e = energy == gameState.energy && energyRefill == gameState.energyRefill && enemiesAlive == gameState.enemiesAlive && currentAction == gameState.currentAction && buffs == gameState.buffs && select1OutOf3CardsIdxes == gameState.select1OutOf3CardsIdxes && Arrays.equals(counter, gameState.counter) && actionCtx == gameState.actionCtx && actionCardIsCloned == gameState.actionCardIsCloned && Arrays.equals(deck, gameState.deck) && Arrays.equals(hand, gameState.hand) && Arrays.equals(
+                discard, gameState.discard) && Arrays.equals(exhaust, gameState.exhaust) && Arrays.equals(chosenCards, gameState.chosenCards) && Objects.equals(enemies, gameState.enemies) && Objects.equals(player, gameState.player) && Objects.equals(drawOrder, gameState.drawOrder) && Arrays.equals(potionsState, gameState.potionsState) && focus == gameState.focus && Arrays.equals(orbs, gameState.orbs) && cardIdxArrEqual(nightmareCards, nightmareCardsLen, gameState.nightmareCards, gameState.nightmareCardsLen);
         if (e) {
             boolean dequeIsNull = gameActionDeque == null || gameActionDeque.size() == 0;
             boolean oDequeIsNull = gameState.gameActionDeque == null || gameState.gameActionDeque.size() == 0;
@@ -703,7 +705,7 @@ public final class GameState implements State {
         actionCardIsCloned = other.actionCardIsCloned;
         deck = Arrays.copyOf(other.deck, other.deck.length);
         hand = Arrays.copyOf(other.hand, other.hand.length);
-        discard = Arrays.copyOf(other.discard, other.discard.length);
+        discard = other.discard;
         exhaust = other.exhaust;
         chosenCards = other.chosenCards;
         nightmareCards = other.nightmareCards;
@@ -728,6 +730,7 @@ public final class GameState implements State {
         other.enemiesCloned = false;
         other.counterCloned = false;
         other.playerCloned = false;
+        other.discardCloned = false;
         other.exhaustCloned = false;
         other.drawOrderCloned = false;
 
@@ -1059,7 +1062,7 @@ public final class GameState implements State {
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (prop.cardDict[cardIdx].cardType != Card.POWER) {
-                    discard[cardIdx] += 1;
+                    getDiscardForWrite()[cardIdx] += 1;
                 }
             }
             if (prop.normalityCounterIdx < 0 || counter[prop.normalityCounterIdx] < 3) { // todo: hack
@@ -1258,11 +1261,11 @@ public final class GameState implements State {
                         chosenCards[i] = 0;
                     }
                 } else if (!prop.cardDict[i].alwaysDiscard && chosenCards != null && chosenCards[i] > 0) {
-                    discard[i] += handDup[i] - chosenCards[i];
+                    getDiscardForWrite()[i] += handDup[i] - chosenCards[i];
                     hand[i] -= handDup[i] - chosenCards[i];
                     chosenCards[i] = 0;
                 } else if (prop.cardDict[i].alwaysDiscard || isDiscardingCardEndOfTurn()) {
-                    discard[i] += handDup[i];
+                    getDiscardForWrite()[i] += handDup[i];
                     hand[i] -= handDup[i];
                 }
             }
@@ -1754,7 +1757,7 @@ public final class GameState implements State {
     }
 
     private int getNonExhaustCount(int cardIdx) {
-        return getHand()[cardIdx] + getDiscard()[cardIdx] + getDeck()[cardIdx];
+        return getHand()[cardIdx] + getDiscardForRead()[cardIdx] + getDeck()[cardIdx];
     }
 
     public int isTerminal() {
@@ -2908,7 +2911,7 @@ public final class GameState implements State {
             cardIdx = prop.tmpCostCardIdxes[cardIdx];
         }
         if (fromCardPlay && prop.hasStrangeSpoon && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
-            discard[cardIdx] += 1;
+            getDiscardForWrite()[cardIdx] += 1;
             return;
         }
         prop.cardDict[cardIdx].onExhaust(this);
@@ -2944,12 +2947,13 @@ public final class GameState implements State {
 
     public void discardHand() {
         for (int i = 0; i < hand.length; i++) {
-            discard[i] += hand[i];
+            getDiscardForWrite()[i] += hand[i];
             hand[i] = 0;
         }
     }
 
     public void reshuffle() {
+        var discard = getDiscardForWrite();
         for (short i = 0; i < discard.length; i++) {
             for (int j = 0; j < discard[i]; j++) {
                 deckArr[deckArrLen++] = i;
@@ -3194,23 +3198,23 @@ public final class GameState implements State {
 
     public void addCardToDiscard(int cardIndex) {
         if (cardIndex >= prop.realCardsLen) {
-            discard[prop.tmpCostCardIdxes[cardIndex]]++;
+            getDiscardForWrite()[prop.tmpCostCardIdxes[cardIndex]]++;
         } else {
-            discard[cardIndex]++;
+            getDiscardForWrite()[cardIndex]++;
         }
     }
 
     public void removeCardFromDiscard(int cardIndex) {
-        discard[cardIndex]--;
+        getDiscardForWrite()[cardIndex]--;
     }
 
     public void discardCardFromHand(int cardIndex) {
         if (hand[cardIndex] > 0) {
             hand[cardIndex]--;
             if (cardIndex >= prop.realCardsLen) {
-                discard[prop.tmpCostCardIdxes[cardIndex]]++;
+                getDiscardForWrite()[prop.tmpCostCardIdxes[cardIndex]]++;
             } else {
-                discard[cardIndex]++;
+                getDiscardForWrite()[cardIndex]++;
             }
             prop.cardDict[cardIndex].onDiscard(this);
             if (prop.sneakyStrikeCounterIdx >= 0) {
@@ -3269,7 +3273,7 @@ public final class GameState implements State {
     }
 
     public void setCardCountInDiscard(int cardIndex, int count) {
-        discard[cardIndex] = (byte) count;
+        getDiscardForWrite()[cardIndex] = (byte) count;
     }
 
     public void setCardCountInHand(int cardIndex, int count) {
@@ -3439,7 +3443,15 @@ public final class GameState implements State {
         return hand;
     }
 
-    public byte[] getDiscard() {
+    public byte[] getDiscardForRead() {
+        return discard;
+    }
+
+    public byte[] getDiscardForWrite() {
+        if (!discardCloned) {
+            discard = Arrays.copyOf(discard, discard.length);
+            discardCloned = true;
+        }
         return discard;
     }
 
