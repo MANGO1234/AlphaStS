@@ -1006,6 +1006,9 @@ public class MatchSession {
                 break;
             }
             int action = MCTS.getActionWithMaxNodesOrTerminal(ss, null);
+            if (ss.ns == null) {
+                break;
+            }
             if (ss.ns[action] instanceof ChanceState cs) {
                 cs1 = cs;
                 break;

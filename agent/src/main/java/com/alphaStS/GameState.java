@@ -97,12 +97,10 @@ public final class GameState implements State {
     double[] q_win; // total v_win value propagated from each child
     double[] q_health; // total v_health value propagated from each child
     double[] q_progress; // total v_progress value propagated from each child
-    double[][] q_other; // total q value propagated from each child
     double total_q_comb; // sum of q_win array
     double total_q_win; // sum of q_win array
     double total_q_health; // sum of q_health _array
     double total_q_progress; // sum of q_progress _array
-    double[] total_q_other; // sum of q_other array
     int[] n; // visit count for each child
     State[] ns; // the state object for each child (either GameState or ChanceState)
     int total_n; // sum of n array
@@ -1397,8 +1395,6 @@ public final class GameState implements State {
         }
         legalActions = null;
         v_other = null;
-        q_other = null;
-        total_q_other = null;
         policy = null;
         if (isStochastic) {
             if (!(Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || prop.testNewFeature)) || (action.type() == GameActionType.BEGIN_TURN || action.type() == GameActionType.BEGIN_BATTLE)) {
@@ -2051,7 +2047,7 @@ public final class GameState implements State {
         }
         str.append(")");
 //        str.append(", var=").append(formatFloat(varianceS / total_n));
-        if (policy != null) {
+        if (n != null) {
             str.append(", q/p/n=[");
             first = true;
             for (int i = 0; i < getLegalActions().length; i++) {
@@ -2107,16 +2103,6 @@ public final class GameState implements State {
         v_health = output.v_health();
         v_win = output.v_win();
         v_other = output.v_other();
-        q_comb = new double[policy.length];
-        q_health = new double[policy.length];
-        q_progress = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING ? new double[policy.length] : null;
-        q_win = new double[policy.length];
-        if (v_other != null) {
-            q_other = new double[policy.length][v_other.length];
-            total_q_other = new double[v_other.length];
-        }
-        n = new int[policy.length];
-        ns = new State[policy.length];
     }
 
     private static boolean needChosenCardsInInput() {
@@ -3147,6 +3133,17 @@ public final class GameState implements State {
         searchFrontier = null;
     }
 
+    public void initSearchInfo() {
+        q_comb = new double[policy.length];
+        q_health = new double[policy.length];
+        q_progress = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING ? new double[policy.length] : null;
+        q_win = new double[policy.length];
+        n = new int[policy.length];
+        ns = new State[policy.length];
+//        transpositions = new HashMap<>();
+//        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
+    }
+
     public void clearAllSearchInfo() {
         policy = null;
         v_health = 0;
@@ -3156,11 +3153,9 @@ public final class GameState implements State {
         q_health = null;
         q_progress = null;
         q_win = null;
-        q_other = null;
         total_q_comb = 0;
         total_q_win = 0;
         total_q_health = 0;
-        total_q_other = null;
         n = null;
         ns = null;
         total_n = 0;

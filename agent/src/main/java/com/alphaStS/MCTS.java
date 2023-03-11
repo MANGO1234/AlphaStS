@@ -85,6 +85,9 @@ public class MCTS {
             state.varianceS = 0;
             return;
         }
+        if (state.n == null) {
+            state.initSearchInfo();
+        }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
         selectAction(state, policy, training, isRoot);
@@ -377,6 +380,9 @@ public class MCTS {
             numberOfPossibleActions = state.getLegalActions().length;
             return;
         }
+        if (state.n == null) {
+            state.initSearchInfo();
+        }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
         selectAction(state, policy, training, isRoot);
@@ -521,6 +527,9 @@ public class MCTS {
             state.total_q_health = v[GameState.V_HEALTH_IDX];
             numberOfPossibleActions = state.getLegalActions().length;
             return;
+        }
+        if (state.n == null) {
+            state.initSearchInfo();
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
@@ -735,6 +744,9 @@ public class MCTS {
             state.varianceM = v[GameState.V_COMB_IDX];
             state.varianceS = 0;
             return;
+        }
+        if (state.n == null) {
+            state.initSearchInfo();
         }
 
         float[] policy = state.policyMod;
