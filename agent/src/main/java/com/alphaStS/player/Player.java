@@ -51,13 +51,14 @@ public class Player extends PlayerReadOnly {
         return healed;
     }
 
-    public void gainBlock(int n) {
+    public int gainBlock(int n) {
         n += dexterity;
         n = frail > 0? (n - (n + 3) / 4) : n;
         block += n;
         if (block > 999) {
             block = 999;
         }
+        return n;
     }
 
     public void gainBlockNotFromCardPlay(int n) {

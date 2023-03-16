@@ -217,7 +217,7 @@ public class GameStateUtils {
             }
         } else if (s instanceof GameState state) {
             var list = new ArrayList<int[]>();
-            for (int i = 0; i < state.n.length; i++) {
+            for (int i = 0; i < (state.n == null ? 0 : state.n.length); i++) {
                 list.add(new int[] { state.n[i], i });
             }
             list.sort((a, b) -> b[0] != a[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));

@@ -10,6 +10,7 @@ import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
+import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 
 public class MCTS {
@@ -257,6 +258,70 @@ public class MCTS {
                 v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
                     double q_progress_total = state.q_progress[action] / state.n[action] * (state.total_n + 1);
+                    v[state.prop.fightProgressVIdx] = q_progress_total - state.total_q_progress;
+                }
+            }
+        }
+        else if (false && state.prop.testNewFeature && state.total_n >= 100) {
+            var maxAction = -1;
+            var maxN = 0;
+            var totalQComb = 0.0;
+            var totalQWin = 0.0;
+            var totalQHealth = 0.0;
+            var totalQProgress = 0.0;
+            for (int i = 0; i < state.n.length; i++) {
+                if (state.n[i] > maxN) {
+                    maxAction = i;
+                    maxN = state.n[i];
+                }
+                totalQComb += state.q_comb[i];
+                totalQWin += state.q_win[i];
+                totalQHealth += state.q_health[i];
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    totalQProgress += state.q_progress[i];
+                }
+            }
+            if (totalQComb / state.total_n < state.q_comb[maxAction] / state.n[maxAction]) {
+                if (state.total_n < 500) {
+                    double q_win_total = (totalQWin + state.v_win) * (1 - (state.total_n - 100) / 400.0);
+                    double q_health_total = (totalQHealth + state.v_health) * (1 - (state.total_n - 100) / 400.0);
+                    double q_comb_total = (totalQComb + state.get_q()) * (1 - (state.total_n - 100) / 400.0);
+                    q_win_total += state.q_win[maxAction] / state.n[maxAction] * (state.total_n + 1) * (((state.total_n - 100) / 400.0));
+                    q_health_total += state.q_health[maxAction] / state.n[maxAction] * (state.total_n + 1) * (((state.total_n - 100) / 400.0));
+                    q_comb_total += state.q_comb[maxAction] / state.n[maxAction] * (state.total_n + 1) * (((state.total_n - 100) / 400.0));
+                    v[GameState.V_COMB_IDX] = q_comb_total - state.total_q_comb;
+                    v[GameState.V_WIN_IDX] = q_win_total - state.total_q_win;
+                    v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
+                    if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                        double[] k = new double[32];
+                        state.get_v(k);
+                        double q_progress_total = (totalQProgress + k[state.prop.fightProgressVIdx]) * (1 - (state.total_n - 100) / 400.0);
+                        q_progress_total += state.q_progress[maxAction] / state.n[maxAction] * (state.total_n + 1) * (((state.total_n - 100) / 400.0));
+                        v[state.prop.fightProgressVIdx] = q_progress_total - state.total_q_progress;
+                    }
+                } else {
+                    double q_win_total = state.q_win[maxAction] / state.n[maxAction] * (state.total_n + 1);
+                    double q_health_total = state.q_health[maxAction] / state.n[maxAction] * (state.total_n + 1);
+                    double q_comb_total = state.q_comb[maxAction] / state.n[maxAction] * (state.total_n + 1);
+                    v[GameState.V_COMB_IDX] = q_comb_total - state.total_q_comb;
+                    v[GameState.V_WIN_IDX] = q_win_total - state.total_q_win;
+                    v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
+                    if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                        double q_progress_total = state.q_progress[maxAction] / state.n[maxAction] * (state.total_n + 1);
+                        v[state.prop.fightProgressVIdx] = q_progress_total - state.total_q_progress;
+                    }
+                }
+            } else {
+                double q_win_total = totalQWin + state.v_win;
+                double q_health_total = totalQHealth + state.v_health;
+                double q_comb_total = totalQComb + state.get_q();
+                v[GameState.V_COMB_IDX] = q_comb_total - state.total_q_comb;
+                v[GameState.V_WIN_IDX] = q_win_total - state.total_q_win;
+                v[GameState.V_HEALTH_IDX] = q_health_total - state.total_q_health;
+                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    double[] k = new double[32];
+                    state.get_v(k);
+                    double q_progress_total = totalQProgress + k[state.prop.fightProgressVIdx];
                     v[state.prop.fightProgressVIdx] = q_progress_total - state.total_q_progress;
                 }
             }

@@ -910,6 +910,18 @@ public class MatchSession {
                 state.prop.makingRealMove = false;
             } else {
                 state.prop.makingRealMove = true;
+                if (false) {
+                    if (state.ns[action] instanceof ChanceState) {
+                        HashSet<GameState> ns = new HashSet<>();
+                        for (int i = 0; i < 100; i++) {
+                            ns.add(getNextState(state, mcts, action, !quickPass));
+                        }
+                        var a = ns.stream().collect(Collectors.toList());
+                        state = a.get(state.prop.random.nextInt(a.size(), null));
+                    } else {
+                        state = getNextState(state, mcts, action, !quickPass);
+                    }
+                }
                 state = getNextState(state, mcts, action, !quickPass);
                 state.prop.makingRealMove = false;
             }

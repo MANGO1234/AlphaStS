@@ -293,8 +293,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
-            state.getCounterForWrite()[counterIdx] += n;
+            state.getCounterForWrite()[counterIdx] += state.getPlayerForWrite().gainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -312,7 +311,7 @@ public class CardSilent {
             state.addStartOfTurnHandler("DodgeAndRoll", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }

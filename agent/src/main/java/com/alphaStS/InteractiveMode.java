@@ -6,13 +6,29 @@ import com.alphaStS.utils.Tuple;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
     public static void interactiveStart(GameState origState, String modelDir) throws IOException {
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        List<String> history = new ArrayList<>();
+        BufferedWriter writer;
+        System.out.println("Model: " + modelDir);
+        System.out.println("****************************************************");
+        try {
+            interactiveStartH(origState, modelDir, history);
+        } catch (Exception e) {
+            writer = new BufferedWriter(new FileWriter(modelDir + "/session-crash.txt"));
+            writer.write(history.stream().collect(Collectors.joining("\n")));
+            writer.close();
+            throw e;
+        }
+    }
+
+    private static void interactiveStartH(GameState origState, String modelDir, List<String> history) throws IOException {
+        InteractiveReader reader = new InteractiveReader(new InputStreamReader(System.in));
         var states = new ArrayList<GameState>();
         GameState state = origState;
         Model model = null;
@@ -21,16 +37,9 @@ public class InteractiveMode {
         } catch (Exception e) {}
         MCTS mcts = new MCTS();
         mcts.setModel(model);
-        List<String> history = new ArrayList<>();
-        List<String> cmdQueue = new ArrayList<>();
-        if (state.prop.realMoveRandomGen != null) {
-            state.setSearchRandomGen(state.prop.realMoveRandomGen.createWithSeed(state.prop.realMoveRandomGen.nextLong(RandomGenCtx.Misc)));
-        } else if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-            state.setSearchRandomGen(state.prop.random.createWithSeed(state.prop.random.nextLong(RandomGenCtx.CommonNumberVR)));
-        } else {
-            state.setSearchRandomGen(state.prop.random);
-        }
+        state.setSearchRandomGen(state.prop.random);
         state.prop.random = new RandomGenInteractive(reader, history);
+        interactiveRecordSeed(state, history);
 
         boolean printState = true;
         boolean printAction = true;
@@ -45,13 +54,7 @@ public class InteractiveMode {
                 printState = false;
             }
             System.out.print("> ");
-            String line;
-            if (cmdQueue.size() > 0) {
-                System.out.println(cmdQueue.get(0));
-                line = cmdQueue.remove(0);
-            } else {
-                line = reader.readLine();
-            }
+            String line = reader.readLine();
             if (line.equals("exit")) {
                 return;
             }
@@ -144,12 +147,19 @@ public class InteractiveMode {
             } else if (line.equals("reset")) {
                 state.clearAllSearchInfo();
                 state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.searchRandomGen.nextLong(RandomGenCtx.Other)));
+                interactiveRecordSeed(state, history);
             } else if (line.equals("hist")) {
-                for (String l : history) {
-                    if (!l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnn ") && !l.startsWith("cmp")) {
-                        System.out.println(l);
-                    }
+                for (String l : filterHistory(history)) {
+                    System.out.println(l);
                 }
+            } else if (line.equals("save")) {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(modelDir + "/session.txt"));
+                writer.write(String.join("\n", filterHistory(history)) + "\n");
+                writer.close();
+            } else if (line.equals("load")) {
+                BufferedReader fileReader = new BufferedReader(new FileReader(modelDir + "/session.txt"));
+                reader.addCmdsToQueue(fileReader.lines().toList());
+                fileReader.close();
             } else if (line.equals("tree explore")) {
                 exploreTree(state, reader, modelDir);
             } else if (line.equals("tree") || line.startsWith("tree ")) {
@@ -158,21 +168,32 @@ public class InteractiveMode {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
                 runMCTS(state, mcts, line);
+                interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("nn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
-                runNNPV(state, mcts, line, cmdQueue);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                if (line.substring(3).equals("exec")) {
+                    reader.addCmdsToQueue(pv);
+                } else {
+                    ((RandomGenInteractive) state.prop.random).rngOn = true;
+                    runNNPV(state, mcts, line);
+                    interactiveRecordSeed(state, history);
+                    ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                }
             } else if (line.startsWith("nnn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
                 runNNPV2(state, mcts, line);
+                interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+            } else if (line.startsWith("progressive")) {
+                Configuration.USE_PROGRESSIVE_WIDENING = !Configuration.USE_PROGRESSIVE_WIDENING;
+                System.out.println("Progressive Widening: " + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off"));
             } else if (line.equals("games") || line.startsWith("games ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
                 runGames(modelDir, state, line);
+                interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.equals("cmpSet") || line.startsWith("cmpSet ")) {
                 runGamesCmpSetup(state, line);
@@ -180,15 +201,10 @@ public class InteractiveMode {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
                 runGamesCmp(reader, modelDir, line);
+                interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("seed ")) {
-                try {
-                    long seed = Long.parseLong(line.substring(5));
-                    state.prop.realMoveRandomGen = new RandomGen.RandomGenByCtx(seed);
-                    System.out.println("Set seed to " + seed + ".");
-                } catch (NumberFormatException e) {
-                    System.out.println("Cannot parse seed.");
-                }
+                interactiveSetSeed(state, Long.parseLong(line.split(" ")[1]), Long.parseLong(line.split(" ")[2]));
             } else if (line.equals("rng off")) {
                 ((RandomGenInteractive) state.prop.random).rngOn = false;
             } else if (line.equals("rng on")) {
@@ -217,7 +233,7 @@ public class InteractiveMode {
                     }
                 }
                 if (action >= 0 && action <= state.getLegalActions().length) {
-                    printState = cmdQueue.size() == 0;
+                    printState = reader.lines.size() == 0;
                     printAction = printState;
                     states.add(state);
                     state.clearAllSearchInfo();
@@ -230,6 +246,22 @@ public class InteractiveMode {
                 }
             }
         }
+    }
+
+    private static void interactiveSetSeed(GameState state, long a, long b) {
+        ((RandomGenInteractive) state.prop.random).random.setSeed(a);
+        ((RandomGen.RandomGenPlain) state.getSearchRandomGen()).random.setSeed(b);
+    }
+
+    private static void interactiveRecordSeed(GameState state, List<String> history) {
+        history.add("seed " + state.prop.random.getSeed(null)  + " " + state.getSearchRandomGen().getSeed(null));
+    }
+
+    private static List<String> filterHistory(List<String> history) {
+        return history.stream().filter((l) ->
+                !l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.equals("save") && !l.equals("load")
+                        && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnn ") && !l.startsWith("cmpSet ") && !l.startsWith("cmp ")
+        ).collect(Collectors.toList());
     }
 
     public static void interactiveStart(List<GameStep> game, String modelDir) throws IOException {
@@ -385,6 +417,9 @@ public class InteractiveMode {
         }
         if (state.getPlayeForRead().getDexterity() != 0) {
             System.out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
+        }
+        if (state.getPlayeForRead().getPlatedArmor() != 0) {
+            System.out.println("  Plated Armor: " + state.getPlayeForRead().getPlatedArmor());
         }
         if (state.getFocus() != 0) {
             System.out.println("  Focus: " + state.getFocus());
@@ -1312,14 +1347,14 @@ public class InteractiveMode {
             mcts.search(state, false, -1);
         }
         System.out.println(state);
+        System.gc();
+        System.gc();
+        System.gc();
+        System.out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
     private static List<String> pv = new ArrayList<>();
-    private static void runNNPV(GameState state, MCTS mcts, String line, List<String> cmdQueue) {
-        if (line.substring(3).equals("exec")) {
-            cmdQueue.addAll(pv);
-            return;
-        }
+    private static void runNNPV(GameState state, MCTS mcts, String line) {
         int count = parseInt(line.substring(3), 1);
         GameState s = state;
         int move_i = 0;
@@ -1393,6 +1428,26 @@ public class InteractiveMode {
             return Integer.parseInt(s);
         } catch (NumberFormatException e) {
             return default_v;
+        }
+    }
+
+    private static class InteractiveReader extends BufferedReader {
+        private ArrayDeque<String> lines = new ArrayDeque<>();
+
+        public InteractiveReader(Reader reader) {
+            super(reader);
+        }
+
+        public String readLine() throws IOException {
+            if (lines.size() > 0) {
+                System.out.println(lines.getFirst());
+                return lines.pollFirst();
+            }
+            return super.readLine();
+        }
+
+        public void addCmdsToQueue(List<String> cmds) {
+            lines.addAll(cmds);
         }
     }
 

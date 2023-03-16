@@ -98,6 +98,7 @@ public abstract class Enemy extends EnemyReadOnly {
         if (strength < 0) {
             strength = 0;
         }
+        poison = 0;
     }
 
     public void setMove(int move) {
