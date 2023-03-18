@@ -7,10 +7,7 @@ import com.alphaStS.MatchSession.GameResult;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScenarioStats {
     public int numOfGames;
@@ -90,7 +87,7 @@ public class ScenarioStats {
         happyFlowerCounter += stat.happyFlowerCounter;
         for (var dmg : stat.damageCount.keySet()) {
             damageCount.putIfAbsent(dmg, 0);
-            damageCount.computeIfPresent(dmg, (k, v) -> v + 1);
+            damageCount.computeIfPresent(dmg, (k, v) -> v + stat.damageCount.get(dmg));
         }
         finalQComb += stat.finalQComb;
         modelCalls += stat.modelCalls;
@@ -407,6 +404,9 @@ public class ScenarioStats {
                     (winQLowerBound * winQs.size() - lossQUpperBound * lossQs.size()) / (winQs.size() + lossQs.size()),
                     (winQUpperBound * winQs.size() - lossQLowerBound * lossQs.size()) / (winQs.size() + lossQs.size()), vQL, vQU);
         }
+//        for (Map.Entry<Integer, Integer> integerIntegerEntry : damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList()) {
+//            System.out.println(indent + integerIntegerEntry.getKey() + ": " + integerIntegerEntry.getValue());
+//        }
     }
 
     private void printBinomialStat(String indent, String prefix, int win, int loss) {

@@ -167,4 +167,37 @@ public class Player extends PlayerReadOnly {
     public void setMaxHealth(int maxHealth) {
         this.maxHealth = maxHealth;
     }
+
+    public void removeAllDebuffs(GameState state) {
+        vulnerable = 0;
+        weak = 0;
+        frail = 0;
+        cannotDrawCard = false;
+        hexed = false;
+        entangled = 0;
+        loseStrengthEot = 0;
+        loseDexterityEot = 0;
+        if (strength < 0) {
+            strength = 0;
+        }
+        if (dexterity < 0) {
+            dexterity = 0;
+        }
+        if (state.prop.loseDexterityPerTurnCounterIdx >= 0) {
+            state.getCounterForWrite()[state.prop.loseDexterityPerTurnCounterIdx] = 0;
+        }
+        if (state.prop.loseFocusPerTurnCounterIdx >= 0) {
+            state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] = 0;
+        }
+        if (state.prop.constrictedCounterIdx >= 0) {
+            state.getCounterForWrite()[state.prop.constrictedCounterIdx] = 0;
+        }
+        if (state.prop.drawReductionCounterIdx >= 0) {
+            state.getCounterForWrite()[state.prop.drawReductionCounterIdx] = 0;
+        }
+        if (state.prop.sneckoDebuffCounterIdx >= 0) {
+            state.getCounterForWrite()[state.prop.sneckoDebuffCounterIdx] = 0;
+        }
+
+    }
 }

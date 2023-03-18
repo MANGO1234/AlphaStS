@@ -182,6 +182,61 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class DuplicationPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 2 : 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("DuplicationPotion", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
+                    input[idx + 1] = (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0 ? 0.5f : 0;
+                    return idx + 2;
+                }
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.addStartOfTurnHandler("DuplicationPotion", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForWrite()[counterIdx] != 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    var card = state.prop.cardDict[cardIdx];
+                    if (state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    if (cloned) {
+                        if ((state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                            state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                        }
+                    } else {
+                        var counters = state.getCounterForWrite();
+                        counters[counterIdx]--;
+                        counters[counterIdx] |= 1 << 8;
+                        state.addGameActionToEndOfDeque(curState -> {
+                            var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
+                            } else {
+                                state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        @Override public String toString() {
+            return "Duplication Potion";
+        }
+    }
+
     public static class PotionOfCapacity extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.gainOrbSlot(state.prop.hasSacredBark ? 4 : 2);

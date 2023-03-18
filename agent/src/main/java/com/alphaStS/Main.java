@@ -118,18 +118,12 @@ public class Main {
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.prop.randomization);
         }
-        if (!GENERATE_TRAINING_GAMES && GAMES_ADD_POTION_RANDOMIZATION && state.prop.potions.size() > 0) {
+        if (state.prop.potions.size() > 0) {
             GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions);
             if (state.prop.potionsScenarios != null) {
                 p = p.fixR(state.prop.potionsScenarios, 0);
             }
-            state.prop.randomization = p.doAfter(state.prop.randomization);
-        } else if ((GENERATE_TRAINING_GAMES || TEST_TRAINING_AGENT) && state.prop.potions.size() > 0) {
-            GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions);
-            if (state.prop.potionsScenarios != null) {
-                p = p.fixR(state.prop.potionsScenarios, 0);
-            }
-            state.prop.preBattleRandomization = p.doAfter(state.prop.preBattleRandomization);
+            state.prop.preBattleRandomization = state.prop.preBattleRandomization == null ? p : state.prop.preBattleRandomization.doAfter(p);
         }
         if (GENERATE_TRAINING_GAMES) {
             Configuration.CPUCT_SCALING = false;

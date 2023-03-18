@@ -357,7 +357,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.prop.addEndOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
+            state.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.gainEnergy(state.getCounterForRead()[counterIdx]);
@@ -1395,7 +1395,55 @@ public class CardSilent {
 
     // Masterful Stab
     // Noxious Fumes
-    // Predator
+
+    private static abstract class _PredatorT extends Card {
+        private final int n;
+
+        public _PredatorT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Predator", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("Predator", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.draw(state.getCounterForRead()[counterIdx] * 2);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Predator extends _PredatorT {
+        public Predator() {
+            super("Predator", Card.ATTACK, 2, 15);
+        }
+    }
+
+    public static class PredatorP extends _PredatorT {
+        public PredatorP() {
+            super("Predator+", Card.ATTACK, 2, 20);
+        }
+    }
 
     private static abstract class _ReflexT extends Card {
         private final int n;
@@ -1822,10 +1870,8 @@ public class CardSilent {
                         state.getCounterForWrite()[counterIdx] ^= 1 << 9;
                         return;
                     }
-                    if (cloned) {
-                        if ((state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
-                            state.getCounterForWrite()[counterIdx] ^= 1 << 8;
-                        }
+                    if (cloned && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                        state.getCounterForWrite()[counterIdx] ^= 1 << 8;
                     } else {
                         var counters = state.getCounterForWrite();
                         counters[counterIdx]--;

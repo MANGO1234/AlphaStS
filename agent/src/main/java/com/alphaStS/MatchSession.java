@@ -95,11 +95,6 @@ public class MatchSession {
         } else {
             state.setSearchRandomGen(state.prop.random);
         }
-        if (state.prop.preBattleRandomization != null) {
-            state.prop.makingRealMove = true;
-            preBattle_r = state.prop.preBattleRandomization.randomize(state);
-            state.prop.makingRealMove = false;
-        }
         if (startingAction >= 0) {
             state.prop.makingRealMove = true;
             state.doAction(startingAction);
@@ -125,6 +120,9 @@ public class MatchSession {
                     if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                         state = state.clone(false);
                         r = state.doAction(0);
+                    } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                        state = state.clone(false);
+                        preBattle_r = state.doAction(0);
                     } else {
                         if (nodeCount == 1) {
                             state = state.clone(false);
@@ -171,6 +169,9 @@ public class MatchSession {
                 if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                     state = state.clone(false);
                     r = state.doAction(0);
+                } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                    state = state.clone(false);
+                    preBattle_r = state.doAction(0);
                 } else {
                     if (nodeCount == 1) {
                         state = state.clone(false);
@@ -723,9 +724,57 @@ public class MatchSession {
 
     private double[] calcExpectedValue2(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
-        while (cState.total_n < 1000 && cState.cache.size() < 100) {
+        while (cState.total_n < 10000 && cState.cache.size() < 200) {
             cState.getNextState(false);
         }
+        double[] est = new double[vCur.length];
+        double[] out = new double[vCur.length];
+        for (ChanceState.Node node : cState.cache.values()) {
+            if (node.state != stateActual) {
+                if (node.state.policy == null) {
+                    node.state.doEval(mcts.model);
+                    eval++;
+                }
+                node.state.get_v(out);
+                for (int i = 0; i < est.length; i++) {
+                    est[i] += out[i] * node.n;
+                }
+            }
+        }
+        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / cState.total_node_n;
+        for (int i = 0; i < est.length; i++) {
+            est[i] /= cState.total_node_n;
+            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
+        }
+        return est;
+    }
+
+    static int eval = 0;
+
+    private double[] calcExpectedValue3(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
+        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
+        var M = 0.0;
+        var S = 0.0;
+        var k = 0;
+        do {
+            var s = cState.getNextState(false);
+            if (s.policy == null) {
+                eval++;
+                s.doEval(mcts.model);
+            }
+            var q = s.get_q();
+            if (k == 0) {
+                M = q;
+            } else {
+                var oldM = M;
+                M = oldM + (q - oldM) / (k + 1);
+                S = S + (q - oldM) * (q - M);
+                if ((k >= 999 || cState.cache.size() >= 100) && Math.sqrt(S / k / (k + 1)) < 0.0003) {
+                    break;
+                }
+            }
+            k++;
+        } while (true);
         double[] est = new double[vCur.length];
         double[] out = new double[vCur.length];
         for (ChanceState.Node node : cState.cache.values()) {
@@ -827,9 +876,6 @@ public class MatchSession {
         } else {
             state.setSearchRandomGen(state.prop.random);
         }
-        if (state.prop.preBattleRandomization != null) {
-            preBattle_r = state.prop.preBattleRandomization.randomize(state);
-        }
 
         state.doEval(mcts.model);
         boolean quickPass = false;
@@ -908,6 +954,11 @@ public class MatchSession {
                 state.prop.makingRealMove = true;
                 r = state.doAction(0);
                 state.prop.makingRealMove = false;
+            } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                state = state.clone(false);
+                state.prop.makingRealMove = true;
+                preBattle_r = state.doAction(0);
+                state.prop.makingRealMove = false;
             } else {
                 state.prop.makingRealMove = true;
                 if (false) {
@@ -945,6 +996,20 @@ public class MatchSession {
                 if (cState != null && lastChanceState != null && !cState.equals(lastChanceState)) {
                     double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
                     if (ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
+//                        System.out.println(cState);
+//                        System.out.println(ret[GameState.V_COMB_IDX]);
+//                        System.out.println(lastChanceState);
+//                        System.out.println(vCur[GameState.V_COMB_IDX]);
+//                        for (int jj = 0; jj < 10; jj++) {
+//                            var cState3 = new ChanceState(null, lastChanceState.parentState, lastChanceState.parentAction);
+//                            var ret3 = calcExpectedValue(cState3, null, mcts, new double[vLen]);
+//                            var cState2 = new ChanceState(null, cState.parentState, cState.parentAction);
+//                            var ret2 = calcExpectedValue(cState2, null, mcts, new double[vLen]);
+//                            System.out.println(ret2[GameState.V_COMB_IDX] + "," + ret3[GameState.V_COMB_IDX]);
+//                            if (ret2[GameState.V_COMB_IDX] <= ret3[GameState.V_COMB_IDX]) {
+//                                Integer.parseInt(null);
+//                            }
+//                        }
                         vCur = ret;
                         lastChanceState = cState;
                         state = steps.get(i).state().clone(false);
@@ -976,14 +1041,14 @@ public class MatchSession {
                 var prevState = steps.get(i - 1).state();
                 var prevAction = steps.get(i - 1).action();
                 var cState = (ChanceState) prevState.ns[prevAction];
-                lastChanceState = cState;
+                lastChanceState = new ChanceState(null, cState.parentState, cState.parentAction);
 
                 if (!USE_Z_TRAINING) {
                     vCur = calcExpectedValue(cState, state, mcts, vCur);
                 }
             }
         }
-        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
+        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE || steps.get(0).state().actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
             steps.get(0).trainingWriteCount = 0;
         }
 
@@ -1051,7 +1116,7 @@ public class MatchSession {
             }
             firstState = false;
             if (state.ns[action] instanceof ChanceState cs) {
-                cs2 = cs;
+                cs2 = new ChanceState(null, cs.parentState, cs.parentAction);
                 break;
             }
             state = (GameState) state.ns[action];
@@ -1064,9 +1129,6 @@ public class MatchSession {
         var state = origState.clone(false);
         var r = 0;
         int preBattle_r = 0;
-        if (state.prop.preBattleRandomization != null) {
-            preBattle_r = state.prop.preBattleRandomization.randomize(state);
-        }
 
         while (state.isTerminal() == 0) {
             int todo = nodeCount - state.total_n;
@@ -1080,6 +1142,9 @@ public class MatchSession {
                 if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                     state = state.clone(false);
                     r = state.doAction(0);
+                } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                    state = state.clone(false);
+                    preBattle_r = state.doAction(0);
                 } else {
                     if (nodeCount == 1) {
                         state = state.clone(false);
@@ -1113,7 +1178,7 @@ public class MatchSession {
                 vCur = calcExpectedValue((ChanceState) prevState.ns[prevAction], state, mcts, vCur);
             }
         }
-        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
+        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE || steps.get(0).state().actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
             steps.get(0).trainingWriteCount = 0;
         }
 

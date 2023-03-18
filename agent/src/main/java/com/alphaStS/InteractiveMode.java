@@ -21,7 +21,7 @@ public class InteractiveMode {
             interactiveStartH(origState, modelDir, history);
         } catch (Exception e) {
             writer = new BufferedWriter(new FileWriter(modelDir + "/session-crash.txt"));
-            writer.write(history.stream().collect(Collectors.joining("\n")));
+            writer.write(String.join("\n", filterHistory(history)) + "\n");
             writer.close();
             throw e;
         }
@@ -512,6 +512,7 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
                     state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
+                    state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE ||
                     state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND) {
                 System.out.println(i + ". " + state.getActionString(i));
             } else if (state.getAction(i).type() == GameActionType.END_TURN) {
@@ -1193,7 +1194,8 @@ public class InteractiveMode {
                                 state.getAction(i).type() == GameActionType.USE_POTION ||
                                 state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
                                 state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
-                                state.getAction(i).type() == GameActionType.BEGIN_BATTLE) {
+                                state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
+                                state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE) {
                             System.out.println(i + ". " + state.getActionString(i));
                         } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                             System.out.println("e. End Turn");

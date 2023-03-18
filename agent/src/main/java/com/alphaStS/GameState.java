@@ -23,6 +23,7 @@ enum GameActionType {
     SELECT_CARD_1_OUT_OF_3,
     END_TURN,
     USE_POTION,
+    BEGIN_PRE_BATTLE,
     SELECT_SCENARIO,
     BEGIN_TURN,
     END_SELECT_CARD_HAND,
@@ -254,6 +255,7 @@ public final class GameState implements State {
 
         // start of game actions
         prop.actionsByCtx = new GameAction[GameActionCtx.values().length][];
+        prop.actionsByCtx[GameActionCtx.BEGIN_PRE_BATTLE.ordinal()] = new GameAction[] { new GameAction(GameActionType.BEGIN_PRE_BATTLE, 0) };
         prop.actionsByCtx[GameActionCtx.BEGIN_BATTLE.ordinal()] = new GameAction[] { new GameAction(GameActionType.BEGIN_BATTLE, 0) };
         prop.actionsByCtx[GameActionCtx.BEGIN_TURN.ordinal()] = new GameAction[] { new GameAction(GameActionType.BEGIN_TURN, 0) };
 
@@ -338,10 +340,12 @@ public final class GameState implements State {
         }
 
         // game state
-        if (prop.preBattleScenarios == null) {
-            actionCtx = GameActionCtx.BEGIN_BATTLE;
-        } else {
+        if (prop.preBattleRandomization != null) {
+            actionCtx = GameActionCtx.BEGIN_PRE_BATTLE;
+        } else if (prop.preBattleScenarios != null) {
             actionCtx = GameActionCtx.SELECT_SCENARIO;
+        } else {
+            actionCtx = GameActionCtx.BEGIN_BATTLE;
         }
         deck = new byte[prop.realCardsLen];
         hand = new byte[cards.size()];
@@ -874,12 +878,12 @@ public final class GameState implements State {
             actionCtx = ctx;
             this.actionCardIsCloned = false;
         }
-        case BEGIN_BATTLE, SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_DECK, SELECT_CARD_1_OUT_OF_3 -> {
+        case SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_DECK, SELECT_CARD_1_OUT_OF_3 -> {
             currentAction = action;
             actionCtx = ctx;
             this.actionCardIsCloned = actionCardIsCloned;
         }
-        case SELECT_SCENARIO, BEGIN_TURN -> actionCtx = ctx;
+        case BEGIN_PRE_BATTLE, BEGIN_BATTLE, SELECT_SCENARIO, BEGIN_TURN -> actionCtx = ctx;
         }
     }
 
@@ -1272,6 +1276,7 @@ public final class GameState implements State {
                 } else if (prop.cardDict[i].alwaysDiscard || isDiscardingCardEndOfTurn()) {
                     getDiscardForWrite()[i] += handDup[i];
                     getHandForWrite()[i] -= handDup[i];
+                    chosenCards[i] = 0;
                 }
             }
         }
@@ -1353,7 +1358,6 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
             runActionsInQueueIfNonEmpty();
-//            startTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
             playCard(action, -1, true, false, true, false, -1);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
@@ -1384,6 +1388,9 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.USE_POTION) {
             getPotionsStateForWrite()[action.idx() * 3] = 0;
             usePotion(action, -1);
+        } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
+            ret = prop.preBattleRandomization.randomize(this);
+            setActionCtx(prop.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             prop.preBattleScenarios.randomize(this, prop.preBattleGameScenariosList.get(action.idx()).getKey());
             setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
@@ -1415,7 +1422,7 @@ public final class GameState implements State {
     }
 
     boolean isActionLegal(int action) {
-        if (actionCtx == GameActionCtx.BEGIN_BATTLE || actionCtx == GameActionCtx.BEGIN_TURN) {
+        if (actionCtx == GameActionCtx.BEGIN_BATTLE || actionCtx == GameActionCtx.BEGIN_PRE_BATTLE || actionCtx == GameActionCtx.BEGIN_TURN) {
             return action == 0;
         } else if (actionCtx == GameActionCtx.PLAY_CARD) {
             GameAction[] a = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()];
@@ -2996,6 +3003,8 @@ public final class GameState implements State {
             return prop.potions.get(action.idx()).toString();
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             return prop.preBattleGameScenariosList.get(action.idx()).getValue().desc();
+        } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
+            return "Begin Pre-Battle";
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             return "Begin Turn";
         } else if (action.type() == GameActionType.END_SELECT_CARD_HAND) {

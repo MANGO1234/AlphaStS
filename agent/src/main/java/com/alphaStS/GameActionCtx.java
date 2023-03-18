@@ -1,6 +1,8 @@
 package com.alphaStS;
 
 public enum GameActionCtx {
+    BEGIN_PRE_BATTLE,
+    SELECT_SCENARIO,
     BEGIN_BATTLE,
     PLAY_CARD,
     SELECT_ENEMY,
@@ -9,6 +11,5 @@ public enum GameActionCtx {
     SELECT_CARD_EXHAUST,
     SELECT_CARD_DECK,
     SELECT_CARD_1_OUT_OF_3,
-    SELECT_SCENARIO,
     BEGIN_TURN,
 }

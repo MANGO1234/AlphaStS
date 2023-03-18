@@ -995,9 +995,50 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // Membership Card: No need to implement
-    // todo: Orange Pellets
+
+    public static class OrangePellets extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("OrangePellets", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] & 1) != 0 ? 0.1f : 0.0f;
+                    input[idx + 1] = (counter[counterIdx] & (1 << 1)) != 0 ? 0.1f : 0.0f;
+                    input[idx + 2] = (counter[counterIdx] & (1 << 2)) != 0 ? 0.1f : 0.0f;
+                    return idx + 3;
+                }
+                @Override public int getInputLenDelta() {
+                    return 3;
+                }
+            });
+            state.addOnCardPlayedHandler("OrangePellets", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (state.getCounterForRead()[counterIdx] == 0b111) {
+                        return;
+                    }
+                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.getCounterForWrite()[counterIdx] |= 1;
+                    } else if (state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                        state.getCounterForWrite()[counterIdx] |= 1 << 1;
+                    } else if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                        state.getCounterForWrite()[counterIdx] |= 1 << 2;
+                    }
+                    if (state.getCounterForRead()[counterIdx] == 0b111) {
+                        state.getPlayerForWrite().removeAllDebuffs(state);
+                    }
+                }
+            });
+            state.prop.addEndOfTurnHandler("OrangePellets", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
     // Orrery: No need to implement
-    // todo: Prismatic Shard: implement?!?
+    // Prismatic Shard: No need to implement
 
     public static class SlingOfCourage extends Relic {
         @Override public void startOfGameSetup(GameState state) {
