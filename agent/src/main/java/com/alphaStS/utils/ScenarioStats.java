@@ -163,6 +163,12 @@ public class ScenarioStats {
                     feedHealTotal += state.getCounterForWrite()[state.prop.feedCounterIdx];
                 }
             }
+            if (state.prop.geneticAlgorithmCounterIdx >= 0) {
+                if (state.getCounterForRead()[state.prop.geneticAlgorithmCounterIdx] > 0) {
+                    feedKilledEnemy++;
+                    feedHealTotal += state.getCounterForWrite()[state.prop.geneticAlgorithmCounterIdx];
+                }
+            }
             if (state.prop.hasCounter("Nunchaku")) {
                 nunchakuCounter += state.getCounterForRead()[state.prop.getCounterIdx("Nunchaku")];
             }

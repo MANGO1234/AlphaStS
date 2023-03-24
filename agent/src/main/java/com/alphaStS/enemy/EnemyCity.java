@@ -2,7 +2,9 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class EnemyCity {
     public static class TheChamp extends Enemy {
@@ -416,7 +418,7 @@ public class EnemyCity {
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(6, RandomGenCtx.Other) + 1;
-            if (training && b < 10) {
+            if (training && b < 6) {
                 health = (int) Math.round(((double) (property.maxHealth * b)) / 6);
             } else {
                 health = 54 + random.nextInt(7, RandomGenCtx.Other);
@@ -456,6 +458,209 @@ public class EnemyCity {
                 input[idx + 1 + stasisCardIdx] = 0.5f;
             }
             return 1 + prop.realCardsLen;
+        }
+    }
+
+    public static class TheCollector extends Enemy {
+        public static final int BUFF = 0;
+        private static final int FIREBALL = 1;
+        private static final int MEGA_DEBUFF = 2;
+        private static final int SPAWN = 3;
+
+        private int turn;
+
+        public TheCollector() {
+            this(300);
+        }
+
+        public TheCollector(int health) {
+            super(health, 4, true);
+            property.canGainStrength = true;
+            property.canGainBlock = true;
+            property.canVulnerable = true;
+            property.canWeaken = true;
+            property.canFrail = true;
+            property.isBoss = true;
+        }
+
+        public TheCollector(TheCollector other) {
+            super(other);
+            turn = other.turn;
+        }
+
+        @Override public Enemy copy() {
+            return new TheCollector(this);
+        }
+
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i, true);
+                }
+            }
+            return dmg;
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            super.nonAttackDamage(n, blockable, state);
+            if (health <= 0) {
+                var enemies = state.getEnemiesForRead();
+                for (int i = 0; i < enemies.size(); i++) {
+                    state.killEnemy(i, true);
+                }
+            }
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == BUFF) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.gainStrength(5);
+                }
+                gainBlock(23);
+            } else if (move == FIREBALL) {
+                state.enemyDoDamageToPlayer(this, 21, 1);
+            } else if (move == MEGA_DEBUFF) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 5);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 5);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 5);
+            } else if (move == SPAWN) {
+                EnemyList enemies = state.getEnemiesForWrite();
+                for (int i = 0; i < enemies.size(); i++) {
+                    if (enemies.get(i).getHealth() == 0 && enemies.get(i) instanceof TorchHead) {
+                        state.reviveEnemy(i, false, -1);
+                    }
+                }
+            }
+        }
+
+        private boolean isMinionDead(GameState state) {
+            for (var enemy : state.getEnemiesForRead()) {
+                if (enemy instanceof EnemyCity.TorchHead && enemy.getHealth() == 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            turn++;
+            if (move < 0) {
+                newMove = SPAWN;
+            } else if (turn == 4) {
+                newMove = MEGA_DEBUFF;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                if (r <= 25 && isMinionDead(state) && move != SPAWN) {
+                    newMove = SPAWN;
+                } else if (r <= 70 && (move != FIREBALL || lastMove != FIREBALL)) {;
+                    newMove = FIREBALL;
+                } else if (move != BUFF) {
+                    newMove = BUFF;
+                } else {
+                    newMove = FIREBALL;
+                }
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == BUFF) {
+                return "All Enemies Gain 5 Strength+Gain 23 Block";
+            } else if (move == FIREBALL) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 21);
+            } else if (move == MEGA_DEBUFF) {
+                return "Weak 5+Vulnerable 5+Frail 5";
+            } else if (move == SPAWN) {
+                return "Summon Torch Heads";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(15, RandomGenCtx.Other) + 1;
+            if (training && b < 15) {
+                health = (int) Math.round(((double) (health * b)) / 15);
+            } else {
+                health = 300;
+            }
+        }
+
+        @Override public String getName() {
+            return "The Collector";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && turn == ((EnemyCity.TheCollector) o).turn;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 inputs to keep track of turn until Collector debuffs";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = (4 - turn) / 4.0f;
+            return 1;
+        }
+    }
+
+    public static class TorchHead extends Enemy {
+        private static final int TACKLE = 0;
+
+        public TorchHead() {
+            this(45);
+        }
+
+        public TorchHead(int health) {
+            super(health, 1, false);
+            property.canGainStrength = true;
+            this.health = 0;
+        }
+
+        public TorchHead(TorchHead other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new TorchHead(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == TACKLE) {
+                state.enemyDoDamageToPlayer(this, 7, 1);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            lastMove = move;
+            move = TACKLE;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == TACKLE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 7);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(2, RandomGenCtx.Other) + 1;
+            if (training && b < 2) {
+                health = (int) Math.round(((double) (property.maxHealth * b)) / 2);
+            } else {
+                health = 40 + random.nextInt(6, RandomGenCtx.Other);
+            }
+        }
+
+        @Override public String getName() {
+            return "Torch Head";
         }
     }
 

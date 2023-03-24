@@ -782,7 +782,28 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Fossilized Helix
+    public static class FossilizedHelix extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Buffer", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister() {
+                    state.prop.bufferCounterIdx = counterIdx;
+                }
+            });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[state.prop.bufferCounterIdx]++;
+                }
+            });
+        }
+    }
+
     // todo: Gambling Chip
 
     public static class Ginger extends Relic {
@@ -1127,7 +1148,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-
     public static class SacredBark extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.hasSacredBark = true;
@@ -1379,6 +1399,22 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.gainFocus(1);
+                }
+            });
+        }
+    }
+
+    public static class GoldPlatedCable extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasGoldPlatedCable = true;
+        }
+    }
+
+    public static class NuclearBattery extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.channelOrb(OrbType.PLASMA);
                 }
             });
         }

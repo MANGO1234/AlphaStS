@@ -1451,7 +1451,7 @@ public class EnemyBeyond {
             state.addPreEndOfTurnHandler("Constricted", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[state.prop.constrictedCounterIdx] > 0) {
-                        state.getPlayerForWrite().nonAttackDamage(state.getCounterForRead()[state.prop.constrictedCounterIdx], true);
+                        state.getPlayerForWrite().nonAttackDamage(state, state.getCounterForRead()[state.prop.constrictedCounterIdx], true);
                     }
                 }
             });

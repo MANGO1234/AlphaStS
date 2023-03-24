@@ -11,6 +11,8 @@ public class GameProperties implements Cloneable {
     public boolean doingComparison;
     public boolean testPotionOutput;
     public boolean curriculumTraining;
+    public int minDifficulty;
+    public int maxDifficulty;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
@@ -34,6 +36,7 @@ public class GameProperties implements Cloneable {
     public RandomGen random;
     public RandomGen realMoveRandomGen;
     public boolean makingRealMove;
+    public boolean isInteractive;
     public boolean stateDescOn;
     public Card[] cardDict;
     public List<Potion> potions;
@@ -77,6 +80,8 @@ public class GameProperties implements Cloneable {
     public int[] clawPIndexes;
     public int[] glassKnifeIndexes;
     public int[] glassKnifePIndexes;
+    public int[] steamBarrierIndexes;
+    public int[] steamBarrierPIndexes;
     public int[] infernalBladeIndexes;
     public int[] distractionIndexes;
     public int[] healCardsIdxes;
@@ -102,8 +107,11 @@ public class GameProperties implements Cloneable {
     public int wellLaidPlansCounterIdx = -1;
     public int blurCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
+    public int reboundCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
     public int envenomCounterIdx = -1;
+    public int geneticAlgorithmCounterIdx = -1;
+    public int bufferCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -128,6 +136,7 @@ public class GameProperties implements Cloneable {
     public boolean hasSneckoSkull;
     public boolean hasTingsha;
     public boolean hasToughBandages;
+    public boolean hasGoldPlatedCable;
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
@@ -145,6 +154,7 @@ public class GameProperties implements Cloneable {
     public boolean healEndOfAct;
     public int inputLen;
     public int extraOutputLen;
+    public boolean cardInDiscardInNNInput;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();
@@ -163,6 +173,7 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization randomization;
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
+    public GameStateRandomization preBattleScenariosBackup;
     public int preBattleScenariosChosen = -1;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
     public List<BiConsumer<GameState, int[]>> enemiesReordering;

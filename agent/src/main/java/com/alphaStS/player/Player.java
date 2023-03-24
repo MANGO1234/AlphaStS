@@ -11,14 +11,18 @@ public class Player extends PlayerReadOnly {
         super(other);
     }
 
-    public int damage(GameProperties prop, int n) {
+    public int damage(GameState state, int n) {
         int startHealth = health;
         int dmg = Math.max(0, n - block);
-        if (dmg <= 5 && dmg >= 2 && prop.hasTorri) {
+        if (dmg <= 5 && dmg >= 2 && state.prop.hasTorri) {
             dmg = 1;
         }
-        if (dmg > 0 && prop.hasTungstenRod) {
+        if (dmg > 0 && state.prop.hasTungstenRod) {
             dmg -= 1;
+        }
+        if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+            dmg = 0;
+            state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
         }
         health -= dmg;
         block = Math.max(0, block - n);
@@ -31,13 +35,22 @@ public class Player extends PlayerReadOnly {
         return startHealth - health;
     }
 
-    public int nonAttackDamage(int n, boolean blockable) {
+    public int nonAttackDamage(GameState state, int n, boolean blockable) {
         int startHealth = health;
         if (blockable) {
-            health -= Math.max(0, n - block);
+            int dmg = Math.max(0, n - block);
+            if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+                dmg = 0;
+                state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
+            }
+            health -= dmg;
             block = Math.max(0, block - n);
         } else {
-            health -= n;
+            if (state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+                state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
+            } else {
+                health -= n;
+            }
         }
         if (health < 0) {
             health = 0;

@@ -114,13 +114,13 @@ public class CardColorless {
 
     public static class DramaticEntrance extends _DramaticEntranceT {
         public DramaticEntrance() {
-            super("Dramatic Entrance", Card.SKILL, 0, 8);
+            super("Dramatic Entrance", Card.ATTACK, 0, 8);
         }
     }
 
     public static class DramaticEntranceP extends _DramaticEntranceT {
         public DramaticEntranceP() {
-            super("Dramatic Entrance+", Card.SKILL, 0, 12);
+            super("Dramatic Entrance+", Card.ATTACK, 0, 12);
         }
     }
 
@@ -274,6 +274,7 @@ public class CardColorless {
         public _PanaceaT(String cardName, int cardType, int energyCost, int n) {
             super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
+            changePlayerArtifact = true;
             exhaustWhenPlayed = true;
         }
 

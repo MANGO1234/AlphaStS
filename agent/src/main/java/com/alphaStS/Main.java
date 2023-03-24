@@ -24,13 +24,6 @@ enum ServerRequestType {
     UPLOAD_MODEL_CMP
 }
 
-class ServerRequest {
-    public ServerRequestType type;
-    public int remainingGames;
-    public int nodeCount;
-    public byte[] bytes;
-}
-
 public class Main {
     public static void main(String[] args) throws IOException {
         var state = TestStates.TestStateSilent();
@@ -118,13 +111,6 @@ public class Main {
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.prop.randomization);
         }
-        if (state.prop.potions.size() > 0) {
-            GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(state.prop.potions);
-            if (state.prop.potionsScenarios != null) {
-                p = p.fixR(state.prop.potionsScenarios, 0);
-            }
-            state.prop.preBattleRandomization = state.prop.preBattleRandomization == null ? p : state.prop.preBattleRandomization.doAfter(p);
-        }
         if (GENERATE_TRAINING_GAMES) {
             Configuration.CPUCT_SCALING = false;
             Configuration.USE_PROGRESSIVE_WIDENING = false;
@@ -133,12 +119,15 @@ public class Main {
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;
         if ((TEST_TRAINING_AGENT || GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION) && state.prop.preBattleScenarios != null) {
+            state.prop.preBattleScenarios = null;
             if (state.prop.randomization == null) {
-                state.prop.randomization = state.prop.preBattleScenarios;
+                state.prop.randomization = preBattleScenarios;
             } else {
-                state.prop.randomization = state.prop.randomization.doAfter(state.prop.preBattleScenarios);
+                state.prop.randomization = state.prop.randomization.doAfter(preBattleScenarios);
             }
-            state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+            if (state.prop.preBattleRandomization == null) {
+                state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+            }
         }
 //        state.prop.randomization = state.prop.randomization.fixR(0, 2, 4);
 
@@ -187,7 +176,7 @@ public class Main {
         }
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
-            interactiveStart(state, curIterationDir);
+            interactiveStart(state, SAVES_DIR, curIterationDir);
             return;
         }
 
@@ -229,8 +218,11 @@ public class Main {
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
         }
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
+            state.prop.preBattleScenarios = preBattleScenarios;
             state.prop.randomization = randomization;
-            state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
+            if (state.prop.preBattleRandomization == null) {
+                state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
+            }
         }
 
         if (GENERATE_TRAINING_GAMES) {
@@ -246,6 +238,8 @@ public class Main {
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
             state.prop.curriculumTraining = CURRICULUM_TRAINING_ON || automatedCurriculumTraining;
+            state.prop.minDifficulty = minDifficulty;
+            state.prop.maxDifficulty = maxDifficulty;
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(state.prop.curriculumTraining, minDifficulty, maxDifficulty).doAfter(state.prop.randomization);
             session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
             if (automatedCurriculumTraining) {
@@ -343,10 +337,10 @@ public class Main {
                         List<MatchSession.TrainingGameResult> results = new ArrayList<>();
                         int count = session.remoteTrainingDeq.size();
                         for (int i = 0; i < count; i++) {
-                            results.add(session.playTrainingGamesRemote(state, req.remainingGames, req.nodeCount));
+                            results.add(session.playTrainingGamesRemote(state, req));
                         }
                         if (results.size() == 0) {
-                            results.add(session.playTrainingGamesRemote(state, req.remainingGames, req.nodeCount));
+                            results.add(session.playTrainingGamesRemote(state, req));
                         }
                         mapper.writeValue(socket.getOutputStream(), results);
                         newNumOfGames += results.size();

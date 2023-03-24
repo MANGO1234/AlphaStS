@@ -12,22 +12,22 @@ import java.util.stream.IntStream;
 import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
-    public static void interactiveStart(GameState origState, String modelDir) throws IOException {
+    public static void interactiveStart(GameState origState, String saveDir, String modelDir) throws IOException {
         List<String> history = new ArrayList<>();
         BufferedWriter writer;
         System.out.println("Model: " + modelDir);
         System.out.println("****************************************************");
         try {
-            interactiveStartH(origState, modelDir, history);
+            interactiveStartH(origState, saveDir, modelDir, history);
         } catch (Exception e) {
-            writer = new BufferedWriter(new FileWriter(modelDir + "/session-crash.txt"));
+            writer = new BufferedWriter(new FileWriter(saveDir + "/session-crash.txt"));
             writer.write(String.join("\n", filterHistory(history)) + "\n");
             writer.close();
             throw e;
         }
     }
 
-    private static void interactiveStartH(GameState origState, String modelDir, List<String> history) throws IOException {
+    private static void interactiveStartH(GameState origState, String saveDir, String modelDir, List<String> history) throws IOException {
         InteractiveReader reader = new InteractiveReader(new InputStreamReader(System.in));
         var states = new ArrayList<GameState>();
         GameState state = origState;
@@ -152,12 +152,20 @@ public class InteractiveMode {
                 for (String l : filterHistory(history)) {
                     System.out.println(l);
                 }
-            } else if (line.equals("save")) {
-                BufferedWriter writer = new BufferedWriter(new FileWriter(modelDir + "/session.txt"));
+            } else if (line.equals("save") || line.startsWith("save ")) {
+                String suffix = "";
+                if (line.startsWith("save ")) {
+                    suffix = line.split(" ")[1];
+                }
+                BufferedWriter writer = new BufferedWriter(new FileWriter(saveDir + "/session" + suffix + ".txt"));
                 writer.write(String.join("\n", filterHistory(history)) + "\n");
                 writer.close();
-            } else if (line.equals("load")) {
-                BufferedReader fileReader = new BufferedReader(new FileReader(modelDir + "/session.txt"));
+            } else if (line.equals("load") || line.startsWith("load ")) {
+                String suffix = "";
+                if (line.startsWith("load ")) {
+                    suffix = line.split(" ")[1];
+                }
+                BufferedReader fileReader = new BufferedReader(new FileReader(saveDir + "/session" + suffix + ".txt"));
                 reader.addCmdsToQueue(fileReader.lines().toList());
                 fileReader.close();
             } else if (line.equals("tree explore")) {
@@ -176,10 +184,16 @@ public class InteractiveMode {
                     reader.addCmdsToQueue(pv);
                 } else {
                     ((RandomGenInteractive) state.prop.random).rngOn = true;
-                    runNNPV(state, mcts, line);
+                    runNNPV(state, mcts, line, true);
                     interactiveRecordSeed(state, history);
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                 }
+            } else if (line.startsWith("nnc ")) {
+                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                runNNPVChance(reader, state, mcts, line);
+                interactiveRecordSeed(state, history);
+                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
@@ -239,7 +253,9 @@ public class InteractiveMode {
                     state.clearAllSearchInfo();
                     state = state.clone(false);
                     state.prop.makingRealMove = true;
+                    state.prop.isInteractive = true;
                     state.doAction(action);
+                    state.prop.isInteractive = false;
                     state.prop.makingRealMove = false;
                 } else {
                     System.out.println("Unknown Command.");
@@ -260,7 +276,8 @@ public class InteractiveMode {
     private static List<String> filterHistory(List<String> history) {
         return history.stream().filter((l) ->
                 !l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.equals("save") && !l.equals("load")
-                        && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnn ") && !l.startsWith("cmpSet ") && !l.startsWith("cmp ")
+                        && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnc ") && !l.startsWith("nnn ")
+                        && !l.startsWith("cmpSet ") && !l.startsWith("cmp ") && !l.startsWith("save ") && !l.startsWith("load ")
         ).collect(Collectors.toList());
     }
 
@@ -1356,7 +1373,7 @@ public class InteractiveMode {
     }
 
     private static List<String> pv = new ArrayList<>();
-    private static void runNNPV(GameState state, MCTS mcts, String line) {
+    private static void runNNPV(GameState state, MCTS mcts, String line, boolean printPV) {
         int count = parseInt(line.substring(3), 1);
         GameState s = state;
         int move_i = 0;
@@ -1370,8 +1387,10 @@ public class InteractiveMode {
                 break;
             }
             int max_n = s.n[action];
-            System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                    ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth() + ")");
+            if (printPV) {
+                System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
+                        ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + formatFloat(s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth()) + ")");
+            }
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
@@ -1388,6 +1407,53 @@ public class InteractiveMode {
                 break;
             }
         } while (true);
+    }
+
+    private static void runNNPVChance(BufferedReader reader, GameState state, MCTS mcts, String line) throws IOException {
+        int count = parseInt(line.split(" ")[1], 1);
+        int chanceAction = parseInt(line.split(" ")[2], -1);
+        if (chanceAction < 0) {
+            System.out.println("Unknown action.");
+            return;
+        }
+        GameState s = state.clone(false);
+        ChanceState cs = new ChanceState(null, s, chanceAction);
+        s.prop.makingRealMove = true;
+        for (int i = 0; i < 1000000; i++) {
+            cs.getNextState(false);
+        }
+        s.prop.makingRealMove = false;
+        System.out.println("Number of Outcomes: " + cs.cache.size());
+        System.out.println("Continue? (y/n)");
+        System.out.print("> ");
+        if (!reader.readLine().equals("y")) {
+            return;
+        }
+        long start = System.currentTimeMillis();
+        int k = 0;
+        var pvs = new HashMap<List<String>, List<GameState>>();
+        for (Map.Entry<GameState, ChanceState.Node> entry : cs.cache.entrySet()) {
+            k++;
+            var cState = entry.getKey();
+            cState.clearAllSearchInfo();
+            runNNPV(cState, mcts, "nn " + count, false);
+            var p = new ArrayList<>(pv);
+            pvs.computeIfAbsent(p, (_k) -> new ArrayList<>());
+            pvs.get(p).add(cState);
+            cState.clearAllSearchInfo();
+            if (System.currentTimeMillis() - start > 3000) {
+                start = System.currentTimeMillis();
+                System.out.println(k + "/" + cs.cache.size() + " Done");
+            }
+        };
+        pvs.forEach((pv, states) -> {
+            for (GameState gameState : states) {
+                System.out.println(gameState.stateDesc + " (" + formatFloat(cs.cache.get(gameState).n / 10000.0) + "%)");
+            }
+            for (int i = 0; i < pv.size(); i++) {
+                System.out.println("  " + (i + 1) + ". " + pv.get(i));
+            }
+        });
     }
 
     private static void runNNPV2(GameState state, MCTS mcts, String line) {

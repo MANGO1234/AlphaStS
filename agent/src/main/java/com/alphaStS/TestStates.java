@@ -1266,6 +1266,7 @@ public class TestStates {
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.GamblersBrew().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(7);
         builder.setPlayer(new Player(72, 72));
         return new GameState(builder);
     }
@@ -1771,6 +1772,61 @@ public class TestStates {
         builder.addRelic(new Relic.SlaversCollar());
         builder.addRelic(new Relic.PreservedInsect());
         builder.setPlayer(new Player(38, 38));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateStreamerRun() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Strike(), 2);
+        builder.addCard(new Card.Defend(), 2);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Rebound(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.SteamBarrier(6, -2), 1);
+        builder.addCard(new CardDefect.BootSequence(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.GeneticAlgorithm(21, 4), 1);
+        builder.addCard(new CardDefect.RebootP(), 1);
+        builder.addCard(new CardDefect.CoreSurge(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.SweepingBeamP(), 1);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.Seek(), 1);
+        builder.addCard(new CardDefect.SweepingBeam(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardColorless.DramaticEntranceP(), 1);
+        builder.addCard(new CardDefect.StackP(), 0);
+        builder.addCard(new CardDefect.Skim(), 0);
+        builder.addCard(new CardDefect.Streamline(), 0);
+        builder.addCard(new CardDefect.SeekP(), 0);
+        builder.addEnemy(new EnemyCity.TorchHead());
+        builder.addEnemy(new EnemyCity.TorchHead());
+        builder.addEnemy(new EnemyCity.TheCollector());
+        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.Seek(), 1)),
+                List.of(new CardCount(new CardDefect.SeekP(), 1), new CardCount(new CardDefect.Streamline(), 1),
+                        new CardCount(new CardDefect.Skim(), 1), new CardCount(new CardDefect.StackP(), 1)),
+                List.of(new CardCount(new CardDefect.SeekP(), 1), new CardCount(new CardDefect.Skim(), 1),
+                        new CardCount(new CardDefect.StackP(), 1))
+        ));
+        builder.setPreBattleScenarios(startOfGameScenarios);
+        builder.addPotion(new Potion.StrengthPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(85));
+        builder.setPotionsScenarios(3);
+        builder.setPlayer(new Player(50, 50));
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.NuclearBattery());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.addRelic(new Relic.RunicCapacitor());
+        builder.addRelic(new Relic.PenNib(3, 2));
+        builder.addRelic(new Relic.FossilizedHelix());
         return new GameState(builder);
     }
 }

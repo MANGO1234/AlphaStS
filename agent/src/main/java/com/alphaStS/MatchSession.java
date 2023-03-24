@@ -1212,7 +1212,7 @@ public class MatchSession {
         var remoteServerGames = new HashMap<String, Integer>();
         for (Tuple<String, Integer> server : getRemoteServers()) {
             remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
-            startRemotePlayTrainingGameThread(server.v1(), server.v2(), nodeCount, numToPlay, deq);
+            startRemotePlayTrainingGameThread(server.v1(), server.v2(), nodeCount, numToPlay, deq, origState);
         }
 
         var trainingGame_i = 0;
@@ -1297,7 +1297,7 @@ public class MatchSession {
         }
     }
 
-    private void startRemotePlayTrainingGameThread(String ip, int port, int nodeCount, AtomicInteger numToPlay, BlockingDeque<TrainingGameResult> deq) {
+    private void startRemotePlayTrainingGameThread(String ip, int port, int nodeCount, AtomicInteger numToPlay, BlockingDeque<TrainingGameResult> deq, GameState state) {
         new Thread(() -> {
             while (numToPlay.get() > 0) {
                 try {
@@ -1319,6 +1319,10 @@ public class MatchSession {
                     out.flush();
                     req.type = ServerRequestType.PLAY_TRAINING_GAMES;
                     req.nodeCount = nodeCount;
+                    req.zTraining = USE_Z_TRAINING;
+                    req.curriculumTraining = state.prop.curriculumTraining;
+                    req.minDifficulty = state.prop.minDifficulty;
+                    req.maxDifficulty = state.prop.maxDifficulty;
                     System.out.printf("Start requesting training games from %s:%d...\n", ip, port);
                     while (numToPlay.get() > 0) {
                         req.remainingGames = numToPlay.get();
@@ -1359,10 +1363,15 @@ public class MatchSession {
     BlockingDeque<Game> remoteTrainingDeq = new LinkedBlockingDeque<>();
     List<Thread> remoteTrainingThreads = new ArrayList<>();
 
-    public TrainingGameResult playTrainingGamesRemote(GameState origState, int numOfGames, int nodeCount) throws IOException {
+    public TrainingGameResult playTrainingGamesRemote(GameState oState, ServerRequest req) throws IOException {
+        var origState = oState.clone(false);
         if (remoteNumOfTrainingGames.get() == -123456) {
-            remoteNumOfTrainingGames.set(numOfGames);
+            remoteNumOfTrainingGames.set(req.remainingGames);
             var session = this;
+            origState.prop = origState.prop.clone();
+            session.USE_Z_TRAINING = req.zTraining;
+            origState.prop.curriculumTraining = req.curriculumTraining;
+            origState.prop.randomization = new GameStateRandomization.EnemyRandomization(origState.prop.curriculumTraining, req.minDifficulty, req.maxDifficulty).doAfter(origState.prop.randomization);
             for (int i = 0; i < mcts.size(); i++) {
                 int ii = i;
                 remoteTrainingThreads.add(new Thread(() -> {
@@ -1377,7 +1386,7 @@ public class MatchSession {
                             continue;
                         }
                         try {
-                            remoteTrainingDeq.putLast(session.playTrainingGame(state, nodeCount, mcts.get(ii)));
+                            remoteTrainingDeq.putLast(session.playTrainingGame(state, req.nodeCount, mcts.get(ii)));
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }

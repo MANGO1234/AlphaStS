@@ -494,7 +494,57 @@ public class CardDefect {
         }
     }
 
-    // Rebound
+    private static abstract class _ReboundT extends Card { // todo: echo form/dup rebound?
+        private final int n;
+
+        public _ReboundT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.n = n;
+            selectEnemy = true;
+            putCardOnTopDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getCounterForWrite()[counterIdx]++;
+            state.getCounterForWrite()[counterIdx] |= 1 << 8;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Rebound", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister() {
+                    state.prop.reboundCounterIdx = counterIdx;
+                }
+            });
+            state.prop.addEndOfTurnHandler("Rebound", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Rebound extends CardDefect._ReboundT {
+        public Rebound() {
+            super("Rebound", 9);
+        }
+    }
+
+    public static class ReboundP extends CardDefect._ReboundT {
+        public ReboundP() {
+            super("Rebound+", 12);
+        }
+    }
 
     private static class _RecursionT extends Card {
         public _RecursionT(String cardName, int energyCost) {
@@ -520,8 +570,131 @@ public class CardDefect {
         }
     }
 
-    // Stack
-    // Steam Barrier
+    private static class _StackT extends Card {
+        private int n;
+
+        public _StackT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(state.getNumCardsInDiscard() + n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.cardInDiscardInNNInput = true;
+        }
+    }
+
+    public static class Stack extends CardDefect._StackT {
+        public Stack() {
+            super("Stack", 0);
+        }
+    }
+
+    public static class StackP extends CardDefect._StackT {
+        public StackP() {
+            super("Stack+", 3);
+        }
+    }
+
+    public static class SteamBarrier extends Card {
+        public int limit;
+        private int n;
+
+        public SteamBarrier() {
+            this(6);
+        }
+
+        public SteamBarrier(int n, int limit) {
+            super("Steam Barrier (" + n + ")", Card.SKILL, 0, Card.COMMON);
+            this.n = n;
+            this.limit = limit;
+        }
+
+        public SteamBarrier(int n) {
+            this(n, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = n; i >= limit; i--) {
+                c.add(new SteamBarrier(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            if (state.prop.steamBarrierIndexes != null && state.prop.steamBarrierIndexes.length > n - limit + 1) {
+                return;
+            }
+            state.prop.steamBarrierIndexes = new int[n - limit + 1];
+            for (int i = limit; i <= n; i++) {
+                state.prop.steamBarrierIndexes[i - limit] = state.prop.findCardIndex(new SteamBarrier(i, limit));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            return n > limit ? prop.steamBarrierIndexes[n - limit - 1] : -1;
+        }
+
+        public Card getUpgrade() {
+            return new SteamBarrierP(n + 2, Math.min(limit + 2, 0));
+        }
+    }
+
+    public static class SteamBarrierP extends Card {
+        public int limit;
+        private int n;
+
+        public SteamBarrierP() {
+            this(8);
+        }
+
+        public SteamBarrierP(int n, int limit) {
+            super("Steam Barrier+ (" + n + ")", Card.SKILL, 0, Card.COMMON);
+            this.n = n;
+            this.limit = limit;
+        }
+
+        public SteamBarrierP(int n) {
+            this(n, 0);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = n; i >= limit; i--) {
+                c.add(new SteamBarrierP(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            if (state.prop.steamBarrierPIndexes != null && state.prop.steamBarrierPIndexes.length > n - limit + 1) {
+                return;
+            }
+            state.prop.steamBarrierPIndexes = new int[n - limit + 1];
+            for (int i = limit; i <= n; i++) {
+                state.prop.steamBarrierPIndexes[i - limit] = state.prop.findCardIndex(new SteamBarrierP(i, limit));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            return n > limit ? prop.steamBarrierPIndexes[n - limit - 1] : -1;
+        }
+    }
 
     public static class Streamline extends Card {
         private Streamline(int energyCost) {
@@ -1050,15 +1223,17 @@ public class CardDefect {
         }
     }
 
-    // todo: add reward
+    // todo: echo form
     private static abstract class _GeneticAlgorithmT extends Card {
-        private final int block;
+        protected final int block;
         private final int blockInc;
+        protected final double healthRewardRatio;
 
-        public _GeneticAlgorithmT(String cardName, int block, int blockInc) {
+        public _GeneticAlgorithmT(String cardName, int block, int blockInc, double healthRewardRatio) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.block = block;
             this.blockInc = blockInc;
+            this.healthRewardRatio = healthRewardRatio;
             this.exhaustWhenPlayed = true;
         }
 
@@ -1069,27 +1244,125 @@ public class CardDefect {
         }
 
         @Override public void startOfGameSetup(GameState state) {
-            var name = cardName.substring(0, cardName.indexOf(' '));
-            if (name.endsWith("+")) {
-                name = name.substring(0, name.length() - 1);
+            state.prop.registerCounter("GeneticAlgorithm", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 16.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.prop.addExtraTrainingTarget("GeneticAlgorithm", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
+                        if (enemiesAllDead) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
+                        } else {
+                            int minGA = state.getCounterForRead()[counterIdx];
+                            int maxGARemaining = getMaxPossibleGARemaining(state);
+                            double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, state.getVOther(vArrayIdx)));
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = vGA;
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        int minGA = state.getCounterForRead()[counterIdx];
+                        int maxGARemaining = getMaxPossibleGARemaining(state);
+                        double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                        if (true) {
+                            v[GameState.V_HEALTH_IDX] += 16 * vGA * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                        } else {
+                            v[GameState.V_HEALTH_IDX] *= (0.8 + vGA / 0.25 * 0.2);
+                        }
+                    }
+                });
             }
-            state.prop.registerCounter(name, this, null);
         }
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.geneticAlgorithmCounterIdx = idx;
             counterIdx = idx;
+        }
+
+        private static int getCardCount(GameState state, int idx) {
+            int count = 0;
+            count += state.getHandForRead()[idx];
+            if (idx < state.prop.realCardsLen) {
+                count += state.getDiscardForRead()[idx];
+                count += state.getDeckForRead()[idx];
+            }
+            return count;
+        }
+
+        public static int getMaxPossibleGARemaining(GameState state) {
+            if (state.isTerminal() != 0) {
+                return 0;
+            }
+            // todo: very very hacky
+            var idxes = new int[5];
+
+            boolean canUpgrade = false;
+            state.prop.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Perm 0)", "Apotheosis (Perm 2)", "Apotheosis (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    canUpgrade = true;
+                }
+            }
+            state.prop.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    canUpgrade = true;
+                }
+            }
+            for (int i = 0; i < state.prop.potions.size(); i++) {
+                if (state.prop.potions.get(i) instanceof Potion.BlessingOfTheForge) {
+                    if (state.potionUsable(i)) {
+                        canUpgrade = true;
+                    }
+                }
+            }
+
+            int maxGA = 0;
+            int maxGAP = 0;
+            for (int i = 0; i < state.prop.cardDict.length; i++) {
+                if (state.prop.cardDict[i].cardName.startsWith("Genetic Algorithm")) {
+                    if (state.prop.cardDict[i].cardName.startsWith("Genetic Algorithm+")) {
+                        maxGAP += getCardCount(state, i);
+                    } else {
+                        if (canUpgrade) {
+                            maxGAP += getCardCount(state, i);
+                        } else {
+                            maxGA += getCardCount(state, i);
+                        }
+                    }
+                }
+            }
+            return maxGAP * 3 + maxGA * 2;
         }
     }
 
     public static class GeneticAlgorithm extends CardDefect._GeneticAlgorithmT {
         public GeneticAlgorithm(int block) {
-            super("Genetic Algorithm (" + block + ")", block, 2);
+            super("Genetic Algorithm (" + block + ")", block, 2, 2);
+        }
+
+        public GeneticAlgorithm(int block, double healthRewardRatio) {
+            super("Genetic Algorithm (" + block + ")", block, 2, healthRewardRatio);
+        }
+
+        public Card getUpgrade() {
+            return new CardDefect.GeneticAlgorithmP(block, healthRewardRatio);
         }
     }
 
     public static class GeneticAlgorithmP extends CardDefect._GeneticAlgorithmT {
         public GeneticAlgorithmP(int block) {
-            super("Genetic Algorithm+ (" + block + ")", block, 3);
+            super("Genetic Algorithm+ (" + block + ")", block, 3, 2);
+        }
+
+        public GeneticAlgorithmP(int block, double healthRewardRatio) {
+            super("Genetic Algorithm+ (" + block + ")", block, 3, healthRewardRatio);
         }
     }
 
@@ -1458,7 +1731,73 @@ public class CardDefect {
 
     // White Noise
     // All for One
-    // Amplify
+
+    private static abstract class _AmplifyT extends Card {
+        private final int n;
+
+        public _AmplifyT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Amplify", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("Amplify", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForWrite()[counterIdx] != 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.addOnCardPlayedHandler("Amplify", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    var card = state.prop.cardDict[cardIdx];
+                    if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    if (cloned && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                        state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                    } else {
+                        var counters = state.getCounterForWrite();
+                        counters[counterIdx]--;
+                        counters[counterIdx] |= 1 << 8;
+                        state.addGameActionToEndOfDeque(curState -> {
+                            var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
+                            } else {
+                                state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Amplify extends CardDefect._AmplifyT {
+        public Amplify() {
+            super("Amplify", Card.SKILL, 1, 1);
+        }
+    }
+
+    public static class AmplifyP extends CardDefect._AmplifyT {
+        public AmplifyP() {
+            super("Amplify+", Card.SKILL, 1, 2);
+        }
+    }
 
     private static abstract class _BiasedCognitionT extends Card {
         private final int n;
@@ -1520,6 +1859,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.n = n;
             selectEnemy = true;
+            changePlayerArtifact = true;
             exhaustWhenPlayed = true;
         }
 
@@ -1747,6 +2087,9 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.discardHand();
+            if (!state.prop.isInteractive) {
+                state.getDrawOrderForWrite().clear();
+            }
             state.reshuffle();
             state.draw(n);
             return GameActionCtx.PLAY_CARD;

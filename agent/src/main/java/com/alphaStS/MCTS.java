@@ -348,7 +348,13 @@ public class MCTS {
         if (state.prop.nunchakuCounterIdx >= 0 && state.getCounterForRead()[state.prop.nunchakuCounterIdx] < 9) {
             return false;
         }
+        if (state.prop.penNibCounterIdx >= 0 && state.getCounterForRead()[state.prop.penNibCounterIdx] < 9) {
+            return false;
+        }
         if (state.prop.happyFlowerCounterIdx >= 0 && state.getCounterForRead()[state.prop.happyFlowerCounterIdx] < 2) {
+            return false;
+        }
+        if (state.prop.geneticAlgorithmCounterIdx >= 0 && CardDefect.GeneticAlgorithm.getMaxPossibleGARemaining(state) != 0) {
             return false;
         }
         if (state.prop.handOfGreedCounterIdx >= 0) {

@@ -43,6 +43,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean changePlayerStrengthEot;
     public boolean changePlayerDexterity;
     public boolean changePlayerFocus;
+    public boolean changePlayerArtifact;
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean poisonEnemy;
@@ -124,6 +125,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerStrengthEot = card.changePlayerStrengthEot;
             changePlayerDexterity = card.changePlayerDexterity;
             changePlayerFocus = card.changePlayerFocus;
+            changePlayerArtifact = card.changePlayerArtifact;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             affectEnemyStrength = card.affectEnemyStrength;
@@ -178,6 +180,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerStrengthEot = card.changePlayerStrengthEot;
             changePlayerDexterity = card.changePlayerDexterity;
             changePlayerFocus = card.changePlayerFocus;
+            changePlayerArtifact = card.changePlayerArtifact;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             affectEnemyStrength = card.affectEnemyStrength;

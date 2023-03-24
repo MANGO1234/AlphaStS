@@ -83,6 +83,7 @@ public class CardUpgrade {
         map.put(new Card.Reaper(), new Card.ReaperP());
 
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
+        map.put(new CardColorless.DramaticEntrance(), new CardColorless.DramaticEntranceP());
         map.put(new CardColorless.Apotheosis(), new CardColorless.ApotheosisP());
         map.put(new CardColorless.HandOfGreed(), new CardColorless.HandOfGreedP());
 
@@ -109,6 +110,7 @@ public class CardUpgrade {
         map.put(new CardDefect.GoForTheEye(), new CardDefect.GoForTheEyeP());
         map.put(new CardDefect.Hologram(), new CardDefect.HologramP());
         map.put(new CardDefect.Leap(), new CardDefect.LeapP());
+        map.put(new CardDefect.Rebound(), new CardDefect.ReboundP());
         map.put(new CardDefect.Recursion(), new CardDefect.RecursionP());
         map.put(new CardDefect.Streamline(), new CardDefect.StreamlineP());
         map.put(new CardDefect.SweepingBeam(), new CardDefect.SweepingBeamP());
