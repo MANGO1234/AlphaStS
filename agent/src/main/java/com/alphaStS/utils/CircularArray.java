@@ -62,6 +62,7 @@ public class CircularArray<T> {
         size++;
     }
 
+    @SuppressWarnings("unchecked")
     public T pollFirst() {
         if (size == 0) {
             return null;
@@ -73,6 +74,7 @@ public class CircularArray<T> {
         return (T) o;
     }
 
+    @SuppressWarnings("unchecked")
     public T peekFirst() {
         if (size == 0) {
             return null;

@@ -85,9 +85,11 @@ public class GameStateUtils {
         for (Card card : from.prop.cardDict) {
             cardMap.put(card, new CardChanges());
         }
-        for (int i = 0; i < from.getHandForRead().length; i++) {
-            if (from.getHandForRead()[i] != to.getHandForRead()[i]) {
-                cardMap.get(from.prop.cardDict[i]).hand = to.getHandForRead()[i] - from.getHandForRead()[i];
+        var fromGetHandForRead = GameStateUtils.getCardArrCounts(from.getHandArrForRead(), from.getNumCardsInHand(), from.prop.cardDict.length);
+        var toGetHandForRead = GameStateUtils.getCardArrCounts(to.getHandArrForRead(), to.getNumCardsInHand(), to.prop.cardDict.length);
+        for (int i = 0; i < fromGetHandForRead.length; i++) {
+            if (fromGetHandForRead[i] != toGetHandForRead[i]) {
+                cardMap.get(from.prop.cardDict[i]).hand = toGetHandForRead[i] - fromGetHandForRead[i];
             }
         }
         for (int i = 0; i < from.getDeckForRead().length; i++) {
@@ -95,9 +97,11 @@ public class GameStateUtils {
                 cardMap.get(from.prop.cardDict[i]).deck = to.getDeckForRead()[i] - from.getDeckForRead()[i];
             }
         }
-        for (int i = 0; i < from.getDiscardForRead().length; i++) {
-            if (from.getDiscardForRead()[i] != to.getDiscardForRead()[i]) {
-                cardMap.get(from.prop.cardDict[i]).discard = to.getDiscardForRead()[i] - from.getDiscardForRead()[i];
+        var fromGetDiscardForRead = GameStateUtils.getCardArrCounts(from.getDiscardArrForRead(), from.getNumCardsInDiscard(), from.prop.cardDict.length);
+        var toGetDiscardForRead = GameStateUtils.getCardArrCounts(to.getDiscardArrForRead(), to.getNumCardsInDiscard(), to.prop.cardDict.length);
+        for (int i = 0; i < fromGetDiscardForRead.length; i++) {
+            if (fromGetDiscardForRead[i] != toGetDiscardForRead[i]) {
+                cardMap.get(from.prop.cardDict[i]).discard = toGetDiscardForRead[i] - fromGetDiscardForRead[i];
             }
         }
         for (int i = 0; i < from.getExhaustForRead().length; i++) {
@@ -370,5 +374,33 @@ public class GameStateUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static byte[] getCardArrCounts(short[] cards, int cardsLen, int len) {
+        byte[] counts = new byte[len];
+        for (int i = 0; i < cardsLen; i++) {
+            counts[cards[i]]++;
+        }
+        return counts;
+    }
+
+    public static int getCardsCount(short[] cards, int len, boolean[] want) {
+        int count = 0;
+        for (int i = 0; i < len; i++) {
+            if (want[cards[i]]) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static int getCardCount(short[] cards, int len, int idx) {
+        int count = 0;
+        for (int i = 0; i < len; i++) {
+            if (cards[i] == idx) {
+                count++;
+            }
+        }
+        return count;
     }
 }

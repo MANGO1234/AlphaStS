@@ -161,7 +161,7 @@ public class GameSolver {
         var action = cState.parentAction;
         if (state.getAction(action).type() == GameActionType.BEGIN_TURN || state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
             var modState = state.clone(false);
-            modState.discardHand();
+            modState.discardHand(false);
             int toDraw = 5;
 //            if (state.actionCtx == GameActionCtx.START_GAME && (state.deck[state.prop.findCardIndex(new CardSilent.Survivor())] > 0)) {
 //                toDraw = 7;
@@ -203,9 +203,9 @@ public class GameSolver {
         if (toDraw == 0) {
             var newState = cState.parentState.clone(false);
             newState.doAction(cState.parentAction);
-            newState.hand = Arrays.copyOf(modState.hand, modState.hand.length);
+            newState.handArr = Arrays.copyOf(modState.handArr, modState.handArr.length);
             newState.deck = Arrays.copyOf(modState.deck, modState.deck.length);
-            newState.discard = Arrays.copyOf(modState.discard, modState.discard.length);
+            newState.discardArr = Arrays.copyOf(modState.discardArr, modState.discardArr.length);
             newState.deckArr = Arrays.copyOf(modState.deckArr, modState.deckArr.length);
             newState.deckArrLen = modState.deckArrLen;
             var node = new ChanceState.Node(newState);

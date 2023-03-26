@@ -218,8 +218,8 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType == Card.ATTACK) {
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
                     return GameActionCtx.PLAY_CARD;
                 }
             }
@@ -360,18 +360,12 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.handArrTransform(state.prop.upgradeIdxes);
+            state.discardArrTransform(state.prop.upgradeIdxes);
             for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
-                    state.getHandForWrite()[i] = 0;
-                }
                 if (state.getDeckForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.getDeckForWrite()[state.prop.upgradeIdxes[i]] += state.getDeckForWrite()[i];
                     state.getDeckForWrite()[i] = 0;
-                }
-                if (state.getDiscardForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getDiscardForWrite()[state.prop.upgradeIdxes[i]] += state.getDiscardForWrite()[i];
-                    state.getDiscardForWrite()[i] = 0;
                 }
                 if (state.getExhaustForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.getExhaustForWrite()[state.prop.upgradeIdxes[i]] += state.getExhaustForRead()[i];
@@ -471,9 +465,9 @@ public class CardColorless {
 
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
-            count += state.getHandForRead()[idx];
+            count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.handArrLen, idx);
             if (idx < state.prop.realCardsLen) {
-                count += state.getDiscardForRead()[idx];
+                count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.discardArrLen, idx);
                 count += state.getDeckForRead()[idx];
             }
             return count;

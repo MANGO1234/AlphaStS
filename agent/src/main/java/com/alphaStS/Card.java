@@ -4,6 +4,7 @@ import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -80,7 +81,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean canSelectCard(Card card) { return true; }
     public void startOfGameSetup(GameState state) {}
     public void onDiscard(GameState state) {}
-    public void onDiscardEndOfTurn(GameState state, int count) {}
+    public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {}
     public Card getUpgrade() { return CardUpgrade.map.get(this); }
 
     @Override public String toString() {
@@ -346,12 +347,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
-            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
-                    state.getHandForWrite()[i] = 0;
-                }
-            }
+            state.handArrTransform(state.prop.upgradeIdxes);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -396,8 +392,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public int energyCost(GameState state) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType != Card.ATTACK) {
                     return -1;
                 }
             }
@@ -417,8 +413,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public int energyCost(GameState state) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType != Card.ATTACK) {
                     return -1;
                 }
             }
@@ -658,10 +654,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 1; // 1 because the played card is not in hand anymore
+            var strikes = new boolean[state.prop.cardDict.length];
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
-                count += state.getHandForRead()[state.prop.strikeCardIdxes[i]];
+                strikes[state.prop.strikeCardIdxes[i]] = true;
+            }
+            count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
+            count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
+            for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
-                    count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
                     count += state.getDeckForRead()[state.prop.strikeCardIdxes[i]];
                 }
             }
@@ -678,10 +678,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = 1; // 1 because the played card is not in hand anymore
+            var strikes = new boolean[state.prop.cardDict.length];
             for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
-                count += state.getHandForRead()[state.prop.strikeCardIdxes[i]];
+                strikes[state.prop.strikeCardIdxes[i]] = true;
+            }
+            count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
+            count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
+            for (int i = 0; i < state.prop.strikeCardIdxes.length; i++) {
                 if (state.prop.strikeCardIdxes[i] < state.prop.realCardsLen) {
-                    count += state.getDiscardForRead()[state.prop.strikeCardIdxes[i]];
                     count += state.getDeckForRead()[state.prop.strikeCardIdxes[i]];
                 }
             }
@@ -827,22 +831,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(7);
-            int c = 0;
-            int diffCards = 0;
-            for (int cardIdx = 0; cardIdx < state.getHandForRead().length; cardIdx++) {
-                c += state.getHandForRead()[cardIdx];
-                diffCards += state.getHandForRead()[cardIdx] > 0 ? 1 : 0;
-            }
-            int r = 1;
-            if (diffCards > 1) {
-                r = state.getSearchRandomGen().nextInt(c, RandomGenCtx.RandomCardHand, state) + 1;
-                state.setIsStochastic();
-            }
-            for (int cardIdx = 0; cardIdx < state.getHandForRead().length; cardIdx++) {
-                r -= state.getHandForRead()[cardIdx];
-                if (r <= 0) {
-                    state.exhaustCardFromHand(cardIdx);
-                    break;
+            if (state.handArrLen > 0) {
+                int diff = 0;
+                var seen = new boolean[state.prop.cardDict.length];
+                for (int i = 0; i < state.handArrLen; i++) {
+                    if (!seen[state.getHandArrForRead()[i]]) {
+                        diff++;
+                        seen[state.getHandArrForRead()[i]] = true;
+                    }
+                }
+                if (diff > 1) {
+                    state.setIsStochastic();
+                    int r = state.getSearchRandomGen().nextInt(state.handArrLen, RandomGenCtx.RandomCardHand, state);
+                    state.exhaustCardFromHand(state.getHandArrForRead()[r]);
+                } else {
+                    state.exhaustCardFromHand(state.getHandArrForRead()[0]);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1009,6 +1012,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             for (int i = 0; i < 5; i++) {
                 state.prop.bloodForBloodIndexes[i] = state.prop.findCardIndex(new BloodForBlood(i));
             }
+            state.prop.bloodForBloodTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.bloodForBloodTransformIndexes, -1);
+            for (int i = 0; i < 4; i++) {
+                state.prop.bloodForBloodTransformIndexes[state.prop.bloodForBloodIndexes[i + 1]] = state.prop.bloodForBloodIndexes[i];
+            }
             state.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
@@ -1017,14 +1025,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                             state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
                             state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
                         }
-                        if (state.getHandForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
-                            state.getHandForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getHandForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
-                            state.getHandForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
-                        }
-                        if (state.getDiscardForRead()[state.prop.bloodForBloodIndexes[i + 1]] > 0) {
-                            state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
-                            state.getDiscardForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
-                        }
+                        state.handArrTransform(state.prop.bloodForBloodTransformIndexes);
+                        state.discardArrTransform(state.prop.bloodForBloodTransformIndexes);
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.prop.bloodForBloodIndexes[i]] += exhaust[state.prop.bloodForBloodIndexes[i + 1]];
                         exhaust[state.prop.bloodForBloodIndexes[i + 1]] = 0;
@@ -1058,6 +1060,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             for (int i = 0; i < 4; i++) {
                 state.prop.bloodForBloodPIndexes[i] = state.prop.findCardIndex(new BloodForBloodP(i));
             }
+            state.prop.bloodForBloodPTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.bloodForBloodPTransformIndexes, -1);
+            for (int i = 0; i < 4; i++) {
+                state.prop.bloodForBloodPTransformIndexes[state.prop.bloodForBloodPIndexes[i + 1]] = state.prop.bloodForBloodPIndexes[i];
+            }
             state.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
@@ -1066,14 +1073,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                             state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
                             state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
                         }
-                        if (state.getHandForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
-                            state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
-                            state.getHandForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
-                        }
-                        if (state.getDiscardForRead()[state.prop.bloodForBloodPIndexes[i + 1]] > 0) {
-                            state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
-                            state.getDiscardForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
-                        }
+                        state.handArrTransform(state.prop.bloodForBloodPTransformIndexes);
+                        state.discardArrTransform(state.prop.bloodForBloodPTransformIndexes);
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.prop.bloodForBloodPIndexes[i]] += exhaust[state.prop.bloodForBloodPIndexes[i + 1]];
                         exhaust[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
@@ -2115,13 +2116,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.getHandForRead()[i] > 0) {
-                        state.exhaustCardFromHand(i);
-                        state.getPlayerForWrite().gainBlock(5);
-                    }
-                }
+            int c = state.handArrLen;
+            for (int i = 0; i < c; i++) {
+                state.exhaustCardFromHandByPosition(i, false);
+            }
+            state.updateHandArr();
+            for (int i = 0; i < c; i++) {
+                state.getPlayerForWrite().gainBlock(5);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2133,13 +2134,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.getHandForRead()[i] > 0) {
-                        state.exhaustCardFromHand(i);
-                        state.getPlayerForWrite().gainBlock(5);
-                    }
-                }
+            int c = state.handArrLen;
+            for (int i = 0; i < c; i++) {
+                state.exhaustCardFromHandByPosition(i, false);
+            }
+            state.updateHandArr();
+            for (int i = 0; i < c; i++) {
+                state.getPlayerForWrite().gainBlock(7);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2207,13 +2208,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.getHandForRead()[i] > 0) {
-                        state.exhaustCardFromHand(i);
-                    }
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType != Card.ATTACK) {
+                    state.exhaustCardFromHandByPosition(i, false);
                 }
             }
+            state.updateHandArr();
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 16);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2226,13 +2226,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.cardDict[i].cardType != Card.ATTACK) {
-                    while (state.getHandForRead()[i] > 0) {
-                        state.exhaustCardFromHand(i);
-                    }
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType != Card.ATTACK) {
+                    state.exhaustCardFromHandByPosition(i, false);
                 }
             }
+            state.updateHandArr();
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 22);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2717,9 +2716,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
-            count += state.getHandForRead()[idx];
+            count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.getNumCardsInHand(), idx);
             if (idx < state.prop.realCardsLen) {
-                count += state.getDiscardForRead()[idx];
+                count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), idx);
                 count += state.getDeckForRead()[idx];
             }
             return count;
@@ -2836,15 +2835,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int[] cardToExhaust = new int[GameState.HAND_LIMIT];
-            int k = 0;
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                for (int j = 0; j < state.getHandForRead()[i]; j++) {
-                    cardToExhaust[k++] = i;
-                }
+            int c = state.handArrLen;
+            for (int i = 0; i < c; i++) {
+                state.exhaustCardFromHandByPosition(i, false);
             }
-            for (int i = 0; i < k; i++) {
-                state.exhaustCardFromHand(cardToExhaust[i]);
+            state.updateHandArr();
+            for (int i = 0; i < c; i++) {
                 if (state.getEnemiesForWrite().get(idx).isAlive()) {
                     state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 7);
                 }
@@ -2862,15 +2858,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int[] cardToExhaust = new int[GameState.HAND_LIMIT];
-            int k = 0;
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                for (int j = 0; j < state.getHandForRead()[i]; j++) {
-                    cardToExhaust[k++] = i;
-                }
+            int c = state.handArrLen;
+            for (int i = 0; i < c; i++) {
+                state.exhaustCardFromHandByPosition(i, false);
             }
-            for (int i = 0; i < k; i++) {
-                state.exhaustCardFromHand(cardToExhaust[i]);
+            state.updateHandArr();
+            for (int i = 0; i < c; i++) {
                 if (state.getEnemiesForWrite().get(idx).isAlive()) {
                     state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10);
                 }
@@ -3094,10 +3087,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int count) {
-            for (int i = 0; i < count; i++) {
-                state.doNonAttackDamageToPlayer(2, true, this);
-            }
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            state.doNonAttackDamageToPlayer(2, true, this);
         }
     }
 
@@ -3107,10 +3098,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int count) {
-            for (int i = 0; i < count; i++) {
-                state.doNonAttackDamageToPlayer(4, true, this);
-            }
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            state.doNonAttackDamageToPlayer(4, true, this);
         }
     }
 
@@ -3195,10 +3184,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int count) {
-            for (int i = 0; i < count; i++) {
-                state.doNonAttackDamageToPlayer(2, true, this);
-            }
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            state.doNonAttackDamageToPlayer(2, true, this);
         }
     }
 
@@ -3209,10 +3196,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int count) {
-            for (int i = 0; i < count; i++) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
-            }
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
         }
     }
 
@@ -3261,8 +3246,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             var _this = this;
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
-                    for (int i = 0; i < state.getHandForRead()[cardIdx]; i++) {
-                        state.doNonAttackDamageToPlayer(1, false, _this);
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (state.prop.cardDict[state.getHandArrForRead()[i]] instanceof Card.Pain) {
+                            state.doNonAttackDamageToPlayer(1, false, _this);
+                        }
                     }
                 }
             });
@@ -3276,14 +3263,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int count) {
-            int numOfCards = 0;
-            for (int n : state.getHandForRead()) {
-                numOfCards += n;
-            }
-            for (int i = 0; i < count; i++) {
-                state.doNonAttackDamageToPlayer(numOfCards, false, this);
-            }
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            state.doNonAttackDamageToPlayer(numCardsInHand, false, this);
         }
     }
 
@@ -3294,10 +3275,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = true;
         }
 
-        @Override public void onDiscardEndOfTurn(GameState state, int count) {
-            for (int i = 0; i < count; i++) {
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
-            }
+        @Override public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
         }
     }
 

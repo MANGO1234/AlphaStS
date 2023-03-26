@@ -3,6 +3,7 @@ package com.alphaStS.enemy;
 import com.alphaStS.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public abstract class Enemy extends EnemyReadOnly {
@@ -781,12 +782,11 @@ public abstract class Enemy extends EnemyReadOnly {
                 var deck = state.getDeckForRead();
                 state.setCardCountInDeck(state.prop.burnPCardIdx, deck[state.prop.burnPCardIdx] + deck[state.prop.burnCardIdx]);
                 state.setCardCountInDeck(state.prop.burnCardIdx, 0);
-                var hand = state.getHandForRead();
-                state.setCardCountInHand(state.prop.burnPCardIdx, hand[state.prop.burnPCardIdx] + hand[state.prop.burnCardIdx]);
-                state.setCardCountInHand(state.prop.burnCardIdx, 0);
-                var discard = state.getDiscardForRead();
-                state.setCardCountInDiscard(state.prop.burnPCardIdx, discard[state.prop.burnPCardIdx] + discard[state.prop.burnCardIdx]);
-                state.setCardCountInDiscard(state.prop.burnCardIdx, 0);
+                var burnUpgrade = new int[state.prop.cardDict.length];
+                Arrays.fill(burnUpgrade, -1);
+                burnUpgrade[state.prop.burnCardIdx] = state.prop.burnPCardIdx;
+                state.handArrTransform(burnUpgrade);
+                state.discardArrTransform(burnUpgrade);
                 state.addCardToDiscard(state.prop.burnPCardIdx);
                 state.addCardToDiscard(state.prop.burnPCardIdx);
                 state.addCardToDiscard(state.prop.burnPCardIdx);

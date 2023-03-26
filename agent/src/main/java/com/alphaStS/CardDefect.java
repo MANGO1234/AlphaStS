@@ -4,6 +4,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CardDefect {
@@ -214,14 +215,8 @@ public class CardDefect {
                     state.addCardToDeck(state.prop.clawIndexes[i]);
                 }
                 state.setCardCountInDeck(state.prop.clawIndexes[i - 1], 0);
-                if (state.getHandForRead()[state.prop.clawIndexes[i - 1]] > 0) {
-                    state.getHandForWrite()[state.prop.clawIndexes[i]] += state.getHandForWrite()[state.prop.clawIndexes[i - 1]];
-                    state.getHandForWrite()[state.prop.clawIndexes[i - 1]] = 0;
-                }
-                if (state.getDiscardForRead()[state.prop.clawIndexes[i - 1]] > 0) {
-                    state.getDiscardForWrite()[state.prop.clawIndexes[i]] += state.getDiscardForWrite()[state.prop.clawIndexes[i - 1]];
-                    state.getDiscardForWrite()[state.prop.clawIndexes[i - 1]] = 0;
-                }
+                state.handArrTransform(state.prop.clawTransformIndexes);
+                state.discardArrTransform(state.prop.clawTransformIndexes);
                 exhaust[state.prop.clawIndexes[i]] += exhaust[state.prop.clawIndexes[i - 1]];
                 exhaust[state.prop.clawIndexes[i - 1]] = 0;
             }
@@ -240,6 +235,11 @@ public class CardDefect {
             state.prop.clawIndexes = new int[limit];
             for (int i = 0; i < state.prop.clawIndexes.length; i++) {
                 state.prop.clawIndexes[i] = state.prop.findCardIndex(new Claw(3 + i * 2));
+            }
+            state.prop.clawTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.clawTransformIndexes, -1);
+            for (int i = 0; i < limit - 1; i++) {
+                state.prop.clawTransformIndexes[state.prop.findCardIndex(new Claw(3 + i * 2))] = state.prop.findCardIndex(new Claw(3 + (i + 1) * 2));
             }
         }
 
@@ -276,14 +276,8 @@ public class CardDefect {
                     state.addCardToDeck(state.prop.clawPIndexes[i]);
                 }
                 state.setCardCountInDeck(state.prop.clawPIndexes[i - 1], 0);
-                if (state.getHandForRead()[state.prop.clawPIndexes[i - 1]] > 0) {
-                    state.getHandForWrite()[state.prop.clawPIndexes[i]] += state.getHandForWrite()[state.prop.clawPIndexes[i - 1]];
-                    state.getHandForWrite()[state.prop.clawPIndexes[i - 1]] = 0;
-                }
-                if (state.getDiscardForRead()[state.prop.clawPIndexes[i - 1]] > 0) {
-                    state.getDiscardForWrite()[state.prop.clawPIndexes[i]] += state.getDiscardForWrite()[state.prop.clawPIndexes[i - 1]];
-                    state.getDiscardForWrite()[state.prop.clawPIndexes[i - 1]] = 0;
-                }
+                state.handArrTransform(state.prop.clawPTransformIndexes);
+                state.discardArrTransform(state.prop.clawPTransformIndexes);
                 exhaust[state.prop.clawPIndexes[i]] += exhaust[state.prop.clawPIndexes[i - 1]];
                 exhaust[state.prop.clawPIndexes[i - 1]] = 0;
             }
@@ -301,7 +295,12 @@ public class CardDefect {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.clawPIndexes = new int[limit];
             for (int i = 0; i < state.prop.clawPIndexes.length; i++) {
-                state.prop.clawPIndexes[i] = state.prop.findCardIndex(new Claw(5 + i * 2));
+                state.prop.clawPIndexes[i] = state.prop.findCardIndex(new ClawP(5 + i * 2));
+            }
+            state.prop.clawPTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.clawPTransformIndexes, -1);
+            for (int i = 0; i < limit - 1; i++) {
+                state.prop.clawPTransformIndexes[state.prop.findCardIndex(new ClawP(5 + i * 2))] = state.prop.findCardIndex(new ClawP(5 + (i + 1) * 2));
             }
         }
 
@@ -1287,9 +1286,9 @@ public class CardDefect {
 
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
-            count += state.getHandForRead()[idx];
+            count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.getNumCardsInHand(), idx);
             if (idx < state.prop.realCardsLen) {
-                count += state.getDiscardForRead()[idx];
+                count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), idx);
                 count += state.getDeckForRead()[idx];
             }
             return count;
@@ -2086,7 +2085,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.discardHand();
+            state.discardHand(false);
             if (!state.prop.isInteractive) {
                 state.getDrawOrderForWrite().clear();
             }

@@ -95,9 +95,10 @@ public class InteractiveMode {
                 }
             } else if (line.equals("s")) {
                 System.out.println("Discard");
-                for (int i = 0; i < state.getDiscardForRead().length; i++) {
-                    if (state.getDiscardForRead()[i] > 0) {
-                        System.out.println("  " + state.getDiscardForRead()[i] + " " + state.prop.cardDict[i].cardName);
+                var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.prop.realCardsLen);
+                for (int i = 0; i < discard.length; i++) {
+                    if (discard[i] > 0) {
+                        System.out.println("  " + discard[i] + " " + state.prop.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("x")) {
@@ -485,23 +486,16 @@ public class InteractiveMode {
             System.out.println("]");
         }
         System.out.println("Hand");
-        for (int i = 0; i < state.getHandForRead().length; i++) {
-            if (state.getHandForRead()[i] > 0) {
-                System.out.println("  " + state.getHandForRead()[i] + " " + state.prop.cardDict[i].cardName);
+        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.prop.cardDict.length);
+        for (int i = 0; i < hand.length; i++) {
+            if (hand[i] > 0) {
+                System.out.println("  " + hand[i] + " " + state.prop.cardDict[i].cardName);
             }
         }
-        if (state.chosenCards != null) {
-            int c = 0;
-            for (int i = 0; i < state.chosenCards.length; i++) {
-                c += state.chosenCards[i];
-            }
-            if (c > 0) {
-                System.out.println("Chosen");
-                for (int i = 0; i < state.chosenCards.length; i++) {
-                    if (state.chosenCards[i] > 0) {
-                        System.out.println("  " + state.chosenCards[i] + " " + state.prop.cardDict[i].cardName);
-                    }
-                }
+        if (state.chosenCardsArrLen > 0) {
+            System.out.println("Chosen");
+            for (int i = 0; i < state.chosenCardsArrLen; i++) {
+                System.out.println("  " + state.prop.cardDict[state.chosenCardsArr[i]].cardName);
             }
         }
         if (state.nightmareCards != null && state.nightmareCardsLen > 0) {
@@ -856,10 +850,8 @@ public class InteractiveMode {
     }
 
     private static void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        for (int i = 0; i < state.prop.cardDict.length; i++) {
-            if (state.getHandForRead()[i] > 0) {
-                System.out.println(i + ". " + state.prop.cardDict[i].cardName);
-            }
+        for (int i = 0; i < state.handArrLen; i++) {
+            System.out.println(i + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
         }
         while (true) {
             System.out.print("> ");
@@ -869,8 +861,8 @@ public class InteractiveMode {
                 return;
             }
             int idx = parseInt(line, -1);
-            if (idx >= 0 && idx < state.prop.cardDict.length && state.getHandForRead()[idx] > 0) {
-                state.removeCardFromHand(idx);
+            if (idx >= 0 && idx < state.handArrLen) {
+                state.removeCardFromHandByPosition(idx);
                 return;
             }
             System.out.println("Unknown Command");
@@ -878,20 +870,15 @@ public class InteractiveMode {
     }
 
     static int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        int cardCount = 0;
-        var hand = state.getHandForRead();
-        for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0) {
-                System.out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
-                cardCount += state.getHandForRead()[i];
-            }
+        for (int i = 0; i < state.handArrLen; i++) {
+            System.out.println(i + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
         }
         while (true) {
             System.out.print("> ");
             String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
-            if (r >= 0 && r < cardCount) {
+            if (r >= 0 && r < state.handArrLen) {
                 return r;
             }
             System.out.println("Unknown Command");
@@ -900,10 +887,10 @@ public class InteractiveMode {
 
     static int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int nonUpgradedCardCount = 0;
-        for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-            if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                System.out.println(nonUpgradedCardCount + ". " + state.prop.cardDict[i].cardName);
-                nonUpgradedCardCount += state.getHandForRead()[i];
+        for (int i = 0; i < state.handArrLen; i++) {
+            if (state.prop.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
+                System.out.println(nonUpgradedCardCount + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
+                nonUpgradedCardCount++;
             }
         }
         while (true) {
@@ -920,11 +907,10 @@ public class InteractiveMode {
 
     static int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int cardCount = 0;
-        var hand = state.getHandForRead();
-        for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
-                System.out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
-                cardCount += hand[i];
+        for (int i = 0; i < state.handArrLen; i++) {
+            if (!state.prop.cardDict[state.getHandArrForRead()[i]].isXCost && state.prop.cardDict[state.getHandArrForRead()[i]].energyCost > 0) {
+                System.out.println(cardCount + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
+                cardCount++;
             }
         }
         while (true) {
@@ -1535,6 +1521,7 @@ public class InteractiveMode {
             this.history = history;
         }
 
+        @SuppressWarnings("unchecked")
         @Override public int nextInt(int bound, RandomGenCtx ctx, Object arg) {
             if (rngOn) {
                 return super.nextInt(bound, ctx, arg);
@@ -1635,12 +1622,13 @@ public class InteractiveMode {
             }
         }
 
-        public int selectBronzeOrbStasis(GameState state, byte[] cards, int rarity, Enemy enemy, int enemyIdx) {
+        public int selectBronzeOrbStasis(GameState state, short[] cards, int cardsLen, int rarity, Enemy enemy, int enemyIdx) {
             System.out.println("Select card for " + enemy.getName() + " (" + enemyIdx + ")" + " to take");
-            int j = 0;
-            for (int i = 0; i < cards.length; i++) {
-                if (cards[i] > 0 && rarity == state.prop.cardDict[i].rarity) {
-                    System.out.println(j++ + ". " + state.prop.cardDict[i].cardName);
+            int cardCount = 0;
+            for (int i = 0; i < cardsLen; i++) {
+                if (rarity == state.prop.cardDict[cards[i]].rarity) {
+                    System.out.println(i + ". " + state.prop.cardDict[cards[i]].cardName);
+                    cardCount++;
                 }
             }
             while (true) {
@@ -1653,7 +1641,7 @@ public class InteractiveMode {
                 }
                 history.add(line);
                 int r = parseInt(line, -1);
-                if (0 <= r && r < j) {
+                if (0 <= r && r < cardCount) {
                     return r;
                 }
                 System.out.println("Unknown Move");

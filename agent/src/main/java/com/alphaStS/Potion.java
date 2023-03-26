@@ -376,18 +376,13 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int cardsInHand = 0;
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                cardsInHand += state.getHandForRead()[i];
-            }
-            if (cardsInHand >= GameState.HAND_LIMIT || idx < 0) {
+            if (state.handArrLen >= GameState.HAND_LIMIT || idx < 0) {
                 return GameActionCtx.PLAY_CARD; // tested, potion is wasted
             }
-            if (state.prop.tmpCostCardIdxes[idx] >= 0) {
-                state.removeCardFromDiscard(idx);
-                state.addCardToHand(state.prop.tmpCostCardIdxes[idx]);
+            state.removeCardFromDiscard(idx);
+            if (state.prop.tmp0CostCardTransformIdxes[idx] >= 0) {
+                state.addCardToHand(state.prop.tmp0CostCardTransformIdxes[idx]);
             } else {
-                state.removeCardFromDiscard(idx);
                 state.addCardToHand(idx);
             }
             if (state.prop.hasSacredBark) {
@@ -459,12 +454,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class BlessingOfTheForge extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getHandForWrite()[state.prop.upgradeIdxes[i]] += state.getHandForWrite()[i];
-                    state.getHandForWrite()[i] = 0;
-                }
-            }
+            state.handArrTransform(state.prop.upgradeIdxes);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -628,18 +618,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class SneckoPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
-            var hand = Arrays.copyOf(state.getHandForRead(), state.getHandForRead().length);
-            for (int i = 0; i < hand.length; i++) {
-                if (hand[i] > 0) {
-                    for (int j = 0; j < hand[i]; j++) {
-                        state.removeCardFromHand(i);
-                        var snecko = state.prop.sneckoIdxes[i];
-                        if (snecko[0] == 1) {
-                            state.addCardToHand(snecko[1]);
-                        } else {
-                            state.addCardToHand(snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(state, i)) + 1]);
-                        }
-                    }
+            for (int i = 0; i < state.handArrLen; i++) {
+                var snecko = state.prop.sneckoIdxes[state.getHandArrForRead()[i]];
+                if (snecko[0] > 1) {
+                    state.getHandArrForWrite()[i] = (short) snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(state, i)) + 1];
                 }
             }
             return GameActionCtx.PLAY_CARD;

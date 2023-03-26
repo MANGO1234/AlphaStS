@@ -52,7 +52,8 @@ public class GameProperties implements Cloneable {
     public int[] discardIdxes; // cards that can change in number of copies during a fight
     public int[] discardReverseIdxes;
     public int[] upgradeIdxes;
-    public int[] tmpCostCardIdxes;
+    public int[] tmp0CostCardTransformIdxes;
+    public int[] tmp0CostCardReverseTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] skillPotionIdxes;
@@ -73,11 +74,15 @@ public class GameProperties implements Cloneable {
     public int echoFormPCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
     public int[] bloodForBloodIndexes;
+    public int[] bloodForBloodTransformIndexes;
     public int[] bloodForBloodPIndexes;
+    public int[] bloodForBloodPTransformIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] clawIndexes;
+    public int[] clawTransformIndexes;
     public int[] clawPIndexes;
+    public int[] clawPTransformIndexes;
     public int[] glassKnifeIndexes;
     public int[] glassKnifePIndexes;
     public int[] steamBarrierIndexes;
@@ -85,6 +90,7 @@ public class GameProperties implements Cloneable {
     public int[] infernalBladeIndexes;
     public int[] distractionIndexes;
     public int[] healCardsIdxes;
+    public boolean[] healCardsBooleanArr;
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
     public List<String> extraTrainingTargetsLabel = new ArrayList<>();
     public int ritualDaggerCounterIdx = -1;

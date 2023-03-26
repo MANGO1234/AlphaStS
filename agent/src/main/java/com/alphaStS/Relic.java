@@ -620,9 +620,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
                         int possibleCards = 0, diff = 0, idx = -1;
+                        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.prop.cardDict.length);
                         for (int i = 0; i < state.prop.realCardsLen; i++) {
-                            if (state.getHandForRead()[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
-                                possibleCards += state.getHandForRead()[i];
+                            if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
+                                possibleCards += hand[i];
                                 diff += 1;
                                 idx = i;
                             }
@@ -635,8 +636,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
                             var acc = 0;
                             for (int i = 0; i < state.prop.realCardsLen; i++) {
-                                if (state.getHandForRead()[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
-                                    acc += state.getHandForRead()[i];
+                                if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
+                                    acc += hand[i];
                                     if (acc > r) {
                                         idx = i;
                                         break;
@@ -645,8 +646,41 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             }
                         }
                         state.removeCardFromHand(idx);
-                        state.addCardToHand(state.prop.tmpCostCardIdxes[idx]);
+                        state.addCardToHand(state.prop.tmp0CostCardTransformIdxes[idx]);
                     }
+//                    if (state.prop.cardDict[cardIdx].cardType != Card.POWER) {
+//                        return;
+//                    }
+//                    int possibleCards = 0, diff = 0;
+//                    var seen = new boolean[state.prop.cardDict.length];
+//                    for (int i = 0; i < state.handArrLen; i++) {
+//                        var idx = state.getHandArrForRead()[i];
+//                        if (!state.prop.cardDict[idx].isXCost && state.prop.cardDict[idx].energyCost > 0) {
+//                            possibleCards++;
+//                            if (!seen[state.getHandArrForRead()[i]]) {
+//                                diff++;
+//                                seen[state.getHandArrForRead()[i]] = true;
+//                            }
+//                        }
+//                    }
+//                    if (possibleCards == 0) {
+//                        return;
+//                    }
+//                    int r = 0;
+//                    if (diff > 1) {
+//                        state.setIsStochastic();
+//                        r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
+//                    }
+//                    for (int i = 0; i < state.handArrLen; i++) {
+//                        var idx = state.getHandArrForRead()[i];
+//                        if (!state.prop.cardDict[idx].isXCost && state.prop.cardDict[idx].energyCost > 0) {
+//                            if (r == 0) {
+//                                state.getHandArrForWrite()[i] = (short) state.prop.tmp0CostCardTransformIdxes[state.getHandArrForRead()[i]];
+//                                break;
+//                            }
+//                            r--;
+//                        }
+//                    }
                 }
             });
         }
@@ -1257,28 +1291,32 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void startOfGameSetup(GameState state) {
             state.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    int nonUpgradedCardCount = 0;
-                    for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                        if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                            nonUpgradedCardCount += state.getHandForRead()[i];
+                    int possibleCards = 0, diff = 0;
+                    var seen = new boolean[state.prop.cardDict.length];
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (state.prop.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
+                            possibleCards++;
+                            if (!seen[state.getHandArrForRead()[i]]) {
+                                diff++;
+                                seen[state.getHandArrForRead()[i]] = true;
+                            }
                         }
                     }
-                    if (nonUpgradedCardCount == 0) {
+                    if (possibleCards == 0) {
                         return;
                     }
-                    int r = state.getSearchRandomGen().nextInt(nonUpgradedCardCount, RandomGenCtx.RandomCardHandWarpedTongs, state);
-                    int acc = 0;
-                    for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
-                        if (state.getHandForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                            acc += state.getHandForRead()[i];
-                            if (acc > r) {
-                                if (state.getHandForRead()[i] != nonUpgradedCardCount) {
-                                    state.setIsStochastic();
-                                }
-                                state.removeCardFromHand(i);
-                                state.addCardToHand(state.prop.upgradeIdxes[i]);
+                    int r = 0;
+                    if (diff > 1) {
+                        state.setIsStochastic();
+                        r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandWarpedTongs, state);
+                    }
+                    for (int i = 0; i < state.handArrLen; i++) {
+                        if (state.prop.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
+                            if (r == 0) {
+                                state.getHandArrForWrite()[i] = (short) state.prop.upgradeIdxes[state.getHandArrForRead()[i]];
                                 break;
                             }
+                            r--;
                         }
                     }
                 }

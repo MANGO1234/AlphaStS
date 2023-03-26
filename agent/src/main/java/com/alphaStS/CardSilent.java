@@ -675,7 +675,7 @@ public class CardSilent {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, n);
             }
-            var hand = state.getHandForRead();
+            var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.prop.cardDict.length);
             int diffCards = 0, c = 0;
             for (int i = 0; i < hand.length; i++) {
                 c += hand[i];
@@ -693,6 +693,23 @@ public class CardSilent {
                     break;
                 }
             }
+            // if (state.handArrLen > 0) {
+            //     int diff = 0;
+            //     var seen = new boolean[state.prop.cardDict.length];
+            //     for (int i = 0; i < state.handArrLen; i++) {
+            //         if (!seen[state.getHandArrForRead()[i]]) {
+            //             diff++;
+            //             seen[state.getHandArrForRead()[i]] = true;
+            //         }
+            //     }
+            //     if (diff > 1) {
+            //         state.setIsStochastic();
+            //         int r = state.getSearchRandomGen().nextInt(state.handArrLen, RandomGenCtx.RandomCardHand, state);
+            //         state.discardCardFromHand(state.getHandArrForRead()[r]);
+            //     } else {
+            //         state.discardCardFromHand(state.getHandArrForRead()[0]);
+            //     }
+            // }
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -820,16 +837,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int c = 0;
-            var hand = state.getHandForRead();
-            for (int i = 0; i < hand.length; i++) {
-                var upto = hand[i];
-                for (int j = 0; j < upto; j++) {
-                    c++;
-                    state.discardCardFromHand(i);
-                }
-            }
-            state.draw(c);
+            state.draw(state.discardHand(true));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1245,8 +1253,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.prop.cardDict[i].cardType == Card.SKILL) {
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType == Card.SKILL) {
                     state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
                 }
             }
@@ -1631,14 +1639,14 @@ public class CardSilent {
                 return GameActionCtx.PLAY_CARD;
             } else {
                 state.removeCardFromHand(idx);
-                state.getChosenCardsForWrite()[idx]++;
+                state.addCardToChosenCards(idx);
                 state.getCounterForWrite()[counterIdx] += 1 << 5;
                 return GameActionCtx.SELECT_CARD_HAND;
             }
         }
 
         public void startOfGameSetup(GameState state) {
-            state.chosenCards = new byte[state.prop.cardDict.length];
+            state.chosenCardsArr = new short[2];
             state.prop.registerCounter("WellLaidPlans", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = (state.getCounterForRead()[counterIdx] & 31) / 10.0f;
@@ -1796,15 +1804,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var hand = state.getHandForRead();
-            for (int i = 0; i < state.prop.realCardsLen; i++) {
-                if (state.prop.tmpCostCardIdxes[i] >= 0) {
-                    for (int j = 0; j < hand[i]; j++) {
-                        state.removeCardFromHand(i);
-                        state.addCardToHand(state.prop.tmpCostCardIdxes[i]);
-                    }
-                }
-            }
+            state.handArrTransform(state.prop.tmp0CostCardTransformIdxes);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2172,10 +2172,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0) {
-                    return GameActionCtx.PLAY_CARD;
-                }
+            if (state.deckArrLen > 0) {
+                return GameActionCtx.PLAY_CARD;
             }
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, n);
@@ -2185,12 +2183,7 @@ public class CardSilent {
 
 
         public int energyCost(GameState state) {
-            for (int i = 0; i < state.getHandForRead().length; i++) {
-                if (state.getHandForRead()[i] > 0) {
-                    return -1;
-                }
-            }
-            return 0;
+            return state.deckArrLen > 0 ? -1 : 0;
         }
     }
 
@@ -2354,15 +2347,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int c = 0;
-            var hand = state.getHandForRead();
-            for (int i = 0; i < hand.length; i++) {
-                var upto = hand[i];
-                for (int j = 0; j < upto; j++) {
-                    c++;
-                    state.discardCardFromHand(i);
-                }
-            }
+            int c = state.discardHand(true);
             for (int i = 0; i < c; i++) {
                 state.addCardToHand(upgraded ? state.prop.shivPCardIdx : state.prop.shivCardIdx);
             }

@@ -324,13 +324,16 @@ public class EnemyCity {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STASIS) {
-                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscardForWrite() : state.getDeckForWrite();
+                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscardArrForWrite() : state.getDeckArrForWrite();
+                var cardsLen = state.getNumCardsInDeck() == 0 ? state.getNumCardsInDiscard() : state.getNumCardsInDeck();
                 var cardRarityCounts = new int[Card.RARE + 1];
                 var cardRarityDiffCount = new int[Card.RARE + 1];
-                for (int i = 0; i < cards.length; i++) {
-                    cardRarityCounts[state.prop.cardDict[i].rarity] += cards[i];
-                    if (cards[i] > 0) {
-                        cardRarityDiffCount[state.prop.cardDict[i].rarity]++;
+                var seen = new boolean[state.prop.cardDict.length];
+                for (int i = 0; i < cardsLen; i++) {
+                    cardRarityCounts[state.prop.cardDict[cards[i]].rarity]++;
+                    if (!seen[cards[i]]) {
+                        cardRarityDiffCount[state.prop.cardDict[cards[i]].rarity]++;
+                        seen[cards[i]] = true;
                     }
                 }
                 int rarity = -1;
@@ -343,32 +346,26 @@ public class EnemyCity {
                 if (rarity >= 0) {
                     int r = 0;
                     if (cardRarityDiffCount[rarity] > 1) {
+                        state.setIsStochastic();
                         if (state.prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
-                            int idx = rgi.selectBronzeOrbStasis(state, cards, rarity,this, state.getEnemiesForRead().find(self));
-                            int j = 0;
-                            for (int i = 0; i < cards.length; i++) {
-                                if (rarity == state.prop.cardDict[i].rarity) {
-                                    if (j == idx) {
-                                        break;
-                                    }
-                                    j++;
-                                    r += cards[i];
-                                }
-                            }
+                            r = rgi.selectBronzeOrbStasis(state, cards, cardsLen, rarity,this, state.getEnemiesForRead().find(self));
                         } else {
-                            state.setIsStochastic();
                             r = state.getSearchRandomGen().nextInt(cardRarityCounts[rarity], RandomGenCtx.BronzeOrb, this);
                         }
                     }
                     int acc = 0;
-                    for (int i = 0; i < cards.length; i++) {
-                        if (rarity == state.prop.cardDict[i].rarity) {
-                            acc += cards[i];
-                            if (acc > r) {
-                                state.removeCardFromDeck(i);
-                                stasisCardIdx = i;
+                    for (int i = 0; i < cardsLen; i++) {
+                        if (rarity == state.prop.cardDict[cards[i]].rarity) {
+                            if (acc == r) {
+                                if (state.getNumCardsInDeck() > 0) {
+                                    state.removeCardFromDeck(cards[i]);
+                                } else {
+                                    state.removeCardFromDiscardByPosition(i);
+                                }
+                                stasisCardIdx = cards[i];
                                 break;
                             }
+                            acc++;
                         }
                     }
                     if (stasisCardIdx >= 0) {
