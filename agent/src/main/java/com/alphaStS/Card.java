@@ -103,6 +103,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return Objects.hash(cardName);
     }
 
+    public int realEnergyCost() {
+        return energyCost;
+    }
+
     public static class CardTmpChangeCost extends Card {
         public final Card card;
 
@@ -145,6 +149,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void startOfGameSetup(GameState state) { card.startOfGameSetup(state); }
+        public int realEnergyCost() {
+            return card.realEnergyCost();
+        }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {

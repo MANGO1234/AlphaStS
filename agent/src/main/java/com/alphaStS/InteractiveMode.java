@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
+import org.apache.commons.compress.harmony.unpack200.bytecode.forms.IincForm;
 
 import java.io.*;
 import java.util.*;
@@ -97,8 +98,15 @@ public class InteractiveMode {
                 System.out.println("Discard");
                 var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.prop.realCardsLen);
                 for (int i = 0; i < discard.length; i++) {
-                    if (discard[i] > 0) {
+                    if (discard[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() > 0)) {
                         System.out.println("  " + discard[i] + " " + state.prop.cardDict[i].cardName);
+                    }
+                }
+                if (state.prop.discard0CardOrderMatters) {
+                    for (int i = 0; i < state.discardArrLen; i++) {
+                        if (state.prop.cardDict[state.discardArr[i]].realEnergyCost() == 0) {
+                            System.out.println("  " + state.prop.cardDict[state.discardArr[i]].cardName);
+                        }
                     }
                 }
             } else if (line.equals("x")) {
@@ -473,6 +481,11 @@ public class InteractiveMode {
             if (state.getPlayeForRead().cannotDrawCard()) {
                 System.out.println("  - Cannot Draw Card");
             }
+            for (int i = 0; i < state.prop.potions.size(); i++) {
+                if (state.potionUsable(i)) {
+                    System.out.println("  - " + state.prop.potions.get(i) + ": " + state.potionPenalty(i));
+                }
+            }
         }
         System.out.println();
         if (state.getDrawOrderForRead().size() > 0) {
@@ -488,8 +501,15 @@ public class InteractiveMode {
         System.out.println("Hand");
         var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.prop.cardDict.length);
         for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0) {
+            if (hand[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() > 0)) {
                 System.out.println("  " + hand[i] + " " + state.prop.cardDict[i].cardName);
+            }
+        }
+        if (state.prop.discard0CardOrderMatters) {
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.prop.cardDict[state.handArr[i]].realEnergyCost() == 0) {
+                    System.out.println("  " + state.prop.cardDict[state.handArr[i]].cardName);
+                }
             }
         }
         if (state.chosenCardsArrLen > 0) {

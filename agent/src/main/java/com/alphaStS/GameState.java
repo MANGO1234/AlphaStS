@@ -199,6 +199,10 @@ public final class GameState implements State {
         if (!Arrays.equals(deck, gameState.deck)) return false;
         if (!cardIdxArrEqual(handArr, handArrLen, gameState.handArr, gameState.handArrLen)) return false;
         if (!cardIdxArrEqual(discardArr, discardArrLen, gameState.discardArr, gameState.discardArrLen)) return false;
+        if (false && prop.discard0CardOrderMatters) {
+            if (!cardArray0CostCardOrderEquals(handArr, gameState.handArr, handArrLen)) return false;
+            if (!cardArray0CostCardOrderEquals(discardArr, gameState.discardArr, discardArrLen)) return false;
+        }
         if (!Arrays.equals(exhaust, gameState.exhaust)) return false;
         if (!cardIdxArrEqual(chosenCardsArr, chosenCardsArrLen, gameState.chosenCardsArr, gameState.chosenCardsArrLen)) return false;
         if (!Objects.equals(enemies, gameState.enemies)) return false;
@@ -214,6 +218,30 @@ public final class GameState implements State {
             return false;
         } else if (!dequeIsNull && !gameActionDeque.equals(gameState.gameActionDeque)) {
             return false;
+        }
+        return true;
+    }
+
+    private boolean cardArray0CostCardOrderEquals(short[] handArr1, short[] handArr2, int handArrLen) {
+        int a = -1;
+        int b = -1;
+        while (true) {
+            while (++a < handArrLen) {
+                if (prop.cardDict[handArr1[a]].realEnergyCost() == 0) {
+                    break;
+                }
+            }
+            if (a == handArrLen) {
+                break;
+            }
+            while (++b < handArrLen) {
+                if (prop.cardDict[handArr2[b]].realEnergyCost() == 0) {
+                    break;
+                }
+            }
+            if (handArr1[a] != handArr2[b]) {
+                return false;
+            }
         }
         return true;
     }
@@ -1419,7 +1447,7 @@ public final class GameState implements State {
         }
     }
 
-    int doAction(int actionIdx) {
+    public int doAction(int actionIdx) {
         GameAction action = prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         int ret = 0;
         if (action.type() == GameActionType.BEGIN_BATTLE) {
@@ -1430,10 +1458,22 @@ public final class GameState implements State {
             for (GameEventHandler handler : prop.startOfBattleHandlers) {
                 handler.handle(this);
             }
+            List<Integer> order = new ArrayList<>();
             for (int i = 0; i < deck.length; i++) { // todo: edge case more innate than first turn draw
                 if (deck[i] > 0 && prop.cardDict[i].innate) {
-                    getDrawOrderForWrite().pushOnTop(i);
+                    for (int j = 0; j < deck[i]; j++) {
+                        order.add(i);
+                    }
                 }
+            }
+            if (prop.innateOrder != null) {
+                if (!order.containsAll(prop.innateOrder) || !prop.innateOrder.containsAll(order)) {
+                    throw new RuntimeException("Innate order does not match innate cards " + prop.innateOrder + " | " + order);
+                }
+                order = prop.innateOrder;
+            }
+            for (int i = order.size() - 1; i >= 0; i--) {
+                getDrawOrderForWrite().pushOnTop(order.get(i));
             }
             beginTurn();
             setActionCtx(GameActionCtx.PLAY_CARD, null, false);
@@ -1823,6 +1863,10 @@ public final class GameState implements State {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.FairyInABottle pot && !prop.isHeartFight) {
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+            }
         }
         for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
             prop.extraTrainingTargets.get(i).updateQValues(this, v);
@@ -1840,7 +1884,7 @@ public final class GameState implements State {
         }
         if (!prop.testPotionOutput) {
             for (int i = 0; i < prop.potions.size(); i++) {
-                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion) && !(prop.potions.get(i) instanceof Potion.RegenerationPotion)) {
+                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion) && !(prop.potions.get(i) instanceof Potion.RegenerationPotion) && !(prop.potions.get(i) instanceof Potion.FairyInABottle)) {
                     base *= potionsState[i * 3 + 1] / 100.0;
                 }
             }
@@ -1892,12 +1936,23 @@ public final class GameState implements State {
         first = true;
         var hand = GameStateUtils.getCardArrCounts(handArr, handArrLen, prop.cardDict.length);
         for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0) {
+            if (hand[i] > 0 && (!prop.discard0CardOrderMatters || prop.cardDict[i].realEnergyCost() > 0)) {
                 if (!first) {
                     str.append(", ");
                 }
                 first = false;
                 str.append(hand[i]).append(" ").append(prop.cardDict[i].cardName);
+            }
+        }
+        if (prop.discard0CardOrderMatters) {
+            for (int i = 0; i < handArrLen; i++) {
+                if (prop.cardDict[handArr[i]].realEnergyCost() == 0) {
+                    if (!first) {
+                        str.append(", ");
+                    }
+                    first = false;
+                    str.append(prop.cardDict[handArr[i]].cardName);
+                }
             }
         }
         str.append("]");
@@ -1917,12 +1972,23 @@ public final class GameState implements State {
         first = true;
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, prop.realCardsLen);
         for (int i = 0; i < discard.length; i++) {
-            if (discard[i] > 0) {
+            if (discard[i] > 0 && (!prop.discard0CardOrderMatters || prop.cardDict[i].realEnergyCost() > 0)) {
                 if (!first) {
                     str.append(", ");
                 }
                 first = false;
                 str.append(discard[i]).append(" ").append(prop.cardDict[i].cardName);
+            }
+        }
+        if (prop.discard0CardOrderMatters) {
+            for (int i = 0; i < discardArrLen; i++) {
+                if (prop.cardDict[discardArr[i]].realEnergyCost() == 0) {
+                    if (!first) {
+                        str.append(", ");
+                    }
+                    first = false;
+                    str.append(prop.cardDict[discardArr[i]].cardName);
+                }
             }
         }
         str.append("]");
@@ -2120,7 +2186,7 @@ public final class GameState implements State {
                 int count = 1;
                 if (!(prop.timeEaterCounterIdx >= 0 && counter[prop.timeEaterCounterIdx] >= 12)) {
                     for (int i = 0; i < prop.potions.size(); i++) {
-                        if (potionsState[i * 3] == 1) {
+                        if (potionsState[i * 3] == 1 && !(prop.potions.get(i) instanceof Potion.FairyInABottle)) {
                             legal[prop.cardDict.length + i] = true;
                             count++;
                         }
@@ -2270,6 +2336,10 @@ public final class GameState implements State {
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && prop.needDeckOrderMemory) {
             inputLen += prop.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY;
+        }
+        if (false && prop.discard0CardOrderMatters) {
+            inputLen += prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies;
+            inputLen += prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies * prop.discardOrderMaxKeepTrackIn10s;
         }
         for (int i = 3; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
@@ -2462,6 +2532,11 @@ public final class GameState implements State {
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && prop.needDeckOrderMemory) {
             str += "    " + prop.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY + " inputs to keep track of known card at top of deck\n";
+        }
+        if (false && prop.discard0CardOrderMatters) {
+            str += "    " + prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies + " inputs to keep track of discard 0 cost cards order in hand\n";
+            str += "    " + prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies * prop.discardOrderMaxKeepTrackIn10s + " (" +
+                    prop.discardOrder0CostNumber + " * " + prop.discardOrder0CardMaxCopies + " * " + prop.discardOrderMaxKeepTrackIn10s + ") inputs to keep track of discard 0 cost cards order in discard\n";
         }
         for (int i = 3; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
@@ -2713,6 +2788,47 @@ public final class GameState implements State {
                     x[idx++] = 0f;
                 }
             }
+        }
+        if (false && prop.discard0CardOrderMatters) {
+            int k = 10;
+            for (int i = 0; i < handArrLen; i++) {
+                if (prop.cardDict[handArr[i]].realEnergyCost() == 0) {
+                    int j = 0;
+                    for (; j < prop.discardOrder0CardMaxCopies; j++) {
+                        if (x[idx + prop.discardOrder0CostNumber * j + prop.discardOrder0CardReverseIdx[handArr[i]]] == 0) {
+                            x[idx + prop.discardOrder0CostNumber * j + prop.discardOrder0CardReverseIdx[handArr[i]]] = k / 10.0f;
+                            break;
+                        }
+                    }
+                    if (j == prop.discardOrder0CardMaxCopies) {
+                        throw new IllegalStateException("Too many 0 cost card copies of " + prop.cardDict[handArr[i]].cardName);
+                    }
+                    k--;
+                }
+            }
+            idx += prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies;
+            k = 10;
+            int nextIdx = idx + prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies * prop.discardOrderMaxKeepTrackIn10s;
+            for (int i = 0; i < discardArrLen; i++) {
+                if (prop.cardDict[discardArr[i]].realEnergyCost() == 0) {
+                    int j = 0;
+                    for (; j < prop.discardOrder0CardMaxCopies; j++) {
+                        if (x[idx + prop.discardOrder0CostNumber * j + prop.discardOrder0CardReverseIdx[discardArr[i]]] == 0) {
+                            x[idx + prop.discardOrder0CostNumber * j + prop.discardOrder0CardReverseIdx[discardArr[i]]] = k / 10.0f;
+                            break;
+                        }
+                    }
+                    if (j == prop.discardOrder0CardMaxCopies) {
+                        throw new IllegalStateException("Too many 0 cost card copies of " + prop.cardDict[discardArr[i]].cardName);
+                    }
+                    k--;
+                }
+                if (k == 0) {
+                    idx += prop.discardOrder0CostNumber * prop.discardOrder0CardMaxCopies;
+                    k = 10;
+                }
+            }
+            idx = nextIdx;
         }
         for (int i = 3; i < prop.actionsByCtx.length; i++) {
             if (prop.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
@@ -3391,7 +3507,7 @@ public final class GameState implements State {
 
     public void removeCardFromDiscardByPosition(int idx) {
         for (int i = idx; i < discardArrLen - 1; i++) {
-            getDiscardArrForWrite()[idx] = getDiscardArrForRead()[idx + 1];
+            getDiscardArrForWrite()[i] = getDiscardArrForRead()[i + 1];
         }
         discardArrLen--;
     }
@@ -3845,6 +3961,10 @@ public final class GameState implements State {
         return potionsState[i * 3] == 1;
     }
 
+    public int potionPenalty(int i) {
+        return potionsState[i * 3 + 1];
+    }
+
     public void setSelect1OutOf3Idxes(int idx1, int idx2, int idx3) {
         if (idx2 > idx3) {
             int tmp = idx2;
@@ -3962,41 +4082,49 @@ public final class GameState implements State {
         }
     }
 
+    private void triggerNonPlasmaOrbPassive(int i) {
+        if (orbs[i] == OrbType.FROST.ordinal()) {
+            getPlayerForWrite().gainBlockNotFromCardPlay(2 + focus);
+        } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
+            int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
+            if (idx >= 0) {
+                var enemy = getEnemiesForWrite().getForWrite(idx);
+                if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
+                    getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
+                }
+                playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
+            }
+        } else if (orbs[i] == OrbType.DARK.ordinal()) {
+            orbs[i + 1] += Math.max(0, 6 + focus);
+        }
+    }
+
     private void triggerOrbsPassiveEndOfTurn() {
         if (orbs == null) return;
-        boolean triggerTwice = false;
         for (int i = 0; i < orbs.length; i += 2) {
-            if (prop.hasGoldPlatedCable && i == 2 && !triggerTwice) {
-                i -= 2;
-                triggerTwice = true;
-            }
-            if (orbs[i] == OrbType.FROST.ordinal()) {
-                getPlayerForWrite().gainBlockNotFromCardPlay(2 + focus);
-            } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
-                int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
-                if (idx >= 0) {
-                    var enemy = getEnemiesForWrite().getForWrite(idx);
-                    if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
-                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
-                    }
-                    playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
-                }
-            } else if (orbs[i] == OrbType.DARK.ordinal()) {
-                orbs[i + 1] += Math.max(0, 6 + focus);
+            triggerNonPlasmaOrbPassive(i);
+            if (prop.hasGoldPlatedCable && i == 0) {
+                triggerNonPlasmaOrbPassive(i);
             }
         }
     }
 
     private void triggerOrbsPassiveStartOfTurn() {
         if (orbs == null) return;
-        boolean triggerTwice = false;
+        int triggerLoopCount = prop.loopCounterIdx >= 0 ? getCounterForRead()[prop.loopCounterIdx] : 0;
         for (int i = 0; i < orbs.length; i += 2) {
-            if (prop.hasGoldPlatedCable && i == 2 && !triggerTwice) {
-                i -= 2;
-                triggerTwice = true;
-            }
             if (orbs[i] == OrbType.PLASMA.ordinal()) {
                 gainEnergy(1);
+                if (prop.hasGoldPlatedCable && i == 0) {
+                    gainEnergy(1);
+                }
+                if (triggerLoopCount > 0 && i == 0) {
+                    gainEnergy(triggerLoopCount);
+                }
+            } else if (triggerLoopCount > 0 && i == 0) {
+                for (int j = 0; j < triggerLoopCount; j++) {
+                    triggerNonPlasmaOrbPassive(i);
+                }
             }
         }
     }

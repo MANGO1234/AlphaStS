@@ -1125,6 +1125,7 @@ public class CardDefect {
     private static abstract class _DoubleEnergyT extends Card {
         public _DoubleEnergyT(String cardName, int n) {
             super(cardName, Card.SKILL, n, Card.UNCOMMON);
+            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1395,7 +1396,52 @@ public class CardDefect {
 
     // Heatsinks
     // Hello World
-    // Loop
+
+    private static abstract class _LoopT extends Card {
+        private final int n;
+
+        public _LoopT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Loop", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister() {
+                    state.prop.loopCounterIdx = counterIdx;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.loseFocusPerTurnCounterIdx = idx;
+        }
+    }
+
+    public static class Loop extends CardDefect._LoopT {
+        public Loop() {
+            super("Loop", 1);
+        }
+    }
+
+    public static class LoopP extends CardDefect._LoopT {
+        public LoopP() {
+            super("Loop+", 2);
+        }
+    }
 
     private static abstract class _MelterT extends Card {
         private final int n;
@@ -1729,7 +1775,59 @@ public class CardDefect {
     }
 
     // White Noise
-    // All for One
+
+    private static abstract class _AllForOneT extends Card {
+        private final int n;
+        private final int discardOrderMaxKeepTrackIn10s;
+        private final int discardOrder0CardMaxCopies;
+
+        public _AllForOneT(String cardName, int cardType, int energyCost, int n, int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.n = n;
+            this.selectEnemy = true;
+            this.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
+            this.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
+                var cardIdx = (int) state.getDiscardArrForRead()[i];
+                if (state.prop.cardDict[cardIdx].energyCost == 0) {
+                    state.removeCardFromDiscardByPosition(i);
+                    i--;
+                    state.addCardToHand(cardIdx);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.discard0CardOrderMatters = true;
+            state.prop.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
+            state.prop.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
+            state.prop.discardOrder0CardReverseIdx = new int[state.prop.realCardsLen];
+            int k = 0;
+            for (int i = 0; i < state.prop.realCardsLen; i++) {
+                if (state.prop.cardDict[i].realEnergyCost() == 0) {
+                    state.prop.discardOrder0CardReverseIdx[i] = k++;
+                }
+            }
+            state.prop.discardOrder0CostNumber = k;
+        }
+    }
+
+    public static class AllForOne extends CardDefect._AllForOneT {
+        public AllForOne(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
+            super("All For One", Card.ATTACK, 2, 10, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+        }
+    }
+
+    public static class AllForOneP extends CardDefect._AllForOneT {
+        public AllForOneP(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
+            super("All For One+", Card.ATTACK, 2, 14, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+        }
+    }
 
     private static abstract class _AmplifyT extends Card {
         private final int n;

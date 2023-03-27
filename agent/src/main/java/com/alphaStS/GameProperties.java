@@ -118,6 +118,7 @@ public class GameProperties implements Cloneable {
     public int envenomCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int bufferCounterIdx = -1;
+    public int loopCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -161,6 +162,12 @@ public class GameProperties implements Cloneable {
     public int inputLen;
     public int extraOutputLen;
     public boolean cardInDiscardInNNInput;
+    public boolean discard0CardOrderMatters;
+    public int discardOrderMaxKeepTrackIn10s; // currently, those are sent manually in all or one
+    public int discardOrder0CardMaxCopies;
+    public int discardOrder0CostNumber;
+    public int[] discardOrder0CardReverseIdx;
+    public List<Integer> innateOrder;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();

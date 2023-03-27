@@ -1829,4 +1829,63 @@ public class TestStates {
         builder.addRelic(new Relic.FossilizedHelix());
         return new GameState(builder);
     }
+
+    public static GameState TestStateStreamerRun2() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Strike(), 1);
+        builder.addCard(new Card.Defend(), 2);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Rebound(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.SteamBarrier(6, -2), 1);
+        builder.addCard(new CardDefect.BootSequence(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.GeneticAlgorithm(23, 4), 1);
+        builder.addCard(new CardDefect.RebootP(), 1);
+        builder.addCard(new CardDefect.CoreSurge(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.SweepingBeamP(), 1);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.SweepingBeam(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardColorless.DramaticEntranceP(), 1);
+        builder.addCard(new CardDefect.StackP(), 1);
+        builder.addCard(new CardDefect.Skim(), 1);
+        builder.addCard(new CardDefect.Streamline(), 1);
+        builder.addCard(new CardDefect.SeekP(), 1);
+        builder.addCard(new CardDefect.AllForOne(1, 1), 1);
+        builder.addCard(new CardDefect.BarrageP(), 1);
+        builder.addCard(new CardDefect.LoopP(), 1);
+        builder.addCard(new CardDefect.DoubleEnergyP(), 1);
+        builder.addCard(new CardDefect.MeteorStrike(), 1);
+        EnemyEncounter.addReptomancerFight(builder, true);
+//        builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(80));
+        builder.addPotion(new Potion.SpeedPotion().setBasePenaltyRatio(80));
+        builder.setPotionsScenarios(1);
+        builder.setRandomization(new GameStateRandomization.BurningEliteRandomization());
+        builder.setStartOfGameSetup(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.prop.innateOrder = new ArrayList<>();
+                state.prop.innateOrder.add(state.prop.findCardIndex("Boot Sequence"));
+                state.prop.innateOrder.add(state.prop.findCardIndex("Dramatic Entrance+"));
+            }
+        });
+        builder.setPlayer(new Player(64, 64));
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.NuclearBattery());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.addRelic(new Relic.RunicCapacitor());
+        builder.addRelic(new Relic.PenNib(8, 2));
+        builder.addRelic(new Relic.FossilizedHelix());
+        builder.addRelic(new Relic.RunicDome());
+        builder.addRelic(new Relic.TungstenRod());
+        return new GameState(builder);
+    }
 }

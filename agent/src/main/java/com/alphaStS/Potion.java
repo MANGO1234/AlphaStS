@@ -673,6 +673,27 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class FairyInABottle extends Potion {
+        private final int playerMaxHp;
+
+        public FairyInABottle(int playerMaxHP) {
+            this.playerMaxHp = playerMaxHP;
+        }
+
+        public int getHealAmount(GameState state) {
+            return (int) ((state.prop.hasSacredBark ? 0.6 : 0.3) * this.playerMaxHp);
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getPlayerForWrite().heal(getHealAmount(state));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Fairy In A Bottle";
+        }
+    }
+
     public static class FocusPotion extends Potion {
         public FocusPotion() {
             changePlayerFocus = true;

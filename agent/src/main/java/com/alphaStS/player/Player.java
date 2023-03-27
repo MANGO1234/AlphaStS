@@ -20,7 +20,7 @@ public class Player extends PlayerReadOnly {
         if (dmg > 0 && state.prop.hasTungstenRod) {
             dmg -= 1;
         }
-        if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+        if (dmg > 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
             dmg = 0;
             state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
         }
@@ -32,30 +32,54 @@ public class Player extends PlayerReadOnly {
         if (health < 0) {
             health = 0;
         }
-        return startHealth - health;
+        int dmgDealt = startHealth - health;
+        if (health == 0) {
+            tryReviveWithFairyInABottle(state);
+        }
+        return dmgDealt;
     }
 
     public int nonAttackDamage(GameState state, int n, boolean blockable) {
         int startHealth = health;
         if (blockable) {
             int dmg = Math.max(0, n - block);
-            if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+            if (dmg > 0 && state.prop.hasTungstenRod) {
+                dmg -= 1;
+            }
+            if (dmg > 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
                 dmg = 0;
                 state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
             }
             health -= dmg;
             block = Math.max(0, block - n);
         } else {
-            if (state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
-                state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
-            } else {
-                health -= n;
+            int dmg = n;
+            if (dmg > 0 && state.prop.hasTungstenRod) {
+                dmg -= 1;
             }
+            if (dmg > 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+                dmg = 0;
+                state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
+            }
+            health -= dmg;
         }
         if (health < 0) {
             health = 0;
         }
-        return startHealth - health;
+        int dmgDealt = startHealth - health;
+        if (health == 0) {
+            tryReviveWithFairyInABottle(state);
+        }
+        return dmgDealt;
+    }
+
+    private void tryReviveWithFairyInABottle(GameState state) {
+        for (int i = 0; i < state.prop.potions.size(); i++) {
+            if (state.potionUsable(i) && state.prop.potions.get(i) instanceof Potion.FairyInABottle) {
+                state.doAction(state.prop.cardDict.length + i);
+                break;
+            }
+        }
     }
 
     public int heal(int n) {
