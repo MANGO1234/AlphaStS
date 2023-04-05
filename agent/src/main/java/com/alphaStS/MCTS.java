@@ -107,14 +107,18 @@ public class MCTS {
                 if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
                     var s = state.transpositions.get(state2);
                     if (s == null || s instanceof ChanceState) {
-                        state.transpositions.put(state2, state2);
-                        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
-                            if (s == null) {
-                                var parents = new ArrayList<Tuple<GameState, Integer>>();
-                                state.transpositionsParent.put(state2, parents);
-                                parents.add(new Tuple<>(state, action));
-                            } else {
-                                state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
+                        if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                            state2.doAction(0);
+                        } else {
+                            state.transpositions.put(state2, state2);
+                            if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
+                                if (s == null) {
+                                    var parents = new ArrayList<Tuple<GameState, Integer>>();
+                                    state.transpositionsParent.put(state2, parents);
+                                    parents.add(new Tuple<>(state, action));
+                                } else {
+                                    state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
+                                }
                             }
                         }
                     } else {

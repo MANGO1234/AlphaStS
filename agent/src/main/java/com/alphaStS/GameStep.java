@@ -13,6 +13,7 @@ public final class GameStep {
     public boolean isExplorationMove;
     public RandomGen searchRandomGenMCTS;
     public StringBuilder actionDesc;
+    public String stateStr;
 
     GameStep(GameState state, int action) {
         this.state = state;

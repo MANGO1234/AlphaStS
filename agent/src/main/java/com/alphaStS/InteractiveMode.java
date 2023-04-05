@@ -98,7 +98,7 @@ public class InteractiveMode {
                 System.out.println("Discard");
                 var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.prop.realCardsLen);
                 for (int i = 0; i < discard.length; i++) {
-                    if (discard[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() > 0)) {
+                    if (discard[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() != 0)) {
                         System.out.println("  " + discard[i] + " " + state.prop.cardDict[i].cardName);
                     }
                 }
@@ -301,7 +301,7 @@ public class InteractiveMode {
                 System.out.println("Previous Action: " + game.get(idx - 1).state().getActionString(game.get(idx - 1).action()));
             }
             System.out.println();
-            System.out.println(state);
+            System.out.println(game.get(idx).stateStr == null ? state : game.get(idx).stateStr);
             System.out.println();
             System.out.print("> ");
             String line;
@@ -498,10 +498,10 @@ public class InteractiveMode {
             }
             System.out.println("]");
         }
-        System.out.println("Hand");
+        System.out.println("Hand (" + state.handArrLen + ")");
         var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.prop.cardDict.length);
         for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() > 0)) {
+            if (hand[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() != 0)) {
                 System.out.println("  " + hand[i] + " " + state.prop.cardDict[i].cardName);
             }
         }
@@ -1369,7 +1369,7 @@ public class InteractiveMode {
     private static void runMCTS(GameState state, MCTS mcts, String line) {
         int count = Integer.parseInt(line.substring(2));
         for (int i = state.total_n; i < count; i++) {
-            mcts.search(state, false, -1);
+            mcts.search(state, false, count - i);
         }
         System.out.println(state);
         System.gc();
@@ -1386,7 +1386,7 @@ public class InteractiveMode {
         pv.clear();
         do {
             for (int i = s.total_n; i < count; i++) {
-                mcts.search(s, false, -1);
+                mcts.search(s, false, count - i);
             }
             int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
             if (action < 0) {

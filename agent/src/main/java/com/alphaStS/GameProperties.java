@@ -9,7 +9,7 @@ import java.util.function.BiConsumer;
 public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
     public boolean doingComparison;
-    public boolean testPotionOutput;
+    public boolean testPotionOutput = true;
     public boolean curriculumTraining;
     public int minDifficulty;
     public int maxDifficulty;
@@ -40,6 +40,7 @@ public class GameProperties implements Cloneable {
     public boolean stateDescOn;
     public Card[] cardDict;
     public List<Potion> potions;
+    public int[] potionsVArrayIdx;
     public int[] potionsScenarios;
     public EnemyList originalEnemies;
     public int maxNumOfActions;
@@ -219,24 +220,14 @@ public class GameProperties implements Cloneable {
         return -1;
     }
 
-    private Map<String, Integer> cardIndexCache = new HashMap<>();
+    public Map<String, Integer> cardIndexCache = new HashMap<>();
 
     public int findCardIndex(String cardName) {
-        if (cardIndexCache.size() == 0) { // todo: move to construction
-            for (int i = 0; i < cardDict.length; i++) {
-                cardIndexCache.put(cardDict[i].cardName, i);
-            }
-        }
         Integer v = cardIndexCache.get(cardName);
         return v == null ? -1 : v;
     }
 
     public void findCardIndex(int[] idxes, String... cardNames) {
-        if (cardIndexCache.size() == 0) { // todo: move to construction
-            for (int i = 0; i < cardDict.length; i++) {
-                cardIndexCache.put(cardDict[i].cardName, i);
-            }
-        }
         for (int i = 0; i < cardNames.length; i++) {
             Integer v = cardIndexCache.get(cardNames[i]);
             idxes[i] = v == null ? -1 : v;

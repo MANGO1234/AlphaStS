@@ -2,6 +2,7 @@ package com.alphaStS;
 
 public class Configuration {
     public static boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
+    public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
 
     public static int TRAINING_GAME_COUNT = 200;
     public static int TRAINING_GAME_NODES = 100;
@@ -35,6 +36,7 @@ public class Configuration {
     public static boolean TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH = false;
     public static boolean TRAINING_RESCORE_SEARCH_FOR_BEST_LINE = true;
     public static boolean TRAINING_SKIP_OPENING_TURNS = false;
+    public static boolean COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN = true;
     public static int TRAINING_SKIP_OPENING_TURNS_UPTO = 3;
     public static double TRAINING_SKIP_OPENING_GAMES_INCREASE_RATIO = 1.25;
 

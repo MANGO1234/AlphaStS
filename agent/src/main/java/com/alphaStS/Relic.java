@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
@@ -152,11 +153,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (damageDealt <= 0) return;
                     if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
                         state.buffs &= ~PlayerBuff.CENTENNIAL_PUZZLE.mask();
-                        state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
-                            @Override public void doAction(GameState state) {
-                                state.draw(3);
-                            }
-                        });
+                        state.addGameActionToEndOfDeque(new CardDrawAction(3));
                     }
                 }
             });
@@ -203,10 +200,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             if (healthReward > 0) {
                 state.prop.addExtraTrainingTarget("HappyFlower", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 3.0;
-                        } else {
+                        } else if (isTerminal == 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
                         }
                     }
@@ -274,10 +271,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             if (healthReward > 0) {
                 state.prop.addExtraTrainingTarget("Nunchaku", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
-                        } else {
+                        } else if (isTerminal == 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
                         }
                     }
@@ -347,10 +344,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             if (healthReward > 0) {
                 state.prop.addExtraTrainingTarget("PenNib", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
-                        } else {
+                        } else if (isTerminal == 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
                         }
                     }
@@ -911,10 +908,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             if (rewardType == DEFAULT_REWARD) {
                 state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 5.0;
-                        } else {
+                        } else if (isTerminal == 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
                         }
                     }
@@ -925,13 +922,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 });
             } else if (rewardType == SHIELD_AND_SPEAR_REWARD) {
                 state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             for (int i = 0; i < 7; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }
                             v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
-                        } else {
+                        } else if (isTerminal == 0) {
                             for (int i = 0; i < 7; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
                             }
@@ -953,13 +950,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 });
             } else if (rewardType == HEART_REWARD) {
                 state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             for (int i = 0; i < 7; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }
                             v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
-                        } else {
+                        } else if (isTerminal == 0) {
                             for (int i = 0; i < 7; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
                             }

@@ -180,6 +180,8 @@ public class Main {
             return;
         }
 
+//        MatchSession.readMatchLogFile(curIterationDir + "/matches.txt.gz", curIterationDir, state);
+
         if (args.length > 0 && args[0].equals("--server")) {
             startServer(state);
             return;
@@ -245,7 +247,7 @@ public class Main {
             if (automatedCurriculumTraining) {
                 if (minDifficulty == totalDifficulty) {
                 } else if (session.difficulty < minDifficulty) {
-                    minDifficulty -= (minDifficulty - session.difficulty) / 4;
+                    minDifficulty -= (minDifficulty + 7) / 8;
                 } else {
                     if (session.difficulty == maxDifficulty) {
                         minDifficulty = minDifficulty + (session.difficulty - minDifficulty + 3) / 4;

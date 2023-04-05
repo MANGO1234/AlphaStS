@@ -436,10 +436,10 @@ public class CardColorless {
             });
             if (healthRewardRatio > 0) {
                 state.prop.addExtraTrainingTarget("HandOFGreed", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 100.0;
-                        } else {
+                        } else if (isTerminal == 0) {
                             int minFeed = state.getCounterForRead()[counterIdx];
                             int maxFeedRemaining = getMaxPossibleHandOfGreenRemaining(state, true);
                             double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, state.getVOther(vArrayIdx)));

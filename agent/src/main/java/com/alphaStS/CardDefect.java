@@ -184,7 +184,7 @@ public class CardDefect {
 
     public static class ChargeBatteryP extends CardDefect._ChargeBatteryT {
         public ChargeBatteryP() {
-            super("Charge Battery", 10);
+            super("Charge Battery+", 10);
         }
     }
 
@@ -1255,8 +1255,8 @@ public class CardDefect {
             });
             if (healthRewardRatio > 0) {
                 state.prop.addExtraTrainingTarget("GeneticAlgorithm", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                        if (enemiesAllDead) {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal != 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
                         } else {
                             int minGA = state.getCounterForRead()[counterIdx];

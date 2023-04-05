@@ -284,6 +284,42 @@ public final class GameState implements State {
             }
             prop.preBattleRandomization = prop.preBattleRandomization == null ? p : prop.preBattleRandomization.doAfter(p);
         }
+        prop.potionsVArrayIdx = new int[prop.potions.size()];
+        Arrays.fill(prop.potionsVArrayIdx, -1);
+        for (int i = 0; i < prop.potions.size(); i++) {
+            if (prop.testPotionOutput && prop.potions.get(i) instanceof Potion.FairyInABottle) {
+                int _i = i;
+                prop.addExtraTrainingTarget((prop.potions.get(i) + "" + i).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
+                    @Override public void setVArrayIdx(int idx) {
+                        prop.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
+                    }
+                }, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal != 0) {
+                            if (state.potionsState[_i * 3] == 1 || state.potionsState[_i * 3 + 2] == 0) {
+                                v[state.prop.potionsVArrayIdx[_i]] = 1;
+                            } else {
+                                v[state.prop.potionsVArrayIdx[_i]] = 0;
+                            }
+                        } else {
+                            if (state.potionsState[_i * 3 + 2] == 0) {
+                                v[state.prop.potionsVArrayIdx[_i]] = 1;
+                            } else if (state.potionsState[_i * 3] == 0) {
+                                v[state.prop.potionsVArrayIdx[_i]] = 0;
+                            } else {
+                                v[state.prop.potionsVArrayIdx[_i]] = state.getVOther(state.prop.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START);
+                            }
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        if (prop.potions.get(_i) instanceof Potion.FairyInABottle pot) {
+                            v[V_HEALTH_IDX] += pot.getHealAmount(state) * v[state.prop.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
+                        }
+                    }
+                });
+            }
+        }
         if (builder.getCharacter() == CharacterEnum.DEFECT) {
             prop.maxNumOfOrbs = 3;
             orbs = new short[3 * 2];
@@ -450,6 +486,11 @@ public final class GameState implements State {
             }
         }
 
+        if (prop.cardIndexCache.size() == 0) {
+            for (int i = 0; i < prop.cardDict.length; i++) {
+                prop.cardIndexCache.put(prop.cardDict[i].cardName, i);
+            }
+        }
         List<Integer> strikeIdxes = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().cardName.equals("Burn")) {
@@ -587,10 +628,10 @@ public final class GameState implements State {
                     prop.fightProgressVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, boolean enemiesAllDead) {
-                    if (enemiesAllDead) {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (isTerminal > 0) {
                         v[state.prop.fightProgressVIdx] = 1;
-                    } else {
+                    } else if (isTerminal == 0) {
                         v[state.prop.fightProgressVIdx] = state.getVOther(prop.fightProgressVIdx - V_OTHER_IDX_START);
                     }
                 }
@@ -1186,7 +1227,7 @@ public final class GameState implements State {
         return cardPlayedSuccessfully || targetHalfAlive;
     }
 
-    void usePotion(GameAction action, int selectIdx) {
+    public void usePotion(GameAction action, int selectIdx) {
         int potionIdx = action.idx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (prop.hasToyOrniphopter) {
@@ -1425,7 +1466,7 @@ public final class GameState implements State {
                     if (isStochastic && prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
                         rgi.selectEnemyMove(this, enemy2, i);
                     }
-                    if (isStochastic) {
+                    if (prop.makingRealMove && isStochastic) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
                     }
                     isStochastic = oldIsStochastic | isStochastic;
@@ -1597,7 +1638,7 @@ public final class GameState implements State {
 
     void get_v(double[] out) {
         var player = getPlayeForRead();
-        if (player.getHealth() <= 0 || turnNum >= 512) {
+        if (player.getHealth() <= 0 || turnNum > 50) {
             Arrays.fill(out, 0);
             if (prop.extraOutputLen > 0) {
                 int cur = 0;
@@ -1663,6 +1704,9 @@ public final class GameState implements State {
                     out[prop.fightProgressVIdx] = (1 - ((double) totalCurHp) / totalMaxHp);
                 }
             }
+            for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
+                prop.extraTrainingTargets.get(i).fillVArray(this, out, -1);
+            }
             return;
         }
         boolean enemiesAllDead = true;
@@ -1675,32 +1719,12 @@ public final class GameState implements State {
         if (enemiesAllDead) {
             out[V_WIN_IDX] = 1;
             out[V_HEALTH_IDX] = ((double) player.getHealth()) / player.getMaxHealth();
-            if (prop.testPotionOutput) {
-                for (int i = 0; i < prop.potions.size(); i++) {
-                    if (potionsState[i * 3] == 1 || potionsState[i * 3 + 2] == 0) {
-                        out[V_OTHER_IDX_START + i] = 1;
-                    } else {
-                        out[V_OTHER_IDX_START + i] = 0;
-                    }
-                }
-            }
         } else {
             out[V_WIN_IDX] = v_win;
             out[V_HEALTH_IDX] = Math.min(v_health, getMaxPossibleHealth() / (float) getPlayeForRead().getMaxHealth());
-            if (prop.testPotionOutput) {
-                for (int i = 0; i < prop.potions.size(); i++) {
-                    if (potionsState[i * 3 + 2] == 0) {
-                        out[V_OTHER_IDX_START + i] = 1;
-                    } else if (potionsState[i * 3] == 0) {
-                        out[V_OTHER_IDX_START + i] = 0;
-                    } else {
-                        out[V_OTHER_IDX_START + i] = v_other[i];
-                    }
-                }
-            }
         }
         for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
-            prop.extraTrainingTargets.get(i).fillVArray(this, out, enemiesAllDead);
+            prop.extraTrainingTargets.get(i).fillVArray(this, out, enemiesAllDead ? 1 : 0);
         }
         out[V_COMB_IDX] = calc_q(out);
     }
@@ -1835,7 +1859,7 @@ public final class GameState implements State {
     }
 
     public int isTerminal() {
-        if (getPlayeForRead().getHealth() <= 0 || turnNum >= 512) {
+        if (getPlayeForRead().getHealth() <= 0 || turnNum > 50) {
             return -1;
         } else {
             for (var enemy : enemies) {
@@ -1851,6 +1875,9 @@ public final class GameState implements State {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
         for (int i = 0; i < prop.potions.size(); i++) {
+            if (prop.potionsVArrayIdx[i] >= 0) {
+                continue;
+            }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && prop.potions.get(i) instanceof Potion.BloodPotion pot && !prop.isHeartFight) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
@@ -1874,19 +1901,13 @@ public final class GameState implements State {
         double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * v[V_HEALTH_IDX] * 0.5;
         v[V_WIN_IDX] = win;
         v[V_HEALTH_IDX] = health;
-        if (prop.testPotionOutput) {
-            for (int i = 0; i < prop.potions.size(); i++) {
-                //                health = Math.max(0, health - (1 - v[V_OTHER_IDX_START + i]) * (15 / (float) player.getMaxHealth()));
-                if (potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion)) {
-                    base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[V_OTHER_IDX_START + i];
-                }
+        for (int i = 0; i < prop.potions.size(); i++) {
+            if (prop.potionsVArrayIdx[i] >= 0) {
+                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[V_OTHER_IDX_START + i];
+                continue;
             }
-        }
-        if (!prop.testPotionOutput) {
-            for (int i = 0; i < prop.potions.size(); i++) {
-                if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion) && !(prop.potions.get(i) instanceof Potion.RegenerationPotion) && !(prop.potions.get(i) instanceof Potion.FairyInABottle)) {
-                    base *= potionsState[i * 3 + 1] / 100.0;
-                }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(prop.potions.get(i) instanceof Potion.BloodPotion) && !(prop.potions.get(i) instanceof Potion.BlockPotion) && !(prop.potions.get(i) instanceof Potion.RegenerationPotion) && !(prop.potions.get(i) instanceof Potion.FairyInABottle)) {
+                base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
         return base;
@@ -1936,7 +1957,7 @@ public final class GameState implements State {
         first = true;
         var hand = GameStateUtils.getCardArrCounts(handArr, handArrLen, prop.cardDict.length);
         for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0 && (!prop.discard0CardOrderMatters || prop.cardDict[i].realEnergyCost() > 0)) {
+            if (hand[i] > 0 && (!prop.discard0CardOrderMatters || prop.cardDict[i].realEnergyCost() != 0)) {
                 if (!first) {
                     str.append(", ");
                 }
@@ -1972,7 +1993,7 @@ public final class GameState implements State {
         first = true;
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, prop.realCardsLen);
         for (int i = 0; i < discard.length; i++) {
-            if (discard[i] > 0 && (!prop.discard0CardOrderMatters || prop.cardDict[i].realEnergyCost() > 0)) {
+            if (discard[i] > 0 && (!prop.discard0CardOrderMatters || prop.cardDict[i].realEnergyCost() != 0)) {
                 if (!first) {
                     str.append(", ");
                 }
@@ -3605,7 +3626,7 @@ public final class GameState implements State {
         if (player.getWeak() > 0) {
             dmg = dmg * 0.75;
         }
-        if (enemy.isAlive()) {
+        if (enemy.isAlive() && enemy.getHealth() > 0) {
             int dmgDone = enemy.damage(dmg, this);
             if (enemy.getHealth() == 0) {
                 for (var handler : prop.onEnemyDeathHandlers) {
@@ -3632,7 +3653,7 @@ public final class GameState implements State {
     }
 
     public void playerDoNonAttackDamageToEnemy(Enemy enemy, int dmg, boolean blockable) {
-        if (enemy.isAlive()) {
+        if (enemy.isAlive() && enemy.getHealth() > 0) {
             enemy.nonAttackDamage(dmg, blockable, this);
             if (enemy.getHealth() == 0) {
                 for (var handler : prop.onEnemyDeathHandlers) {
@@ -3775,6 +3796,16 @@ public final class GameState implements State {
 
     public short[] getHandArrForRead() {
         return handArr;
+    }
+
+    public int getHandArrForRead(int cardIdx) {
+        int c = 0;
+        for (int i = 0; i < handArrLen; i++) {
+            if (handArr[i] == cardIdx) {
+                c++;
+            }
+        }
+        return c;
     }
 
     public short[] getHandArrForWrite() {
@@ -4408,7 +4439,7 @@ class ChanceState implements State {
             }
         }
         state.doAction(parentAction);
-        if (!state.isStochastic && state.actionCtx == GameActionCtx.BEGIN_TURN) {
+        if ((Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN || !state.isStochastic) && state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
         if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.prop.testNewFeature)) {
@@ -4421,6 +4452,11 @@ class ChanceState implements State {
             }
         }
         if (parentState.prop.makingRealMove && Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION) {
+            state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
+            total_n -= 1;
+            return state;
+        }
+        if (parentState.prop.makingRealMove && Configuration.DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE) {
             state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
             total_n -= 1;
             return state;

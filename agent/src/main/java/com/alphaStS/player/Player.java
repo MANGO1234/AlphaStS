@@ -20,7 +20,7 @@ public class Player extends PlayerReadOnly {
         if (dmg > 0 && state.prop.hasTungstenRod) {
             dmg -= 1;
         }
-        if (dmg > 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+        if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
             dmg = 0;
             state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
         }
@@ -46,7 +46,7 @@ public class Player extends PlayerReadOnly {
             if (dmg > 0 && state.prop.hasTungstenRod) {
                 dmg -= 1;
             }
-            if (dmg > 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+            if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
                 dmg = 0;
                 state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
             }
@@ -57,7 +57,7 @@ public class Player extends PlayerReadOnly {
             if (dmg > 0 && state.prop.hasTungstenRod) {
                 dmg -= 1;
             }
-            if (dmg > 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+            if (dmg >= 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
                 dmg = 0;
                 state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
             }
@@ -76,7 +76,8 @@ public class Player extends PlayerReadOnly {
     private void tryReviveWithFairyInABottle(GameState state) {
         for (int i = 0; i < state.prop.potions.size(); i++) {
             if (state.potionUsable(i) && state.prop.potions.get(i) instanceof Potion.FairyInABottle) {
-                state.doAction(state.prop.cardDict.length + i);
+                state.getPotionsStateForWrite()[i * 3] = 0;
+                state.prop.potions.get(i).use(state, -1);
                 break;
             }
         }

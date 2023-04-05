@@ -379,6 +379,7 @@ public class EnemyBeyond {
         private static final int HASTE = 3;
 
         private boolean hasted;
+        private boolean startTurnLessHalfHealth;
 
         public TimeEater() {
             this(480);
@@ -398,10 +399,19 @@ public class EnemyBeyond {
         public TimeEater(EnemyBeyond.TimeEater other) {
             super(other);
             hasted = other.hasted;
+            startTurnLessHalfHealth = other.startTurnLessHalfHealth;
         }
 
         @Override public Enemy copy() {
             return new EnemyBeyond.TimeEater(this);
+        }
+
+        @Override public void saveStateForNextMove(GameState state) {
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                if (state.getEnemiesForRead().get(i) instanceof TimeEater) {
+                    startTurnLessHalfHealth = state.getEnemiesForRead().get(i).getHealth() < property.maxHealth / 2;
+                }
+            }
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -468,10 +478,11 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove = -1;
-            if (health < property.maxHealth / 2 && !hasted) {
+            if ((state.prop.hasRunicDome ? startTurnLessHalfHealth : (health < property.maxHealth / 2)) && !hasted) {
                 hasted = true;
                 newMove = HASTE;
             } else {
+                state.setIsStochastic();
                 int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                 for (int i = 0; i < 1; i++) {
                     if (r < 45) {
@@ -533,6 +544,9 @@ public class EnemyBeyond {
         @Override public String toString(GameState state) {
             String s = super.toString(state);
             if (!hasted) {
+                if (startTurnLessHalfHealth) {
+                    return s.subSequence(0, s.length() - 1) + ", lessThanHalfHealth}";
+                }
                 return s;
             }
             return s.subSequence(0, s.length() - 1) + ", hasted}";
@@ -543,15 +557,20 @@ public class EnemyBeyond {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 1;
+            return prop.hasRunicDome ? 2 : 1;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "1 input to keep track of whether Time Eater has hasted";
+            return prop.hasRunicDome ? "2 inputs to keep track of whether Time Eater has hasted and started the turn with less than half health" :
+                    "1 input to keep track of whether Time Eater has hasted";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = hasted ? 0.5f : 0;
+            if (prop.hasRunicDome) {
+                input[idx] = startTurnLessHalfHealth ? 0.5f : 0f;
+                return 2;
+            }
             return 1;
         }
     }

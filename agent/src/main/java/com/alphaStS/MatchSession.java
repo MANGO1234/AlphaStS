@@ -590,7 +590,7 @@ public class MatchSession {
                 }
                 var state = origState.clone(false);
                 state.prop = state.prop.clone();
-                state.prop.doingComparison = mcts2.size() > 0;
+                state.prop.doingComparison = true || mcts2.size() > 0;
                 var randomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
                 state.prop.realMoveRandomGen = randomGen;
                 randomGen.useNewCommonNumberVR = true;
@@ -1636,6 +1636,9 @@ public class MatchSession {
             }
             newState.isStochastic = true;
         } else {
+            if (Configuration.DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE) {
+                nextState = null;
+            }
             if (nextState == null) {
                 newState = state.clone(false);
                 newState.doAction(action);
@@ -1663,13 +1666,21 @@ public class MatchSession {
         }
     }
 
-    public static void readMatchLogFile(String path, GameState origState) {
+    private static class GameRecord {
+        List<GameStep> game;
+        int dmgTaken;
+        boolean result;
+        List<String> stateDescription;
+    }
+
+    public static void readMatchLogFile(String path, String modelPath, GameState origState) {
         try {
             List<List<GameStep>> games = new ArrayList<>();
             var reader = new BufferedReader(new InputStreamReader(new GzipCompressorInputStream(new FileInputStream(path))));
             String l = reader.readLine();
             List<GameStep> game = null;
             GameState state = null;
+            String stateStr = null;
             while (l != null) {
                 if (l.startsWith("Seed: ")) {
                     if (game != null) {
@@ -1682,14 +1693,17 @@ public class MatchSession {
                     state.prop.realMoveRandomGen = randomGen;
                     randomGen.useNewCommonNumberVR = true;
                     state.prop.testNewFeature = true;
+                    state.prop.makingRealMove = true;
+                    state.prop.doingComparison = true;
+                } else if (l.startsWith("{")) {
+                    stateStr = l;
                 } else if (l.startsWith("action=")) {
                     var action = l.substring(7);
-                    if (action.indexOf('(') >= 0) {
-                        action = action.substring(0, action.indexOf('(') - 1);
+                    if (action.indexOf('[') >= 0) {
+                        action = action.substring(0, action.indexOf('[') - 1);
                     }
                     int idx = -1;
                     if (state.actionCtx == GameActionCtx.BEGIN_TURN && !action.equals("Begin Turn")) {
-                        game.add(new GameStep(state, 0));
                         state = state.clone(false);
                         state.doAction(0);
                     }
@@ -1704,9 +1718,11 @@ public class MatchSession {
                         System.out.println(game);
                         System.out.println(state);
                         System.out.println(action);
+                        System.out.println(state.actionCtx);
                         throw new IllegalStateException();
                     }
                     game.add(new GameStep(state, idx));
+                    game.get(game.size() - 1).stateStr = stateStr;
                     state = state.clone(false);
                     state.doAction(idx);
                 }
@@ -1715,7 +1731,22 @@ public class MatchSession {
             if (game != null) {
                 games.add(game);
             }
-            games.add(game);
+
+            for (int i = 0; i < games.size(); i++) {
+                System.out.println("Game " + (i + 1));
+            }
+            reader = new BufferedReader(new InputStreamReader(System.in));
+            while (true) {
+                System.out.println("> ");
+                String line = reader.readLine();
+                if (line.equals("exit")) {
+                    break;
+                }
+                try {
+                    int i = Integer.parseInt(line);
+                    InteractiveMode.interactiveStart(games.get(i), modelPath);
+                } catch (NumberFormatException e) {}
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1762,10 +1793,10 @@ public class MatchSession {
                 var nextStep = steps.get(i + 1);
                 writer.write("action=" + step.state().getActionString(step.action()));
                 if (nextStep.state().stateDesc != null) {
-                    writer.write(" (" + nextStep.state().stateDesc + ")");
+                    writer.write(" [" + nextStep.state().stateDesc + "]");
                 }
                 if (step.isExplorationMove) {
-                    writer.write(" (Temperature)");
+                    writer.write(" [Temperature]");
                 }
                 writer.write("\n");
             }
