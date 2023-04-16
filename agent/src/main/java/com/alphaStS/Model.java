@@ -11,7 +11,7 @@ import com.alphaStS.utils.Utils;
 
 import java.util.*;
 
-record NNOutput(float v_health, float v_win, double[] v_other, float[] policy, int[] legalActions) {
+record NNOutput(float v_health, float v_win, float[] v_other, float[] policy, int[] legalActions) {
 }
 
 public class Model {
@@ -63,7 +63,7 @@ public class Model {
         return input;
     }
 
-    public static void softmax(double[] input, int start, int len) {
+    public static void softmax(float[] input, int start, int len) {
         double[] tmp = new double[len];
         double max = Float.MIN_VALUE;
         for (int i = 0; i < len; i++) {
@@ -186,9 +186,9 @@ public class Model {
                 policyCompressed[i] = policy[legalActions[i]];
             }
 
-            double[] v_other = null;
+            float[] v_other = null;
             if (output.size() > 3 && state.prop.extraOutputLen > 0) {
-                v_other = new double[state.prop.extraOutputLen];
+                v_other = new float[state.prop.extraOutputLen];
                 int idx = 0;
                 for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
                     int n = state.prop.extraTrainingTargets.get(i).getNumberOfTargets();

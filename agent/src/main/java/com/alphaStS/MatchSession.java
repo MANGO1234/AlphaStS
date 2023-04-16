@@ -1447,7 +1447,7 @@ public class MatchSession {
                     max_i = i;
                 }
             }
-            double q = state.q_comb[max_i] / state.n[max_i];
+            double q = state.q[(max_i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / state.n[max_i];
             double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
             var max_puct = q + u;
             var del_n = 0;
@@ -1455,7 +1455,7 @@ public class MatchSession {
                 if (i == max_i) {
                     continue;
                 }
-                q = state.q_comb[i] / state.n[i];
+                q = state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / state.n[i];
                 var new_n = (int) Math.ceil(0.1 * state.policyMod[i] * sqrt(state.total_n) / (max_puct - q) - 1);
                 if (new_n < 0 || state.n[i] == 1) {
                     continue;

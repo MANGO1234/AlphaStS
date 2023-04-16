@@ -1394,8 +1394,9 @@ public class InteractiveMode {
             }
             int max_n = s.n[action];
             if (printPV) {
+                int baseIdx = (action + 1) * s.prop.v_total_len;
                 System.out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                        ": n=" + max_n + ", q=" + formatFloat(s.q_comb[action] / max_n) + ", q_win=" + formatFloat(s.q_win[action] / max_n) + ", q_health=" + formatFloat(s.q_health[action] / max_n) + " (" + formatFloat(s.q_health[action] / max_n * s.getPlayeForRead().getMaxHealth()) + ")");
+                        ": n=" + max_n + ", q=" + formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n) + ", q_win=" + formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n) + ", q_health=" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n) + " (" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth()) + ")");
             }
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
