@@ -2664,7 +2664,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            if (!state.getEnemiesForRead().get(idx).property.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+            if (!state.getEnemiesForRead().get(idx).property.isMinion && !state.prop.isHeartFight && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
@@ -2732,7 +2732,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public static int getMaxPossibleFeedRemaining(GameState state) {
-            if (state.isTerminal() != 0) {
+            if (state.isTerminal() != 0 || state.prop.isHeartFight) {
                 return 0;
             }
             // todo: very very hacky

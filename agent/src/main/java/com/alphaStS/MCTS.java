@@ -38,6 +38,7 @@ public class MCTS {
     void search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (exploredV != null) {
             for (int i = 0; i < state.prop.v_total_len; i++) {
+                state.initSearchInfo2();
                 v[i] = exploredV[i];
                 state.q[i] += v[i];
             }
@@ -239,13 +240,13 @@ public class MCTS {
     }
 
     public boolean cannotImproveState(GameState state) {
+        if (state.playerTurnStartMaxPossibleHealth != state.getPlayeForRead().getHealth()) {
+            return false;
+        }
         if (state.prop.isHeartFight) {
             return true;
         }
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {
-            return false;
-        }
-        if (state.playerTurnStartMaxPossibleHealth != state.getPlayeForRead().getHealth()) {
             return false;
         }
         if (state.prop.nunchakuCounterIdx >= 0 && state.getCounterForRead()[state.prop.nunchakuCounterIdx] < 9) {
@@ -865,6 +866,29 @@ public class MCTS {
                 }
             }
         }
+        int action2 = -1;
+        double maxU2 = -1000000;
+        if (!allBelow1Per && !Configuration.USE_Z_TRAINING && Configuration.TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS) {
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (policy[i] <= 0) {
+                    continue;
+                }
+                double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / state.n[i] : Math.max(state.q[GameState.V_COMB_IDX] / (state.total_n + 1), 0);
+                double cpuct = state.prop.cpuct;
+                if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
+                    cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
+                }
+                double u = state.total_n > 0 ? q + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
+                if (u > maxU2) {
+                    action2 = i;
+                    maxU2 = u;
+                }
+            }
+            if (state.n[action2] <= 0) {
+                action2 = -1;
+            }
+        }
+        double maxQ = -1000000;
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
@@ -895,7 +919,20 @@ public class MCTS {
                     continue;
                 }
             }
-            if (!hasForcedMove && u > maxU) {
+            if (!hasForcedMove && action2 >= 0) {
+                if (state.n[i] <= 0) {
+                    continue;
+                }
+                double q_win = state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx] / state.n[i];
+                double q_health = state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx + 1] / state.n[i];
+                double q_comb = q_win * 0.5 + q_win * q_win * 0.5 * q_health;
+                if (u >= 0.99 * maxU2) {
+                    if (q_comb + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) > maxQ) {
+                        action = i;
+                        maxQ = q_comb + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]);
+                    }
+                }
+            } else if (!hasForcedMove && u > maxU) {
                 action = i;
                 maxU = u;
             }

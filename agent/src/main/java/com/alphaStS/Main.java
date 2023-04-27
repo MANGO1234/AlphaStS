@@ -175,12 +175,12 @@ public class Main {
             }
         }
 
+//        MatchSession.readMatchLogFile(curIterationDir + "/matches.txt.gz", curIterationDir, state);
+
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
             interactiveStart(state, SAVES_DIR, curIterationDir);
             return;
         }
-
-//        MatchSession.readMatchLogFile(curIterationDir + "/matches.txt.gz", curIterationDir, state);
 
         if (args.length > 0 && args[0].equals("--server")) {
             startServer(state);
@@ -230,6 +230,7 @@ public class Main {
         if (GENERATE_TRAINING_GAMES) {
             session.setTrainingDataLogFile("training_data.txt.gz");
             session.USE_Z_TRAINING = iteration <= Z_TRAINING_UPTO_ITERATION;
+            Configuration.USE_Z_TRAINING = session.USE_Z_TRAINING;
             session.POLICY_CAP_ON = false;
             if (iteration < 16) {
                 Configuration.TRAINING_SKIP_OPENING_TURNS = false;

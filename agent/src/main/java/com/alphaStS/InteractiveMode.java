@@ -313,10 +313,16 @@ public class InteractiveMode {
                     idx++;
                     state = game.get(idx).state();
                 }
-            } else if (line.equals("p")) {
+            } else if (line.equals("b")) {
                 if (idx > 0) {
                     idx--;
                     state = game.get(idx).state();
+                }
+            } else if (line.startsWith("m")) {
+                try {
+                    interactiveStartH(state, null, modelDir, new ArrayList<>());
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -1096,7 +1102,11 @@ public class InteractiveMode {
         if (randomizationScenario >= 0) {
             state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);
         }
-        session.playGames(state, numberOfGames, nodeCount, true);
+        try {
+            session.playGames(state, numberOfGames, nodeCount, true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         state.prop.randomization = prevRandomization;
     }
 

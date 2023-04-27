@@ -632,6 +632,41 @@ public final class GameState implements State {
                 @Override public void updateQValues(GameState state, double[] v) {}
             });
         }
+        if (Configuration.TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS) {
+            prop.addExtraTrainingTarget("ZAWin", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    prop.qwinVIdx = V_OTHER_IDX_START + idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (isTerminal > 0) {
+                        v[state.prop.qwinVIdx] = 1;
+                    } else if (isTerminal < 0) {
+                        v[state.prop.qwinVIdx] = 0;
+                    } else if (isTerminal == 0) {
+                        v[state.prop.qwinVIdx] = state.getVOther(prop.qwinVIdx - V_OTHER_IDX_START);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {}
+            });
+            prop.addExtraTrainingTarget("ZBHealth", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (isTerminal > 0) {
+                        v[state.prop.qwinVIdx + 1] = state.getPlayeForRead().getHealth() / (float) state.getPlayeForRead().getMaxHealth();
+                    } else if (isTerminal < 0) {
+                        v[state.prop.qwinVIdx + 1] = 0;
+                    } else if (isTerminal == 0) {
+                        v[state.prop.qwinVIdx + 1] = state.getVOther(prop.qwinVIdx + 1 - V_OTHER_IDX_START);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {}
+            });
+        }
         prop.compileExtraTrainingTarget();
         prop.inputLen = getNNInputLen();
         prop.v_total_len = 3;

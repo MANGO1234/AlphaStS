@@ -262,6 +262,10 @@ def save_stats(training_info, iteration, out):
 def init_kaggle(dataset_name):
     if not os.path.exists(f'./kaggle/{dataset_name}/dataset-metadata.json'):
         try:
+            os.mkdir(f'./kaggle')
+        except:
+            pass
+        try:
             os.mkdir(f'./kaggle/{dataset_name}')
         except:
             pass
@@ -446,7 +450,7 @@ if DO_TRAINING:
         else:
             SKIP_FIRST = False
 
-        if not SKIP_TRAINING_MATCHES and _iteration > 1:
+        if len(agent_output) > 0 and not SKIP_TRAINING_MATCHES and _iteration > 1:
             split = agent_output.find('--------------------')
             out = agent_output[2 if agent_output[0] == '\r' else 0: split + 20]
             save_stats(training_info, _iteration - 1, out)
@@ -457,11 +461,12 @@ if DO_TRAINING:
         if training_info["iteration"] > 10 and (training_info["iteration"] - 21) % 15 == 0:
             print("Model layers reset!!!")
             reset_model(model)
-        split = agent_output.find('--------------------')
-        agent_output = agent_output[split + 20:]
-        split = agent_output.find('--------------------')
-        if split >= 0:
+        if len(agent_output) > 0:
+            split = agent_output.find('--------------------')
             agent_output = agent_output[split + 20:]
+            split = agent_output.find('--------------------')
+            if split >= 0:
+                agent_output = agent_output[split + 20:]
 
         iteration_info['agent_time'] = round(time.time() - iter_start, 2)
         iteration_info['num_of_samples'] = len(training_pool)

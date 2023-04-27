@@ -959,10 +959,11 @@ public class TestStates {
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.InkBottle());
         builder.addEnemy(new EnemyEnding.CorruptHeart());
-        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
+//        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.RegenerationPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
         builder.setPlayer(new Player(123, 144));
         return new GameState(builder);
     }
@@ -1832,6 +1833,7 @@ public class TestStates {
 
     public static GameState TestStateStreamerRun3() {
         var builder = new GameStateBuilder();
+        boolean test = false;
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 2);
         builder.addCard(new Card.AscendersBane(), 1);
@@ -1843,7 +1845,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BootSequence(), 1);
         builder.addCard(new CardDefect.BeamCellP(), 2);
         builder.addCard(new CardDefect.Coolheaded(), 1);
-        builder.addCard(new CardDefect.GeneticAlgorithm(39, 4), 1);
+        builder.addCard(new CardDefect.GeneticAlgorithm(39, test ? 0 : 4), 1);
         builder.addCard(new CardDefect.RebootP(), 1);
         builder.addCard(new CardDefect.CoreSurge(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
@@ -1884,7 +1886,7 @@ public class TestStates {
         builder.addRelic(new Relic.NuclearBattery());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.RunicCapacitor());
-        builder.addRelic(new Relic.PenNib(7, 2));
+        builder.addRelic(new Relic.PenNib(7, test ? 1 : 2));
         builder.addRelic(new Relic.FossilizedHelix());
         builder.addRelic(new Relic.RunicDome());
         builder.addRelic(new Relic.TungstenRod());
