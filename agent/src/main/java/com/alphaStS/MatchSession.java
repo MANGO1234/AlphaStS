@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -250,6 +251,9 @@ public class MatchSession {
     public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats, String remoteGameRecord) {}
     public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
+    private boolean playGamesPause;
+    private boolean playGamesStop;
+
     public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) throws IOException {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
@@ -268,7 +272,34 @@ public class MatchSession {
             }
         }
 
-        var game_i = 0;
+        var game_i = new AtomicInteger(0);
+
+        new Thread(() -> {
+            var reader = new BufferedReader(new InputStreamReader(System.in));
+            try {
+                while (game_i.get() < numOfGames) {
+                    if (!reader.ready()) {
+                        Utils.sleep(200);
+                        continue;
+                    }
+                    var line = reader.readLine();
+                    if (line.equals("exit")) {
+                        System.out.println("Stop");
+                        playGamesStop = true;
+                        break;
+                    } else if (line.equals("pause")) {
+                        System.out.println("Paused");
+                        playGamesPause = true;
+                    } else if (line.equals("start")) {
+                        System.out.println("Restarted");
+                        playGamesPause = false;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
         var ret = getInfoMaps(origState);
         var combinedInfoMap = ret.v1();
         var battleInfoMap = ret.v2();
@@ -278,7 +309,7 @@ public class MatchSession {
         var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
         var lastPrintTime = System.currentTimeMillis();
-        while (game_i < numOfGames) {
+        while (game_i.get() < numOfGames && !playGamesStop) {
             GameResult result;
             try {
                 result = deq.takeFirst();
@@ -341,7 +372,7 @@ public class MatchSession {
                     chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
                     chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 }
-                game_i += 1;
+                game_i.incrementAndGet();
                 if (matchLogWriter != null) {
                     matchLogWriter.write("*** Match " + game_i + " ***\n");
                     writeGameRecord(matchLogWriter, result, steps, combinedInfoMap, r);
@@ -354,10 +385,10 @@ public class MatchSession {
                     matchLogWriter.write("*** Match " + game_i + " (Remote) ***\n");
                     matchLogWriter.write(result.remoteGameRecord);
                 }
-                game_i += 1;
+                game_i.incrementAndGet();
             }
 
-            if ((printProgress && game_i % progressInterval == 0) || game_i == numOfGames || System.currentTimeMillis() - lastPrintTime > 60 * 1000) {
+            if ((printProgress && game_i.get() % progressInterval == 0) || game_i.get() == numOfGames || System.currentTimeMillis() - lastPrintTime > 60 * 1000 || playGamesStop || playGamesPause) {
                 lastPrintTime = System.currentTimeMillis();
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
                 if (!training && solver != null) {
@@ -590,8 +621,8 @@ public class MatchSession {
         var t = new Thread(() -> {
             int idx = numToPlay.getAndDecrement();
             while (idx > 0) {
-                if (deq.size() >= (nodeCount == 1 ? 1000 : 40)) {
-                    if (numToPlay.get() < 0) {
+                if (deq.size() >= (nodeCount == 1 ? 1000 : 40) || playGamesPause || playGamesStop) {
+                    if (numToPlay.get() < 0 || playGamesStop) {
                         break;
                     }
                     Utils.sleep(200);
@@ -888,7 +919,6 @@ public class MatchSession {
 
         state.doEval(mcts.model);
         boolean quickPass = false;
-        var bannedActions = new HashSet<GameAction>();
         int turnsToSkip = -1;
         if (Configuration.TRAINING_SKIP_OPENING_TURNS && Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO > 0) {
             turnsToSkip = state.prop.random.nextInt(Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO + 1, RandomGenCtx.Other);
@@ -936,13 +966,7 @@ public class MatchSession {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
                 greedyAction = action;
             } else {
-                action = MCTS.getActionRandomOrTerminal(state, bannedActions);
-//                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, bannedActions);
-//                if (action != greedyAction) {
-//                    if (state.prop.random.nextBoolean(RandomGenCtx.Other) && state.getAction(greedyAction).type() != GameActionType.END_TURN) {
-//                        bannedActions.add(state.getAction(greedyAction));
-//                    }
-//                }
+                action = MCTS.getActionRandomOrTerminal(state);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, null);
             }
             var step = new GameStep(state, action);
@@ -956,7 +980,6 @@ public class MatchSession {
             steps.add(step);
             if (state.getAction(action).type() == GameActionType.END_TURN) {
                 quickPass = POLICY_CAP_ON && state.prop.random.nextInt(4, RandomGenCtx.Other, null) > 0;
-                bannedActions.clear();
             }
             if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 state = state.clone(false);
@@ -991,7 +1014,9 @@ public class MatchSession {
         // do scoring here before clearing states to reuse nn eval if possible
         var vLen = state.get_v_len();
         double[] vCur = new double[vLen];
+        double[] vPro = new double[vLen];
         state.get_v(vCur);
+        state.get_v(vPro);
         int turnNum = state.turnNum;
         double health = state.getPlayeForRead().getHealth() / (double) state.getPlayeForRead().getMaxHealth();
         int win = state.isTerminal() > 0 ? 1 : 0;
@@ -1002,9 +1027,9 @@ public class MatchSession {
                 ChanceState cState = findBestLineChanceState(steps.get(i).state(), nodeCount, mcts, extraSteps);
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
                 // to reduce this effect, seems ok so far, also check if we are transposing and skip for transposing
-                if (cState != null && lastChanceState != null && !cState.equals(lastChanceState)) {
+                if (cState != null && (lastChanceState == null || !cState.equals(lastChanceState))) {
                     double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
-                    if (true || ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
+                    if (lastChanceState != null || ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
 //                        System.out.println(cState);
 //                        System.out.println(ret[GameState.V_COMB_IDX]);
 //                        System.out.println(lastChanceState);
@@ -1020,6 +1045,7 @@ public class MatchSession {
 //                            }
 //                        }
                         vCur = ret;
+                        vPro = Arrays.copyOf(ret, ret.length);
                         lastChanceState = cState;
                         state = steps.get(i).state().clone(false);
                         state.setSearchRandomGen(steps.get(i).searchRandomGenMCTS);
@@ -1040,7 +1066,7 @@ public class MatchSession {
 //                    augmentedSteps.addAll(extraSteps);
                 }
             }
-            steps.get(i).v = Arrays.copyOf(vCur, vCur.length);
+            steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
             if (Configuration.TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS) {
                 steps.get(i).v[state.prop.qwinVIdx] = win;
                 steps.get(i).v[state.prop.qwinVIdx + 1] = health;
@@ -1058,6 +1084,9 @@ public class MatchSession {
 
                 if (!USE_Z_TRAINING) {
                     vCur = calcExpectedValue(cState, state, mcts, vCur);
+                    for (int j = 0; j < vCur.length; j++) {
+                        vPro[j] = Configuration.DISCOUNT_REWARD_ON_RANDOM_NODE * vCur[j] + (1 - Configuration.DISCOUNT_REWARD_ON_RANDOM_NODE) * vPro[j];
+                    }
                 }
             }
         }
@@ -1751,7 +1780,7 @@ public class MatchSession {
             }
             reader = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
-                System.out.println("> ");
+                System.out.print("> ");
                 String line = reader.readLine();
                 if (line.equals("exit")) {
                     break;

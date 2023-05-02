@@ -390,9 +390,7 @@ public class EnemyEnding {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i) instanceof CorruptHeart heart) {
-                            if (heart.health > 0) {
-                                state.doNonAttackDamageToPlayer(heart.beatOfDeath, true, heart);
-                            }
+                            state.doNonAttackDamageToPlayer(heart.beatOfDeath, true, heart);
                             break;
                         }
                     }

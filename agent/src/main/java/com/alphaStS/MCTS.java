@@ -1011,24 +1011,24 @@ public class MCTS {
         return policy;
     }
 
-    public static int getActionRandomOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
+    public static int getActionRandomOrTerminal(GameState state) {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }
         var total_n = 0;
         for (int i = 0; i < state.policy.length; i++) {
-            if (!bannedActions.contains(state.getAction(i))) {
+            if (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0)) {
                 total_n += state.n[i];
             }
         }
-        if (total_n == 0) { // happens when the non banned action has such low prio that it has 0 visit
+        if (total_n == 0) {
             total_n = state.total_n;
         }
         int r = state.prop.random.nextInt(total_n, RandomGenCtx.Other);
         int acc = 0;
         int action = -1;
         for (int i = 0; i < state.policy.length; i++) {
-            if (total_n == state.total_n || !bannedActions.contains(state.getAction(i))) {
+            if (total_n == state.total_n || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
                 acc += state.n[i];
                 if (acc > r) {
                     action = i;

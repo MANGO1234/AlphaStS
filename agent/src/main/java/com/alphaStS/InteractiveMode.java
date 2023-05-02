@@ -120,6 +120,13 @@ public class InteractiveMode {
                 printState = true;
             } else if (line.equals("input")) {
                 System.out.println(Arrays.toString(state.getNNInput()));
+            } else if (line.startsWith("model ")) {
+                try {
+                    model = new Model(line.split(" ")[1]);
+                    mcts.setModel(model);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (line.equals("eh")) {
                 setEnemyHealth(reader, state, history);
                 printState = true;
@@ -320,7 +327,11 @@ public class InteractiveMode {
                 }
             } else if (line.startsWith("m")) {
                 try {
-                    interactiveStartH(state, null, modelDir, new ArrayList<>());
+                    var s = state.clone(false);
+                    s.prop = state.prop.clone();
+                    s.prop.random = new RandomGen.RandomGenPlain();
+                    s.prop.makingRealMove = false;
+                    interactiveStartH(s, null, modelDir, new ArrayList<>());
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -1097,7 +1108,7 @@ public class InteractiveMode {
         }
         MatchSession session = new MatchSession(numberOfThreads, modelDir);
         session.startingAction = startingAction;
-        session.setMatchLogFile("matches.txt.gz");
+        session.setMatchLogFile("matches_interactive.txt.gz");
         var prevRandomization = state.prop.randomization;
         if (randomizationScenario >= 0) {
             state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);

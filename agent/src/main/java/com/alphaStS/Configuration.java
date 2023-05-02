@@ -45,4 +45,5 @@ public class Configuration {
     public static boolean USE_FIGHT_PROGRESS_WHEN_LOSING = true;
     public static boolean USE_Z_TRAINING = false;
     public static boolean TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS = false;
+    public static float DISCOUNT_REWARD_ON_RANDOM_NODE = 0.2f;
 }

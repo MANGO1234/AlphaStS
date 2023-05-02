@@ -1246,7 +1246,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             });
             state.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.draw(state.getCounterForRead()[counterIdx]);
+                    state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                 }
             });
         }
@@ -1274,7 +1274,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             });
             state.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.draw(state.getCounterForRead()[counterIdx]);
+                    state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                 }
             });
         }

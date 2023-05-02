@@ -50,6 +50,7 @@ public class Main {
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
+        boolean WRITE_MATCHES = false;
         String COMPARE_DIR = null;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
@@ -95,6 +96,7 @@ public class Main {
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
+            WRITE_MATCHES = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
@@ -214,7 +216,7 @@ public class Main {
             session.training = TEST_TRAINING_AGENT;
             if (TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
                 session.setMatchLogFile("training_matches.txt.gz");
-            } else if (!TEST_TRAINING_AGENT && NUMBER_OF_GAMES_TO_PLAY <= 100) {
+            } else if (!TEST_TRAINING_AGENT && (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES)) {
                 session.setMatchLogFile("matches.txt.gz");
             }
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
