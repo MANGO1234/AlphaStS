@@ -28,6 +28,8 @@ public class Configuration {
     public static boolean TEST_CPUCT_SCALING = false;
     public static boolean USE_PROGRESSIVE_WIDENING = false;
     public static boolean TEST_PROGRESSIVE_WIDENING = false;
+    public static boolean PROGRESSIVE_WIDENING_IMPROVEMENTS = true;
+    public static boolean PROGRESSIVE_WIDENING_IMPROVEMENTS2 = false;
     public static boolean TRANSPOSITION_ACROSS_CHANCE_NODE = true;
     public static boolean TEST_TRANSPOSITION_ACROSS_CHANCE_NODE = false;
     public static boolean NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION = false;

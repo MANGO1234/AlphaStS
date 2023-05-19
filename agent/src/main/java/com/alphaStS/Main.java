@@ -177,9 +177,11 @@ public class Main {
             }
         }
 
-//        MatchSession.readMatchLogFile(curIterationDir + "/matches.txt.gz", curIterationDir, state);
-
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
+//             if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES) {
+//                 MatchSession.readMatchLogFile(curIterationDir + "/matches7.txt.gz", curIterationDir, state);
+//                 return;
+//             }
             interactiveStart(state, SAVES_DIR, curIterationDir);
             return;
         }
@@ -219,7 +221,7 @@ public class Main {
             } else if (!TEST_TRAINING_AGENT && (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES)) {
                 session.setMatchLogFile("matches.txt.gz");
             }
-            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT);
+            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, false);
         }
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
             state.prop.preBattleScenarios = preBattleScenarios;

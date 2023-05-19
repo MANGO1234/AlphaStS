@@ -504,6 +504,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public FlexP() {
             super("Flex+", Card.SKILL, 0, Card.COMMON);
             changePlayerStrength = true;
+            changePlayerStrengthEot = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

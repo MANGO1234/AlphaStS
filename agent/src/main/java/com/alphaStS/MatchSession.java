@@ -18,7 +18,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -254,7 +253,7 @@ public class MatchSession {
     private boolean playGamesPause;
     private boolean playGamesStop;
 
-    public void playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress) throws IOException {
+    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress, boolean returnGames) throws IOException {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
             seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
@@ -305,6 +304,7 @@ public class MatchSession {
         var battleInfoMap = ret.v2();
         var scenarioStats = new HashMap<Integer, ScenarioStats>();
         var chanceNodeStats = new HashMap<GameState, ScenarioStats>();
+        var games = new ArrayList<Game>();
         var start = System.currentTimeMillis();
         var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
@@ -320,9 +320,9 @@ public class MatchSession {
             int r;
             if (result.remoteStats == null) {
                 Game game = result.game;
+                games.add(game);
                 List<GameStep> steps = game.steps;
                 List<GameStep> steps2 = result.game2 == null ? null : result.game2.steps;
-                var state = steps.get(steps.size() - 1).state();
                 r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
                 if (!training && solver != null) {
                     solverErrorCount += solver.checkForError(game);
@@ -426,6 +426,7 @@ public class MatchSession {
                 System.out.println("--------------------");
             }
         }
+        return games;
     }
 
     private void writeGameRecord(Writer writer, GameResult result, List<GameStep> steps, Map<Integer, GameStateRandomization.Info> combinedInfoMap, int r) throws IOException {
@@ -765,7 +766,7 @@ public class MatchSession {
     private double[] calcExpectedValue2(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
         while (cState.total_n < 10000 && cState.cache.size() < 200) {
-            cState.getNextState(false);
+            cState.getNextState(false, -1);
         }
         double[] est = new double[vCur.length];
         double[] out = new double[vCur.length];
@@ -797,7 +798,7 @@ public class MatchSession {
         var S = 0.0;
         var k = 0;
         do {
-            var s = cState.getNextState(false);
+            var s = cState.getNextState(false, -1);
             if (s.policy == null) {
                 eval++;
                 s.doEval(mcts.model);
@@ -1017,6 +1018,11 @@ public class MatchSession {
         double[] vPro = new double[vLen];
         state.get_v(vCur);
         state.get_v(vPro);
+        if (state.isStochastic) {
+            var prevStep = steps.get(steps.size() - 2);
+            vCur = calcExpectedValue((ChanceState) prevStep.state().ns[prevStep.action()], null, mcts, vCur);
+            vPro = Arrays.copyOf(vCur, vCur.length);
+        }
         int turnNum = state.turnNum;
         double health = state.getPlayeForRead().getHealth() / (double) state.getPlayeForRead().getMaxHealth();
         int win = state.isTerminal() > 0 ? 1 : 0;
@@ -1030,20 +1036,6 @@ public class MatchSession {
                 if (cState != null && (lastChanceState == null || !cState.equals(lastChanceState))) {
                     double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
                     if (lastChanceState != null || ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
-//                        System.out.println(cState);
-//                        System.out.println(ret[GameState.V_COMB_IDX]);
-//                        System.out.println(lastChanceState);
-//                        System.out.println(vCur[GameState.V_COMB_IDX]);
-//                        for (int jj = 0; jj < 10; jj++) {
-//                            var cState3 = new ChanceState(null, lastChanceState.parentState, lastChanceState.parentAction);
-//                            var ret3 = calcExpectedValue(cState3, null, mcts, new double[vLen]);
-//                            var cState2 = new ChanceState(null, cState.parentState, cState.parentAction);
-//                            var ret2 = calcExpectedValue(cState2, null, mcts, new double[vLen]);
-//                            System.out.println(ret2[GameState.V_COMB_IDX] + "," + ret3[GameState.V_COMB_IDX]);
-//                            if (ret2[GameState.V_COMB_IDX] <= ret3[GameState.V_COMB_IDX]) {
-//                                Integer.parseInt(null);
-//                            }
-//                        }
                         vCur = ret;
                         vPro = Arrays.copyOf(ret, ret.length);
                         lastChanceState = cState;
@@ -1664,7 +1656,7 @@ public class MatchSession {
         State nextState = state.ns[action];
         GameState newState;
         if (nextState instanceof ChanceState cState) {
-            newState = cState.getNextState(false);
+            newState = cState.getNextState(false, -1);
             if (prevStep != null) {
                 prevStep.takenFromChanceStateCache = newState.policy != null;
             }
@@ -1727,6 +1719,7 @@ public class MatchSession {
             while (l != null) {
                 if (l.startsWith("Seed: ")) {
                     if (game != null) {
+                        game.add(new GameStep(state, -1));
                         games.add(game);
                     }
                     game = new ArrayList<>();
@@ -1772,12 +1765,11 @@ public class MatchSession {
                 l = reader.readLine();
             }
             if (game != null) {
+                game.add(new GameStep(state, -1));
                 games.add(game);
             }
 
-            for (int i = 0; i < games.size(); i++) {
-                System.out.println("Game " + (i + 1));
-            }
+            System.out.println("Game 1-" + games.size());
             reader = new BufferedReader(new InputStreamReader(System.in));
             while (true) {
                 System.out.print("> ");

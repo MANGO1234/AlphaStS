@@ -4261,6 +4261,7 @@ class ChanceState implements State {
     static class Node {
         GameState state;
         long n;
+        long other_n;
         double[] prev_q;
         boolean revisit = false;
 
@@ -4269,9 +4270,19 @@ class ChanceState implements State {
             prev_q = new double[state.prop.v_total_len];
             n = 1;
         }
+
+        public Node(GameState state, int n) {
+            this.state = state;
+        }
+
+        public void init() {
+            prev_q = new double[state.prop.v_total_len];
+        }
     }
 
     Hashtable<GameState, Node> cache;
+    Hashtable<GameState, Node> otherCache;
+    Node prevWidenedNode;
     long total_node_n; // actual n, sum of nodes' n in cache
     long total_n; // n called from parent
     double[] total_q;
@@ -4288,6 +4299,7 @@ class ChanceState implements State {
 
     public ChanceState(GameState initState, GameState parentState, int action) {
         cache = new Hashtable<>();
+        otherCache = new Hashtable<>();
         if (initState != null) {
             cache.put(initState, new Node(initState));
             total_node_n = 1;
@@ -4409,12 +4421,14 @@ class ChanceState implements State {
         }
     }
 
-    GameState getNextState(boolean calledFromMCTS) {
+    GameState getNextState(boolean calledFromMCTS, int level) {
+        boolean useProgressiveWidening = calledFromMCTS && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature);
         total_n += 1;
         if (queue != null && queue.size() > 0) {
             return queue.remove(0);
         }
-        if (calledFromMCTS && cache.size() >= Math.ceil(Math.pow(total_n, 0.35)) && Configuration.USE_PROGRESSIVE_WIDENING && parentState.prop.testNewFeature && false) {
+
+        if (useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, 0.35)) && false) {
             // instead of generating new nodes, revisit node, need testing
             var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
             var acc = 0;
@@ -4427,15 +4441,22 @@ class ChanceState implements State {
             }
             Integer.parseInt(null);
         }
+        if (useProgressiveWidening && Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
+            if (prevWidenedNode != null) {
+                prevWidenedNode.n += 1;
+                total_node_n += 1;
+                prevWidenedNode.revisit = true;
+                var ret = prevWidenedNode.state;
+                if (prevWidenedNode.n == prevWidenedNode.other_n) {
+                    prevWidenedNode = null;
+                }
+                return ret;
+            }
+        }
+
         var state = parentState.clone(true);
-        if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.prop.testNewFeature)) {
-            if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-                state.setSearchRandomGen(searchRandomGen);
-            }
-        } else {
-            if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-                state.setSearchRandomGen(searchRandomGen);
-            }
+        if (!parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            state.setSearchRandomGen(searchRandomGen);
         }
         state.doAction(parentAction);
         if ((Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN || !state.isStochastic) && state.actionCtx == GameActionCtx.BEGIN_TURN) {
@@ -4455,11 +4476,7 @@ class ChanceState implements State {
             total_n -= 1;
             return state;
         }
-        if (parentState.prop.makingRealMove && Configuration.DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE) {
-            state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
-            total_n -= 1;
-            return state;
-        }
+
         var node = cache.get(state);
         if (node != null) {
             node.n += 1;
@@ -4475,10 +4492,27 @@ class ChanceState implements State {
                 if (state.stateDesc != null) {
                     node.state.stateDesc = new StringBuilder(state.stateDesc);
                 }
+                if (Configuration.DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE) {
+                    state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
+                    total_n -= 1;
+                    return state;
+                }
             }
             return node.state;
         }
-        if (calledFromMCTS && cache.size() >= Math.ceil(Math.pow(total_n, 0.35)) && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) {
+        double x = 0.35;
+        if (useProgressiveWidening && Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2) {
+            x = level > 0 ? Math.max(x - level * 0.05, 0.15) : x;
+        }
+        if (useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, x))) {
+            if (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
+                node = otherCache.get(state);
+                if (node == null) {
+                    node = new Node(state, 0);
+                    otherCache.put(state, node);
+                }
+                node.other_n += 1;
+            }
             // instead of generating new nodes, revisit node, need testing
             var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
             var acc = 0;
@@ -4491,8 +4525,33 @@ class ChanceState implements State {
             }
             Integer.parseInt(null);
         }
-        total_node_n += 1;
-        cache.put(state, new Node(state));
+        if (useProgressiveWidening && Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
+            node = otherCache.get(state);
+            if (node == null) {
+                total_node_n += 1;
+                cache.put(state, new Node(state));
+            } else {
+                cache.put(state, node);
+                otherCache.remove(state);
+                prevWidenedNode = node;
+                state = node.state;
+                node.init();
+                node.n += 1;
+                node.other_n += 1;
+                total_node_n += 1;
+                if (node.state.stateDesc == null && state.stateDesc != null) {
+                    node.state.stateDesc = state.stateDesc;
+                }
+            }
+        } else {
+            total_node_n += 1;
+            cache.put(state, new Node(state));
+            if (parentState.prop.makingRealMove && Configuration.DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE) {
+                state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
+                total_n -= 1;
+                return state;
+            }
+        }
         if (parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
            state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
         }

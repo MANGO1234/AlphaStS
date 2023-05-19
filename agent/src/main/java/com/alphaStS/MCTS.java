@@ -20,6 +20,7 @@ public class MCTS {
     private final double[] v = new double[20];
     private final int[] ret = new int[2];
     private double terminal_v_win;
+    public int forceRootAction = -1;
 
     void setModel(Model model) {
         this.model = model;
@@ -32,10 +33,10 @@ public class MCTS {
 
     void search2(GameState state, boolean training, int remainingCalls) {
         terminal_v_win = -100;
-        search2_r(state, training, remainingCalls, true);
+        search2_r(state, training, remainingCalls, true, 0);
     }
 
-    void search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
+    void search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level) {
         if (exploredV != null) {
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 state.initSearchInfo2();
@@ -116,11 +117,11 @@ public class MCTS {
                         }
                     }
                     state.ns[action] = new ChanceState(state2, state, action);
-                    this.search2_r(state2, training, remainingCalls, false);
+                    this.search2_r(state2, training, remainingCalls, false, level + 1);
                     ((ChanceState) (state.ns[action])).correctV(state2, v);
                 } else {
                     state.ns[action] = new ChanceState(state2, state, action);
-                    this.search2_r(state2, training, remainingCalls, false);
+                    this.search2_r(state2, training, remainingCalls, false, level + 1);
                     ((ChanceState) (state.ns[action])).correctV(state2, v);
                 }
             } else {
@@ -138,7 +139,7 @@ public class MCTS {
                             state.transpositionsParent.put(parentState, parents);
                             parents.add(new Tuple<>(state, action));
                         }
-                        this.search2_r(state2, training, remainingCalls, false);
+                        this.search2_r(state2, training, remainingCalls, false, level + 1);
                         cState.correctV(state2, v);
                     } else {
                         state.ns[action] = state2;
@@ -148,7 +149,7 @@ public class MCTS {
                             state.transpositionsParent.put(state2, parents);
                             parents.add(new Tuple<>(state, action));
                         }
-                        this.search2_r(state2, training, remainingCalls, false);
+                        this.search2_r(state2, training, remainingCalls, false, level);
                     }
                 } else if (s instanceof GameState ns) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
@@ -172,8 +173,8 @@ public class MCTS {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
-                        state2 = cState.getNextState(true);
-                        this.search2_r(state2, training, remainingCalls, false);
+                        state2 = cState.getNextState(true, level);
+                        this.search2_r(state2, training, remainingCalls, false, level + 1);
                         cState.correctV(state2, v);
 //                        if (state.getAction(action).type() == GameActionType.END_TURN) {
                         if (true) {
@@ -188,8 +189,8 @@ public class MCTS {
                         v[i] = cState.total_q[i] / cState.total_n * (state.n[action] + 1) - state.q[(action + 1) * state.prop.v_total_len + i];
                     }
                 } else {
-                    state2 = cState.getNextState(true);
-                    this.search2_r(state2, training, remainingCalls, false);
+                    state2 = cState.getNextState(true, level);
+                    this.search2_r(state2, training, remainingCalls, false, level + 1);
                     cState.correctV(state2, v);
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
                         var parents = state2.transpositionsParent.get(state2);
@@ -201,14 +202,14 @@ public class MCTS {
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
-                        this.search2_r(nState, training, remainingCalls, false);
+                        this.search2_r(nState, training, remainingCalls, false, level);
                         updateTranspositions(nState, nState, state, action);
                     }
                     for (int i = 0; i < state.prop.v_total_len; i++) {
                         v[i] = nState.q[i] / (nState.total_n + 1) * (state.n[action] + 1) - state.q[(action + 1) * state.prop.v_total_len + i];
                     }
                 } else {
-                    this.search2_r(nState, training, remainingCalls, false);
+                    this.search2_r(nState, training, remainingCalls, false, level);
                 }
             }
         }
@@ -423,7 +424,7 @@ public class MCTS {
                         v[i] = cState.total_q[i] / cState.total_n * (state.n[action] + 1) - state.q[(action + 1) * state.prop.v_total_len + i];
                     }
                 } else {
-                    state2 = cState.getNextState(true);
+                    state2 = cState.getNextState(true, -1);
                     this.search3_r(state2, training, remainingCalls, false);
                     cState.correctV(state2, v);
                 }
@@ -516,7 +517,7 @@ public class MCTS {
             }
         } else {
             if (nextState instanceof ChanceState cState) {
-                state2 = cState.getNextState(true);
+                state2 = cState.getNextState(true,-1);
                 this.searchPlain_r(state2, training, remainingCalls, false);
                 cState.correctV(state2, v);
             } else if (nextState instanceof GameState nState) {
@@ -658,7 +659,7 @@ public class MCTS {
 
     private void searchLine_r(GameState parentState, LineOfPlay curLine, boolean training, boolean isRoot) {
         if (curLine.state instanceof ChanceState cState) {
-            var nextState = cState.getNextState(true);
+            var nextState = cState.getNextState(true, -1);
             searchLine(nextState, training, false, -1);
             cState.correctV(nextState, v);
             curLine.n += 1;
@@ -847,6 +848,11 @@ public class MCTS {
     }
 
     private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot) {
+        if (isRoot && forceRootAction >= 0) {
+            ret[0] = forceRootAction;
+            ret[1] = 1;
+            return;
+        }
         int action = 0;
         double maxU = -1000000;
         boolean hasForcedMove = false;
@@ -864,28 +870,6 @@ public class MCTS {
                     allBelow1Per = false;
                     break;
                 }
-            }
-        }
-        int action2 = -1;
-        double maxU2 = -1000000;
-        if (!allBelow1Per && !Configuration.USE_Z_TRAINING && Configuration.TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS) {
-            for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (policy[i] <= 0) {
-                    continue;
-                }
-                double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / state.n[i] : Math.max(state.q[GameState.V_COMB_IDX] / (state.total_n + 1), 0);
-                double cpuct = state.prop.cpuct;
-                if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
-                    cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
-                }
-                double u = state.total_n > 0 ? q + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) : policy[i];
-                if (u > maxU2) {
-                    action2 = i;
-                    maxU2 = u;
-                }
-            }
-            if (state.n[action2] <= 0) {
-                action2 = -1;
             }
         }
         double maxQ = -1000000;
@@ -919,20 +903,7 @@ public class MCTS {
                     continue;
                 }
             }
-            if (!hasForcedMove && action2 >= 0) {
-                if (state.n[i] <= 0) {
-                    continue;
-                }
-                double q_win = state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx] / state.n[i];
-                double q_health = state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx + 1] / state.n[i];
-                double q_comb = q_win * 0.5 + q_win * q_win * 0.5 * q_health;
-                if (u >= 0.99 * maxU2) {
-                    if (q_comb + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]) > maxQ) {
-                        action = i;
-                        maxQ = q_comb + cpuct * policy[i] * sqrt(state.total_n) / (1 + state.n[i]);
-                    }
-                }
-            } else if (!hasForcedMove && u > maxU) {
+           if (!hasForcedMove && u > maxU) {
                 action = i;
                 maxU = u;
             }
@@ -946,49 +917,8 @@ public class MCTS {
             return policy;
         }
         int max_n = Utils.max(state.n);
-        int max_i = -1;
-        for (int i = 0; i < state.n.length; i++) {
-            if (state.n[i] == max_n) {
-                max_i = i;
-                break;
-            }
-        }
         float[] newPolicy = policy;
         for (int i = 0; i < policy.length; i++) {
-//            if (policy[i] > 0 && max_n - state.n[i] <= remainingCalls) {
-//                var kq = new double[2];
-//                var kn = new int[2];
-//                kq[0] = state.q_comb[max_i];
-//                kn[0] = state.n[max_i];
-//                kq[1] = state.q_comb[i];
-//                kn[1] = state.n[i];
-//                for (int j = 0; j < remainingCalls; j++) {
-//                    double q1 = kn[0] > 0 ? kq[0] / kn[0] : Math.max(state.total_q_comb / ((state.total_n + j) + 1), 0);
-//                    double u1 = (state.total_n + j) > 0 ? q1 + 0.1 * state.policy[max_i] * sqrt((state.total_n + j)) / (1 + kn[0]) : state.policy[max_i];
-//                    double q2 = kn[1] > 0 ? kq[1] / kn[1] : Math.max(state.total_q_comb / ((state.total_n + j) + 1), 0);
-//                    double u2 = (state.total_n + j) > 0 ? q2 + 0.1 * state.policy[i] * sqrt((state.total_n + j)) / (1 + kn[1]) : state.policy[i];
-//                    if (q1 + u1 > q2 + u2) {
-////                        kq[0] += (kq[0] / kn[0]);
-//                        kn[0]++;
-//                    } else {
-//                        kq[1] += state.calc_q(1, state.getPlayeForRead().getOrigHealth() / (double) state.getPlayeForRead().getMaxHealth());
-//                        kn[1]++;
-//                        //                        kq[1];
-//                    }
-//                    if (kn[1] >= kn[0]) {
-//                        break;
-//                    }
-//                }
-//                if (kn[0] > kn[1]) {
-//                    if (newPolicy == policy) {
-//                        newPolicy = Arrays.copyOf(policy, policy.length);
-//                    }
-//                    newPolicy[i] = 0;
-////                    System.out.println("Pruned " + state.getActionString(i) + "(" + state.n[max_i] + "," + state.n[i] + "," + remainingCalls + "): " + state);
-//                } else {
-////                    System.out.println("Not Pruned " + state.getActionString(i) + "(" + kn[0] + "," + kn[1] + "," + state.n[max_i] +"," + state.n[i] +"," + remainingCalls + "): " + state);
-//                }
-//            }
             if (policy[i] > 0 && max_n - state.n[i] > remainingCalls) {
                 if (newPolicy == policy) {
                     newPolicy = Arrays.copyOf(policy, policy.length);

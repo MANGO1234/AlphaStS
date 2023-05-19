@@ -252,6 +252,12 @@ def save_stats(training_info, iteration, out):
     dagger_killed_per = float(0 if len(dagger_killed_per_tmp) == 0 else dagger_killed_per_tmp[0])
     avg_final_q_tmp = re.findall('\nAverage Final Q: (\d+\.\d+)', out)
     avg_final_q = float(0 if len(avg_final_q_tmp) == 0 else avg_final_q_tmp[0])
+    potion_stats = re.findall('\n(.*Used Percentage: \d+\.\d+)', out)
+    for stat in potion_stats:
+        key, value = stat.split(':')
+        key = key.strip().lower().replace(' ', '_')
+        value = float(value.strip())
+        training_info['iteration_info'][str(iteration)][key] = value
     training_info['iteration_info'][str(iteration)]['death_rate'] = death_rate
     training_info['iteration_info'][str(iteration)]['avg_dmg'] = avg_dmg
     training_info['iteration_info'][str(iteration)]['avg_dmg_no_death'] = avg_dmg_no_death

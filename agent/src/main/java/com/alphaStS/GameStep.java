@@ -52,4 +52,23 @@ public final class GameStep {
         }
         return state().getActionString(action()) + (actionDesc == null ? "" : (" (" + actionDesc + ")"));
     }
+
+    @Override public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
+
+        GameStep gameStep = (GameStep) o;
+
+        if (action != gameStep.action)
+            return false;
+        return state != null ? state.equals(gameStep.state) : gameStep.state == null;
+    }
+
+    @Override public int hashCode() {
+        int result = state != null ? state.hashCode() : 0;
+        result = 31 * result + action;
+        return result;
+    }
 }

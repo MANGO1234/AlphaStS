@@ -6,6 +6,18 @@ from misc import getFlag, getFlagValue
 from os.path import expanduser
 home = expanduser("~")
 
+# This Python script updates and deploys alphaStS to multiple linux servers. It performs the following steps:
+# - Adds all changes to the git repository
+# - Commits the changes with a temporary commit message
+# - For each specified IP address, it creates a directory "alphaStS" if it doesn't exist already
+# - Copies the .git directory to the remote server using rsync
+# - Executes a sequence of commands on the remote server:
+#     - Kills any running Java processes
+#     - Resets the git repository to the latest commit
+#     - Builds and installs a Java project using Maven
+#     - Runs a Python script and redirects output to a log file
+# - If any exception occurs during the deployment, the script rolls back the last commit and raises the exception again.
+
 ips = getFlagValue('-ip', '').split(',')
 print(ips)
 
