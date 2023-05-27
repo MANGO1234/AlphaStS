@@ -2,7 +2,7 @@ package com.alphaStS;
 
 public class Configuration {
     public static boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
-    public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
+    public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = true;
 
     public static int TRAINING_GAME_COUNT = 200;
     public static int TRAINING_GAME_NODES = 100;

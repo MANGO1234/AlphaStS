@@ -25,7 +25,7 @@ enum ServerRequestType {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.TestStateSilent();
+        var state = TestStates.TestStateStreamerRun6();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
@@ -94,17 +94,17 @@ public class Main {
 
         int iteration = -1;
         if (SAVES_DIR.startsWith("../")) {
-            SAVES_DIR = "../saves";
-            WRITE_MATCHES = true;
+            SAVES_DIR = "../saves_s1";
+            WRITE_MATCHES = false;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             GAMES_ADD_POTION_RANDOMIZATION = true;
             if (!(args.length > 0 && (args[0].equals("--i") || args[0].equals("-i")))) {
                 GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
             }
-            NUMBER_OF_NODES_PER_TURN = 100;
-//            iteration = 56;
-//            COMPARE_DIR = "../saves/iteration60";
+            NUMBER_OF_NODES_PER_TURN = 5000;
+//            iteration = 41;
+             COMPARE_DIR = "../saves_s1/iteration80";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
         }

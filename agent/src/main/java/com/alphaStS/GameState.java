@@ -2282,6 +2282,13 @@ public final class GameState implements State {
                                     continue;
                                 }
                             }
+//                            if (prop.cardDict[handArr[i]].cardName.startsWith("Fiend Fire") && prop.testNewFeature) {
+//                                var heart = ((EnemyEnding.CorruptHeart) getEnemiesForRead().get(0));
+//                                var dmg = heart.getMoveString(this).startsWith("Attack ") ? heart.getMoveString(this).endsWith("x15") ? enemyCalcDamageToPlayer(heart, 2) * 15 : enemyCalcDamageToPlayer(heart, 45) : 0;
+//                                if (Math.min(dmg - getPlayeForRead().getBlock(), getNumCardsInHand() * getCounterForRead()[prop.getCounterIdx("FNP")] - 2) < 10 && getPlayeForRead().getHealth() > 60) {
+//                                    continue;
+//                                }
+//                            }
                             count++;
                             legal[handArr[i]] = true;
                         }
