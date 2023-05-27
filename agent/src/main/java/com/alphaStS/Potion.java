@@ -10,6 +10,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean vulnEnemy;
     boolean weakEnemy;
     boolean changePlayerStrength;
+    boolean changePlayerStrengthEot;
     boolean changePlayerFocus;
     boolean changePlayerDexterity;
     boolean changePlayerDexterityEot;
@@ -100,6 +101,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class CunningPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 6 : 3;
+            for (int i = 0; i < n; i++) {
+                state.addCardToHand(state.prop.shivPCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return List.of(new CardColorless.ShivP());
+        }
+
+        @Override public String toString() {
+            return "Cunning Potion";
+        }
+    }
+
     public static class PoisonPotion extends Potion {
         public PoisonPotion() {
             selectEnemy = true;
@@ -146,6 +165,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Dexterity Potion";
+        }
+    }
+
+    public static class FlexPotion extends Potion {
+        public FlexPotion() {
+            changePlayerStrength = true;
+            changePlayerStrengthEot = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 10 : 5;
+            state.getPlayerForWrite().gainStrength(n);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Flex Potion";
         }
     }
 

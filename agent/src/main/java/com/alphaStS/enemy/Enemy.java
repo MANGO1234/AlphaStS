@@ -107,11 +107,11 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public void startTurn(GameState state) {
+        block = 0;
         if (poison > 0) {
             state.playerDoNonAttackDamageToEnemy(this, poison, false);
             poison--;
         }
-        block = 0;
     }
 
     public void endTurn(int turnNum) {
@@ -2378,8 +2378,8 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == SMASH) {
                 state.enemyDoDamageToPlayer(this, 5, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
             }
         }
 

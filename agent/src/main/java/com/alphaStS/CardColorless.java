@@ -793,4 +793,33 @@ public class CardColorless {
             super("Shiv+", Card.ATTACK, 0, 6);
         }
     }
+
+    private static abstract class _ApparitionT extends Card {
+        public _ApparitionT(String cardName, int cardType, int energyCost, boolean ethereal) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.ethereal = ethereal;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.prop.intangibleCounterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerIntangibleCounter();
+        }
+    }
+
+    public static class Apparition extends _ApparitionT {
+        public Apparition() {
+            super("Apparition", Card.SKILL, 1, true);
+        }
+    }
+
+    public static class ApparitionP extends _ApparitionT {
+        public ApparitionP() {
+            super("Apparition+", Card.SKILL, 1, false);
+        }
+    }
 }

@@ -78,6 +78,10 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodTransformIndexes;
     public int[] bloodForBloodPIndexes;
     public int[] bloodForBloodPTransformIndexes;
+    public int[] masterfulStabIndexes;
+    public int[] masterfulStabTransformIndexes;
+    public int[] masterfulStabPIndexes;
+    public int[] masterfulStabPTransformIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] clawIndexes;
