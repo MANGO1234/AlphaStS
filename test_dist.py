@@ -6,7 +6,8 @@ import os
 import time
 from misc import getFlag, getFlagValue
 
-PLAY_A_GAME = getFlag('-p')
+RUN_SERVER = getFlag('-server')
+THREAD_COUNT = int(getFlagValue('-thread', 1))
 PLAY_MATCHES = getFlag('-m')
 
 sep = ':'
@@ -17,9 +18,11 @@ CLASS_PATH_AGENT = f'./target/classes{sep}{os.getenv("M2_HOME")}/repository/com/
 
 start = time.time()
 
-if PLAY_A_GAME:
+if RUN_SERVER:
     os.chdir('./agent')
     agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH_AGENT, 'com.alphaStS.Main', '--server']
+    if THREAD_COUNT > 1:
+        agent_args += ['-t', str(THREAD_COUNT)]
     if platform.system() != 'Windows':
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
     p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

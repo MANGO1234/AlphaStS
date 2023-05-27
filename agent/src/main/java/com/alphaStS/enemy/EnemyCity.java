@@ -2,9 +2,7 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
 public class EnemyCity {
     public static class TheChamp extends Enemy {
@@ -171,7 +169,7 @@ public class EnemyCity {
         private static final int FLAIL_2 = 3;
         private static final int BOOST_2 = 4;
         private static final int HYPER_BEAM = 5;
-        private static final int STUNNED = 6;
+        private static final int BOOST_3 = 6;
 
         public BronzeAutomaton() {
             this(320);
@@ -224,7 +222,7 @@ public class EnemyCity {
                         state.getEnemiesForWrite().getForWrite(i).reviveReset();
                     }
                 }
-            } else if (move == BOOST_1 || move == BOOST_2) {
+            } else if (move == BOOST_1 || move == BOOST_2 || move == BOOST_3) {
                 gainStrength(4);
                 gainBlock(12);
             } else if (move == FLAIL_1 || move == FLAIL_2) {
@@ -236,7 +234,7 @@ public class EnemyCity {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             move++;
-            if (move > STUNNED) {
+            if (move > BOOST_3) {
                 move = FLAIL_1;
             }
         }
@@ -244,14 +242,12 @@ public class EnemyCity {
         @Override public String getMoveString(GameState state, int move) {
             if (move == SPAWN_ORBS) {
                 return "Spawn Orbs";
-            } else if (move == BOOST_1 || move == BOOST_2) {
+            } else if (move == BOOST_1 || move == BOOST_2 || move == BOOST_3) {
                 return "Gain 4 Strength and 12 Block";
             } else if (move == FLAIL_1 || move == FLAIL_2) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "*2";
             } else if (move == HYPER_BEAM) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 50);
-            } else if (move == STUNNED) {
-                return "Stunned";
             }
             return "Unknown";
         }
@@ -357,12 +353,12 @@ public class EnemyCity {
                     for (int i = 0; i < cardsLen; i++) {
                         if (rarity == state.prop.cardDict[cards[i]].rarity) {
                             if (acc == r) {
+                                stasisCardIdx = cards[i];
                                 if (state.getNumCardsInDeck() > 0) {
                                     state.removeCardFromDeck(cards[i]);
                                 } else {
                                     state.removeCardFromDiscardByPosition(i);
                                 }
-                                stasisCardIdx = cards[i];
                                 break;
                             }
                             acc++;
@@ -741,7 +737,7 @@ public class EnemyCity {
                         int j;
                         for (j = 0; j < 3; j++) {
                             if (!enemies.get(startIdx + j).isAlive()) {
-                                state.reviveEnemy(startIdx + j, false, -1);
+                                state.reviveEnemy(startIdx + j, false, 1);
                                 state.getEnemiesForWrite().getForWrite(startIdx + j).reviveReset();
                                 break;
                             }
@@ -758,6 +754,9 @@ public class EnemyCity {
                         } else { // Gremlin Wizard
                             ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(4);
                         }
+                        var enemy = (MergedEnemy) enemies.get(startIdx + j);
+                        enemy.randomize(state.getSearchRandomGen(), state.prop.curriculumTraining, -1);
+                        enemy.property.origHealth = enemy.getHealth();
                     }
                     if (state.enemiesAlive != 4) {
                         var j = 0;

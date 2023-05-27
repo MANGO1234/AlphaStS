@@ -264,8 +264,8 @@ public class MatchSession {
             startPlayGameThread(origState, nodeCount, seeds, deq, numToPlay, i);
         }
         var remoteServerGames = new HashMap<String, Integer>();
-        if (nodeCount > 1) {
-            for (Tuple<String, Integer> server : getRemoteServers()) {
+        for (Tuple<String, Integer> server : getRemoteServers()) {
+            if (nodeCount > 1 || server.v1().startsWith("192.168.1.")) {
                 remoteServerGames.putIfAbsent(server.v1() + ":" + server.v2(), 0);
                 startRemotePlayGameThread(server.v1(), server.v2(), modelDir, modelCmpDir, nodeCount, numToPlay, deq);
             }

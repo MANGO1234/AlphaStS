@@ -1,7 +1,6 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.utils.Utils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -143,7 +142,7 @@ public class Main {
             prevIterationDir = SAVES_DIR + "/iteration" + (iteration - 2);
             File f = new File(SAVES_DIR + "/desc.txt");
             if (!f.exists()) {
-                writeStateDescription(f, state);
+                GameStateUtils.writeStateDescription(state, f);
             }
         } catch (FileNotFoundException e) {
             System.out.println("Unable to find neural network.");
@@ -187,7 +186,7 @@ public class Main {
         }
 
         if (args.length > 0 && args[0].equals("--server")) {
-            startServer(state);
+            startServer(state, NUMBER_OF_THREADS);
             return;
         }
 
@@ -284,7 +283,7 @@ public class Main {
         session.flushAndCloseFileWriters();
     }
 
-    private static void startServer(GameState state) throws IOException {
+    private static void startServer(GameState state, int numThreads) throws IOException {
         JsonFactory jsonFactory = new JsonFactory();
         jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
         jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
@@ -309,7 +308,7 @@ public class Main {
                             break;
                         }
                         if (session == null) {
-                            session = new MatchSession(1, modelDir, modelCmpDir);
+                            session = new MatchSession(numThreads, modelDir, modelCmpDir);
                             numOfGames = 0;
                             newNumOfGames = 0;
                             playGamesStopped = false;
@@ -334,7 +333,7 @@ public class Main {
                             break;
                         }
                         if (session == null) {
-                            session = new MatchSession(1, modelDir, modelCmpDir);
+                            session = new MatchSession(numThreads, modelDir, modelCmpDir);
                         } else if (!playGamesStopped) {
                             session.stopPlayGamesRemote();
                             numOfGames = 0;
@@ -398,30 +397,4 @@ public class Main {
         }
     }
 
-    private static void writeStateDescription(File f, GameState state) throws IOException {
-        Writer writer = new BufferedWriter(new FileWriter(f));
-        writer.write("************************** NN Description **************************\n");
-        writer.write(state.getNNInputDesc());
-        if (state.prop.randomization != null || state.prop.preBattleRandomization != null) {
-            writer.write("\n************************** Randomizations **************************\n");
-            var randomization = state.prop.preBattleRandomization;
-            if (randomization == null) {
-                randomization = state.prop.randomization;
-            } else if (state.prop.randomization != null) {
-                randomization = randomization.doAfter(state.prop.randomization);
-            }
-            int i = 1;
-            for (var info : randomization.listRandomizations().values()) {
-                writer.write(i + ". (" + Utils.formatFloat(info.chance() * 100) + "%) " + info.desc() + "\n");
-                i += 1;
-            }
-        }
-        writer.write("\n************************** Other **************************\n");
-        var i = 1;
-        for (var enemy : state.getEnemiesForRead()) {
-            writer.write("Enemy " + (i++) + ": " + enemy.toString(state) + "\n");
-        }
-        writer.flush();
-        writer.close();
-    }
 }

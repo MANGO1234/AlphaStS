@@ -2,9 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.utils.Utils;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -69,6 +67,36 @@ public class GameStateUtils {
             offset += stride * groupSize;
         }
         return groups;
+    }
+
+    public static void writeStateDescription(GameState state, File f) throws IOException {
+        writeStateDescription(state, new BufferedWriter(new FileWriter(f)));
+    }
+
+    public static void writeStateDescription(GameState state, Writer writer) throws IOException {
+        writer.write("************************** NN Description **************************\n");
+        writer.write(state.getNNInputDesc());
+        if (state.prop.randomization != null || state.prop.preBattleRandomization != null) {
+            writer.write("\n************************** Randomizations **************************\n");
+            var randomization = state.prop.preBattleRandomization;
+            if (randomization == null) {
+                randomization = state.prop.randomization;
+            } else if (state.prop.randomization != null) {
+                randomization = randomization.doAfter(state.prop.randomization);
+            }
+            int i = 1;
+            for (var info : randomization.listRandomizations().values()) {
+                writer.write(i + ". (" + Utils.formatFloat(info.chance() * 100) + "%) " + info.desc() + "\n");
+                i += 1;
+            }
+        }
+        writer.write("\n************************** Other **************************\n");
+        var i = 1;
+        for (var enemy : state.getEnemiesForRead()) {
+            writer.write("Enemy " + (i++) + ": " + enemy.toString(state) + "\n");
+        }
+        writer.flush();
+        writer.close();
     }
 
     private static class CardChanges {

@@ -1033,12 +1033,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                             state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i]] += state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i + 1]];
                             state.getDeckForWrite()[state.prop.bloodForBloodIndexes[i + 1]] = 0;
                         }
-                        state.handArrTransform(state.prop.bloodForBloodTransformIndexes);
-                        state.discardArrTransform(state.prop.bloodForBloodTransformIndexes);
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.prop.bloodForBloodIndexes[i]] += exhaust[state.prop.bloodForBloodIndexes[i + 1]];
                         exhaust[state.prop.bloodForBloodIndexes[i + 1]] = 0;
                     }
+                    state.handArrTransform(state.prop.bloodForBloodTransformIndexes);
+                    state.discardArrTransform(state.prop.bloodForBloodTransformIndexes);
                 }
             });
         }
@@ -1081,12 +1081,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                             state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i]] += state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i + 1]];
                             state.getDeckForWrite()[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
                         }
-                        state.handArrTransform(state.prop.bloodForBloodPTransformIndexes);
-                        state.discardArrTransform(state.prop.bloodForBloodPTransformIndexes);
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.prop.bloodForBloodPIndexes[i]] += exhaust[state.prop.bloodForBloodPIndexes[i + 1]];
                         exhaust[state.prop.bloodForBloodPIndexes[i + 1]] = 0;
                     }
+                    state.handArrTransform(state.prop.bloodForBloodPTransformIndexes);
+                    state.discardArrTransform(state.prop.bloodForBloodPTransformIndexes);
                 }
             });
         }

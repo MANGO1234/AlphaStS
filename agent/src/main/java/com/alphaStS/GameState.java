@@ -575,6 +575,7 @@ public final class GameState implements State {
         prop.playerDexterityCanChange |= relics.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerDexterityCanChange |= potions.stream().anyMatch((x) -> x.changePlayerDexterity);
         prop.playerStrengthEotCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerStrengthEot);
+        prop.playerStrengthEotCanChange |= potions.stream().anyMatch((x) -> x.changePlayerStrengthEot);
         prop.playerDexterityEotCanChange = potions.stream().anyMatch((x) -> x.changePlayerDexterityEot);
         prop.playerFocusCanChange = cards.stream().anyMatch((x) -> x.card().changePlayerFocus);
         prop.playerFocusCanChange |= enemiesArg.stream().anyMatch((x) -> x.property.changePlayerFocus);
@@ -1444,7 +1445,7 @@ public final class GameState implements State {
             if (prop.cardDict[handArr[i]].ethereal) {
                 exhaustedCardHandle(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
-            } else if (prop.cardDict[i].alwaysDiscard || isDiscardingCardEndOfTurn()) {
+            } else if (prop.cardDict[handArr[i]].alwaysDiscard || isDiscardingCardEndOfTurn()) {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = -1;
             }
@@ -1505,6 +1506,9 @@ public final class GameState implements State {
                 }
                 if (enemy2.isAlive()) {
                     enemy2.doMove(this, enemy2);
+                }
+                if (i != livingEnemiesCount - 1) {
+                    runActionsInQueueIfNonEmpty();
                 }
             }
         }
@@ -1687,6 +1691,13 @@ public final class GameState implements State {
                     boolean isSlimeBossAlive = false;
                     boolean isSpikeSlimeLAlive = false;
                     boolean isAcidSlimeLAlive = false;
+                    boolean isGremlinLeaderAlive = false;
+                    for (EnemyReadOnly enemy : enemies) {
+                        if (enemy instanceof EnemyCity.GremlinLeader) {
+                            isGremlinLeaderAlive = true;
+                            break;
+                        }
+                    }
                     for (EnemyReadOnly enemy : enemies) {
                         boolean addedMod = false;
                         if (enemy instanceof Enemy.SlimeBoss boss) {
@@ -1726,6 +1737,8 @@ public final class GameState implements State {
                                 totalCurHp += 60 * 2; // the orbs
                             }
                         } else if (enemy instanceof EnemyCity.TorchHead) {
+                            addedMod = true;
+                        } else if (isGremlinLeaderAlive && !(enemy instanceof EnemyCity.GremlinLeader)) {
                             addedMod = true;
                         }
                         if (!addedMod) {
@@ -3999,7 +4012,7 @@ public final class GameState implements State {
             if (startingHealth < 0) {
                 enemy.randomize(getSearchRandomGen(), prop.curriculumTraining, -1);
             } else {
-                enemy.setHealth(startingHealth);;
+                enemy.setHealth(startingHealth);
             }
             enemy.property = enemy.property.clone();
             enemy.property.origHealth = enemy.getHealth();

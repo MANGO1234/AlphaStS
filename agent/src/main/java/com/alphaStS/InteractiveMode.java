@@ -260,7 +260,7 @@ public class InteractiveMode {
             }  else if (line.equals("stateDesc on")) {
                 state.prop.stateDescOn = true;
             } else if (line.equals("desc")) {
-                System.out.println(state.getNNInputDesc());
+                GameStateUtils.writeStateDescription(state, new BufferedWriter(new OutputStreamWriter(System.out)));
             } else if (line.equals("")) {
             } else {
                 int action = parseInt(line, -1);
@@ -1922,7 +1922,7 @@ public class InteractiveMode {
             int cardCount = 0;
             for (int i = 0; i < cardsLen; i++) {
                 if (rarity == state.prop.cardDict[cards[i]].rarity) {
-                    System.out.println(i + ". " + state.prop.cardDict[cards[i]].cardName);
+                    System.out.println(cardCount + ". " + state.prop.cardDict[cards[i]].cardName);
                     cardCount++;
                 }
             }

@@ -5,6 +5,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CardSilent {
@@ -1401,7 +1402,118 @@ public class CardSilent {
         }
     }
 
-    // Masterful Stab
+    public static class MasterfulStab extends Card {
+        private final int maxEnergyCost;
+
+        public MasterfulStab(int maxEnergyCost) {
+            this(0, maxEnergyCost);
+        }
+
+        public MasterfulStab(int energyCost, int maxEnergyCost) {
+            super("Masterful Stab (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            this.maxEnergyCost = maxEnergyCost;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = 0; i < maxEnergyCost + 1; i++) {
+                c.add(new CardSilent.MasterfulStab(i, maxEnergyCost));
+            }
+            return c;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.masterfulStabIndexes = new int[maxEnergyCost + 1];
+            for (int i = 0; i < state.prop.masterfulStabIndexes.length; i++) {
+                state.prop.masterfulStabIndexes[i] = state.prop.findCardIndex(new CardSilent.MasterfulStab(i, maxEnergyCost));
+            }
+            state.prop.masterfulStabTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.masterfulStabTransformIndexes, -1);
+            for (int i = 0; i < maxEnergyCost; i++) {
+                state.prop.masterfulStabTransformIndexes[state.prop.findCardIndex(new CardSilent.MasterfulStab(i, maxEnergyCost))] = state.prop.findCardIndex(new CardSilent.MasterfulStab(i + 1, maxEnergyCost));
+            }
+            state.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt <= 0) return;
+                    for (int i = maxEnergyCost; i > 0; i--) {
+                        while (state.getDeckForRead()[state.prop.masterfulStabIndexes[i - 1]] > 0) {
+                            state.removeCardFromDeck(state.prop.masterfulStabIndexes[i - 1]);
+                            state.addCardToDeck(state.prop.masterfulStabIndexes[i]);
+                        }
+                        if (state.getExhaustForRead()[state.prop.masterfulStabIndexes[i - 1]] > 0) {
+                            state.getExhaustForWrite()[state.prop.masterfulStabIndexes[i]] += state.getExhaustForWrite()[state.prop.masterfulStabIndexes[i - 1]];
+                            state.getExhaustForWrite()[state.prop.masterfulStabIndexes[i - 1]] = 0;
+                        }
+                    }
+                    state.handArrTransform(state.prop.masterfulStabTransformIndexes);
+                    state.discardArrTransform(state.prop.masterfulStabTransformIndexes);
+                }
+            });
+        }
+    }
+
+    public static class MasterfulStabP extends Card {
+        private final int maxEnergyCost;
+
+        public MasterfulStabP(int maxEnergyCost) {
+            this(0, maxEnergyCost);
+        }
+
+        public MasterfulStabP(int energyCost, int maxEnergyCost) {
+            super("Masterful Stab+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            this.maxEnergyCost = maxEnergyCost;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 16);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = 0; i < maxEnergyCost + 1; i++) {
+                c.add(new CardSilent.MasterfulStabP(i, maxEnergyCost));
+            }
+            return c;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.masterfulStabPIndexes = new int[maxEnergyCost + 1];
+            for (int i = 0; i < state.prop.masterfulStabPIndexes.length; i++) {
+                state.prop.masterfulStabPIndexes[i] = state.prop.findCardIndex(new CardSilent.MasterfulStabP(i, maxEnergyCost));
+            }
+            state.prop.masterfulStabPTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.masterfulStabPTransformIndexes, -1);
+            for (int i = 0; i < maxEnergyCost; i++) {
+                state.prop.masterfulStabPTransformIndexes[state.prop.findCardIndex(new CardSilent.MasterfulStabP(i, maxEnergyCost))] = state.prop.findCardIndex(new CardSilent.MasterfulStabP(i + 1, maxEnergyCost));
+            }
+            state.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt <= 0) return;
+                    for (int i = maxEnergyCost; i > 0; i--) {
+                        while (state.getDeckForRead()[state.prop.masterfulStabPIndexes[i - 1]] > 0) {
+                            state.removeCardFromDeck(state.prop.masterfulStabPIndexes[i - 1]);
+                            state.addCardToDeck(state.prop.masterfulStabPIndexes[i]);
+                        }
+                        if (state.getExhaustForRead()[state.prop.masterfulStabPIndexes[i - 1]] > 0) {
+                            state.getExhaustForWrite()[state.prop.masterfulStabPIndexes[i]] += state.getExhaustForWrite()[state.prop.masterfulStabPIndexes[i - 1]];
+                            state.getExhaustForWrite()[state.prop.masterfulStabPIndexes[i - 1]] = 0;
+                        }
+                    }
+                    state.handArrTransform(state.prop.masterfulStabPTransformIndexes);
+                    state.discardArrTransform(state.prop.masterfulStabPTransformIndexes);
+                }
+            });
+        }
+    }
+
     // Noxious Fumes
 
     private static abstract class _PredatorT extends Card {
@@ -1542,6 +1654,7 @@ public class CardSilent {
             this.n = n;
             this.selectEnemy = true;
             this.isXCost = true;
+            this.delayUseEnergy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1769,11 +1882,20 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx]++;
+            state.addGameActionToEndOfDeque(state1 -> state1.getCounterForWrite()[counterIdx]++);
             return GameActionCtx.PLAY_CARD;
         }
 
         public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("AfterImage", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.addOnCardPlayedHandler("AfterImage", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
@@ -2400,7 +2522,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.prop.addEndOfTurnHandler("SneakyStrike", new GameEventHandler() {
+            state.prop.addEndOfTurnHandler("WraithForm", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, state.getCounterForRead()[counterIdx]);
                 }
