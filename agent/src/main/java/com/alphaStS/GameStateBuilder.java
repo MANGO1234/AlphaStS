@@ -20,6 +20,7 @@ public class GameStateBuilder {
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
     private GameEventHandler startOfGameSetupHandler = null;
+    private GameEventHandler endOfPreBattleSetupHandler = null;
     private int[] potionsScenarios;
 
     public GameStateBuilder() {
@@ -119,5 +120,13 @@ public class GameStateBuilder {
 
     public GameEventHandler getStartOfGameSetup() {
         return startOfGameSetupHandler;
+    }
+
+    public GameEventHandler getEndOfPreBattleSetupHandler() {
+        return endOfPreBattleSetupHandler;
+    }
+
+    public void setEndOfPreBattleSetupHandler(GameEventHandler endOfPreBattleSetupHandler) {
+        this.endOfPreBattleSetupHandler = endOfPreBattleSetupHandler;
     }
 }

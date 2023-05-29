@@ -14,8 +14,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.alphaStS.InteractiveMode.interactiveStart;
-
 enum ServerRequestType {
     PLAY_GAMES,
     PLAY_TRAINING_GAMES,
@@ -181,7 +179,7 @@ public class Main {
 //                 MatchSession.readMatchLogFile(curIterationDir + "/matches7.txt.gz", curIterationDir, state);
 //                 return;
 //             }
-            interactiveStart(state, SAVES_DIR, curIterationDir);
+            new InteractiveMode().interactiveStart(state, SAVES_DIR, curIterationDir);
             return;
         }
 
@@ -196,7 +194,7 @@ public class Main {
             var game = session.playGame(state, -1, null, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps();
             MatchSession.printGame(writer, game);
             writer.flush();
-            interactiveStart(game, curIterationDir);
+            new InteractiveMode().interactiveStart(game, curIterationDir);
             return;
         }
 
@@ -220,7 +218,7 @@ public class Main {
             } else if (!TEST_TRAINING_AGENT && (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES)) {
                 session.setMatchLogFile("matches.txt.gz");
             }
-            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, false);
+            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, false, false);
         }
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
             state.prop.preBattleScenarios = preBattleScenarios;

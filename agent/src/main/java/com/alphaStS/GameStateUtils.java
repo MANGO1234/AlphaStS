@@ -70,7 +70,9 @@ public class GameStateUtils {
     }
 
     public static void writeStateDescription(GameState state, File f) throws IOException {
-        writeStateDescription(state, new BufferedWriter(new FileWriter(f)));
+        var buf = new BufferedWriter(new FileWriter(f));
+        writeStateDescription(state, buf);
+        buf.close();
     }
 
     public static void writeStateDescription(GameState state, Writer writer) throws IOException {
@@ -96,7 +98,6 @@ public class GameStateUtils {
             writer.write("Enemy " + (i++) + ": " + enemy.toString(state) + "\n");
         }
         writer.flush();
-        writer.close();
     }
 
     private static class CardChanges {

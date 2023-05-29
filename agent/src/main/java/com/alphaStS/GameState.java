@@ -320,6 +320,9 @@ public final class GameState implements State {
         if (builder.getStartOfGameSetup() != null) {
             addStartOfBattleHandler(builder.getStartOfGameSetup());
         }
+        if (builder.getEndOfPreBattleSetupHandler() != null) {
+            prop.endOfPreBattleHandler = builder.getEndOfPreBattleSetupHandler();
+        }
 
         cards = collectAllPossibleCards(cards, enemiesArg, relics, potions);
         cards.sort((o1, o2) -> {
@@ -1589,6 +1592,9 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
             ret = prop.preBattleRandomization.randomize(this);
             setActionCtx(prop.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
+            if (prop.endOfPreBattleHandler != null) {
+                prop.endOfPreBattleHandler.handle(this);
+            }
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             prop.preBattleScenarios.randomize(this, prop.preBattleGameScenariosList.get(action.idx()).getKey());
             setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);

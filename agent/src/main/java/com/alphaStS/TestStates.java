@@ -5,10 +5,10 @@ import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class TestStates {
     public static GameState BasicGremlinNobState() {
@@ -864,8 +864,6 @@ public class TestStates {
         return new GameState(builder);
     }
 
-
-
     public static GameState TestState16c2() {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Bash(), 1);
@@ -1353,70 +1351,35 @@ public class TestStates {
         return new GameState(builder);
     }
 
-    public static GameState TestStateDefectReddit() {
-        var builder = new GameStateBuilder();
-        builder.setCharacter(CharacterEnum.DEFECT);
-        builder.addCard(new Card.Strike(), 4);
-        builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCastP(), 1);
-        builder.addCard(new CardDefect.SunderP(), 1);
-        builder.addCard(new CardDefect.Claw(3, 14), 2);
-        builder.addCard(new CardDefect.MeteorStrike(), 1);
-        builder.addCard(new CardDefect.BallLightning(), 1);
-        builder.addCard(new CardDefect.Turbo(), 1);
-        builder.addCard(new CardDefect.Equilibirum(), 1);
-        builder.addCard(new CardDefect.SelfRepair(), 1);
-        builder.addEnemy(new Enemy.TheGuardian());
-        builder.addPotion(new Potion.LiquidMemory());
-        builder.addPotion(new Potion.StrengthPotion());
-        builder.addRelic(new Relic.CrackedOrb());
-        builder.addRelic(new Relic.GremlinVisage());
-        builder.addRelic(new Relic.BagOfMarbles());
-        builder.addRelic(new Relic.AncientTeaSet());
-        builder.addRelic(new Relic.HappyFlower(2, 2));
-        builder.setPlayer(new Player(39, 39));
-        builder.setStartOfGameSetup(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("TURBO"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Claw (3)"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Strike"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Zap"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Ball Lightning"));
-            }
-        });
-        return new GameState(builder);
-    }
-
     public static GameState TestStateReddit() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);
-        builder.addCard(new Card.Strike(), 5);
-        builder.addCard(new Card.Defend(), 5);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new CardSilent.Survivor(), 1);
         builder.addCard(new CardSilent.Neutralize(), 1);
-        builder.addCard(new CardSilent.DaggerSpray(), 1);
-        builder.addCard(new CardColorless.Apotheosis(), 0);
-        builder.addCard(new CardColorless.HandOfGreed(), 0);
+        builder.addCard(new CardSilent.NoxiousFume(), 1);
+        builder.addCard(new CardSilent.PoisonedStab(), 1);
+        builder.addCard(new CardSilent.SneakyStrike(), 1);
+        builder.addCard(new CardSilent.Predator(), 1);
+        builder.addCard(new CardSilent.Outmaneuver(), 1);
+        builder.addCard(new CardSilent.Prepared(), 1);
+        builder.addCard(new CardSilent.GlassKnifeP(), 1);
         EnemyEncounter.addSentriesFight(builder);
-        builder.addEnemy(new Enemy.GremlinNob());
-        builder.addEnemy(new Enemy.Lagavulin());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
-        );
-        randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new CardColorless.HandOfGreed(), 1),
-                        new CardCount(new CardColorless.Apotheosis(), 0)),
-                List.of(new CardCount(new CardColorless.HandOfGreed(), 0),
-                        new CardCount(new CardColorless.Apotheosis(), 1))
-        )).doAfter(randomization);
-        builder.setRandomization(randomization);
+        builder.addPotion(new Potion.EnergyPotion().setBasePenaltyRatio(90).setPenaltyRatioSteps(3));
+        builder.addPotion(new Potion.ExplosivePotion().setBasePenaltyRatio(85).setPenaltyRatioSteps(2));
         builder.addRelic(new Relic.RingOfSerpent());
-        builder.setPlayer(new Player(63, 63));
+        builder.setPotionsScenarios(2, 5, 8, 11);
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "neu", "nox", "str", "str", "asc", "poi", "snea", "e", "0", "eho", "0", "44", "eho", "1", "39", "eho", "2", "41", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "Noxious Fume", "Neutralize", "Select Sentry(2)", "Poisoned Stab", "Select Sentry(2)", "Strike", "Select Sentry(2)", "do", "def", "def", "str", "pr", "pre", "e", "e", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "def", "e", "prep", "2", "1", "2", "def", "explosive", "do", "glass12", "str", "survi", "outma", "def", "pred", "predat", "e", "e", "exit"));
+            }
+        });
+
+        builder.setPlayer(new Player(46, 46));
         return new GameState(builder);
     }
 

@@ -2,6 +2,7 @@ package com.alphaStS.utils;
 
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateRandomization;
+import com.alphaStS.GameStateUtils;
 import com.alphaStS.GameStep;
 import com.alphaStS.MatchSession.GameResult;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -311,7 +312,7 @@ public class ScenarioStats {
         }
     }
 
-    public void printStats(GameState state, int spaces) {
+    public void printStats(GameState state, boolean printDmg, int spaces) {
         String indent = " ".repeat(Math.max(0, spaces));
         System.out.println(indent + "Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) numOfGames).trim() + "%)");
         System.out.println(indent + "Avg Damage: " + ((double) totalDamageTaken) / numOfGames);
@@ -410,9 +411,11 @@ public class ScenarioStats {
                     (winQLowerBound * winQs.size() - lossQUpperBound * lossQs.size()) / (winQs.size() + lossQs.size()),
                     (winQUpperBound * winQs.size() - lossQLowerBound * lossQs.size()) / (winQs.size() + lossQs.size()), vQL, vQU);
         }
-//        for (Map.Entry<Integer, Integer> integerIntegerEntry : damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList()) {
-//            System.out.println(indent + integerIntegerEntry.getKey() + ": " + integerIntegerEntry.getValue());
-//        }
+        if (printDmg) {
+            for (Map.Entry<Integer, Integer> dmgEntry : damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList()) {
+                System.out.println(indent + dmgEntry.getKey() + ": " + dmgEntry.getValue() + " (" + Utils.formatFloat(dmgEntry.getValue() / (float) numOfGames * 100) + "%)");
+            }
+        }
     }
 
     private void printBinomialStat(String indent, String prefix, int win, int loss) {

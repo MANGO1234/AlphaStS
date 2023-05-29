@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.Tuple;
 
@@ -98,6 +99,20 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Fire Potion";
+        }
+    }
+
+    public static class ExplosivePotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.prop.hasSacredBark ? 20 : 10;
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Explosive Potion";
         }
     }
 

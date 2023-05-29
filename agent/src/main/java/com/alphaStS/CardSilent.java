@@ -479,13 +479,13 @@ public class CardSilent {
 
     public static class PoisonedStab extends _PoisonedStabT {
         public PoisonedStab() {
-            super("PoisonedStab", Card.ATTACK, 1, 6);
+            super("Poisoned Stab", Card.ATTACK, 1, 6);
         }
     }
 
     public static class PoisonedStabP extends _PoisonedStabT {
         public PoisonedStabP() {
-            super("PoisonedStab+", Card.ATTACK, 1, 8);
+            super("Poisoned Stab+", Card.ATTACK, 1, 8);
         }
     }
 
@@ -1514,7 +1514,54 @@ public class CardSilent {
         }
     }
 
-    // Noxious Fumes
+    private static abstract class _NoxiousFumeT extends Card {
+        private final int n;
+
+        public _NoxiousFumeT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            poisonEnemy = true;
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("NoxiousFume", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 9.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("NoxiousFume", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.applyDebuff(state, DebuffType.POISON, state.getCounterForRead()[counterIdx]);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class NoxiousFume extends _NoxiousFumeT {
+        public NoxiousFume() {
+            super("Noxious Fume", Card.POWER, 1, 2);
+        }
+    }
+
+    public static class NoxiousFumeP extends _NoxiousFumeT {
+        public NoxiousFumeP() {
+            super("Noxious FumeP+", Card.POWER, 1, 3);
+        }
+    }
 
     private static abstract class _PredatorT extends Card {
         private final int n;
@@ -2202,7 +2249,7 @@ public class CardSilent {
         }
 
         public GlassKnife(int dmg, int limit) {
-            super("GlassKnife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
+            super("Glass Knife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
             this.dmg = dmg;
             this.limit = limit;
             selectEnemy = true;
@@ -2227,6 +2274,9 @@ public class CardSilent {
         }
 
         @Override public void startOfGameSetup(GameState state) {
+            if (state.prop.glassKnifeIndexes != null && (dmg - limit) / 2 + 1 < state.prop.glassKnifeIndexes.length) {
+                return;
+            }
             state.prop.glassKnifeIndexes = new int[(dmg - limit) / 2 + 1];
             for (int i = 0; i < state.prop.glassKnifeIndexes.length; i++) {
                 state.prop.glassKnifeIndexes[i] = state.prop.findCardIndex(new CardSilent.GlassKnife(i * 2));
@@ -2248,7 +2298,7 @@ public class CardSilent {
         }
 
         public GlassKnifeP(int dmg, int limit) {
-            super("GlassKnife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
+            super("Glass Knife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
             this.dmg = dmg;
             this.limit = limit;
             selectEnemy = true;
@@ -2273,6 +2323,9 @@ public class CardSilent {
         }
 
         @Override public void startOfGameSetup(GameState state) {
+            if (state.prop.glassKnifePIndexes != null && (dmg - limit) / 2 + 1 < state.prop.glassKnifePIndexes.length) {
+                return;
+            }
             state.prop.glassKnifePIndexes = new int[(dmg - limit) / 2 + 1];
             for (int i = 0; i < state.prop.glassKnifePIndexes.length; i++) {
                 state.prop.glassKnifePIndexes[i] = state.prop.findCardIndex(new CardSilent.GlassKnifeP(i * 2));

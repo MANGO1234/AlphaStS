@@ -253,7 +253,7 @@ public class MatchSession {
     private boolean playGamesPause;
     private boolean playGamesStop;
 
-    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress, boolean returnGames) throws IOException {
+    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress, boolean printDmg, boolean returnGames) throws IOException {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
             seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
@@ -320,7 +320,9 @@ public class MatchSession {
             int r;
             if (result.remoteStats == null) {
                 Game game = result.game;
-                games.add(game);
+                if (returnGames) {
+                    games.add(game);
+                }
                 List<GameStep> steps = game.steps;
                 List<GameStep> steps2 = result.game2 == null ? null : result.game2.steps;
                 r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
@@ -400,23 +402,23 @@ public class MatchSession {
                         var i = info.getKey();
                         if (scenarioStats.get(i) != null) {
                             System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
-                            scenarioStats.get(i).printStats(origState, 4);
+                            scenarioStats.get(i).printStats(origState, false , 4);
                         }
                     }
                 } else if (startingAction >= 0 && chanceNodeStats.size() > 1) {
                     for (var stats : chanceNodeStats.entrySet()) {
                         System.out.println("Random Event: " + stats.getKey().getStateDesc());
-                        stats.getValue().printStats(origState, 4);
+                        stats.getValue().printStats(origState, false , 4);
                     }
                 }
                 if (scenariosGroup != null) {
                     for (int i = 0; i < scenariosGroup.length; i++) {
                         System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
                         var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
-                        ScenarioStats.combine(group).printStats(origState, 4);
+                        ScenarioStats.combine(group).printStats(origState, false , 4);
                     }
                 }
-                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, 0);
+                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDmg && game_i.get() == numOfGames, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);
@@ -1066,7 +1068,7 @@ public class MatchSession {
             state = steps.get(i).state();
             state.clearNextStates();
             if (state.isStochastic && i > 0) {
-                if (steps.get(i - 1).trainingSkipOpening) {
+                if (steps.get(i - 1).trainingSkipOpening || steps.get(i - 1).state().getActionCtx() == GameActionCtx.BEGIN_PRE_BATTLE) {
                     break;
                 }
                 var prevState = steps.get(i - 1).state();
@@ -1781,7 +1783,7 @@ public class MatchSession {
                     while (true) {
                         int i = Integer.parseInt(line);
                         if (i > 0 && i <= games.size()) {
-                            InteractiveMode.interactiveStart(games.get(i - 1), modelPath);
+                            new InteractiveMode().interactiveStart(games.get(i - 1), modelPath);
                             break;
                         }
                     }
@@ -2023,7 +2025,7 @@ public class MatchSession {
                         var i = info.getKey();
                         if (scenarioStats.get(i) != null) {
                             System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
-                            scenarioStats.get(i).printStats(origState, 4);
+                            scenarioStats.get(i).printStats(origState, false, 4);
                         }
                     }
                 }
@@ -2031,10 +2033,10 @@ public class MatchSession {
                     for (int i = 0; i < scenariosGroup.length; i++) {
                         System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
                         var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
-                        ScenarioStats.combine(group).printStats(origState, 4);
+                        ScenarioStats.combine(group).printStats(origState, false , 4);
                     }
                 }
-                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, 0);
+                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, false, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 for (int i = 0; i < mcts.size(); i++) {
                     var m = mcts.get(i);

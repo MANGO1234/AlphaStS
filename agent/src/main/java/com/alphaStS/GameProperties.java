@@ -176,6 +176,7 @@ public class GameProperties implements Cloneable {
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();
+    GameEventHandler endOfPreBattleHandler;
     public List<GameEventHandler> startOfBattleHandlers = new ArrayList<>();
     public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
     public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
