@@ -495,7 +495,7 @@ if DO_TRAINING:
             print(f'number of samples={len(training_pool)}')
             print(f'sample oldest iteration={training_pool[0][0]}')
             train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
-            for _i in range(train_iter):
+            for _i in range(1):
                 minibatch = training_pool
                 x_train = []
                 exp_health_head_train = []
@@ -518,7 +518,7 @@ if DO_TRAINING:
                 for i in range(len(v_other_lens)):
                     exp_other_heads_train[i] = np.asarray(exp_other_heads_train[i])
                 target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
-                fit_result = model.fit(np.asarray(x_train), target, epochs=1)
+                fit_result = model.fit(np.asarray(x_train), target, epochs=train_iter)
                 iteration_info['loss'] = fit_result.history['loss'][-1]
             model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')

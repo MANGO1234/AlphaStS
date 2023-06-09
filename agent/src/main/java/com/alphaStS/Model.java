@@ -106,9 +106,9 @@ public class Model {
             opts.setOptimizationLevel(OptLevel.ALL_OPT);
             opts.setCPUArenaAllocator(true);
             opts.setMemoryPatternOptimization(true);
-            opts.setExecutionMode(SessionOptions.ExecutionMode.PARALLEL);
-            // opts.setInterOpNumThreads(1);
-            // opts.setIntraOpNumThreads(1);
+            opts.setExecutionMode(SessionOptions.ExecutionMode.SEQUENTIAL);
+            opts.setInterOpNumThreads(1);
+            opts.setIntraOpNumThreads(1);
             session = env.createSession(modelDir + "/model.onnx", opts);
             inputName = session.getInputNames().iterator().next();
             cache = new LRUCache<>();
