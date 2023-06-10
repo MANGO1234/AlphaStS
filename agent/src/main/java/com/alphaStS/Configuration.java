@@ -1,21 +1,12 @@
 package com.alphaStS;
 
 public class Configuration {
-    public static boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
     public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
 
-    public static int TRAINING_GAME_COUNT = 200;
-    public static int TRAINING_GAME_NODES = 100;
-
-    public static boolean TRAINING_POLICY_CAP_ON = false;
-    public static boolean TRAINING_TEMPERATURE_MOVES_ON = true;
-    public static boolean TRAINING_RESCORE_TEMPERATURE_MOVE = true;
     public static float TRAINING_PERCENTAGE_NO_TEMPERATURE = 0.2f;
-    public static boolean TRAINING_FORCED_PLAYOUT_ON = true;
     public static boolean CARD_IN_HAND_IN_NN_INPUT = true;
     public static boolean CARD_IN_DECK_IN_NN_INPUT = true;
 
-    public static float UTIL_FOR_RITUAL_DAGGER = 0.4f;
     public static float PRE_BATTLE_SCENARIO_TEMP = 0f;
 
     public static boolean PRINT_MODEL_COMPARE_DIFF = false;
@@ -48,4 +39,18 @@ public class Configuration {
     public static boolean USE_Z_TRAINING = false;
     public static boolean TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS = false;
     public static float DISCOUNT_REWARD_ON_RANDOM_NODE = 0.2f;
+
+    public static boolean TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = false;
+    public static boolean TEST_TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = false;
+
+    public static boolean isTranspositionAlwaysExpandNewNodeOn(GameState state) {
+        return TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE && (!TEST_TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE || state.prop.testNewFeature);
+    }
+
+    public static boolean USE_UTILITY_STD_ERR_FOR_PUCT = false;
+    public static boolean TEST_USE_UTILITY_STD_ERR_FOR_PUCT = false;
+
+    public static boolean isUseUtilityStdErrForPuctOn(GameState state) {
+        return isTranspositionAlwaysExpandNewNodeOn(state) && USE_UTILITY_STD_ERR_FOR_PUCT && (!TEST_USE_UTILITY_STD_ERR_FOR_PUCT || state.prop.testNewFeature);
+    }
 }

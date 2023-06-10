@@ -1776,6 +1776,7 @@ public class InteractiveMode {
         String[] args = line.split(" ");
         int nodeCount = parseInt(args[1], 1);
         int trialCount = parseInt(args.length < 3 ? null : args[2], -1);
+        boolean clear = args.length >= 4 && args[3].equals("clear");
         if (nodeCount < 0 || trialCount < 0) {
             out.println("<node count> <trial count>");
             return;
@@ -1785,7 +1786,7 @@ public class InteractiveMode {
         for (int i = 0; i < trialCount; i++) {
             GameState s = state.clone(false);
             interactiveSetSeed(s, s.prop.random.nextLong(RandomGenCtx.Other), s.prop.random.nextLong(RandomGenCtx.Other));
-            var k = runNNPV(s, mcts, "nn " + nodeCount, false);
+            var k = runNNPV(s, mcts, "nn " + nodeCount + (clear ? " clear" : ""), false);
             k.v1().clearAllSearchInfo();
             if (k.v1().getAction(k.v2()).type() == GameActionType.END_TURN) {
                 var t = k.v1().clone(false);

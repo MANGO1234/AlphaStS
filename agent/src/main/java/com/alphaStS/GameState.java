@@ -4352,9 +4352,9 @@ class ChanceState implements State {
     }
 
     // currently doesn't do anything
-    public void correctV(GameState state2, double[] v) {
-        var newVarianceM = varianceM + (v[GameState.V_COMB_IDX] - varianceM) / total_n;
-        var newVarianceS = varianceS + (v[GameState.V_COMB_IDX] - varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
+    public void correctV(GameState state2, double[] v, double[] realV) {
+        var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
+        var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
         varianceM = newVarianceM;
         varianceS = newVarianceS;
         var node = cache.get(state2);
