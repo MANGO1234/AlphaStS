@@ -7,6 +7,10 @@ import com.alphaStS.utils.Tuple;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -14,6 +18,20 @@ import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
     private PrintStream out = System.out;
+    private List<MCTS> threadMCTS = new ArrayList<>();
+    private String modelDir;
+
+    private void allocateThreadMCTS(int numThreads) {
+        for (int i = threadMCTS.size(); i < numThreads; i++) {
+            Model model = null;
+            try {
+                model = new Model(modelDir);
+            } catch (Exception e) {
+            }
+            threadMCTS.add(new MCTS());
+            threadMCTS.get(i).setModel(model);
+        }
+    }
 
     public InteractiveMode() {
     }
@@ -54,11 +72,10 @@ public class InteractiveMode {
         RandomGen prevSearchRandomGen = null;
         RandomGen prevRealMoveRandomGen = null;
         RandomGen prevRandom = null;
-        try {
-            model = new Model(modelDir);
-        } catch (Exception e) {}
-        MCTS mcts = new MCTS();
-        mcts.setModel(model);
+        List<String> nnPV = new ArrayList<>();
+        this.modelDir = modelDir;
+        allocateThreadMCTS(1);
+        MCTS mcts = threadMCTS.get(0);
         if (history.size() > 0) {
             reader.addCmdsToQueue(history);
             isApplyingHistory = true;
@@ -246,12 +263,13 @@ public class InteractiveMode {
             } else if (line.startsWith("nn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 if (line.substring(3).equals("exec")) {
-                    reader.addCmdsToQueue(pv);
+                    reader.addCmdsToQueue(nnPV);
                 } else if (line.substring(3).equals("execv")) {
-                    reader.addCmdsToQueue(pv.subList(0, pv.size() - 1));
+                    reader.addCmdsToQueue(nnPV.subList(0, nnPV.size() - 1));
                 } else {
                     ((RandomGenInteractive) state.prop.random).rngOn = true;
-                    runNNPV(state, mcts, line, true);
+                    nnPV.clear();
+                    runNNPV(state, mcts, nnPV, line, true);
                     interactiveRecordSeed(state, history);
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                 }
@@ -264,7 +282,7 @@ public class InteractiveMode {
             } else if (line.startsWith("nnv ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
-                runNNPVVolatility(state, mcts, line);
+                runNNPVVolatility(state, line);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnn ")) {
@@ -516,7 +534,8 @@ public class InteractiveMode {
                     out.println(start + "/" + game.size());
                     var step = game.get(start);
                     step.state().prop.makingRealMove = false;
-                    runNNPV(step.state().clone(false), m, "nn " + nodeCount, true);
+                    List<String> pv = new ArrayList<>();
+                    runNNPV(step.state().clone(false), m, pv, "nn " + nodeCount, true);
                     List<GameStep> pv1 = new ArrayList<>();
                     var s = step.state().clone(false);
                     for (int i = 0; i < pv.size(); i++) {
@@ -1653,9 +1672,11 @@ public class InteractiveMode {
         if (args.length > 2) {
             mcts.forceRootAction = Integer.parseInt(args[2]);
         }
+        long start = System.currentTimeMillis();
         for (int i = state.total_n; i < count; i++) {
             mcts.search(state, false, count - i);
         }
+        System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
         mcts.forceRootAction = -1;
         out.println(state);
         System.gc();
@@ -1664,8 +1685,7 @@ public class InteractiveMode {
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
-    private List<String> pv = new ArrayList<>();
-    private Tuple<GameState, Integer> runNNPV(GameState state, MCTS mcts, String line, boolean printPV) {
+    private Tuple<GameState, Integer> runNNPV(GameState state, MCTS mcts, List<String> pv, String line, boolean printPV) {
         var args = line.split(" ");
         if (args.length < 2) {
             return null;
@@ -1674,7 +1694,6 @@ public class InteractiveMode {
         boolean clear = args.length > 2 && args[2].equals("clear");
         GameState s = state;
         int move_i = 0;
-        pv.clear();
         do {
             for (int i = s.total_n; i < count; i++) {
                 mcts.search(s, false, count - i);
@@ -1714,12 +1733,15 @@ public class InteractiveMode {
     }
 
     private void runNNPVChance(BufferedReader reader, GameState state, MCTS mcts, String line) throws IOException {
-        int count = parseInt(line.split(" ")[1], 1);
-        int chanceAction = parseInt(line.split(" ")[2], -1);
+        List<String> args = Arrays.asList(line.split(" "));
+        int nodeCount = parseArgsInt(args, "n", 100);
+        int numberOfThreads = parseArgsInt(args, "t", 1);
+        int chanceAction = parseArgsInt(args, "a", -1);
         if (chanceAction < 0) {
             out.println("Unknown action.");
             return;
         }
+
         GameState s = state.clone(false);
         ChanceState cs = new ChanceState(null, s, chanceAction);
         s.prop.makingRealMove = true;
@@ -1733,24 +1755,53 @@ public class InteractiveMode {
         if (!reader.readLine().equals("y")) {
             return;
         }
-        long start = System.currentTimeMillis();
-        var doneCount = 0;
-        var pvs = new HashMap<List<String>, List<GameState>>();
+
+        AtomicLong start = new AtomicLong(System.currentTimeMillis());
+        AtomicLong doneCount = new AtomicLong(0);
+        ConcurrentHashMap<List<String>, List<GameState>> pvs = new ConcurrentHashMap<>();
+        ConcurrentLinkedQueue<GameState> stateQueue = new ConcurrentLinkedQueue<>();
         for (Map.Entry<GameState, ChanceState.Node> entry : cs.cache.entrySet()) {
-            var cState = entry.getKey();
+            GameState cState = entry.getKey();
             cState.clearAllSearchInfo();
-            runNNPV(cState, mcts, "nn " + count, false);
-            var p = new ArrayList<>(pv);
-            pvs.computeIfAbsent(p, (_k) -> new ArrayList<>());
-            pvs.get(p).add(cState);
-            cState.clearAllSearchInfo();
-            doneCount++;
-            if (System.currentTimeMillis() - start > 3000) {
-                start = System.currentTimeMillis();
-                out.println(doneCount + "/" + cs.cache.size() + " Done");
+            stateQueue.offer(cState);
+        }
+        List<Thread> workerThreads = new ArrayList<>();
+        allocateThreadMCTS(numberOfThreads);
+        for (int i = 0; i < numberOfThreads; i++) {
+            final int tidx = i;
+            workerThreads.add(new Thread(() -> {
+                while (true) {
+                    GameState cState = stateQueue.poll();
+                    if (cState == null) {
+                        break;
+                    }
+                    List<String> pv = new ArrayList<>();
+                    runNNPV(cState, threadMCTS.get(tidx), pv, "nn " + nodeCount, false);
+                    synchronized (pvs) {
+                        pvs.computeIfAbsent(pv, (_k) -> new ArrayList<>());
+                        pvs.get(pv).add(cState);
+                        cState.clearAllSearchInfo();
+                    }
+                    doneCount.incrementAndGet();
+                    synchronized (start) {
+                        if (System.currentTimeMillis() - start.get() > 3000) {
+                            start.set(System.currentTimeMillis());
+                            out.println((doneCount.get()) + "/" + cs.cache.size() + " Done");
+                        }
+                    }
+                }
+            }));
+            workerThreads.get(i).start();
+        }
+        for (Thread workerThread : workerThreads) {
+            try {
+                workerThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
-        out.println(doneCount + "/" + cs.cache.size() + " Done");
+        out.println(doneCount.get() + "/" + cs.cache.size() + " Done");
+
         var sortedPvs = pvs.entrySet().stream().map(pv -> {
             var totalN = 0;
             for (GameState gameState : pv.getValue()) {
@@ -1772,46 +1823,92 @@ public class InteractiveMode {
         });
     }
 
-    private void runNNPVVolatility(GameState state, MCTS mcts, String line) {
-        String[] args = line.split(" ");
-        int nodeCount = parseInt(args[1], 1);
-        int trialCount = parseInt(args.length < 3 ? null : args[2], -1);
-        boolean clear = args.length >= 4 && args[3].equals("clear");
-        if (nodeCount < 0 || trialCount < 0) {
-            out.println("<node count> <trial count>");
-            return;
-        }
-        long start = System.currentTimeMillis();
+    private void runNNPVVolatility(GameState state, String line) {
+        List<String> args = Arrays.asList(line.split(" "));
+        int trialCount = parseArgsInt(args, "c", 100);
+        int nodeCount = parseArgsInt(args, "n", 100);
+        int numberOfThreads = parseArgsInt(args, "t", 1);
+        boolean clear = parseArgsBoolean(args, "clear");
+
         var pvs = new HashMap<Tuple<GameState, Integer>, Tuple<List<String>, Integer>>();
-        for (int i = 0; i < trialCount; i++) {
-            GameState s = state.clone(false);
-            interactiveSetSeed(s, s.prop.random.nextLong(RandomGenCtx.Other), s.prop.random.nextLong(RandomGenCtx.Other));
-            var k = runNNPV(s, mcts, "nn " + nodeCount + (clear ? " clear" : ""), false);
-            k.v1().clearAllSearchInfo();
-            if (k.v1().getAction(k.v2()).type() == GameActionType.END_TURN) {
-                var t = k.v1().clone(false);
-                t.doAction(k.v2());
-                if (!t.isStochastic) {
-                    k = new Tuple<>(t, 0);
+        AtomicLong trialsProcessed = new AtomicLong(0);
+        AtomicLong start = new AtomicLong(System.currentTimeMillis());
+        List<Thread> workerThreads = new ArrayList<>();
+        allocateThreadMCTS(numberOfThreads);
+        for (int i = 0; i < numberOfThreads; i++) {
+            final int tidx = i;
+            workerThreads.add(new Thread(() -> {
+                while (true) {
+                    if (trialsProcessed.getAndIncrement() >= trialCount) {
+                        break;
+                    }
+                    GameState s = state.clone(false);
+                    interactiveSetSeed(s, s.prop.random.nextLong(RandomGenCtx.Other), s.prop.random.nextLong(RandomGenCtx.Other));
+                    List<String> pv = new ArrayList<>();
+                    var k = runNNPV(s, threadMCTS.get(tidx), pv, "nn " + nodeCount + (clear ? " clear" : ""), false);
+                    k.v1().clearAllSearchInfo();
+                    if (k.v1().getAction(k.v2()).type() == GameActionType.END_TURN) {
+                        var t = k.v1().clone(false);
+                        t.doAction(k.v2());
+                        if (!t.isStochastic) {
+                            k = new Tuple<>(t, 0);
+                        }
+                    }
+                    synchronized (pvs) {
+                        if (pvs.containsKey(k)) {
+                            pvs.put(k, new Tuple<>(pv, pvs.get(k).v2() + 1));
+                        } else {
+                            pvs.put(k, new Tuple<>(pv, 1));
+                        }
+                    }
+                    synchronized (start) {
+                        if (System.currentTimeMillis() - start.get() > 3000) {
+                            start.set(System.currentTimeMillis());
+                            out.println((trialsProcessed.get()) + "/" + trialCount + " Done");
+                        }
+                    }
                 }
-            }
-            var p = new ArrayList<>(pv);
-            if (pvs.containsKey(k)) {
-                pvs.put(k, new Tuple<>(p, pvs.get(k).v2() + 1));
-            } else {
-                pvs.put(k, new Tuple<>(p, 1));
-            }
-            if (System.currentTimeMillis() - start > 3000) {
-                start = System.currentTimeMillis();
-                out.println((i + 1) + "/" + trialCount + " Done");
+            }));
+            workerThreads.get(i).start();
+        }
+        for (Thread thread : workerThreads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
+
         pvs.forEach((_k, v) -> {
             out.println(v.v2() + "/" + trialCount + " (" + formatFloat (v.v2() / (double) trialCount) + ")");
             for (int i = 0; i < v.v1().size(); i++) {
                 out.println("  " + (i + 1) + ". " + v.v1().get(i));
             }
         });
+    }
+
+    private int parseArgsInt(List<String> args, String field, int defaultValue) {
+        try {
+            for (int i = 0; i < args.size(); i++) {
+                if (args.get(i).startsWith(field + "=")) {
+                    return Integer.parseInt(args.get(i).substring(field.length() + 1));
+                }
+            }
+        } catch (NumberFormatException e) {
+        }
+        return defaultValue;
+    }
+
+    private boolean parseArgsBoolean(List<String> args, String field) {
+        try {
+            for (int i = 0; i < args.size(); i++) {
+                if (args.get(i).equals(field)) {
+                    return true;
+                }
+            }
+        } catch (NumberFormatException e) {
+        }
+        return false;
     }
 
     private void runNNPV2(GameState state, MCTS mcts, String line) {

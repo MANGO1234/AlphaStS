@@ -16,6 +16,7 @@ public class ScenarioStats {
     public int totalDamageTaken;
     public int totalDamageTakenNoDeath;
     public int[] potionsUsed;
+    public int[] potionsUsedAgg;
     public int daggerKilledEnemy;
     public int feedKilledEnemy;
     public int feedHealTotal;
@@ -59,6 +60,7 @@ public class ScenarioStats {
         ScenarioStats total = new ScenarioStats();
         if (stats.length > 0) {
             total.potionsUsed = new int[stats[0].potionsUsed.length];
+            total.potionsUsedAgg = new int[stats[0].potionsUsedAgg.length];
             total.damageCount = new HashMap<>();
         }
         for (ScenarioStats stat : stats) {
@@ -70,7 +72,8 @@ public class ScenarioStats {
     public void add(ScenarioStats stat, GameState state) {
         if (damageCount == null) {
             damageCount = new HashMap<>();
-            potionsUsed = new int[state.prop.potions.size()];
+            potionsUsed = new int[1 << state.prop.potions.size()];
+            potionsUsedAgg = new int[state.prop.potions.size()];
         }
         numOfGames += stat.numOfGames;
         numberOfDivergences += stat.numberOfDivergences;
@@ -80,6 +83,9 @@ public class ScenarioStats {
         totalDamageTakenNoDeath += stat.totalDamageTakenNoDeath;
         for (int j = 0; j < potionsUsed.length; j++) {
             potionsUsed[j] += stat.potionsUsed[j];
+        }
+        for (int j = 0; j < potionsUsedAgg.length; j++) {
+            potionsUsedAgg[j] += stat.potionsUsedAgg[j];
         }
         daggerKilledEnemy += stat.daggerKilledEnemy;
         feedKilledEnemy += stat.feedKilledEnemy;
@@ -137,7 +143,8 @@ public class ScenarioStats {
         totalTurnsInWins += (state.isTerminal() == 1 ? state.turnNum : 0);
         if (damageCount == null) {
             damageCount = new HashMap<>();
-            potionsUsed = new int[state.prop.potions.size()];
+            potionsUsed = new int[1 << state.prop.potions.size()];
+            potionsUsedAgg = new int[state.prop.potions.size()];
         }
         int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
         numOfGames++;
@@ -148,11 +155,14 @@ public class ScenarioStats {
         damageCount.computeIfPresent(damageTaken, (k, v) -> v + 1);
         if (state.isTerminal() > 0) {
             finalQComb += state.get_q();
+            int idx = 0;
             for (int i = 0; i < state.prop.potions.size(); i++) {
                 if (state.potionUsed(i)) {
-                    potionsUsed[i]++;
+                    idx |= 1 << i;
+                    potionsUsedAgg[i]++;
                 }
             }
+            potionsUsed[idx]++;
             if (state.prop.ritualDaggerCounterIdx >= 0) {
                 if (state.getCounterForRead()[state.prop.ritualDaggerCounterIdx] > 0) {
                     daggerKilledEnemy++;
@@ -315,11 +325,32 @@ public class ScenarioStats {
     public void printStats(GameState state, boolean printDmg, int spaces) {
         String indent = " ".repeat(Math.max(0, spaces));
         System.out.println(indent + "Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) numOfGames).trim() + "%)");
-        System.out.println(indent + "Avg Damage: " + ((double) totalDamageTaken) / numOfGames);
+        DescriptiveStatistics ds = new DescriptiveStatistics();
+        for (Map.Entry<Integer, Integer> dmgEntry : damageCount.entrySet()) {
+            for (int i = 0; i < dmgEntry.getValue(); i++) {
+                ds.addValue(dmgEntry.getKey());
+            }
+        }
+        var dmgMean = ds.getMean();
+        var dmgVariance = ds.getVariance();
+        var dmgUpperBound = dmgMean + 1.98 * Math.sqrt(dmgVariance / numOfGames);
+        var dmgLowerBound = dmgMean - 1.98 * Math.sqrt(dmgVariance / numOfGames);
+        System.out.printf(indent + "Avg Damage: %6.5f [%6.5f-%6.5f]\n", dmgMean, dmgLowerBound, dmgUpperBound);
         System.out.println(indent + "Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeath) / (numOfGames - deathCount));
-        if (potionsUsed != null) {
-            for (int i = 0; i < potionsUsed.length; i++) {
-                System.out.println(indent + "" + state.prop.potions.get(i) + " Used Percentage: " + String.format("%.5f", ((double) potionsUsed[i]) / (numOfGames - deathCount)));
+        if (potionsUsed != null && potionsUsed.length > 1) {
+            System.out.println(indent + "Potion Usage Percentage (By Combo):");
+            for (int i = 1; i < potionsUsed.length; i++) {
+                StringBuilder desc = new StringBuilder();
+                for (int j = 0; j < state.prop.potions.size(); j++) {
+                    if ((i & (1 << j)) > 0) {
+                        desc.append(desc.length() > 0 ? "+" : "").append(state.prop.potions.get(j));
+                    }
+                }
+                System.out.println(indent + "    " + desc + " Used Percentage: " + String.format("%.5f", ((double) potionsUsed[i]) / (numOfGames - deathCount)));
+            }
+            System.out.println(indent + "Potion Usage Percentage (By Potion):");
+            for (int i = 0; i < state.prop.potions.size(); i++) {
+                System.out.println(indent + "    " + state.prop.potions.get(i) + " Used Percentage: " + String.format("%.5f", ((double) potionsUsedAgg[i]) / (numOfGames - deathCount)));
             }
         }
         if (state.prop.ritualDaggerCounterIdx >= 0) {
@@ -361,7 +392,6 @@ public class ScenarioStats {
             if (state.prop.happyFlowerCounterIdx >= 0) {
                 System.out.println(indent + "Win/Loss Happy Flower: " + winByHappyFlower + "/" + lossByHappyFlower + " (" + winByHappyFlowerAmt / (double) winByHappyFlower + "/" + lossByHappyFlowerAmt / (double) lossByHappyFlower + "/" + (winByHappyFlowerAmt - lossByHappyFlowerAmt) / (double) (winByHappyFlower + lossByHappyFlower) + ")");
             }
-            DescriptiveStatistics ds = new DescriptiveStatistics();
             winDmgs.forEach(ds::addValue);
             var winDmgMean = ds.getMean();
             var winDmgVariance = ds.getVariance();
@@ -382,9 +412,7 @@ public class ScenarioStats {
             var vDmg = ds.getMean();
             var vDmgU = vDmg + 1.98 * ds.getStandardDeviation() / Math.sqrt(winDmgs.size() + lossDmgs.size());
             var vDmgL = vDmg - 1.98 * ds.getStandardDeviation() / Math.sqrt(winDmgs.size() + lossDmgs.size());
-            System.out.printf("%sDmg Diff: %6.5f [%6.5f - %6.5f] [%6.5f - %6.5f]\n", indent, vDmg,
-                    (winDmgLowerBound * winDmgs.size() - lossDmgUpperBound * lossDmgs.size()) / (winDmgs.size() + lossDmgs.size()),
-                    (winDmgUpperBound * winDmgs.size() - lossDmgLowerBound * lossDmgs.size()) / (winDmgs.size() + lossDmgs.size()), vDmgL, vDmgU);
+            System.out.printf("%sDmg Diff: %6.5f [%6.5f - %6.5f]\n", indent, vDmg, vDmgL, vDmgU);
 
             ds.clear();
             winQs.forEach(ds::addValue);
@@ -407,9 +435,7 @@ public class ScenarioStats {
             var vQ = ds.getMean();
             var vQU = vQ + 1.98 * ds.getStandardDeviation() / Math.sqrt(winQs.size() + lossQs.size());
             var vQL = vQ - 1.98 * ds.getStandardDeviation() / Math.sqrt(winQs.size() + lossQs.size());
-            System.out.printf("%sQ Diff: %6.5f [%6.5f - %6.5f] [%6.5f - %6.5f]\n", indent, vQ,
-                    (winQLowerBound * winQs.size() - lossQUpperBound * lossQs.size()) / (winQs.size() + lossQs.size()),
-                    (winQUpperBound * winQs.size() - lossQLowerBound * lossQs.size()) / (winQs.size() + lossQs.size()), vQL, vQU);
+            System.out.printf("%sQ Diff: %6.5f [%6.5f - %6.5f]\n", indent, vQ, vQL, vQU);
         }
         if (printDmg) {
             for (Map.Entry<Integer, Integer> dmgEntry : damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList()) {

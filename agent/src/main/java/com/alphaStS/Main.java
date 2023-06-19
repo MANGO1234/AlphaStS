@@ -42,8 +42,6 @@ public class Main {
         boolean CURRICULUM_TRAINING_ON = false;
         boolean TRAINING_WITH_LINE = false;
         boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
-        boolean GAMES_ADD_POTION_RANDOMIZATION = false;
-        boolean GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = false;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
@@ -96,10 +94,6 @@ public class Main {
             WRITE_MATCHES = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
-            GAMES_ADD_POTION_RANDOMIZATION = true;
-            if (!(args.length > 0 && (args[0].equals("--i") || args[0].equals("-i")))) {
-                GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION = true;
-            }
             NUMBER_OF_NODES_PER_TURN = 100;
 //            iteration = 56;
 //            COMPARE_DIR = "../saves/iteration60";
@@ -117,7 +111,7 @@ public class Main {
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;
-        if ((TEST_TRAINING_AGENT || GAMES_TEST_CHOOSE_SCENARIO_RANDOMIZATION) && state.prop.preBattleScenarios != null) {
+        if (TEST_TRAINING_AGENT && state.prop.preBattleScenarios != null) {
             state.prop.preBattleScenarios = null;
             if (state.prop.randomization == null) {
                 state.prop.randomization = preBattleScenarios;

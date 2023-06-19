@@ -229,7 +229,41 @@ public class CardSilent {
         }
     }
 
-    // Dagger Throw
+    private static abstract class _DaggerThrowT extends Card {
+        private final int n;
+
+        public _DaggerThrowT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.COMMON);
+            this.n = n;
+            this.selectEnemy = true;
+            this.selectFromHand = true;
+            this.selectFromHandLater = true;
+            this.canDiscardAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+                state.draw(1);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.discardCardFromHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class DaggerThrow extends _DaggerThrowT {
+        public DaggerThrow() {
+            super("Dagger Throw", Card.ATTACK, 1, 9);
+        }
+    }
+
+    public static class DaggerThrowP extends _DaggerThrowT {
+        public DaggerThrowP() {
+            super("Dagger Throw+", Card.ATTACK, 1, 12);
+        }
+    }
 
     private static abstract class _DeadlyPoisonT extends Card {
         private final int n;
@@ -418,13 +452,13 @@ public class CardSilent {
 
     public static class Outmaneuver extends _OutmaneuverT {
         public Outmaneuver() {
-            super("Outmaneuver", Card.SKILL, 1, 1);
+            super("Outmaneuver", Card.SKILL, 1, 2);
         }
     }
 
     public static class OutmaneuverP extends _OutmaneuverT {
         public OutmaneuverP() {
-            super("Outmaneuver+", Card.SKILL, 1, 2);
+            super("Outmaneuver+", Card.SKILL, 1, 3);
         }
     }
 

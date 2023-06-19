@@ -1362,24 +1362,24 @@ public class TestStates {
         builder.addCard(new CardSilent.NoxiousFume(), 1);
         builder.addCard(new CardSilent.PoisonedStab(), 1);
         builder.addCard(new CardSilent.SneakyStrike(), 1);
-        builder.addCard(new CardSilent.Predator(), 1);
+        builder.addCard(new CardSilent.PredatorP(), 1);
         builder.addCard(new CardSilent.Outmaneuver(), 1);
-        builder.addCard(new CardSilent.Prepared(), 1);
+        builder.addCard(new CardSilent.PreparedP(), 1);
         builder.addCard(new CardSilent.GlassKnifeP(), 1);
-        EnemyEncounter.addSentriesFight(builder);
-        builder.addPotion(new Potion.EnergyPotion().setBasePenaltyRatio(90).setPenaltyRatioSteps(3));
-        builder.addPotion(new Potion.ExplosivePotion().setBasePenaltyRatio(85).setPenaltyRatioSteps(2));
+        builder.addCard(new CardSilent.DaggerThrow(), 1);
+        builder.addCard(new CardSilent.CalculatedGamble(), 1);
+        EnemyEncounter.addSlimeBossFight(builder);
+        builder.addPotion(new Potion.EnergyPotion().setBasePenaltyRatio(95));
+        builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(85));
         builder.addRelic(new Relic.RingOfSerpent());
-        builder.setPotionsScenarios(2, 5, 8, 11);
+        builder.setPotionsScenarios(2, 3);
         builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
             @Override public void handle(GameState state) {
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "neu", "nox", "str", "str", "asc", "poi", "snea", "e", "0", "eho", "0", "44", "eho", "1", "39", "eho", "2", "41", "exit"));
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "Noxious Fume", "Neutralize", "Select Sentry(2)", "Poisoned Stab", "Select Sentry(2)", "Strike", "Select Sentry(2)", "do", "def", "def", "str", "pr", "pre", "e", "e", "exit"));
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "def", "e", "prep", "2", "1", "2", "def", "explosive", "do", "glass12", "str", "survi", "outma", "def", "pred", "predat", "e", "e", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "def", "poi", "cal", "def", "asc", "ne", "glas+", "p", "glas+ 12", "e", "0", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "gla", "neu", "po", "do", "predat", "str", "str", "sne", "outm", "e", "e", "exit"));
             }
         });
-
-        builder.setPlayer(new Player(46, 46));
+        builder.setPlayer(new Player(54, 54));
         return new GameState(builder);
     }
 

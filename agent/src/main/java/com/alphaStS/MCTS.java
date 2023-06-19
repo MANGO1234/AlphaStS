@@ -49,6 +49,7 @@ public class MCTS {
         if (state.terminal_action >= 0) {
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 v[i] = state.q[(state.terminal_action + 1) * state.prop.v_total_len + i] / state.n[state.terminal_action];
+                realV[i] = v[i];
             }
             numberOfPossibleActions = 1;
             return;
@@ -343,15 +344,21 @@ public class MCTS {
     void search3_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.terminal_action >= 0) {
             for (int i = 0; i < state.prop.v_total_len; i++) {
-                v[i] = state.q[(state.terminal_action + 1) * state.prop.v_total_len + i] / state.n[state.terminal_action];;
+                v[i] = state.q[(state.terminal_action + 1) * state.prop.v_total_len + i] / state.n[state.terminal_action];
+                realV[i] = v[i];
             }
             numberOfPossibleActions = 1;
             return;
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
+            System.arraycopy(v, 0, realV, 0, state.prop.v_total_len);
+            state.initSearchInfo2();
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 state.q[i] = v[i];
+                if (state.q[i] == Double.POSITIVE_INFINITY) {
+                    Integer.parseInt(null);
+                }
             }
             if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
@@ -361,10 +368,17 @@ public class MCTS {
         if (state.policy == null) {
             state.doEval(model);
             state.get_v(v);
+            System.arraycopy(v, 0, realV, 0, state.prop.v_total_len);
+            state.initSearchInfo2();
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 state.q[i] = v[i];
+                if (state.q[i] == Double.POSITIVE_INFINITY) {
+                    Integer.parseInt(null);
+                }
             }
             numberOfPossibleActions = state.getLegalActions().length;
+            state.varianceM = v[GameState.V_COMB_IDX];
+            state.varianceS = 0;
             return;
         }
         if (state.n == null) {
@@ -378,6 +392,9 @@ public class MCTS {
 
         State nextState = state.ns[action];
         GameState state2;
+        if (isRoot && exploredActions != null && exploredActions.containsKey(action)) {
+            exploredV = exploredActions.get(action);
+        }
         if (nextState == null) {
             state2 = state.clone(true);
             state2.doAction(action);
@@ -403,7 +420,7 @@ public class MCTS {
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
-                    if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                    if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2.doAction(0);
@@ -413,18 +430,14 @@ public class MCTS {
                         this.search3_r(state2, training, remainingCalls, false);
                         cState.correctV(state2, v, realV);
                     } else {
-                        if (state2.isStochastic) {
-                            state.ns[action] = new ChanceState(state2, state, action);
-                        } else {
-                            state.ns[action] = state2;
-                        }
+                        state.ns[action] = state2;
                         state.transpositions.put(state2, state2);
                         this.search3_r(state2, training, remainingCalls, false);
                     }
                 } else if (s instanceof GameState ns) {
                     state.ns[action] = ns;
                     for (int i = 0; i < state.prop.v_total_len; i++) {
-                        v[i] = ns.q[i] / ns.total_n + 1;
+                        v[i] = ns.q[i] / (ns.total_n + 1);
                     }
                 } else if (s instanceof ChanceState ns) {
                     state.ns[action] = ns;
@@ -690,6 +703,7 @@ public class MCTS {
         GameState state = (GameState) curLine.state;
         if (state.isTerminal() != 0) {
             state.get_v(v);
+            state.initSearchInfo2();
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 state.q[i] += v[i];
             }
@@ -707,6 +721,7 @@ public class MCTS {
         if (state.policy == null) {
             state.doEval(model);
             state.get_v(v);
+            state.initSearchInfo2();
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 state.q[i] += v[i];
             }
@@ -831,6 +846,9 @@ public class MCTS {
     private void searchLineTransposePropagatePolicy(GameState parentState, LineOfPlay line, double p) {
         if (line.state instanceof GameState state) {
             if (state.isTerminal() == 0) {
+                if (state.n == null) {
+                    state.initSearchInfo();
+                }
                 for (int i = 0; i < state.n.length; i++) {
                     if (state.n[i] > 0) {
                         var nextLine = parentState.searchFrontier.getLine(state.ns[i]);

@@ -23,12 +23,12 @@ from misc import getFlag, getFlagValue
 # np.random.seed(5)
 # tf.random.set_seed(5)
 
-DO_TRAINING = getFlag('-t')
+DO_TRAINING = getFlag('-training')
 SKIP_TRAINING_MATCHES = getFlag('-s')
-INTERACTIVE = getFlag('-i')
 PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
-SINGLE_THREADED = getFlag('-st')
+NUMBER_OF_THREADS = int(getFlagValue('-t', 1))
+NUMBER_OF_THREADS_TRAINING = int(getFlagValue('-tt', 0))
 ITERATION_COUNT = int(getFlagValue('-c', 5))
 Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
 NODE_COUNT = int(getFlagValue('-n', 1000))
@@ -38,7 +38,7 @@ USE_KAGGLE = getFlagValue('-kaggle')
 KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
 KAGGLE_DATASET_NAME = 'dataset'
 
-if SINGLE_THREADED:
+if NUMBER_OF_THREADS_TRAINING > 0:
     tf.config.threading.set_intra_op_parallelism_threads(1)
     tf.config.threading.set_inter_op_parallelism_threads(1)
     os.environ["OMP_NUM_THREADS"] = f"1"
@@ -429,7 +429,8 @@ if DO_TRAINING:
         iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
 
-        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '-training', '-t', '1' if SINGLE_THREADED else '2', '-dir', SAVES_DIR]
+        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
+                      'com.alphaStS.Main', '-training', '-t', str(NUMBER_OF_THREADS), '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
                 matches_count = 1000
@@ -460,19 +461,11 @@ if DO_TRAINING:
             split = agent_output.find('--------------------')
             out = agent_output[2 if agent_output[0] == '\r' else 0: split + 20]
             save_stats(training_info, _iteration - 1, out)
-            # print(out)
-            agent_output = agent_output[split + 20:]
 
         print(f'Iteration {training_info["iteration"]}')
         if training_info["iteration"] > 10 and (training_info["iteration"] - 21) % 15 == 0:
             print("Model layers reset!!!")
             reset_model(model)
-        if len(agent_output) > 0:
-            split = agent_output.find('--------------------')
-            agent_output = agent_output[split + 20:]
-            split = agent_output.find('--------------------')
-            if split >= 0:
-                agent_output = agent_output[split + 20:]
 
         iteration_info['agent_time'] = round(time.time() - iter_start, 2)
         iteration_info['num_of_samples'] = len(training_pool)
