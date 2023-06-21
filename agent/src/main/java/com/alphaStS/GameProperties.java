@@ -8,6 +8,7 @@ import java.util.function.BiConsumer;
 
 public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
+    public boolean multithreadedMTCS;
     public boolean doingComparison;
     public boolean testPotionOutput = true;
     public boolean curriculumTraining;

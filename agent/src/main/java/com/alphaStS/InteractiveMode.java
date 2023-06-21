@@ -1664,20 +1664,47 @@ public class InteractiveMode {
     }
 
     private void runMCTS(GameState state, MCTS mcts, String line) {
-        String[] args = line.split(" ");
-        int count = Integer.parseInt(args[1]);
-        if (args.length < 2) {
+        List<String> args = Arrays.asList(line.split(" "));
+        if (args.size() < 2) {
             out.println("<node count>");
         }
-        if (args.length > 2) {
-            mcts.forceRootAction = Integer.parseInt(args[2]);
-        }
+        int count = Integer.parseInt(args.get(1));
+        int numberOfThreads = parseArgsInt(args, "t", 1);
+        mcts.forceRootAction = parseArgsInt(args, "a", -1);
         long start = System.currentTimeMillis();
-        for (int i = state.total_n; i < count; i++) {
-            mcts.search(state, false, count - i);
+        if (numberOfThreads <= 1) {
+            for (int i = state.total_n; i < count; i++) {
+                mcts.search(state, false, count - i);
+            }
+            mcts.forceRootAction = -1;
+        } else {
+            state.setMultithreaded(true);
+            AtomicLong atomicLong = new AtomicLong(state.total_n);
+            List<Thread> workerThreads = new ArrayList<>();
+            allocateThreadMCTS(numberOfThreads);
+            for (int i = 0; i < numberOfThreads; i++) {
+                threadMCTS.get(i).forceRootAction = mcts.forceRootAction;
+                final int tidx = i;
+                workerThreads.add(new Thread(() -> {
+                    long c = atomicLong.addAndGet(1);
+                    while (c <= count) {
+                        threadMCTS.get(tidx).search(state, false, (int) (count - c + 1));
+                        c = atomicLong.addAndGet(1);
+                    }
+                }));
+                workerThreads.get(i).start();
+            }
+            for (int i = 0; i < numberOfThreads; i++) {
+                try {
+                    workerThreads.get(i).join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                threadMCTS.get(i).forceRootAction = -1;
+            }
+            state.setMultithreaded(false);
         }
         System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
-        mcts.forceRootAction = -1;
         out.println(state);
         System.gc();
         System.gc();
@@ -1686,17 +1713,47 @@ public class InteractiveMode {
     }
 
     private Tuple<GameState, Integer> runNNPV(GameState state, MCTS mcts, List<String> pv, String line, boolean printPV) {
-        var args = line.split(" ");
-        if (args.length < 2) {
-            return null;
+        List<String> args = Arrays.asList(line.split(" "));
+        if (args.size() < 2) {
+            out.println("<node count>");
         }
-        int count = parseInt(args[1], 1);
-        boolean clear = args.length > 2 && args[2].equals("clear");
+        int count = Integer.parseInt(args.get(1));
+        boolean clear = args.size() > 2 && args.get(2).equals("clear");
+        int numberOfThreads = parseArgsInt(args, "t", 1);
         GameState s = state;
         int move_i = 0;
+        long start = System.currentTimeMillis();
         do {
-            for (int i = s.total_n; i < count; i++) {
-                mcts.search(s, false, count - i);
+            if (numberOfThreads <= 1) {
+                for (int i = s.total_n; i < count; i++) {
+                    mcts.search(s, false, count - i);
+                }
+            } else {
+                s.setMultithreaded(true);
+                AtomicLong atomicLong = new AtomicLong(s.total_n);
+                List<Thread> workerThreads = new ArrayList<>();
+                allocateThreadMCTS(numberOfThreads);
+                for (int i = 0; i < numberOfThreads; i++) {
+                    threadMCTS.get(i).forceRootAction = mcts.forceRootAction;
+                    final int tidx = i;
+                    var _s = s;
+                    workerThreads.add(new Thread(() -> {
+                        long c = atomicLong.addAndGet(1);
+                        while (c <= count) {
+                            threadMCTS.get(tidx).search(_s, false, (int) (count - c + 1));
+                            c = atomicLong.addAndGet(1);
+                        }
+                    }));
+                    workerThreads.get(i).start();
+                }
+                for (int i = 0; i < numberOfThreads; i++) {
+                    try {
+                        workerThreads.get(i).join();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                state.setMultithreaded(false);
             }
             int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
             if (action < 0) {
@@ -1711,9 +1768,11 @@ public class InteractiveMode {
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
+                System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
                 return new Tuple<>(s, action);
             } else if (ns instanceof GameState ns2) {
                 if (ns2.isTerminal() != 0) {
+                    System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
                     return new Tuple<>(s, action);
                 } else {
                     if (clear) {

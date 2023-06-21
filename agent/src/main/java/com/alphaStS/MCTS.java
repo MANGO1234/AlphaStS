@@ -34,7 +34,11 @@ public class MCTS {
 
     void search2(GameState state, boolean training, int remainingCalls) {
         terminal_v_win = -100;
-        search2_r(state, training, remainingCalls, true, 0);
+        if (state.prop.multithreadedMTCS) {
+            search2parallel_r(state, training, remainingCalls, true, 0, false);
+        } else {
+            search2_r(state, training, remainingCalls, true, 0);
+        }
     }
 
     void search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level) {
@@ -256,6 +260,234 @@ public class MCTS {
         }
         for (int i = 0; i < state.prop.v_total_len; i++) {
             state.q[i] += v[i];
+        }
+        numberOfPossibleActions = numberOfActions;
+    }
+
+    void search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
+        if (state.terminal_action >= 0) {
+            state.readLock();
+            for (int i = 0; i < state.prop.v_total_len; i++) {
+                v[i] = state.q[(state.terminal_action + 1) * state.prop.v_total_len + i] / state.n[state.terminal_action];
+                realV[i] = v[i];
+            }
+            state.readUnlock();
+            numberOfPossibleActions = 1;
+            return;
+        }
+
+        if (state.isTerminal() != 0) {
+            state.get_v(v);
+            System.arraycopy(v, 0, realV, 0, state.prop.v_total_len);
+            state.initSearchInfo2();
+            for (int i = 0; i < state.prop.v_total_len; i++) {
+                state.q[i] = v[i];
+            }
+            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
+                terminal_v_win = v[GameState.V_WIN_IDX];
+            }
+            return;
+        }
+
+        if (state.policy == null) {
+            state.writeLock();
+            if (state.policy == null) {
+                state.doEval(model);
+                state.get_v(v);
+                System.arraycopy(v, 0, realV, 0, state.prop.v_total_len);
+                state.initSearchInfo2();
+                for (int i = 0; i < state.prop.v_total_len; i++) {
+                    state.q[i] = v[i];
+                }
+                numberOfPossibleActions = state.getLegalActions().length;
+                state.varianceM = v[GameState.V_COMB_IDX];
+                state.varianceS = 0;
+                state.writeUnlock();
+                return;
+            }
+            state.writeUnlock();
+        }
+        if (state.ns == null) {
+            state.writeLock();
+            if (state.ns == null) {
+                state.initSearchInfo();
+            }
+            state.writeUnlock();
+        }
+        if (addVirtualLoss) {
+            state.virtualLoss.incrementAndGet();
+        }
+
+        float[] policy = getPolicy(state, training, remainingCalls, isRoot);
+        selectAction(state, policy, training, isRoot);
+        int action = ret[0];
+        int numberOfActions = ret[1];
+
+        State nextState = state.ns[action];
+        if (nextState == null) {
+            state.writeLock();
+            nextState = state.ns[action];
+            if (nextState != null) {
+                state.writeUnlock();
+            }
+        }
+        GameState state2;
+        if (nextState == null) {
+            state2 = state.clone(true);
+            state2.doAction(action);
+            if (state2.isStochastic) {
+                if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
+                    state.transpositionsLock.lock();
+                    var s = state.transpositions.get(state2);
+                    if (s == null || s instanceof ChanceState) {
+                        if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                            state2.doAction(0);
+                        } else {
+                            state.transpositions.put(state2, state2);
+                        }
+                    } else {
+                        state2 = (GameState) s;
+                    }
+                    state.transpositionsLock.unlock();
+                    state.ns[action] = new ChanceState(state2, state, action);
+                    state.writeUnlock();
+                    this.search2parallel_r(state2, training, remainingCalls, false, level + 1, false);
+                    ((ChanceState) (state.ns[action])).writeLock();
+                    ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
+                    ((ChanceState) (state.ns[action])).writeUnlock();
+                } else {
+                    state.ns[action] = new ChanceState(state2, state, action);
+                    state.writeUnlock();
+                    this.search2parallel_r(state2, training, remainingCalls, false, level + 1, false);
+                    ((ChanceState) (state.ns[action])).writeLock();
+                    ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
+                    ((ChanceState) (state.ns[action])).writeUnlock();
+                }
+            } else {
+                state.transpositionsLock.lock();
+                var s = state.transpositions.get(state2);
+                if (s == null) {
+                    if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
+                        var parentState = state2;
+                        state2 = parentState.clone(false);
+                        state2.doAction(0);
+                        var cState = new ChanceState(state2, parentState, 0);
+                        state.transpositions.put(parentState, cState);
+                        state.transpositionsLock.unlock();
+                        state.ns[action] = cState;
+                        state.writeUnlock();
+                        this.search2parallel_r(state2, training, remainingCalls, false, level + 1, false);
+                        cState.writeLock();
+                        cState.correctV(state2, v, realV);
+                        cState.writeUnlock();
+                    } else {
+                        state.transpositions.put(state2, state2);
+                        state.transpositionsLock.unlock();
+                        state.ns[action] = state2;
+                        state.writeUnlock();
+                        this.search2parallel_r(state2, training, remainingCalls, false, level, true);
+                    }
+                } else if (s instanceof GameState ns) {
+                    state.transpositionsLock.unlock();
+                    state.ns[action] = ns;
+                    state.writeUnlock();
+                    if (ns.q == null || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
+                        this.search2parallel_r(ns, training, remainingCalls, false, level, true);
+                    }
+                    ns.readLock();
+                    for (int i = 0; i < state.prop.v_total_len; i++) {
+                        v[i] = ns.q[i] / (ns.total_n + 1);
+                    }
+                    ns.readUnlock();
+                } else if (s instanceof ChanceState ns) {
+                    state.transpositionsLock.unlock();
+                    state.ns[action] = ns;
+                    state.writeUnlock();
+                    if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
+                        state2 = ns.getNextStateParallel(true, level);
+                        this.search2parallel_r(state2, training, remainingCalls, false, level + 1, false);
+                        ns.writeLock();
+                        ns.correctV(state2, v, realV);
+                        ns.writeUnlock();
+                    }
+                    ns.readLock();
+                    for (int i = 0; i < state.prop.v_total_len; i++) {
+                        v[i] = ns.total_q[i] / ns.total_n;
+                    }
+                    ns.readUnlock();
+                } else {
+                    throw new RuntimeException();
+                }
+            }
+        } else {
+            if (nextState instanceof ChanceState cState) {
+                if (state.n[action] < cState.total_n) {
+                    if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
+                        state2 = cState.getNextStateParallel(true, level);
+                        this.search2parallel_r(state2, training, remainingCalls, false, level + 1, false);
+                        cState.writeLock();
+                        cState.correctV(state2, v, realV);
+                        cState.writeUnlock();
+                    }
+                    state.readLock();
+                    cState.readLock();
+                    for (int i = 0; i < state.prop.v_total_len; i++) {
+                        v[i] = cState.total_q[i] / cState.total_n * (state.n[action] + 1) - state.q[(action + 1) * state.prop.v_total_len + i];
+                    }
+                    cState.readUnlock();
+                    state.readUnlock();
+                } else {
+                    state2 = cState.getNextStateParallel(true, level);
+                    this.search2parallel_r(state2, training, remainingCalls, false, level + 1, false);
+                    cState.writeLock();
+                    cState.correctV(state2, v, realV);
+                    cState.writeUnlock();
+                }
+            } else if (nextState instanceof GameState nState) {
+                if (state.n[action] < nState.total_n + 1) {
+                    if (nState.q == null || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
+                        this.search2parallel_r(nState, training, remainingCalls, false, level, true);
+                    }
+                    state.readLock();
+                    nState.readLock();
+                    for (int i = 0; i < state.prop.v_total_len; i++) {
+                        v[i] = nState.q[i] / (nState.total_n + 1) * (state.n[action] + 1) - state.q[(action + 1) * state.prop.v_total_len + i];
+                    }
+                    nState.readUnlock();
+                    state.readUnlock();
+                } else {
+                    this.search2parallel_r(nState, training, remainingCalls, false, level, true);
+                }
+            }
+        }
+
+        state.writeLock();
+        for (int i = 0; i < state.prop.v_total_len; i++) {
+            state.q[(action + 1) * state.prop.v_total_len + i] += v[i];
+        }
+        state.n[action] += 1;
+        state.total_n += 1;
+        var newVarianceM = state.varianceM + (realV[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
+        var newVarianceS = state.varianceS + (realV[GameState.V_COMB_IDX] - state.varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
+        state.varianceM = newVarianceM;
+        state.varianceS = newVarianceS;
+        if (terminal_v_win > 0.5) {
+            if (state.ns[action] instanceof ChanceState) {
+                terminal_v_win = -100;
+            } else {
+                state.terminal_action = action;
+                for (int i = 0; i < state.prop.v_total_len; i++) {
+                    double q_total = state.q[(action + 1) * state.prop.v_total_len + i] / state.n[action] * (state.total_n + 1);
+                    v[i] = q_total - state.q[i];
+                }
+            }
+        }
+        for (int i = 0; i < state.prop.v_total_len; i++) {
+            state.q[i] += v[i];
+        }
+        state.writeUnlock();
+        if (addVirtualLoss) {
+            state.virtualLoss.decrementAndGet();
         }
         numberOfPossibleActions = numberOfActions;
     }
@@ -893,8 +1125,6 @@ public class MCTS {
         double maxU = -1000000;
         boolean hasForcedMove = false;
         int numberOfActions = 0;
-        double p = 1.0 / state.getLegalActions().length;
-        double ratio = Math.min(((double) state.total_n) * state.total_n / 100000000.0, 1);
         boolean allBelow1Per = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING;
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             for (int i = 0; i < state.getLegalActions().length; i++) {
@@ -908,16 +1138,22 @@ public class MCTS {
                 }
             }
         }
-        double maxQ = -1000000;
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
             numberOfActions += 1;
-            double p_prime = policy[i] * (1 - ratio) + p * ratio;
-            double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / state.n[i] : Math.max(state.q[GameState.V_COMB_IDX] / (state.total_n + 1), 0);
+            int childN = state.n[i];
+            if (state.prop.multithreadedMTCS) {
+                if (state.ns[i] != null && state.ns[i] instanceof GameState s) {
+                    childN += s.virtualLoss.get();
+                } else if (state.ns[i] != null && state.ns[i] instanceof ChanceState s) {
+                    childN += s.virtualLoss;
+                }
+            }
+            double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / childN : Math.max(state.q[GameState.V_COMB_IDX] / (state.total_n + 1), 0);
             if (allBelow1Per) {
-                q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + state.prop.fightProgressVIdx] / state.n[i] : Math.max(state.q[state.prop.fightProgressVIdx] / (state.total_n + 1), 0);
+                q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + state.prop.fightProgressVIdx] / childN : Math.max(state.q[state.prop.fightProgressVIdx] / (state.total_n + 1), 0);
             }
             double cpuct = state.prop.cpuct;
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
@@ -927,7 +1163,7 @@ public class MCTS {
             if (Configuration.isUseUtilityStdErrForPuctOn(state)) {
                 std_err = Math.sqrt(state.varianceS / state.total_n) / Math.sqrt(state.total_n + 1);
             }
-            double u = state.total_n > 0 ? q + cpuct * policy[i] * (sqrt(state.total_n) / (1 + state.n[i]) + 5 * std_err): policy[i];
+            double u = state.total_n > 0 ? q + cpuct * policy[i] * (sqrt(state.total_n) / (1 + childN) + 5 * std_err): policy[i];
             if (training && isRoot) {
                 var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
                 if (state.n[i] < force_n) {

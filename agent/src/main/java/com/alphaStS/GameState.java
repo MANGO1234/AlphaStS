@@ -9,6 +9,9 @@ import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.*;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static com.alphaStS.utils.Utils.formatFloat;
 
@@ -110,10 +113,40 @@ public final class GameState implements State {
     Map<GameState, List<Tuple<GameState, Integer>>> transpositionsParent;
     int terminal_action; // detected a win from child, no need to waste more time search
     SearchFrontier searchFrontier;
+    ReentrantReadWriteLock lock;
+    ReentrantLock transpositionsLock;
+    AtomicInteger virtualLoss;
 
     // Solver only
     BigRational e_health;
     BigRational e_win;
+
+    public void readLock() {
+        lock.readLock().lock();
+    }
+
+    public void readUnlock() {
+        lock.readLock().unlock();
+    }
+
+    public void writeLock() {
+        lock.writeLock().lock();
+    }
+
+    public void writeUnlock() {
+        lock.writeLock().unlock();
+    }
+
+    public void setMultithreaded(boolean multithreaded) {
+        if (multithreaded) {
+            prop.multithreadedMTCS = true;
+            virtualLoss = new AtomicInteger();
+            lock = new ReentrantReadWriteLock();
+            transpositionsLock = new ReentrantLock();
+        } else {
+            prop.multithreadedMTCS = false;
+        }
+    }
 
     private boolean cardIdxArrEqual(short[] a, int aLen, short[] b, int bLen) {
         if (a == b) {
@@ -682,6 +715,12 @@ public final class GameState implements State {
         terminal_action = -100;
         transpositions = new HashMap<>();
         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
+
+        if (prop.multithreadedMTCS) {
+            transpositionsLock = new ReentrantLock();
+            lock = new ReentrantReadWriteLock();
+            virtualLoss = new AtomicInteger();
+        }
     }
 
     private int[] findCardThatCanHealIdxes(List<CardCount> cards, List<Relic> relics) {
@@ -916,15 +955,21 @@ public final class GameState implements State {
 
         legalActions = other.legalActions;
         terminal_action = -100;
+        if (prop.multithreadedMTCS) {
+            lock = new ReentrantReadWriteLock();
+            virtualLoss = new AtomicInteger();
+        }
     }
 
     public GameState clone(boolean keepTranspositions) {
         GameState clone = new GameState(this);
         if (keepTranspositions) {
             clone.transpositions = transpositions;
+            clone.transpositionsLock = transpositionsLock;
             clone.transpositionsParent = transpositionsParent;
         } else {
             clone.transpositions = new HashMap<>();
+            clone.transpositionsLock = prop.multithreadedMTCS ? new ReentrantLock() : null;
             if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) clone.transpositionsParent = new HashMap<>();
         }
         return clone;
@@ -3486,6 +3531,7 @@ public final class GameState implements State {
             Arrays.fill(ns, null);
         }
         transpositions = new HashMap<>();
+        transpositionsLock = prop.multithreadedMTCS ? new ReentrantLock() : null;
         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
         searchFrontier = null;
     }
@@ -4299,8 +4345,8 @@ class ChanceState implements State {
         }
     }
 
-    Hashtable<GameState, Node> cache;
-    Hashtable<GameState, Node> otherCache;
+    HashMap<GameState, Node> cache;
+    HashMap<GameState, Node> otherCache;
     Node prevWidenedNode;
     long total_node_n; // actual n, sum of nodes' n in cache
     long total_n; // n called from parent
@@ -4311,14 +4357,32 @@ class ChanceState implements State {
     GameState parentState;
     int parentAction;
     RandomGen searchRandomGen;
+    ReentrantLock lock;
+    public int virtualLoss;
 
     // GameSolver only
     BigRational e_health = BigRational.ZERO;
     BigRational e_win = BigRational.ZERO;
 
+    public void readLock() {
+        lock.lock();
+    }
+
+    public void readUnlock() {
+        lock.unlock();
+    }
+
+    public void writeLock() {
+        lock.lock();
+    }
+
+    public void writeUnlock() {
+        lock.unlock();
+    }
+
     public ChanceState(GameState initState, GameState parentState, int action) {
-        cache = new Hashtable<>();
-        otherCache = new Hashtable<>();
+        cache = new HashMap<>();
+        otherCache = new HashMap<>();
         if (initState != null) {
             cache.put(initState, new Node(initState));
             total_node_n = 1;
@@ -4336,13 +4400,12 @@ class ChanceState implements State {
         this.parentAction = action;
         total_q = new double[parentState.prop.v_total_len];
         var tmpQueue = new ArrayList<GameState>();
-//        if (parentState.prop.testNewFeature) {
-//            for (int i = initState != null ? 1 : 0; i < 0; i++) {
-//                tmpQueue.add(getNextState(false));
-//            }
-//        }
         total_n = initState != null ? 1 : 0;
         queue = tmpQueue;
+        if (parentState.prop.multithreadedMTCS) {
+            lock = new ReentrantLock();
+            virtualLoss = 1;
+        }
     }
 
     public void addToQueue(GameState state) {
@@ -4353,6 +4416,7 @@ class ChanceState implements State {
 
     // currently doesn't do anything
     public void correctV(GameState state2, double[] v, double[] realV) {
+        if (parentState.prop.multithreadedMTCS) virtualLoss--;
         var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
         var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
         varianceM = newVarianceM;
@@ -4574,6 +4638,75 @@ class ChanceState implements State {
         if (parentState.prop.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
            state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
         }
+        return state;
+    }
+
+    GameState getNextStateParallel(boolean calledFromMCTS, int level) {
+        boolean useProgressiveWidening = calledFromMCTS && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature);
+        writeLock();
+        virtualLoss++;
+        total_n += 1;
+        if (queue != null && queue.size() > 0) {
+            writeUnlock();
+            return queue.remove(0);
+        }
+
+        var state = parentState.clone(true);
+        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            state.setSearchRandomGen(searchRandomGen);
+        }
+        state.doAction(parentAction);
+        if ((Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN || !state.isStochastic) && state.actionCtx == GameActionCtx.BEGIN_TURN) {
+            state.doAction(0);
+        }
+        if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.prop.testNewFeature)) {
+            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+                searchRandomGen = searchRandomGen.getCopy();
+            }
+        } else {
+            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+                searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
+            }
+        }
+
+        var node = cache.get(state);
+        if (node != null) {
+            node.n += 1;
+            total_node_n += 1;
+            node.revisit = false;
+            if (node.state.stateDesc == null && state.stateDesc != null) {
+                node.state.stateDesc = state.stateDesc;
+            }
+            writeUnlock();
+            return node.state;
+        }
+
+        double x = 0.35;
+        if (useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, x))) {
+            if (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
+                node = otherCache.get(state);
+                if (node == null) {
+                    node = new Node(state, 0);
+                    otherCache.put(state, node);
+                }
+                node.other_n += 1;
+            }
+            // instead of generating new nodes, revisit node, need testing
+            var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
+            var acc = 0;
+            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+                acc += entry.getValue().n;
+                if (acc > r) {
+                    entry.getValue().revisit = true;
+                    writeUnlock();
+                    return entry.getValue().state;
+                }
+            }
+            Integer.parseInt(null);
+        }
+        total_node_n += 1;
+        cache.put(state, new Node(state));
+        writeUnlock();
         return state;
     }
 
