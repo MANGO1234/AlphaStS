@@ -1924,7 +1924,9 @@ public class CardDefect {
             });
             state.prop.addEndOfTurnHandler("LoseFocusPerTurn", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }

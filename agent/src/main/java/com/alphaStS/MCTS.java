@@ -10,6 +10,7 @@ import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
+import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 
 public class MCTS {
@@ -1132,7 +1133,7 @@ public class MCTS {
                     continue;
                 }
                 double q_win = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i] : 1;
-                if (q_win >= 0.01) {
+                if (q_win >= 0.001) {
                     allBelow1Per = false;
                     break;
                 }
@@ -1157,7 +1158,12 @@ public class MCTS {
             }
             double cpuct = state.prop.cpuct;
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
-                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
+                // cpuct scaling is equivalent to scaling the numerator in sqrt(state.total_n) / (1 + childN) further to encourage exploration
+                // noticing at high nodes very little exploration is done if the initial policy is low with logaritmic scaling
+                // so switch to total_n^0.25 which seem to work better?
+                // todo: reduce impact of policy as nodes are visited more may be a better idea?
+//                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
+                cpuct = cpuct * sqrt(sqrt(Math.max(state.total_n, 1)));
             }
             var std_err = 0.0;
             if (Configuration.isUseUtilityStdErrForPuctOn(state)) {

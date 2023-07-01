@@ -117,6 +117,9 @@ public class Player extends PlayerReadOnly {
     }
 
     public void applyDebuff(GameState state, DebuffType type, int n) {
+        if (n == 0) {
+            return;
+        }
         if (state.prop.hasGinger && type == DebuffType.WEAK) {
             return;
         } else if (state.prop.hasTurnip && type == DebuffType.FRAIL) {

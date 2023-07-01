@@ -528,7 +528,7 @@ public final class GameState implements State {
                 prop.burnPCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Dazed")) {
                 prop.dazedCardIdx = i;
-            } if (cards.get(i).card().cardName.equals("Slime")) {
+            } if (cards.get(i).card().cardName.equals("Slimed")) {
                 prop.slimeCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Wound")) {
                 prop.woundCardIdx = i;
@@ -2274,6 +2274,19 @@ public final class GameState implements State {
                     str.append(p_str2).append('/');
                 }
                 str.append(p_str).append('/').append(n[i]);
+                str.append(" (").append(getActionString(i)).append(")");
+            }
+            str.append(']');
+        } else if (policy != null) {
+            str.append(", p=[");
+            first = true;
+            for (int i = 0; i < getLegalActions().length; i++) {
+                var p_str = formatFloat(policy[i]);
+                if (!first) {
+                    str.append(", ");
+                }
+                first = false;
+                str.append(p_str);
                 str.append(" (").append(getActionString(i)).append(")");
             }
             str.append(']');
@@ -4583,7 +4596,7 @@ class ChanceState implements State {
             }
             return node.state;
         }
-        double x = 0.35;
+        double x = 0.5;
         if (useProgressiveWidening && Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2) {
             x = level > 0 ? Math.max(x - level * 0.05, 0.15) : x;
         }
@@ -4681,7 +4694,7 @@ class ChanceState implements State {
             return node.state;
         }
 
-        double x = 0.35;
+        double x = 0.5;
         if (useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, x))) {
             if (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
                 node = otherCache.get(state);

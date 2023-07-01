@@ -39,11 +39,11 @@ KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
 KAGGLE_DATASET_NAME = 'dataset'
 
 if NUMBER_OF_THREADS_TRAINING > 0:
-    tf.config.threading.set_intra_op_parallelism_threads(1)
-    tf.config.threading.set_inter_op_parallelism_threads(1)
-    os.environ["OMP_NUM_THREADS"] = f"1"
-    os.environ['TF_NUM_INTEROP_THREADS'] = f"1"
-    os.environ['TF_NUM_INTRAOP_THREADS'] = f"1"
+    tf.config.threading.set_intra_op_parallelism_threads(NUMBER_OF_THREADS_TRAINING)
+    tf.config.threading.set_inter_op_parallelism_threads(NUMBER_OF_THREADS_TRAINING)
+    os.environ["OMP_NUM_THREADS"] = f"{NUMBER_OF_THREADS_TRAINING}"
+    os.environ['TF_NUM_INTEROP_THREADS'] = f"{NUMBER_OF_THREADS_TRAINING}"
+    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{NUMBER_OF_THREADS_TRAINING}"
 
 
 def convertToOnnx(model, input_len, output_dir):

@@ -1923,41 +1923,6 @@ public class TestStates {
         return new GameState(builder);
     }
 
-    public static GameState TestStateStreamerRun5() {
-        var builder = new GameStateBuilder();
-        builder.setCharacter(CharacterEnum.SILENT);
-        builder.addCard(new Card.Defend(), 5);
-        builder.addCard(new Card.Strike(), 5);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new CardSilent.Survivor(), 1);
-        builder.addCard(new CardSilent.Neutralize(), 1);
-        builder.addCard(new CardColorless.Panacea(), 1);
-        builder.addCard(new CardSilent.MasterfulStab(4), 1);
-        builder.addCard(new CardSilent.Backstab(), 1);
-        builder.addCard(new CardSilent.DeadlyPoisonP(), 1);
-        builder.addCard(new CardSilent.PiercingWail(), 2);
-        builder.addCard(new CardSilent.SneakyStrike(), 1);
-        builder.addCard(new CardSilent.SneakyStrikeP(), 1);
-        builder.addCard(new CardSilent.AfterImage(), 1);
-        builder.addCard(new CardSilent.SkewerP(), 1);
-        builder.addCard(new CardSilent.Malaise(), 1);
-        builder.addCard(new CardSilent.DashP(), 1);
-        builder.addCard(new CardColorless.SecretTechnique(), 1);
-        builder.addCard(new CardColorless.Apparition(), 2);
-        builder.addCard(new CardColorless.ApparitionP(), 1);
-        builder.setPlayer(new Player(35, 35));
-        builder.addRelic(new Relic.RingOfSerpent());
-        builder.addRelic(new Relic.HappyFlower(2, 1));
-        builder.addRelic(new Relic.CentennialPuzzle());
-        builder.addRelic(new Relic.ArtOfWar());
-        builder.addRelic(new Relic.CoffeeDripper());
-        builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(85));
-        builder.addPotion(new Potion.CunningPotion().setBasePenaltyRatio(85));
-        builder.setPotionsScenarios(3);
-        EnemyEncounter.addGremlinLeaderFight2(builder);
-        return new GameState(builder);
-    }
-
     public static GameState TestStateStreamerRun6() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);

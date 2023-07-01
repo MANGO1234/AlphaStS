@@ -392,6 +392,7 @@ public class ScenarioStats {
             if (state.prop.happyFlowerCounterIdx >= 0) {
                 System.out.println(indent + "Win/Loss Happy Flower: " + winByHappyFlower + "/" + lossByHappyFlower + " (" + winByHappyFlowerAmt / (double) winByHappyFlower + "/" + lossByHappyFlowerAmt / (double) lossByHappyFlower + "/" + (winByHappyFlowerAmt - lossByHappyFlowerAmt) / (double) (winByHappyFlower + lossByHappyFlower) + ")");
             }
+            ds.clear();
             winDmgs.forEach(ds::addValue);
             var winDmgMean = ds.getMean();
             var winDmgVariance = ds.getVariance();

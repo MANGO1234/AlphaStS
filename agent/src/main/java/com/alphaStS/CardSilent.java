@@ -539,8 +539,34 @@ public class CardSilent {
                 state.draw(n);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
-                state.discardCardFromHand(idx);
-                return GameActionCtx.PLAY_CARD;
+                if (n >= 2) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                        state.discardCardFromHand(idx);
+                        return GameActionCtx.PLAY_CARD;
+                    } else {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                        state.discardCardFromHand(idx);
+                        return GameActionCtx.SELECT_CARD_HAND;
+                    }
+                } else {
+                    state.discardCardFromHand(idx);
+                    return GameActionCtx.PLAY_CARD;
+                }
+            }
+        }
+
+        public void startOfGameSetup(GameState state) {
+            if (n >= 2) {
+                state.prop.registerCounter("Prepared", this, new GameProperties.NetworkInputHandler() {
+                    @Override public int addToInput(GameState state, float[] input, int idx) {
+                        input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                        return idx + 1;
+                    }
+                    @Override public int getInputLenDelta() {
+                        return 1;
+                    }
+                });
             }
         }
     }
@@ -2611,7 +2637,9 @@ public class CardSilent {
             });
             state.prop.addEndOfTurnHandler("WraithForm", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, state.getCounterForRead()[counterIdx]);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY, state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }
@@ -2624,13 +2652,13 @@ public class CardSilent {
 
     public static class WraithForm extends _WraithFormT {
         public WraithForm() {
-            super("WraithForm", Card.POWER, 3, 2);
+            super("Wraith Form", Card.POWER, 3, 2);
         }
     }
 
     public static class WraithFormP extends _WraithFormT {
         public WraithFormP() {
-            super("WraithForm+", Card.POWER, 3, 3);
+            super("Wraith Form+", Card.POWER, 3, 3);
         }
     }
 }

@@ -9,7 +9,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -376,7 +375,7 @@ public class InteractiveMode {
         return history.stream().filter((l) ->
                 !l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.equals("save") && !l.equals("load")
                         && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnc ") && !l.startsWith("nnn ") && !l.startsWith("nnv ")
-                        && !l.startsWith("cmpSet ") && !l.startsWith("cmp ") && !l.startsWith("save ") && !l.startsWith("load ")
+                        && !l.startsWith("cmp ") && !l.startsWith("save ") && !l.startsWith("load ")
         ).collect(Collectors.toList());
     }
 
@@ -425,23 +424,10 @@ public class InteractiveMode {
                     e.printStackTrace();
                 }
             } else if (line.startsWith("analyze ")) {
-                String[] args = line.split(" ");
-                int numberOfGames = 100;
-                int numberOfThreads = 2;
-                int nodeCount = 500;
-                if (args.length > 1) {
-                    for (int i = 1; i < args.length; i++) {
-                        if (args[i].startsWith("c=")) {
-                            numberOfGames = parseInt(args[i].substring(2), 0);
-                        }
-                        if (args[i].startsWith("t=")) {
-                            numberOfThreads = parseInt(args[i].substring(2), 2);
-                        }
-                        if (args[i].startsWith("n=")) {
-                            nodeCount = parseInt(args[i].substring(2), 500);
-                        }
-                    }
-                }
+                List<String> args = Arrays.asList(line.split(" "));
+                int numberOfGames = parseArgsInt(args, "c", 100);
+                int numberOfThreads = parseArgsInt(args, "t", 2);
+                int nodeCount = parseArgsInt(args, "n", 500);
 
                 var statsArr = new ArrayList<ScenarioStats>();
                 List<MatchSession.Game> curGames = new ArrayList<>();
@@ -462,7 +448,7 @@ public class InteractiveMode {
 
                 for (int i = 0; i < game.size(); i++) {
                     out.format("\n%-6s%-20s%-20s%-20s", "Index", "Q", "Death Percentage", "Average Damage");
-                    for (int j = 0; j < statsArr.get(0).potionsUsed.length; j++) {
+                    for (int j = 0; j < statsArr.get(0).potionsUsedAgg.length; j++) {
                         String potionName = state.prop.potions.get(j).toString();
                         out.format("%-20s", potionName);
                     }
@@ -472,8 +458,8 @@ public class InteractiveMode {
                     double avgDamage = (double) stats.totalDamageTaken / stats.numOfGames;
                     double avgQ = stats.finalQComb / stats.numOfGames;
                     out.format("%-6d%-20.3f%-20.3f%-20.3f", i, avgQ, deathPercentage, avgDamage);
-                    for (int j = 0; j < stats.potionsUsed.length; j++) {
-                        double potionPercentage = (double) stats.potionsUsed[j] / (stats.numOfGames - stats.deathCount) * 100;
+                    for (int j = 0; j < stats.potionsUsedAgg.length; j++) {
+                        double potionPercentage = (double) stats.potionsUsedAgg[j] / (stats.numOfGames - stats.deathCount) * 100;
                         out.format("%-20.3f", potionPercentage);
                     }
                     out.println();
@@ -490,7 +476,7 @@ public class InteractiveMode {
                 }
 
                 out.format("\n%-6s%-20s%-20s%-20s", "Index", "Q", "Death Percentage", "Average Damage");
-                for (int i = 0; i < statsArr.get(0).potionsUsed.length; i++) {
+                for (int i = 0; i < statsArr.get(0).potionsUsedAgg.length; i++) {
                     String potionName = state.prop.potions.get(i).toString();
                     out.format("%-20s", potionName);
                 }
@@ -502,8 +488,8 @@ public class InteractiveMode {
                     double avgDamage = (double) stats.totalDamageTaken / stats.numOfGames;
                     double avgQ = stats.finalQComb / stats.numOfGames;
                     out.format("%-6d%-20.3f%-20.3f%-20.3f", i, avgQ, deathPercentage, avgDamage);
-                    for (int j = 0; j < stats.potionsUsed.length; j++) {
-                        double potionPercentage = (double) stats.potionsUsed[j] / (stats.numOfGames - stats.deathCount) * 100;
+                    for (int j = 0; j < stats.potionsUsedAgg.length; j++) {
+                        double potionPercentage = (double) stats.potionsUsedAgg[j] / (stats.numOfGames - stats.deathCount) * 100;
                         out.format("%-20.3f", potionPercentage);
                     }
                     out.println();
@@ -513,9 +499,9 @@ public class InteractiveMode {
                 out.format("python.exe ./plot.py -a \"Q\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (s.finalQComb / s.numOfGames))).collect(Collectors.joining(", ")));
                 out.format(" \"Death Percentage\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (double) s.deathCount / s.numOfGames * 100)).collect(Collectors.joining(", ")));
                 out.format(" \"Average Damage\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (double) s.totalDamageTaken / s.numOfGames)).collect(Collectors.joining(", ")));
-                for (int i = 0; i < statsArr.get(0).potionsUsed.length; i++) {
+                for (int i = 0; i < statsArr.get(0).potionsUsedAgg.length; i++) {
                     final int ii = i;
-                    out.format(" \"%s\" \"[%s]\"", state.prop.potions.get(i), statsArr.stream().map(s -> String.format("%.3f", (double) s.potionsUsed[ii] / (s.numOfGames - s.deathCount))).collect(Collectors.joining(", ")));
+                    out.format(" \"%s\" \"[%s]\"", state.prop.potions.get(i), statsArr.stream().map(s -> String.format("%.3f", (double) s.potionsUsedAgg[ii] / (s.numOfGames - s.deathCount))).collect(Collectors.joining(", ")));
                 }
                 out.println();
             } else if (line.startsWith("check ")) {
@@ -747,6 +733,9 @@ public class InteractiveMode {
         }
         if (state.getPlayeForRead().getFrail() > 0) {
             out.println("  Frail: " + state.getPlayeForRead().getFrail());
+        }
+        if (state.getPlayeForRead().getArtifact() > 0) {
+            out.println("  Artifact: " + state.getPlayeForRead().getArtifact());
         }
         if (state.buffs != 0) {
             out.println("  Buffs:");
@@ -1345,52 +1334,30 @@ public class InteractiveMode {
     }
 
     private void runGames(String modelDir, GameState state, String line) {
-        String[] s = line.split(" ");
-        int numberOfGames = 100;
-        int numberOfThreads = 2;
-        int nodeCount = 500;
-        int startingAction = -1;
-        int randomizationScenario = -1;
-        boolean printDamageDistribution = false;
-        if (s.length > 1) {
-            for (int i = 1; i < s.length; i++) {
-                if (s[i].startsWith("c=")) {
-                    numberOfGames = parseInt(s[i].substring(2), 0);
-                }
-                if (s[i].startsWith("t=")) {
-                    numberOfThreads = parseInt(s[i].substring(2), 2);
-                }
-                if (s[i].startsWith("n=")) {
-                    nodeCount = parseInt(s[i].substring(2), 500);
-                }
-                if (s[i].startsWith("r=")) {
-                    randomizationScenario = parseInt(s[i].substring(2), -1);
-                }
-                if (s[i].equals("dmg")) {
-                    printDamageDistribution = true;
-                }
-                if (s[i].startsWith("a=")) {
-                    if (s[i].substring(2).equals("e")) {
-                        startingAction = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
-                    } else {
-                        startingAction = parseInt(s[i].substring(2), -1);
-                    }
-                    if (startingAction < 0 || startingAction >= state.getLegalActions().length) {
-                        out.println("Unknown action.");
-                        numberOfGames = 0;
-                    }
-                }
-            }
+        List<String> args = Arrays.asList(line.split(" "));
+        int nodeCount = parseArgsInt(args, "n", 500);
+        int numberOfThreads = parseArgsInt(args, "t", 1);
+        int numberOfGames = parseArgsInt(args, "c", 100);
+        int randomizationScenario = parseArgsInt(args, "r", -1);
+        boolean printDamageDistribution = parseArgsBoolean(args, "dmg");
+        boolean writeFile = parseArgsBoolean(args, "write");
+        int startingAction = parseArgsInt(args, "a", -1);
+        if (startingAction >= state.getLegalActions().length) {
+            out.println("Unknown action.");
+            numberOfGames = 0;
         }
         MatchSession session = new MatchSession(numberOfThreads, modelDir);
         session.startingAction = startingAction;
-        session.setMatchLogFile("matches_interactive.txt.gz");
+        if (writeFile) {
+            session.setMatchLogFile("matches_interactive.txt.gz");
+        }
         var prevRandomization = state.prop.randomization;
         if (randomizationScenario >= 0) {
             state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);
         }
         try {
             session.playGames(state, numberOfGames, nodeCount, true, printDamageDistribution, false);
+            session.flushAndCloseFileWriters();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -1431,27 +1398,11 @@ public class InteractiveMode {
     }
 
     private void runGamesCmp(BufferedReader reader, String modelDir, String line) throws IOException {
-        String[] s = line.split(" ");
-        int numberOfGames = 100;
-        int numberOfThreads = 2;
-        int nodeCount = 500;
-        int randomizationScenario = -1;
-        if (s.length > 1) {
-            for (int i = 1; i < s.length; i++) {
-                if (s[i].startsWith("c=")) {
-                    numberOfGames = parseInt(s[i].substring(2), 0);
-                }
-                if (s[i].startsWith("t=")) {
-                    numberOfThreads = parseInt(s[i].substring(2), 2);
-                }
-                if (s[i].startsWith("n=")) {
-                    nodeCount = parseInt(s[i].substring(2), 500);
-                }
-                if (s[i].startsWith("r=")) {
-                    randomizationScenario = parseInt(s[i].substring(2), -1);
-                }
-            }
-        }
+        List<String> args = Arrays.asList(line.split(" "));
+        int nodeCount = parseArgsInt(args, "n", 500);
+        int numberOfThreads = parseArgsInt(args, "t", 1);
+        int numberOfGames = parseArgsInt(args, "c", 100);
+        int randomizationScenario = parseArgsInt(args, "r", -1);
         MatchSession session = new MatchSession(numberOfThreads, modelDir, modelDir);
         session.startingAction = startingAction1;
         session.origStateCmp = state2;
@@ -1768,11 +1719,11 @@ public class InteractiveMode {
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
-                System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
+                if (printPV) out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
                 return new Tuple<>(s, action);
             } else if (ns instanceof GameState ns2) {
                 if (ns2.isTerminal() != 0) {
-                    System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
+                    if (printPV) out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
                     return new Tuple<>(s, action);
                 } else {
                     if (clear) {

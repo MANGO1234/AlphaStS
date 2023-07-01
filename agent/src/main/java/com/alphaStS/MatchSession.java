@@ -16,6 +16,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -151,6 +152,77 @@ public class MatchSession {
                     steps.get(steps.size() - 1).state().clearNextStates();
                 }
                 state.clearAllSearchInfo();
+            }
+        } else if (false) {
+            nodeCount /= 5;
+            while (state.isTerminal() == 0) {
+                HashMap<GameStep, List<GameStep>> endStateSteps = new HashMap<>();
+                HashMap<GameStep, Integer> endStateCount = new HashMap<>();
+                for (int c = 0; c < 5; c++) {
+                    var tempSteps = new ArrayList<GameStep>();
+                    var cloneState = state.clone(false);
+                    while (true) {
+                        int upto = nodeCount - (cloneState.total_n + (cloneState.policy == null ? 0 : 1));
+                        for (int i = 0; i < upto; i++) {
+                            mcts.search(cloneState, false, upto - i);
+                            if (mcts.numberOfPossibleActions == 1 && cloneState.total_n > 0) {
+                                break;
+                            }
+                        }
+
+                        int action = MCTS.getActionWithMaxNodesOrTerminal(cloneState, null);
+                        tempSteps.add(new GameStep(cloneState, action));
+
+                        cloneState.prop.makingRealMove = true;
+                        if (cloneState.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                            cloneState = cloneState.clone(false);
+                            r = cloneState.doAction(0);
+                        } else if (cloneState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                            cloneState = cloneState.clone(false);
+                            preBattle_r = cloneState.doAction(0);
+                        } else {
+                            if (nodeCount == 1) {
+                                cloneState = cloneState.clone(false);
+                                cloneState.doAction(action);
+                                if (cloneState.actionCtx == GameActionCtx.BEGIN_TURN) {
+                                    cloneState.doAction(0);
+                                }
+                            } else {
+                                cloneState = getNextState(cloneState, mcts, action, tempSteps.get(tempSteps.size() - 1), false);
+                            }
+                        }
+
+                        if (cloneState.isTerminal() != 0 || cloneState.isStochastic) {
+                            break;
+                        }
+                    }
+
+                    endStateSteps.put(tempSteps.get(tempSteps.size() - 1), tempSteps);
+                    endStateCount.put(tempSteps.get(tempSteps.size() - 1), endStateCount.getOrDefault(tempSteps.get(tempSteps.size() - 1), 0) + 1);
+                }
+
+                // get game step with max count
+                var mostFrequentPV = endStateCount.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
+                var mostFrequentPVSteps = endStateSteps.get(mostFrequentPV);
+                steps.addAll(mostFrequentPVSteps);
+                var lastStep = mostFrequentPVSteps.get(mostFrequentPVSteps.size() - 1);
+                if (lastStep.state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                    state = lastStep.state().clone(false);
+                    r = state.doAction(0);
+                } else if (lastStep.state().actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                    state = lastStep.state().clone(false);
+                    preBattle_r = state.doAction(0);
+                } else {
+                    if (nodeCount == 1) {
+                        state = lastStep.state().clone(false);
+                        state.doAction(lastStep.action());
+                        if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
+                            state.doAction(0);
+                        }
+                    } else {
+                        state = getNextState(lastStep.state(), mcts, lastStep.action(), steps.get(steps.size() - 1), false);
+                    }
+                }
             }
         } else {
             state.doEval(mcts.model);

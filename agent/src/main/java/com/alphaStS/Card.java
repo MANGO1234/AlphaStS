@@ -3120,7 +3120,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public static class Slime extends Card {
         public Slime() {
-            super("Slime", Card.STATUS, 1, Card.COMMON);
+            super("Slimed", Card.STATUS, 1, Card.COMMON);
             exhaustWhenPlayed = true;
         }
     }
