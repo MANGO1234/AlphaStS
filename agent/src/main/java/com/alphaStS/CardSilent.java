@@ -2606,7 +2606,53 @@ public class CardSilent {
         }
     }
 
-    // Tools of the Trade
+    private static abstract class _ToolsOfTheTradeT extends Card {
+        public _ToolsOfTheTradeT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.selectFromHand = true;
+            this.selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getCounterForWrite()[counterIdx]++;
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                state.discardCardFromHand(idx);
+                state.getCounterForWrite()[counterIdx] -= 1 << 16;
+                return state.getCounterForRead()[counterIdx] < (1 << 16) ? GameActionCtx.PLAY_CARD : GameActionCtx.SELECT_CARD_HAND;
+            }
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("ToolsOfTheTrade", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] & 0xffff;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx] >> 16;
+                    return idx + 2;
+                }
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+                @Override public void onRegister() {
+                    state.prop.toolsOfTheTradeCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class ToolsOfTheTrade extends _ToolsOfTheTradeT {
+        public ToolsOfTheTrade() {
+            super("Tools Of The Trade", Card.POWER, 1);
+        }
+    }
+
+    public static class ToolsOfTheTradeP extends _ToolsOfTheTradeT {
+        public ToolsOfTheTradeP() {
+            super("Tools Of The Trade+", Card.POWER, 0);
+        }
+    }
+
     // Unload
 
     private static abstract class _WraithFormT extends Card {

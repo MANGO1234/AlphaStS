@@ -1607,7 +1607,7 @@ public class EnemyCity {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
-            return prop.generateSneckoCards(cards);
+            return GameProperties.generateSneckoCards(cards);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {

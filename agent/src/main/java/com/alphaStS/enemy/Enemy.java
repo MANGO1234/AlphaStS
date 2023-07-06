@@ -125,7 +125,8 @@ public abstract class Enemy extends EnemyReadOnly {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
-        if (turnNum > 1 && metallicize > 0) {
+//        if (turnNum > 1 && metallicize > 0) { // todo: burning elite
+        if (metallicize > 0) {
             gainBlock(metallicize);
         }
         if (platedArmor > 0) {

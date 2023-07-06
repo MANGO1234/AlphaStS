@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.Tuple;
 
@@ -758,6 +759,29 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Focus Potion";
+        }
+    }
+
+    public static class SmokeBomb extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            boolean gameEnd = false;
+            for (EnemyReadOnly enemyReadOnly : state.getEnemiesForRead()) {
+                if (!enemyReadOnly.isAlive()) {
+                    gameEnd = true;
+                }
+            }
+            if (gameEnd) {
+                for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
+                    if (state.getEnemiesForWrite().get(i).isAlive()) {
+                        state.killEnemy(i, false);
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Smoke Bomb";
         }
     }
 }

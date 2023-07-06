@@ -550,6 +550,8 @@ public final class GameState implements State {
                 prop.echoFormPCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Well-Laid Plans") || cards.get(i).card().cardName.equals("Well-Laid Plans+")) {
                 prop.wellLaidPlansCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Tools Of The Trade") || cards.get(i).card().cardName.equals("Tools Of The Trade+")) {
+                prop.toolsOfTheTradeCardIdx = i;
             }
         }
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
@@ -1429,15 +1431,29 @@ public final class GameState implements State {
                 }
             }
         }
+        var drawCount = 5;
         if (prop.drawReductionCounterIdx >= 0 && getCounterForRead()[prop.drawReductionCounterIdx] > 0) {
-            draw(4);
+            drawCount--;
             getCounterForWrite()[prop.drawReductionCounterIdx]--;
-        } else {
-            draw(5);
+        }
+        if (prop.toolsOfTheTradeCounterIdx >= 0) {
+            drawCount += getCounterForRead()[prop.toolsOfTheTradeCounterIdx];
+        }
+        if (prop.hasSneckoEye) {
+            drawCount += 2;
+        }
+        draw(drawCount);
+        if (prop.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[prop.toolsOfTheTradeCounterIdx] > 0) {
+            getCounterForWrite()[prop.toolsOfTheTradeCounterIdx] += getCounterForRead()[prop.toolsOfTheTradeCounterIdx] << 16;
+            var action = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][prop.toolsOfTheTradeCardIdx];
+            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+            return;
         }
         for (GameEventHandler handler : prop.startOfTurnHandlers) {
             handler.handle(this);
         }
+        setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+        runActionsInQueueIfNonEmpty();
     }
 
     private boolean isDiscardingCardEndOfTurn() {
@@ -1646,8 +1662,6 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             if (isTerminal() == 0) {
                 beginTurn();
-                setActionCtx(GameActionCtx.PLAY_CARD, null, false);
-                runActionsInQueueIfNonEmpty();
             }
         } else if (action.type() == GameActionType.END_SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.USE_POTION) {
@@ -2317,7 +2331,16 @@ public final class GameState implements State {
                 int count = 1;
                 if (!(prop.timeEaterCounterIdx >= 0 && counter[prop.timeEaterCounterIdx] >= 12)) {
                     for (int i = 0; i < prop.potions.size(); i++) {
-                        if (potionsState[i * 3] == 1 && !(prop.potions.get(i) instanceof Potion.FairyInABottle)) {
+                        if (potionsState[i * 3] == 1 && prop.potions.get(i) instanceof Potion.SmokeBomb) {
+                            boolean gameEnd = false;
+                            for (EnemyReadOnly enemyReadOnly : getEnemiesForRead()) {
+                                if (!enemyReadOnly.isAlive()) {
+                                    gameEnd = true;
+                                }
+                            }
+                            legal[prop.cardDict.length + i] = gameEnd;
+                            count++;
+                        } else if (potionsState[i * 3] == 1 && !(prop.potions.get(i) instanceof Potion.FairyInABottle)) {
                             legal[prop.cardDict.length + i] = true;
                             count++;
                         }
@@ -2380,7 +2403,7 @@ public final class GameState implements State {
                         }
                     }
                     if (currentAction.idx() == prop.wellLaidPlansCardIdx) {
-                        legalActions[j++] = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
+                        legalActions[j] = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
                     }
                     Arrays.sort(legalActions);
                 } else if (currentAction.type() == GameActionType.USE_POTION) {
@@ -2400,7 +2423,7 @@ public final class GameState implements State {
                             seen[handArr[i]] = false;
                         }
                     }
-                    legalActions[j++] = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
+                    legalActions[j] = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
                     Arrays.sort(legalActions);
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {

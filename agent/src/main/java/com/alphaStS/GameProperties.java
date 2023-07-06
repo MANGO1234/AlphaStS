@@ -75,6 +75,7 @@ public class GameProperties implements Cloneable {
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
+    public int toolsOfTheTradeCardIdx = -1;
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodTransformIndexes;
     public int[] bloodForBloodPIndexes;
@@ -125,6 +126,7 @@ public class GameProperties implements Cloneable {
     public int geneticAlgorithmCounterIdx = -1;
     public int bufferCounterIdx = -1;
     public int loopCounterIdx = -1;
+    public int toolsOfTheTradeCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -147,6 +149,7 @@ public class GameProperties implements Cloneable {
     public boolean hasBurningBlood;
     public boolean hasPaperCrane;
     public boolean hasSneckoSkull;
+    public boolean hasSneckoEye;
     public boolean hasTingsha;
     public boolean hasToughBandages;
     public boolean hasGoldPlatedCable;
@@ -392,7 +395,7 @@ public class GameProperties implements Cloneable {
         });
     }
 
-    public List<Card> generateSneckoCards(List<Card> cards) {
+    public static List<Card> generateSneckoCards(List<Card> cards) {
         var newCards = new ArrayList<Card>();
         cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost)).forEach((x) -> {
             for (int i = 0; i < 4; i++) {

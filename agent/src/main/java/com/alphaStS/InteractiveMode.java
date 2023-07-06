@@ -47,9 +47,11 @@ public class InteractiveMode {
         try {
             interactiveStartH(origState, saveDir, modelDir, history);
         } catch (Exception e) {
-            writer = new BufferedWriter(new FileWriter(saveDir + "/session-crash.txt"));
-            writer.write(String.join("\n", filterHistory(history)) + "\n");
-            writer.close();
+            if (new File(saveDir).exists()) {
+                writer = new BufferedWriter(new FileWriter(saveDir + "/session-crash.txt"));
+                writer.write(String.join("\n", filterHistory(history)) + "\n");
+                writer.close();
+            }
             throw e;
         }
     }
@@ -1204,10 +1206,11 @@ public class InteractiveMode {
     }
 
     int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.prop.cardDict.length);
         int cardCount = 0;
-        for (int i = 0; i < state.handArrLen; i++) {
-            if (!state.prop.cardDict[state.getHandArrForRead()[i]].isXCost && state.prop.cardDict[state.getHandArrForRead()[i]].energyCost > 0) {
-                out.println(cardCount + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
+        for (int i = 0; i < hand.length; i++) {
+            if (!state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0 && hand[i] > 0) {
+                out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
                 cardCount++;
             }
         }
@@ -1217,7 +1220,15 @@ public class InteractiveMode {
             history.add(line);
             int r = parseInt(line, -1);
             if (r >= 0 && r < cardCount) {
-                return r;
+                int acc = 0;
+                int k = 0;
+                for (int i = 0; i < hand.length && k <= r; i++) {
+                    if (!state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0 && hand[i] > 0) {
+                        acc += hand[i];
+                        k++;
+                    }
+                }
+                return acc - 1;
             }
             out.println("Unknown Command");
         }

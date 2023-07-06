@@ -2,7 +2,6 @@ package com.alphaStS.utils;
 
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateRandomization;
-import com.alphaStS.GameStateUtils;
 import com.alphaStS.GameStep;
 import com.alphaStS.MatchSession.GameResult;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
@@ -14,7 +13,6 @@ public class ScenarioStats {
     public int numOfGames;
     public int deathCount;
     public int totalDamageTaken;
-    public int totalDamageTakenNoDeath;
     public int[] potionsUsed;
     public int[] potionsUsedAgg;
     public int daggerKilledEnemy;
@@ -23,6 +21,7 @@ public class ScenarioStats {
     public int nunchakuCounter;
     public int happyFlowerCounter;
     public Map<Integer, Integer> damageCount;
+    public Map<Integer, Integer> damageCountNoDeath;
     public double finalQComb;
     public long modelCalls;
     public long totalTurns;
@@ -62,6 +61,7 @@ public class ScenarioStats {
             total.potionsUsed = new int[stats[0].potionsUsed.length];
             total.potionsUsedAgg = new int[stats[0].potionsUsedAgg.length];
             total.damageCount = new HashMap<>();
+            total.damageCountNoDeath = new HashMap<>();
         }
         for (ScenarioStats stat : stats) {
             total.add(stat, null);
@@ -72,6 +72,7 @@ public class ScenarioStats {
     public void add(ScenarioStats stat, GameState state) {
         if (damageCount == null) {
             damageCount = new HashMap<>();
+            damageCountNoDeath = new HashMap<>();
             potionsUsed = new int[1 << state.prop.potions.size()];
             potionsUsedAgg = new int[state.prop.potions.size()];
         }
@@ -80,7 +81,6 @@ public class ScenarioStats {
         numberOfSamples += stat.numberOfSamples;
         deathCount += stat.deathCount;
         totalDamageTaken += stat.totalDamageTaken;
-        totalDamageTakenNoDeath += stat.totalDamageTakenNoDeath;
         for (int j = 0; j < potionsUsed.length; j++) {
             potionsUsed[j] += stat.potionsUsed[j];
         }
@@ -95,6 +95,10 @@ public class ScenarioStats {
         for (var dmg : stat.damageCount.keySet()) {
             damageCount.putIfAbsent(dmg, 0);
             damageCount.computeIfPresent(dmg, (k, v) -> v + stat.damageCount.get(dmg));
+        }
+        for (var dmg : stat.damageCountNoDeath.keySet()) {
+            damageCountNoDeath.putIfAbsent(dmg, 0);
+            damageCountNoDeath.computeIfPresent(dmg, (k, v) -> v + stat.damageCountNoDeath.get(dmg));
         }
         finalQComb += stat.finalQComb;
         modelCalls += stat.modelCalls;
@@ -143,6 +147,7 @@ public class ScenarioStats {
         totalTurnsInWins += (state.isTerminal() == 1 ? state.turnNum : 0);
         if (damageCount == null) {
             damageCount = new HashMap<>();
+            damageCountNoDeath = new HashMap<>();
             potionsUsed = new int[1 << state.prop.potions.size()];
             potionsUsedAgg = new int[state.prop.potions.size()];
         }
@@ -150,9 +155,12 @@ public class ScenarioStats {
         numOfGames++;
         deathCount += (state.isTerminal() == -1 ? 1 : 0);
         totalDamageTaken += damageTaken;
-        totalDamageTakenNoDeath += state.isTerminal() == 1 ? damageTaken : 0;
         damageCount.putIfAbsent(damageTaken, 0);
         damageCount.computeIfPresent(damageTaken, (k, v) -> v + 1);
+        if (state.isTerminal() == 1) {
+            damageCountNoDeath.putIfAbsent(damageTaken, 0);
+            damageCountNoDeath.computeIfPresent(damageTaken, (k, v) -> v + 1);
+        }
         if (state.isTerminal() > 0) {
             finalQComb += state.get_q();
             int idx = 0;
@@ -336,7 +344,17 @@ public class ScenarioStats {
         var dmgUpperBound = dmgMean + 1.98 * Math.sqrt(dmgVariance / numOfGames);
         var dmgLowerBound = dmgMean - 1.98 * Math.sqrt(dmgVariance / numOfGames);
         System.out.printf(indent + "Avg Damage: %6.5f [%6.5f-%6.5f]\n", dmgMean, dmgLowerBound, dmgUpperBound);
-        System.out.println(indent + "Avg Damage (Not Including Deaths): " + ((double) totalDamageTakenNoDeath) / (numOfGames - deathCount));
+        ds.clear();
+        for (Map.Entry<Integer, Integer> dmgEntry : damageCountNoDeath.entrySet()) {
+            for (int i = 0; i < dmgEntry.getValue(); i++) {
+                ds.addValue(dmgEntry.getKey());
+            }
+        }
+        dmgMean = ds.getMean();
+        dmgVariance = ds.getVariance();
+        dmgUpperBound = dmgMean + 1.98 * Math.sqrt(dmgVariance / numOfGames);
+        dmgLowerBound = dmgMean - 1.98 * Math.sqrt(dmgVariance / numOfGames);
+        System.out.printf(indent + "Avg Damage (Not Including Deaths): %6.5f [%6.5f-%6.5f] (Min: %d, Max: %d, 25th Percentile: %6.5f, 75th Percentile: %6.5f, Variance: %6.5f)\n", dmgMean, dmgLowerBound, dmgUpperBound, (int) ds.getMin(), (int) ds.getMax(), ds.getPercentile(25), ds.getPercentile(75), ds.getVariance());
         if (potionsUsed != null && potionsUsed.length > 1) {
             System.out.println(indent + "Potion Usage Percentage (By Combo):");
             for (int i = 1; i < potionsUsed.length; i++) {

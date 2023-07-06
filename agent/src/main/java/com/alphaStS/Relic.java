@@ -5,6 +5,7 @@ import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.utils.Tuple;
 
 import java.util.List;
 import java.util.Objects;
@@ -1193,7 +1194,22 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Snecko Eye
+    public static class SneckoEye extends Relic {
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return GameProperties.generateSneckoCards(cards);
+        }
+
+        public void startOfGameSetup(GameState state) {
+            state.prop.setupSneckoIndexes();
+            state.prop.registerSneckoDebuffCounter();
+            state.prop.hasSneckoEye = true;
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getPlayerForWrite().applyDebuff(state, DebuffType.SNECKO, 1);
+                }
+            });
+        }
+    }
 
     public static class Sozu extends Relic {
         @Override public void startOfGameSetup(GameState state) {

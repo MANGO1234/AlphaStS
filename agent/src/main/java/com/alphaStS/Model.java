@@ -47,8 +47,8 @@ public class Model {
      */
     public static float[] softmax(float[] input) {
         double[] tmp = new double[input.length];
-        float max = Float.MIN_VALUE;
-        for (int i = 0; i < input.length; i++) {
+        float max = input[0];
+        for (int i = 1; i < input.length; i++) {
             max = Math.max(max, input[i]);
         }
         double sum = 0.0;
@@ -65,8 +65,8 @@ public class Model {
 
     public static void softmax(float[] input, int start, int len) {
         double[] tmp = new double[len];
-        double max = Float.MIN_VALUE;
-        for (int i = 0; i < len; i++) {
+        double max = input[0];
+        for (int i = 1; i < len; i++) {
             max = Math.max(max, input[start + i]);
         }
         double sum = 0.0;

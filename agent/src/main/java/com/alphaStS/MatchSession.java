@@ -477,7 +477,7 @@ public class MatchSession {
                             scenarioStats.get(i).printStats(origState, false , 4);
                         }
                     }
-                } else if (startingAction >= 0 && chanceNodeStats.size() > 1) {
+                } else if (startingAction >= 0 && chanceNodeStats.size() > 1 && chanceNodeStats.size() < 10) {
                     for (var stats : chanceNodeStats.entrySet()) {
                         System.out.println("Random Event: " + stats.getKey().getStateDesc());
                         stats.getValue().printStats(origState, false , 4);
