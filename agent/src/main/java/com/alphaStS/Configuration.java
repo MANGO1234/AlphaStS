@@ -4,6 +4,8 @@ public class Configuration {
     public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
 
     public static float TRAINING_PERCENTAGE_NO_TEMPERATURE = 0.2f;
+    public static boolean TRAINING_USE_FORCED_PLAYOUT = true;
+    public static boolean TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION = false;
     public static boolean CARD_IN_HAND_IN_NN_INPUT = true;
     public static boolean CARD_IN_DECK_IN_NN_INPUT = true;
 
@@ -37,8 +39,7 @@ public class Configuration {
     public static boolean TRAINING_POLICY_SURPRISE_WEIGHTING = false;
     public static boolean USE_FIGHT_PROGRESS_WHEN_LOSING = true;
     public static boolean USE_Z_TRAINING = false;
-    public static boolean TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS = false;
-    public static float DISCOUNT_REWARD_ON_RANDOM_NODE = 0.2f;
+    public static double DISCOUNT_REWARD_ON_RANDOM_NODE = 0.2;
 
     public static boolean TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = false;
     public static boolean TEST_TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = false;
@@ -52,5 +53,12 @@ public class Configuration {
 
     public static boolean isUseUtilityStdErrForPuctOn(GameState state) {
         return isTranspositionAlwaysExpandNewNodeOn(state) && USE_UTILITY_STD_ERR_FOR_PUCT && (!TEST_USE_UTILITY_STD_ERR_FOR_PUCT || state.prop.testNewFeature);
+    }
+
+    public static boolean USE_DMG_DISTRIBUTION = false;
+    public static boolean TEST_USE_DMG_DISTRIBUTION = false;
+
+    public static boolean isUseDmgDistributionOn(GameState state) {
+        return USE_DMG_DISTRIBUTION && (!TEST_USE_DMG_DISTRIBUTION || state.prop.testNewFeature);
     }
 }

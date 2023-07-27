@@ -10,7 +10,6 @@ import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
-import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 
 public class MCTS {
@@ -18,8 +17,8 @@ public class MCTS {
     public double[] exploredV;
     Model model;
     int numberOfPossibleActions;
-    private final double[] v = new double[20];
-    private final double[] realV = new double[20];
+    private final double[] v = new double[100];
+    private final double[] realV = new double[100];
     private final int[] ret = new int[2];
     private double terminal_v_win;
     public int forceRootAction = -1;
@@ -1170,7 +1169,7 @@ public class MCTS {
                 std_err = Math.sqrt(state.varianceS / state.total_n) / Math.sqrt(state.total_n + 1);
             }
             double u = state.total_n > 0 ? q + cpuct * policy[i] * (sqrt(state.total_n) / (1 + childN) + 5 * std_err): policy[i];
-            if (training && isRoot) {
+            if (Configuration.TRAINING_USE_FORCED_PLAYOUT && training && isRoot) {
                 var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
                 if (state.n[i] < force_n) {
                     if (!hasForcedMove) {
@@ -1222,7 +1221,75 @@ public class MCTS {
         return policy;
     }
 
+    public static int getActionRandomOrTerminalWithUncertainty(GameState state) {
+        if (state.terminal_action >= 0) {
+            return state.terminal_action;
+        }
+        var total_n = 0;
+        for (int i = 0; i < state.policy.length; i++) {
+            if (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0)) {
+                total_n += state.n[i];
+            }
+        }
+        boolean useAll = false;
+        if (total_n == 0) {
+            useAll = true;
+            total_n = state.total_n;
+        }
+        var minD = 100.0f;
+        for (int i = 0; i < state.policy.length; i++) {
+            if (useAll || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
+                var k1 = state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i];
+                var k2 = state.q[(i + 1) * state.prop.v_total_len + GameState.V_HEALTH_IDX] / state.n[i];
+                if (Math.abs((float) (k1)) + Math.abs((float) (k2)) < minD) {
+                    minD = Math.min(Math.abs((float) (k1)) + Math.abs((float) (k2)), minD);
+                }
+            }
+        }
+        if (useAll) {
+            minD = 0.000001f;
+        }
+        var p = new float[state.n.length];
+        for (int i = 0; i < state.policy.length; i++) {
+            if (useAll || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
+                double ratio = 1.0;
+                if (state.n[i] > 0) {
+                    var k1 = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i] : 0;
+                    var k2 = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_HEALTH_IDX] / state.n[i] : 0;
+                    var kk = (Math.abs((float) (k1)) + Math.abs((float) (k2)) / minD);
+                    if (kk != 0) {
+                        ratio = kk;
+                    }
+                }
+                p[i] = state.n[i] / (float) total_n / (float) ratio;
+            }
+        }
+
+        var total_p = 0.0;
+        for (int i = 0; i < p.length; i++) {
+            total_p += p[i];
+        }
+        for (int i = 0; i < p.length; i++) {
+            p[i] = (float) (p[i] / total_p);
+        }
+
+        double r = state.prop.random.nextDouble(RandomGenCtx.Other);
+        int action = -1;
+        double acc = 0.0;
+        for (int i = 0; i < p.length; i++) {
+            acc += p[i];
+            if (acc > r) {
+                action = i;
+                break;
+            }
+        }
+        return action;
+    }
+
     public static int getActionRandomOrTerminal(GameState state) {
+        if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
+            return getActionRandomOrTerminalWithUncertainty(state);
+        }
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }

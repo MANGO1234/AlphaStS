@@ -946,7 +946,36 @@ public class CardDefect {
     }
 
     // Bullseye
-    // Capacitor
+
+    private static abstract class _CapacitorT extends Card {
+        private final int n;
+
+        public _CapacitorT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainOrbSlot(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public void startOfGameSetup(GameState state) {
+            state.prop.maxNumOfOrbs = Math.min(state.prop.maxNumOfOrbs + n, 10);
+        }
+    }
+
+    public static class Capacitor extends CardDefect._CapacitorT {
+        public Capacitor() {
+            super("Capacitor", 2);
+        }
+    }
+
+    public static class CapacitorP extends CardDefect._CapacitorT {
+        public CapacitorP() {
+            super("Capacitor+", 3);
+        }
+    }
 
     private static abstract class _ChaosT extends Card {
         private final int n;

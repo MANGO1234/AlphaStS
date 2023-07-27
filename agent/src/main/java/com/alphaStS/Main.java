@@ -213,6 +213,7 @@ public class Main {
                 session.setMatchLogFile("matches.txt.gz");
             }
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, false, false);
+//             session.playGamesForStat(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN);
         }
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
             state.prop.preBattleScenarios = preBattleScenarios;

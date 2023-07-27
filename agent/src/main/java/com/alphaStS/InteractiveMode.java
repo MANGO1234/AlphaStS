@@ -4,6 +4,7 @@ import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Utils;
 
 import java.io.*;
 import java.util.*;
@@ -1665,6 +1666,16 @@ public class InteractiveMode {
                 threadMCTS.get(i).forceRootAction = -1;
             }
             state.setMultithreaded(false);
+        }
+        if (state.prop.dmgDistVIdx >= 0) {
+            System.out.println("Damage Distribution:");
+            for (int i = 0; i <= state.getMaxPossibleHealth(); i++) {
+                System.out.println(i + ": " + Utils.formatFloat(state.q[state.prop.dmgDistVIdx + i] / ((double) state.total_n + 1)));
+            }
+        }
+        if (state.prop.qwinVIdx >= 0) {
+            System.out.println("Q-Win: " + state.q[state.prop.qwinVIdx] / (state.total_n + 1));
+            System.out.println("Q-Health: " + state.q[state.prop.qwinVIdx + 1] / (state.total_n + 1));
         }
         System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
         out.println(state);

@@ -155,8 +155,8 @@ else:
         else:
             loss[f'{v_other_label[idx]}_head'] = softmax_cross_entropy_with_logits_simple
             exp_other_heads.append(layers.Dense(v_other, name=f"{v_other_label[idx]}_head", use_bias=True, activation='linear')(x))
-            loss_weights[f'{v_other_label[idx]}_head'] = 0.25
-        idx += v_other
+            loss_weights[f'{v_other_label[idx]}_head'] = 0.45 if v_other_label[idx] == 'dmg_distribution' else 0.25
+        idx += 1
     model = keras.Model(inputs=[inputs], outputs=[exp_health_head, exp_win_head, policy_head] + exp_other_heads)
     model.compile(
         loss=loss,
@@ -185,7 +185,7 @@ def reset_model(model):
     for v_other in v_other_lens:
         layer = model.get_layer(f'{v_other_label[idx]}_head')
         init_layer(layer)
-        idx += v_other
+        idx += 1
     layer = model.get_layer('layer2')
     init_layer(layer)
 

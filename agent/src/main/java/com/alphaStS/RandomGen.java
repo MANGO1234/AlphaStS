@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public abstract class RandomGen {
     public abstract boolean nextBoolean(RandomGenCtx ctx);
     public abstract float nextFloat(RandomGenCtx ctx);
+    public abstract double nextDouble(RandomGenCtx ctx);
     public abstract int nextInt(int bound, RandomGenCtx ctx);
     public abstract int nextInt(int bound, RandomGenCtx ctx, Object arg);
     public abstract long nextLong(RandomGenCtx ctx);
@@ -72,6 +73,10 @@ public abstract class RandomGen {
 
         public float nextFloat(RandomGenCtx ctx) {
             return random.nextFloat();
+        }
+
+        public double nextDouble(RandomGenCtx ctx) {
+            return random.nextDouble();
         }
 
         public int nextInt(int bound, RandomGenCtx ctx) {
@@ -155,6 +160,10 @@ public abstract class RandomGen {
             return randoms.get(ctx.ordinal()).nextFloat(ctx);
         }
 
+        public double nextDouble(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).nextDouble(ctx);
+        }
+
         public int nextInt(int bound, RandomGenCtx ctx) {
             return randoms.get(ctx.ordinal()).nextInt(bound, ctx);
         }
@@ -201,6 +210,7 @@ public abstract class RandomGen {
         public final static int NEXT_FLOAT = 1;
         public final static int NEXT_INT = 2;
         public final static int NEXT_LONG = 3;
+        public final static int NEXT_DOUBLE = 1;
     }
 
     // after calling timeTravelToStart, will return the same result for the same sequence of next* calls as the original
@@ -245,6 +255,20 @@ public abstract class RandomGen {
             }
             float result = random.nextFloat();
             memory.add(new Arg(Arg.NEXT_FLOAT, 0, result));
+            return result;
+        }
+
+        public double nextDouble(RandomGenCtx ctx) {
+            currentIdx++;
+            if (currentIdx < memory.size()) {
+                if (memory.get(currentIdx).type == Arg.NEXT_DOUBLE) {
+                    return (Double) memory.get(currentIdx).result;
+                } else {
+                    memory.subList(currentIdx, memory.size()).clear();
+                }
+            }
+            double result = random.nextDouble();
+            memory.add(new Arg(Arg.NEXT_DOUBLE, 0, result));
             return result;
         }
 
@@ -331,6 +355,10 @@ public abstract class RandomGen {
 
         public float nextFloat(RandomGenCtx ctx) {
             return randoms.get(ctx.ordinal()).nextFloat(ctx);
+        }
+
+        public double nextDouble(RandomGenCtx ctx) {
+            return randoms.get(ctx.ordinal()).nextDouble(ctx);
         }
 
         public int nextInt(int bound, RandomGenCtx ctx) {

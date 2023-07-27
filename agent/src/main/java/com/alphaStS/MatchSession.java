@@ -756,7 +756,7 @@ public class MatchSession {
                                 rerunState.prop.realMoveRandomGen = randomGen;
                                 randomGen.useNewCommonNumberVR = true;
                                 prev = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits;
-                                var rerunGame1 = session.playGame(rerunState, 0, null, mcts.get(threadIdx), nodeCount);
+                                var rerunGame1 = session.playGame(rerunState, -1, null, mcts.get(threadIdx), nodeCount);
                                 var rerunModelCalls = mcts.get(threadIdx).model.calls - mcts.get(threadIdx).model.cache_hits - prev;
                                 Game rerunGame2 = null;
                                 var rerunModelCalls2 = 0;
@@ -767,7 +767,7 @@ public class MatchSession {
                                     rerunState2.prop = rerunState2.prop.clone();
                                     rerunState2.prop.realMoveRandomGen = randomGen;
                                     prev = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits;
-                                    rerunGame2 = session.playGame(rerunState2, 0, game1, mcts2.get(threadIdx), nodeCount);
+                                    rerunGame2 = session.playGame(rerunState2, -1, game1, mcts2.get(threadIdx), nodeCount);
                                     rerunModelCalls2 = mcts2.get(threadIdx).model.calls - mcts2.get(threadIdx).model.cache_hits - prev;
                                 }
                                 reruns.add(new GameResult(rerunGame1, rerunModelCalls, rerunGame2, rerunModelCalls2, 0, null, null,0, null, null));
@@ -1097,7 +1097,6 @@ public class MatchSession {
             vCur = calcExpectedValue((ChanceState) prevStep.state().ns[prevStep.action()], null, mcts, vCur);
             vPro = Arrays.copyOf(vCur, vCur.length);
         }
-        int turnNum = state.turnNum;
         double health = state.getPlayeForRead().getHealth() / (double) state.getPlayeForRead().getMaxHealth();
         int win = state.isTerminal() > 0 ? 1 : 0;
         ChanceState lastChanceState = null;
@@ -1133,9 +1132,11 @@ public class MatchSession {
                 }
             }
             steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
-            if (Configuration.TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS) {
-                steps.get(i).v[state.prop.qwinVIdx] = win;
-                steps.get(i).v[state.prop.qwinVIdx + 1] = health;
+            if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
+//                steps.get(i).v[state.prop.qwinVIdx] = win;
+//                steps.get(i).v[state.prop.qwinVIdx + 1] = health;
+                steps.get(i).v[state.prop.qwinVIdx] = steps.get(i).v[GameState.V_WIN_IDX] - (steps.get(i).state().q[GameState.V_WIN_IDX] / (steps.get(i).state().total_n + 1));
+                steps.get(i).v[state.prop.qwinVIdx + 1] = steps.get(i).v[GameState.V_HEALTH_IDX] - (steps.get(i).state().q[GameState.V_HEALTH_IDX] / (steps.get(i).state().total_n + 1));
             }
             state = steps.get(i).state();
             state.clearNextStates();
@@ -1344,7 +1345,9 @@ public class MatchSession {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " ***\n");
                     writeTrainingGameRecord(trainingDataWriter, origState, game, steps);
                 }
-                pruneForcedPlayouts(steps);
+                if (Configuration.TRAINING_USE_FORCED_PLAYOUT) {
+                    pruneForcedPlayouts(steps);
+                }
                 changeWritingCountBasedOnPolicySurprise(steps);
                 positionsCount += writeTrainingData(stream, steps);
                 positionsCount += writeTrainingData(stream, game.augmentedSteps);
@@ -1517,7 +1520,9 @@ public class MatchSession {
         var gameRecordWriter = new StringWriter();
         changeWritingCountBasedOnPolicySurprise(steps);
         writeTrainingGameRecord(gameRecordWriter, origState, game, steps);
-        pruneForcedPlayouts(steps);
+        if (Configuration.TRAINING_USE_FORCED_PLAYOUT) {
+            pruneForcedPlayouts(steps);
+        }
         var byteStream = new ByteArrayOutputStream();
         changeWritingCountBasedOnPolicySurprise(steps);
         writeTrainingData(new DataOutputStream(byteStream), steps);
@@ -1604,15 +1609,21 @@ public class MatchSession {
                     stream.writeFloat((float) ((step.v[j] * 2) - 1));
                 }
                 int v_idx = GameState.V_OTHER_IDX_START;
+                int k = 0;
                 for (var target : state.prop.extraTrainingTargets) {
                     int n = target.getNumberOfTargets();
                     if (n == 1) {
-                        stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
+                        if (state.prop.extraTrainingTargetsLabel.get(k).startsWith("Z")) {
+                            stream.writeFloat((float) (step.v[v_idx]));
+                        } else {
+                            stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
+                        }
                     } else {
                         for (int j = 0; j < n; j++) {
                             stream.writeFloat((float) step.v[v_idx + j]);
                         }
                     }
+                    k += 1;
                     v_idx += n;
                 }
                 int idx = 0;
@@ -1942,8 +1953,13 @@ public class MatchSession {
 
         var game_i = 0;
         var start = System.currentTimeMillis();
-        var progressInterval = ((int) Math.ceil(numOfGames / 100f)) * 25;
+        var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
         var averageQ = 0.0;
+        // bucket idx -> (wins, games)
+        var winRateBucket = new HashMap<Integer, Tuple<Integer, Integer>>();
+        for (int i = 0; i < 100 + 1; i++) {
+            winRateBucket.put(i, new Tuple<>(0, 0));
+        }
         while (game_i < numOfGames) {
             GameResult result;
             try {
@@ -1956,9 +1972,25 @@ public class MatchSession {
                 List<GameStep> steps = game.steps;
                 var state = steps.get(steps.size() - 1).state();
                 averageQ += state.get_q();
+
+                for (int i = 1; i < steps.size() - 1; i++) {
+                    var step = steps.get(i);
+                    var bidx = (int) ((step.state().v_win + (1.0 / 100 / 2)) * 100);
+                    bidx = (int) ((step.state().q[GameState.V_WIN_IDX] / (step.state().total_n + 1) + (1.0 / 100 / 2)) * 100);
+                    if (state.isTerminal() > 0) {
+                        var prev = winRateBucket.get(bidx);
+                        winRateBucket.put(bidx, new Tuple<>(prev.v1() + 1, prev.v2() + 1));
+                    } else {
+                        var prev = winRateBucket.get(bidx);
+                        winRateBucket.put(bidx, new Tuple<>(prev.v1(), prev.v2() + 1));
+                    }
+                }
             }
             game_i += 1;
             if ((game_i % progressInterval == 0) || game_i == numOfGames) {
+                winRateBucket.forEach((k, v) -> {
+                    System.out.println((k / 100.0) + ": " + v.v1() + "/" + v.v2() + " (" + ((double) v.v1()) / v.v2() + "%)");
+                });
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
             }
         }

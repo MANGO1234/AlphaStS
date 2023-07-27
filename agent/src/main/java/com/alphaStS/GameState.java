@@ -479,7 +479,7 @@ public final class GameState implements State {
         }
 
         // game state
-        if (prop.preBattleRandomization != null) {
+        if (prop.preBattleRandomization != null || builder.getEndOfPreBattleSetupHandler() != null) {
             actionCtx = GameActionCtx.BEGIN_PRE_BATTLE;
         } else if (prop.preBattleScenarios != null) {
             actionCtx = GameActionCtx.SELECT_SCENARIO;
@@ -671,7 +671,7 @@ public final class GameState implements State {
                 @Override public void updateQValues(GameState state, double[] v) {}
             });
         }
-        if (Configuration.TEST_USE_TEMP_VALUE_FOR_CLOSE_ACTIONS) {
+        if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
             prop.addExtraTrainingTarget("ZAWin", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVArrayIdx(int idx) {
                     prop.qwinVIdx = V_OTHER_IDX_START + idx;
@@ -679,7 +679,7 @@ public final class GameState implements State {
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                     if (isTerminal > 0) {
-                        v[state.prop.qwinVIdx] = 1;
+                        v[state.prop.qwinVIdx] = 0;
                     } else if (isTerminal < 0) {
                         v[state.prop.qwinVIdx] = 0;
                     } else if (isTerminal == 0) {
@@ -695,7 +695,7 @@ public final class GameState implements State {
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                     if (isTerminal > 0) {
-                        v[state.prop.qwinVIdx + 1] = state.getPlayeForRead().getHealth() / (float) state.getPlayeForRead().getMaxHealth();
+                        v[state.prop.qwinVIdx + 1] = 0;
                     } else if (isTerminal < 0) {
                         v[state.prop.qwinVIdx + 1] = 0;
                     } else if (isTerminal == 0) {
@@ -704,6 +704,55 @@ public final class GameState implements State {
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {}
+            });
+        }
+        if (Configuration.USE_DMG_DISTRIBUTION) {
+            prop.addExtraTrainingTarget("DmgDistribution", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    prop.dmgDistVIdx = V_OTHER_IDX_START + idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (false) {
+                        for (int i = 0; i <= state.getPlayeForRead().getMaxHealth() ; i++) {
+                            v[prop.dmgDistVIdx + i] = 0;
+                        }
+                        if (isTerminal > 0) {
+                            v[prop.dmgDistVIdx + state.getPlayeForRead().getHealth()] = 1;
+                        } else if (isTerminal < 0) {
+                            v[prop.dmgDistVIdx] = 1;
+                        } else {
+                            for (int i = 0; i <= state.getPlayeForRead().getMaxHealth(); i++) {
+                                v[prop.dmgDistVIdx + i] = state.getVOther(prop.dmgDistVIdx - V_OTHER_IDX_START + i);
+                            }
+                        }
+                    } else {
+                        for (int i = 0; i <= state.getPlayeForRead().getMaxHealth() ; i++) {
+                            v[prop.dmgDistVIdx + i] = 0;
+                        }
+                        if (isTerminal > 0) {
+                            v[prop.dmgDistVIdx + state.getPlayeForRead().getHealth()] = 1;
+                        } else if (isTerminal < 0) {
+                            v[prop.dmgDistVIdx] = 1;
+                        } else {
+                            var t = 0.0;
+                            for (int i = 0; i <= state.getMaxPossibleHealth(); i++) {
+                                v[prop.dmgDistVIdx + i] = state.getVOther(prop.dmgDistVIdx - V_OTHER_IDX_START + i);
+                                t += v[prop.dmgDistVIdx + i];
+                            }
+                            for (int i = 0; i <= state.getMaxPossibleHealth(); i++) {
+                                v[prop.dmgDistVIdx + i] /= t;
+                            }
+                        }
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                }
+
+                @Override public int getNumberOfTargets() {
+                    return getPlayeForRead().getMaxHealth() + 1;
+                }
             });
         }
         prop.compileExtraTrainingTarget();
@@ -1655,7 +1704,9 @@ public final class GameState implements State {
             getPotionsStateForWrite()[action.idx() * 3] = 0;
             usePotion(action, -1);
         } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
-            ret = prop.preBattleRandomization.randomize(this);
+            if (prop.preBattleRandomization != null) {
+                ret = prop.preBattleRandomization.randomize(this);
+            }
             setActionCtx(prop.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
             if (prop.endOfPreBattleHandler != null) {
                 prop.endOfPreBattleHandler.handle(this);
@@ -1749,7 +1800,7 @@ public final class GameState implements State {
                 int cur = 0;
                 for (int i = 0; i < prop.extraTrainingTargets.size(); i++) {
                     int n = prop.extraTrainingTargets.get(i).getNumberOfTargets();
-                    if (n > 1) {
+                    if (n > 1 && !prop.extraTrainingTargetsLabel.get(i).equals("DmgDistribution")) {
                         out[V_OTHER_IDX_START + cur + n - 1] = 1;
                     }
                     cur += n;
@@ -2243,7 +2294,7 @@ public final class GameState implements State {
         }
         str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
         if (v_other != null) {
-            double[] o = new double[20];
+            double[] o = new double[prop.v_total_len];
             get_v(o);
             int idx = 0;
             for (var target : prop.extraTrainingTargets) {
@@ -2460,6 +2511,15 @@ public final class GameState implements State {
         v_health = output.v_health();
         v_win = output.v_win();
         v_other = output.v_other();
+        if (Configuration.USE_DMG_DISTRIBUTION && false) {
+            var t = 0.0;
+            var s = 0.0;
+            for (int i = 0; i <= getMaxPossibleHealth(); i++) {
+                t += v_other[prop.dmgDistVIdx - GameState.V_OTHER_IDX_START + i] * i;
+                s += v_other[prop.dmgDistVIdx - GameState.V_OTHER_IDX_START + i];
+            }
+            v_health = (float) (t / s / getPlayeForRead().getMaxHealth());
+        }
     }
 
     private static boolean needChosenCardsInInput() {

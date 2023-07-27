@@ -194,7 +194,11 @@ public class Model {
                     int n = state.prop.extraTrainingTargets.get(i).getNumberOfTargets();
                     if (n == 1) {
                         float value = ((float[][]) output.get(3 + i).getValue())[0][0];
-                        v_other[idx] = (value + 1) / 2;
+                        if (state.prop.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
+                            v_other[idx] = value;
+                        } else {
+                            v_other[idx] = (value + 1) / 2;
+                        }
                     } else {
                         float[] v = ((float[][]) output.get(3 + i).getValue())[0];
                         for (int j = 0; j < n; j++) {

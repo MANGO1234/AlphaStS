@@ -208,6 +208,7 @@ public class GameProperties implements Cloneable {
     public int difficulty;
     public int fightProgressVIdx;
     public int qwinVIdx = -1;
+    public int dmgDistVIdx = -1;
     public int v_total_len;
 
     public GameProperties clone() {
