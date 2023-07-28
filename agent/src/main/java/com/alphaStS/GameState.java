@@ -1031,7 +1031,7 @@ public final class GameState implements State {
                     cardIdx = snecko[1];
                     addCardToHand(snecko[1]);
                 } else {
-                    cardIdx = snecko[getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(this, i)) + 1];
+                    cardIdx = snecko[getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(this, cardIdx)) + 1];
                     addCardToHand(cardIdx);
                 }
             }
@@ -1203,6 +1203,10 @@ public final class GameState implements State {
                     if (selectIdx >= 0) {
                         setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
                         if (getCounterForRead()[prop.wellLaidPlansCounterIdx] >> 5 == (getCounterForRead()[prop.wellLaidPlansCounterIdx] & 31)) {
+                            endTurn();
+                            runActionsInQueueIfNonEmpty();
+                        }
+                        if (getNumCardsInHand() == 0) {
                             endTurn();
                             runActionsInQueueIfNonEmpty();
                         }

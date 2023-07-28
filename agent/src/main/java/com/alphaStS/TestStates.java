@@ -1775,12 +1775,12 @@ public class TestStates {
         builder.addCard(new CardSilent.NoxiousFume(), 1);
         builder.addCard(new CardSilent.CalculatedGamble(), 1);
         builder.addCard(new CardSilent.ToolsOfTheTrade(), 1);
-        builder.setPlayer(new Player(54, 54));
+        builder.setPlayer(new Player(31, 31));
         builder.addRelic(new Relic.RingOfSerpent());
         builder.addRelic(new Relic.SneckoEye());
 //        builder.addRelic(new Relic.Ectoplasm());
-        builder.addPotion(new Potion.PoisonPotion().setBasePenaltyRatio(90));
-        builder.addEnemy(new EnemyCity.ShelledParasite());
+        builder.addPotion(new Potion.FlexPotion().setBasePenaltyRatio(85));
+        builder.addEnemy(new EnemyCity.SphericGuardian());
         return new GameState(builder);
     }
 }

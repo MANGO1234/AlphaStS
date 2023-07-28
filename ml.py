@@ -490,28 +490,24 @@ if DO_TRAINING:
             train_iter = 10 if training_info['iteration'] < SLOW_WINDOW_END + TRAINING_WINDOW_SIZE - 1 else 5
             for _i in range(1):
                 minibatch = training_pool
-                x_train = []
-                exp_health_head_train = []
-                exp_win_head_train = []
-                policy_head_train = []
+                x_train = np.zeros((len(minibatch), input_len), dtype=float)
+                exp_health_head_train = np.zeros((len(minibatch), 1), dtype=float)
+                exp_win_head_train = np.zeros((len(minibatch), 1), dtype=float)
+                policy_head_train = np.zeros((len(minibatch), num_of_actions), dtype=float)
                 exp_other_heads_train = []
-                for i in range(len(v_other_lens)):
-                    exp_other_heads_train.append([])
+                for v_other in v_other_lens:
+                    exp_other_heads_train.append(np.zeros((len(minibatch), v_other), dtype=float))
+                minibatch_idx = 0
                 for _, (x, v_win, v_health, p, v_others) in minibatch:
-                    x_train.append(np.asarray(x))
-                    exp_health_head_train.append(np.asarray(v_health).reshape(1))
-                    exp_win_head_train.append(np.asarray(v_win).reshape(1))
-                    policy_head_train.append(np.asarray(p).reshape(num_of_actions))
+                    x_train[minibatch_idx] = np.asarray(x)
+                    exp_health_head_train[minibatch_idx] = np.asarray(v_health).reshape(1)
+                    exp_win_head_train[minibatch_idx] = np.asarray(v_win).reshape(1)
+                    policy_head_train[minibatch_idx] = np.asarray(p).reshape(num_of_actions)
                     for i in range(len(v_other_lens)):
-                        exp_other_heads_train[i].append(np.asarray(v_others[i]).reshape(v_other_lens[i]))
-                x_train = np.asarray(x_train)
-                exp_health_head_train = np.asarray(exp_health_head_train)
-                exp_win_head_train = np.asarray(exp_win_head_train)
-                policy_head_train = np.asarray(policy_head_train)
-                for i in range(len(v_other_lens)):
-                    exp_other_heads_train[i] = np.asarray(exp_other_heads_train[i])
+                        exp_other_heads_train[i][minibatch_idx] = np.asarray(v_others[i]).reshape(v_other_lens[i])
+                    minibatch_idx += 1
                 target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
-                fit_result = model.fit(np.asarray(x_train), target, epochs=train_iter)
+                fit_result = model.fit(x_train, target, epochs=train_iter)
                 iteration_info['loss'] = fit_result.history['loss'][-1]
             model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
