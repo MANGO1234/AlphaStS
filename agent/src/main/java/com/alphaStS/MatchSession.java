@@ -348,7 +348,7 @@ public class MatchSession {
         new Thread(() -> {
             var reader = new BufferedReader(new InputStreamReader(System.in));
             try {
-                while (game_i.get() < numOfGames) {
+                while (game_i.get() < numToPlay.get()) {
                     if (!reader.ready()) {
                         Utils.sleep(200);
                         continue;
@@ -1231,67 +1231,6 @@ public class MatchSession {
             state = (GameState) state.ns[action];
         }
         return cs2;
-    }
-
-    private Game playTrainingGame2(GameState origState, int nodeCount, MCTS mcts) {
-        var steps = new ArrayList<GameStep>();
-        var state = origState.clone(false);
-        var r = 0;
-        int preBattle_r = 0;
-
-        while (state.isTerminal() == 0) {
-            int todo = nodeCount - state.total_n;
-            for (int i = 0; i < todo; i++) {
-                mcts.searchLine(state, true, true, todo - i);
-            }
-            for (int action : state.searchFrontier.getBestLine().getActions(state)) {
-                var step = new GameStep(state, action);
-                step.trainingWriteCount = step.state().actionCtx != GameActionCtx.BEGIN_TURN ? 1 : 0;
-                steps.add(step);
-                if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
-                    state = state.clone(false);
-                    r = state.doAction(0);
-                } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
-                    state = state.clone(false);
-                    preBattle_r = state.doAction(0);
-                } else {
-                    if (nodeCount == 1) {
-                        state = state.clone(false);
-                        state.doAction(action);
-                    } else {
-                        state = getNextState(state, mcts, action, false);
-                    }
-                }
-            }
-            state = state.clone(true);
-
-//            int action = state.searchFrontier.getBestLine().getActions(state).get(0);
-//            var step = new GameStep(state, action);
-//            step.useForTraining = step.state().actionCtx != GameActionCtx.BEGIN_TURN;
-//            states.add(step);
-//            state = getNextState(state, mcts, action, true);
-        }
-        steps.add(new GameStep(state, -1));
-
-        // do scoring here before clearing states to reuse nn eval if possible
-        var vLen = state.get_v_len();
-        double[] vCur = new double[vLen];
-        state.get_v(vCur);
-        for (int i = steps.size() - 1; i >= 0; i--) {
-            steps.get(i).v = vCur;
-            state = steps.get(i).state();
-            state.clearNextStates();
-            if (!USE_Z_TRAINING && state.isStochastic && i > 0) {
-                var prevState = steps.get(i - 1).state();
-                var prevAction = steps.get(i - 1).action();
-                vCur = calcExpectedValue((ChanceState) prevState.ns[prevAction], state, mcts, vCur);
-            }
-        }
-        if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE || steps.get(0).state().actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
-            steps.get(0).trainingWriteCount = 0;
-        }
-
-        return new Game(steps, preBattle_r, r, null, -1, 0);
     }
 
     public void playTrainingGames(GameState origState, int numOfGames, int nodeCount, String path) throws IOException {

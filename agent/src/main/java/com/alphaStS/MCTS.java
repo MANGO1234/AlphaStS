@@ -1236,13 +1236,14 @@ public class MCTS {
             useAll = true;
             total_n = state.total_n;
         }
-        var minD = 100.0f;
+        var minD = 100.0;
         for (int i = 0; i < state.policy.length; i++) {
             if (useAll || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
-                var k1 = state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i];
-                var k2 = state.q[(i + 1) * state.prop.v_total_len + GameState.V_HEALTH_IDX] / state.n[i];
-                if (Math.abs((float) (k1)) + Math.abs((float) (k2)) < minD) {
-                    minD = Math.min(Math.abs((float) (k1)) + Math.abs((float) (k2)), minD);
+                var k1 = state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx] / state.n[i];
+                var k2 = state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx + 1] / state.n[i];
+                double kk = Math.max(Math.abs((float) (k1)) + Math.abs((float) (k2)), 0.000001f);
+                if (kk < minD) {
+                    minD = Math.min(kk, minD);
                 }
             }
         }
@@ -1254,9 +1255,9 @@ public class MCTS {
             if (useAll || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
                 double ratio = 1.0;
                 if (state.n[i] > 0) {
-                    var k1 = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i] : 0;
-                    var k2 = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_HEALTH_IDX] / state.n[i] : 0;
-                    var kk = (Math.abs((float) (k1)) + Math.abs((float) (k2)) / minD);
+                    var k1 = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx] / state.n[i] : 0;
+                    var k2 = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + state.prop.qwinVIdx + 1] / state.n[i] : 0;
+                    double kk = Math.max(Math.abs((float) (k1)) + Math.abs((float) (k2)), 0.000001f) / minD;
                     if (kk != 0) {
                         ratio = kk;
                     }

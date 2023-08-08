@@ -125,8 +125,7 @@ public abstract class Enemy extends EnemyReadOnly {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
-//        if (turnNum > 1 && metallicize > 0) { // todo: burning elite
-        if (metallicize > 0) {
+        if (!property.isElite || (turnNum > 1 && metallicize > 0)) { // todo: burning elite
             gainBlock(metallicize);
         }
         if (platedArmor > 0) {
@@ -604,11 +603,7 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void endTurn(int turnNum) {
             super.endTurn(turnNum);
             if (move <= WAIT_3) {
-                if (metallicize == 4 && turnNum == 1) {
-                    gainBlock(4);
-                } else {
-                    gainBlock(8);
-                }
+                gainBlock(8);
             }
         }
 

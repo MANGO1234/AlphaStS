@@ -23,7 +23,7 @@ enum ServerRequestType {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.TestStateSilent();
+        var state = TestStates.TestStateReddit();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
             for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
@@ -46,6 +46,7 @@ public class Main {
         int NUMBER_OF_NODES_PER_TURN = 1000;
         int NUMBER_OF_THREADS = 2;
         boolean WRITE_MATCHES = false;
+        boolean PRINT_DMG = false;
         String COMPARE_DIR = null;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
@@ -92,6 +93,7 @@ public class Main {
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
             WRITE_MATCHES = true;
+//            PRINT_DMG = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;
@@ -111,7 +113,7 @@ public class Main {
         }
         var preBattleScenarios = state.prop.preBattleScenarios;
         var randomization = state.prop.randomization;
-        if (TEST_TRAINING_AGENT && state.prop.preBattleScenarios != null) {
+        if (TEST_TRAINING_AGENT && state.prop.preBattleScenarios != null && state.prop.endOfPreBattleHandler == null) {
             state.prop.preBattleScenarios = null;
             if (state.prop.randomization == null) {
                 state.prop.randomization = preBattleScenarios;
@@ -194,7 +196,9 @@ public class Main {
 
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
         if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES && state.prop.randomization != null) {
-//            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 3);
+//            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
+        } else if (TEST_TRAINING_AGENT) {
+//            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
         }
 
         if (TEST_TRAINING_AGENT || PLAY_GAMES) {
@@ -212,10 +216,10 @@ public class Main {
             } else if (!TEST_TRAINING_AGENT && (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES)) {
                 session.setMatchLogFile("matches.txt.gz");
             }
-            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, false, false);
+            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, PRINT_DMG, false);
 //             session.playGamesForStat(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN);
         }
-        if (GENERATE_TRAINING_GAMES && preBattleScenarios != null) {
+        if (GENERATE_TRAINING_GAMES && preBattleScenarios != null && state.prop.endOfPreBattleHandler == null) {
             state.prop.preBattleScenarios = preBattleScenarios;
             state.prop.randomization = randomization;
             if (state.prop.preBattleRandomization == null) {

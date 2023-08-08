@@ -5,6 +5,7 @@ import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -1759,28 +1760,43 @@ public class TestStates {
 
     public static GameState TestStateReddit() {
         var builder = new GameStateBuilder();
-        builder.setCharacter(CharacterEnum.SILENT);
+        builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new CardSilent.Survivor(), 1);
-        builder.addCard(new CardSilent.Neutralize(), 1);
-        builder.addCard(new CardSilent.DaggerThrow(), 1);
-        builder.addCard(new CardSilent.Outmaneuver(), 1);
-        builder.addCard(new CardSilent.PreparedP(), 1);
-        builder.addCard(new CardSilent.PredatorP(), 1);
-        builder.addCard(new CardSilent.GlassKnifeP(), 1);
-        builder.addCard(new CardSilent.SneakyStrike(), 1);
-        builder.addCard(new CardSilent.PoisonedStab(), 1);
-        builder.addCard(new CardSilent.NoxiousFume(), 1);
-        builder.addCard(new CardSilent.CalculatedGamble(), 1);
-        builder.addCard(new CardSilent.ToolsOfTheTrade(), 1);
-        builder.setPlayer(new Player(31, 31));
-        builder.addRelic(new Relic.RingOfSerpent());
-        builder.addRelic(new Relic.SneckoEye());
-//        builder.addRelic(new Relic.Ectoplasm());
-        builder.addPotion(new Potion.FlexPotion().setBasePenaltyRatio(85));
-        builder.addEnemy(new EnemyCity.SphericGuardian());
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.BeamCell(), 1);
+        builder.addCard(new CardDefect.BallLightning(), 1);
+        builder.addCard(new CardDefect.Reboot(), 0);
+        builder.addCard(new CardColorless.SecretTechnique(), 1);
+        EnemyEncounter.addSentriesFight(builder, true);
+        builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
+        builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+                new int[] { 3 },
+                new int[] { 4 }
+        );
+        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
+        var preBattleScenarios = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Strike(), 3), new CardCount(new Card.Defend(), 4)),
+                List.of(new CardCount(new Card.Strike(), 4), new CardCount(new Card.Defend(), 3))
+        ));
+        builder.setRandomization(randomization);
+        builder.setPreBattleScenarios(preBattleScenarios);
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.clearAllSearchInfo();
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("rng off", "1", "do", "str", "def", "zap", "ball", "dua", "e", "0", "0", "2", "eho", "0", "39", "eho", "2", "41", "eho", "1", "45", "exit"));
+            }
+        });
+        builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
+        builder.setPotionsScenarios(3);
+        builder.setPlayer(new Player(50, 50));
+        builder.addRelic(new Relic.CrackedOrb());
         return new GameState(builder);
     }
 }

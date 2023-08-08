@@ -39,7 +39,7 @@ public class Configuration {
     public static boolean TRAINING_POLICY_SURPRISE_WEIGHTING = false;
     public static boolean USE_FIGHT_PROGRESS_WHEN_LOSING = true;
     public static boolean USE_Z_TRAINING = false;
-    public static double DISCOUNT_REWARD_ON_RANDOM_NODE = 0.2;
+    public static double DISCOUNT_REWARD_ON_RANDOM_NODE = 0.2f;
 
     public static boolean TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = false;
     public static boolean TEST_TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE = false;

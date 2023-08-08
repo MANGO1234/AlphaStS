@@ -1474,7 +1474,13 @@ public final class GameState implements State {
                 var enemy2 = enemies.getForWrite(i);
                 enemy2.endTurn(turnNum);
                 if (!prop.hasRunicDome) {
+                    var oldIsStochastic = isStochastic;
+                    isStochastic = false;
                     enemy2.nextMove(this, getSearchRandomGen());
+                    if (prop.makingRealMove && isStochastic) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
+                    }
+                    isStochastic = oldIsStochastic | isStochastic;
                 } else {
                     // for enemy like GremlinLeader, we need to choose move based on the beginning of turn
                     // currently doing it like this so instead of saving last 2 moves so that
@@ -2154,6 +2160,17 @@ public final class GameState implements State {
             }
         }
         str.append("]");
+        if (getDrawOrderForRead().size() > 0) {
+            str.append(", topOfDeck=[");
+            first = true;
+            for (int i = 0; i < getDrawOrderForRead().size(); i++) {
+                if (!first) {
+                    str.append(", ");
+                }
+                str.append(prop.cardDict[getDrawOrderForRead().ithCardFromTop(i)].cardName);
+            }
+            str.append("]");
+        }
         str.append(", discard=[");
         first = true;
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, prop.realCardsLen);
@@ -3769,6 +3786,11 @@ public final class GameState implements State {
 
     public void removeCardFromDeck(int cardIndex) {
         if (deck[cardIndex] > 0) {
+            if (deck[cardIndex] == 1) {
+                if (getDrawOrderForRead().contains(cardIndex)) {
+                    getDrawOrderForWrite().remove(cardIndex);
+                }
+            }
             getDeckForWrite()[cardIndex]--;
             for (int i = 0; i < deckArrLen; i++) {
                 if (deckArr[i] == cardIndex) {
@@ -4169,7 +4191,13 @@ public final class GameState implements State {
             enemy.property = enemy.property.clone();
             enemy.property.origHealth = enemy.getHealth();
             if (getNextMove && !prop.hasRunicDome) {
+                var oldIsStochastic = isStochastic;
+                isStochastic = false;
                 enemy.nextMove(this, getSearchRandomGen());
+                if (prop.makingRealMove && isStochastic) {
+                    getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy.getName()).append(" (").append(idx).append(") choose move ").append(enemy.getMoveString(this));
+                }
+                isStochastic = oldIsStochastic | isStochastic;
             }
             adjustEnemiesAlive(1);
         } else {

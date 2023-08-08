@@ -2588,7 +2588,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                     return 1;
                 }
             });
-            state.addOnCardPlayedHandler("DoubleTap", new GameEventCardHandler() {
+            state.addOnCardPlayedHandler("DoubleTap", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     var card = state.prop.cardDict[cardIdx];
                     if (cloned || card.cardType != Card.ATTACK) {

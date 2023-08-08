@@ -2089,7 +2089,7 @@ public class CardSilent {
                     }
                 }
             });
-            state.addOnCardPlayedHandler("Burst", new GameEventCardHandler() {
+            state.addOnCardPlayedHandler("Burst", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     var card = state.prop.cardDict[cardIdx];
                     if (card.cardType != Card.SKILL || state.getCounterForRead()[counterIdx] == 0) {
@@ -2109,7 +2109,7 @@ public class CardSilent {
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
                             } else {
-                                state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                                curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
                         });
                     }

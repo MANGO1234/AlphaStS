@@ -39,4 +39,25 @@ public class DrawOrderReadOnly {
     public int ithCardFromTop(int i) {
         return order[len - 1 - i];
     }
+
+    public boolean contains(int cardIndex) {
+        for (int i = 0; i < len; i++) {
+            if (order[i] == cardIndex) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void remove(int cardIndex) {
+        for (int i = 0; i < len; i++) {
+            if (order[i] == cardIndex) {
+                for (int j = i; j < len - 1; j++) {
+                    order[j] = order[j + 1];
+                }
+                len--;
+                return;
+            }
+        }
+    }
 }

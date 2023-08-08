@@ -1888,7 +1888,7 @@ public class CardDefect {
                     }
                 }
             });
-            state.addOnCardPlayedHandler("Amplify", new GameEventCardHandler() {
+            state.addOnCardPlayedHandler("Amplify", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     var card = state.prop.cardDict[cardIdx];
                     if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
@@ -1904,7 +1904,7 @@ public class CardDefect {
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
                             } else {
-                                state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                                curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
                         });
                     }
@@ -2055,7 +2055,7 @@ public class CardDefect {
                     }
                 }
             });
-            state.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler() {
+            state.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
                     if (state.getCounterForRead()[counterIdx] < 0) {
                         state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];

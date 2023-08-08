@@ -259,9 +259,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     }
                 }
             });
-            state.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler() {
+            state.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
-                    var card = state.prop.cardDict[cardIdx];
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
                     }

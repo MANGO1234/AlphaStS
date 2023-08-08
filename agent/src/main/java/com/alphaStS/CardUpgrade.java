@@ -86,6 +86,8 @@ public class CardUpgrade {
         map.put(new CardColorless.DramaticEntrance(), new CardColorless.DramaticEntranceP());
         map.put(new CardColorless.Apotheosis(), new CardColorless.ApotheosisP());
         map.put(new CardColorless.HandOfGreed(), new CardColorless.HandOfGreedP());
+        map.put(new CardColorless.SecretTechnique(), new CardColorless.SecretTechniqueP());
+        map.put(new CardColorless.SecretWeapon(), new CardColorless.SecretWeaponP());
 
         map.put(new CardSilent.Survivor(), new CardSilent.SurvivorP());
         map.put(new CardSilent.Neutralize(), new CardSilent.NeutralizeP());
