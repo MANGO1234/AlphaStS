@@ -1472,6 +1472,110 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectB() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.BiasedCognition(), 1);
+        builder.addCard(new CardDefect.SteamBarrier(), 1);
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.Chill(), 1);
+        builder.addCard(new CardDefect.DarknessP(), 0);
+        builder.addCard(new CardDefect.Streamline(), 1);
+        builder.addCard(new CardDefect.RecycleP(), 0);
+        EnemyEncounter.addSentriesFight(builder, true);
+//        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+                new int[] { 0, 1, 2 },
+//                new int[] { 0 },
+                new int[] { 3 }
+        );
+        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.DarknessP(), 1)),
+                List.of(new CardCount(new CardDefect.Streamline(), 1)),
+                List.of(new CardCount(new CardDefect.RecycleP(), 1)),
+                List.of()
+        )).doAfter(randomization);
+        builder.setRandomization(randomization);
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.clearAllSearchInfo();
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "do", "chi", "str", "p", "stream", "p", "stream2", "def", "str", "str", "e", "0", "1", "1", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "do", "def", "zap", "doom", "com", "str", "e", "Chill", "End Turn", "do", "def", "def", "stea", "p", "ste6", "dua", "bias", "e", "Doom And Gloom", "Zap", "End Turn", "do", "asc", "dual", "clear", "e", "Steam Barrier (6)", "Defend", "Defend", "Biased Cognition", "do", "asc", "str", "du", "def", "com", "e", "Steam Barrier (6)", "Defend", "Defend", "Biased Cognition", "End Turn", "do", "str", "str", "def", "e", "Compiled Driver", "exit"));
+            }
+        });
+        builder.addPotion(new Potion.DexterityPotion().setBasePenaltyRatio(95));
+        builder.addPotion(new Potion.AncientPotion().setBasePenaltyRatio(85));
+        builder.setPotionsScenarios(0, 2);
+        builder.setPlayer(new Player(33, 33));
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.Sundial(1, 1));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateDefectB1() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Strike(), 3);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.BiasedCognition(), 2);
+        builder.addCard(new CardDefect.BiasedCognitionP(), 1);
+        builder.addCard(new CardDefect.SteamBarrier(), 1);
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.Streamline(), 1);
+        builder.addCard(new CardDefect.ChargeBatteryP(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.FissionP(), 1);
+        builder.addCard(new CardDefect.BarrageP(), 1);
+        builder.addCard(new CardDefect.TurboP(), 1);
+        builder.addCard(new CardDefect.MachineLearning(), 1);
+        builder.addCard(new CardDefect.ChillP(), 1);
+        builder.addCard(new CardDefect.ChaosP(), 1);
+        EnemyEncounter.addCenturionAndMysticFight(builder);
+//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        EnemyEncounter.addSlaversEliteFight(builder);
+//        EnemyEncounter.addGremlinLeaderFight2(builder);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+//                List.of(new Tuple<>(0, -1)),
+//                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
+//                List.of(new Tuple<>(1, 0), new Tuple<>(2, 0), new Tuple<>(3, 0), new Tuple<>(4, -1))
+//        ));
+//        randomization = randomization.followByIf(1, builder.getRandomization().collapse("Random Gremlins"));
+//        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(new CardCount(new CardDefect.AggregateP(), 1), new CardCount(new CardDefect.BiasedCognition(), 1)),
+//                List.of(new CardCount(new CardDefect.AggregateP(), 0), new CardCount(new CardDefect.BiasedCognition(), 2)),
+//                List.of(new CardCount(new CardDefect.AggregateP(), 0), new CardCount(new CardDefect.BiasedCognition(), 1))
+//        )).doAfter(randomization);
+//        builder.setRandomization(randomization);
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.clearAllSearchInfo();
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("do", "chi", "p", "stream", "p", "stream2", "bia+", "str", "dua", "e", "0", "em", "0", "0", "em", "1", "2", "exit"));
+            }
+        });
+        builder.addPotion(new Potion.DexterityPotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(90));
+//        builder.setPotionsScenarios(0, 1, 3, 4, 5, 7, 12, 13, 15);
+        builder.setPotionsScenarios(0, 3);
+        builder.setPlayer(new Player(40, 40));
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.Sundial(1, 2));
+        builder.addRelic(new Relic.StrikeDummy());
+        builder.addRelic(new Relic.Inserter(1, 2));
+        builder.addRelic(new Relic.EmotionChip());
+        return new GameState(builder);
+    }
+
     public static GameState TestStateSilent2() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);
@@ -1786,14 +1890,14 @@ public class TestStates {
                 List.of()
         )).doAfter(randomization);
         builder.setRandomization(randomization);
-//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-//            @Override public void handle(GameState state) {
-//                state.clearAllSearchInfo();
-//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("rng off", "1", "do", "str", "def", "zap", "ball", "dua", "e", "0", "0", "2", "eho", "0", "39", "eho", "2", "41", "eho", "1", "45", "exit"));
-//            }
-//        });
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.clearAllSearchInfo();
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("rng off", "do", "def", "str", "beam+", "doom", "sec", "e", "0", "1", "0", "eho", "1", "114", "exit"));
+            }
+        });
 //        builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(80));
         builder.setPotionsScenarios(1);
         builder.setPlayer(new Player(40, 40));
         builder.addRelic(new Relic.CrackedOrb());

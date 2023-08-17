@@ -51,6 +51,9 @@ public class GameStateUtils {
 
     public static int[][] getScenarioGroups(GameState state, int groupSize, int stride) {
         int size = state.prop.randomization.listRandomizations().size();
+        if (state.prop.preBattleRandomization != null) {
+            size *= state.prop.preBattleRandomization.listRandomizations().size();
+        }
         if (size % (groupSize * stride) != 0) {
             return null;
         }

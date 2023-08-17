@@ -126,9 +126,12 @@ public class GameProperties implements Cloneable {
     public int envenomCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int bufferCounterIdx = -1;
+    public int sundialCounterIdx = -1;
+    public int inserterCounterIdx = -1;
     public int loopCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
+    public int looterVArrayIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -152,6 +155,7 @@ public class GameProperties implements Cloneable {
     public boolean hasPaperCrane;
     public boolean hasSneckoSkull;
     public boolean hasSneckoEye;
+    public boolean hasStrikeDummy;
     public boolean hasTingsha;
     public boolean hasToughBandages;
     public boolean hasGoldPlatedCable;
@@ -253,7 +257,7 @@ public class GameProperties implements Cloneable {
         void setCounterIdx(GameProperties gameProperties, int idx);
     }
 
-    interface TrainingTargetRegistrant {
+    public interface TrainingTargetRegistrant {
         void setVArrayIdx(int idx);
     }
 

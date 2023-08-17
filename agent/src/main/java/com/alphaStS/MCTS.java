@@ -519,6 +519,12 @@ public class MCTS {
         if (state.prop.geneticAlgorithmCounterIdx >= 0 && CardDefect.GeneticAlgorithm.getMaxPossibleGARemaining(state) != 0) {
             return false;
         }
+        if (state.prop.sundialCounterIdx >= 0 && state.getCounterForRead()[state.prop.sundialCounterIdx] < 2) {
+            return false;
+        }
+        if (state.prop.inserterCounterIdx >= 0 && state.getCounterForRead()[state.prop.inserterCounterIdx] < 1) {
+            return false;
+        }
         if (state.prop.handOfGreedCounterIdx >= 0) {
             if (CardColorless.HandOfGreed.getMaxPossibleHandOfGreenRemaining(state, false) > 0) {
                 return false;

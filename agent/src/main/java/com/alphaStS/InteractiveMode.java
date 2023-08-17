@@ -1134,56 +1134,21 @@ public class InteractiveMode {
         for (int i = 0; i < state.prop.cardDict.length; i++) {
             out.println(i + ". " + state.prop.cardDict[i].cardName);
         }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            if (line.equals("b")) {
-                return;
-            }
-            int idx = parseInt(line, -1);
-            if (idx >= 0 && idx < state.prop.cardDict.length) {
-                state.addCardToHand(idx);
-                return;
-            }
-            out.println("Unknown Command");
-        }
+        state.addCardToHand(readIntCommand(reader, history, state.prop.cardDict.length));
     }
 
     private void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
         for (int i = 0; i < state.handArrLen; i++) {
             out.println(i + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
         }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            if (line.equals("b")) {
-                return;
-            }
-            int idx = parseInt(line, -1);
-            if (idx >= 0 && idx < state.handArrLen) {
-                state.removeCardFromHandByPosition(idx);
-                return;
-            }
-            out.println("Unknown Command");
-        }
+        state.removeCardFromHandByPosition(readIntCommand(reader, history, state.handArrLen));
     }
 
     int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
         for (int i = 0; i < state.handArrLen; i++) {
             out.println(i + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
         }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            int r = parseInt(line, -1);
-            if (r >= 0 && r < state.handArrLen) {
-                return r;
-            }
-            out.println("Unknown Command");
-        }
+        return readIntCommand(reader, history, state.handArrLen);
     }
 
     int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
@@ -1194,16 +1159,7 @@ public class InteractiveMode {
                 nonUpgradedCardCount++;
             }
         }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            int r = parseInt(line, -1);
-            if (r >= 0 && r < nonUpgradedCardCount) {
-                return r;
-            }
-            out.println("Unknown Command");
-        }
+        return readIntCommand(reader, history, nonUpgradedCardCount);
     }
 
     int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
@@ -1265,19 +1221,11 @@ public class InteractiveMode {
         out.println("2. Fat Gremlin");
         out.println("3. Shield Gremlin");
         out.println("4. Gremlin Wizard");
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            int r = parseInt(line, -1);
-            if (r >= 0 && r < 5) {
-                if (r <= 3) {
-                    return r * 2;
-                }
-                return 7;
-            }
-            out.println("Unknown Command");
+        int r = readIntCommand(reader, history, 5);
+        if (r <= 3) {
+            return r * 2;
         }
+        return 7;
     }
 
     int selectCardsForCardGenPotion(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history, int[] potionsIdxes) throws IOException {
@@ -1295,16 +1243,7 @@ public class InteractiveMode {
             out.println(p + ". " + card.cardName);
             p++;
         }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            int r = parseInt(line, -1);
-            if (0 <= r && r < potionsIdxes.length - currentPick) {
-                return r;
-            }
-            out.println("Unknown Command");
-        }
+        return readIntCommand(reader, history, potionsIdxes.length - currentPick);
     }
 
     int selectCostForSnecko(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
@@ -1312,16 +1251,7 @@ public class InteractiveMode {
         for (int i = 1; i < snecko[0] + 1; i++) {
             out.println((i - 1) + ". " + arg.v1().prop.cardDict[snecko[i]].cardName);
         }
-        while (true) {
-            out.print("> ");
-            String line = reader.readLine();
-            history.add(line);
-            int r = parseInt(line, -1);
-            if (r >= 0 && r < snecko[0]) {
-                return r;
-            }
-            out.println("Unknown Command");
-        }
+        return readIntCommand(reader, history, snecko[0]);
     }
 
     int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history, RandomGenCtx ctx) throws IOException {
@@ -1333,12 +1263,25 @@ public class InteractiveMode {
                 idx++;
             }
         }
+        return readIntCommand(reader, history, state.enemiesAlive);
+    }
+
+    int selectChaosOrb(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        out.println("Select orb type for Chaos");
+        out.println("0. Lightning");
+        out.println("1. Frost");
+        out.println("2. Dark");
+        out.println("3. Plasma");
+        return readIntCommand(reader, history, 4);
+    }
+
+    private int readIntCommand(BufferedReader reader, List<String> history, int x) throws IOException {
         while (true) {
             out.print("> ");
             String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
-            if (r >= 0 && r < state.enemiesAlive) {
+            if (r >= 0 && r < x) {
                 return r;
             }
             out.println("Unknown Command");
@@ -1633,11 +1576,12 @@ public class InteractiveMode {
         }
         int count = Integer.parseInt(args.get(1));
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
         mcts.forceRootAction = parseArgsInt(args, "a", -1);
         long start = System.currentTimeMillis();
         if (numberOfThreads <= 1) {
             for (int i = state.total_n; i < count; i++) {
-                mcts.search(state, false, count - i);
+                mcts.search(state, false, smartPruneDisable ? - 1 : count - i);
             }
             mcts.forceRootAction = -1;
         } else {
@@ -1651,7 +1595,7 @@ public class InteractiveMode {
                 workerThreads.add(new Thread(() -> {
                     long c = atomicLong.addAndGet(1);
                     while (c <= count) {
-                        threadMCTS.get(tidx).search(state, false, (int) (count - c + 1));
+                        threadMCTS.get(tidx).search(state, false, smartPruneDisable ? -1 : (int) (count - c + 1));
                         c = atomicLong.addAndGet(1);
                     }
                 }));
@@ -1691,15 +1635,16 @@ public class InteractiveMode {
             out.println("<node count>");
         }
         int count = Integer.parseInt(args.get(1));
-        boolean clear = args.size() > 2 && args.get(2).equals("clear");
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
+        boolean clear = parseArgsBoolean(args, "clear");
         GameState s = state;
         int move_i = 0;
         long start = System.currentTimeMillis();
         do {
             if (numberOfThreads <= 1) {
                 for (int i = s.total_n; i < count; i++) {
-                    mcts.search(s, false, count - i);
+                    mcts.search(s, false, smartPruneDisable ? -1 : count - i);
                 }
             } else {
                 s.setMultithreaded(true);
@@ -1713,7 +1658,7 @@ public class InteractiveMode {
                     workerThreads.add(new Thread(() -> {
                         long c = atomicLong.addAndGet(1);
                         while (c <= count) {
-                            threadMCTS.get(tidx).search(_s, false, (int) (count - c + 1));
+                            threadMCTS.get(tidx).search(_s, false, smartPruneDisable ? -1 : (int) (count - c + 1));
                             c = atomicLong.addAndGet(1);
                         }
                     }));
@@ -2087,6 +2032,13 @@ public class InteractiveMode {
             case Snecko -> {
                 try {
                     return interactiveMode.selectCostForSnecko(reader, (Tuple<GameState, Integer>) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case Chaos -> {
+                try {
+                    return interactiveMode.selectChaosOrb(reader, (GameState) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

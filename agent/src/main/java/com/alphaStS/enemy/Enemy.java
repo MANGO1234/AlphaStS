@@ -1,6 +1,7 @@
 package com.alphaStS.enemy;
 
 import com.alphaStS.*;
+import com.alphaStS.Action.GuardianGainBlockAction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -881,7 +882,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 modeShiftDmg = Math.max(modeShiftDmg - dmg, 0);
                 if (modeShiftDmg == 0) {
                     move = DEFENSIVE_MODE;
-                    gainBlock(20);
+                    state.addGameActionToEndOfDeque(GuardianGainBlockAction.singleton);
                 }
             }
             return dmg;
@@ -894,7 +895,7 @@ public abstract class Enemy extends EnemyReadOnly {
                 modeShiftDmg = Math.max(modeShiftDmg - (oldHealth - health), 0);
                 if (modeShiftDmg == 0) {
                     move = DEFENSIVE_MODE;
-                    gainBlock(20);
+                    state.addGameActionToEndOfDeque(GuardianGainBlockAction.singleton);
                 }
             }
         }
@@ -2281,6 +2282,8 @@ public abstract class Enemy extends EnemyReadOnly {
         static final int SMOKE_BOMB = 3;
         static final int ESCAPE = 4;
 
+        boolean escaped;
+
         public Looter() {
             this(50);
         }
@@ -2292,6 +2295,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Looter(Looter other) {
             super(other);
+            escaped = other.escaped;
         }
 
         @Override public Enemy copy() {
@@ -2305,8 +2309,8 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, 14, 1);
             } else if (move == SMOKE_BOMB) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
-            } else if (move == ESCAPE) { // simulate the pain of losing gold, todo: need to combine with mugger later, need to change due to onDamage effects
-                state.doNonAttackDamageToPlayer(Math.min(30, state.getPlayeForRead().getHealth() - 1), false, this);
+            } else if (move == ESCAPE) {
+                escaped = true;
                 health = 0;
             }
         }
@@ -2345,8 +2349,173 @@ public abstract class Enemy extends EnemyReadOnly {
             health = 46 + random.nextInt(5, RandomGenCtx.Other);
         }
 
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of whether looter has escaped";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = escaped ? 0.5f : 0;
+            return 1;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.addExtraTrainingTarget("Looter", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    state.prop.looterVArrayIdx = idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (isTerminal > 0) {
+                        boolean escaped = false;
+                        for (var enemy : state.getEnemiesForRead()) {
+                            if (enemy instanceof Looter looter) {
+                                if (looter.escaped) {
+                                    escaped = true;
+                                    break;
+                                }
+                            }
+                        }
+                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
+                    } else if (isTerminal == 0) {
+                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = state.getVOther(state.prop.looterVArrayIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    double value = v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx];
+                    v[GameState.V_HEALTH_IDX] *= (0.9 + (1 - value) * 0.1);
+                }
+            });
+        }
+
         public String getName() {
             return "Looter";
+        }
+    }
+
+    public static class Mugger extends Enemy {
+        static final int MUG_1 = 0;
+        static final int MUG_2 = 1;
+        static final int LUNGE = 2;
+        static final int SMOKE_BOMB = 3;
+        static final int ESCAPE = 4;
+
+        public boolean escaped;
+
+        public Mugger() {
+            this(54);
+        }
+
+        public Mugger(int health) {
+            super(health, 5, false);
+            property.canGainBlock = true;
+        }
+
+        public Mugger(Mugger other) {
+            super(other);
+            other.escaped = escaped;
+        }
+
+        @Override public Enemy copy() {
+            return new Mugger(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == MUG_1 || move == MUG_2) {
+                state.enemyDoDamageToPlayer(this, 11, 1);
+            } else if (move == LUNGE) {
+                state.enemyDoDamageToPlayer(this, 18, 1);
+            } else if (move == SMOKE_BOMB) {
+                state.enemyDoDamageToPlayer(this, 17, 1);
+            } else if (move == ESCAPE) {
+                escaped = true;
+                health = 0;
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move < 0) {
+                newMove = MUG_1;
+            } else if (move == MUG_1) {
+                newMove = MUG_2;
+            } else if (move == MUG_2) {
+                state.setIsStochastic();
+                newMove = random.nextInt(100, RandomGenCtx.EnemyChooseMove, null) < 50 ? LUNGE : SMOKE_BOMB;
+            } else if (move == LUNGE) {
+                newMove = SMOKE_BOMB;
+            } else {
+                newMove = ESCAPE;
+            }
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == MUG_1 || move == MUG_2) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 11);
+            } else if (move == LUNGE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 18);
+            } else if (move == SMOKE_BOMB) {
+                return "Block 17";
+            } else if (move == ESCAPE) {
+                return "Escape";
+            }
+            return "Unknown";
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of whether mugger has escaped";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = escaped ? 0.5f : 0;
+            return 1;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.addExtraTrainingTarget("Mugger", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    state.prop.looterVArrayIdx = idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    boolean escaped = false;
+                    for (var enemy : state.getEnemiesForRead()) {
+                        if (enemy instanceof Mugger mugger) {
+                            if (mugger.escaped) {
+                                escaped = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (isTerminal > 0 || escaped) {
+                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
+                    } else if (isTerminal == 0) {
+                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = state.getVOther(state.prop.looterVArrayIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    double value = v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx];
+                    v[GameState.V_HEALTH_IDX] *= (0.9 + (1 - value) * 0.1);
+                }
+            });
+        }
+
+        public void randomize(RandomGen random, boolean training, int difficulty) {
+            health = 50 + random.nextInt(5, RandomGenCtx.Other);
+        }
+
+        public String getName() {
+            return "Mugger";
         }
     }
 

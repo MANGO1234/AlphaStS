@@ -197,7 +197,7 @@ public class Main {
         MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
         if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES && state.prop.randomization != null) {
 //            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
-        } else if (TEST_TRAINING_AGENT) {
+        } else if (TEST_TRAINING_AGENT && state.prop.randomization != null) {
 //            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
         }
 

@@ -1868,7 +1868,7 @@ public final class GameState implements State {
                             }
                         } else if (enemy instanceof EnemyCity.TorchHead) {
                             addedMod = true;
-                        } else if (isGremlinLeaderAlive && !(enemy instanceof EnemyCity.GremlinLeader)) {
+                        } else if (isGremlinLeaderAlive && ((enemy instanceof Enemy.FatGremlin) || (enemy instanceof Enemy.GremlinWizard) || (enemy instanceof Enemy.MadGremlin) || (enemy instanceof Enemy.ShieldGremlin) || (enemy instanceof Enemy.SneakyGremlin))) {
                             addedMod = true;
                         }
                         if (!addedMod) {
@@ -3389,14 +3389,14 @@ public final class GameState implements State {
         return order;
     }
 
-    void addGameActionToEndOfDeque(GameEnvironmentAction action) {
+    public void addGameActionToEndOfDeque(GameEnvironmentAction action) {
         if (gameActionDeque == null) {
             gameActionDeque = new CircularArray<>();
         }
         gameActionDeque.addLast(action);
     }
 
-    void addGameActionToStartOfDeque(GameEnvironmentAction action) {
+    public void addGameActionToStartOfDeque(GameEnvironmentAction action) {
         if (gameActionDeque == null) {
             gameActionDeque = new CircularArray<>();
         }
@@ -3469,6 +3469,13 @@ public final class GameState implements State {
 //            getDeckArrForWrite(deckArrLen)[i] = discardArr[i];
 //            getDeckForWrite()[i]++;
 //        }
+        if (prop.sundialCounterIdx >= 0) {
+            getCounterForWrite()[prop.sundialCounterIdx] += 1;
+            if (getCounterForWrite()[prop.sundialCounterIdx] == 3) {
+                getCounterForWrite()[prop.sundialCounterIdx] = 0;
+                gainEnergy(2);
+            }
+        }
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, prop.realCardsLen);
         for (short i = 0; i < discard.length; i++) {
             for (int j = 0; j < discard[i]; j++) {
@@ -4412,6 +4419,17 @@ public final class GameState implements State {
         }
     }
 
+    public void triggerAllOrbsPassive() {
+        if (orbs == null) return;
+        for (int i = 0; i < orbs.length; i += 2) {
+            if (orbs[i] == OrbType.PLASMA.ordinal()) {
+                gainEnergy(1);
+            } else {
+                triggerNonPlasmaOrbPassive(i);
+            }
+        }
+    }
+
     public void triggerDarkPassive() {
         if (orbs == null) return;
         for (int i = 0; i < orbs.length; i += 2) {
@@ -4432,7 +4450,11 @@ public final class GameState implements State {
                 orbs = Arrays.copyOf(orbs, orbs.length + n * 2);
             }
         } else {
-            var newOrbs = new short[orbs.length + n * 2];
+           var newLen = Math.min(20, orbs.length + n * 2);
+           if (orbs.length == newLen) {
+               return;
+           }
+            var newOrbs = new short[newLen];
             System.arraycopy(orbs, 0, newOrbs, 0, orbs.length);
             orbs = newOrbs;
         }

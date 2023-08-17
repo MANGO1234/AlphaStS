@@ -1,11 +1,9 @@
 package com.alphaStS;
 
 import com.alphaStS.Action.CardDrawAction;
-import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.OrbType;
-import com.alphaStS.utils.Tuple;
 
 import java.util.List;
 import java.util.Objects;
@@ -762,8 +760,65 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // Singing Bowl: No need to implement
 
-    // todo: Strike Dummy
-    // todo: Sundial
+    public static class StrikeDummy extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasStrikeDummy = true;
+        }
+    }
+
+    public static class Sundial extends Relic {
+        private final int n;
+        private final int healthReward;
+
+        public Sundial(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
+        public Sundial(int n) {
+            this(n, 0);
+        }
+
+        public Sundial() {
+            this(0, 0);
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Sundial", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] + 1) / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.prop.sundialCounterIdx = counterIdx;
+                }
+            });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
+                }
+            });
+            if (healthReward > 0) {
+                state.prop.addExtraTrainingTarget("Sundial", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 2.0;
+                        } else if (isTerminal == 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        v[GameState.V_HEALTH_IDX] += healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / 2.0 / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
+        }
+    }
 
     // The Courier: No need to implement
     // Toxic Egg: No need to implement
@@ -1444,6 +1499,36 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class EmotionChip extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("EmotionChip", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = counter[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnDamageHandler(new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt > 0) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    }
+                }
+            });
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                        state.triggerAllOrbsPassive();
+                    }
+                }
+            });
+        }
+    }
+
     public static class GoldPlatedCable extends Relic {
         @Override public void startOfGameSetup(GameState state) {
             state.prop.hasGoldPlatedCable = true;
@@ -1468,6 +1553,62 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.gainOrbSlot(3);
                 }
             });
+        }
+    }
+
+    public static class Inserter extends Relic {
+        int n;
+        int healthReward;
+
+        public Inserter(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.maxNumOfOrbs = 10;
+            state.prop.registerCounter("Inserter", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] + 1) / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.prop.inserterCounterIdx = counterIdx;
+                }
+            });
+            state.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
+                }
+            });
+            state.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx]++;
+                    if (state.getCounterForWrite()[counterIdx] == 2) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                        state.gainOrbSlot(1);
+                    }
+                }
+            });
+            if (healthReward > 0) {
+                state.prop.addExtraTrainingTarget("Inserter", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx];
+                        } else if (isTerminal == 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        v[GameState.V_HEALTH_IDX] += healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
         }
     }
 }

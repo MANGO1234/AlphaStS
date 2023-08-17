@@ -1012,6 +1012,7 @@ public class CardDefect {
         public _ChillT(String cardName, boolean innate) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.innate = innate;
+            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1456,11 +1457,6 @@ public class CardDefect {
                 }
             });
         }
-
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            super.setCounterIdx(gameProperties, idx);
-            gameProperties.loseFocusPerTurnCounterIdx = idx;
-        }
     }
 
     public static class Heatsinks extends CardDefect._HeatsinksT {
@@ -1588,7 +1584,7 @@ public class CardDefect {
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             super.setCounterIdx(gameProperties, idx);
-            gameProperties.loseFocusPerTurnCounterIdx = idx;
+            gameProperties.loopCounterIdx = idx;
         }
     }
 
@@ -1952,11 +1948,6 @@ public class CardDefect {
                 }
             });
         }
-
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            super.setCounterIdx(gameProperties, idx);
-            gameProperties.loseFocusPerTurnCounterIdx = idx;
-        }
     }
 
     public static class Storm extends CardDefect._StormT {
@@ -2033,7 +2024,80 @@ public class CardDefect {
         }
     }
 
-    // White Noise
+    private static abstract class _WhiteNoiseT extends Card {
+        public _WhiteNoiseT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.setIsStochastic();
+            var r = state.getSearchRandomGen().nextInt(13, RandomGenCtx.RandomCardGen, null);
+            state.addCardToHand(cardsIdx[r]);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            var c = getPossibleGeneratedCards();
+            cardsIdx = new int[c.size()];
+            for (int i = 0; i < c.size(); i++) {
+                cardsIdx[i] = state.prop.findCardIndex(c.get(i));
+            }
+        }
+
+        private static List<Card> cards;
+        private static int[] cardsIdx;
+
+        private static List<Card> getPossibleGeneratedCards() {
+            if (cards == null) {
+                cards = List.of(
+                        new Card.CardTmpChangeCost(new CardDefect.BiasedCognition(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Buffer(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Capacitor(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.CreativeAI(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Defragment(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.EchoForm(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Electrodynamics(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Heatsinks(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.HelloWorld(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Loop(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.MachineLearning(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.StaticDischarge(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Storm(), 0),
+                        new CardDefect.BiasedCognition(),
+                        new CardDefect.Buffer(),
+                        new CardDefect.Capacitor(),
+                        new CardDefect.CreativeAI(),
+                        new CardDefect.Defragment(),
+                        new CardDefect.EchoForm(),
+                        new CardDefect.Electrodynamics(),
+                        new CardDefect.Heatsinks(),
+                        new CardDefect.HelloWorld(),
+                        new CardDefect.Loop(),
+                        new CardDefect.MachineLearning(),
+                        new CardDefect.StaticDischarge(),
+                        new CardDefect.Storm()
+                );
+            }
+            return cards;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return getPossibleGeneratedCards();
+        }
+    }
+
+    public static class WhiteNoise extends CardDefect._WhiteNoiseT {
+        public WhiteNoise() {
+            super("White Noise", 1);
+        }
+    }
+
+    public static class WhiteNoiseP extends CardDefect._WhiteNoiseT {
+        public WhiteNoiseP() {
+            super("White Noise+", 0);
+        }
+    }
 
     private static abstract class _AllForOneT extends Card {
         private final int n;
@@ -2302,6 +2366,7 @@ public class CardDefect {
                     }
                 }
             });
+            state.prop.maxNumOfOrbs = 10;
         }
 
         private static List<Card> cards;
@@ -2488,7 +2553,40 @@ public class CardDefect {
         }
     }
 
-    // Fission
+    private static abstract class _FissionT extends Card {
+        private final boolean upgraded;
+
+        public _FissionT(String cardName, int cardType, int energyCost, boolean upgraded) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.upgraded = upgraded;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int n = 0;
+            while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
+                state.evokeOrb(1);
+                n++;
+            }
+            state.gainEnergy(n);
+            if (upgraded) {
+                state.draw(n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Fission extends CardDefect._FissionT {
+        public Fission() {
+            super("Fission", Card.SKILL, 0, false);
+        }
+    }
+
+    public static class FissionP extends CardDefect._FissionT {
+        public FissionP() {
+            super("Fission+", Card.SKILL, 0, true);
+        }
+    }
 
     private static abstract class _HyperBeamT extends Card {
         private final int n;
@@ -2571,7 +2669,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.prop.hasStrikeDummy ? 3 : 0));
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
@@ -2709,7 +2807,7 @@ public class CardDefect {
             for (int i = 0; i < c; i++) {
                 var j = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemySwordBoomerang);
                 var enemy = state.getEnemiesForWrite().getForWrite(j);
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoDamageToEnemy(enemy, n + (state.prop.hasStrikeDummy ? 3 : 0));
             }
             return GameActionCtx.PLAY_CARD;
         }

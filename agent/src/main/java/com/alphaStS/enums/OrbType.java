@@ -16,7 +16,7 @@ public enum OrbType {
     public static OrbType getRandom(GameState state) {
         state.setIsStochastic();
         var values = OrbType.values();
-        int r = state.getSearchRandomGen().nextInt(values.length, RandomGenCtx.Chaos);
+        int r = state.getSearchRandomGen().nextInt(values.length - 1, RandomGenCtx.Chaos, state) + 1;
         return values()[r];
     }
 }
