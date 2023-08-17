@@ -1280,18 +1280,18 @@ public class InteractiveMode {
         }
     }
 
-    int selectCardsForSkillPotion(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
+    int selectCardsForCardGenPotion(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history, int[] potionsIdxes) throws IOException {
         var state = arg.v1();
         int currentIdx1 = arg.v2() & 255;
         int currentIdx2 = (arg.v2() >> 8) & 255;
         currentIdx2 = currentIdx2 >= currentIdx1 ? currentIdx2 + 1 : currentIdx2;
         int currentPick = currentIdx1 == 255 ? 0 : currentIdx2 == 255 ? 1 : 2;
         int p = 0;
-        for (int i = 0; i < state.prop.skillPotionIdxes.length; i++) {
+        for (int i = 0; i < potionsIdxes.length; i++) {
             if (i == currentIdx1 || i == currentIdx2) {
                 continue;
             }
-            var card = state.prop.cardDict[state.prop.select1OutOf3CardsIdxes[state.prop.skillPotionIdxes[i]]];
+            var card = state.prop.cardDict[state.prop.select1OutOf3CardsIdxes[potionsIdxes[i]]];
             out.println(p + ". " + card.cardName);
             p++;
         }
@@ -1300,7 +1300,7 @@ public class InteractiveMode {
             String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
-            if (0 <= r && r < state.prop.skillPotionIdxes.length - currentPick) {
+            if (0 <= r && r < potionsIdxes.length - currentPick) {
                 return r;
             }
             out.println("Unknown Command");
@@ -2070,7 +2070,16 @@ public class InteractiveMode {
             }
             case SkillPotion -> {
                 try {
-                    return interactiveMode.selectCardsForSkillPotion(reader, (Tuple<GameState, Integer>) arg, history);
+                    var a = (Tuple<GameState, Integer>) arg;
+                    return interactiveMode.selectCardsForCardGenPotion(reader, a, history, a.v1().prop.skillPotionIdxes);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case PowerPotion -> {
+                try {
+                    var a = (Tuple<GameState, Integer>) arg;
+                    return interactiveMode.selectCardsForCardGenPotion(reader, a, history, a.v1().prop.powerPotionIdxes);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

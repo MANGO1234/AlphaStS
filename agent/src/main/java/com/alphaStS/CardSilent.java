@@ -666,7 +666,7 @@ public class CardSilent {
                     return 1;
                 }
 
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.sneakyStrikeCounterIdx = counterIdx;
                 }
             });
@@ -841,7 +841,7 @@ public class CardSilent {
                     return 1;
                 }
 
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.blurCounterIdx = counterIdx;
                 }
             });
@@ -1249,7 +1249,7 @@ public class CardSilent {
                     return 1;
                 }
 
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.eviscerateCounterIdx = counterIdx;
                 }
             });
@@ -1882,7 +1882,7 @@ public class CardSilent {
                     return String.valueOf(state.getCounterForRead()[counterIdx] & 31);
                 }
 
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.wellLaidPlansCounterIdx = counterIdx;
                 }
             });
@@ -2281,7 +2281,7 @@ public class CardSilent {
                     return 1;
                 }
 
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.envenomCounterIdx = counterIdx;
                 }
             });
@@ -2539,7 +2539,7 @@ public class CardSilent {
                     return 2;
                 }
 
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.phantasmalKillerCounterIdx = counterIdx;
                 }
             });
@@ -2634,7 +2634,7 @@ public class CardSilent {
                 @Override public int getInputLenDelta() {
                     return 2;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.toolsOfTheTradeCounterIdx = counterIdx;
                 }
             });

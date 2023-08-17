@@ -1844,7 +1844,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.registerMetallicizeHandler(state, counterIdx);
                 }
             });
@@ -1870,7 +1870,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.registerMetallicizeHandler(state, counterIdx);
                 }
             });

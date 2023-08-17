@@ -599,6 +599,7 @@ public final class GameState implements State {
         Collections.sort(prop.onExhaustHandlers);
         Collections.sort(prop.onBlockHandlers);
         Collections.sort(prop.onCardPlayedHandlers);
+        Collections.sort(prop.onPreCardPlayedHandlers);
         Collections.sort(prop.onCardDrawnHandlers);
 
         prop.playerArtifactCanChange = getPlayeForRead().getArtifact() > 0;
@@ -1174,6 +1175,9 @@ public final class GameState implements State {
             if (cardIdx >= prop.realCardsLen) {
                 cardIdx = prop.tmp0CostCardReverseTransformIdxes[cardIdx];
                 action = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+            }
+            for (var handler : prop.onPreCardPlayedHandlers) {
+                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned);
             }
             if (prop.cardDict[cardIdx].selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloned);
@@ -3621,6 +3625,17 @@ public final class GameState implements State {
         }
     }
 
+    public void addOnPreCardPlayedHandler(GameEventCardHandler handler) {
+        prop.onPreCardPlayedHandlers.add(handler);
+    }
+
+    public void addOnPreCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
+        if (prop.gameEventHandlers.get(handlerName + "OnPreCardPlayed") == null) {
+            prop.gameEventHandlers.put(handlerName + "OnPreCardPlayed", handler);
+            prop.onPreCardPlayedHandlers.add(handler);
+        }
+    }
+
     public void addOnCardPlayedHandler(GameEventCardHandler handler) {
         prop.onCardPlayedHandlers.add(handler);
     }
@@ -4284,13 +4299,19 @@ public final class GameState implements State {
         if (orbs[0] == OrbType.FROST.ordinal()) {
             getPlayerForWrite().gainBlockNotFromCardPlay(5 + focus);
         } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
-            int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
-            if (idx >= 0) {
-                var enemy = getEnemiesForWrite().getForWrite(idx);
-                if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
-                    getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
+            if (prop.electrodynamicsCounterIdx >= 0 && getCounterForRead()[prop.electrodynamicsCounterIdx] != 0) {
+                for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
+                    playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
                 }
-                playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
+            } else {
+                int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
+                if (idx >= 0) {
+                    var enemy = getEnemiesForWrite().getForWrite(idx);
+                    if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
+                    }
+                    playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
+                }
             }
         } else if (orbs[0] == OrbType.DARK.ordinal()) {
             Enemy minEnemy = null;
@@ -4342,13 +4363,19 @@ public final class GameState implements State {
         if (orbs[i] == OrbType.FROST.ordinal()) {
             getPlayerForWrite().gainBlockNotFromCardPlay(2 + focus);
         } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
-            int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
-            if (idx >= 0) {
-                var enemy = getEnemiesForWrite().getForWrite(idx);
-                if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
-                    getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
+            if (prop.electrodynamicsCounterIdx >= 0 && getCounterForRead()[prop.electrodynamicsCounterIdx] != 0) {
+                for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
+                    playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
                 }
-                playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
+            } else {
+                int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
+                if (idx >= 0) {
+                    var enemy = getEnemiesForWrite().getForWrite(idx);
+                    if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
+                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
+                    }
+                    playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
+                }
             }
         } else if (orbs[i] == OrbType.DARK.ordinal()) {
             orbs[i + 1] += Math.max(0, 6 + focus);

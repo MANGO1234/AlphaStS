@@ -816,18 +816,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class FossilizedHelix extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.prop.registerCounter("Buffer", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-                @Override public void onRegister() {
-                    state.prop.bufferCounterIdx = counterIdx;
-                }
-            });
+            state.prop.registerBufferCounter(state, this);
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[state.prop.bufferCounterIdx]++;

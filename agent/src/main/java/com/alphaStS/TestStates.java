@@ -1761,42 +1761,43 @@ public class TestStates {
     public static GameState TestStateReddit() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);
-        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Defend(), 3);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
-        builder.addCard(new CardDefect.BeamCell(), 1);
+//        builder.addCard(new CardDefect.BeamCell(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
         builder.addCard(new CardDefect.BallLightning(), 1);
-        builder.addCard(new CardDefect.Reboot(), 0);
+//        builder.addCard(new CardDefect.Reboot(), 0);
         builder.addCard(new CardColorless.SecretTechnique(), 1);
-        EnemyEncounter.addSentriesFight(builder, true);
-        builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
-        builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+//        EnemyEncounter.addSentriesFight(builder, true);
+        builder.addEnemy(new Enemy.GremlinNob());
+        builder.addEnemy(new Enemy.Lagavulin());
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
+//                new int[] { 0, 1, 2 },
+                new int[] { 0 },
+                new int[] { 1 }
         );
-        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
-        var preBattleScenarios = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Strike(), 3), new CardCount(new Card.Defend(), 4)),
-                List.of(new CardCount(new Card.Strike(), 4), new CardCount(new Card.Defend(), 3))
-        ));
+        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.DoomAndGloom(), 1)),
+                List.of()
+        )).doAfter(randomization);
         builder.setRandomization(randomization);
-        builder.setPreBattleScenarios(preBattleScenarios);
-        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("rng off", "1", "do", "str", "def", "zap", "ball", "dua", "e", "0", "0", "2", "eho", "0", "39", "eho", "2", "41", "eho", "1", "45", "exit"));
-            }
-        });
-        builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
-        builder.setPotionsScenarios(3);
-        builder.setPlayer(new Player(50, 50));
+//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+//            @Override public void handle(GameState state) {
+//                state.clearAllSearchInfo();
+//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("rng off", "1", "do", "str", "def", "zap", "ball", "dua", "e", "0", "0", "2", "eho", "0", "39", "eho", "2", "41", "eho", "1", "45", "exit"));
+//            }
+//        });
+//        builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(90));
+        builder.setPotionsScenarios(1);
+        builder.setPlayer(new Player(40, 40));
         builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.PenNib(0, 2));
         return new GameState(builder);
     }
 }

@@ -462,6 +462,11 @@ public class MCTS {
         }
 
         state.writeLock();
+        if (state.terminal_action >= 0) {
+            state.writeUnlock(); // another thread may have detected terminal action
+            search2parallel_r(state, training, remainingCalls, isRoot, level, addVirtualLoss);
+            return;
+        }
         for (int i = 0; i < state.prop.v_total_len; i++) {
             state.q[(action + 1) * state.prop.v_total_len + i] += v[i];
         }

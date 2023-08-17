@@ -59,6 +59,7 @@ public class GameProperties implements Cloneable {
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] skillPotionIdxes;
+    public int[] powerPotionIdxes;
     public int[][] sneckoIdxes;
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;
@@ -127,6 +128,7 @@ public class GameProperties implements Cloneable {
     public int bufferCounterIdx = -1;
     public int loopCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
+    public int electrodynamicsCounterIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -191,6 +193,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
+    public List<GameEventCardHandler> onPreCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
     public GameStateRandomization randomization;
@@ -258,7 +261,7 @@ public class GameProperties implements Cloneable {
         int addToInput(GameState state, float[] input, int idx);
         int getInputLenDelta();
         default String getDisplayString(GameState state) { return null; }
-        default void onRegister() { }
+        default void onRegister(int counterIdx) { }
     }
 
     Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
@@ -303,7 +306,7 @@ public class GameProperties implements Cloneable {
             }
             counterIdx.put(counterNames[i], i);
             if (counterHandlers[i] != null) {
-                counterHandlers[i].onRegister();
+                counterHandlers[i].onRegister(i);
             }
         }
         counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList()
@@ -314,7 +317,7 @@ public class GameProperties implements Cloneable {
         nnInputHandlersName = names.toArray(new String[] {});
         for (int i = 0; i < nnInputHandlersName.length; i++) {
             nnInputHandlers[i] = nnInputHandlerMap.get(nnInputHandlersName[i]);
-            nnInputHandlers[i].onRegister();
+            nnInputHandlers[i].onRegister(i);
         }
     }
 
@@ -351,6 +354,21 @@ public class GameProperties implements Cloneable {
     }
 
     private static CounterRegistrant IntangibleCounterRegistrant = (gameProperties, idx) -> gameProperties.intangibleCounterIdx = idx;
+
+    public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
+        state.prop.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.prop.bufferCounterIdx] / 10.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+            @Override public void onRegister(int counterIdx) {
+                state.prop.bufferCounterIdx = counterIdx;
+            }
+        });
+    }
 
     public void registerIntangibleCounter() {
         registerCounter("Intangible", IntangibleCounterRegistrant, new NetworkInputHandler() {

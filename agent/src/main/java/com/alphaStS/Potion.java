@@ -364,7 +364,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.regenerationCounterIdx = counterIdx;
                 }
             });
@@ -538,7 +538,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.registerMetallicizeHandler(state, counterIdx);
                 }
             });
@@ -663,6 +663,78 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.prop.skillPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.prop.skillPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+            }
+        }
+    }
+
+    public static class PowerPotion extends Potion {
+        public PowerPotion() {
+            selectCard1OutOf3 = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length, RandomGenCtx.PowerPotion,
+                    interactive ? new Tuple<>(state, (255 << 8) + 255) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 1, RandomGenCtx.PowerPotion,
+                    interactive ? new Tuple<>(state, (255 << 8) + idx1) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 2, RandomGenCtx.PowerPotion,
+                    interactive ? new Tuple<>(state, (idx2 << 8) + idx1) : null);
+            if (idx2 >= idx1) {
+                idx2++;
+            }
+            if (idx3 >= Math.min(idx1, idx2)) {
+                idx3++;
+            }
+            if (idx3 >= Math.max(idx1, idx2)) {
+                idx3++;
+            }
+            state.setSelect1OutOf3Idxes(state.prop.powerPotionIdxes[idx1], state.prop.powerPotionIdxes[idx2], state.prop.powerPotionIdxes[idx3]);
+            state.setIsStochastic();
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public String toString() {
+            return "Power Potion";
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var l = new ArrayList<Card>(c);
+            for (Card card : c) {
+                if (card instanceof Card.CardTmpChangeCost t) {
+                    l.add(t.card);
+                }
+            }
+            return l;
+        }
+
+        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+            if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new Card.CardTmpChangeCost(new CardDefect.Capacitor(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Defragment(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Heatsinks(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.HelloWorld(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Loop(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.StaticDischarge(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Storm(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.BiasedCognition(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Buffer(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.CreativeAI(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.EchoForm(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Electrodynamics(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.MachineLearning(), 0)
+                );
+            }
+            throw new IllegalArgumentException();
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleSelect3OutOf1Cards(state.prop);
+            state.prop.powerPotionIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.prop.powerPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
             }
         }
     }

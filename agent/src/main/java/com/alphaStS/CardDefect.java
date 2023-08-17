@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.Action.CardDrawAction;
+import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 
@@ -519,7 +521,7 @@ public class CardDefect {
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.reboundCounterIdx = counterIdx;
                 }
             });
@@ -1423,8 +1425,138 @@ public class CardDefect {
         }
     }
 
-    // Heatsinks
-    // Hello World
+    private static abstract class _HeatsinksT extends Card {
+        private final int n;
+
+        public _HeatsinksT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Heatsinks", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnPreCardPlayedHandler("Heatsinks", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                        state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.loseFocusPerTurnCounterIdx = idx;
+        }
+    }
+
+    public static class Heatsinks extends CardDefect._HeatsinksT {
+        public Heatsinks() {
+            super("Heatsinks", 1);
+        }
+    }
+
+    public static class HeatsinksP extends CardDefect._HeatsinksT {
+        public HeatsinksP() {
+            super("Heatsinks+", 2);
+        }
+    }
+
+    private static abstract class _HelloWorldT extends Card {
+        public _HelloWorldT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("HelloWorld", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            var c = getPossibleGeneratedCards();
+            cardsIdx = new int[c.size()];
+            for (int i = 0; i < c.size(); i++) {
+                cardsIdx[i] = state.prop.findCardIndex(c.get(i));
+            }
+            state.addStartOfTurnHandler("HelloWorld", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                        state.setIsStochastic();
+                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, null);
+                        state.addCardToHand(cardsIdx[r]);
+                    }
+                }
+            });
+        }
+
+        private static List<Card> cards;
+        private static int[] cardsIdx;
+
+        private static List<Card> getPossibleGeneratedCards() {
+            if (cards == null) {
+                cards = List.of(
+                        new CardDefect.BallLightning(),
+                        new CardDefect.Barrage(),
+                        new CardDefect.BeamCell(),
+                        new CardDefect.ChargeBattery(),
+                        new CardDefect.Claw(),
+                        new CardDefect.ColdSnap(),
+                        new CardDefect.CompiledDriver(),
+                        new CardDefect.Coolheaded(),
+                        new CardDefect.GoForTheEye(),
+                        new CardDefect.Hologram(),
+                        new CardDefect.Leap(),
+                        new CardDefect.Rebound(),
+                        new CardDefect.Recursion(),
+                        new CardDefect.Stack(),
+                        new CardDefect.SteamBarrier(),
+                        new CardDefect.Streamline(),
+                        new CardDefect.SweepingBeam(),
+                        new CardDefect.Turbo()
+                );
+            }
+            return cards;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return getPossibleGeneratedCards();
+        }
+    }
+
+    public static class HelloWorld extends CardDefect._HelloWorldT {
+        public HelloWorld() {
+            super("Hello World", false);
+        }
+    }
+
+    public static class HelloWorldP extends CardDefect._HelloWorldT {
+        public HelloWorldP() {
+            super("Hello World+", true);
+        }
+    }
 
     private static abstract class _LoopT extends Card {
         private final int n;
@@ -1448,7 +1580,7 @@ public class CardDefect {
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-                @Override public void onRegister() {
+                @Override public void onRegister(int counterIdx) {
                     state.prop.loopCounterIdx = counterIdx;
                 }
             });
@@ -1737,9 +1869,107 @@ public class CardDefect {
         }
     }
 
-    // Static Discharge
-    // Storm
+    private static abstract class _StaticDischargeT extends Card {
+        private final int n;
 
+        public _StaticDischargeT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("StaticDischarge", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnDamageHandler("StaticDischarge", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt >= 0 && isAttack) {
+                        for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                            state.channelOrb(OrbType.LIGHTNING);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class StaticDischarge extends CardDefect._StaticDischargeT {
+        public StaticDischarge() {
+            super("Static Discharge", 1);
+        }
+    }
+
+    public static class StaticDischargeP extends CardDefect._StaticDischargeT {
+        public StaticDischargeP() {
+            super("Static Discharge+", 2);
+        }
+    }
+
+    private static abstract class _StormT extends Card {
+        public _StormT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Storm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addOnPreCardPlayedHandler("Storm", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                        var _n = state.getCounterForRead()[counterIdx];
+                        state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                            @Override public void doAction(GameState state) {
+                                for (int i = 0; i < _n; i++) {
+                                    state.channelOrb(OrbType.LIGHTNING);
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.loseFocusPerTurnCounterIdx = idx;
+        }
+    }
+
+    public static class Storm extends CardDefect._StormT {
+        public Storm() {
+            super("Storm", false);
+        }
+    }
+
+    public static class StormP extends CardDefect._StormT {
+        public StormP() {
+            super("Storm+", true);
+        }
+    }
     private static abstract class _SunderT extends Card {
         private final int n;
 
@@ -1978,7 +2208,35 @@ public class CardDefect {
         }
     }
 
-    // Buffer
+    private static abstract class _BufferT extends Card {
+        private final int n;
+
+        public _BufferT(String cardName, int n) {
+            super(cardName, Card.POWER, 2, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.prop.bufferCounterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerBufferCounter(state, this);
+        }
+    }
+
+    public static class Buffer extends CardDefect._BufferT {
+        public Buffer() {
+            super("Buffer", 1);
+        }
+    }
+
+    public static class BufferP extends CardDefect._BufferT {
+        public BufferP() {
+            super("Buffer+", 2);
+        }
+    }
 
     private static abstract class _CoreSurgeT extends Card {
         private final int n;
@@ -2010,7 +2268,82 @@ public class CardDefect {
         }
     }
 
-    // Creative AI
+    private static abstract class _CreativeAIT extends Card {
+        public _CreativeAIT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("CreativeAI", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            var c = getPossibleGeneratedCards();
+            cardsIdx = new int[c.size()];
+            for (int i = 0; i < c.size(); i++) {
+                cardsIdx[i] = state.prop.findCardIndex(c.get(i));
+            }
+            state.addStartOfTurnHandler("CreativeAI", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                        state.setIsStochastic();
+                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, null);
+                        state.addCardToHand(cardsIdx[r]);
+                    }
+                }
+            });
+        }
+
+        private static List<Card> cards;
+        private static int[] cardsIdx;
+
+        private static List<Card> getPossibleGeneratedCards() {
+            if (cards == null) {
+                cards = List.of(
+                        new CardDefect.BiasedCognition(),
+                        new CardDefect.Buffer(),
+                        new CardDefect.Capacitor(),
+                        new CardDefect.CreativeAI(),
+                        new CardDefect.Defragment(),
+                        new CardDefect.EchoForm(),
+                        new CardDefect.Electrodynamics(),
+                        new CardDefect.Heatsinks(),
+                        new CardDefect.HelloWorld(),
+                        new CardDefect.Loop(),
+                        new CardDefect.MachineLearning(),
+                        new CardDefect.StaticDischarge(),
+                        new CardDefect.Storm()
+                );
+            }
+            return cards;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return getPossibleGeneratedCards();
+        }
+    }
+
+    public static class CreativeAI extends CardDefect._CreativeAIT {
+        public CreativeAI() {
+            super("Creative AI", 3);
+        }
+    }
+
+    public static class CreativeAIP extends CardDefect._CreativeAIT {
+        public CreativeAIP() {
+            super("Creative AI+", 2);
+        }
+    }
 
     private static abstract class _EchoFormT extends Card {
         public _EchoFormT(String cardName, boolean ethereal) {
@@ -2111,7 +2444,50 @@ public class CardDefect {
         }
     }
 
-    // Electrodynamics
+    private static abstract class _ElectrodynamicsT extends Card {
+        private final int n;
+
+        public _ElectrodynamicsT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = 1;
+            for (int i = 0; i < n; i++) {
+                state.channelOrb(OrbType.LIGHTNING);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Electrodynamics", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.prop.electrodynamicsCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Electrodynamics extends CardDefect._ElectrodynamicsT {
+        public Electrodynamics() {
+            super("Electrodynamics", Card.POWER, 2, 2);
+        }
+    }
+
+    public static class ElectrodynamicsP extends CardDefect._ElectrodynamicsT {
+        public ElectrodynamicsP() {
+            super("Electrodynamics+", Card.POWER, 2, 3);
+        }
+    }
+
     // Fission
 
     private static abstract class _HyperBeamT extends Card {
@@ -2144,7 +2520,46 @@ public class CardDefect {
         }
     }
 
-    // Machine Learning
+    private static abstract class _MachineLearningT extends Card {
+        public _MachineLearningT(String cardName, int cardType, int energyCost, boolean innate) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("MachineLearning", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("MachineLearning", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.draw(state.getCounterForRead()[counterIdx]);
+                }
+            });
+        }
+    }
+
+    public static class MachineLearning extends CardDefect._MachineLearningT {
+        public MachineLearning() {
+            super("Machine Learning", Card.POWER, 0, false);
+        }
+    }
+
+    public static class MachineLearningP extends CardDefect._MachineLearningT {
+        public MachineLearningP() {
+            super("Machine Learning+", Card.POWER, 0, true);
+        }
+    }
 
     private static abstract class _MeteorStrikeT extends Card {
         private final int n;
