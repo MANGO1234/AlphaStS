@@ -260,7 +260,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             });
             state.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
                     }
@@ -274,7 +274,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
+                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 state.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
@@ -485,14 +485,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
                     }
                     var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                    curState.playCard(action, -1, true,false, false, false, -1);
+                    curState.playCard(action, -1, true,false, false, false, -1, -1);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
                         if (curState.prop.makingRealMove || state.prop.stateDescOn) {
                             curState.getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : curState.getEnemiesForRead().get(enemyIdx).getName())
                                     .append(" (").append(enemyIdx).append(")");
                         }
-                        curState.playCard(action, enemyIdx, true,false, false, false, -1);
+                        curState.playCard(action, enemyIdx, true,false, false, false, -1, -1);
                     }
                 });
             }

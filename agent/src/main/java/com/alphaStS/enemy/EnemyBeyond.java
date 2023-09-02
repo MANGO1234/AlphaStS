@@ -75,7 +75,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var enemy = state.getEnemiesForRead().get(idx);
                     if (state.prop.cardDict[cardIdx].cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
                         state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
@@ -175,6 +175,13 @@ public class EnemyBeyond {
 
         @Override public boolean isTargetable() {
             return health > 0 && move != REBIRTH;
+        }
+
+        @Override public void setHealth(int hp) {
+            health = hp;
+            if (health <= 0) {
+                awakened = true;
+            }
         }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
@@ -445,7 +452,7 @@ public class EnemyBeyond {
                 }
             });
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var c = state.getCounterForWrite();
                     if (c[state.prop.timeEaterCounterIdx] == 12) {
                         Integer.parseInt(null);
@@ -675,7 +682,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
             state.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     ((GiantHead) state.getEnemiesForWrite().getForWrite(idx)).slow++;
                 }
             });

@@ -23,4 +23,13 @@ public class DrawOrder extends DrawOrderReadOnly {
     public void clear() {
         len = 0;
     }
+
+    public void transformTopMost(int cardIdx, int newCardIdx) {
+        for (int i = len - 1; i >= 0 ; i--) {
+            if (order[i] == cardIdx) {
+                order[i] = newCardIdx;
+                return;
+            }
+        }
+    }
 }

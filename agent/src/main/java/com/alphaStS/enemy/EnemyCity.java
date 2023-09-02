@@ -1371,6 +1371,12 @@ public class EnemyCity {
             super(other);
         }
 
+        @Override public void startTurn(GameState state) {
+            int prevBlock = block;
+            super.startTurn(state);
+            block = prevBlock;
+        }
+
         @Override public Enemy copy() {
             return new SphericGuardian(this);
         }
@@ -2055,7 +2061,7 @@ public class EnemyCity {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.prop.cardDict[cardIdx].cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
                         state.addCardToDeck(state.prop.dazedCardIdx);
                     }

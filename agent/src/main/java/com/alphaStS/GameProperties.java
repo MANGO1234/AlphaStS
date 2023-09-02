@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.utils.CounterStat;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -216,6 +217,7 @@ public class GameProperties implements Cloneable {
     public int fightProgressVIdx;
     public int qwinVIdx = -1;
     public int dmgDistVIdx = -1;
+    public int turnsLeftVIdx = -1;
     public int v_total_len;
 
     public GameProperties clone() {
@@ -255,6 +257,9 @@ public class GameProperties implements Cloneable {
 
     public interface CounterRegistrant {
         void setCounterIdx(GameProperties gameProperties, int idx);
+        default CounterStat getCounterStat() {
+            return null;
+        }
     }
 
     public interface TrainingTargetRegistrant {
@@ -268,7 +273,7 @@ public class GameProperties implements Cloneable {
         default void onRegister(int counterIdx) { }
     }
 
-    Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
+    public Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
     Map<String, Integer> counterIdx = new HashMap<>();
     Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
     Map<String, NetworkInputHandler> nnInputHandlerMap = new HashMap<>();

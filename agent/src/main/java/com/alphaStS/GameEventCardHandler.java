@@ -14,7 +14,7 @@ public abstract class GameEventCardHandler implements Comparable<GameEventCardHa
     public GameEventCardHandler() {
     }
 
-    public abstract void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned);
+    public abstract void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation);
 
     @Override public int compareTo(GameEventCardHandler other) {
         return Integer.compare(other.priority, priority);

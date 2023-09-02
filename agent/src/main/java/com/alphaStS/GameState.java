@@ -44,6 +44,11 @@ public final class GameState implements State {
     public static final int V_HEALTH_IDX = 2;
     public static final int V_OTHER_IDX_START = 3;
 
+    public static final int DISCARD = 1;
+    public static final int DECK = 2;
+    public static final int EXHAUST = 3;
+    public static final int ON_TOP_OF_DECK = 4;
+
     public boolean isStochastic;
     StringBuilder stateDesc;
     public GameProperties prop;
@@ -756,6 +761,31 @@ public final class GameState implements State {
                 }
             });
         }
+        if (Configuration.USE_TURNS_LEFT_HEAD) {
+            // note: we translate turns left to estimated ending turn so there's no need to change anything in the searching
+            // code. Having the network predict ending turn directly seem to work for a training target too.
+            prop.addExtraTrainingTarget("TurnsLeft", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    prop.turnsLeftVIdx = V_OTHER_IDX_START + idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (isTerminal != 0) {
+                        v[state.prop.turnsLeftVIdx] = state.turnNum / 50.0;
+                    } else if (isTerminal == 0) {
+                        v[state.prop.turnsLeftVIdx] = state.turnNum / 50.0 + state.getVOther(prop.turnsLeftVIdx - V_OTHER_IDX_START);
+                        v[state.prop.turnsLeftVIdx] = Math.min(v[state.prop.turnsLeftVIdx], 1.0);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                }
+
+                @Override public int getNumberOfTargets() {
+                    return 1;
+                }
+            });
+        }
         prop.compileExtraTrainingTarget();
         prop.inputLen = getNNInputLen();
         prop.v_total_len = 3;
@@ -1086,7 +1116,7 @@ public final class GameState implements State {
                 }
             }
             for (var handler : prop.onCardDrawnHandlers) {
-                handler.handle(this, cardIdx, -1, -1, false);
+                handler.handle(this, cardIdx, -1, -1, false, -1);
             }
         }
         return drawnIdx;
@@ -1147,8 +1177,14 @@ public final class GameState implements State {
         return actionCtx;
     }
 
-    boolean playCard(GameAction action, int selectIdx, boolean runActionQueueOnEnd, boolean cloned,
-            boolean useEnergy, boolean exhaustWhenPlayed, int overrideEnergyCost) {
+    boolean playCard(GameAction action, int selectIdx,
+            boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
+            boolean cloned, // flag to know current card is a cloned card
+            boolean useEnergy, // when cloning/havoc/etc., do not use energy
+            boolean exhaustWhenPlayed, // havoc only flag
+            int overrideEnergyCost, // when cloning, need to know cost of X card to use
+            int cloneParentLocation // when cloning, need to transform the prev card (e.g. Streamline)
+    ) {
         int cardIdx = action.idx();
         int lastSelectedIdx = -1;
         boolean cardPlayedSuccessfully = true;
@@ -1177,7 +1213,7 @@ public final class GameState implements State {
                 action = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             }
             for (var handler : prop.onPreCardPlayedHandlers) {
-                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned);
+                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned, -1);
             }
             if (prop.cardDict[cardIdx].selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloned);
@@ -1320,41 +1356,61 @@ public final class GameState implements State {
 
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             int transformCardIdx = prop.cardDict[cardIdx].onPlayTransformCardIdx(prop);
+            int prevCardIdx = cardIdx;
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
+            }
+            if (!cloned && !exhaustWhenPlayed) {
+                if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
+                    exhaustedCardHandle(cardIdx, true);
+                    cloneParentLocation = GameState.EXHAUST;
+                } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                    exhaustedCardHandle(cardIdx, true);
+                    cloneParentLocation = GameState.EXHAUST;
+                } else if (prop.cardDict[cardIdx].cardType != Card.POWER) {
+                    if (prop.reboundCounterIdx >= 0 && getCounterForRead()[prop.reboundCounterIdx] > 0) {
+                        if ((getCounterForRead()[prop.reboundCounterIdx] & (1 << 8)) != 0) {
+                            addCardToDiscard(cardIdx);
+                            cloneParentLocation = GameState.DISCARD;
+                            getCounterForWrite()[prop.reboundCounterIdx]++;
+                            getCounterForWrite()[prop.reboundCounterIdx] ^= 1 << 8;
+                        } else {
+                            putCardOnTopOfDeck(cardIdx);
+                            cloneParentLocation = GameState.ON_TOP_OF_DECK;
+                        }
+                    } else {
+                        addCardToDiscard(cardIdx);
+                        cloneParentLocation = GameState.DISCARD;
+                    }
+                }
+                if (prop.reboundCounterIdx >= 0 && getCounterForRead()[prop.reboundCounterIdx] > 0) {
+                    getCounterForWrite()[prop.reboundCounterIdx]--;
+                }
+            } else if (cloned && prevCardIdx != cardIdx) {
+                if (cloneParentLocation == GameState.DISCARD) {
+                    transformTopMostCard(getDiscardArrForWrite(), discardArrLen, prevCardIdx, cardIdx);
+                } else if (cloneParentLocation == GameState.EXHAUST) {
+                    if (getExhaustForWrite()[prevCardIdx] > 0) {
+                        getExhaustForWrite()[prevCardIdx]--;
+                        getExhaustForWrite()[cardIdx]++;
+                    }
+                } else if (cloneParentLocation == GameState.DECK) {
+                    transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
+                } else if (cloneParentLocation == GameState.ON_TOP_OF_DECK) {
+                    transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
+                    getDrawOrderForWrite().transformTopMost(prevCardIdx, cardIdx);
+                }
             }
             if (cardPlayedSuccessfully) {
                 if (prop.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= energyCost;
                 }
                 for (var handler : prop.onCardPlayedHandlers) {
-                    handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned);
+                    handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned, cloneParentLocation);
                 }
             }
             for (Enemy enemy : enemies.iterateOverAlive()) {
                 enemy.react(this, prop.cardDict[cardIdx]);
-            }
-            if (!cloned && !exhaustWhenPlayed) {
-                if (prop.cardDict[cardIdx].exhaustWhenPlayed) {
-                    exhaustedCardHandle(cardIdx, true);
-                } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && prop.cardDict[cardIdx].cardType == Card.SKILL) {
-                    exhaustedCardHandle(cardIdx, true);
-                } else if (prop.cardDict[cardIdx].cardType != Card.POWER) {
-                    if (prop.reboundCounterIdx >= 0 && getCounterForRead()[prop.reboundCounterIdx] > 0) {
-                        if ((getCounterForRead()[prop.reboundCounterIdx] & (1 << 8)) != 0) {
-                            addCardToDiscard(cardIdx);
-                            getCounterForWrite()[prop.reboundCounterIdx]++;
-                            getCounterForWrite()[prop.reboundCounterIdx] ^= 1 << 8;
-                        } else {
-                            putCardOnTopOfDeck(cardIdx);
-                        }
-                    } else {
-                        addCardToDiscard(cardIdx);
-                    }
-                }
-                if (prop.reboundCounterIdx >= 0 && getCounterForRead()[prop.reboundCounterIdx] > 0) {
-                    getCounterForWrite()[prop.reboundCounterIdx]--;
-                }
             }
             if (prop.normalityCounterIdx < 0 || counter[prop.normalityCounterIdx] < 3) { // todo: hack
                 if (runActionQueueOnEnd) {
@@ -1365,6 +1421,15 @@ public final class GameState implements State {
             runActionsInQueueDuringCardPlayIfNonEmpty();
         }
         return cardPlayedSuccessfully || targetHalfAlive;
+    }
+
+    private void transformTopMostCard(short[] cardArrForWrite, int cardArrLen, int cardIdx, int newCardIdx) {
+        for (int i = cardArrLen - 1; i >= 0; i--) {
+            if (cardArrForWrite[i] == cardIdx) {
+                cardArrForWrite[i] = (short) newCardIdx;
+                break;
+            }
+        }
     }
 
     public void usePotion(GameAction action, int selectIdx) {
@@ -1684,29 +1749,29 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action, -1, true, false, true, false, -1);
+            playCard(action, -1, true, false, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1);
+                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1);
+                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1);
+                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1);
+            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
-            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1);
+            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             addCardToHand(action.idx());
             setActionCtx(GameActionCtx.PLAY_CARD, null, false);
@@ -2350,7 +2415,6 @@ public final class GameState implements State {
                 var base_idx = (i + 1) * prop.v_total_len;
                 var q_win_str = formatFloat(n[i] == 0 ? 0 : q[base_idx + GameState.V_WIN_IDX] / n[i]);
                 var q_health_str = formatFloat(n[i] == 0 ? 0 : q[base_idx + GameState.V_HEALTH_IDX] / n[i]);
-                var q_progress_str = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING && prop.fightProgressVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : q[base_idx + prop.fightProgressVIdx] / n[i]) : null;
                 var q_str = formatFloat(n[i] == 0 ? 0 : q[base_idx + GameState.V_COMB_IDX] / n[i]);
                 if (!first) {
                     str.append(", ");
@@ -2358,6 +2422,11 @@ public final class GameState implements State {
                 first = false;
                 str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/');
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
+                    var q_progress_str = prop.fightProgressVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : q[base_idx + prop.fightProgressVIdx] / n[i]) : null;
+                    str.append(q_progress_str).append('/');
+                }
+                if (Configuration.USE_TURNS_LEFT_HEAD) {
+                    var q_progress_str = prop.turnsLeftVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : q[base_idx + prop.turnsLeftVIdx] / n[i]) : null;
                     str.append(q_progress_str).append('/');
                 }
                 if (p_str2 != null) {
@@ -2549,6 +2618,9 @@ public final class GameState implements State {
 
     private int getNNInputLen() {
         int inputLen = 0;
+        if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
+            inputLen++;
+        }
         if (prop.preBattleScenariosBackup != null) {
             inputLen += prop.preBattleScenariosBackup.listRandomizations().size();
         }
@@ -2745,6 +2817,9 @@ public final class GameState implements State {
             str += "    " + prop.cardDict[discardIdx].cardName + "\n";
         }
         str += "Neural Network Input Breakdown (" + prop.inputLen + " inputs):\n";
+        if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
+            str += "    1 input to keep track of current turn number\n";
+        }
         if (prop.preBattleScenariosBackup != null) {
             str += "    " + prop.preBattleScenariosBackup.listRandomizations().size() + " inputs to keep track of scenario chosen\n";
         }
@@ -2961,6 +3036,9 @@ public final class GameState implements State {
         var player = getPlayeForRead();
         int idx = 0;
         var x = new float[prop.inputLen];
+        if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
+            x[idx++] = turnNum / 50.0f;
+        }
         if (prop.preBattleScenariosBackup != null) {
             if (prop.preBattleScenariosChosen >= 0) {
                 x[idx + prop.preBattleScenariosChosen] = 0.5f;

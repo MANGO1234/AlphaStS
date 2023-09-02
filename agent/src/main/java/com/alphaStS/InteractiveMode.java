@@ -271,7 +271,7 @@ public class InteractiveMode {
                 } else {
                     ((RandomGenInteractive) state.prop.random).rngOn = true;
                     nnPV.clear();
-                    runNNPV(state, mcts, nnPV, line, true);
+                    runNNPV(state, mcts, nnPV, line, true, history);
                     interactiveRecordSeed(state, history);
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                 }
@@ -524,7 +524,7 @@ public class InteractiveMode {
                     var step = game.get(start);
                     step.state().prop.makingRealMove = false;
                     List<String> pv = new ArrayList<>();
-                    runNNPV(step.state().clone(false), m, pv, "nn " + nodeCount, true);
+                    runNNPV(step.state().clone(false), m, pv, "nn " + nodeCount, true, null);
                     List<GameStep> pv1 = new ArrayList<>();
                     var s = step.state().clone(false);
                     for (int i = 0; i < pv.size(); i++) {
@@ -1612,24 +1612,27 @@ public class InteractiveMode {
             state.setMultithreaded(false);
         }
         if (state.prop.dmgDistVIdx >= 0) {
-            System.out.println("Damage Distribution:");
+            out.println("Damage Distribution:");
             for (int i = 0; i <= state.getMaxPossibleHealth(); i++) {
-                System.out.println(i + ": " + Utils.formatFloat(state.q[state.prop.dmgDistVIdx + i] / ((double) state.total_n + 1)));
+                out.println(i + ": " + Utils.formatFloat(state.q[state.prop.dmgDistVIdx + i] / ((double) state.total_n + 1)));
             }
         }
         if (state.prop.qwinVIdx >= 0) {
-            System.out.println("Q-Win: " + state.q[state.prop.qwinVIdx] / (state.total_n + 1));
-            System.out.println("Q-Health: " + state.q[state.prop.qwinVIdx + 1] / (state.total_n + 1));
+            out.println("Q-Win: " + state.q[state.prop.qwinVIdx] / (state.total_n + 1));
+            out.println("Q-Health: " + state.q[state.prop.qwinVIdx + 1] / (state.total_n + 1));
         }
-        System.out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
+        out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
         out.println(state);
+        if (state.prop.turnsLeftVIdx >= 0) {
+            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.prop.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.turnNum));
+        }
         System.gc();
         System.gc();
         System.gc();
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
-    private Tuple<GameState, Integer> runNNPV(GameState state, MCTS mcts, List<String> pv, String line, boolean printPV) {
+    private Tuple<GameState, Integer> runNNPV(GameState state, MCTS mcts, List<String> pv, String line, boolean printPV, List<String> history) {
         List<String> args = Arrays.asList(line.split(" "));
         if (args.size() < 2) {
             out.println("<node count>");
@@ -1680,8 +1683,12 @@ public class InteractiveMode {
             int max_n = s.n[action];
             if (printPV) {
                 int baseIdx = (action + 1) * s.prop.v_total_len;
-                out.println("  " + (++move_i) + ". " + s.getActionString(action) +
-                        ": n=" + max_n + ", q=" + formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n) + ", q_win=" + formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n) + ", q_health=" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n) + " (" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth()) + ")");
+                var o = "  " + (++move_i) + ". " + s.getActionString(action) +
+                        ": n=" + max_n + ", q=" + formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n) + ", q_win=" + formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n) + ", q_health=" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n) + " (" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth()) + ")";
+                out.println(o);
+                if (history != null) {
+                    history.add("# " + o);
+                }
             }
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
@@ -1753,7 +1760,7 @@ public class InteractiveMode {
                         break;
                     }
                     List<String> pv = new ArrayList<>();
-                    runNNPV(cState, threadMCTS.get(tidx), pv, "nn " + nodeCount, false);
+                    runNNPV(cState, threadMCTS.get(tidx), pv, "nn " + nodeCount, false, null);
                     synchronized (pvs) {
                         pvs.computeIfAbsent(pv, (_k) -> new ArrayList<>());
                         pvs.get(pv).add(cState);
@@ -1822,7 +1829,7 @@ public class InteractiveMode {
                     GameState s = state.clone(false);
                     interactiveSetSeed(s, s.prop.random.nextLong(RandomGenCtx.Other), s.prop.random.nextLong(RandomGenCtx.Other));
                     List<String> pv = new ArrayList<>();
-                    var k = runNNPV(s, threadMCTS.get(tidx), pv, "nn " + nodeCount + (clear ? " clear" : ""), false);
+                    var k = runNNPV(s, threadMCTS.get(tidx), pv, "nn " + nodeCount + (clear ? " clear" : ""), false, null);
                     k.v1().clearAllSearchInfo();
                     if (k.v1().getAction(k.v2()).type() == GameActionType.END_TURN) {
                         var t = k.v1().clone(false);

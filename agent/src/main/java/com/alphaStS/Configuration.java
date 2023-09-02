@@ -61,4 +61,15 @@ public class Configuration {
     public static boolean isUseDmgDistributionOn(GameState state) {
         return USE_DMG_DISTRIBUTION && (!TEST_USE_DMG_DISTRIBUTION || state.prop.testNewFeature);
     }
+
+    // having this help network know when it's almost losing due to 50 turns losing rule
+    // basic testing show it helps a bit in preventing losing to 50 turns
+    // combine with USE_TURNS_LEFT_HEAD below for maximum effect
+    public static boolean ADD_CURRENT_TURN_NUM_TO_NN_INPUT = true;
+
+    // predict how many turns remains in the battle (regardless of win or loss), use it to select the move that
+    // ends the battle faster among moves with similar evaluation
+    // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns
+    // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
+    public static boolean USE_TURNS_LEFT_HEAD = false;
 }

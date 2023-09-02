@@ -1,9 +1,6 @@
 package com.alphaStS;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.utils.Tuple;
@@ -1105,38 +1102,29 @@ public class MCTS {
     }
 
     private float[] getPolicy(GameState state, boolean training, int remainingCalls, boolean isRoot) {
-        float[] policy;
-        if (training) {
-            if (isRoot) {
-                if (state.policyMod == null) {
-                    state.policyMod = Model.softmax(state.policy, 1.25f);
-                    state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
-                }
-                policy = state.policyMod;
-            } else {
-               // if (state.policyMod == null) {
-               //     state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
-               // }
-               // policy = state.policyMod;
-               policy = state.policy;
-            }
-        } else {
-            policy = applyFutileSearchPruning(state, state.policy, remainingCalls);
+        if (!training) {
+            return applyFutileSearchPruning(state, state.policy, remainingCalls);
         }
-        return policy;
+        if (!isRoot) {
+            return state.policy;
+        }
+        if (state.policyMod == null) {
+            state.policyMod = Model.softmax(state.policy, 1.25f);
+            state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
+        }
+        return state.policyMod;
     }
 
     private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot) {
+        // MCTS caller force root action to be taken
         if (isRoot && forceRootAction >= 0) {
             ret[0] = forceRootAction;
             ret[1] = 1;
             return;
         }
-        int action = 0;
-        double maxU = -1000000;
-        boolean hasForcedMove = false;
-        int numberOfActions = 0;
-        boolean allBelow1Per = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING;
+
+        // only use fight progress when every child node has been explored and <= 0.1% chance of winning for every one
+        boolean useFightProgress = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING;
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 if (policy[i] <= 0) {
@@ -1144,17 +1132,23 @@ public class MCTS {
                 }
                 double q_win = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i] : 1;
                 if (q_win >= 0.001) {
-                    allBelow1Per = false;
+                    useFightProgress = false;
                     break;
                 }
             }
         }
+
+        int numberOfActions = 0;
+        double[] uValues = new double[state.getLegalActions().length];
+        double[] qValues = new double[state.getLegalActions().length];
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
             }
             numberOfActions += 1;
             int childN = state.n[i];
+
+            // multithreaded mcts -> add virtual loss
             if (state.prop.multithreadedMTCS) {
                 if (state.ns[i] != null && state.ns[i] instanceof GameState s) {
                     childN += s.virtualLoss.get();
@@ -1162,41 +1156,118 @@ public class MCTS {
                     childN += s.virtualLoss;
                 }
             }
-            double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / childN : Math.max(state.q[GameState.V_COMB_IDX] / (state.total_n + 1), 0);
-            if (allBelow1Per) {
-                q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + state.prop.fightProgressVIdx] / childN : Math.max(state.q[state.prop.fightProgressVIdx] / (state.total_n + 1), 0);
+
+            // first play urgency -> use parent q value
+            double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / childN : state.q[GameState.V_COMB_IDX] / (state.total_n + 1);
+            if (useFightProgress) { // only when every child has at least one node
+                q = state.q[(i + 1) * state.prop.v_total_len + state.prop.fightProgressVIdx] / childN;
             }
+
             double cpuct = state.prop.cpuct;
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
                 // cpuct scaling is equivalent to scaling the numerator in sqrt(state.total_n) / (1 + childN) further to encourage exploration
                 // noticing at high nodes very little exploration is done if the initial policy is low with logaritmic scaling
                 // so switch to total_n^0.25 which seem to work better?
-                // todo: reduce impact of policy as nodes are visited more may be a better idea?
+                // todo: reduce impact of policy as nodes are visited more may be a better idea? only at root?
 //                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
                 cpuct = cpuct * sqrt(sqrt(Math.max(state.total_n, 1)));
             }
+
+            // std err is an experimentation, not working out, remove in future
+            // when there are no child n, use policy instead to select highest policy move
             var std_err = 0.0;
             if (Configuration.isUseUtilityStdErrForPuctOn(state)) {
                 std_err = Math.sqrt(state.varianceS / state.total_n) / Math.sqrt(state.total_n + 1);
             }
-            double u = state.total_n > 0 ? q + cpuct * policy[i] * (sqrt(state.total_n) / (1 + childN) + 5 * std_err): policy[i];
-            if (Configuration.TRAINING_USE_FORCED_PLAYOUT && training && isRoot) {
-                var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
-                if (state.n[i] < force_n) {
-                    if (!hasForcedMove) {
-                        action = i;
-                        maxU = u;
-                        hasForcedMove = true;
-                    } else if (u > maxU) {
-                        action = i;
-                        maxU = u;
-                    }
+            double u = state.total_n > 0 ? q + cpuct * policy[i] * (sqrt(state.total_n) / (1 + childN) + 5 * std_err) : policy[i];
+            uValues[i] = u;
+            qValues[i] = q;
+        }
+
+        int action = 0;
+        double maxU = -1000000;
+        boolean doForcePlayout = false;
+        // when training: use KataGo's forced playout to help exploration
+        if (Configuration.TRAINING_USE_FORCED_PLAYOUT && training && isRoot) {
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (policy[i] <= 0) {
                     continue;
                 }
+                var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
+                if (state.n[i] < force_n) {
+                    if (!doForcePlayout) {
+                        action = i;
+                        maxU = uValues[i];
+                        doForcePlayout = true;
+                    } else if (uValues[i] > maxU) { // if multiple actions is forced, we select action with the highest utility
+                        action = i;
+                        maxU = uValues[i];
+                    }
+                }
             }
-           if (!hasForcedMove && u > maxU) {
-                action = i;
-                maxU = u;
+        }
+        if (!doForcePlayout) {
+            for (int i = 0; i < state.getLegalActions().length; i++) {
+                if (policy[i] <= 0) {
+                    continue;
+                }
+                if (uValues[i] > maxU) {
+                    action = i;
+                    maxU = uValues[i];
+                }
+            }
+            if (!useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0) {
+                double maxQ = -100000;
+                for (int i = 0; i < state.getLegalActions().length; i++) {
+                    if (policy[i] <= 0) {
+                        continue;
+                    }
+                    if (qValues[i] > maxQ) {
+                        maxQ = qValues[i];
+                    }
+                }
+
+                // always select move with least amount of turns: seem to reduce
+                // game length a bit more (but also very rare deaths)
+                // reduce exploration so probably not sound
+                // double minTurns = state.q[(action + 1) * state.prop.v_total_len + state.prop.finalTurnNumVIdx] / state.n[action];
+                // double currentQ = qValues[action];
+                // if (currentQ >= 0.999 * maxQ) {
+                //     for (int i = 0; i < state.getLegalActions().length; i++) {
+                //         if (policy[i] <= 0 || state.n[i] <= 0) {
+                //             continue;
+                //         }
+                //         double turns = state.q[(i + 1) * state.prop.v_total_len + state.prop.finalTurnNumVIdx] / state.n[i];
+                //         if (qValues[i] >= 0.999 * maxQ && turns < minTurns) {
+                //             action = i;
+                //             minTurns = turns;
+                //         }
+                //     }
+                // }
+
+                // increase u more the lower the number of turns left and reselect action
+                // the constants 0.999 and 1 is arbitrary right now
+                double currentQ = qValues[action];
+                if (currentQ >= 0.999 * maxQ) {
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (policy[i] <= 0 || state.n[i] <= 0) {
+                            continue;
+                        }
+                        double turns2 = state.q[(i + 1) * state.prop.v_total_len + state.prop.turnsLeftVIdx] / state.n[i];
+                        if (qValues[i] >= 0.999 * maxQ) {
+                            uValues[i] += (1 - turns2) * 1;
+                        }
+                    }
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (policy[i] <= 0 || state.n[i] <= 0) {
+                            continue;
+                        }
+                        if (uValues[i] > maxU) {
+                            action = i;
+                            maxU = uValues[i];
+                        }
+                    }
+                }
             }
         }
         ret[0] = action;

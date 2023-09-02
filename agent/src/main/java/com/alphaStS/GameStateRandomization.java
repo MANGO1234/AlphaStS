@@ -326,7 +326,6 @@ public interface GameStateRandomization {
 
         @Override public int randomize(GameState state) {
             if (!curriculumTraining || minDifficulty <= 0) {
-                int c = 0;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     if (enemy.getMaxRandomizeDifficulty() > 0) {
                         state.setIsStochastic();
@@ -492,8 +491,9 @@ public interface GameStateRandomization {
     class CardCountRandomization implements GameStateRandomization {
         private final List<List<CardCount>> scenarios;
         private final Map<Integer, Info> infoMap;
+        private final boolean addCardCount;
 
-        public CardCountRandomization(List<List<CardCount>> scenarios) {
+        public CardCountRandomization(List<List<CardCount>> scenarios, boolean addInstead) {
             var map = new HashMap<Card, Integer>();
             for (List<CardCount> scenario : scenarios) {
                 for (CardCount cardCount : scenario) {
@@ -514,6 +514,11 @@ public interface GameStateRandomization {
                 }
                 infoMap.put(i, new Info(1.0 / scenarios.size(), desc));
             }
+            addCardCount = addInstead;
+        }
+
+        public CardCountRandomization(List<List<CardCount>> scenarios) {
+            this(scenarios, false);
         }
 
         @Override public int randomize(GameState state) {
@@ -525,7 +530,13 @@ public interface GameStateRandomization {
         @Override public void randomize(GameState state, int r) {
             var s = scenarios.get(r);
             for (CardCount cardCount : s) {
-                state.setCardCountInDeck(state.prop.findCardIndex(cardCount.card()), cardCount.count());
+                if (addCardCount) {
+                    for (int i = 0; i < cardCount.count(); i++) {
+                        state.addCardToDeck(state.prop.findCardIndex(cardCount.card()));
+                    }
+                } else {
+                    state.setCardCountInDeck(state.prop.findCardIndex(cardCount.card()), cardCount.count());
+                }
             }
         }
 

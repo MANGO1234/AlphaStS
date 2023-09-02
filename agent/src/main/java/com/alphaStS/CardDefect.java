@@ -352,11 +352,13 @@ public class CardDefect {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
             var orbs = state.getOrbs();
-            int c = 0;
-            for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
-                c |= 1 << orbs[i];
+            if (orbs != null) {
+                int c = 0;
+                for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
+                    c |= 1 << orbs[i];
+                }
+                state.draw(Integer.bitCount(c));
             }
-            state.draw(Integer.bitCount(c));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1450,7 +1452,7 @@ public class CardDefect {
                 }
             });
             state.addOnPreCardPlayedHandler("Heatsinks", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.prop.cardDict[cardIdx].cardType == Card.POWER) {
                         state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
@@ -1934,7 +1936,7 @@ public class CardDefect {
                 }
             });
             state.addOnPreCardPlayedHandler("Storm", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.prop.cardDict[cardIdx].cardType == Card.POWER) {
                         var _n = state.getCounterForRead()[counterIdx];
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
@@ -2183,7 +2185,7 @@ public class CardDefect {
                 }
             });
             state.addOnCardPlayedHandler("Amplify", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var card = state.prop.cardDict[cardIdx];
                     if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -2196,7 +2198,7 @@ public class CardDefect {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed)) {
+                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
@@ -2245,7 +2247,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addEndOfTurnHandler("LoseFocusPerTurn", new GameEventHandler() {
+            state.addStartOfTurnHandler("LoseFocusPerTurn", new GameEventHandler(10) {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
@@ -2454,7 +2456,7 @@ public class CardDefect {
                 }
             });
             state.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 0) {
                         state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];
                     }
@@ -2470,7 +2472,7 @@ public class CardDefect {
                         state.addGameActionToStartOfDeque(curState -> {
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
-                            if (curState.playCard(action, lastIdx, false,true, false, false, energyUsed)) {
+                            if (curState.playCard(action, lastIdx, false,true, false, false, energyUsed, cloneParentLocation)) {
                                 curState.runActionsInQueueIfNonEmpty();
                             } else {
                                 curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
@@ -2563,14 +2565,16 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int n = 0;
-            while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
-                state.evokeOrb(1);
-                n++;
-            }
-            state.gainEnergy(n);
-            if (upgraded) {
-                state.draw(n);
+            if (state.getOrbs() != null) {
+                int n = 0;
+                while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
+                    state.evokeOrb(1);
+                    n++;
+                }
+                state.gainEnergy(n);
+                if (upgraded) {
+                    state.draw(n);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2649,13 +2653,13 @@ public class CardDefect {
 
     public static class MachineLearning extends CardDefect._MachineLearningT {
         public MachineLearning() {
-            super("Machine Learning", Card.POWER, 0, false);
+            super("Machine Learning", Card.POWER, 1, false);
         }
     }
 
     public static class MachineLearningP extends CardDefect._MachineLearningT {
         public MachineLearningP() {
-            super("Machine Learning+", Card.POWER, 0, true);
+            super("Machine Learning+", Card.POWER, 1, true);
         }
     }
 
