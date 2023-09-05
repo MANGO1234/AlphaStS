@@ -61,6 +61,8 @@ public class GameProperties implements Cloneable {
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] skillPotionIdxes;
     public int[] powerPotionIdxes;
+    public int[] colorlessPotionIdxes;
+    public int[] toolboxIdxes;
     public int[][] sneckoIdxes;
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;
@@ -146,6 +148,7 @@ public class GameProperties implements Cloneable {
     public boolean hasRunicPyramid;
     public boolean hasSacredBark;
     public boolean hasStrangeSpoon;
+    public boolean hasToolbox;
     public boolean hasTurnip;
     public boolean hasTorri;
     public boolean hasTungstenRod;

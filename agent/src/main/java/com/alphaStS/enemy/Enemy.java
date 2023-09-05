@@ -116,17 +116,17 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public void endTurn(int turnNum) {
-        if (turnNum > 1 && vulnerable > 0) {
+        if (turnNum > 0 && vulnerable > 0) {
             vulnerable -= 1;
         }
-        if (turnNum > 1 && weak > 0) {
+        if (turnNum > 0 && weak > 0) {
             weak -= 1;
         }
         if (loseStrengthEot != 0) {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
-        if (!property.isElite || (turnNum > 1 && metallicize > 0)) { // todo: burning elite
+        if (!property.isElite || (turnNum > 0 && metallicize > 0)) { // todo: burning elite
             gainBlock(metallicize);
         }
         if (platedArmor > 0) {
@@ -153,7 +153,9 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     protected void heal(int hp) {
-        health += Math.min(hp, Math.max(0, property.origHealth - health));
+        if (health > 0) {
+            health += Math.min(hp, Math.max(0, property.origHealth - health));
+        }
     }
 
     public void react(GameState state, Card card) {

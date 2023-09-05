@@ -4,6 +4,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 
@@ -289,6 +290,17 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class DrawPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.draw(3);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Draw Potion";
+        }
+    }
+
     public static class PotionOfCapacity extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.gainOrbSlot(state.prop.hasSacredBark ? 4 : 2);
@@ -552,12 +564,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length, RandomGenCtx.SkillPotion,
-                    interactive ? new Tuple<>(state, (255 << 8) + 255) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 1, RandomGenCtx.SkillPotion,
-                    interactive ? new Tuple<>(state, (255 << 8) + idx1) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 2, RandomGenCtx.SkillPotion,
-                    interactive ? new Tuple<>(state, (idx2 << 8) + idx1) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.skillPotionIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.skillPotionIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.skillPotionIdxes) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -674,12 +686,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length, RandomGenCtx.PowerPotion,
-                    interactive ? new Tuple<>(state, (255 << 8) + 255) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 1, RandomGenCtx.PowerPotion,
-                    interactive ? new Tuple<>(state, (255 << 8) + idx1) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 2, RandomGenCtx.PowerPotion,
-                    interactive ? new Tuple<>(state, (idx2 << 8) + idx1) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.potions) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.potions) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.potions) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -735,6 +747,96 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.prop.powerPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.prop.powerPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+            }
+        }
+    }
+
+    public static class ColorlessPotion extends Potion {
+        public ColorlessPotion() {
+            selectCard1OutOf3 = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.colorlessPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.colorlessPotionIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.colorlessPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.colorlessPotionIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.colorlessPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.colorlessPotionIdxes) : null);
+            if (idx2 >= idx1) {
+                idx2++;
+            }
+            if (idx3 >= Math.min(idx1, idx2)) {
+                idx3++;
+            }
+            if (idx3 >= Math.max(idx1, idx2)) {
+                idx3++;
+            }
+            state.setSelect1OutOf3Idxes(state.prop.colorlessPotionIdxes[idx1], state.prop.colorlessPotionIdxes[idx2], state.prop.colorlessPotionIdxes[idx3]);
+            state.setIsStochastic();
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public String toString() {
+            return "Colorless Potion";
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var l = new ArrayList<Card>(c);
+            for (Card card : c) {
+                if (card instanceof Card.CardTmpChangeCost t) {
+                    l.add(t.card);
+                }
+            }
+            return l;
+        }
+
+        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+            return List.of(
+                    new CardColorless.Blind(),
+                    new CardColorless.DarkShackles(),
+                    new CardColorless.DeepBreath(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("0"), 0),
+                    new CardColorless.DramaticEntrance(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("1"), 0),
+                    new CardColorless.Finesse(),
+                    new CardColorless.FlashOfSteel(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("2"), 0),
+                    new CardColorless.GoodInstincts(),
+                    new CardColorless.Impatience(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("3"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("4"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.MindBlast(), 0),
+                    new CardColorless.Panacea(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("5"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("6"), 0),
+                    new CardColorless.SwiftStrike(),
+                    new CardColorless.Trip(),
+                    new Card.CardTmpChangeCost(new CardColorless.Apotheosis(), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("7"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.HandOfGreed(0.1), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("8"), 0),
+                    new CardColorless.MasterOfStrategy(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("9"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("10"), 0),
+                    new CardColorless.Panacea(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("11"), 0),
+                    new CardColorless.SecretTechnique(),
+                    new CardColorless.SecretWeapon(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("12"), 0),
+                    new CardColorless.ThinkingAhead(),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("13"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("14"), 0)
+            );
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleSelect3OutOf1Cards(state.prop);
+            state.prop.colorlessPotionIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.prop.colorlessPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
             }
         }
     }

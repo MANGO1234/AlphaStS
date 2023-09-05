@@ -32,6 +32,7 @@ NUMBER_OF_THREADS_TRAINING = int(getFlagValue('-tt', 0))
 ITERATION_COUNT = int(getFlagValue('-c', 5))
 Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
 NODE_COUNT = int(getFlagValue('-n', 1000))
+DYNAMIC_BATCH_SIZE_FACTOR = int(getFlagValue('-dynamic_batch', 0))
 SAVES_DIR = getFlagValue('-dir', './saves')
 SKIP_FIRST = getFlag('-skip_first')
 USE_KAGGLE = getFlagValue('-kaggle')
@@ -39,15 +40,15 @@ KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
 KAGGLE_DATASET_NAME = 'dataset'
 
 if NUMBER_OF_THREADS_TRAINING > 0:
-    tf.config.threading.set_intra_op_parallelism_threads(NUMBER_OF_THREADS_TRAINING)
-    tf.config.threading.set_inter_op_parallelism_threads(NUMBER_OF_THREADS_TRAINING)
+    tf.config.threading.set_intra_op_parallelism_threads(1)
+    tf.config.threading.set_inter_op_parallelism_threads(1)
     os.environ["OMP_NUM_THREADS"] = f"{NUMBER_OF_THREADS_TRAINING}"
-    os.environ['TF_NUM_INTEROP_THREADS'] = f"{NUMBER_OF_THREADS_TRAINING}"
-    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{NUMBER_OF_THREADS_TRAINING}"
+    os.environ['TF_NUM_INTEROP_THREADS'] = f"{1}"
+    os.environ['TF_NUM_INTRAOP_THREADS'] = f"{1}"
 
 
 def convertToOnnx(model, input_len, output_dir):
-    spec = (tf.TensorSpec((1, input_len), tf.float32, name="input"),)
+    spec = (tf.TensorSpec((None, input_len), tf.float32, name="input"),)
     output_path = output_dir + "/model.onnx"
     model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13, output_path=output_path)
 
@@ -241,6 +242,16 @@ def expire_training_samples(training_pool, iteration):
             break
         i += 1
     return training_pool[i:]
+
+
+def get_batch_size(training_pool_size):
+    if DYNAMIC_BATCH_SIZE_FACTOR <= 0:
+        return 32
+    if training_pool_size > DYNAMIC_BATCH_SIZE_FACTOR * 128:
+        return 128
+    if training_pool_size > DYNAMIC_BATCH_SIZE_FACTOR * 64:
+        return 64
+    return 32
 
 
 def save_stats(training_info, iteration, out):
@@ -507,7 +518,7 @@ if DO_TRAINING:
                         exp_other_heads_train[i][minibatch_idx] = np.asarray(v_others[i]).reshape(v_other_lens[i])
                     minibatch_idx += 1
                 target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
-                fit_result = model.fit(x_train, target, epochs=train_iter)
+                fit_result = model.fit(x_train, target, epochs=train_iter, batch_size=get_batch_size(len(training_pool)))
                 iteration_info['loss'] = fit_result.history['loss'][-1]
             model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')

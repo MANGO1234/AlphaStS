@@ -5,7 +5,9 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.CounterStat;
+import com.alphaStS.utils.Tuple3;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,9 +17,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean healPlayer;
+    public boolean selectCard1OutOf3;
 
     public void startOfGameSetup(GameState state) {}
-    List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
+    List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
 
     int counterIdx = -1;
     @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -371,6 +375,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             super.setCounterIdx(gameProperties, idx);
             gameProperties.penNibCounterIdx = idx;
         }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "PenNib");
+        }
     }
 
     // Potion Belt: No need to implement
@@ -690,7 +698,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             if (cards.stream().allMatch((c) -> c.cardType != Card.POWER)) {
                 return List.of();
             }
@@ -1165,8 +1173,93 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // todo: The Abacus
-    // todo: Toolbox
 
+    public static class Toolbox extends Relic {
+        public Toolbox() {
+            selectCard1OutOf3 = true;
+        }
+
+        public static void changeToSelectionCtx(GameState state) {
+            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.toolboxIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.toolboxIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.toolboxIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.toolboxIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.toolboxIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.toolboxIdxes) : null);
+            if (idx2 >= idx1) {
+                idx2++;
+            }
+            if (idx3 >= Math.min(idx1, idx2)) {
+                idx3++;
+            }
+            if (idx3 >= Math.max(idx1, idx2)) {
+                idx3++;
+            }
+            state.setSelect1OutOf3Idxes(state.prop.toolboxIdxes[idx1], state.prop.toolboxIdxes[idx2], state.prop.toolboxIdxes[idx3]);
+            state.setIsStochastic();
+            state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, false);
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var l = new ArrayList<Card>(c);
+            for (Card card : c) {
+                if (card instanceof Card.CardTmpChangeCost t) {
+                    l.add(t.card);
+                }
+            }
+            return l;
+        }
+
+        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+            return List.of(
+                    new CardColorless.Blind(),
+                    new CardColorless.DarkShackles(),
+                    new CardColorless.DeepBreath(),
+                    new CardColorless.ToBeImplemented("0"),
+                    new CardColorless.DramaticEntrance(),
+                    new CardColorless.ToBeImplemented("1"),
+                    new CardColorless.Finesse(),
+                    new CardColorless.FlashOfSteel(),
+                    new CardColorless.ToBeImplemented("2"),
+                    new CardColorless.GoodInstincts(),
+                    new CardColorless.Impatience(),
+                    new CardColorless.ToBeImplemented("3"),
+                    new CardColorless.ToBeImplemented("4"),
+                    new CardColorless.MindBlast(),
+                    new CardColorless.Panacea(),
+                    new CardColorless.ToBeImplemented("5"),
+                    new CardColorless.ToBeImplemented("6"),
+                    new CardColorless.SwiftStrike(),
+                    new CardColorless.Trip(),
+                    new CardColorless.Apotheosis(),
+                    new CardColorless.ToBeImplemented("7"),
+                    new CardColorless.HandOfGreed(0.1),
+                    new CardColorless.ToBeImplemented("8"),
+                    new CardColorless.MasterOfStrategy(),
+                    new CardColorless.ToBeImplemented("9"),
+                    new CardColorless.ToBeImplemented("10"),
+                    new CardColorless.Panacea(),
+                    new CardColorless.ToBeImplemented("11"),
+                    new CardColorless.SecretTechnique(),
+                    new CardColorless.SecretWeapon(),
+                    new CardColorless.ToBeImplemented("12"),
+                    new CardColorless.ThinkingAhead(),
+                    new CardColorless.ToBeImplemented("13"),
+                    new CardColorless.ToBeImplemented("14")
+            );
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasToolbox = true;
+            var cards = getPossibleSelect3OutOf1Cards(state.prop);
+            state.prop.toolboxIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.prop.toolboxIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+            }
+        }
+    }
 
     // **********************************************************************************************************************************************
     // ************************************************************** Boss Relics *******************************************************************
@@ -1252,7 +1345,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class SneckoEye extends Relic {
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return GameProperties.generateSneckoCards(cards);
         }
 
@@ -1393,7 +1486,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }

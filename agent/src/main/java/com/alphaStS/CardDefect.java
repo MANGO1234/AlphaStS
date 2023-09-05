@@ -2463,7 +2463,7 @@ public class CardDefect {
                     if (cloned) { // todo: think only echo formed card doesn't count toward card played
                         return;
                     }
-                    boolean isEcho = state.prop.cardDict[cardIdx] instanceof CardDefect.EchoForm;
+                    boolean isEcho = state.prop.cardDict[cardIdx].cardName.startsWith("Echo Form");
                     if (isEcho) {
                         state.getCounterForWrite()[counterIdx]++;
                     }

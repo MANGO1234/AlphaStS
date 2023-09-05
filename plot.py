@@ -36,7 +36,7 @@ if len(sys.argv) > 1:
             y2 = [x['avg_final_q'] for x in info if 'avg_final_q' in x]
             ax[2].plot(x0[:len(y2)], y2, label=path)
             x1 = [x['accumulated_time'] for x in info if 'accumulated_time' in x]
-            ax[3].plot(x1[:len(y0)], y0, label=path)
+            ax[3].plot(x1[:len(y0)], y2, label=path)
 
         ax[0].legend()
         ax[1].legend()

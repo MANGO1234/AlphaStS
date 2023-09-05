@@ -4,6 +4,7 @@ import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 import com.alphaStS.utils.Utils;
 
 import java.io.*;
@@ -1228,7 +1229,7 @@ public class InteractiveMode {
         return 7;
     }
 
-    int selectCardsForCardGenPotion(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history, int[] potionsIdxes) throws IOException {
+    int selectCardsForCardGenPotion(BufferedReader reader, Tuple3<GameState, Integer, int[]> arg, List<String> history, int[] potionsIdxes) throws IOException {
         var state = arg.v1();
         int currentIdx1 = arg.v2() & 255;
         int currentIdx2 = (arg.v2() >> 8) & 255;
@@ -2020,18 +2021,10 @@ public class InteractiveMode {
                     throw new RuntimeException(e);
                 }
             }
-            case SkillPotion -> {
+            case SelectCard1OutOf3 -> {
                 try {
-                    var a = (Tuple<GameState, Integer>) arg;
-                    return interactiveMode.selectCardsForCardGenPotion(reader, a, history, a.v1().prop.skillPotionIdxes);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            case PowerPotion -> {
-                try {
-                    var a = (Tuple<GameState, Integer>) arg;
-                    return interactiveMode.selectCardsForCardGenPotion(reader, a, history, a.v1().prop.powerPotionIdxes);
+                    var a = (Tuple3<GameState, Integer, int[]>) arg;
+                    return interactiveMode.selectCardsForCardGenPotion(reader, a, history, a.v3());
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

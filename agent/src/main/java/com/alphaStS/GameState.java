@@ -459,7 +459,7 @@ public final class GameState implements State {
         }
 
         // select from select 1 out of 3 cards action
-        if (potions.stream().anyMatch((x) -> x.selectCard1OutOf3)) {
+        if (relics.stream().anyMatch((x) -> x.selectCard1OutOf3) || potions.stream().anyMatch((x) -> x.selectCard1OutOf3)) {
             prop.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()] = new GameAction[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 prop.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_1_OUT_OF_3, i);
@@ -573,7 +573,7 @@ public final class GameState implements State {
         for (int i = 0; i < prop.discardIdxes.length; i++) {
             prop.discardReverseIdxes[prop.discardIdxes[i]] = i;
         }
-        prop.select1OutOf3CardsIdxes = findSelect1OutOf3CardsToKeepTrackOf(cards, potions);
+        prop.select1OutOf3CardsIdxes = findSelect1OutOf3CardsToKeepTrackOf(relics, potions);
         prop.select1OutOf3CardsReverseIdxes = new int[prop.cardDict.length];
         Arrays.fill(prop.select1OutOf3CardsReverseIdxes, -1);
         for (int i = 0; i < prop.select1OutOf3CardsIdxes.length; i++) {
@@ -924,12 +924,10 @@ public final class GameState implements State {
         return l.stream().filter((x) -> !(prop.cardDict[x] instanceof Card.CardTmpChangeCost)).sorted().mapToInt(Integer::intValue).toArray();
     }
 
-    private int[] findSelect1OutOf3CardsToKeepTrackOf(List<CardCount> cards, List<Potion> potions) {
-        var c = cards.stream().map(CardCount::card).toList();
+    private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Relic> relics, List<Potion> potions) {
         List<Integer> idxes = new ArrayList<>();
-        for (int i = 0; i < potions.size(); i++) {
-            potions.get(i).getPossibleSelect3OutOf1Cards(prop).forEach((card) -> idxes.add(prop.findCardIndex(card)));
-        }
+        potions.forEach(potion -> potion.getPossibleSelect3OutOf1Cards(prop).forEach((card) -> idxes.add(prop.findCardIndex(card))));
+        relics.forEach(relic -> relic.getPossibleSelect3OutOf1Cards(prop).forEach((card) -> idxes.add(prop.findCardIndex(card))));
         return idxes.stream().mapToInt(Integer::intValue).sorted().toArray();
     }
 
@@ -952,7 +950,7 @@ public final class GameState implements State {
                 }
             }
             for (Relic relic : relics) {
-                for (Card possibleCard : relic.getPossibleGeneratedCards(set.stream().map(CardCount::card).toList())) {
+                for (Card possibleCard : relic.getPossibleGeneratedCards(prop, set.stream().map(CardCount::card).toList())) {
                     newSet.add(new CardCount(possibleCard, 0));
                     if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
                         newSet.add(new CardCount(tmp.card, 0));
@@ -1531,7 +1529,6 @@ public final class GameState implements State {
 
     void beginTurn() {
         runActionsInQueueIfNonEmpty();
-        turnNum++;
         playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
         playerTurnStartPotionCount = getPotionCount();
         gainEnergy(energyRefill);
@@ -1559,6 +1556,15 @@ public final class GameState implements State {
                 }
             }
         }
+        if (prop.hasToolbox && turnNum == 0) {
+            Relic.Toolbox.changeToSelectionCtx(this);
+        } else {
+            beginTurnPart2();
+        }
+    }
+
+    void beginTurnPart2() {
+        turnNum++;
         var drawCount = 5;
         if (prop.drawReductionCounterIdx >= 0 && getCounterForRead()[prop.drawReductionCounterIdx] > 0) {
             drawCount--;
@@ -1745,7 +1751,6 @@ public final class GameState implements State {
                 getDrawOrderForWrite().pushOnTop(order.get(i));
             }
             beginTurn();
-            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
@@ -1773,8 +1778,13 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
             playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
-            addCardToHand(action.idx());
+            if (!(prop.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
+                addCardToHand(action.idx());
+            }
             setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+            if (turnNum == 0) {
+                beginTurnPart2();
+            }
         } else if (action.type() == GameActionType.USE_POTION) {
             getPotionsStateForWrite()[action.idx() * 3] = 0;
             usePotion(action, -1);

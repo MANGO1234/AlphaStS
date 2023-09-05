@@ -8,6 +8,12 @@ import java.util.Objects;
 public class CardColorless {
     // Bandage Up
 
+    public static class ToBeImplemented extends Card {
+        public ToBeImplemented(String a) {
+            super("ToBeImplemented" + a, Card.SKILL, 0, Card.COMMON);
+        }
+    }
+
     public static class Blind extends Card {
         public Blind() {
             super("Blind", Card.SKILL, 0, Card.UNCOMMON);
@@ -401,12 +407,13 @@ public class CardColorless {
 
     private static abstract class _HandOfGreedT extends Card {
         private int n;
-        protected final double healthRewardRatio = 0.1;
+        protected double healthRewardRatio = 0;
 
-        public _HandOfGreedT(String cardName, int cardType, int n) {
+        public _HandOfGreedT(String cardName, int cardType, int n, double healthRewardRatio) {
             super(cardName, cardType, 2, Card.RARE);
             this.n = n;
             this.selectEnemy = true;
+            this.healthRewardRatio = healthRewardRatio;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -491,14 +498,18 @@ public class CardColorless {
     }
 
     public static class HandOfGreed extends CardColorless._HandOfGreedT {
-        public HandOfGreed() {
-            super("Hand Of Greed", Card.ATTACK, 20);
+        public HandOfGreed(double healthRewardRatio) {
+            super("Hand Of Greed", Card.ATTACK, 20, healthRewardRatio);
+        }
+
+        public Card getUpgrade() {
+            return new CardColorless.HandOfGreedP(healthRewardRatio);
         }
     }
 
     public static class HandOfGreedP extends CardColorless._HandOfGreedT {
-        public HandOfGreedP() {
-            super("Hand Of Greed+", Card.ATTACK, 25);
+        public HandOfGreedP(double healthRewardRatio) {
+            super("Hand Of Greed+", Card.ATTACK, 25, healthRewardRatio);
         }
     }
 
