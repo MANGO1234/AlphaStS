@@ -17,7 +17,7 @@ class NNInputHash {
         if (o == null || getClass() != o.getClass())
             return false;
         NNInputHash inputHash = (NNInputHash) o;
-        return Arrays.equals(input, inputHash.input);
+        return hashCode == inputHash.hashCode && Arrays.equals(input, inputHash.input);
     }
 
     @Override public int hashCode() {

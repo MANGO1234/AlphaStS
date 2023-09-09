@@ -4,6 +4,8 @@ import java.util.*;
 
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.model.Model;
+import com.alphaStS.model.ModelPlain;
+import com.alphaStS.model.NNOutput;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
@@ -20,6 +22,10 @@ public class MCTS {
     private final int[] ret = new int[2];
     private double terminal_v_win;
     public int forceRootAction = -1;
+
+    public MCTS(Model model) {
+        this.model = model;
+    }
 
     void setModel(Model model) {
         this.model = model;
@@ -1110,7 +1116,7 @@ public class MCTS {
             return state.policy;
         }
         if (state.policyMod == null) {
-            state.policyMod = Model.softmax(state.policy, 1.25f);
+            state.policyMod = ModelPlain.softmax(state.policy, 1.25f);
             state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.25f);
         }
         return state.policyMod;

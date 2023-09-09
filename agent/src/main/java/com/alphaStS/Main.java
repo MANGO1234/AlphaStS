@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.model.ModelPlain;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -47,6 +48,7 @@ public class Main {
         int NUMBER_OF_THREADS = 2;
         boolean WRITE_MATCHES = false;
         boolean PRINT_DMG = false;
+        boolean BATCH = false;
         String COMPARE_DIR = null;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
@@ -64,6 +66,9 @@ public class Main {
             }
             if (args[i].equals("-p")) {
                 PLAY_A_GAME = true;
+            }
+            if (args[i].equals("-batch")) {
+                Configuration.USE_BATCH_EXECUTORS = true;
             }
             if (args[i].equals("-c")) {
                 NUMBER_OF_GAMES_TO_PLAY = Integer.parseInt(args[i + 1]);
@@ -268,11 +273,12 @@ public class Main {
 
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
-            for (int i = 0; i < session.mcts.size(); i++) {
-                var m = session.mcts.get(i);
-                System.out.println("Time Taken (By Model " + i + "): " + m.model.time_taken);
-                System.out.println("Model " + i + ": size=" + m.model.cache.size() + ", " + m.model.cache_hits + "/"
-                        + m.model.calls + " hits (" + (double) m.model.cache_hits / m.model.calls + ")");
+            var debugModels = Configuration.USE_BATCH_EXECUTORS ? session.batchExecutors.getExecutorModels() : session.mcts.stream().map((m) -> m.model).toList();
+            for (int i = 0; i < debugModels.size(); i++) {
+                var m = (ModelPlain) debugModels.get(i);
+                System.out.println("Time Taken (By Model " + i + "): " + m.time_taken);
+                System.out.println("Model " + i + ": size=" + m.cache.size() + ", " + m.cache_hits + "/"
+                        + m.calls + " hits (" + (double) m.cache_hits / m.calls + ")");
             }
             System.out.println("--------------------");
         }

@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.model.Model;
+import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
@@ -25,13 +26,12 @@ public class InteractiveMode {
 
     private void allocateThreadMCTS(int numThreads) {
         for (int i = threadMCTS.size(); i < numThreads; i++) {
-            Model model = null;
+            ModelPlain model = null;
             try {
-                model = new Model(modelDir);
+                model = new ModelPlain(modelDir);
             } catch (Exception e) {
             }
-            threadMCTS.add(new MCTS());
-            threadMCTS.get(i).setModel(model);
+            threadMCTS.add(new MCTS(model));
         }
     }
 
@@ -180,7 +180,7 @@ public class InteractiveMode {
                 out.println(Arrays.toString(state.getNNInput()));
             } else if (line.startsWith("model ")) {
                 try {
-                    model = new Model(line.split(" ")[1]);
+                    model = new ModelPlain(line.split(" ")[1]);
                     mcts.setModel(model);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -516,9 +516,7 @@ public class InteractiveMode {
                     nodeCount = parseInt(args[1], 500);
                 }
 
-                Model model = new Model(modelDir);
-                var m = new MCTS();
-                m.setModel(model);
+                var m = new MCTS(new ModelPlain(modelDir));
                 var pvs = new ArrayList<Tuple<Tuple<Integer, Integer>, Tuple<List<GameStep>, List<GameStep>>>>();
                 var start = 0;
                 while (start < game.size() - 1) {
