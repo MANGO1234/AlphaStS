@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.model.Model;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;

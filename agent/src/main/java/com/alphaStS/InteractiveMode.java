@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.model.Model;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;

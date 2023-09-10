@@ -4,6 +4,8 @@ import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.model.Model;
+import com.alphaStS.model.NNOutput;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.*;
@@ -30,9 +32,6 @@ enum GameActionType {
     SELECT_SCENARIO,
     BEGIN_TURN,
     END_SELECT_CARD_HAND,
-}
-
-record GameAction(GameActionType type, int idx) { // idx is either cardIdx, enemyIdx, potionIdx, etc.
 }
 
 public final class GameState implements State {
@@ -4558,29 +4557,6 @@ public final class GameState implements State {
 }
 
 interface State {
-}
-
-class InputHash {
-    float[] input;
-    int hashCode;
-
-    public InputHash(float[] input) {
-        this.input = input;
-        hashCode = Arrays.hashCode(input);
-    }
-
-    @Override public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
-        InputHash inputHash = (InputHash) o;
-        return Arrays.equals(input, inputHash.input);
-    }
-
-    @Override public int hashCode() {
-        return hashCode;
-    }
 }
 
 class ChanceState implements State {

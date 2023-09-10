@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.model;
 
 import ai.onnxruntime.OnnxTensor;
 import ai.onnxruntime.OrtEnvironment;
@@ -7,12 +7,11 @@ import ai.onnxruntime.OrtSession;
 import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
+import com.alphaStS.GameActionCtx;
+import com.alphaStS.GameState;
 import com.alphaStS.utils.Utils;
 
 import java.util.*;
-
-record NNOutput(float v_health, float v_win, float[] v_other, float[] policy, int[] legalActions) {
-}
 
 public class Model {
     public static class LRUCache<K, V> extends LinkedHashMap<K, V> {
@@ -34,10 +33,10 @@ public class Model {
     OrtEnvironment env;
     OrtSession session;
     String inputName;
-    LRUCache<InputHash, NNOutput> cache;
-    int calls;
-    int cache_hits;
-    long time_taken;
+    public LRUCache<NNInputHash, NNOutput> cache;
+    public int calls;
+    public int cache_hits;
+    public long time_taken;
 
     /**
      * Naively takes the softmax of the input.
@@ -125,13 +124,13 @@ public class Model {
         }
     }
 
-    NNOutput eval(GameState state) {
+    public NNOutput eval(GameState state) {
         calls += 1;
-        InputHash hash = new InputHash(state.getNNInput());
+        NNInputHash hash = new NNInputHash(state.getNNInput());
         NNOutput o = cache.get(hash);
         if (o != null) {
             if (!Arrays.equals(o.legalActions(), state.getLegalActions()) &&
-                    (state.actionCtx != GameActionCtx.SELECT_ENEMY || state.prop.enemiesReordering == null)) {
+                    (state.getActionCtx() != GameActionCtx.SELECT_ENEMY || state.prop.enemiesReordering == null)) {
                 System.err.println(Arrays.toString(state.getNNInput()));
                 System.err.println(state);
                 System.err.println(Arrays.toString(o.legalActions()));
@@ -155,13 +154,13 @@ public class Model {
 
             float[] policy = ((float[][]) output.get(2).getValue())[0];
             if (state.prop.maxNumOfActions != state.prop.totalNumOfActions) {
-                if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                if (state.getActionCtx() == GameActionCtx.PLAY_CARD) {
                     policy = Arrays.copyOf(policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
-                } else if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                } else if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
                     int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
                     int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
                     policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
-                } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+                } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
                     int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
                     if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
                         startIdx += state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
@@ -170,7 +169,7 @@ public class Model {
                     policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                 }
             }
-            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+            if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
                 var order = state.getEnemyOrder();
                 if (order != null) {
                     var newPolicy = new float[policy.length];
@@ -210,11 +209,9 @@ public class Model {
                 }
             }
 
-            state.v_health = (v_health + 1) / 2;
-            state.v_win = (v_win + 1) / 2;
-            state.policy = policy;
-            state.v_other = v_other;
-            o = new NNOutput((float) state.v_health, (float) state.v_win, v_other, softmax(policyCompressed), legalActions);
+            v_health = (v_health + 1) / 2;
+            v_win = (v_win + 1) / 2;
+            o = new NNOutput(v_health, v_win, v_other, softmax(policyCompressed), legalActions);
             cache.put(hash, o);
             time_taken += System.currentTimeMillis() - start;
             return o;

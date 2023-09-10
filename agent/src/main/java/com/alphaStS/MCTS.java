@@ -3,6 +3,7 @@ package com.alphaStS;
 import java.util.*;
 
 import cc.mallet.types.Dirichlet;
+import com.alphaStS.model.Model;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
