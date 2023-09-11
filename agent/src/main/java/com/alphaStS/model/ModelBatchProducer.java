@@ -3,14 +3,16 @@ package com.alphaStS.model;
 import com.alphaStS.GameState;
 import com.alphaStS.utils.Tuple;
 
-public class ModelBatchClient implements Model {
-    private final ModelBatchExecutorPool pool;
+import java.util.concurrent.TimeUnit;
+
+public class ModelBatchProducer implements Model {
+    private final ModelExecutor pool;
     private final int clientIdx;
     private int calls;
-    private int cache_hits;
+    private int cacheHits;
 
-    public ModelBatchClient(ModelBatchExecutorPool modelBatchExecutorPool, int clientIdx) {
-        this.pool = modelBatchExecutorPool;
+    public ModelBatchProducer(ModelExecutor modelExecutor, int clientIdx) {
+        this.pool = modelExecutor;
         this.clientIdx = clientIdx;
     }
 
@@ -20,16 +22,19 @@ public class ModelBatchClient implements Model {
         }
         pool.queue.offer(new Tuple<>(clientIdx, state));
         pool.locks.get(clientIdx).lock();
-        while (pool.resultsStatus.get(clientIdx) == ModelBatchExecutorPool.EXEC_WAITING) {
+        while (pool.resultsStatus.get(clientIdx) == ModelExecutor.EXEC_WAITING) {
             try {
-                pool.conditions.get(clientIdx).await();
+                pool.conditions.get(clientIdx).await(1, TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 pool.locks.get(clientIdx).unlock();
                 throw new RuntimeException(e);
             }
         }
         pool.locks.get(clientIdx).unlock();
-        pool.resultsStatus.set(clientIdx, ModelBatchExecutorPool.EXEC_WAITING);
+        if (pool.resultsStatus.get(clientIdx) == ModelExecutor.EXEC_SUCCESS_CACHE_HIT) {
+            cacheHits++;
+        }
+        pool.resultsStatus.set(clientIdx, ModelExecutor.EXEC_WAITING);
         return pool.results.set(clientIdx, null);
     }
 
@@ -38,10 +43,10 @@ public class ModelBatchClient implements Model {
 
     int prev;
     @Override public void startRecordCalls() {
-        prev = calls - cache_hits;
+        prev = calls - cacheHits;
     }
 
     @Override public int endRecordCalls() {
-        return calls - cache_hits - prev;
+        return calls - cacheHits - prev;
     }
 }

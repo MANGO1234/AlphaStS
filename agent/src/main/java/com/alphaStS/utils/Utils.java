@@ -49,7 +49,7 @@ public class Utils {
 
     public static void sleep(long ms) {
         try {
-            Thread.sleep(ms);
+            if (ms > 0) Thread.sleep(ms);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

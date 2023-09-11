@@ -19,7 +19,7 @@ public class ModelPlain implements Model {
 
         static {
             if (System.getProperty("os.name").startsWith("Windows")) {
-                MAX_ENTRIES = 25000;
+                MAX_ENTRIES = 250000;
             } else {
                 MAX_ENTRIES = 10000;
             }
@@ -101,6 +101,7 @@ public class ModelPlain implements Model {
     public ModelPlain(String modelDir) {
         try {
             env = OrtEnvironment.getEnvironment();
+            // System.setProperty("onnxruntime.native.path", "F:/git/lib");
             OrtSession.SessionOptions opts = new SessionOptions();
             opts.setOptimizationLevel(OptLevel.ALL_OPT);
             opts.setCPUArenaAllocator(true);
@@ -108,6 +109,7 @@ public class ModelPlain implements Model {
             opts.setExecutionMode(SessionOptions.ExecutionMode.SEQUENTIAL);
             opts.setInterOpNumThreads(1);
             opts.setIntraOpNumThreads(1);
+            // opts.addCUDA(0);
             session = env.createSession(modelDir + "/model.onnx", opts);
             inputName = session.getInputNames().iterator().next();
             cache = new LRUCache<>();
@@ -146,17 +148,14 @@ public class ModelPlain implements Model {
         if (o != null) {
             if (!Arrays.equals(o.legalActions(), state.getLegalActions()) &&
                     (state.getActionCtx() != GameActionCtx.SELECT_ENEMY || state.prop.enemiesReordering == null)) {
-//                System.err.println(Arrays.toString(state.getNNInput()));
-//                System.err.println(state);
-//                System.err.println(Arrays.toString(o.legalActions()));
-//                System.err.println(Arrays.toString(state.getLegalActions()));
-//                for (int i = 0; i < state.getLegalActions().length; i++) {
-//                    System.err.println(state.getActionString(i));
-//                }
-//                Integer.parseInt(null);
-            } else {
-                cache_hits += 1;
-                return o;
+                System.err.println(Arrays.toString(state.getNNInput()));
+                System.err.println(state);
+                System.err.println(Arrays.toString(o.legalActions()));
+                System.err.println(Arrays.toString(state.getLegalActions()));
+                for (int i = 0; i < state.getLegalActions().length; i++) {
+                    System.err.println(state.getActionString(i));
+                }
+                Integer.parseInt(null);
             }
         }
 

@@ -131,6 +131,7 @@ public class CardUpgrade {
         map.put(new CardDefect.Fusion(), new CardDefect.FusionP());
         map.put(new CardDefect.GeneticAlgorithm(1), new CardDefect.GeneticAlgorithmP(1));
         map.put(new CardDefect.Glacier(), new CardDefect.GlacierP());
+        map.put(new CardDefect.Loop(), new CardDefect.LoopP());
         map.put(new CardDefect.Melter(), new CardDefect.MelterP());
         map.put(new CardDefect.Overclock(), new CardDefect.OverclockP());
         map.put(new CardDefect.Recycle(), new CardDefect.RecycleP());

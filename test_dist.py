@@ -8,6 +8,7 @@ from misc import getFlag, getFlagValue
 
 RUN_SERVER = getFlag('-server')
 THREAD_COUNT = int(getFlagValue('-thread', 1))
+BATCH_PER_THREAD = int(getFlagValue('-b', 1))
 PLAY_MATCHES = getFlag('-m')
 
 sep = ':'
@@ -23,6 +24,8 @@ if RUN_SERVER:
     agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH_AGENT, 'com.alphaStS.Main', '--server']
     if THREAD_COUNT > 1:
         agent_args += ['-t', str(THREAD_COUNT)]
+    if BATCH_PER_THREAD > 1:
+        agent_args += ['-b', str(BATCH_PER_THREAD)]
     if platform.system() != 'Windows':
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
     p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -34,7 +37,7 @@ if RUN_SERVER:
 
 if PLAY_MATCHES:
     os.chdir('./agent')
-    agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH_AGENT, 'com.alphaStS.Main', '-p', '-g', '-c', 200, '-n', 100]
+    agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH_AGENT, 'com.alphaStS.Main', '-p', '-g', '-c', '200', '-n', '100']
     if platform.system() != 'Windows':
         agent_args = agent_args[:1] + ['-Xmx700m'] + agent_args[1:]
     p = subprocess.Popen(agent_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)

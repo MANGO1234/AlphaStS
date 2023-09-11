@@ -3,7 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.model.Model;
-import com.alphaStS.model.ModelPlain;
+import com.alphaStS.model.ModelExecutor;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -21,17 +22,19 @@ import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
     private PrintStream out = System.out;
+    private ModelExecutor modelExecutor;
     private List<MCTS> threadMCTS = new ArrayList<>();
-    private String modelDir;
 
-    private void allocateThreadMCTS(int numThreads) {
+    private void allocateThreadMCTS(ModelExecutor modelExecutor, int numThreads) {
         for (int i = threadMCTS.size(); i < numThreads; i++) {
-            ModelPlain model = null;
+            threadMCTS.add(null);
+        }
+        for (int i = 0; i < numThreads; i++) {
+            Model model = null;
             try {
-                model = new ModelPlain(modelDir);
-            } catch (Exception e) {
-            }
-            threadMCTS.add(new MCTS(model));
+                model = modelExecutor.getModelForProducer(i);
+            } catch (Exception e) {}
+            threadMCTS.set(i, new MCTS(model));
         }
     }
 
@@ -71,15 +74,12 @@ public class InteractiveMode {
         InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in));
         var states = new ArrayList<GameState>();
         GameState state = origState;
-        Model model = null;
         boolean isApplyingHistory = false;
         RandomGen prevSearchRandomGen = null;
         RandomGen prevRealMoveRandomGen = null;
         RandomGen prevRandom = null;
         List<String> nnPV = new ArrayList<>();
-        this.modelDir = modelDir;
-        allocateThreadMCTS(1);
-        MCTS mcts = threadMCTS.get(0);
+        modelExecutor = new ModelExecutor(modelDir);
         if (history.size() > 0) {
             reader.addCmdsToQueue(history);
             isApplyingHistory = true;
@@ -145,6 +145,9 @@ public class InteractiveMode {
                 }
                 printState = true;
             } else if (line.startsWith("#")) {
+                if (line.startsWith("##")) {
+                    history.add(line);
+                }
             } else if (line.equals("a")) {
                 out.println("Deck");
                 for (int i = 0; i < state.getDeckForRead().length; i++) {
@@ -179,12 +182,7 @@ public class InteractiveMode {
             } else if (line.equals("input")) {
                 out.println(Arrays.toString(state.getNNInput()));
             } else if (line.startsWith("model ")) {
-                try {
-                    model = new ModelPlain(line.split(" ")[1]);
-                    mcts.setModel(model);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                modelExecutor = new ModelExecutor(line.split(" ")[1]);
             } else if (line.equals("eh")) {
                 setEnemyHealth(reader, state, history);
                 printState = true;
@@ -261,7 +259,7 @@ public class InteractiveMode {
             } else if (line.startsWith("n ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
-                runMCTS(state, mcts, line);
+                runMCTS(state, line);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("nn ")) {
@@ -273,14 +271,14 @@ public class InteractiveMode {
                 } else {
                     ((RandomGenInteractive) state.prop.random).rngOn = true;
                     nnPV.clear();
-                    runNNPV(state, mcts, nnPV, line, true, history);
+                    runNNPV(state, nnPV, line, history);
                     interactiveRecordSeed(state, history);
                     ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
                 }
             } else if (line.startsWith("nnc ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
-                runNNPVChance(reader, state, mcts, line);
+                runNNPVChance(reader, state, line);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnv ")) {
@@ -292,7 +290,7 @@ public class InteractiveMode {
             } else if (line.startsWith("nnn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
-                runNNPV2(state, mcts, line);
+//                runNNPV2(state, line);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
             } else if (line.equals("progressive")) {
@@ -388,6 +386,7 @@ public class InteractiveMode {
         int idx = 0;
         GameState state = game.get(0).state();
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        modelExecutor = new ModelExecutor(modelDir);
         while (true) {
             var states = game.stream().map(GameStep::state).limit(idx).toList();
             printState(state, states);
@@ -429,21 +428,24 @@ public class InteractiveMode {
                     e.printStackTrace();
                 }
             } else if (line.startsWith("analyze ")) {
+                // for every state+action in a game, play games and get the stats from that action (e.g. win rate, final health etc.)
+                // use to find critical actions/bad rng/mistakes by analyzing changes in those stats
                 List<String> args = Arrays.asList(line.split(" "));
                 int numberOfGames = parseArgsInt(args, "c", 100);
-                int numberOfThreads = parseArgsInt(args, "t", 2);
+                int numberOfThreads = parseArgsInt(args, "t", 1);
+                int batchSize = parseArgsInt(args, "b", 1);
                 int nodeCount = parseArgsInt(args, "n", 500);
 
                 var statsArr = new ArrayList<ScenarioStats>();
                 List<MatchSession.Game> curGames = new ArrayList<>();
-                MatchSession session = new MatchSession(numberOfThreads, modelDir);
+                MatchSession session = new MatchSession(modelDir);
                 for (int i = 0; i < game.size(); i++) {
                     var step = game.get(i);
-                    curGames.stream().forEach(g -> g.steps().remove(0));
+                    curGames.forEach(g -> g.steps().remove(0)); // reuse games from previous state if possible
                     curGames = new ArrayList<>(curGames.stream().filter(g -> g.steps().get(0).state().equals(step.state())).toList());
                     out.println("****************** " + i + "/" + game.size() + " (" + (numberOfGames - curGames.size()) + ")");
                     step.state().prop.makingRealMove = false;
-                    curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, true, false, true));
+                    curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, false, true));
                     var stats = new ScenarioStats();
                     for (MatchSession.Game g : curGames) {
                         stats.add(g.steps(), 0);
@@ -509,14 +511,12 @@ public class InteractiveMode {
                     out.format(" \"%s\" \"[%s]\"", state.prop.potions.get(i), statsArr.stream().map(s -> String.format("%.3f", (double) s.potionsUsedAgg[ii] / (s.numOfGames - s.deathCount))).collect(Collectors.joining(", ")));
                 }
                 out.println();
-            } else if (line.startsWith("check ")) {
-                String[] args = line.split(" ");
-                int nodeCount = 500;
-                if (args.length > 1) {
-                    nodeCount = parseInt(args[1], 500);
-                }
+            } else if (line.startsWith("check ")) { // for each action in the game, find whether the network would've changed its mind with higher amount of nodes
+                List<String> args = Arrays.asList(line.split(" "));
+                int nodeCount = parseArgsInt(args, "n", 500);
+                int numberOfThreads = parseArgsInt(args, "t", 1);
+                int batchSize = parseArgsInt(args, "b", 1);
 
-                var m = new MCTS(new ModelPlain(modelDir));
                 var pvs = new ArrayList<Tuple<Tuple<Integer, Integer>, Tuple<List<GameStep>, List<GameStep>>>>();
                 var start = 0;
                 while (start < game.size() - 1) {
@@ -524,7 +524,7 @@ public class InteractiveMode {
                     var step = game.get(start);
                     step.state().prop.makingRealMove = false;
                     List<String> pv = new ArrayList<>();
-                    runNNPV(step.state().clone(false), m, pv, "nn " + nodeCount, true, null);
+                    runNNPV(step.state().clone(false), pv, "nn " + nodeCount + " t=" + numberOfThreads + " b=" + batchSize, null);
                     List<GameStep> pv1 = new ArrayList<>();
                     var s = step.state().clone(false);
                     for (int i = 0; i < pv.size(); i++) {
@@ -1292,6 +1292,7 @@ public class InteractiveMode {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 500);
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        int batchSize = parseArgsInt(args, "b", 1);
         int numberOfGames = parseArgsInt(args, "c", 100);
         int randomizationScenario = parseArgsInt(args, "r", -1);
         boolean printDamageDistribution = parseArgsBoolean(args, "dmg");
@@ -1301,7 +1302,7 @@ public class InteractiveMode {
             out.println("Unknown action.");
             numberOfGames = 0;
         }
-        MatchSession session = new MatchSession(numberOfThreads, modelDir);
+        MatchSession session = new MatchSession(modelDir);
         session.startingAction = startingAction;
         if (writeFile) {
             session.setMatchLogFile("matches_interactive.txt.gz");
@@ -1311,7 +1312,7 @@ public class InteractiveMode {
             state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);
         }
         try {
-            session.playGames(state, numberOfGames, nodeCount, true, printDamageDistribution, false);
+            session.playGames(state, numberOfGames, nodeCount, numberOfThreads, batchSize, true, printDamageDistribution, false);
             session.flushAndCloseFileWriters();
         } catch (IOException e) {
             e.printStackTrace();
@@ -1356,9 +1357,10 @@ public class InteractiveMode {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 500);
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        int batchSize = parseArgsInt(args, "b", 1);
         int numberOfGames = parseArgsInt(args, "c", 100);
         int randomizationScenario = parseArgsInt(args, "r", -1);
-        MatchSession session = new MatchSession(numberOfThreads, modelDir, modelDir);
+        MatchSession session = new MatchSession(modelDir, modelDir);
         session.startingAction = startingAction1;
         session.origStateCmp = state2;
         session.startingActionCmp = startingAction2;
@@ -1383,7 +1385,7 @@ public class InteractiveMode {
         if (!reader.readLine().equals("y")) {
             return;
         }
-        session.playGames(state1, numberOfGames, nodeCount, true, false, false);
+        session.playGames(state1, numberOfGames, nodeCount, numberOfThreads, batchSize, true, false, false);
         state1.prop.randomization = prevRandomization;
     }
 
@@ -1569,144 +1571,148 @@ public class InteractiveMode {
         }
     }
 
-    private void runMCTS(GameState state, MCTS mcts, String line) {
+    private void runMCTS(GameState state, String line) {
         List<String> args = Arrays.asList(line.split(" "));
         if (args.size() < 2) {
             out.println("<node count>");
         }
         int count = Integer.parseInt(args.get(1));
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        int batchSize = parseArgsInt(args, "b", 1);
         boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
-        mcts.forceRootAction = parseArgsInt(args, "a", -1);
+        int forceRootAction = parseArgsInt(args, "a", -1);
+
         long start = System.currentTimeMillis();
-        if (numberOfThreads <= 1) {
-            for (int i = state.total_n; i < count; i++) {
-                mcts.search(state, false, smartPruneDisable ? - 1 : count - i);
-            }
-            mcts.forceRootAction = -1;
-        } else {
-            state.setMultithreaded(true);
-            AtomicLong atomicLong = new AtomicLong(state.total_n);
-            List<Thread> workerThreads = new ArrayList<>();
-            allocateThreadMCTS(numberOfThreads);
-            for (int i = 0; i < numberOfThreads; i++) {
-                threadMCTS.get(i).forceRootAction = mcts.forceRootAction;
-                final int tidx = i;
-                workerThreads.add(new Thread(() -> {
-                    long c = atomicLong.addAndGet(1);
-                    while (c <= count) {
-                        threadMCTS.get(tidx).search(state, false, smartPruneDisable ? -1 : (int) (count - c + 1));
-                        c = atomicLong.addAndGet(1);
-                    }
-                }));
-                workerThreads.get(i).start();
-            }
-            for (int i = 0; i < numberOfThreads; i++) {
-                try {
-                    workerThreads.get(i).join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        long startNodeCount = state.total_n;
+        state.setMultithreaded(numberOfThreads > 1);
+        AtomicLong nodeCount = new AtomicLong(state.total_n);
+        AtomicLong nodeDoneCount = new AtomicLong(state.total_n);
+        modelExecutor.start(numberOfThreads, batchSize);
+        numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+        allocateThreadMCTS(modelExecutor, numberOfThreads);
+        for (int i = 0; i < numberOfThreads; i++) {
+            threadMCTS.get(i).forceRootAction = forceRootAction;
+            final int _i = i;
+            modelExecutor.addAndStartProducerThread(() -> {
+                long c = nodeCount.addAndGet(1);
+                while (c <= count) {
+                    threadMCTS.get(_i).search(state, false, smartPruneDisable ? -1 : (int) (count - c + 1));
+                    nodeDoneCount.addAndGet(1);
+                    c = nodeCount.addAndGet(1);
                 }
-                threadMCTS.get(i).forceRootAction = -1;
-            }
-            state.setMultithreaded(false);
+                threadMCTS.get(_i).forceRootAction = -1;
+                while (!modelExecutor.producerWaitForClose(_i));
+            });
         }
-        if (state.prop.dmgDistVIdx >= 0) {
-            out.println("Damage Distribution:");
-            for (int i = 0; i <= state.getMaxPossibleHealth(); i++) {
-                out.println(i + ": " + Utils.formatFloat(state.q[state.prop.dmgDistVIdx + i] / ((double) state.total_n + 1)));
-            }
-        }
+        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, start, "nodes", null);
+        modelExecutor.stop();
+        state.setMultithreaded(false);
+
+        out.println(state);
         if (state.prop.qwinVIdx >= 0) {
             out.println("Q-Win: " + state.q[state.prop.qwinVIdx] / (state.total_n + 1));
             out.println("Q-Health: " + state.q[state.prop.qwinVIdx + 1] / (state.total_n + 1));
         }
-        out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
-        out.println(state);
         if (state.prop.turnsLeftVIdx >= 0) {
             out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.prop.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.turnNum));
         }
-        System.gc();
-        System.gc();
-        System.gc();
+        System.gc(); System.gc(); System.gc();
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
-    private Tuple<GameState, Integer> runNNPV(GameState state, MCTS mcts, List<String> pv, String line, boolean printPV, List<String> history) {
+    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, long startTime, String item, Supplier<String> extraDetails) {
+        long lastPrintTime = System.currentTimeMillis() - 4000; // print after 1 second immediately
+        long lastSleepDuration = 5;
+        while (doneCount.get() < totalCount) {
+            Utils.sleep(lastSleepDuration);
+            lastSleepDuration = Math.min(lastSleepDuration * 2, 100);
+            if (System.currentTimeMillis() - lastPrintTime > 5000) {
+                double speed = ((double) doneCount.get() - startCount) / (System.currentTimeMillis() - startTime) * 1000;
+                out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)"  + (extraDetails != null ? " " + extraDetails.get() : ""));
+                lastPrintTime = System.currentTimeMillis();
+            }
+        }
+        double speed = ((double) Math.max(0, totalCount - startCount)) / (System.currentTimeMillis() - startTime) * 1000;
+        out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)");
+    }
+
+    private Tuple<GameState, Integer> runNNPV(GameState state, List<String> pv, String line, List<String> history) {
         List<String> args = Arrays.asList(line.split(" "));
         if (args.size() < 2) {
             out.println("<node count>");
         }
-        int count = Integer.parseInt(args.get(1));
+        int count = parseInt(args.get(1), 1000);
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        int batchSize = parseArgsInt(args, "b", 1);
         boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
         boolean clear = parseArgsBoolean(args, "clear");
+
         GameState s = state;
         int move_i = 0;
         long start = System.currentTimeMillis();
+        StringBuilder finalOuput = new StringBuilder("\n### Final Output ###");
         do {
-            if (numberOfThreads <= 1) {
-                for (int i = s.total_n; i < count; i++) {
-                    mcts.search(s, false, smartPruneDisable ? -1 : count - i);
-                }
-            } else {
-                s.setMultithreaded(true);
-                AtomicLong atomicLong = new AtomicLong(s.total_n);
-                List<Thread> workerThreads = new ArrayList<>();
-                allocateThreadMCTS(numberOfThreads);
-                for (int i = 0; i < numberOfThreads; i++) {
-                    threadMCTS.get(i).forceRootAction = mcts.forceRootAction;
-                    final int tidx = i;
-                    var _s = s;
-                    workerThreads.add(new Thread(() -> {
-                        long c = atomicLong.addAndGet(1);
-                        while (c <= count) {
-                            threadMCTS.get(tidx).search(_s, false, smartPruneDisable ? -1 : (int) (count - c + 1));
-                            c = atomicLong.addAndGet(1);
-                        }
-                    }));
-                    workerThreads.get(i).start();
-                }
-                for (int i = 0; i < numberOfThreads; i++) {
-                    try {
-                        workerThreads.get(i).join();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+            s.setMultithreaded(numberOfThreads > 1);
+            var curStart = System.currentTimeMillis();
+            var startNodeCount = s.total_n;
+            AtomicLong nodeCount = new AtomicLong(s.total_n);
+            AtomicLong nodeDoneCount = new AtomicLong(s.total_n);
+            modelExecutor.start(numberOfThreads, batchSize);
+            numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+            allocateThreadMCTS(modelExecutor, numberOfThreads);
+            var _s = s;
+            for (int i = 0; i < numberOfThreads; i++) {
+                final int _i = i;
+                modelExecutor.addAndStartProducerThread(() -> {
+                    long c = nodeCount.addAndGet(1);
+                    while (c <= count) {
+                        threadMCTS.get(_i).search(_s, false, smartPruneDisable ? -1 : (int) (count - c + 1));
+                        nodeDoneCount.addAndGet(1);
+                        c = nodeCount.addAndGet(1);
                     }
-                }
-                state.setMultithreaded(false);
+                    while (!modelExecutor.producerWaitForClose(_i));
+                });
             }
+            waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, curStart, "nodes", () -> {
+                int action = MCTS.getActionWithMaxNodesOrTerminal(_s, null);
+                return action < 0 ? "" : _s.getActionString(action);
+            });
+            modelExecutor.stop();
+
             int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
             if (action < 0) {
                 return null;
             }
             int max_n = s.n[action];
-            if (printPV) {
-                int baseIdx = (action + 1) * s.prop.v_total_len;
-                var o = "  " + (++move_i) + ". " + s.getActionString(action) +
-                        ": n=" + max_n + ", q=" + formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n) + ", q_win=" + formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n) + ", q_health=" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n) + " (" + formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth()) + ")";
-                out.println(o);
-                if (history != null) {
-                    history.add("# " + o);
-                }
+            int baseIdx = (action + 1) * s.prop.v_total_len;
+            var o = new StringBuilder();
+            o.append("  ").append(++move_i).append(". ").append(s.getActionString(action)).append(": n=").append(max_n);
+            o.append(", q=").append(formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n));
+            o.append(", q_win=").append(formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n));
+            o.append(", q_health=").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n)).append(" (").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth())).append(")");
+            if (s.prop.fightProgressVIdx >= 0 && s.q[baseIdx + GameState.V_COMB_IDX] / max_n < 0.001) {
+                o.append(", q_progress").append(formatFloat(s.q[baseIdx + s.prop.fightProgressVIdx] / max_n));
             }
+            if (s.prop.turnsLeftVIdx >= 0) {
+                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.prop.turnsLeftVIdx] / max_n * 50 - state.turnNum));
+            }
+            out.println(o);
+            finalOuput.append("\n").append(o);
+            if (history != null) history.add("## " + o);
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
             if (ns instanceof ChanceState) {
-                if (printPV) out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
+                out.println(finalOuput);
+                out.println("Total Time: " + (System.currentTimeMillis() - start) + " ms");
                 return new Tuple<>(s, action);
             } else if (ns instanceof GameState ns2) {
                 if (ns2.isTerminal() != 0) {
-                    if (printPV) out.println("Time: " + (System.currentTimeMillis() - start) + " ms");
+                    out.println(finalOuput);
+                    out.println("Total Time: " + (System.currentTimeMillis() - start) + " ms");
                     return new Tuple<>(s, action);
                 } else {
-                    if (clear) {
-                        s.clearAllSearchInfo();
-                    }
+                    if (clear) s.clearAllSearchInfo(); ns2.clearAllSearchInfo();
                     s = ns2;
-                    if (clear) {
-                        ns2.clearAllSearchInfo();
-                    }
                 }
             } else {
                 out.println("Unknown ns: " + state);
@@ -1716,10 +1722,40 @@ public class InteractiveMode {
         } while (true);
     }
 
-    private void runNNPVChance(BufferedReader reader, GameState state, MCTS mcts, String line) throws IOException {
+    private Tuple<GameState, Integer> runNNPVInternal(GameState state, MCTS mcts, List<String> pv, int nodeCount, boolean clear) {
+        GameState s = state;
+        do {
+            for (int i = 0; i < nodeCount; i++) {
+                mcts.search(s, false, nodeCount - i);
+            }
+            int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
+            if (action < 0) {
+                return null;
+            }
+            pv.add(s.getActionString(action));
+            State ns = s.ns[action];
+            if (ns instanceof ChanceState) {
+                return new Tuple<>(s, action);
+            } else if (ns instanceof GameState ns2) {
+                if (ns2.isTerminal() != 0) {
+                    return new Tuple<>(s, action);
+                } else {
+                    if (clear) s.clearAllSearchInfo(); ns2.clearAllSearchInfo();
+                    s = ns2;
+                }
+            } else {
+                out.println("Unknown ns: " + state);
+                out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
+                return null;
+            }
+        } while (true);
+    }
+
+    private void runNNPVChance(BufferedReader reader, GameState state, String line) throws IOException {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 100);
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        int batchSize = parseArgsInt(args, "b", 1);
         int chanceAction = parseArgsInt(args, "a", -1);
         if (chanceAction < 0) {
             out.println("Unknown action.");
@@ -1740,7 +1776,7 @@ public class InteractiveMode {
             return;
         }
 
-        AtomicLong start = new AtomicLong(System.currentTimeMillis());
+        long start = System.currentTimeMillis();
         AtomicLong doneCount = new AtomicLong(0);
         ConcurrentHashMap<List<String>, List<GameState>> pvs = new ConcurrentHashMap<>();
         ConcurrentLinkedQueue<GameState> stateQueue = new ConcurrentLinkedQueue<>();
@@ -1749,42 +1785,31 @@ public class InteractiveMode {
             cState.clearAllSearchInfo();
             stateQueue.offer(cState);
         }
-        List<Thread> workerThreads = new ArrayList<>();
-        allocateThreadMCTS(numberOfThreads);
+        modelExecutor.start(numberOfThreads, batchSize);
+        numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+        allocateThreadMCTS(modelExecutor, numberOfThreads);
         for (int i = 0; i < numberOfThreads; i++) {
-            final int tidx = i;
-            workerThreads.add(new Thread(() -> {
+            final int _i = i;
+            modelExecutor.addAndStartProducerThread(() -> {
                 while (true) {
                     GameState cState = stateQueue.poll();
                     if (cState == null) {
                         break;
                     }
                     List<String> pv = new ArrayList<>();
-                    runNNPV(cState, threadMCTS.get(tidx), pv, "nn " + nodeCount, false, null);
+                    runNNPVInternal(cState, threadMCTS.get(_i), pv, nodeCount, false);
                     synchronized (pvs) {
                         pvs.computeIfAbsent(pv, (_k) -> new ArrayList<>());
                         pvs.get(pv).add(cState);
-                        cState.clearAllSearchInfo();
                     }
+                    cState.clearAllSearchInfo();
                     doneCount.incrementAndGet();
-                    synchronized (start) {
-                        if (System.currentTimeMillis() - start.get() > 3000) {
-                            start.set(System.currentTimeMillis());
-                            out.println((doneCount.get()) + "/" + cs.cache.size() + " Done");
-                        }
-                    }
                 }
-            }));
-            workerThreads.get(i).start();
+                while (!modelExecutor.producerWaitForClose(_i));
+            });
         }
-        for (Thread workerThread : workerThreads) {
-            try {
-                workerThread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        out.println(doneCount.get() + "/" + cs.cache.size() + " Done");
+        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, start, "outcomes", null);
+        modelExecutor.stop();
 
         var sortedPvs = pvs.entrySet().stream().map(pv -> {
             var totalN = 0;
@@ -1792,12 +1817,12 @@ public class InteractiveMode {
                 totalN += cs.cache.get(gameState).n;
             }
             return new Tuple<>(pv, totalN);
-        }).sorted((o1, o2) -> Integer.compare(o2.v2(), o1.v2())).collect(Collectors.toList());
+        }).sorted((o1, o2) -> Integer.compare(o2.v2(), o1.v2())).toList();
         sortedPvs.forEach(pvTuple -> {
             out.println("******************** " + formatFloat(pvTuple.v2() / 10000.0) + "%");
             var pv = pvTuple.v1().getKey();
             var states = pvTuple.v1().getValue();
-            var sortedStates = states.stream().sorted((o1, o2) -> Long.compare(cs.cache.get(o2).n, cs.cache.get(o1).n)).collect(Collectors.toList());
+            var sortedStates = states.stream().sorted((o1, o2) -> Long.compare(cs.cache.get(o2).n, cs.cache.get(o1).n)).toList();
             for (GameState gameState : sortedStates) {
                 out.println("    " + gameState.stateDesc + " (" + formatFloat(cs.cache.get(gameState).n / 10000.0) + "%)");
             }
@@ -1812,24 +1837,24 @@ public class InteractiveMode {
         int trialCount = parseArgsInt(args, "c", 100);
         int nodeCount = parseArgsInt(args, "n", 100);
         int numberOfThreads = parseArgsInt(args, "t", 1);
+        int batchSize = parseArgsInt(args, "b", 1);
         boolean clear = parseArgsBoolean(args, "clear");
 
+        long start = System.currentTimeMillis();
         var pvs = new HashMap<Tuple<GameState, Integer>, Tuple<List<String>, Integer>>();
-        AtomicLong trialsProcessed = new AtomicLong(0);
-        AtomicLong start = new AtomicLong(System.currentTimeMillis());
-        List<Thread> workerThreads = new ArrayList<>();
-        allocateThreadMCTS(numberOfThreads);
+        AtomicLong trialsRemaining = new AtomicLong(trialCount);
+        AtomicLong trialsDoneCount = new AtomicLong(0);
+        modelExecutor.start(numberOfThreads, batchSize);
+        numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+        allocateThreadMCTS(modelExecutor, numberOfThreads);
         for (int i = 0; i < numberOfThreads; i++) {
-            final int tidx = i;
-            workerThreads.add(new Thread(() -> {
-                while (true) {
-                    if (trialsProcessed.getAndIncrement() >= trialCount) {
-                        break;
-                    }
+            final int _i = i;
+            modelExecutor.addAndStartProducerThread(() -> {
+                while (trialsRemaining.getAndDecrement() > 0) {
                     GameState s = state.clone(false);
                     interactiveSetSeed(s, s.prop.random.nextLong(RandomGenCtx.Other), s.prop.random.nextLong(RandomGenCtx.Other));
                     List<String> pv = new ArrayList<>();
-                    var k = runNNPV(s, threadMCTS.get(tidx), pv, "nn " + nodeCount + (clear ? " clear" : ""), false, null);
+                    var k = runNNPVInternal(s, threadMCTS.get(_i), pv, nodeCount, clear);
                     k.v1().clearAllSearchInfo();
                     if (k.v1().getAction(k.v2()).type() == GameActionType.END_TURN) {
                         var t = k.v1().clone(false);
@@ -1845,23 +1870,12 @@ public class InteractiveMode {
                             pvs.put(k, new Tuple<>(pv, 1));
                         }
                     }
-                    synchronized (start) {
-                        if (System.currentTimeMillis() - start.get() > 3000) {
-                            start.set(System.currentTimeMillis());
-                            out.println((trialsProcessed.get()) + "/" + trialCount + " Done");
-                        }
-                    }
+                    trialsDoneCount.incrementAndGet();
                 }
-            }));
-            workerThreads.get(i).start();
+            });
         }
-        for (Thread thread : workerThreads) {
-            try {
-                thread.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, start, "trials", null);
+        modelExecutor.stop();
 
         pvs.forEach((_k, v) -> {
             out.println(v.v2() + "/" + trialCount + " (" + formatFloat (v.v2() / (double) trialCount) + ")");
@@ -1895,40 +1909,40 @@ public class InteractiveMode {
         return false;
     }
 
-    private void runNNPV2(GameState state, MCTS mcts, String line) {
-        int count = parseInt(line.substring(4), 1);
-        if (state.searchFrontier != null && state.searchFrontier.total_n != state.total_n + 1) {
-            state.clearAllSearchInfo();
-        }
-        for (int i = state.total_n; i < count; i++) {
-            mcts.searchLine(state, false, true, -1);
-        }
-        state.searchFrontier.lines.values().stream().filter((x) -> {
-            return x.state instanceof ChanceState || x.numberOfActions == ((GameState) x.state).getLegalActions().length;
-        }).sorted((a, b) -> {
-            if (a.internal == b.internal) {
-                return -Integer.compare(a.n, b.n);
-            } else if (a.internal) {
-                return 1;
-            } else {
-                return -1;
-            }
-        }).limit(10).map((x) -> {
-            var tmpS = state.clone(false);
-            var actions = x.getActions(tmpS);
-            var strings = new ArrayList<String>();
-            for (var action : actions) {
-                if (tmpS.getActionString(action).equals("Begin Turn")) {
-                    continue;
-                }
-                strings.add(tmpS.getActionString(action));
-                tmpS.doAction(action);
-            }
-            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
-                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
-                    " (" + formatFloat(x.q_health / x.n * state.getPlayeForRead().getMaxHealth()) + ")";
-        }).forEach(out::println);
-    }
+//    private void runNNPV2(GameState state, String line) {
+//        int count = parseInt(line.substring(4), 1);
+//        if (state.searchFrontier != null && state.searchFrontier.total_n != state.total_n + 1) {
+//            state.clearAllSearchInfo();
+//        }
+//        for (int i = state.total_n; i < count; i++) {
+//            mcts.searchLine(state, false, true, -1);
+//        }
+//        state.searchFrontier.lines.values().stream().filter((x) -> {
+//            return x.state instanceof ChanceState || x.numberOfActions == ((GameState) x.state).getLegalActions().length;
+//        }).sorted((a, b) -> {
+//            if (a.internal == b.internal) {
+//                return -Integer.compare(a.n, b.n);
+//            } else if (a.internal) {
+//                return 1;
+//            } else {
+//                return -1;
+//            }
+//        }).limit(10).map((x) -> {
+//            var tmpS = state.clone(false);
+//            var actions = x.getActions(tmpS);
+//            var strings = new ArrayList<String>();
+//            for (var action : actions) {
+//                if (tmpS.getActionString(action).equals("Begin Turn")) {
+//                    continue;
+//                }
+//                strings.add(tmpS.getActionString(action));
+//                tmpS.doAction(action);
+//            }
+//            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
+//                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
+//                    " (" + formatFloat(x.q_health / x.n * state.getPlayeForRead().getMaxHealth()) + ")";
+//        }).forEach(out::println);
+//    }
 
     private static int parseInt(String s, int default_v) {
         try {

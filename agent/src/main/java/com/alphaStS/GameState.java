@@ -1081,7 +1081,7 @@ public final class GameState implements State {
             } else {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
                 setIsStochastic();
-                if (prop.makingRealMove && prop.doingComparison) {
+                if (prop.makingRealMove || prop.doingComparison) {
                     Arrays.sort(getDeckArrForWrite(), 0, this.deckArrLen);
                 }
                 cardIdx = deckArr[i];

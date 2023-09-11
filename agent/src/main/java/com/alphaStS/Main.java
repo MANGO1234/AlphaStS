@@ -45,10 +45,10 @@ public class Main {
         boolean GAMES_ADD_ENEMY_RANDOMIZATION = false;
         int NUMBER_OF_GAMES_TO_PLAY = 5;
         int NUMBER_OF_NODES_PER_TURN = 1000;
-        int NUMBER_OF_THREADS = 2;
+        int NUMBER_OF_THREADS = 1;
+        int BATCH_SIZE = 1;
         boolean WRITE_MATCHES = false;
         boolean PRINT_DMG = false;
-        boolean BATCH = false;
         String COMPARE_DIR = null;
         String SAVES_DIR = "../saves";
         for (int i = 0; i < args.length; i++) {
@@ -61,14 +61,14 @@ public class Main {
             if (args[i].equals("-t")) {
                 NUMBER_OF_THREADS = Integer.parseInt(args[i + 1]);
             }
+            if (args[i].equals("-b")) {
+                BATCH_SIZE = Integer.parseInt(args[i + 1]);
+            }
             if (args[i].equals("-g")) {
                 PLAY_GAMES = true;
             }
             if (args[i].equals("-p")) {
                 PLAY_A_GAME = true;
-            }
-            if (args[i].equals("-batch")) {
-                Configuration.USE_BATCH_EXECUTORS = true;
             }
             if (args[i].equals("-c")) {
                 NUMBER_OF_GAMES_TO_PLAY = Integer.parseInt(args[i + 1]);
@@ -177,7 +177,7 @@ public class Main {
 
         if (args.length > 0 && (args[0].equals("--i") || args[0].equals("-i"))) {
 //             if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES) {
-//                 MatchSession.readMatchLogFile(curIterationDir + "/matches7.txt.gz", curIterationDir, state);
+//                 MatchSession.readMatchLogFile(curIterationDir + "/matches.txt.gz", curIterationDir, state);
 //                 return;
 //             }
             new InteractiveMode().interactiveStart(state, SAVES_DIR, curIterationDir);
@@ -185,21 +185,21 @@ public class Main {
         }
 
         if (args.length > 0 && args[0].equals("--server")) {
-            startServer(state, NUMBER_OF_THREADS);
+            startServer(state, NUMBER_OF_THREADS, BATCH_SIZE);
             return;
         }
 
         if (PLAY_A_GAME) {
-            MatchSession session = new MatchSession(1, curIterationDir);
+            MatchSession session = new MatchSession(curIterationDir);
             var writer = new OutputStreamWriter(System.out);
-            var game = session.playGame(state, -1, null, session.mcts.get(0), NUMBER_OF_NODES_PER_TURN).steps();
+            var game = session.playGames(state, -1, NUMBER_OF_NODES_PER_TURN, 1, 1, false, false, true).get(0).steps();
             MatchSession.printGame(writer, game);
             writer.flush();
             new InteractiveMode().interactiveStart(game, curIterationDir);
             return;
         }
 
-        MatchSession session = new MatchSession(NUMBER_OF_THREADS, curIterationDir, COMPARE_DIR);
+        MatchSession session = new MatchSession(curIterationDir, COMPARE_DIR);
         if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES && state.prop.randomization != null) {
 //            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
         } else if (TEST_TRAINING_AGENT && state.prop.randomization != null) {
@@ -221,7 +221,7 @@ public class Main {
             } else if (!TEST_TRAINING_AGENT && (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES)) {
                 session.setMatchLogFile("matches.txt.gz");
             }
-            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, !TEST_TRAINING_AGENT, PRINT_DMG, false);
+            session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, !TEST_TRAINING_AGENT, PRINT_DMG, false);
 //             session.playGamesForStat(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN);
         }
         if (GENERATE_TRAINING_GAMES && preBattleScenarios != null && state.prop.endOfPreBattleHandler == null) {
@@ -249,7 +249,7 @@ public class Main {
             state.prop.minDifficulty = minDifficulty;
             state.prop.maxDifficulty = maxDifficulty;
             state.prop.randomization = new GameStateRandomization.EnemyRandomization(state.prop.curriculumTraining, minDifficulty, maxDifficulty).doAfter(state.prop.randomization);
-            session.playTrainingGames(state, 200, 100, curIterationDir + "/training_data.bin.lz4");
+            session.playTrainingGames(state, 200, 100, NUMBER_OF_THREADS, BATCH_SIZE, curIterationDir + "/training_data.bin.lz4");
             if (automatedCurriculumTraining) {
                 if (minDifficulty == totalDifficulty) {
                 } else if (session.difficulty < minDifficulty) {
@@ -273,7 +273,7 @@ public class Main {
 
             long end = System.currentTimeMillis();
             System.out.println("Time Taken: " + (end - start));
-            var debugModels = Configuration.USE_BATCH_EXECUTORS ? session.batchExecutors.getExecutorModels() : session.mcts.stream().map((m) -> m.model).toList();
+            var debugModels = session.modelExecutor.getExecutorModels();
             for (int i = 0; i < debugModels.size(); i++) {
                 var m = (ModelPlain) debugModels.get(i);
                 System.out.println("Time Taken (By Model " + i + "): " + m.time_taken);
@@ -286,7 +286,7 @@ public class Main {
         session.flushAndCloseFileWriters();
     }
 
-    private static void startServer(GameState state, int numThreads) throws IOException {
+    private static void startServer(GameState state, int numThreads, int batchSize) throws IOException {
         JsonFactory jsonFactory = new JsonFactory();
         jsonFactory.configure(JsonGenerator.Feature.AUTO_CLOSE_TARGET, false);
         jsonFactory.configure(JsonParser.Feature.AUTO_CLOSE_SOURCE, false);
@@ -300,7 +300,6 @@ public class Main {
                 var in = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
                 int numOfGames = 0;
                 int newNumOfGames = 0;
-                boolean playGamesStopped = false;
                 while (socket.isConnected()) {
                     int len = in.readInt();
                     byte[] bytes = in.readNBytes(len);
@@ -311,18 +310,17 @@ public class Main {
                             break;
                         }
                         if (session == null) {
-                            session = new MatchSession(numThreads, modelDir, modelCmpDir);
+                            session = new MatchSession(modelDir, modelCmpDir);
                             numOfGames = 0;
                             newNumOfGames = 0;
-                            playGamesStopped = false;
                         }
                         List<MatchSession.RemoteGameResult> results = new ArrayList<>();
                         int count = session.remoteDeq.size();
                         for (int i = 0; i < count; i++) {
-                            results.add(session.playGamesRemote(state, req.remainingGames, req.nodeCount));
+                            results.add(session.playGamesRemote(state, req.remainingGames, req.nodeCount, numThreads, batchSize));
                         }
                         if (results.size() == 0) {
-                            results.add(session.playGamesRemote(state, req.remainingGames, req.nodeCount));
+                            results.add(session.playGamesRemote(state, req.remainingGames, req.nodeCount, numThreads, batchSize));
                         }
                         mapper.writeValue(socket.getOutputStream(), results);
                         newNumOfGames += results.size();
@@ -336,20 +334,19 @@ public class Main {
                             break;
                         }
                         if (session == null) {
-                            session = new MatchSession(numThreads, modelDir, modelCmpDir);
-                        } else if (!playGamesStopped) {
+                            session = new MatchSession(modelDir, modelCmpDir);
+                        } else if (session.remoteNumOfGames.get() > -123456 && session.modelExecutor.isRunning()) {
                             session.stopPlayGamesRemote();
                             numOfGames = 0;
                             newNumOfGames = 0;
-                            playGamesStopped = true;
                         }
                         List<MatchSession.TrainingGameResult> results = new ArrayList<>();
                         int count = session.remoteTrainingDeq.size();
                         for (int i = 0; i < count; i++) {
-                            results.add(session.playTrainingGamesRemote(state, req));
+                            results.add(session.playTrainingGamesRemote(state, req, numThreads, batchSize));
                         }
                         if (results.size() == 0) {
-                            results.add(session.playTrainingGamesRemote(state, req));
+                            results.add(session.playTrainingGamesRemote(state, req, numThreads, batchSize));
                         }
                         mapper.writeValue(socket.getOutputStream(), results);
                         newNumOfGames += results.size();

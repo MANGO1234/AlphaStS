@@ -8,3 +8,4 @@ agent/.idea/
 build/
 kaggle/
 target
+agent/hs_err_p*

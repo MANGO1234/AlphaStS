@@ -28,6 +28,7 @@ SKIP_TRAINING_MATCHES = getFlag('-s')
 PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
 NUMBER_OF_THREADS = int(getFlagValue('-t', 1))
+BATCH_PER_THREAD = int(getFlagValue('-b', 1))
 NUMBER_OF_THREADS_TRAINING = int(getFlagValue('-tt', 0))
 ITERATION_COUNT = int(getFlagValue('-c', 5))
 Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
@@ -441,7 +442,7 @@ if DO_TRAINING:
         iter_start = time.time()
 
         agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                      'com.alphaStS.Main', '-training', '-t', str(NUMBER_OF_THREADS), '-dir', SAVES_DIR]
+                      'com.alphaStS.Main', '-training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
                 matches_count = 1000
@@ -518,6 +519,7 @@ if DO_TRAINING:
                         exp_other_heads_train[i][minibatch_idx] = np.asarray(v_others[i]).reshape(v_other_lens[i])
                     minibatch_idx += 1
                 target = [exp_health_head_train, exp_win_head_train, policy_head_train] + exp_other_heads_train
+                print(f"batch_size={get_batch_size(len(training_pool))}")
                 fit_result = model.fit(x_train, target, epochs=train_iter, batch_size=get_batch_size(len(training_pool)))
                 iteration_info['loss'] = fit_result.history['loss'][-1]
             model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
@@ -533,7 +535,7 @@ if DO_TRAINING:
 
         if _iteration == ITERATION_COUNT:
             agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                                           'com.alphaStS.Main', '-tm', '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
+                                           'com.alphaStS.Main', '-tm', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stdout.decode('ascii'))
                 print(agent_output.stderr.decode('ascii'))

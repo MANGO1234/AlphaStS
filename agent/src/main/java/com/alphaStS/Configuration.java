@@ -72,13 +72,4 @@ public class Configuration {
     // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns
     // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
     public static boolean USE_TURNS_LEFT_HEAD = false;
-
-    // likely due to JNI, batching nn evaluations even on CPU is faster than executing 1 by 1 by 10x (small networks) to 3x (larger networks)
-    // currently, use producers threads to produce nn evaluations requests and executors to execute them
-    // todo: switch to continuations for better performance by removing context switch overheads from large amount of threads + locking/communication cost
-    // consideration: if I use C++ instead I don't have to do any of those, although the same batching logic can be used for GPU evaluation
-    public static boolean USE_BATCH_EXECUTORS = false;
-    public static int BATCH_EXECUTORS_COUNT = 10;
-    public static int BATCH_EXECUTORS_BATCH_SIZE = 10;
-    public static int BATCH_EXECUTORS_EXTRA_PRODUCER = 20;
 }

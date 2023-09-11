@@ -1,7 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.model.Model;
-import com.alphaStS.model.ModelBatchExecutorPool;
+import com.alphaStS.model.ModelExecutor;
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
@@ -29,43 +29,52 @@ import static java.lang.Math.sqrt;
 
 public class MatchSession {
     private final static boolean LOG_GAME_USING_LINES_FORMAT = true;
-    private final static boolean USE_NEW_SEARCH = false;
 
     public boolean training;
     public int difficulty;
     Writer matchLogWriter;
     Writer trainingDataWriter;
-    String logDir;
     List<MCTS> mcts = new ArrayList<>();
-    List<MCTS> mcts2 = new ArrayList<>();
+    List<MCTS> mctsCmp = new ArrayList<>();
     public int[][] scenariosGroup;
     public GameSolver solver;
     String modelDir;
     String modelCmpDir;
-    ModelBatchExecutorPool batchExecutors;
-    ModelBatchExecutorPool batchExecutorsCmp;
+    ModelExecutor modelExecutor;
+    ModelExecutor modelExecutorCmp;
+    private int producersCount;
 
-    public MatchSession(int numberOfThreads, String dir) {
-        this(numberOfThreads, dir, null);
+    public MatchSession(String dir) {
+        this(dir, null);
     }
 
-    public MatchSession(int numberOfThreads, String dir, String dirCmp) {
-        logDir = dir;
+    public MatchSession(String dir, String dirCmp) {
         modelDir = dir;
         modelCmpDir = dirCmp;
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors = new ModelBatchExecutorPool(modelDir, Configuration.BATCH_EXECUTORS_COUNT, Configuration.BATCH_EXECUTORS_BATCH_SIZE);
-            numberOfThreads = Configuration.BATCH_EXECUTORS_COUNT * Configuration.BATCH_EXECUTORS_BATCH_SIZE + Configuration.BATCH_EXECUTORS_EXTRA_PRODUCER;
-            if (dirCmp != null) {
-                batchExecutorsCmp = new ModelBatchExecutorPool(modelCmpDir, Configuration.BATCH_EXECUTORS_COUNT, Configuration.BATCH_EXECUTORS_BATCH_SIZE);
-                numberOfThreads += Configuration.BATCH_EXECUTORS_COUNT * Configuration.BATCH_EXECUTORS_BATCH_SIZE + Configuration.BATCH_EXECUTORS_EXTRA_PRODUCER;
+        modelExecutor = new ModelExecutor(modelDir);
+        if (dirCmp != null) {
+            modelExecutorCmp = new ModelExecutor(modelCmpDir);
+        }
+    }
+
+    private void allocateThreadMCTS(int numberOfThreads, int batchSize) {
+        producersCount = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+        if (modelCmpDir != null) {
+            producersCount += ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+        }
+        if (producersCount >= mcts.size()) {
+            for (int i = mcts.size(); i < producersCount; i++) {
+                mcts.add(new MCTS(null));
+                if (modelCmpDir != null) {
+                    mctsCmp.add(new MCTS(null));
+                }
             }
         }
-        for (int i = 0; i < numberOfThreads; i++) {
-            Model model = Configuration.USE_BATCH_EXECUTORS ? batchExecutors.getModelForClient(i) : new ModelPlain(dir);
-            mcts.add(new MCTS(model));
-            if (dirCmp != null) {
-                mcts2.add(new MCTS(dir.equals(dirCmp) ? model : Configuration.USE_BATCH_EXECUTORS ? batchExecutorsCmp.getModelForClient(i) : new ModelPlain(dirCmp)));
+        for (int i = 0; i < producersCount; i++) {
+            Model model = modelExecutor.getModelForProducer(i);
+            mcts.get(i).setModel(model);
+            if (modelCmpDir != null) {
+                mctsCmp.get(i).setModel(model);
             }
         }
     }
@@ -328,20 +337,19 @@ public class MatchSession {
     private boolean playGamesPause;
     private boolean playGamesStop;
 
-    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, boolean printProgress, boolean printDmg, boolean returnGames) throws IOException {
+    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount, boolean printProgress, boolean printDmg, boolean returnGames) throws IOException {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
             seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
         }
         var deq = new LinkedBlockingDeque<GameResult>();
         var numToPlay = new AtomicInteger(numOfGames);
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.start();
-            if (batchExecutorsCmp != null) {
-                batchExecutorsCmp.start();
-            }
+        modelExecutor.start(numOfThreads, batchCount);
+        if (modelExecutorCmp != null) {
+            modelExecutorCmp.start(numOfThreads, batchCount);
         }
-        for (int i = 0; i < mcts.size(); i++) {
+        allocateThreadMCTS(numOfThreads, batchCount);
+        for (int i = 0; i < producersCount; i++) {
             startPlayGameThread(origState, nodeCount, seeds, deq, numToPlay, i);
         }
         var remoteServerGames = new HashMap<String, Integer>();
@@ -501,7 +509,7 @@ public class MatchSession {
                 }
                 ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDmg && game_i.get() == numOfGames, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
-                var modelsPrint = Configuration.USE_BATCH_EXECUTORS ? batchExecutors.getExecutorModels() : mcts.stream().map((m) -> m.model).toList();
+                var modelsPrint = modelExecutor.getExecutorModels();
                 for (int i = 0; i < modelsPrint.size(); i++) {
                     var m = (ModelPlain) modelsPrint.get(i);
                     System.out.println("Time Taken (By Model " + i + "): " + m.time_taken);
@@ -510,11 +518,9 @@ public class MatchSession {
                 System.out.println("--------------------");
             }
         }
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.stop();
-            if (batchExecutorsCmp != null) {
-                batchExecutorsCmp.stop();
-            }
+        modelExecutor.stop();
+        if (modelExecutorCmp != null) {
+            modelExecutorCmp.stop();
         }
         return games;
     }
@@ -646,20 +652,18 @@ public class MatchSession {
 
     AtomicInteger remoteNumOfGames = new AtomicInteger(-123456);
     BlockingDeque<GameResult> remoteDeq = new LinkedBlockingDeque<>();
-    List<Thread> remoteThreads = new ArrayList<>();
 
-    public RemoteGameResult playGamesRemote(GameState origState, int numOfGames, int nodeCount) throws IOException {
+    public RemoteGameResult playGamesRemote(GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount) throws IOException {
         if (remoteNumOfGames.get() == -123456) {
             remoteNumOfGames.set(numOfGames);
             var seeds = new ArrayList<Long>(numOfGames);
             for (int i = 0; i < numOfGames; i++) {
                 seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
             }
-            if (Configuration.USE_BATCH_EXECUTORS) {
-                batchExecutors.start();
-            }
-            for (int i = 0; i < mcts.size(); i++) {
-                remoteThreads.add(startPlayGameThread(origState, nodeCount, seeds, remoteDeq, remoteNumOfGames, i));
+            modelExecutor.start(numOfThreads, batchCount);
+            allocateThreadMCTS(numOfThreads, batchCount);
+            for (int i = 0; i < producersCount; i++) {
+                startPlayGameThread(origState, nodeCount, seeds, remoteDeq, remoteNumOfGames, i);
             }
         }
 
@@ -688,46 +692,33 @@ public class MatchSession {
 
     public void stopPlayGamesRemote() {
         remoteNumOfGames.set(-123456);
-        for (int i = 0; i < remoteThreads.size(); i++) {
-            try {
-                remoteThreads.get(i).join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        remoteThreads.clear();
+        modelExecutor.stop();
         remoteDeq.clear();
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.stop();
-        }
     }
 
     public void close() {
-        for (int i = 0; i < mcts.size(); i++) {
-            mcts.get(i).model.close();
-        }
-        for (int i = 0; i < mcts2.size(); i++) {
-            if (!modelDir.equals(modelCmpDir)) {
-                mcts2.get(i).model.close();
-            }
+        modelExecutor.close();
+        if (modelExecutorCmp != null) {
+            modelExecutorCmp.close();
         }
     }
 
-    private Thread startPlayGameThread(GameState origState, int nodeCount, ArrayList<Long> seeds, BlockingDeque<GameResult> deq, AtomicInteger numToPlay, int threadIdx) {
+    private void startPlayGameThread(GameState origState, int nodeCount, ArrayList<Long> seeds, BlockingDeque<GameResult> deq, AtomicInteger numToPlay, int threadIdx) {
         var session = this;
-        var t = new Thread(() -> {
+        modelExecutor.addAndStartProducerThread(() -> {
             int idx = numToPlay.getAndDecrement();
             while (idx > 0) {
-                if (deq.size() >= (nodeCount == 1 ? 1000 : 40) || playGamesPause || playGamesStop) {
-                    if (numToPlay.get() < 0 || playGamesStop) {
-                        break;
-                    }
-                    Utils.sleep(200);
-                    continue;
-                }
+                if (playGamesStop) break;
+                if (deq.size() >= (nodeCount == 1 ? 1000 : 40) || playGamesPause) {
+                     if (numToPlay.get() <= -123456) {
+                         break; // only when this a remote server thread
+                     }
+                     modelExecutor.sleep(200);
+                     continue;
+                 }
                 var state = origState.clone(false);
                 state.prop = state.prop.clone();
-                state.prop.doingComparison = mcts2.size() > 0;
+                state.prop.doingComparison = mctsCmp.size() > 0;
                 var randomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
                 state.prop.realMoveRandomGen = randomGen;
                 randomGen.useNewCommonNumberVR = true;
@@ -738,7 +729,7 @@ public class MatchSession {
                 Game game2 = null;
                 var modelCalls2 = 0;
                 List<GameResult> reruns = null;
-                if (mcts2.size() > 0) {
+                if (mctsCmp.size() > 0) {
                     randomGen.timeTravelToBeginning();
                     var state2 = (origStateCmp != null ? origStateCmp : origState).clone(false);
                     state2.prop = state2.prop.clone();
@@ -746,9 +737,9 @@ public class MatchSession {
                     state2.prop.realMoveRandomGen = randomGen;
                     randomGen.useNewCommonNumberVR = false;
                     state2.prop.testNewFeature = false;
-                    mcts2.get(threadIdx).model.startRecordCalls();
-                    game2 = session.playGame(state2, startingActionCmp, game1, mcts2.get(threadIdx), nodeCount);
-                    modelCalls2 = mcts2.get(threadIdx).model.endRecordCalls();
+                    mctsCmp.get(threadIdx).model.startRecordCalls();
+                    game2 = session.playGame(state2, startingActionCmp, game1, mctsCmp.get(threadIdx), nodeCount);
+                    modelCalls2 = mctsCmp.get(threadIdx).model.endRecordCalls();
 
                     var turns1 = GameStateUtils.groupByTurns(game1.steps);
                     var turns2 = GameStateUtils.groupByTurns(game2.steps);
@@ -779,13 +770,13 @@ public class MatchSession {
                                 randomGen.useNewCommonNumberVR = true;
                                 var rerunGame1 = session.playGame(rerunState, -1, null, mcts.get(threadIdx), nodeCount);
                                 Game rerunGame2 = null;
-                                if (mcts2.size() > 0) {
+                                if (mctsCmp.size() > 0) {
                                     randomGen.useNewCommonNumberVR = false;
                                     randomGen.timeTravelToBeginning();
                                     var rerunState2 = ts2.clone(false);
                                     rerunState2.prop = rerunState2.prop.clone();
                                     rerunState2.prop.realMoveRandomGen = randomGen;
-                                    rerunGame2 = session.playGame(rerunState2, -1, game1, mcts2.get(threadIdx), nodeCount);
+                                    rerunGame2 = session.playGame(rerunState2, -1, game1, mctsCmp.get(threadIdx), nodeCount);
                                 }
                                 reruns.add(new GameResult(rerunGame1, 0, rerunGame2, 0, 0, null, null,0, null, null));
                             }
@@ -801,34 +792,15 @@ public class MatchSession {
                 }
                 idx = numToPlay.getAndDecrement();
                 if (nodeCount > 1) {
-                    Utils.sleep(Configuration.SLEEP_PER_GAME);
+                    modelExecutor.sleep(Configuration.SLEEP_PER_GAME);
                 }
             }
-            if (Configuration.USE_BATCH_EXECUTORS) {
-                waitForBatchExecutorToFinish(threadIdx);
-            }
+            waitForBatchExecutorToFinish(threadIdx);
         });
-        t.start();
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.addClientThread(t);
-        }
-        return t;
     }
 
     private void waitForBatchExecutorToFinish(int threadIdx) {
-        while (true) {
-            try {
-                mcts.get(threadIdx).model.eval(null);
-                if (mcts2.size() != 0) {
-                    mcts2.get(threadIdx).model.eval(null);
-                }
-            } catch (Exception e) {
-                if (e.getCause() instanceof InterruptedException) {
-                    break;
-                }
-                throw e;
-            }
-        }
+        while (!modelExecutor.producerWaitForClose(threadIdx) || (modelExecutorCmp != null && !modelExecutorCmp.producerWaitForClose(threadIdx)));
     }
 
     public Tuple<Map<Integer, GameStateRandomization.Info>, Map<Integer, GameStateRandomization.Info>> getInfoMaps(GameState state) {
@@ -1211,7 +1183,7 @@ public class MatchSession {
         return cs2;
     }
 
-    public void playTrainingGames(GameState origState, int numOfGames, int nodeCount, String path) throws IOException {
+    public void playTrainingGames(GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount, String path) throws IOException {
         File file = new File(path);
         file.delete();
         if (Configuration.TRAINING_SKIP_OPENING_TURNS) {
@@ -1221,29 +1193,22 @@ public class MatchSession {
         var deq = new LinkedBlockingDeque<TrainingGameResult>();
         var session = this;
         var numToPlay = new AtomicInteger(numOfGames);
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.start();
-        }
-        for (int i = 0; i < mcts.size(); i++) {
-            int ii = i;
-            var t = new Thread(() -> {
+        modelExecutor.start(numOfThreads, batchCount);
+        allocateThreadMCTS(numOfThreads, batchCount);
+        for (int i = 0; i < producersCount; i++) {
+            int _i = i;
+            modelExecutor.addAndStartProducerThread(() -> {
                 var state = origState.clone(false);
                 while (numToPlay.getAndDecrement() > 0) {
                     try {
-                        deq.putLast(new TrainingGameResult(session.playTrainingGame(state, nodeCount, mcts.get(ii)), null, null, null));
+                        deq.putLast(new TrainingGameResult(session.playTrainingGame(state, nodeCount, mcts.get(_i)), null, null, null));
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
-                    Utils.sleep(Configuration.SLEEP_PER_GAME_TRAINING);
+                    modelExecutor.sleep(Configuration.SLEEP_PER_GAME_TRAINING);
                 }
-                if (Configuration.USE_BATCH_EXECUTORS) {
-                    waitForBatchExecutorToFinish(ii);
-                }
+                waitForBatchExecutorToFinish(_i);
             });
-            if (Configuration.USE_BATCH_EXECUTORS) {
-                batchExecutors.addClientThread(t);
-            }
-            t.start();
         }
         var remoteServerGames = new HashMap<String, Integer>();
         for (Tuple<String, Integer> server : getRemoteServers()) {
@@ -1291,9 +1256,7 @@ public class MatchSession {
             }
         }
         System.out.println(positionsCount + " training positions generated.");
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.stop();
-        }
+        modelExecutor.stop();
         stream.flush();
         stream.close();
         remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
@@ -1402,9 +1365,8 @@ public class MatchSession {
 
     AtomicInteger remoteNumOfTrainingGames = new AtomicInteger(-123456);
     BlockingDeque<Game> remoteTrainingDeq = new LinkedBlockingDeque<>();
-    List<Thread> remoteTrainingThreads = new ArrayList<>();
 
-    public TrainingGameResult playTrainingGamesRemote(GameState oState, ServerRequest req) throws IOException {
+    public TrainingGameResult playTrainingGamesRemote(GameState oState, ServerRequest req, int numOfThreads, int batchCount) throws IOException {
         var origState = oState.clone(false);
         if (remoteNumOfTrainingGames.get() == -123456) {
             remoteNumOfTrainingGames.set(req.remainingGames);
@@ -1414,37 +1376,30 @@ public class MatchSession {
             Configuration.USE_Z_TRAINING = req.zTraining;
             origState.prop.curriculumTraining = req.curriculumTraining;
             origState.prop.randomization = new GameStateRandomization.EnemyRandomization(origState.prop.curriculumTraining, req.minDifficulty, req.maxDifficulty).doAfter(origState.prop.randomization);
-            if (Configuration.USE_BATCH_EXECUTORS) {
-                batchExecutors.start();
-            }
-            for (int i = 0; i < mcts.size(); i++) {
-                int ii = i;
-                remoteTrainingThreads.add(new Thread(() -> {
+            modelExecutor.start(numOfThreads, batchCount);
+            allocateThreadMCTS(numOfThreads, batchCount);
+            for (int i = 0; i < producersCount; i++) {
+                int _i = i;
+                modelExecutor.addAndStartProducerThread(() -> {
                     var state = origState.clone(false);
                     int idx = remoteNumOfTrainingGames.getAndDecrement();
                     while (idx > 0) {
                         if (remoteTrainingDeq.size() >= 30) {
-                            if (remoteNumOfTrainingGames.get() <= 0) {
+                            if (remoteNumOfTrainingGames.get() <= -123456) {
                                 break;
                             }
-                            Utils.sleep(200);
+                            modelExecutor.sleep(200);
                             continue;
                         }
                         try {
-                            remoteTrainingDeq.putLast(session.playTrainingGame(state, req.nodeCount, mcts.get(ii)));
+                            remoteTrainingDeq.putLast(session.playTrainingGame(state, req.nodeCount, mcts.get(_i)));
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
                         idx = remoteNumOfTrainingGames.getAndDecrement();
                     }
-                    if (Configuration.USE_BATCH_EXECUTORS) {
-                        waitForBatchExecutorToFinish(ii);
-                    }
-                }));
-                if (Configuration.USE_BATCH_EXECUTORS) {
-                    batchExecutors.addClientThread(remoteTrainingThreads.get(remoteTrainingThreads.size() - 1));
-                }
-                remoteTrainingThreads.get(remoteTrainingThreads.size() - 1).start();
+                    waitForBatchExecutorToFinish(_i);
+                });
             }
         }
 
@@ -1471,18 +1426,8 @@ public class MatchSession {
 
     public void stopPlayTrainingGamesRemote() {
         remoteNumOfTrainingGames.set(-123456);
-        for (int i = 0; i < remoteTrainingThreads.size(); i++) {
-            try {
-                remoteTrainingThreads.get(i).join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        remoteTrainingThreads.clear();
+        modelExecutor.stop();
         remoteTrainingDeq.clear();
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.stop();
-        }
     }
 
     private void pruneForcedPlayouts(List<GameStep> steps) {
@@ -1722,9 +1667,9 @@ public class MatchSession {
 
     public void setMatchLogFile(String fileName) {
         try {
-            File file = new File(logDir + "/" + fileName);
+            File file = new File(modelDir + "/" + fileName);
             file.delete();
-            matchLogWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(logDir + "/" + fileName, true)));
+            matchLogWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(modelDir + "/" + fileName, true)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1759,7 +1704,6 @@ public class MatchSession {
                     randomGen.useNewCommonNumberVR = true;
                     state.prop.testNewFeature = true;
                     state.prop.makingRealMove = true;
-                    state.prop.doingComparison = true;
                 } else if (l.startsWith("{")) {
                     stateStr = l;
                 } else if (l.startsWith("action=")) {
@@ -1823,9 +1767,9 @@ public class MatchSession {
 
     public void setTrainingDataLogFile(String fileName) {
         try {
-            File file = new File(logDir + "/" + fileName);
+            File file = new File(modelDir + "/" + fileName);
             file.delete();
-            trainingDataWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(logDir + "/" + fileName, true)));
+            trainingDataWriter = new OutputStreamWriter(new GzipCompressorOutputStream(new FileOutputStream(modelDir + "/" + fileName, true)));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -1873,28 +1817,27 @@ public class MatchSession {
     }
 
     // custom code that I modified if I want to check if/how fast network learned a strategy in a training run
-    public static void getTrainingRunStats(String savesDir, GameState origState, int numOfGames, int nodeCount) {
+    public static void getTrainingRunStats(String savesDir, GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount) {
         int iter = 0;
         do {
             System.out.println("**************************************");
             System.out.printf("Iteration %d\n", iter);
-            MatchSession session = new MatchSession(1, Path.of(savesDir, "iteration" + iter).toString());
-            session.playGamesForStat(origState, numOfGames, nodeCount);
+            MatchSession session = new MatchSession(Path.of(savesDir, "iteration" + iter).toString());
+            session.playGamesForStat(origState, numOfGames, nodeCount, numOfThreads, batchCount);
             iter++;
         } while (Files.exists(Path.of(savesDir, "iteration" + iter)));
     }
 
-    public void playGamesForStat(GameState origState, int numOfGames, int nodeCount) {
+    public void playGamesForStat(GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount) {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
             seeds.add(origState.prop.random.nextLong(RandomGenCtx.Other));
         }
         var deq = new LinkedBlockingDeque<GameResult>();
         var numToPlay = new AtomicInteger(numOfGames);
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.start();
-        }
-        for (int i = 0; i < mcts.size(); i++) {
+        modelExecutor.start(numOfThreads, batchCount);
+        allocateThreadMCTS(numOfThreads, batchCount);
+        for (int i = 0; i < producersCount; i++) {
             startPlayGameThread(origState, nodeCount, seeds, deq, numToPlay, i);
         }
 
@@ -1943,8 +1886,6 @@ public class MatchSession {
         }
         System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
         System.out.println("Average Q: " + averageQ / numOfGames);
-        if (Configuration.USE_BATCH_EXECUTORS) {
-            batchExecutors.stop();
-        }
+        modelExecutor.stop();
     }
 }
