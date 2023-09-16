@@ -59,7 +59,7 @@ public class ModelExecutor {
 
         running = true;
         var _pool = this;
-        for (int i = 0; i < executorModels.size(); i++) {
+        for (int i = 0; i < executorCount; i++) {
             int _i = i;
             executorThreads.set(i, new Thread(() -> {
                 List<Tuple<Integer, GameState>> reqs = new ArrayList<>();
@@ -218,7 +218,7 @@ public class ModelExecutor {
         return !running;
     }
 
-    public List<Model> getExecutorModels() {
+    public List<ModelPlain> getExecutorModels() {
         return new ArrayList<>(this.executorModels);
     }
 
@@ -242,5 +242,9 @@ public class ModelExecutor {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public void setToNotRunning() {
+        running = false;
     }
 }

@@ -143,6 +143,7 @@ public class CardUpgrade {
         map.put(new CardDefect.Sunder(), new CardDefect.SunderP());
         map.put(new CardDefect.Tempest(), new CardDefect.TempestP());
         map.put(new CardDefect.BiasedCognition(), new CardDefect.BiasedCognitionP());
+        map.put(new CardDefect.Buffer(), new CardDefect.BufferP());
         map.put(new CardDefect.CoreSurge(), new CardDefect.CoreSurgeP());
         map.put(new CardDefect.EchoForm(), new CardDefect.EchoFormP());
         map.put(new CardDefect.HyperBeam(), new CardDefect.HyperBeamP());

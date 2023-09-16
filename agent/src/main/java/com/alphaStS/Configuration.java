@@ -71,5 +71,8 @@ public class Configuration {
     // ends the battle faster among moves with similar evaluation
     // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns
     // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
-    public static boolean USE_TURNS_LEFT_HEAD = false;
+    public static boolean USE_TURNS_LEFT_HEAD = true;
+
+
+    public static boolean USE_NEW_ACTION_SELECTION = false;
 }

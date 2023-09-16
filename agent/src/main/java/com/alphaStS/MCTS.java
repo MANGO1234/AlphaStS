@@ -5,10 +5,8 @@ import java.util.*;
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelPlain;
-import com.alphaStS.model.NNOutput;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
-import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
 import static java.lang.Math.sqrt;
 
@@ -728,13 +726,13 @@ public class MCTS {
         if (terminal_v_win > 0.5) {
             if (state.ns[action] instanceof ChanceState) {
                 terminal_v_win = -100;
-                actionToPropagate = getActionWithMaxNodesOrTerminal(state, null);
+                actionToPropagate = getActionWithMaxNodesOrTerminal(state);
             } else {
                 state.terminal_action = action;
                 actionToPropagate = action;
             }
         } else {
-            actionToPropagate = getActionWithMaxNodesOrTerminal(state, null);
+            actionToPropagate = getActionWithMaxNodesOrTerminal(state);
         }
         for (int i = 0; i < state.prop.v_total_len; i++) {
             double qTotal = state.q[(actionToPropagate + 1) * state.prop.v_total_len + i] / state.n[actionToPropagate] * (state.total_n + 1);
@@ -1148,6 +1146,7 @@ public class MCTS {
         int numberOfActions = 0;
         double[] uValues = new double[state.getLegalActions().length];
         double[] qValues = new double[state.getLegalActions().length];
+        double[] puct = new double[state.getLegalActions().length];
         for (int i = 0; i < state.getLegalActions().length; i++) {
             if (policy[i] <= 0) {
                 continue;
@@ -1158,19 +1157,22 @@ public class MCTS {
             // multithreaded mcts -> add virtual loss
             if (state.prop.multithreadedMTCS) {
                 if (state.ns[i] != null && state.ns[i] instanceof GameState s) {
-                    childN += s.virtualLoss.get();
+                    childN += s.virtualLoss.getPlain();
                 } else if (state.ns[i] != null && state.ns[i] instanceof ChanceState s) {
                     childN += s.virtualLoss;
                 }
             }
 
             // first play urgency -> use parent q value
+            double cpuct = state.prop.cpuct;
             double q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / childN : state.q[GameState.V_COMB_IDX] / (state.total_n + 1);
+            if (Configuration.USE_NEW_ACTION_SELECTION && state.prop.testNewFeature) {
+                q = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / childN : state.q[GameState.V_WIN_IDX] / (state.total_n + 1);
+            }
             if (useFightProgress) { // only when every child has at least one node
                 q = state.q[(i + 1) * state.prop.v_total_len + state.prop.fightProgressVIdx] / childN;
             }
 
-            double cpuct = state.prop.cpuct;
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.prop.testNewFeature)) {
                 // cpuct scaling is equivalent to scaling the numerator in sqrt(state.total_n) / (1 + childN) further to encourage exploration
                 // noticing at high nodes very little exploration is done if the initial policy is low with logaritmic scaling
@@ -1186,9 +1188,9 @@ public class MCTS {
             if (Configuration.isUseUtilityStdErrForPuctOn(state)) {
                 std_err = Math.sqrt(state.varianceS / state.total_n) / Math.sqrt(state.total_n + 1);
             }
-            double u = state.total_n > 0 ? q + cpuct * policy[i] * (sqrt(state.total_n) / (1 + childN) + 5 * std_err) : policy[i];
-            uValues[i] = u;
+            puct[i] = cpuct * policy[i] * (sqrt(state.total_n) / (1 + childN) + 5 * std_err);
             qValues[i] = q;
+            uValues[i] = state.total_n > 0 ? q + puct[i] : policy[i];
         }
 
         int action = 0;
@@ -1223,10 +1225,47 @@ public class MCTS {
                     maxU = uValues[i];
                 }
             }
+            if (Configuration.USE_NEW_ACTION_SELECTION && state.prop.testNewFeature && state.n[action] > 0) {
+                double maxQ = -100000;
+                for (int i = 0; i < state.getLegalActions().length; i++) {
+                    if (policy[i] <= 0 || state.n[i] <= 0) {
+                        continue;
+                    }
+                    if (qValues[i] > maxQ) {
+                        maxQ = qValues[i];
+                    }
+                }
+
+                double currentQ = qValues[action];
+                if (currentQ >= 0.999 * maxQ) {
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (policy[i] <= 0) {
+                            continue;
+                        }
+                        if (state.n[i] > 0 && qValues[i] >= 0.999 * maxQ) {
+                            qValues[i] = state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX] / state.n[i];
+                            uValues[i] = qValues[i] + puct[i];
+                        } else {
+                            qValues[i] = -100;
+                            uValues[i] = -100;
+                        }
+                    }
+                    maxU = -1000000;
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (policy[i] <= 0) {
+                            continue;
+                        }
+                        if (uValues[i] > maxU) {
+                            action = i;
+                            maxU = uValues[i];
+                        }
+                    }
+                }
+            }
             if (!useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0) {
                 double maxQ = -100000;
                 for (int i = 0; i < state.getLegalActions().length; i++) {
-                    if (policy[i] <= 0) {
+                    if (policy[i] <= 0 || state.n[i] <= 0) {
                         continue;
                     }
                     if (qValues[i] > maxQ) {
@@ -1432,70 +1471,67 @@ public class MCTS {
         return action;
     }
 
-    public static int getActionWithMaxNodesOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
+    public static int getActionWithMaxNodesOrTerminal(GameState state) {
         if (state.terminal_action >= 0) {
             return state.terminal_action;
         }
         if (state.total_n == 0) {
-            int actionToPropagate = -1;
+            int action = -1;
             float max_p = -1000.0f;
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 if (state.policy[i] > max_p) {
                     max_p = state.policy[i];
-                    actionToPropagate = i;
+                    action = i;
                 }
             }
-            return actionToPropagate;
+            return action;
         } else {
-            int actionToPropagate = -1;
+            int action = -1;
             int max_n = -1000;
             for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (bannedActions == null || !bannedActions.contains(state.getAction(i))) {
-                    if (state.n[i] > max_n) {
-                        max_n = state.n[i];
-                        actionToPropagate = i;
-                    }
+                if (state.n[i] > max_n) {
+                    max_n = state.n[i];
+                    action = i;
                 }
             }
-            return actionToPropagate;
+            return action;
         }
     }
 
-    public static int getActionWithMaxLCBOrTerminal(GameState state, HashSet<GameAction> bannedActions) {
+    public static int[] getActionWithMaxNodesOrTerminal2(GameState state) {
         if (state.terminal_action >= 0) {
-            return state.terminal_action;
+            return new int[] {state.terminal_action};
         }
-        ClopperPearsonInterval interval = new ClopperPearsonInterval();
         if (state.total_n == 0) {
-            int actionToPropagate = -1;
+            int action = -1;
             float max_p = -1000.0f;
             for (int i = 0; i < state.getLegalActions().length; i++) {
                 if (state.policy[i] > max_p) {
                     max_p = state.policy[i];
-                    actionToPropagate = i;
+                    action = i;
                 }
             }
-            return actionToPropagate;
+            return new int[] { action };
         } else {
-            int actionToPropagate = -1;
-            double max_n = -1000;
+            int action = -1;
+            int action2 = -1;
+            int max_n = -1000;
+            int max_n2 = -1000;
             for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (state.n[i] > 0 && (bannedActions == null || !bannedActions.contains(state.getAction(i)))) {
-                    var nS = (int) Math.floor(state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX]);
-                    var k = -10.0;
-                    if (state.n[i] / (double) state.total_n >= 0.15 && nS > 0) {
-                        k = interval.createInterval(state.n[i], nS, 0.00001).getLowerBound();
-                    }
-                    if (k > max_n) {
-                        max_n = k;
-                        actionToPropagate = i;
-                    }
+                if (state.n[i] > max_n) {
+                    max_n2 = max_n;
+                    action2 = action;
+                    max_n = state.n[i];
+                    action = i;
+                } else if (state.n[i] > max_n2) {
+                    max_n2 = state.n[i];
+                    action2 = i;
                 }
             }
-            if (max_n == -10.0) {
-                return getActionWithMaxNodesOrTerminal(state, bannedActions);
+            if (state.n[action] >= state.total_n * 0.8) {
+                return new int[] { action };
             }
-            return actionToPropagate;
+            return new int[] { action, action2 };
         }
     }
 }

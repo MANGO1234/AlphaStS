@@ -552,6 +552,10 @@ public final class GameState implements State {
                 prop.echoFormCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Echo Form+")) {
                 prop.echoFormPCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Apotheosis")) {
+                prop.apotheosisCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Apotheosis+")) {
+                prop.apotheosisPCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Well-Laid Plans") || cards.get(i).card().cardName.equals("Well-Laid Plans+")) {
                 prop.wellLaidPlansCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Tools Of The Trade") || cards.get(i).card().cardName.equals("Tools Of The Trade+")) {
@@ -796,12 +800,6 @@ public final class GameState implements State {
         terminal_action = -100;
         transpositions = new HashMap<>();
         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
-
-        if (prop.multithreadedMTCS) {
-            transpositionsLock = new ReentrantLock();
-            lock = new ReentrantReadWriteLock();
-            virtualLoss = new AtomicInteger();
-        }
     }
 
     private int[] findCardThatCanHealIdxes(List<CardCount> cards, List<Relic> relics) {
@@ -814,11 +812,7 @@ public final class GameState implements State {
         int idx = 0;
         for (int i = 0; i < cards.size(); i++) {
             if (cards.get(i).card().healPlayer) {
-                if (cards.get(i).card().cardName.contains("Feed")) {
-                    r[idx++] = i;
-                } else {
-                    r[idx++] = -1;
-                }
+                r[idx++] = i;
             }
         }
         return r;
@@ -2058,14 +2052,17 @@ public final class GameState implements State {
                             if (prop.echoFormCardIdx > 0 || prop.echoFormPCardIdx > 0) {
                                 if (getCounterForRead()[prop.echoFormCounterIdx] > 0) {
                                     m *= 2;
-                                } else if (prop.echoFormCardIdx > 0 && getNonExhaustCount(prop.echoFormCardIdx) > 0) {
+                                } else if (prop.echoFormCardIdx >= 0 && getNonExhaustCount(prop.echoFormCardIdx) > 0) {
                                     m *= 2;
                                 } else if (prop.echoFormPCardIdx > 0 && getNonExhaustCount(prop.echoFormPCardIdx) > 0) {
                                     m *= 2;
                                 }
                             }
                         }
-                        v += (prop.cardDict[prop.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ? 7 : 10) * m;
+                        int h = prop.cardDict[prop.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ? 7 : 10;
+                        if (prop.apotheosisCardIdx >= 0 && getNonExhaustCount(prop.apotheosisCardIdx) > 0) h = 10;
+                        if (prop.apotheosisPCardIdx >= 0 && getNonExhaustCount(prop.apotheosisPCardIdx) > 0) h = 10;
+                        v += h * m;
                     }
                 }
             }
@@ -4655,7 +4652,6 @@ class ChanceState implements State {
         queue.add(state);
     }
 
-    // currently doesn't do anything
     public void correctV(GameState state2, double[] v, double[] realV) {
         if (parentState.prop.multithreadedMTCS) virtualLoss--;
         var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
@@ -4663,28 +4659,21 @@ class ChanceState implements State {
         varianceM = newVarianceM;
         varianceS = newVarianceS;
         var node = cache.get(state2);
-        if (node.revisit) {
-//            var new_total_q_comb = 0.0;
-//            var new_total_q_win = 0.0;
-//            var new_total_q_health = 0.0;
-//            var new_total_q_progress = 0.0;
+        if (node.revisit ||
+            (Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
+            (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
+            (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
+//            var new_total_q = new double[node.state.prop.v_total_len];
 //            var nnn = 0;
 //            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
-//                new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                new_total_q_progress += entry.getValue().state.total_q_progress / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                for (int i = 0; i < node.state.prop.v_total_len; i++) {
+//                    new_total_q[i] += entry.getValue().state.q[i] / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                }
 //                nnn += entry.getValue().n;
 //            }
-//            new_total_q_comb = new_total_q_comb / nnn * total_n;
-//            new_total_q_win = new_total_q_win / nnn * total_n;
-//            new_total_q_health = new_total_q_health / nnn * total_n;
-//            new_total_q_progress = new_total_q_progress / nnn * total_n;
-//            v[GameState.V_WIN_IDX] = new_total_q_win - total_q_win;
-//            v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
-//            v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
-//            if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-//                v[parentState.prop.fightProgressVIdx] = new_total_q_progress - total_q_progress;
+//            for (int i = 0; i < node.state.prop.v_total_len; i++) {
+//                new_total_q[i] = new_total_q[i] / nnn * total_n;
+//                v[i] = new_total_q[i] - total_q[i];
 //            }
 
             for (int i = 0; i < node.state.prop.v_total_len; i++) {
@@ -4693,51 +4682,6 @@ class ChanceState implements State {
                 var new_q = (prev_q * (total_node_n - 1) - node.prev_q[i] * (node.n - 1))  / total_node_n + node_cur_q * node.n / total_node_n;
                 node.prev_q[i] = node_cur_q;
                 v[i] = new_q * total_n - total_q[i];
-                if (i == GameState.V_WIN_IDX) {
-                    if (new_q * total_n - (total_q[i] + v[GameState.V_WIN_IDX]) > 0.00000001) {
-                        System.out.println(prev_q + "," + total_n + "," + total_q[i] / total_n);
-                    }
-                }
-            }
-        } else {
-            if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
-                    (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
-                    (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
-//                var new_total_q_comb = 0.0;
-//                var new_total_q_win = 0.0;
-//                var new_total_q_health = 0.0;
-//                var new_total_q_progress = 0.0;
-//                var nnn = 0;
-//                for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
-//                    new_total_q_comb += entry.getValue().state.total_q_comb / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                    new_total_q_win += entry.getValue().state.total_q_win / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                    new_total_q_health += entry.getValue().state.total_q_health / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                    new_total_q_progress += entry.getValue().state.total_q_progress / (entry.getValue().state.total_n + 1) * entry.getValue().n;
-//                    nnn += entry.getValue().n;
-//                }
-//                new_total_q_comb = new_total_q_comb / nnn * total_n;
-//                new_total_q_win = new_total_q_win / nnn * total_n;
-//                new_total_q_health = new_total_q_health / nnn * total_n;
-//                new_total_q_progress = new_total_q_progress / nnn * total_n;
-//                v[GameState.V_WIN_IDX] = new_total_q_win - total_q_win;
-//                v[GameState.V_HEALTH_IDX] = new_total_q_health - total_q_health;
-//                v[GameState.V_COMB_IDX] = new_total_q_comb - total_q_comb;
-//                if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-//                    v[parentState.prop.fightProgressVIdx] = new_total_q_progress - total_q_progress;
-//                }
-
-                for (int i = 0; i < node.state.prop.v_total_len; i++) {
-                    var node_cur_q = node.state.q[i] / (node.state.total_n + 1);
-                    var prev_q = total_n == 1 ? 0 : total_q[i] / (total_n - 1);
-                    var new_q = (prev_q * (total_node_n - 1) - node.prev_q[i] * (node.n - 1))  / total_node_n + node_cur_q * node.n / total_node_n;
-                    node.prev_q[i] = node_cur_q;
-                    v[i] = new_q * total_n - total_q[i];
-                    if (i == GameState.V_WIN_IDX) {
-                        if (new_q * total_n - (total_q[i] + v[GameState.V_WIN_IDX]) > 0.00000001) {
-                            System.out.println(prev_q + "," + total_n + "," + total_q[i] / total_n);
-                        }
-                    }
-                }
             }
         }
         for (int i = 0; i < node.state.prop.v_total_len; i++) {

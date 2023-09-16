@@ -78,6 +78,8 @@ public class GameProperties implements Cloneable {
     public int shivPCardIdx = -1;
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
+    public int apotheosisCardIdx = -1;
+    public int apotheosisPCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
     public int[] bloodForBloodIndexes;

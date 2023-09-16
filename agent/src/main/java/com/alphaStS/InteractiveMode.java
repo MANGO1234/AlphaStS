@@ -26,6 +26,9 @@ public class InteractiveMode {
     private List<MCTS> threadMCTS = new ArrayList<>();
 
     private void allocateThreadMCTS(ModelExecutor modelExecutor, int numThreads) {
+        for (int i = 0; i < modelExecutor.getExecutorModels().size(); i++) {
+            modelExecutor.getExecutorModels().get(i).resetStats();
+        }
         for (int i = threadMCTS.size(); i < numThreads; i++) {
             threadMCTS.add(null);
         }
@@ -339,10 +342,14 @@ public class InteractiveMode {
                     var _state = state;
                     var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
                     var actions = actionsOrig.stream().map(String::toLowerCase).toList();
-                    var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
-                    if (actionStr != null) {
-                        out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
-                        action = actions.indexOf(actionStr);
+                    if (line.startsWith("IF:")) {
+                        action = actions.indexOf(line.substring(3).toLowerCase());
+                    } else {
+                        var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
+                        if (actionStr != null) {
+                            out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
+                            action = actions.indexOf(actionStr);
+                        }
                     }
                 }
                 if (action >= 0 && action <= state.getLegalActions().length) {
@@ -1584,7 +1591,7 @@ public class InteractiveMode {
 
         long start = System.currentTimeMillis();
         long startNodeCount = state.total_n;
-        state.setMultithreaded(numberOfThreads > 1);
+        state.setMultithreaded(numberOfThreads * batchSize > 1);
         AtomicLong nodeCount = new AtomicLong(state.total_n);
         AtomicLong nodeDoneCount = new AtomicLong(state.total_n);
         modelExecutor.start(numberOfThreads, batchSize);
@@ -1628,12 +1635,12 @@ public class InteractiveMode {
             lastSleepDuration = Math.min(lastSleepDuration * 2, 100);
             if (System.currentTimeMillis() - lastPrintTime > 5000) {
                 double speed = ((double) doneCount.get() - startCount) / (System.currentTimeMillis() - startTime) * 1000;
-                out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)"  + (extraDetails != null ? " " + extraDetails.get() : ""));
+                out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
                 lastPrintTime = System.currentTimeMillis();
             }
         }
         double speed = ((double) Math.max(0, totalCount - startCount)) / (System.currentTimeMillis() - startTime) * 1000;
-        out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)");
+        out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
     }
 
     private Tuple<GameState, Integer> runNNPV(GameState state, List<String> pv, String line, List<String> history) {
@@ -1652,16 +1659,16 @@ public class InteractiveMode {
         long start = System.currentTimeMillis();
         StringBuilder finalOuput = new StringBuilder("\n### Final Output ###");
         do {
-            s.setMultithreaded(numberOfThreads > 1);
+            s.setMultithreaded(numberOfThreads * batchSize > 1);
             var curStart = System.currentTimeMillis();
             var startNodeCount = s.total_n;
             AtomicLong nodeCount = new AtomicLong(s.total_n);
             AtomicLong nodeDoneCount = new AtomicLong(s.total_n);
             modelExecutor.start(numberOfThreads, batchSize);
-            numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
-            allocateThreadMCTS(modelExecutor, numberOfThreads);
+            var numberOfProducers = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
+            allocateThreadMCTS(modelExecutor, numberOfProducers);
             var _s = s;
-            for (int i = 0; i < numberOfThreads; i++) {
+            for (int i = 0; i < numberOfProducers; i++) {
                 final int _i = i;
                 modelExecutor.addAndStartProducerThread(() -> {
                     long c = nodeCount.addAndGet(1);
@@ -1674,12 +1681,28 @@ public class InteractiveMode {
                 });
             }
             waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, curStart, "nodes", () -> {
-                int action = MCTS.getActionWithMaxNodesOrTerminal(_s, null);
-                return action < 0 ? "" : _s.getActionString(action);
+                StringBuilder o = new StringBuilder();
+                GameState curS = _s;
+                while (curS.isTerminal() == 0) {
+                    int[] actions = MCTS.getActionWithMaxNodesOrTerminal2(curS);
+                    if (actions.length == 1) {
+                        o.append(o.length() == 0 ? "" : ", ").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%)");
+                        if (curS.ns[actions[0]] == null || !(curS.ns[actions[0]] instanceof GameState)) {
+                            break;
+                        }
+                        curS = (GameState) curS.ns[actions[0]];
+                    } else {
+                        o.append(o.length() == 0 ? "[" : ", [").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%) | ");
+                        o.append(curS.getActionString(actions[1])).append(" (").append(Utils.formatFloat(curS.n[actions[1]] / (double) curS.total_n * 100)).append("%)]");
+                        break;
+                    }
+                }
+                return o.toString();
             });
             modelExecutor.stop();
+            s.setMultithreaded(false);
 
-            int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
             if (action < 0) {
                 return null;
             }
@@ -1701,19 +1724,23 @@ public class InteractiveMode {
             if (history != null) history.add("## " + o);
             pv.add(s.getActionString(action));
             State ns = s.ns[action];
-            if (ns instanceof ChanceState) {
+            if (ns instanceof ChanceState || (ns instanceof GameState ns2 && ns2.isTerminal() != 0)) {
                 out.println(finalOuput);
-                out.println("Total Time: " + (System.currentTimeMillis() - start) + " ms");
+                long modelTime = 0;
+                long nnEvals = 0;
+                for (int i = 0; i < numberOfThreads; i++) {
+                    modelTime += modelExecutor.getExecutorModels().get(i).time_taken;
+                    nnEvals += modelExecutor.getExecutorModels().get(i).calls - modelExecutor.getExecutorModels().get(i).cache_hits;
+                }
+                modelTime /= modelExecutor.getExecutorModels().size();
+                nnEvals /= modelExecutor.getExecutorModels().size();
+                out.println("Total Time: " + (System.currentTimeMillis() - start) + " ms (Model Time: " + modelTime + " ms, NN Evals: " + nnEvals + ", Average Eval: " + Utils.formatFloat(((double) modelTime) / nnEvals) + " ms)");
+                System.gc(); System.gc(); System.gc();
+                out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
                 return new Tuple<>(s, action);
             } else if (ns instanceof GameState ns2) {
-                if (ns2.isTerminal() != 0) {
-                    out.println(finalOuput);
-                    out.println("Total Time: " + (System.currentTimeMillis() - start) + " ms");
-                    return new Tuple<>(s, action);
-                } else {
-                    if (clear) s.clearAllSearchInfo(); ns2.clearAllSearchInfo();
-                    s = ns2;
-                }
+                if (clear) { s.clearAllSearchInfo(); ns2.clearAllSearchInfo(); }
+                s = ns2;
             } else {
                 out.println("Unknown ns: " + state);
                 out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
@@ -1728,7 +1755,7 @@ public class InteractiveMode {
             for (int i = 0; i < nodeCount; i++) {
                 mcts.search(s, false, nodeCount - i);
             }
-            int action = MCTS.getActionWithMaxNodesOrTerminal(s, null);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(s);
             if (action < 0) {
                 return null;
             }
@@ -1740,7 +1767,7 @@ public class InteractiveMode {
                 if (ns2.isTerminal() != 0) {
                     return new Tuple<>(s, action);
                 } else {
-                    if (clear) s.clearAllSearchInfo(); ns2.clearAllSearchInfo();
+                    if (clear) { s.clearAllSearchInfo(); ns2.clearAllSearchInfo(); }
                     s = ns2;
                 }
             } else {

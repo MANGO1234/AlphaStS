@@ -135,6 +135,12 @@ public class ModelPlain implements Model {
         return calls - cache_hits - prev;
     }
 
+    public void resetStats() {
+        calls = 0;
+        cache_hits = 0;
+        time_taken = 0;
+    }
+
     public NNOutput eval(GameState state) {
         calls += 1;
         NNInputHash hash;

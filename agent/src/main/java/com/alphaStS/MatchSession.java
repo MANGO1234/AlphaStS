@@ -59,7 +59,7 @@ public class MatchSession {
 
     private void allocateThreadMCTS(int numberOfThreads, int batchSize) {
         producersCount = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
-        if (modelCmpDir != null) {
+        if (modelCmpDir != null && !modelCmpDir.equals(modelDir)) {
             producersCount += ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
         }
         if (producersCount >= mcts.size()) {
@@ -74,7 +74,7 @@ public class MatchSession {
             Model model = modelExecutor.getModelForProducer(i);
             mcts.get(i).setModel(model);
             if (modelCmpDir != null) {
-                mctsCmp.get(i).setModel(model);
+                mctsCmp.get(i).setModel(modelDir.equals(modelCmpDir) ? model : modelExecutorCmp.getModelForProducer(i));
             }
         }
     }
@@ -182,7 +182,7 @@ public class MatchSession {
                             }
                         }
 
-                        int action = MCTS.getActionWithMaxNodesOrTerminal(cloneState, null);
+                        int action = MCTS.getActionWithMaxNodesOrTerminal(cloneState);
                         tempSteps.add(new GameStep(cloneState, action));
 
                         cloneState.prop.makingRealMove = true;
@@ -247,7 +247,7 @@ public class MatchSession {
                     }
                 }
 
-                int action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
+                int action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 steps.add(new GameStep(state, action));
                 state.prop.makingRealMove = true;
                 if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
@@ -518,6 +518,9 @@ public class MatchSession {
                 System.out.println("--------------------");
             }
         }
+        if (modelExecutorCmp != null) {
+            modelExecutorCmp.setToNotRunning();
+        }
         modelExecutor.stop();
         if (modelExecutorCmp != null) {
             modelExecutorCmp.stop();
@@ -698,7 +701,7 @@ public class MatchSession {
 
     public void close() {
         modelExecutor.close();
-        if (modelExecutorCmp != null) {
+        if (modelExecutorCmp != null && !modelDir.equals(modelCmpDir)) {
             modelExecutorCmp.close();
         }
     }
@@ -800,7 +803,7 @@ public class MatchSession {
     }
 
     private void waitForBatchExecutorToFinish(int threadIdx) {
-        while (!modelExecutor.producerWaitForClose(threadIdx) || (modelExecutorCmp != null && !modelExecutorCmp.producerWaitForClose(threadIdx)));
+        while (!modelExecutor.producerWaitForClose(threadIdx) || (modelExecutorCmp != null && !modelDir.equals(modelCmpDir) && !modelExecutorCmp.producerWaitForClose(threadIdx)));
     }
 
     public Tuple<Map<Integer, GameStateRandomization.Info>, Map<Integer, GameStateRandomization.Info>> getInfoMaps(GameState state) {
@@ -984,13 +987,13 @@ public class MatchSession {
                 greedyAction = i;
             } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                 action = MCTS.getActionRandomOrTerminalSelectScenario(state);
-                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, null);
+                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
             } else if (doNotExplore || noMoreExplore || quickPass || state.turnNum >= 100) {
-                action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
+                action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
                 action = MCTS.getActionRandomOrTerminal(state);
-                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state, null);
+                greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
             }
             var step = new GameStep(state, action);
             step.trainingWriteCount = !quickPass ? 1 : 0;
@@ -1062,7 +1065,7 @@ public class MatchSession {
                         state.policyMod = steps.get(i).state().policyMod;
                         mcts.exploredActions = new HashMap<>();
                         mcts.exploredActions.put(steps.get(i).action(), vCur);
-                        mcts.exploredActions.put(MCTS.getActionWithMaxNodesOrTerminal(steps.get(i).state(), null), ret);
+                        mcts.exploredActions.put(MCTS.getActionWithMaxNodesOrTerminal(steps.get(i).state()), ret);
                         for (int j = 0; j < nodeCount; j++) {
                             mcts.search(state, true, nodeCount - j);
                         }
@@ -1141,7 +1144,7 @@ public class MatchSession {
             if (ss == null || ss.isTerminal() != 0) {
                 break;
             }
-            int action = MCTS.getActionWithMaxNodesOrTerminal(ss, null);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(ss);
             if (ss.ns == null) {
                 break;
             }
@@ -1169,7 +1172,7 @@ public class MatchSession {
                 }
             }
 
-            int action = MCTS.getActionWithMaxNodesOrTerminal(state, null);
+            int action = MCTS.getActionWithMaxNodesOrTerminal(state);
             if (!firstState) {
                 augmentedSteps.add(new GameStep(state, action));
             }

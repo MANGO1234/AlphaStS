@@ -98,7 +98,7 @@ public class Main {
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
             WRITE_MATCHES = true;
-//            PRINT_DMG = true;
+            PRINT_DMG = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             GAMES_ADD_ENEMY_RANDOMIZATION = true;
             NUMBER_OF_NODES_PER_TURN = 100;

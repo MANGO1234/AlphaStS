@@ -1719,16 +1719,8 @@ public class TestStates {
         builder.addCard(new CardDefect.CoolheadedP(), 1);
         builder.addCard(new CardDefect.Loop(), 1);
         builder.addCard(new CardDefect.StackP(), 1);
-        builder.addCard(new CardDefect.CapacitorP(), 1);
         builder.addCard(new Card.Decay(), 1);
-        builder.addCard(new Card.Slime(), 0);
         builder.addEnemy(new EnemyEnding.CorruptHeart());
-        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
-            List.of(new CardCount(new CardDefect.CapacitorP(), 1)),
-            List.of(new CardCount(new Card.Slime(), 1)),
-            List.of()
-        ));
-        builder.setRandomization(randomization);
 //        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
 //            @Override public void handle(GameState state) {
 //                state.clearAllSearchInfo();
@@ -2058,17 +2050,22 @@ public class TestStates {
         builder.addCard(new CardDefect.Skim(), 1);
         builder.addCard(new CardDefect.Buffer(), 1);
         builder.addCard(new CardDefect.CompiledDriver(), 1);
-        builder.addEnemy(new EnemyCity.ShelledParasite());
+        builder.addCard(new CardDefect.ReinforcedBody(), 1);
+        builder.addCard(new CardDefect.Aggregate(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardColorless.Apotheosis(), 1);
+        builder.addEnemy(new EnemyCity.Chosen());
         builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "holo+", "st", "p", "stat", "echo", "ball", "def+", "e", "0", "eho", "71", "defra", "stat", "holo", "do", "compi", "asc", "be+", "ec", "co", "e", "e", "em", "0", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "stat", "gl", "self", "agg", "reinf", "e", "0", "exit"));
             }
         });
-        builder.setPlayer(new Player(60, 60));
+        builder.setPlayer(new Player(40, 60));
         builder.addRelic(new Relic.CrackedOrb());
-        builder.addRelic(new Relic.PenNib(9, 2));
+        builder.addRelic(new Relic.PenNib(8, 2));
         builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.OrangePellets());
         return new GameState(builder);
     }
 }
