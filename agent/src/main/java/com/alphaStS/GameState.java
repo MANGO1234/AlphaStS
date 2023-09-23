@@ -11,6 +11,7 @@ import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.*;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -4568,13 +4569,13 @@ class ChanceState implements State {
         double[] prev_q;
         boolean revisit = false;
 
-        public Node(GameState state) {
+        public Node(GameState state, int startN) {
             this.state = state;
             prev_q = new double[state.prop.v_total_len];
-            n = 1;
+            n = startN;
         }
 
-        public Node(GameState state, int n) {
+        public Node(GameState state, boolean n) {
             this.state = state;
         }
 
@@ -4583,7 +4584,7 @@ class ChanceState implements State {
         }
     }
 
-    HashMap<GameState, Node> cache;
+    Map<GameState, Node> cache;
     HashMap<GameState, Node> otherCache;
     Node prevWidenedNode;
     long total_node_n; // actual n, sum of nodes' n in cache
@@ -4595,36 +4596,37 @@ class ChanceState implements State {
     GameState parentState;
     int parentAction;
     RandomGen searchRandomGen;
-    ReentrantLock lock;
-    public int virtualLoss;
+    ReentrantReadWriteLock statsLock;
+    ReentrantLock randomGenLock;
+    public AtomicInteger virtualLoss;
 
     // GameSolver only
     BigRational e_health = BigRational.ZERO;
     BigRational e_win = BigRational.ZERO;
 
     public void readLock() {
-        lock.lock();
+        statsLock.readLock().lock();
     }
 
     public void readUnlock() {
-        lock.unlock();
-    }
-
-    public void writeLock() {
-        lock.lock();
-    }
-
-    public void writeUnlock() {
-        lock.unlock();
+        statsLock.readLock().unlock();
     }
 
     public ChanceState(GameState initState, GameState parentState, int action) {
-        cache = new HashMap<>();
-        otherCache = new HashMap<>();
-        if (initState != null) {
-            cache.put(initState, new Node(initState));
-            total_node_n = 1;
+        if (parentState.prop.multithreadedMTCS) {
+            statsLock = new ReentrantReadWriteLock();
+            randomGenLock = new ReentrantLock();
+            virtualLoss = new AtomicInteger(1);
+            cache = new ConcurrentHashMap<>();
+        } else {
+            cache = new HashMap<>();
+            if (initState != null) {
+                cache.put(initState, new Node(initState, 1));
+                total_node_n = 1;
+                total_n = 1;
+            }
         }
+        otherCache = new HashMap<>();
         if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && initState != null) {
             if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.prop.testNewFeature)) {
                 searchRandomGen = initState.getSearchRandomGen().getCopy();
@@ -4637,13 +4639,7 @@ class ChanceState implements State {
         this.parentState = parentState;
         this.parentAction = action;
         total_q = new double[parentState.prop.v_total_len];
-        var tmpQueue = new ArrayList<GameState>();
-        total_n = initState != null ? 1 : 0;
-        queue = tmpQueue;
-        if (parentState.prop.multithreadedMTCS) {
-            lock = new ReentrantLock();
-            virtualLoss = 1;
-        }
+        queue = new ArrayList<>();
     }
 
     public void addToQueue(GameState state) {
@@ -4653,7 +4649,7 @@ class ChanceState implements State {
     }
 
     public void correctV(GameState state2, double[] v, double[] realV) {
-        if (parentState.prop.multithreadedMTCS) virtualLoss--;
+        if (parentState.prop.multithreadedMTCS) virtualLoss.decrementAndGet();
         var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
         var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
         varianceM = newVarianceM;
@@ -4776,7 +4772,7 @@ class ChanceState implements State {
             if (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
                 node = otherCache.get(state);
                 if (node == null) {
-                    node = new Node(state, 0);
+                    node = new Node(state, false);
                     otherCache.put(state, node);
                 }
                 node.other_n += 1;
@@ -4797,7 +4793,7 @@ class ChanceState implements State {
             node = otherCache.get(state);
             if (node == null) {
                 total_node_n += 1;
-                cache.put(state, new Node(state));
+                cache.put(state, new Node(state, 1));
             } else {
                 cache.put(state, node);
                 otherCache.remove(state);
@@ -4813,7 +4809,7 @@ class ChanceState implements State {
             }
         } else {
             total_node_n += 1;
-            cache.put(state, new Node(state));
+            cache.put(state, new Node(state, 1));
             if (parentState.prop.makingRealMove && Configuration.DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE) {
                 state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
                 total_n -= 1;
@@ -4826,79 +4822,91 @@ class ChanceState implements State {
         return state;
     }
 
-    GameState getNextStateParallel(boolean calledFromMCTS, int level) {
-        boolean useProgressiveWidening = calledFromMCTS && Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature);
-        writeLock();
-        virtualLoss++;
-        total_n += 1;
-        if (queue != null && queue.size() > 0) {
-            writeUnlock();
-            return queue.remove(0);
-        }
+    Node getNextStateParallel(boolean calledFromMCTS, int level) {
+        virtualLoss.incrementAndGet();
 
         var state = parentState.clone(true);
         if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-            state.setSearchRandomGen(searchRandomGen);
+            randomGenLock.lock();
+            var gen = searchRandomGen;
+            searchRandomGen = gen.createWithSeed(gen.nextLong(RandomGenCtx.CommonNumberVR));
+            randomGenLock.unlock();
+            state.setSearchRandomGen(gen);
         }
         state.doAction(parentAction);
         if ((Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN || !state.isStochastic) && state.actionCtx == GameActionCtx.BEGIN_TURN) {
             state.doAction(0);
         }
-        if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.prop.testNewFeature)) {
-            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-                searchRandomGen = searchRandomGen.getCopy();
-            }
-        } else {
-            if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
-                searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
-            }
-        }
 
-        var node = cache.get(state);
-        if (node != null) {
+//        writeLock();
+//        total_n += 1;
+//        var node = cache.get(state);
+//        if (node == null) {
+//            node.n += 1;
+//            node.revisit = false;
+//            if (node.state.stateDesc == null && state.stateDesc != null) {
+//                node.state.stateDesc = state.stateDesc;
+//            }
+//            total_node_n += 1;
+//            writeUnlock();
+//            return node;
+            ;
+//        }
+//        total_node_n += 1;
+//        cache.put(state, new Node(state));
+//        writeUnlock();
+        return cache.computeIfAbsent(state, k -> new Node(state, 0));
+    }
+
+    public void correctVParallel(Node node, double[] v, double[] realV) {
+        if (parentState.prop.multithreadedMTCS) virtualLoss.decrementAndGet();
+        if (node.revisit ||
+                (Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
+                (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
+                (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
+            //            var new_total_q = new double[node.state.prop.v_total_len];
+            //            var nnn = 0;
+            //            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
+            //                for (int i = 0; i < node.state.prop.v_total_len; i++) {
+            //                    new_total_q[i] += entry.getValue().state.q[i] / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+            //                }
+            //                nnn += entry.getValue().n;
+            //            }
+            //            for (int i = 0; i < node.state.prop.v_total_len; i++) {
+            //                new_total_q[i] = new_total_q[i] / nnn * total_n;
+            //                v[i] = new_total_q[i] - total_q[i];
+            //            }
+
+            node.state.readLock();
             node.n += 1;
-            total_node_n += 1;
-            node.revisit = false;
-            if (node.state.stateDesc == null && state.stateDesc != null) {
-                node.state.stateDesc = state.stateDesc;
+            for (int i = 0; i < node.state.prop.v_total_len; i++) {
+                var node_cur_q = node.state.q[i] / (node.state.total_n + 1);
+                v[i] = node_cur_q * node.n - node.prev_q[i] * (node.n - 1);
+                node.prev_q[i] = node_cur_q;
             }
-            writeUnlock();
-            return node.state;
+            node.state.readUnlock();
         }
-
-        double x = 0.5;
-        if (useProgressiveWidening && cache.size() >= Math.ceil(Math.pow(total_n, x))) {
-            if (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
-                node = otherCache.get(state);
-                if (node == null) {
-                    node = new Node(state, 0);
-                    otherCache.put(state, node);
-                }
-                node.other_n += 1;
-            }
-            // instead of generating new nodes, revisit node, need testing
-            var r = (long) searchRandomGen.nextInt((int) total_node_n, RandomGenCtx.Other, this);
-            var acc = 0;
-            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
-                acc += entry.getValue().n;
-                if (acc > r) {
-                    entry.getValue().revisit = true;
-                    writeUnlock();
-                    return entry.getValue().state;
-                }
-            }
-            Integer.parseInt(null);
-        }
+        statsLock.writeLock().lock();
+        total_n += 1;
         total_node_n += 1;
-        cache.put(state, new Node(state));
-        writeUnlock();
-        return state;
+        var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
+        var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
+        varianceM = newVarianceM;
+        varianceS = newVarianceS;
+        for (int i = 0; i < node.state.prop.v_total_len; i++) {
+            total_q[i] += v[i];
+        }
+        statsLock.writeLock().unlock();
+    }
+
+    public Node addGeneratedStateParallel(GameState state) {
+        return cache.computeIfAbsent(state, k -> new Node(state, 0));
     }
 
     public GameState addGeneratedState(GameState state) {
         var node = cache.get(state);
         if (node == null) {
-            cache.put(state, new Node(state));
+            cache.put(state, new Node(state, 1));
             total_n += 1;
             total_node_n += 1;
             return state;

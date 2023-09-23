@@ -208,7 +208,7 @@ public class GameSolver {
             newState.discardArr = Arrays.copyOf(modState.discardArr, modState.discardArr.length);
             newState.deckArr = Arrays.copyOf(modState.deckArr, modState.deckArr.length);
             newState.deckArrLen = modState.deckArrLen;
-            var node = new ChanceState.Node(newState);
+            var node = new ChanceState.Node(newState, 1);
             node.n = n;
             cState.cache.put(newState, node);
             return;
