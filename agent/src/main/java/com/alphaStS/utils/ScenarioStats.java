@@ -306,6 +306,9 @@ public class ScenarioStats {
     public void printStats(GameState state, boolean printDmg, int spaces) {
         String indent = " ".repeat(Math.max(0, spaces));
         System.out.println(indent + "Deaths: " + deathCount + "/" + numOfGames + " (" + String.format("%.2f", 100 * deathCount / (float) numOfGames).trim() + "%)");
+        if (numOfGames == 0) {
+            return;
+        }
         DescriptiveStatistics ds = new DescriptiveStatistics();
         for (Map.Entry<Integer, Integer> dmgEntry : damageCount.entrySet()) {
             for (int i = 0; i < dmgEntry.getValue(); i++) {

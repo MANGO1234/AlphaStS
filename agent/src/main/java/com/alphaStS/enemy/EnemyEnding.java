@@ -186,6 +186,9 @@ public class EnemyEnding {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.shieldAndSpireFacingIdx = idx;
                 }
+                @Override public int getCounterIdx(GameProperties gameProperties) {
+                    return  gameProperties.shieldAndSpireFacingIdx;
+                }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int facing = state.getCounterForRead()[state.prop.shieldAndSpireFacingIdx];

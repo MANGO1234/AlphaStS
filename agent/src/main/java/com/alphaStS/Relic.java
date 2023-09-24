@@ -24,10 +24,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
 
     int counterIdx = -1;
+
     @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
     }
+
+    @Override public int getCounterIdx(GameProperties gameProperties) {
+        return counterIdx;
+    }
+
     int vArrayIdx = -1;
+
     @Override public void setVArrayIdx(int idx) {
         vArrayIdx = idx;
     }
@@ -131,19 +138,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BronzeScales extends Relic {
         @Override public void startOfGameSetup(GameState state) {
-            state.prop.registerCounter("Thorn", this, null);
+            state.prop.registerThornCounter(state, this);
             state.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] += 3;
-                }
-            });
-            state.addOnDamageHandler(new OnDamageHandler() {
-                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (isAttack && source instanceof EnemyReadOnly enemy2) {
-                        var idx = state.getEnemiesForRead().find(enemy2);
-                        var enemy = state.getEnemiesForWrite().getForWrite(idx);
-                        state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
-                    }
                 }
             });
         }

@@ -1770,9 +1770,11 @@ public class CardDefect {
                 state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
             }
             i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
-            if (state.prop.makingRealMove && !stochastic && state.isStochastic) {
-                state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+            if (i >= 0) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
+                if (state.prop.makingRealMove && !stochastic && state.isStochastic) {
+                    state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1790,7 +1792,41 @@ public class CardDefect {
         }
     }
 
-    // Scrape
+    private static abstract class _ScrapeT extends Card {
+        private final int n;
+
+        public _ScrapeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            var handCount = state.handArrLen;
+            var drawCount = Math.min((n + 1) / 2, GameState.HAND_LIMIT - handCount);
+            state.draw(drawCount);
+            for (int i = drawCount + handCount - 1; i >= handCount; i--) {
+                var card = state.prop.cardDict[state.getHandArrForRead()[i]];
+                if (card.energyCost != 0) { // discardCardFromHand will discard the card from right first
+                    state.discardCardFromHand(state.getHandArrForRead()[i]);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Scrape extends CardDefect._ScrapeT {
+        public Scrape() {
+            super("Scrape", 7);
+        }
+    }
+
+    public static class ScrapeP extends CardDefect._ScrapeT {
+        public ScrapeP() {
+            super("Scrape+", 10);
+        }
+    }
 
     private static abstract class _SelfRepairT extends Card {
         private final int n;

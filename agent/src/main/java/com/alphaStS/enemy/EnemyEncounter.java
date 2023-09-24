@@ -511,6 +511,19 @@ public class EnemyEncounter {
         });
     }
 
+    public static void addCultistsFight(GameStateBuilder builder) {
+        var start = builder.getEnemies().size();
+        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemyReordering((state, order) -> {
+            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start + 2;
+                order[start + 2] = start;
+            }
+        });
+    }
+
     public static void addBronzeAutomatonFight(GameStateBuilder builder) {
         builder.addEnemy(new EnemyCity.BronzeOrb());
         builder.addEnemy(new EnemyCity.BronzeAutomaton());

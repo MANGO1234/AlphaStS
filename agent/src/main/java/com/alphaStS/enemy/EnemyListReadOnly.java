@@ -45,11 +45,14 @@ public class EnemyListReadOnly implements Iterable<EnemyReadOnly> {
     public int find(EnemyReadOnly enemy) {
         for (int i = 0; i < enemies.length; i++) {
             if (enemies[i] instanceof Enemy.MergedEnemy m) {
-                for (int j = 0; j < m.possibleEnemies.size(); j++) {
-                    if (m.possibleEnemies.get(j).equals(enemy)) {
-                        return i;
-                    }
+                if (m.currentEnemy.equals(enemy)) {
+                    return i;
                 }
+//                for (int j = 0; j < m.possibleEnemies.size(); j++) {
+//                    if (m.possibleEnemies.get(j).equals(enemy)) {
+//                        return i;
+//                    }
+//                }
             } else if (enemies[i].equals(enemy)) {
                 return i;
             }

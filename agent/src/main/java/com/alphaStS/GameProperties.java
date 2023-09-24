@@ -1,6 +1,8 @@
 package com.alphaStS;
 
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyList;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.CounterStat;
 
@@ -262,6 +264,7 @@ public class GameProperties implements Cloneable {
 
     public interface CounterRegistrant {
         void setCounterIdx(GameProperties gameProperties, int idx);
+        int getCounterIdx(GameProperties gameProperties);
         default CounterStat getCounterStat() {
             return null;
         }
@@ -367,7 +370,14 @@ public class GameProperties implements Cloneable {
         }
     }
 
-    private static CounterRegistrant IntangibleCounterRegistrant = (gameProperties, idx) -> gameProperties.intangibleCounterIdx = idx;
+    private static CounterRegistrant IntangibleCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.intangibleCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.intangibleCounterIdx;
+        }
+    };
 
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.prop.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
@@ -403,6 +413,19 @@ public class GameProperties implements Cloneable {
         });
     }
 
+    public void registerThornCounter(GameState state2, CounterRegistrant registrant) {
+        state2.prop.registerCounter("Thorn", registrant, null);
+        state2.addOnDamageHandler(new OnDamageHandler() {
+            @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                if (isAttack && source instanceof EnemyReadOnly enemy2) {
+                    var idx = state.getEnemiesForRead().find(enemy2);
+                    var enemy = state.getEnemiesForWrite().getForWrite(idx);
+                    state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[registrant.getCounterIdx(state.prop)], true);
+                }
+            }
+        });
+    }
+
     public void registerMetallicizeHandler(GameState state, int counterIdx) {
         state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
             @Override public void handle(GameState state) {
@@ -415,6 +438,9 @@ public class GameProperties implements Cloneable {
         registerCounter("Snecko", new GameProperties.CounterRegistrant() {
             @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                 gameProperties.sneckoDebuffCounterIdx = idx;
+            }
+            @Override public int getCounterIdx(GameProperties gameProperties) {
+                return gameProperties.sneckoDebuffCounterIdx;
             }
         }, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {

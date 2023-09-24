@@ -426,6 +426,9 @@ public class EnemyBeyond {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.drawReductionCounterIdx = idx;
                 }
+                @Override public int getCounterIdx(GameProperties gameProperties) {
+                    return  gameProperties.drawReductionCounterIdx;
+                }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[state.prop.drawReductionCounterIdx];
@@ -439,6 +442,9 @@ public class EnemyBeyond {
             state.prop.registerCounter("TimeEater", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.timeEaterCounterIdx = idx;
+                }
+                @Override public int getCounterIdx(GameProperties gameProperties) {
+                    return  gameProperties.timeEaterCounterIdx;
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -1462,6 +1468,9 @@ public class EnemyBeyond {
             state.prop.registerCounter("Constricted", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.constrictedCounterIdx = idx;
+                }
+                @Override public int getCounterIdx(GameProperties gameProperties) {
+                    return  gameProperties.constrictedCounterIdx;
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {

@@ -92,6 +92,9 @@ public class Player extends PlayerReadOnly {
     public int gainBlock(int n) {
         n += dexterity;
         n = frail > 0? (n - (n + 3) / 4) : n;
+        if (n < 0) {
+            n = 0;
+        }
         block += n;
         if (block > 999) {
             block = 999;

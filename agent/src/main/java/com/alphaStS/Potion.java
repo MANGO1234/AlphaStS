@@ -49,6 +49,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         counterIdx = idx;
     }
 
+    public int getCounterIdx(GameProperties gameProperties) {
+        return counterIdx;
+    }
+
     public abstract GameActionCtx use(GameState state, int idx);
     List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) { return List.of(); }
     List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
@@ -431,6 +435,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Swift Potion";
+        }
+    }
+
+    public static class LiquidBronze extends Potion {
+        public LiquidBronze() {
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += 3;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Liquid Bronze";
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.prop.registerThornCounter(state, this);
         }
     }
 

@@ -59,6 +59,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
     }
+
+    public int getCounterIdx(GameProperties gameProperties) {
+        return counterIdx;
+    }
+
     public void setVArrayIdx(int idx) {
         vArrayIdx = idx;
     }
@@ -141,6 +146,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public void setCounterIdx(GameProperties gameProperties, int idx) {
             card.setCounterIdx(gameProperties, idx);
+        }
+
+        public int getCounterIdx(GameProperties gameProperties) {
+            return card.getCounterIdx(gameProperties);
         }
 
         GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
