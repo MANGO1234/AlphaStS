@@ -19,4 +19,5 @@ public enum DebuffType {
     CONSTRICTED,
     DRAW_REDUCTION,
     SNECKO,
+    LOCK_ON,
 }

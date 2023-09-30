@@ -192,7 +192,7 @@ public class Main {
         if (PLAY_A_GAME) {
             MatchSession session = new MatchSession(curIterationDir);
             var writer = new OutputStreamWriter(System.out);
-            var game = session.playGames(state, -1, NUMBER_OF_NODES_PER_TURN, 1, 1, false, false, true).get(0).steps();
+            var game = session.playGames(state, 1, NUMBER_OF_NODES_PER_TURN, 1, 1, false, false, true).get(0).steps();
             MatchSession.printGame(writer, game);
             writer.flush();
             new InteractiveMode().interactiveStart(game, curIterationDir);

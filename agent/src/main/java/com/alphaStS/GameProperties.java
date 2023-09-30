@@ -64,6 +64,7 @@ public class GameProperties implements Cloneable {
     public int[] skillPotionIdxes;
     public int[] powerPotionIdxes;
     public int[] colorlessPotionIdxes;
+    public int[] deadBranchCardsIdxes;
     public int[] toolboxIdxes;
     public int[][] sneckoIdxes;
     public int angerCardIdx = -1;
@@ -83,6 +84,7 @@ public class GameProperties implements Cloneable {
     public int apotheosisCardIdx = -1;
     public int apotheosisPCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
+    public int gamblingChipsCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
     public int[] bloodForBloodIndexes;
     public int[] bloodForBloodTransformIndexes;
@@ -94,6 +96,10 @@ public class GameProperties implements Cloneable {
     public int[] masterfulStabPTransformIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
+    public int[] forceFieldIndexes;
+    public int[] forceFieldTransformIndexes;
+    public int[] forceFieldPIndexes;
+    public int[] forceFieldPTransformIndexes;
     public int[] clawIndexes;
     public int[] clawTransformIndexes;
     public int[] clawPIndexes;
@@ -456,7 +462,7 @@ public class GameProperties implements Cloneable {
 
     public static List<Card> generateSneckoCards(List<Card> cards) {
         var newCards = new ArrayList<Card>();
-        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost)).forEach((x) -> {
+        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost) && !cardCanGenerateSneckoEnergyCost(x)).forEach((x) -> {
             for (int i = 0; i < 4; i++) {
                 if (x.energyCost == i) {
                     continue;
@@ -464,6 +470,12 @@ public class GameProperties implements Cloneable {
                 newCards.add(new Card.CardPermChangeCost(x, i));
             }
         });
+        if (cards.stream().anyMatch((x) -> x.cardName.equals("Streamline"))) {
+            newCards.add(new CardDefect.Streamline(3));
+        }
+        if (cards.stream().anyMatch((x) -> x.cardName.equals("Streamline+"))) {
+            newCards.add(new CardDefect.StreamlineP(3));
+        }
         return newCards;
     }
 
@@ -473,15 +485,25 @@ public class GameProperties implements Cloneable {
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
             if (!(card instanceof Card.CardPermChangeCost) && !(card instanceof Card.CardTmpChangeCost)) {
-                var a = new int[] { 1, i, -1, -1, -1 };
-                m.put(card.cardName, a);
-                sneckoIdxes[i] = a;
+                if (cardCanGenerateSneckoEnergyCost(card) || card.energyCost > 3) {
+                    var a = new int[] { 0, -1, -1, -1, -1 };
+                    m.put(getCanonicalCardName(card), a);
+                    sneckoIdxes[i] = a;
+                } else {
+                    var a = new int[] { 1, i, -1, -1, -1 };
+                    m.put(card.cardName, a);
+                    sneckoIdxes[i] = a;
+                }
             }
         }
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (card instanceof Card.CardPermChangeCost c) {
+            if (card instanceof Card.CardPermChangeCost c && card.energyCost < 4) {
                 var a = m.get(c.card.cardName);
+                a[++a[0]] = i;
+                sneckoIdxes[i] = a;
+            } else if (cardCanGenerateSneckoEnergyCost(card) && card.energyCost < 4) {
+                var a = m.get(getCanonicalCardName(card));
                 a[++a[0]] = i;
                 sneckoIdxes[i] = a;
             }
@@ -491,10 +513,25 @@ public class GameProperties implements Cloneable {
             if (card instanceof Card.CardTmpChangeCost c) {
                 if (c.card instanceof Card.CardPermChangeCost cc) {
                     sneckoIdxes[i] = m.get(cc.card.cardName);
+                } else if (cardCanGenerateSneckoEnergyCost(card)) {
+                    sneckoIdxes[i] = m.get(getCanonicalCardName(card));
                 } else {
                     sneckoIdxes[i] = m.get(c.card.cardName);
                 }
+            } else if (cardCanGenerateSneckoEnergyCost(card) || card.energyCost > 3) {
+                sneckoIdxes[i] = m.get(getCanonicalCardName(card));
             }
         }
+    }
+
+    private static boolean cardCanGenerateSneckoEnergyCost(Card card) {
+        return card.cardName.startsWith("Blood For Blood") || card.cardName.startsWith("Force Field") || card.cardName.startsWith("Streamline");
+    }
+
+    private static String getCanonicalCardName(Card card) {
+        if (card.cardName.contains(" (")) {
+            return card.cardName.substring(0, card.cardName.indexOf(" ("));
+        }
+        return card.cardName;
     }
 }

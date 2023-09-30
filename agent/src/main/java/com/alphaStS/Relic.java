@@ -3,8 +3,10 @@ package com.alphaStS;
 import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.CounterStat;
+import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
 
 import java.util.ArrayList;
@@ -875,8 +877,131 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Captain Wheel
-    // todo: Dead Branch
+    public static class CaptainsWheel extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.addNNInputHandler("CaptainsWheel", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.turnNum <= 3 ? state.turnNum / 3.0f : -0.5f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("CaptainsWheel", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 3) {
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(18);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class DeadBranch extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            var cards = getPossibleCards(state.prop);
+            state.prop.deadBranchCardsIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.prop.deadBranchCardsIdxes[i] = state.prop.findCardIndex(cards.get(i));
+            }
+            state.addOnExhaustHandler("DeadBranch", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    var idx = state.getSearchRandomGen().nextInt(state.prop.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.prop.deadBranchCardsIdxes));
+                    state.addCardToHand(state.prop.deadBranchCardsIdxes[idx]);
+                    state.setIsStochastic();
+                    if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
+                    state.getStateDesc().append("Dead Branch -> ").append(state.prop.cardDict[state.prop.deadBranchCardsIdxes[idx]].cardName);
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if (properties.character == CharacterEnum.DEFECT) {
+                return getPossibleCards(properties);
+            }
+            return null;
+        }
+
+        List<Card> getPossibleCards(GameProperties gameProperties) {
+            if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new CardDefect.Aggregate(),
+                        new CardDefect.AllForOne(0, 0),
+                        new CardDefect.Amplify(),
+                        new CardDefect.AutoShields(),
+                        new CardDefect.BallLightning(),
+                        new CardDefect.Barrage(),
+                        new CardDefect.BeamCell(),
+                        new CardDefect.BiasedCognition(),
+                        new CardDefect.Blizzard(),
+                        new CardDefect.BootSequence(),
+                        new CardDefect.Buffer(),
+                        new CardDefect.BullsEye(),
+                        new CardDefect.Capacitor(),
+                        new CardDefect.Chaos(),
+                        new CardDefect.ChargeBattery(),
+                        new CardDefect.Chill(),
+                        new CardDefect.Claw(3),
+                        new CardDefect.ColdSnap(),
+                        new CardDefect.CompiledDriver(),
+                        new CardDefect.Consume(),
+                        new CardDefect.Coolheaded(),
+                        new CardDefect.CoreSurge(),
+                        new CardDefect.CreativeAI(),
+                        new CardDefect.Darkness(),
+                        new CardDefect.Defragment(),
+                        new CardDefect.DoomAndGloom(),
+                        new CardDefect.DoubleEnergy(),
+                        new CardDefect.EchoForm(),
+                        new CardDefect.Electrodynamics(),
+                        new CardDefect.Equilibirum(),
+                        new CardDefect.Fission(),
+                        new CardDefect.ForceField(),
+                        new CardDefect.FTL(),
+                        new CardDefect.Fusion(),
+                        new CardDefect.GeneticAlgorithm(1, 0),
+                        new CardDefect.Glacier(),
+                        new CardDefect.GoForTheEye(),
+                        new CardDefect.Heatsinks(),
+                        new CardDefect.HelloWorld(),
+                        new CardDefect.Hologram(),
+                        new CardDefect.HyperBeam(),
+                        new CardDefect.Leap(),
+                        new CardDefect.Loop(),
+                        new CardDefect.MachineLearningP(),
+                        new CardDefect.Melter(),
+                        new CardDefect.MeteorStrike(),
+                        new CardDefect.MultiCast(),
+                        new CardDefect.Overclock(),
+                        new CardDefect.Rainbow(),
+                        new CardDefect.Reboot(),
+                        new CardDefect.Rebound(),
+                        new CardDefect.Recursion(),
+                        new CardDefect.Recycle(),
+                        new CardDefect.ReinforcedBody(),
+                        new CardDefect.Reprogram(),
+                        new CardDefect.RipAndTear(),
+                        new CardDefect.Scrape(),
+                        new CardDefect.Seek(),
+                        // new CardDefect.SelfRepair(),
+                        new CardDefect.Skim(),
+                        new CardDefect.Stack(),
+                        new CardDefect.StaticDischarge(),
+                        new CardDefect.SteamBarrier(6),
+                        new CardDefect.Storm(),
+                        new CardDefect.Streamline(),
+                        new CardDefect.Sunder(),
+                        new CardDefect.SweepingBeam(),
+                        new CardDefect.Tempest(),
+                        new CardDefect.ThunderStrike(),
+                        new CardDefect.Turbo(),
+                        new CardDefect.WhiteNoise()
+                );
+            }
+            throw new IllegalArgumentException();
+        }
+    }
 
     public static class DuVuDoll extends Relic {
         @Override public void startOfGameSetup(GameState state) {
@@ -899,7 +1024,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Gambling Chip
+    public static class GamblingChip extends Relic {
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return List.of(new Card.GamblingChips());
+        }
+    }
 
     public static class Ginger extends Relic {
         @Override public void startOfGameSetup(GameState state) {

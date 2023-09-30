@@ -543,6 +543,19 @@ public class EnemyEncounter {
         });
     }
 
+    public static void addTripleJawWormsFight(GameStateBuilder builder) {
+        var start = builder.getEnemies().size();
+        builder.addEnemy(new Enemy.JawWorm(true));
+        builder.addEnemy(new Enemy.JawWorm(true));
+        builder.addEnemy(new Enemy.JawWorm(true));
+        builder.addEnemyReordering((state, order) -> {
+            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
+                order[start] = start + 2;
+                order[start + 2] = start;
+            }
+        });
+    }
+
     public static void addReptomancerFight(GameStateBuilder builder, boolean burning) {
 //        var start = builder.getEnemies().size();
         if (burning) {

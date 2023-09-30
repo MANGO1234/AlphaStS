@@ -3355,4 +3355,36 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             super("Fake Infernal Blade+", Card.SKILL, 0);
         }
     }
+
+    public static class GamblingChips extends Card {
+        public GamblingChips() {
+            super("Gambling Chips", Card.SKILL, -1, Card.COMMON);
+            selectFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(state.getCounterForRead()[counterIdx]);
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                state.discardCardFromHand(idx);
+                state.getCounterForWrite()[counterIdx] += 1;
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+        }
+
+        public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("Gambling Chips", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
 }

@@ -66,7 +66,7 @@ public class TestStates {
         builder.addCard(new CardSilent.Survivor(), 0);
         builder.addCard(new CardSilent.Acrobatics(), 0);
         builder.addCard(new Card.AscendersBane(), 1);
-        builder.addEnemy(new Enemy.JawWorm());
+        builder.addEnemy(new Enemy.JawWorm(false));
         builder.addRelic(new Relic.RingOfSerpent());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new Card.Bash(), 1),
@@ -908,7 +908,7 @@ public class TestStates {
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.ToyOrnithopter());
         EnemyEncounter.addAwakenedOneFight(builder);
-        //        builder.addPotion(new Potion.SneckoPotion());
+        //        builder.addPotion(new Potion.SneckoPoRtion());
         //        builder.addPotion(new Potion.LiquidMemory());
         //        builder.addPotion(new Potion.WeakPotion());
         builder.setPlayer(new Player(126, 134));
@@ -1742,6 +1742,66 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectC2() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Defend(), 3);
+        builder.addCard(new Card.Strike(), 1);
+        builder.addCard(new Card.StrikeP(), 1);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.DualCastP(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 1);
+        builder.addCard(new CardDefect.SweepingBeamP(), 1);
+        builder.addCard(new CardDefect.BallLightning(), 1);
+        builder.addCard(new CardDefect.CompiledDriver(), 2);
+        builder.addCard(new CardDefect.CompiledDriverP(), 1);
+        builder.addCard(new CardDefect.Equilibirum(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.BufferP(), 1);
+        builder.addCard(new CardDefect.Sunder(), 1);
+        builder.addCard(new CardDefect.MachineLearning(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.Capacitor(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.CoreSurge(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.ForceField(), 1);
+        builder.setPlayer(new Player(73, 81));
+//        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
+//        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
+//        EnemyEncounter.addReptomancerFight(builder, true);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+//                List.of(new Tuple<>(0, -1)),
+//                List.of(new Tuple<>(1, -1)),
+//                List.of(new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1), new Tuple<>(5, -1), new Tuple<>(6, -1))
+//        ));
+        EnemyEncounter.addTripleJawWormsFight(builder);
+//        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+//            List.of(new CardCount(new CardDefect.AllForOne(0, 0), 1)),
+//            List.of(new CardCount(new CardDefect.CoreSurge(), 1)),
+//            List.of(new CardCount(new CardDefect.Amplify(), 1))
+//        ), true).doAfter(randomization);
+//        builder.setRandomization(randomization);
+//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+//            @Override public void handle(GameState state) {
+//                state.clearAllSearchInfo();
+//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "tur", "char", "asc", "mac", "str", "sun", "holo", "p", "holo+", "e", "rng off", "0", "3", "em", "1", "exit"));
+//            }
+//        });
+        builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.NuclearBattery());
+        builder.addRelic(new Relic.RedMask());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.GamblingChip());
+        builder.addRelic(new Relic.DeadBranch());
+        builder.addRelic(new Relic.SneckoEye());
+        return new GameState(builder);
+    }
+
     public static GameState TestStateSilent2() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);
@@ -2054,16 +2114,36 @@ public class TestStates {
         builder.addCard(new CardDefect.Aggregate(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardColorless.Apotheosis(), 1);
-        builder.addEnemy(new EnemyCity.Chosen());
-        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "stat", "gl", "self", "agg", "reinf", "e", "0", "exit"));
-            }
-        });
-        builder.setPlayer(new Player(40, 60));
+        builder.addCard(new CardDefect.CompiledDriver(), 0);
+        builder.addCard(new CardDefect.Rebound(), 0);
+        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        EnemyEncounter.addSlaversEliteFight(builder);
+        EnemyEncounter.addGremlinLeaderFight2(builder);
+        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+                List.of(new Tuple<>(0, -1)),
+                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
+                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
+        ));
+        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
+        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.CompiledDriver(), 1)),
+                List.of(new CardCount(new CardDefect.Rebound(), 1)),
+                List.of(new CardCount(new CardDefect.BeamCellP(), 1)),
+                List.of()
+        ), true).doAfter(randomization);
+        builder.setRandomization(randomization);
+//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+//            @Override public void handle(GameState state) {
+//                state.clearAllSearchInfo();
+//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "stat", "gl", "self", "agg", "reinf", "e", "0", "exit"));
+//            }
+//        });
+        builder.setPlayer(new Player(55, 55));
+        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));
+        builder.setPotionsScenarios(3);
         builder.addRelic(new Relic.CrackedOrb());
-        builder.addRelic(new Relic.PenNib(8, 2));
+        builder.addRelic(new Relic.PenNib(9, 2));
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.OrangePellets());
         return new GameState(builder);

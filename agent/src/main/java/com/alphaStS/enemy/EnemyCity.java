@@ -1,6 +1,7 @@
 package com.alphaStS.enemy;
 
 import com.alphaStS.*;
+import com.alphaStS.Action.GameEnvironmentAction;
 
 import java.util.List;
 
@@ -2077,6 +2078,116 @@ public class EnemyCity {
                     return 1;
                 }
             });
+        }
+    }
+
+    public static class SnakePlant extends Enemy {
+        static int CHOMP = 0;
+        static int ENFEEBLING_SPORES = 1;
+
+        private int extraBlockPerAttack = 0;
+
+        public SnakePlant() {
+            this(82);
+        }
+
+        public SnakePlant(int health) {
+            super(health, 2, true);
+            property.canWeaken = true;
+            property.canFrail = true;
+            property.canGainBlock = true;
+        }
+
+        public SnakePlant(SnakePlant other) {
+            super(other);
+            extraBlockPerAttack = other.extraBlockPerAttack;
+        }
+
+        @Override public Enemy copy() {
+            return new SnakePlant(this);
+        }
+
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
+            if (dmg > 0) {
+                var idx = state.getEnemiesForRead().find(this);
+                var extraBlockPerAttack = this.extraBlockPerAttack++;
+                state.addGameActionToStartOfDeque(state1 -> state1.getEnemiesForWrite().getForWrite(idx).gainBlock(3 + extraBlockPerAttack));
+            }
+            return dmg;
+        }
+
+        @Override public void endTurn(int turnNum) {
+            super.endTurn(turnNum);
+            extraBlockPerAttack = 0;
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == CHOMP) {
+                state.enemyDoDamageToPlayer(this, 8, 3);
+            } else if (move == ENFEEBLING_SPORES) {
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move == ENFEEBLING_SPORES) {
+                newMove = CHOMP;
+            } else if (lastMove == ENFEEBLING_SPORES) {
+                newMove = CHOMP;
+            } else if (move == CHOMP && lastMove == CHOMP) {
+                newMove = ENFEEBLING_SPORES;
+            } else {
+                newMove = random.nextInt(100, RandomGenCtx.EnemyChooseMove) < 65 ? CHOMP : ENFEEBLING_SPORES;
+                state.setIsStochastic();
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == CHOMP) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 8) + "x3";
+            } else if (move == ENFEEBLING_SPORES) {
+                return "Frail 2+Weak 2";
+            }
+            return "Unknown";
+        }
+
+        public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(4, RandomGenCtx.Other, null) + 1;
+            if (training && b < 4) {
+                health = (int) Math.round(((double) (health * b)) / 4);
+            } else {
+                health = 78 + random.nextInt(5, RandomGenCtx.Other, null);
+            }
+        }
+
+        public String getName() {
+            return "Snake Plant";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (extraBlockPerAttack > 0) {
+                return s.subSequence(0, s.length() - 1) + ", malleable=" + (3 + extraBlockPerAttack) + "}";
+            }
+            return s;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of Snake Plant Malleable buff";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = extraBlockPerAttack / 10.0f;
+            return 1;
+        }
+
+        public int getExtraBlockPerAttack() {
+            return extraBlockPerAttack;
         }
     }
 }

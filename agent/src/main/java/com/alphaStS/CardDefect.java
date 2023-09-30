@@ -4,6 +4,7 @@ import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -248,6 +249,10 @@ public class CardDefect {
         @Override public int onPlayTransformCardIdx(GameProperties prop) {
             int i = (dmg - 3) / 2;
             return i < limit - 1 ? prop.clawIndexes[i + 1] : -1;
+        }
+
+        public Card getUpgrade() {
+            return new CardDefect.ClawP(dmg + 2, limit);
         }
     }
 
@@ -700,7 +705,7 @@ public class CardDefect {
     }
 
     public static class Streamline extends Card {
-        private Streamline(int energyCost) {
+        public Streamline(int energyCost) {
             super("Streamline (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
             selectEnemy = true;
         }
@@ -731,7 +736,7 @@ public class CardDefect {
     }
 
     public static class StreamlineP extends Card {
-        private StreamlineP(int energyCost) {
+        public StreamlineP(int energyCost) {
             super("Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
             selectEnemy = true;
         }
@@ -949,7 +954,33 @@ public class CardDefect {
         }
     }
 
-    // Bullseye
+    private static class _BullsEyeT extends Card {
+        private final int n;
+
+        public _BullsEyeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOCK_ON, n / 3);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BullsEye extends CardDefect._BullsEyeT {
+        public BullsEye() {
+            super("Bullseye", 8);
+        }
+    }
+
+    public static class BullsEyeP extends CardDefect._BullsEyeT {
+        public BullsEyeP() {
+            super("Bullseye+", 11);
+        }
+    }
 
     private static abstract class _CapacitorT extends Card {
         private final int n;
@@ -1231,8 +1262,167 @@ public class CardDefect {
         }
     }
 
-    // FTL
-    // Force Field
+    private static abstract class _FTLT extends Card {
+        private final int n;
+
+        public _FTLT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.n = n;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            if (state.getCounterForRead()[counterIdx] <= n / 2) {
+                state.draw(1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.registerCounter("FTL", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("FTL", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.addOnCardPlayedHandler("FTL", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] <= 3) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class FTL extends CardDefect._FTLT {
+        public FTL() {
+            super("FTL", 5);
+        }
+    }
+
+    public static class FTLP extends CardDefect._FTLT {
+        public FTLP() {
+            super("FTL+", 6);
+        }
+    }
+
+    public static class ForceField extends Card {
+        private ForceField(int energyCost) {
+            super("Force Field (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+        }
+
+        public ForceField() {
+            this(4);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(12);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new ForceField(3), new ForceField(2), new ForceField(1), new ForceField(0));
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.forceFieldIndexes = new int[5];
+            for (int i = 0; i < 5; i++) {
+                state.prop.forceFieldIndexes[i] = state.prop.findCardIndex(new ForceField(i));
+            }
+            state.prop.forceFieldTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.forceFieldTransformIndexes, -1);
+            for (int i = 0; i < 4; i++) {
+                state.prop.forceFieldTransformIndexes[state.prop.forceFieldIndexes[i + 1]] = state.prop.forceFieldIndexes[i];
+            }
+            state.addOnCardPlayedHandler("Force Field", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                        for (int i = 0; i < 4; i++) {
+                            if (state.getDeckForRead()[state.prop.forceFieldIndexes[i + 1]] > 0) {
+                                state.getDeckForWrite()[state.prop.forceFieldIndexes[i]] += state.getDeckForWrite()[state.prop.forceFieldIndexes[i + 1]];
+                                state.getDeckForWrite()[state.prop.forceFieldIndexes[i + 1]] = 0;
+                            }
+                            var exhaust = state.getExhaustForWrite();
+                            exhaust[state.prop.forceFieldIndexes[i]] += exhaust[state.prop.forceFieldIndexes[i + 1]];
+                            exhaust[state.prop.forceFieldIndexes[i + 1]] = 0;
+                        }
+                        for (int i = 0; i < state.deckArrLen; i++) {
+                            if (state.prop.forceFieldTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
+                                state.getDeckArrForWrite()[i] = (short) state.prop.forceFieldTransformIndexes[state.getDeckArrForRead()[i]];
+                            }
+                        }
+                        state.handArrTransform(state.prop.forceFieldTransformIndexes);
+                        state.discardArrTransform(state.prop.forceFieldTransformIndexes);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class ForceFieldP extends Card {
+        private ForceFieldP(int energyCost) {
+            super("Force Field+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+        }
+
+        public ForceFieldP() {
+            this(4);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(16);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new ForceFieldP(3), new ForceFieldP(2), new ForceFieldP(1), new ForceFieldP(0));
+        }
+
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.forceFieldPIndexes = new int[5];
+            for (int i = 0; i < 5; i++) {
+                state.prop.forceFieldPIndexes[i] = state.prop.findCardIndex(new ForceField(i));
+            }
+            state.prop.forceFieldPTransformIndexes = new int[state.prop.cardDict.length];
+            Arrays.fill(state.prop.forceFieldPTransformIndexes, -1);
+            for (int i = 0; i < 4; i++) {
+                state.prop.forceFieldPTransformIndexes[state.prop.forceFieldPIndexes[i + 1]] = state.prop.forceFieldPIndexes[i];
+            }
+            state.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                        for (int i = 0; i < 4; i++) {
+                            if (state.getDeckForRead()[state.prop.forceFieldPIndexes[i + 1]] > 0) {
+                                state.getDeckForWrite()[state.prop.forceFieldPIndexes[i]] += state.getDeckForWrite()[state.prop.forceFieldPIndexes[i + 1]];
+                                state.getDeckForWrite()[state.prop.forceFieldPIndexes[i + 1]] = 0;
+                            }
+                            var exhaust = state.getExhaustForWrite();
+                            exhaust[state.prop.forceFieldPIndexes[i]] += exhaust[state.prop.forceFieldPIndexes[i + 1]];
+                            exhaust[state.prop.forceFieldPIndexes[i + 1]] = 0;
+                        }
+                        for (int i = 0; i < state.deckArrLen; i++) {
+                            if (state.prop.forceFieldPTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
+                                state.getDeckArrForWrite()[i] = (short) state.prop.forceFieldPTransformIndexes[state.getDeckArrForRead()[i]];
+                            }
+                        }
+                        state.handArrTransform(state.prop.forceFieldPTransformIndexes);
+                        state.discardArrTransform(state.prop.forceFieldPTransformIndexes);
+                    }
+                }
+            });
+        }
+    }
 
     private static abstract class _FusionT extends Card {
         public _FusionT(String cardName, int n) {
@@ -1374,6 +1564,10 @@ public class CardDefect {
             }
             return maxGAP * 3 + maxGA * 2;
         }
+
+        public Card getUpgrade() {
+            return new CardDefect.GeneticAlgorithmP(block, healthRewardRatio);
+        }
     }
 
     public static class GeneticAlgorithm extends CardDefect._GeneticAlgorithmT {
@@ -1503,7 +1697,7 @@ public class CardDefect {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
-                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, null);
+                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
                         state.addCardToHand(cardsIdx[r]);
                     }
                 }
@@ -2070,7 +2264,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.setIsStochastic();
-            var r = state.getSearchRandomGen().nextInt(13, RandomGenCtx.RandomCardGen, null);
+            var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
             state.addCardToHand(cardsIdx[r]);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2175,6 +2369,10 @@ public class CardDefect {
                 }
             }
             state.prop.discardOrder0CostNumber = k;
+        }
+
+        public Card getUpgrade() {
+            return new CardDefect.AllForOneP(discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
         }
     }
 
@@ -2399,7 +2597,7 @@ public class CardDefect {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
-                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, null);
+                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
                         state.addCardToHand(cardsIdx[r]);
                     }
                 }
@@ -2729,7 +2927,35 @@ public class CardDefect {
         }
     }
 
-    // Multi-Cast
+    private static abstract class _MultiCastT extends Card {
+        private final int n;
+
+        public _MultiCastT(String cardName, int n) {
+            super(cardName, Card.SKILL, -1, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.evokeOrb(energyUsed + n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            return state.energy;
+        }
+    }
+
+    public static class MultiCast extends CardDefect._MultiCastT {
+        public MultiCast() {
+            super("Multi-Cast", 0);
+        }
+    }
+
+    public static class MultiCastP extends CardDefect._MultiCastT {
+        public MultiCastP() {
+            super("Multi-Cast+", 1);
+        }
+    }
 
     private static abstract class _RainbowT extends Card {
         public _RainbowT(String cardName, boolean exhaustWhenPlayed) {
@@ -2846,6 +3072,9 @@ public class CardDefect {
             int c = state.getCounterForRead()[counterIdx];
             for (int i = 0; i < c; i++) {
                 var j = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemySwordBoomerang);
+                if (j < 0) {
+                    break;
+                }
                 var enemy = state.getEnemiesForWrite().getForWrite(j);
                 state.playerDoDamageToEnemy(enemy, n + (state.prop.hasStrikeDummy ? 3 : 0));
             }

@@ -888,6 +888,40 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class CultistPotion extends Potion {
+        public CultistPotion() {
+            changePlayerStrength = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 2 : 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Cultist Potion";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.registerCounter("CultistPotion", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.addStartOfTurnHandler("CultistPotion", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
     public static class GamblersBrew extends Potion {
         public GamblersBrew() {
             selectFromHand = true;

@@ -37,6 +37,7 @@ public abstract class EnemyReadOnly {
         public boolean hasArtifact = false;
         public boolean useLast2MovesForMoveSelection;
         public boolean canSelfRevive;
+        public boolean isAct3;
 
         public EnemyProperty(int numOfMoves, boolean useLast2MovesForMoveSelection) {
             this.numOfMoves = numOfMoves;
@@ -76,6 +77,7 @@ public abstract class EnemyReadOnly {
     protected int platedArmor;
     protected int loseStrengthEot;
     protected int corpseExplosion;
+    protected int lockOn;
     protected int move = -1;
     protected int lastMove = -1;
 
@@ -124,6 +126,7 @@ public abstract class EnemyReadOnly {
         metallicize = other.metallicize;
         platedArmor = other.platedArmor;
         corpseExplosion = other.corpseExplosion;
+        lockOn = other.lockOn;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -171,8 +174,13 @@ public abstract class EnemyReadOnly {
     public int getPoison() {
         return poison;
     }
+
     public int getCorpseExplosion() {
         return corpseExplosion;
+    }
+
+    public int getLockOn() {
+        return lockOn;
     }
 
     public boolean hasBurningHealthBuff() {
@@ -242,6 +250,9 @@ public abstract class EnemyReadOnly {
         if (corpseExplosion > 0) {
             str += ", corpseExplosion=" + corpseExplosion;
         }
+        if (lockOn > 0) {
+            str += ", lockOn=" + lockOn;
+        }
         return str + '}';
     }
 
@@ -283,6 +294,9 @@ public abstract class EnemyReadOnly {
         if (corpseExplosion > 0) {
             str += ", corpseExplosion=" + corpseExplosion;
         }
+        if (lockOn > 0) {
+            str += ", lockOn=" + lockOn;
+        }
         return str + '}';
     }
 
@@ -297,7 +311,7 @@ public abstract class EnemyReadOnly {
         }
         return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
-                poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion ;
+                poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion && lockOn == enemy.lockOn;
     }
 
     @Override public int hashCode() {

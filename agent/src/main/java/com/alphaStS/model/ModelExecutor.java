@@ -129,6 +129,8 @@ public class ModelExecutor {
                             reqCount = 0;
                         }
                     } catch (Exception e) {
+                        _pool.running = false;
+                        throw e;
                     }
                 }
             }));
@@ -190,11 +192,13 @@ public class ModelExecutor {
     }
 
     public Thread addAndStartProducerThread(Runnable t) {
+        var _pool = this;
         producerThreads.add(new Thread(() -> {
             try {
                 t.run();
             } catch (RuntimeException e) {
                 if (!(e.getCause() instanceof InterruptedException)) {
+                    _pool.running = false;
                     throw e;
                 }
             }

@@ -101,6 +101,7 @@ public abstract class Enemy extends EnemyReadOnly {
             strength = 0;
         }
         poison = 0;
+        lockOn = 0;
     }
 
     public void setMove(int move) {
@@ -122,6 +123,9 @@ public abstract class Enemy extends EnemyReadOnly {
         if (turnNum > 0 && weak > 0) {
             weak -= 1;
         }
+        if (turnNum > 0 && lockOn > 0) {
+            lockOn -= 1;
+        }
         if (loseStrengthEot != 0) {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
@@ -141,6 +145,7 @@ public abstract class Enemy extends EnemyReadOnly {
         block = 0;
         strength = 0;
         vulnerable = 0;
+        lockOn = 0;
         weak = 0;
         artifact = 0;
         poison = 0;
@@ -184,6 +189,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         case POISON -> this.poison += n + (state.prop.hasSneckoSkull ? 1 : 0);
         case CORPSE_EXPLOSION -> this.corpseExplosion += n;
+        case LOCK_ON -> this.lockOn += n;
         }
         return true;
     }
@@ -1779,14 +1785,15 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public static class JawWorm extends Enemy {
-        public JawWorm() {
-            this(46);
+        public JawWorm(boolean isAct3) {
+            this(46, isAct3);
         }
 
-        public JawWorm(int health) {
+        public JawWorm(int health, boolean isAct3) {
             super(health, 3, true);
             property.canGainStrength = true;
             property.canGainBlock = true;
+            property.isAct3 = isAct3;
         }
 
         public JawWorm(JawWorm other) {
@@ -1810,7 +1817,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            if (move == -1) {
+            if (!property.isAct3 && move == -1) {
                 move = 0;
                 return;
             }

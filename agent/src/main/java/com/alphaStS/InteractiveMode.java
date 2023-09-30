@@ -667,6 +667,8 @@ public class InteractiveMode {
                 if (darkling.getNipDamage() > 0) {
                     out.println("  Nip Damage: " + darkling.getNipDamage());
                 }
+            } else if (enemy instanceof EnemyCity.SnakePlant snakePlant) {
+                out.println("  Malleable: " + (3 + snakePlant.getExtraBlockPerAttack()));
             } else if (enemy instanceof EnemyBeyond.GiantHead giantHead) {
                 if (giantHead.getMove() != EnemyBeyond.GiantHead.IT_IS_TIME) {
                     out.println("  Turn(s) Until Large Attack: " + giantHead.getTurnUntilLargeAttack());
@@ -1282,6 +1284,15 @@ public class InteractiveMode {
         return readIntCommand(reader, history, 4);
     }
 
+    int selectRandomCardGen(BufferedReader reader, Tuple<GameState, int[]> t, List<String> history) throws IOException {
+        var state = t.v1();
+        var cardIdxes = t.v2();
+        for (int i = 0; i < cardIdxes.length; i++) {
+            out.println(i + ". " + state.prop.cardDict[cardIdxes[i]].cardName);
+        }
+        return readIntCommand(reader, history, cardIdxes.length);
+    }
+
     private int readIntCommand(BufferedReader reader, List<String> history, int x) throws IOException {
         while (true) {
             out.print("> ");
@@ -1430,7 +1441,8 @@ public class InteractiveMode {
                                 state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
                                 state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
                                 state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
-                                state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE) {
+                                state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE||
+                                state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND) {
                             out.println(i + ". " + state.getActionString(i));
                         } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                             out.println("e. End Turn");
@@ -2079,6 +2091,13 @@ public class InteractiveMode {
             case Chaos -> {
                 try {
                     return interactiveMode.selectChaosOrb(reader, (GameState) arg, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case RandomCardGen -> {
+                try {
+                    return interactiveMode.selectRandomCardGen(reader, (Tuple<GameState, int[]>) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

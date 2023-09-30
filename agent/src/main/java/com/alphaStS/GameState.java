@@ -561,6 +561,8 @@ public final class GameState implements State {
                 prop.wellLaidPlansCardIdx = i;
             } else if (cards.get(i).card().cardName.equals("Tools Of The Trade") || cards.get(i).card().cardName.equals("Tools Of The Trade+")) {
                 prop.toolsOfTheTradeCardIdx = i;
+            } else if (cards.get(i).card().cardName.equals("Gambling Chips")) {
+                prop.gamblingChipsCardIdx = i;
             }
         }
         prop.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
@@ -1296,6 +1298,14 @@ public final class GameState implements State {
                         runActionsInQueueIfNonEmpty();
                     }
                     return true;
+                } else if (cardIdx == prop.gamblingChipsCardIdx) {
+                    if (selectIdx >= 0) {
+                        setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                    } else if (possibleChoicesCount == 0) {
+                        endTurn();
+                        runActionsInQueueIfNonEmpty();
+                    }
+                    return true;
                 }
                 if (selectIdx >= 0) {
                     setActionCtx(prop.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
@@ -1397,6 +1407,7 @@ public final class GameState implements State {
                 if (prop.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= energyCost;
                 }
+                runActionsInQueueIfNonEmpty();
                 for (var handler : prop.onCardPlayedHandlers) {
                     handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned, cloneParentLocation);
                 }
@@ -1580,8 +1591,13 @@ public final class GameState implements State {
         for (GameEventHandler handler : prop.startOfTurnHandlers) {
             handler.handle(this);
         }
-        setActionCtx(GameActionCtx.PLAY_CARD, null, false);
-        runActionsInQueueIfNonEmpty();
+        if (prop.gamblingChipsCardIdx >= 0 && turnNum == 1) {
+            var action = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][prop.gamblingChipsCardIdx];
+            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+        } else {
+            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+            runActionsInQueueIfNonEmpty();
+        }
     }
 
     private boolean isDiscardingCardEndOfTurn() {
@@ -1593,6 +1609,11 @@ public final class GameState implements State {
                 isDiscardingCardEndOfTurn() && getNumCardsInHand() > 0) {
             var action = prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][prop.wellLaidPlansCardIdx];
             setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+            return;
+        }
+        if (prop.gamblingChipsCardIdx >= 0 && actionCtx == GameActionCtx.SELECT_CARD_HAND) {
+            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+            prop.cardDict[prop.gamblingChipsCardIdx].play(this, -1, 0);
             return;
         }
         setActionCtx(GameActionCtx.BEGIN_TURN, null, false);
@@ -2050,12 +2071,12 @@ public final class GameState implements State {
                             prop.cardDict[prop.healCardsIdxes[i]] instanceof CardDefect.SelfRepairP) {
                         int m = getNonExhaustCount(prop.healCardsIdxes[i]);
                         if (m > 0) {
-                            if (prop.echoFormCardIdx > 0 || prop.echoFormPCardIdx > 0) {
+                            if (prop.echoFormCardIdx >= 0 || prop.echoFormPCardIdx >= 0) {
                                 if (getCounterForRead()[prop.echoFormCounterIdx] > 0) {
                                     m *= 2;
                                 } else if (prop.echoFormCardIdx >= 0 && getNonExhaustCount(prop.echoFormCardIdx) > 0) {
                                     m *= 2;
-                                } else if (prop.echoFormPCardIdx > 0 && getNonExhaustCount(prop.echoFormPCardIdx) > 0) {
+                                } else if (prop.echoFormPCardIdx >= 0 && getNonExhaustCount(prop.echoFormPCardIdx) > 0) {
                                     m *= 2;
                                 }
                             }
@@ -2543,7 +2564,7 @@ public final class GameState implements State {
                             seen[handArr[i]] = true;
                         }
                     }
-                    if (currentAction.idx() == prop.wellLaidPlansCardIdx) {
+                    if (currentAction.idx() == prop.wellLaidPlansCardIdx || currentAction.idx() == prop.gamblingChipsCardIdx) {
                         count++;
                     }
                     legalActions = new int[count];
@@ -2554,7 +2575,7 @@ public final class GameState implements State {
                             seen[handArr[i]] = false;
                         }
                     }
-                    if (currentAction.idx() == prop.wellLaidPlansCardIdx) {
+                    if (currentAction.idx() == prop.wellLaidPlansCardIdx || currentAction.idx() == prop.gamblingChipsCardIdx) {
                         legalActions[j] = prop.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
                     }
                     Arrays.sort(legalActions);
@@ -4393,6 +4414,7 @@ public final class GameState implements State {
         } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
             if (prop.electrodynamicsCounterIdx >= 0 && getCounterForRead()[prop.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
+                    int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
                     playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
                 }
             } else {
@@ -4402,7 +4424,8 @@ public final class GameState implements State {
                     if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb evoke hit ").append(enemy.getName() + " (" + idx + ")");
                     }
-                    playerDoNonAttackDamageToEnemy(enemy, 8 + focus, true);
+                    int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
+                    playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                 }
             }
         } else if (orbs[0] == OrbType.DARK.ordinal()) {
@@ -4457,7 +4480,8 @@ public final class GameState implements State {
         } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
             if (prop.electrodynamicsCounterIdx >= 0 && getCounterForRead()[prop.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
-                    playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
+                    int dmg = 3 + focus + (enemy.getLockOn() > 0 ? (3 + focus) / 2 : 0);
+                    playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                 }
             } else {
                 int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
@@ -4466,7 +4490,8 @@ public final class GameState implements State {
                     if ((prop.makingRealMove || prop.stateDescOn) && enemiesAlive > 1) {
                         getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append("Lightning Orb passive hit ").append(enemy.getName() + " (" + idx + ")");
                     }
-                    playerDoNonAttackDamageToEnemy(enemy, 3 + focus, true);
+                    int dmg = 3 + focus + (enemy.getLockOn() > 0 ? (3 + focus) / 2 : 0);
+                    playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                 }
             }
         } else if (orbs[i] == OrbType.DARK.ordinal()) {
