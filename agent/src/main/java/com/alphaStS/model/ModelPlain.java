@@ -7,6 +7,7 @@ import ai.onnxruntime.OrtSession;
 import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
+import com.alphaStS.Configuration;
 import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameState;
 import com.alphaStS.utils.Utils;
@@ -101,7 +102,9 @@ public class ModelPlain implements Model {
     public ModelPlain(String modelDir) {
         try {
             env = OrtEnvironment.getEnvironment();
-            // System.setProperty("onnxruntime.native.path", "F:/git/lib");
+            if (Configuration.ONNX_USE_CUDA_FOR_INFERENCE) {
+                System.setProperty("onnxruntime.native.path", Configuration.ONNX_LIB_PATH);
+            }
             OrtSession.SessionOptions opts = new SessionOptions();
             opts.setOptimizationLevel(OptLevel.ALL_OPT);
             opts.setCPUArenaAllocator(true);
@@ -109,7 +112,9 @@ public class ModelPlain implements Model {
             opts.setExecutionMode(SessionOptions.ExecutionMode.SEQUENTIAL);
             opts.setInterOpNumThreads(1);
             opts.setIntraOpNumThreads(1);
-            // opts.addCUDA(0);
+            if (Configuration.ONNX_USE_CUDA_FOR_INFERENCE) {
+                opts.addCUDA(0);
+            }
             session = env.createSession(modelDir + "/model.onnx", opts);
             inputName = session.getInputNames().iterator().next();
             cache = new LRUCache<>();

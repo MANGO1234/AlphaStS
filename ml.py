@@ -15,15 +15,16 @@ import numpy as np
 import lz4.frame
 from tensorflow import keras
 from tensorflow.keras import layers
-import tf2onnx
-from scipy.special import softmax
 from misc import getFlag, getFlagValue
+
+print(tf.config.list_physical_devices('GPU'))
 
 # rand.seed(5)
 # np.random.seed(5)
 # tf.random.set_seed(5)
 
 DO_TRAINING = getFlag('-training')
+USE_GPU = getFlag('-gpu')
 SKIP_TRAINING_MATCHES = getFlag('-s')
 PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
@@ -47,17 +48,28 @@ if NUMBER_OF_THREADS_TRAINING > 0:
     os.environ['TF_NUM_INTEROP_THREADS'] = f"{1}"
     os.environ['TF_NUM_INTRAOP_THREADS'] = f"{1}"
 
+if not USE_GPU:
+    import tf2onnx
+    onnx_jar = "onnxruntime/1.10.0/onnxruntime-1.10.0.jar"
+else:
+    onnx_jar = "onnxruntime_gpu/1.10.0/onnxruntime_gpu-1.10.0.jar"
+
 
 def convertToOnnx(model, input_len, output_dir):
-    spec = (tf.TensorSpec((None, input_len), tf.float32, name="input"),)
-    output_path = output_dir + "/model.onnx"
-    model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13, output_path=output_path)
+    if USE_GPU:
+        output = subprocess.run(['powershell', '-Command', f'conda activate alphasts; python .\\ml_conv.py -training -t 10 -c 35 -z 20 -dir {SAVES_DIR}'], capture_output=True)
+        print(output.stderr.decode('ascii'))
+        print(output.stdout.decode('ascii'))
+    else:
+        spec = (tf.TensorSpec((None, input_len), tf.float32, name="input"),)
+        output_path = output_dir + "/model.onnx"
+        model_proto, _ = tf2onnx.convert.from_keras(model, input_signature=spec, opset=13, output_path=output_path)
 
 sep = ':'
 if platform.system() == 'Windows':
     sep = ';'
 
-CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
+CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/{onnx_jar}{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
 
 
 def snake_case(s):
@@ -165,6 +177,7 @@ else:
         loss_weights=loss_weights,
         optimizer=tf.keras.optimizers.SGD(learning_rate=0.1, momentum=0.9)
     )
+    os.mkdir(f'{SAVES_DIR}/iteration0')
     model.save(f'{SAVES_DIR}/iteration0')
     convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration0')
 
@@ -522,9 +535,11 @@ if DO_TRAINING:
                 print(f"batch_size={get_batch_size(len(training_pool))}")
                 fit_result = model.fit(x_train, target, epochs=train_iter, batch_size=get_batch_size(len(training_pool)))
                 iteration_info['loss'] = fit_result.history['loss'][-1]
+            if not os.path.exists(f'{SAVES_DIR}/iteration{training_info["iteration"]}'):
+                os.mkdir(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
             model.save(f'{SAVES_DIR}/iteration{training_info["iteration"]}')
-        convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
 
+        convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
         training_info['iteration'] += 1
         iteration_info['training_time'] = round(time.time() - iter_start, 2)
         iteration_info['accumulated_time'] = accumualted_time_base + round(time.time() - start, 2)
@@ -532,6 +547,7 @@ if DO_TRAINING:
         print(f'accumulated time={iteration_info["accumulated_time"]}')
         with open(f'{SAVES_DIR}/training.json', 'w') as f:
             json.dump(training_info, f)
+        convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
 
         if _iteration == ITERATION_COUNT:
             agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
