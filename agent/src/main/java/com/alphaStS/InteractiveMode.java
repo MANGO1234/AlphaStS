@@ -1257,10 +1257,15 @@ public class InteractiveMode {
 
     int selectCostForSnecko(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
         var snecko = arg.v1().prop.sneckoIdxes[arg.v2()];
-        for (int i = 1; i < snecko[0] + 1; i++) {
-            out.println((i - 1) + ". " + arg.v1().prop.cardDict[snecko[i]].cardName);
+        var sneckoMapping = IntStream.range(1, snecko[0] + 1)
+                .mapToObj((i) -> new Tuple<>(i - 1, arg.v1().prop.cardDict[snecko[i]]))
+                .map((t) -> new Tuple3<>(t.v2().energyCost(arg.v1()), t.v2().cardName, t.v1()))
+                .sorted(Comparator.comparingInt(Tuple3::v1))
+                .toList();
+        for (int i = 0; i < sneckoMapping.size(); i++) {
+            out.println(i + ". " + sneckoMapping.get(i).v2());
         }
-        return readIntCommand(reader, history, snecko[0]);
+        return sneckoMapping.get(readIntCommand(reader, history, snecko[0])).v3();
     }
 
     int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history, RandomGenCtx ctx) throws IOException {

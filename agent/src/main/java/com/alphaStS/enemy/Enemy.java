@@ -1794,6 +1794,10 @@ public abstract class Enemy extends EnemyReadOnly {
             property.canGainStrength = true;
             property.canGainBlock = true;
             property.isAct3 = isAct3;
+            if (property.isAct3) {
+                gainStrength(5);
+                gainBlock(9);
+            }
         }
 
         public JawWorm(JawWorm other) {

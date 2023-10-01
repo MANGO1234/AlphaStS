@@ -4592,7 +4592,6 @@ class ChanceState implements State {
         long n;
         long other_n;
         double[] prev_q;
-        boolean revisit = false;
 
         public Node(GameState state, int startN) {
             this.state = state;
@@ -4611,10 +4610,15 @@ class ChanceState implements State {
 
     Map<GameState, Node> cache;
     HashMap<GameState, Node> otherCache;
+    Node[] nodesArr;
+    AtomicInteger currentNodeArrIdx;
+    AtomicInteger currentNodeArrCommittedIdx;
+    AtomicInteger uniqueNodeEntry;
     Node prevWidenedNode;
     long total_node_n; // actual n, sum of nodes' n in cache
     long total_n; // n called from parent
     double[] total_q;
+    double[] total_node_q;
     double varianceM;
     double varianceS;
     List<GameState> queue;
@@ -4622,6 +4626,7 @@ class ChanceState implements State {
     int parentAction;
     RandomGen searchRandomGen;
     ReentrantReadWriteLock statsLock;
+    ReentrantReadWriteLock nodesArrLock;
     ReentrantLock randomGenLock;
     public AtomicInteger virtualLoss;
 
@@ -4643,6 +4648,14 @@ class ChanceState implements State {
             randomGenLock = new ReentrantLock();
             virtualLoss = new AtomicInteger(1);
             cache = new ConcurrentHashMap<>();
+            if (Configuration.USE_PROGRESSIVE_WIDENING) {
+                nodesArr = new Node[5];
+                currentNodeArrIdx = new AtomicInteger(0);
+                currentNodeArrCommittedIdx = new AtomicInteger(0);
+                nodesArrLock = new ReentrantReadWriteLock();
+                uniqueNodeEntry = new AtomicInteger(0);
+                total_node_q = new double[parentState.prop.v_total_len];
+            }
         } else {
             cache = new HashMap<>();
             if (initState != null) {
@@ -4680,8 +4693,7 @@ class ChanceState implements State {
         varianceM = newVarianceM;
         varianceS = newVarianceS;
         var node = cache.get(state2);
-        if (node.revisit ||
-            (Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
+        if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
             (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
             (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
 //            var new_total_q = new double[node.state.prop.v_total_len];
@@ -4724,7 +4736,6 @@ class ChanceState implements State {
             for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
                 acc += entry.getValue().n;
                 if (acc > r) {
-                    entry.getValue().revisit = true;
                     return entry.getValue().state;
                 }
             }
@@ -4734,7 +4745,6 @@ class ChanceState implements State {
             if (prevWidenedNode != null) {
                 prevWidenedNode.n += 1;
                 total_node_n += 1;
-                prevWidenedNode.revisit = true;
                 var ret = prevWidenedNode.state;
                 if (prevWidenedNode.n == prevWidenedNode.other_n) {
                     prevWidenedNode = null;
@@ -4770,7 +4780,6 @@ class ChanceState implements State {
         if (node != null) {
             node.n += 1;
             total_node_n += 1;
-            node.revisit = false;
             if (node.state.stateDesc == null && state.stateDesc != null) {
                 node.state.stateDesc = state.stateDesc;
             }
@@ -4808,7 +4817,6 @@ class ChanceState implements State {
             for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
                 acc += entry.getValue().n;
                 if (acc > r) {
-                    entry.getValue().revisit = true;
                     return entry.getValue().state;
                 }
             }
@@ -4847,7 +4855,7 @@ class ChanceState implements State {
         return state;
     }
 
-    Node getNextStateParallel(boolean calledFromMCTS, int level) {
+    Tuple<Node, Boolean> getNextStateParallel() {
         virtualLoss.incrementAndGet();
 
         var state = parentState.clone(true);
@@ -4863,30 +4871,29 @@ class ChanceState implements State {
             state.doAction(0);
         }
 
-//        writeLock();
-//        total_n += 1;
-//        var node = cache.get(state);
-//        if (node == null) {
-//            node.n += 1;
-//            node.revisit = false;
-//            if (node.state.stateDesc == null && state.stateDesc != null) {
-//                node.state.stateDesc = state.stateDesc;
-//            }
-//            total_node_n += 1;
-//            writeUnlock();
-//            return node;
-            ;
-//        }
-//        total_node_n += 1;
-//        cache.put(state, new Node(state));
-//        writeUnlock();
-        return cache.computeIfAbsent(state, k -> new Node(state, 0));
+        if (!Configuration.USE_PROGRESSIVE_WIDENING) {
+            return new Tuple<>(cache.computeIfAbsent(state, k -> new Node(state, 0)), Boolean.FALSE);
+        } else {
+            Node n = cache.computeIfAbsent(state, k -> new Node(state, 0));
+            if (n.n > 0) {
+                return new Tuple<>(n, Boolean.FALSE);
+            }
+            if (total_n > 0 && uniqueNodeEntry.get() >= Math.ceil(Math.pow(total_n, 0.5))) {
+                var r = currentNodeArrCommittedIdx.getPlain();
+                while (r < nodesArr.length && nodesArr[r] != null && currentNodeArrCommittedIdx.compareAndExchange(r, r + 1) == r + 1) {
+                    r++;
+                }
+                if (r > 0) {
+                    return new Tuple<>(nodesArr[state.prop.random.nextInt(r, RandomGenCtx.Other, this)], Boolean.TRUE);
+                }
+            }
+            return new Tuple<>(n, Boolean.FALSE);
+        }
     }
 
-    public void correctVParallel(Node node, double[] v, double[] realV) {
+    public void correctVParallel(Node node, boolean revisitFromProgressive, double[] v, double[] realV) {
         if (parentState.prop.multithreadedMTCS) virtualLoss.decrementAndGet();
-        if (node.revisit ||
-                (Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
+        if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
                 (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
                 (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
             //            var new_total_q = new double[node.state.prop.v_total_len];
@@ -4902,24 +4909,58 @@ class ChanceState implements State {
             //                v[i] = new_total_q[i] - total_q[i];
             //            }
 
-            node.state.readLock();
-            node.n += 1;
+            node.state.writeLock();
+            var prevNodeN = node.n;
+            if (!revisitFromProgressive) {
+                node.n += 1;
+            }
             for (int i = 0; i < node.state.prop.v_total_len; i++) {
                 var node_cur_q = node.state.q[i] / (node.state.total_n + 1);
-                v[i] = node_cur_q * node.n - node.prev_q[i] * (node.n - 1);
+                v[i] = node_cur_q * node.n - node.prev_q[i] * prevNodeN;
                 node.prev_q[i] = node_cur_q;
             }
-            node.state.readUnlock();
+            node.state.writeUnlock();
+            if (Configuration.USE_PROGRESSIVE_WIDENING && prevNodeN == 0) {
+                uniqueNodeEntry.getAndIncrement();
+            }
+        }
+        if (Configuration.USE_PROGRESSIVE_WIDENING && !revisitFromProgressive) {
+            var nodeArrayIdx = currentNodeArrIdx.getAndIncrement();
+            if (nodeArrayIdx >= nodesArr.length) {
+                nodesArrLock.writeLock().lock();
+                if (nodeArrayIdx >= nodesArr.length) {
+                    nodesArr = Arrays.copyOf(nodesArr, nodesArr.length + nodesArr.length / 2);
+                }
+                nodesArrLock.writeLock().unlock();
+            }
+            nodesArrLock.readLock().lock();
+            nodesArr[nodeArrayIdx] = node;
+            nodesArrLock.readLock().unlock();
+            while (currentNodeArrCommittedIdx.compareAndExchange(nodeArrayIdx, nodeArrayIdx + 1) == nodeArrayIdx + 1) {
+                nodeArrayIdx++;
+                if (nodeArrayIdx >= nodesArr.length || nodesArr[nodeArrayIdx] == null) {
+                    break;
+                }
+            }
         }
         statsLock.writeLock().lock();
-        total_n += 1;
-        total_node_n += 1;
+        total_n++;
+        if (!revisitFromProgressive) {
+            total_node_n += 1;
+        }
         var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
         var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
         varianceM = newVarianceM;
         varianceS = newVarianceS;
         for (int i = 0; i < node.state.prop.v_total_len; i++) {
-            total_q[i] += v[i];
+            if (Configuration.USE_PROGRESSIVE_WIDENING) {
+                var prevTotalQ = total_q[i];
+                total_node_q[i] += v[i];
+                total_q[i] = total_node_q[i] / total_node_n * total_n;
+                v[i] = total_q[i] - prevTotalQ;
+            } else {
+                total_q[i] += v[i];
+            }
         }
         statsLock.writeLock().unlock();
     }

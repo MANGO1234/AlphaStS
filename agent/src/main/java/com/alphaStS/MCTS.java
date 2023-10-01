@@ -354,14 +354,14 @@ public class MCTS {
                     state.ns[action] = cState;
                     state.writeUnlock();
                     this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false);
-                    cState.correctVParallel(node, v, realV);
+                    cState.correctVParallel(node, false, v, realV);
                 } else {
                     var cState = new ChanceState(state2, state, action);
                     var node = cState.addGeneratedStateParallel(state2);
                     state.ns[action] = cState;
                     state.writeUnlock();
                     this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false);
-                    cState.correctVParallel(node, v, realV);
+                    cState.correctVParallel(node, false, v, realV);
                 }
             } else {
                 state.transpositionsLock.lock();
@@ -378,7 +378,7 @@ public class MCTS {
                         state.ns[action] = cState;
                         state.writeUnlock();
                         this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false);
-                        cState.correctVParallel(node, v, realV);
+                        cState.correctVParallel(node, false, v, realV);
                     } else {
                         state.transpositions.put(state2, state2);
                         state.transpositionsLock.unlock();
@@ -403,9 +403,9 @@ public class MCTS {
                     state.ns[action] = ns;
                     state.writeUnlock();
                     if (ns.total_n == 0 || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        ChanceState.Node n = ns.getNextStateParallel(true, level);
-                        this.search2parallel_r(n.state, training, remainingCalls, false, level + 1, false);
-                        ns.correctVParallel(n, v, realV);
+                        var n = ns.getNextStateParallel();
+                        this.search2parallel_r(n.v1().state, training, remainingCalls, false, level + 1, false);
+                        ns.correctVParallel(n.v1(), n.v2(), v, realV);
                     }
                     ns.readLock();
                     for (int i = 0; i < state.prop.v_total_len; i++) {
@@ -420,9 +420,9 @@ public class MCTS {
             if (nextState instanceof ChanceState cState) {
                 if (state.n[action] < cState.total_n) {
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        ChanceState.Node n = cState.getNextStateParallel(true, level);
-                        this.search2parallel_r(n.state, training, remainingCalls, false, level + 1, false);
-                        cState.correctVParallel(n, v, realV);
+                        var n = cState.getNextStateParallel();
+                        this.search2parallel_r(n.v1().state, training, remainingCalls, false, level + 1, false);
+                        cState.correctVParallel(n.v1(), n.v2(), v, realV);
                     }
                     state.readLock();
                     cState.readLock();
@@ -432,9 +432,9 @@ public class MCTS {
                     cState.readUnlock();
                     state.readUnlock();
                 } else {
-                    ChanceState.Node n = cState.getNextStateParallel(true, level);
-                    this.search2parallel_r(n.state, training, remainingCalls, false, level + 1, false);
-                    cState.correctVParallel(n, v, realV);
+                    var n = cState.getNextStateParallel();
+                    this.search2parallel_r(n.v1().state, training, remainingCalls, false, level + 1, false);
+                    cState.correctVParallel(n.v1(), n.v2(), v, realV);
                 }
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {

@@ -517,11 +517,27 @@ public class EnemyEncounter {
         builder.addEnemy(new Enemy.Cultist());
         builder.addEnemy(new Enemy.Cultist());
         builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start + 2;
-                order[start + 2] = start;
-            }
-        });
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start;
+                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                    order[start + 2] = start + 3 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start;
+                    order[start + 2] = start + 1;
+                }
+            } else {
+                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start + 1;
+                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                    order[start + 2] = start + 2 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start + 1;
+                    order[start + 2] = start;
+                }
+            }        });
     }
 
     public static void addBronzeAutomatonFight(GameStateBuilder builder) {
@@ -549,9 +565,26 @@ public class EnemyEncounter {
         builder.addEnemy(new Enemy.JawWorm(true));
         builder.addEnemy(new Enemy.JawWorm(true));
         builder.addEnemyReordering((state, order) -> {
-            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start + 2;
-                order[start + 2] = start;
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start;
+                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                    order[start + 2] = start + 3 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start;
+                    order[start + 2] = start + 1;
+                }
+            } else {
+                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start + 1;
+                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                    order[start + 2] = start + 2 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start + 1;
+                    order[start + 2] = start;
+                }
             }
         });
     }

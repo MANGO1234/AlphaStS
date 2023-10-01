@@ -1769,7 +1769,7 @@ public class TestStates {
         builder.addCard(new CardDefect.CoreSurge(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.ForceField(), 1);
-        builder.setPlayer(new Player(73, 81));
+        builder.setPlayer(new Player(80, 81));
 //        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
 //        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
 //        EnemyEncounter.addReptomancerFight(builder, true);
@@ -1785,12 +1785,12 @@ public class TestStates {
 //            List.of(new CardCount(new CardDefect.Amplify(), 1))
 //        ), true).doAfter(randomization);
 //        builder.setRandomization(randomization);
-//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-//            @Override public void handle(GameState state) {
-//                state.clearAllSearchInfo();
-//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "tur", "char", "asc", "mac", "str", "sun", "holo", "p", "holo+", "e", "rng off", "0", "3", "em", "1", "exit"));
-//            }
-//        });
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.clearAllSearchInfo();
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "equi", "holo+", "def", "swee+", "def", "comp", "char", "str+", "buff+", "e", "rng off", "0", "2", "2", "1", "3", "3", "3", "3", "3", "3", "em", "0", "1", "em", "1", "1", "em", "2", "1", "exit"));
+            }
+        });
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.NuclearBattery());
