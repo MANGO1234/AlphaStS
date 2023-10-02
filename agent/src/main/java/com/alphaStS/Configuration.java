@@ -111,5 +111,5 @@ public class Configuration {
     public static boolean USE_NEW_ACTION_SELECTION = false;
 
     public static final String ONNX_LIB_PATH = "F:/git/lib";
-    public static final boolean ONNX_USE_CUDA_FOR_INFERENCE = false;
+    public static final boolean ONNX_USE_CUDA_FOR_INFERENCE = true;
 }
