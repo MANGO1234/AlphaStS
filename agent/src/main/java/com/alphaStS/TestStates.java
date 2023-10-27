@@ -5,7 +5,6 @@ import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -1751,7 +1750,7 @@ public class TestStates {
         builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCastP(), 1);
-        builder.addCard(new CardDefect.CoolheadedP(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 2);
         builder.addCard(new CardDefect.SweepingBeamP(), 1);
         builder.addCard(new CardDefect.BallLightning(), 1);
         builder.addCard(new CardDefect.CompiledDriver(), 2);
@@ -1769,29 +1768,22 @@ public class TestStates {
         builder.addCard(new CardDefect.CoreSurge(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.ForceField(), 1);
-        builder.setPlayer(new Player(80, 81));
-//        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
-//        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
-//        EnemyEncounter.addReptomancerFight(builder, true);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-//                List.of(new Tuple<>(0, -1)),
-//                List.of(new Tuple<>(1, -1)),
-//                List.of(new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1), new Tuple<>(5, -1), new Tuple<>(6, -1))
-//        ));
-        EnemyEncounter.addTripleJawWormsFight(builder);
-//        randomization = new GameStateRandomization.CardCountRandomization(List.of(
-//            List.of(new CardCount(new CardDefect.AllForOne(0, 0), 1)),
-//            List.of(new CardCount(new CardDefect.CoreSurge(), 1)),
-//            List.of(new CardCount(new CardDefect.Amplify(), 1))
-//        ), true).doAfter(randomization);
-//        builder.setRandomization(randomization);
+        builder.addCard(new CardDefect.AggregateP(), 1);
+        builder.addCard(new CardDefect.LoopP(), 1);
+        builder.addCard(new CardDefect.StackP(), 1);
+        builder.addCard(new CardDefect.Stack(), 2);
+        builder.setPlayer(new Player(63, 77));
+//        EnemyEncounter.addAwakenedOneFight(builder);
+//        EnemyEncounter.addDonuAndDecaFight(builder);
         builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "equi", "holo+", "def", "swee+", "def", "comp", "char", "str+", "buff+", "e", "rng off", "0", "2", "2", "1", "3", "3", "3", "3", "3", "3", "em", "0", "1", "em", "1", "1", "em", "2", "1", "exit"));
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "do", "def", "sta", "def", "coo+", "tur", "agg+", "com+", "holo+", "mac", "e", "0", "1", "2", "2", "2", "0", "0", "1", "3", "1", "exit"));
             }
         });
-        builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
+//        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(95));
+        builder.setPotionsScenarios(1);
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.NuclearBattery());
         builder.addRelic(new Relic.RedMask());
@@ -1799,6 +1791,8 @@ public class TestStates {
         builder.addRelic(new Relic.GamblingChip());
         builder.addRelic(new Relic.DeadBranch());
         builder.addRelic(new Relic.SneckoEye());
+        builder.addRelic(new Relic.UnceasingTop());
+        builder.addRelic(new Relic.ArtOfWar());
         return new GameState(builder);
     }
 

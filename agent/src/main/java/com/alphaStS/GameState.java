@@ -122,6 +122,8 @@ public final class GameState implements State {
     ReentrantLock transpositionsLock;
     AtomicInteger virtualLoss;
 
+    boolean[] bannedActions;
+
     // Solver only
     BigRational e_health;
     BigRational e_win;
@@ -308,6 +310,14 @@ public final class GameState implements State {
         prop.potionsScenarios = builder.getPotionsScenarios();
         prop.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         prop.character = builder.getCharacter();
+        prop.enemiesEncountersIdx = builder.getEnemiesEncountersIdx();
+        if (prop.enemiesEncountersIdx != null) {
+            if (prop.randomization != null) {
+                prop.randomization = prop.randomization.doAfter(new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), prop.enemiesEncountersIdx));
+            } else {
+                prop.randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), prop.enemiesEncountersIdx);
+            }
+        }
         if (prop.potions.size() > 0) {
             GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(prop.potions);
             if (prop.potionsScenarios != null) {
@@ -648,6 +658,7 @@ public final class GameState implements State {
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
         prop.possibleBuffs |= cards.stream().anyMatch((x) -> x.card().cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
         prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
+        prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.ArtOfWar) ? PlayerBuff.ART_OF_WAR.mask() : 0;
         prop.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
         prop.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.card().putCardOnTopDeck);
         prop.selectFromExhaust = cards.stream().anyMatch((x) -> x.card().selectFromExhaust);
@@ -1072,7 +1083,9 @@ public final class GameState implements State {
             if (drawOrder.size() > 0) {
                 i = getDrawOrderForWrite().drawTop();
                 assert deck[i] > 0;
-                drawCardByIdx(i, true);
+                if (!drawCardByIdx(i, true)) {
+                    continue;
+                }
                 cardIdx = i;
                 drawnIdx = i;
             } else {
@@ -1407,10 +1420,11 @@ public final class GameState implements State {
                 if (prop.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= energyCost;
                 }
-                runActionsInQueueIfNonEmpty();
+//                runActionsInQueueIfNonEmpty(); // this is bugged?
                 for (var handler : prop.onCardPlayedHandlers) {
                     handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned, cloneParentLocation);
                 }
+                runActionsInQueueIfNonEmpty();
             }
             for (Enemy enemy : enemies.iterateOverAlive()) {
                 enemy.react(this, prop.cardDict[cardIdx]);
@@ -1676,6 +1690,7 @@ public final class GameState implements State {
             }
         }
         chosenCardsArrLen = 0;
+        runActionsInQueueIfNonEmpty();
 
         if (prop.timeEaterCounterIdx >= 0 && getCounterForRead()[prop.timeEaterCounterIdx] == 12) {
             for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
@@ -1794,7 +1809,7 @@ public final class GameState implements State {
             playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (!(prop.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
-                addCardToHand(action.idx());
+                addCardToHandGeneration(action.idx());
             }
             setActionCtx(GameActionCtx.PLAY_CARD, null, false);
             if (turnNum == 0) {
@@ -1826,11 +1841,17 @@ public final class GameState implements State {
                 runActionsInQueueIfNonEmpty();
             }
         }
+        if (actionCtx == GameActionCtx.PLAY_CARD && prop.hasUnceasingTop) {
+            while (handArrLen == 0) {
+                draw(1);
+                runActionsInQueueIfNonEmpty();
+            }
+        }
         legalActions = null;
         v_other = null;
         policy = null;
         if (isStochastic) {
-            if (!(Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || prop.testNewFeature)) || (action.type() == GameActionType.BEGIN_TURN || action.type() == GameActionType.BEGIN_BATTLE)) {
+            if (!Configuration.isTranspositionAcrossChanceNodeOn(this) || (action.type() == GameActionType.BEGIN_TURN || action.type() == GameActionType.BEGIN_BATTLE)) {
                 transpositions = new HashMap<>();
                 if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
             }
@@ -1918,7 +1939,10 @@ public final class GameState implements State {
                             break;
                         }
                     }
-                    for (EnemyReadOnly enemy : enemies) {
+                    int upto = prop.enemiesEncountersIdx == null ? getEnemiesForRead().size() : prop.enemiesEncountersIdx.get(prop.enemiesEncounterChosen).size();
+                    for (int i = 0; i < upto; i++) {
+                        int enemyIdx = prop.enemiesEncountersIdx == null ? i : prop.enemiesEncountersIdx.get(prop.enemiesEncounterChosen).get(i).v1();
+                        EnemyReadOnly enemy = getEnemiesForRead().get(enemyIdx);
                         boolean addedMod = false;
                         if (enemy instanceof Enemy.SlimeBoss boss) {
                             isSlimeBossAlive = boss.getHealth() > 0;
@@ -2461,6 +2485,9 @@ public final class GameState implements State {
                     str.append(p_str2).append('/');
                 }
                 str.append(p_str).append('/').append(n[i]);
+                if (bannedActions != null && bannedActions[i]) {
+                    str.append("/banned");
+                }
                 str.append(" (").append(getActionString(i)).append(")");
             }
             str.append(']');
@@ -3775,6 +3802,7 @@ public final class GameState implements State {
         if (ns != null) {
             Arrays.fill(ns, null);
         }
+        bannedActions = null;
         transpositions = new HashMap<>();
         transpositionsLock = prop.multithreadedMTCS ? new ReentrantLock() : null;
         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
@@ -3811,6 +3839,7 @@ public final class GameState implements State {
         legalActions = null;
         terminal_action = -100;
         searchFrontier = null;
+        bannedActions = null;
     }
 
     public void gainEnergy(int n) {
@@ -3825,6 +3854,18 @@ public final class GameState implements State {
             handArrLen++;
             handCloned = true;
         }
+    }
+
+    public int addCardToHandGeneration(int cardIndex) {
+        if (prop.forceFieldCounterIdx >= 0 && prop.cardDict[cardIndex].cardName.startsWith("Force Field (4)")) {
+            if (prop.cardDict[cardIndex].cardName.equals("Force Field (4)")) {
+                cardIndex = prop.findCardIndex(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[prop.forceFieldCounterIdx], 0)));
+            } else if (prop.cardDict[cardIndex].cardName.equals("Force Field (4) (Tmp 0)")) {
+                cardIndex = prop.findCardIndex(new Card.CardTmpChangeCost(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[prop.forceFieldCounterIdx], 0)), 0));
+            }
+        }
+        addCardToHand(cardIndex);
+        return cardIndex;
     }
 
     public boolean removeCardFromHand(int cardIndex) {
@@ -4453,6 +4494,13 @@ public final class GameState implements State {
         orbs[orbs.length - 1] = 0;
     }
 
+    public void removeRightmostOrb() {
+        if (orbs == null) return;
+        System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
+        orbs[orbs.length - 2] = 0;
+        orbs[orbs.length - 1] = 0;
+    }
+
     public void rotateOrbToBack() {
         if (orbs == null || orbs[0] == 0) return;
         short orb1 = orbs[0];
@@ -4694,7 +4742,7 @@ class ChanceState implements State {
         varianceS = newVarianceS;
         var node = cache.get(state2);
         if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
-            (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
+            Configuration.isTranspositionAcrossChanceNodeOn(parentState) ||
             (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
 //            var new_total_q = new double[node.state.prop.v_total_len];
 //            var nnn = 0;
@@ -4894,7 +4942,7 @@ class ChanceState implements State {
     public void correctVParallel(Node node, boolean revisitFromProgressive, double[] v, double[] realV) {
         if (parentState.prop.multithreadedMTCS) virtualLoss.decrementAndGet();
         if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.prop.testNewFeature)) ||
-                (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || parentState.prop.testNewFeature)) ||
+                Configuration.isTranspositionAcrossChanceNodeOn(parentState) ||
                 (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || parentState.prop.testNewFeature))) {
             //            var new_total_q = new double[node.state.prop.v_total_len];
             //            var nnn = 0;
@@ -4929,7 +4977,7 @@ class ChanceState implements State {
             if (nodeArrayIdx >= nodesArr.length) {
                 nodesArrLock.writeLock().lock();
                 if (nodeArrayIdx >= nodesArr.length) {
-                    nodesArr = Arrays.copyOf(nodesArr, nodesArr.length + nodesArr.length / 2);
+                    nodesArr = Arrays.copyOf(nodesArr, Math.max(nodeArrayIdx + 1 + (nodeArrayIdx + 1) / 2, nodesArr.length + nodesArr.length / 2));
                 }
                 nodesArrLock.writeLock().unlock();
             }

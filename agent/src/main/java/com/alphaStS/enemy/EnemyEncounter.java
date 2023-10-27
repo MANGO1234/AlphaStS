@@ -592,17 +592,17 @@ public class EnemyEncounter {
     public static void addReptomancerFight(GameStateBuilder builder, boolean burning) {
 //        var start = builder.getEnemies().size();
         if (burning) {
-            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
-            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
-            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite()); // top left
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite()); // bottom left
             builder.addEnemy(new EnemyBeyond.Reptomancer().markAsBurningElite());
-            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite());
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite()); // top right
+            builder.addEnemy(new EnemyBeyond.Dagger().markAsBurningElite()); // bottom right
         } else {
-            builder.addEnemy(new EnemyBeyond.Dagger());
-            builder.addEnemy(new EnemyBeyond.Dagger());
-            builder.addEnemy(new EnemyBeyond.Dagger());
+            builder.addEnemy(new EnemyBeyond.Dagger()); // top left
+            builder.addEnemy(new EnemyBeyond.Dagger()); // bottom left
             builder.addEnemy(new EnemyBeyond.Reptomancer());
-            builder.addEnemy(new EnemyBeyond.Dagger());
+            builder.addEnemy(new EnemyBeyond.Dagger()); // top right
+            builder.addEnemy(new EnemyBeyond.Dagger()); // bottom right
         }
 //        builder.addEnemyReordering((state, order) -> {
 //            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {

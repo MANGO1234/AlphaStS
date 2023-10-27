@@ -281,7 +281,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                             var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
                             } else {
-                                state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                                curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
                         });
                     }

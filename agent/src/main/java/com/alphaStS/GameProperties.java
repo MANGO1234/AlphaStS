@@ -1,10 +1,10 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.CounterStat;
+import com.alphaStS.utils.Tuple;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -136,15 +136,18 @@ public class GameProperties implements Cloneable {
     public int phantasmalKillerCounterIdx = -1;
     public int reboundCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
+    public int writhingMassCounterIdx = -1;
     public int envenomCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int bufferCounterIdx = -1;
     public int sundialCounterIdx = -1;
     public int inserterCounterIdx = -1;
     public int loopCounterIdx = -1;
+    public int forceFieldCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
     public int looterVArrayIdx = -1;
+    public int writingMassVIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -160,6 +163,7 @@ public class GameProperties implements Cloneable {
     public boolean hasStrangeSpoon;
     public boolean hasToolbox;
     public boolean hasTurnip;
+    public boolean hasUnceasingTop;
     public boolean hasTorri;
     public boolean hasTungstenRod;
     public boolean hasChampionBelt;
@@ -197,6 +201,8 @@ public class GameProperties implements Cloneable {
     public int discardOrder0CostNumber;
     public int[] discardOrder0CardReverseIdx;
     public List<Integer> innateOrder;
+    public List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
+    public int enemiesEncounterChosen;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();

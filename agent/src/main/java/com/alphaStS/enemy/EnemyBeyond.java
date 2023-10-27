@@ -1013,7 +1013,7 @@ public class EnemyBeyond {
         private static final int SUMMON = 0;
         private static final int SNAKE_STRIKE = 1;
         private static final int BIG_BITE = 2;
-        private static final int SUMMON_ORDER[] = new int[] {4, 2, 1, 0};
+        private static final int[] SUMMON_ORDER = new int[] {4, 1, 3, 0};
 
         public Reptomancer() {
             this(200);
@@ -1066,8 +1066,8 @@ public class EnemyBeyond {
                     }
                 }
                 while (state.enemiesAlive < 5 && summoned < 2 && idx < 4) {
-                    // enemy order is top left, top right, bottom left, reptomancer, bottom right (0, 1, 2, 3, 4)
-                    // summon order is bottom right, bottom left, top right, top left  (4, 2, 1, 0)
+                    // enemy attack order is top left, bottom left, reptomancer, top right, bottom right (0, 1, 2, 3, 4)
+                    // summon order is bottom right, bottom left, top right, top left  (4, 1, 3, 0)
                     if (!state.getEnemiesForRead().get(startIdx + SUMMON_ORDER[idx++]).isAlive()) {
                         state.reviveEnemy(startIdx + SUMMON_ORDER[idx - 1], false, -1);
                         state.getEnemiesForWrite().getForWrite(startIdx + SUMMON_ORDER[idx - 1]).reviveReset();
@@ -1126,7 +1126,7 @@ public class EnemyBeyond {
                     for (int i = 0; i < enemies.size(); i++) {
                         if (enemies.get(i) instanceof Dagger) {
                             state.killEnemy(i, false);
-                            state.killEnemy(i + 1, false);
+                            state.killEnemy(i + 3, false);
                             break;
                         }
                     }
@@ -1320,8 +1320,221 @@ public class EnemyBeyond {
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx + 1] = turnCount / 10.0f;
+            input[idx] = turnCount / 10.0f;
             return 1;
+        }
+    }
+
+    public static class WrithingMass extends Enemy {
+        public static final int IMPLANT = 0;
+        public static final int FLAIL = 1;
+        public static final int WITHER = 2;
+        public static final int MULTI_STRIKE = 3;
+        public static final int STRONG_STRIKE = 4;
+
+        private boolean implantUsed;
+        private int extraBlockPerAttack = 0;
+        private float implantPenalty = 0.8f;
+
+        public WrithingMass(float implantPenalty) {
+            this(175);
+            this.implantPenalty = implantPenalty;
+        }
+
+        public WrithingMass(int health) {
+            super(health, 5, true);
+            property.canWeaken = true;
+            property.canVulnerable = true;
+            property.canGainBlock = true;
+        }
+
+        public WrithingMass(EnemyBeyond.WrithingMass other) {
+            super(other);
+            implantUsed = other.implantUsed;
+            extraBlockPerAttack = other.extraBlockPerAttack;
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.WrithingMass(this);
+        }
+
+        @Override public int damage(double n, GameState state) {
+            var dmg = super.damage(n, state);
+            if (dmg > 0) {
+                var idx = state.getEnemiesForRead().find(this);
+                var extraBlockPerAttack = this.extraBlockPerAttack++;
+                state.addGameActionToStartOfDeque(state1 -> state1.getEnemiesForWrite().getForWrite(idx).gainBlock(3 + extraBlockPerAttack));
+                var random = state.getSearchRandomGen();
+                move = nextMove(state, random, random.nextInt(100, RandomGenCtx.EnemyChooseMove), move);
+            }
+            return dmg;
+        }
+
+        @Override public void endTurn(int turnNum) {
+            super.endTurn(turnNum);
+            extraBlockPerAttack = 0;
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == IMPLANT) {
+                implantUsed = true;
+            } else if (move == FLAIL) {
+                state.enemyDoDamageToPlayer(this, 16, 1);
+                gainBlock(16);
+            } else if (move == WITHER) {
+                state.enemyDoDamageToPlayer(this, 12, 1);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
+            } else if (move == MULTI_STRIKE) {
+                state.enemyDoDamageToPlayer(this, 9, 3);
+            } else if (move == STRONG_STRIKE) {
+                state.enemyDoDamageToPlayer(this, 38, 1);
+            }
+        }
+
+        public int nextMove(GameState state, RandomGen random, int r, int lastMove) {
+            state.setIsStochastic();
+            if (r < 10) {
+                if (lastMove != STRONG_STRIKE) {
+                    return STRONG_STRIKE;
+                } else {
+                    return nextMove(state, random, random.nextInt(90, RandomGenCtx.EnemyChooseMove) + 10, lastMove);
+                }
+            } else if (r < 20) {
+                if (!implantUsed && lastMove != IMPLANT) {
+                    return IMPLANT;
+                } else if (random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.1f) {
+                    return STRONG_STRIKE;
+                } else {
+                    return nextMove(state, random, random.nextInt(80, RandomGenCtx.EnemyChooseMove) + 20, lastMove);
+                }
+            } else if (r < 40) {
+                if (lastMove != WITHER) {
+                    return WITHER;
+                } else if (random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.4f) {
+                    return nextMove(state, random, random.nextInt(20, RandomGenCtx.EnemyChooseMove), lastMove);
+                } else {
+                    return nextMove(state, random, random.nextInt(60, RandomGenCtx.EnemyChooseMove) + 40, lastMove);
+                }
+            } else if (r < 70) {
+                if (lastMove != MULTI_STRIKE) {
+                    return MULTI_STRIKE;
+                } else if (random.nextFloat(RandomGenCtx.EnemyChooseMove) < 0.3f) {
+                    return FLAIL;
+                } else {
+                    return nextMove(state, random, random.nextInt(40, RandomGenCtx.EnemyChooseMove), lastMove);
+                }
+            } else if (lastMove != FLAIL) {
+                return FLAIL;
+            } else {
+                return nextMove(state, random, random.nextInt(70, RandomGenCtx.EnemyChooseMove), lastMove);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            state.setIsStochastic();
+            int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+            if (move < 0) {
+                if (r < 33) {
+                    newMove = MULTI_STRIKE;
+                } else if (r < 66) {
+                    newMove = FLAIL;
+                } else {
+                    newMove = WITHER;
+                }
+            } else {
+                newMove = nextMove(state, random, r, move);
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == IMPLANT) {
+                return "Implant";
+            } else if (move == FLAIL) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 16) + "+Block 16";
+            } else if (move == WITHER) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 12) + "+Weak 2+Vulnerable 2";
+            } else if (move == MULTI_STRIKE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 9) + "x3";
+            } else if (move == STRONG_STRIKE) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 38);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            int b = random.nextInt(8, RandomGenCtx.Other) + 1;
+            if (training) {
+                health = (int) Math.round((health * b) / 8.0);
+            } else {
+                health = 175;
+            }
+        }
+
+        @Override public String getName() {
+            return "Writhing Mass";
+        }
+
+        @Override public String toString(GameState state) {
+            String s = super.toString(state);
+            if (extraBlockPerAttack > 0) {
+                s = s.subSequence(0, s.length() - 1) + ", malleable=" + (3 + extraBlockPerAttack) + "}";
+            }
+            if (implantUsed) {
+                s = s.subSequence(0, s.length() - 1) + ", implant=used}";
+            }
+            return s;
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && implantUsed == ((WrithingMass) o).implantUsed && extraBlockPerAttack == ((WrithingMass) o).extraBlockPerAttack;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.prop.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(int idx) {
+                    state.prop.writingMassVIdx = idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    if (isTerminal > 0) {
+                        boolean implantUsed = false;
+                        for (var enemy : state.getEnemiesForRead()) {
+                            if (enemy instanceof WrithingMass mass) {
+                                if (mass.implantUsed) {
+                                    implantUsed = true;
+                                    break;
+                                }
+                            }
+                        }
+                        v[GameState.V_OTHER_IDX_START + state.prop.writingMassVIdx] = implantUsed ? 1.0f : 0.0f;
+                    } else if (isTerminal == 0) {
+                        v[GameState.V_OTHER_IDX_START + state.prop.writingMassVIdx] = state.getVOther(state.prop.writingMassVIdx);
+                    }
+                }
+
+                @Override public void updateQValues(GameState state, double[] v) {
+                    double value = v[GameState.V_OTHER_IDX_START + state.prop.writingMassVIdx];
+                    v[GameState.V_HEALTH_IDX] *= 1 - value * implantPenalty;
+                }
+            });
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 2;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "2 inputs to keep track of whether implant has been used by Writhing Mass and Writhing Mass Malleable buff";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = implantUsed ? 0.5f : 0f;
+            input[idx + 1] = extraBlockPerAttack / 10.0f;
+            return 2;
         }
     }
 
@@ -1514,7 +1727,8 @@ public class EnemyBeyond {
         private static final int REGROW_2 = 4;
         private static final int REINCARNATE = 5;
 
-        private int d = -1;
+        private int lowerPossibleNipDmg = 7;
+        private int upperPossibleNipDmg = 11;
         private boolean middle;
 
         public Darkling(boolean middle) {
@@ -1532,19 +1746,28 @@ public class EnemyBeyond {
         public Darkling(EnemyBeyond.Darkling other) {
             super(other);
             middle = other.middle;
-            d = other.d;
+            lowerPossibleNipDmg = other.lowerPossibleNipDmg;
+            upperPossibleNipDmg = other.upperPossibleNipDmg;
         }
 
         @Override public Enemy copy() {
             return new EnemyBeyond.Darkling(this);
         }
 
-        public int getNipDamage() {
-            return d;
+        public int getLowerPossibleNipDmg() {
+            return lowerPossibleNipDmg;
         }
 
-        public void setNipDamage(int n) {
-            d = n;
+        public int getUpperPossibleNipDmg() {
+            return upperPossibleNipDmg;
+        }
+
+        public void setLowerPossibleNipDmg(int lowerPossibleNipDmg) {
+            this.lowerPossibleNipDmg = lowerPossibleNipDmg;
+        }
+
+        public void setUpperPossibleNipDmg(int upperPossibleNipDmg) {
+            this.upperPossibleNipDmg = upperPossibleNipDmg;
         }
 
         @Override public int damage(double n, GameState state) {
@@ -1566,7 +1789,7 @@ public class EnemyBeyond {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == NIP) {
-                state.enemyDoDamageToPlayer(this, d + 2, 1);
+                state.enemyDoDamageToPlayer(this, lowerPossibleNipDmg + 2, 1);
             } else if (move == CHOMP) {
                 state.enemyDoDamageToPlayer(this, 9, 2);
             } else if (move == HARDEN) {
@@ -1613,14 +1836,31 @@ public class EnemyBeyond {
             }
             lastMove = move;
             move = newMove;
-            if (d < 0 && move == NIP) {
-                d = 7 + random.nextInt(5, RandomGenCtx.Other);
+            if (lowerPossibleNipDmg != upperPossibleNipDmg && move == NIP) {
+                int nip = random.nextInt(upperPossibleNipDmg - lowerPossibleNipDmg + 1, RandomGenCtx.EnemyChooseMove);
+                // todo: call this at end of card played -> if darkling is weak and its attack is reduced, need to update range
+                this.setPossibleNipDmg(state, state.enemyCalcDamageToPlayer(this, lowerPossibleNipDmg + nip + 2));
+            }
+        }
+
+        public void setPossibleNipDmg(GameState state, int targetDmg) {
+            for (int i = lowerPossibleNipDmg; i <= upperPossibleNipDmg; i++) {
+                if (state.enemyCalcDamageToPlayer(this, i + 2) == targetDmg) {
+                    lowerPossibleNipDmg = i;
+                    break;
+                }
+            }
+            for (int i = lowerPossibleNipDmg + 1; i <= upperPossibleNipDmg; i++) {
+                if (state.enemyCalcDamageToPlayer(this, i + 2) != targetDmg) {
+                    upperPossibleNipDmg = i - 1;
+                    break;
+                }
             }
         }
 
         @Override public String getMoveString(GameState state, int move) {
             if (move == NIP) {
-                return "Attack " + state.enemyCalcDamageToPlayer(this, d + 2);
+                return "Attack " + state.enemyCalcDamageToPlayer(this, lowerPossibleNipDmg + 2);
             } else if (move == CHOMP) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 9) + "x2";
             } else if (move == HARDEN) {
@@ -1648,28 +1888,31 @@ public class EnemyBeyond {
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);
-            if (d < 0) {
-                return s.replaceFirst("hp=(\\d+)", "hp=$1/" + property.origHealth);
+            s = s.replaceFirst("hp=(\\d+)", "hp=$1/" + property.origHealth);
+            if (lowerPossibleNipDmg != upperPossibleNipDmg) {
+                return s.subSequence(0, s.length() - 1) + ", nipDmg=" + lowerPossibleNipDmg + "-" + upperPossibleNipDmg + "}";
+            } else {
+                return s.subSequence(0, s.length() - 1) + ", nipDmg=" + lowerPossibleNipDmg + "}";
             }
-            return s.subSequence(0, s.length() - 1) + ", nipDmg=" + d + "}";
         }
 
         @Override public boolean equals(Object o) {
-            return super.equals(o) && d == ((Darkling) o).d;
+            return super.equals(o) && lowerPossibleNipDmg == ((Darkling) o).lowerPossibleNipDmg && upperPossibleNipDmg == ((Darkling) o).upperPossibleNipDmg;
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 2;
+            return 3;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "2 input to keep track of Darkling Nip damage and max HP";
+            return "3 input to keep track of Darkling Nip damage and max HP";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            input[idx] = d < 0 ? -0.5f : d / 11.0f;
-            input[idx + 1] = property.origHealth / (float) property.maxHealth;
-            return 2;
+            input[idx] = (lowerPossibleNipDmg - 7) / 4.0f;
+            input[idx + 1] = (upperPossibleNipDmg - 7) / 4.0f;
+            input[idx + 2] = property.origHealth / (float) property.maxHealth;
+            return 3;
         }
     }
 }

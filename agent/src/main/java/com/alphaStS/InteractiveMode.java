@@ -75,7 +75,7 @@ public class InteractiveMode {
 
     private void interactiveStartH(GameState origState, String saveDir, String modelDir, List<String> history) throws IOException {
         InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in));
-        var states = new ArrayList<GameState>();
+        var states = new ArrayList<GameStep>();
         GameState state = origState;
         boolean isApplyingHistory = false;
         RandomGen prevSearchRandomGen = null;
@@ -100,7 +100,7 @@ public class InteractiveMode {
         boolean printAction = true;
         while (true) {
             if (printState) {
-                printState(state, states);
+                printState(state, states.stream().map((x) -> x.state()).toList());
                 printAction = true;
             }
             if (printAction) {
@@ -121,13 +121,14 @@ public class InteractiveMode {
             history.add(line);
 
             if (line.equals("e") || line.equals("End Turn")) {
-                states.add(state);
+                var parentState = state;
                 state.clearAllSearchInfo();
                 if (!isApplyingHistory) {
                     state = state.clone(false);
                 }
                 for (int i = 0; i < state.getLegalActions().length; i++) {
                     if (state.getAction(i).type() == GameActionType.END_TURN) {
+                        states.add(new GameStep(parentState, i));
                         history.add("# End of Turn");
                         history.add("# " + state);
                         state.prop.makingRealMove = true;
@@ -184,6 +185,19 @@ public class InteractiveMode {
                 printState = true;
             } else if (line.equals("input")) {
                 out.println(Arrays.toString(state.getNNInput()));
+            } else if (line.equals("states")) {
+                int m = 0;
+                for (int i = 0; i < states.size(); i++) {
+                    out.println((++m) + ". " + states.get(i).state().getActionString(states.get(i).action()));
+                    var tmp = states.get(i).state().clone(false);
+                    tmp.getDrawOrderForWrite().clear(); // todo: need to do parallel actions so e.g. rebound works
+                    tmp.doAction(states.get(i).action());
+                    if ((tmp.isStochastic || states.get(i).state().getAction(states.get(i).action()).type() == GameActionType.END_TURN) && i < states.size() - 1) {
+                        out.println("\n" + states.get(i + 1));
+                        m = 0;
+                    }
+                }
+                out.println("-------------------------------------------------------------------------");
             } else if (line.startsWith("model ")) {
                 modelExecutor = new ModelExecutor(line.split(" ")[1]);
             } else if (line.equals("eh")) {
@@ -206,7 +220,7 @@ public class InteractiveMode {
                 printState = true;
             } else if (line.equals("b")) {
                 if (states.size() > 0) {
-                    state = states.remove(states.size() - 1);
+                    state = states.remove(states.size() - 1).state();
                 }
                 printState = true;
             } else if (line.startsWith("pot ")) {
@@ -305,6 +319,9 @@ public class InteractiveMode {
             } else if (line.equals("progressive3")) {
                 Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2;
                 out.println("Progressive Widening Improvement 2: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off"));
+            } else if (line.equals("ban")) {
+                Configuration.BAN_TRANSPOSITION_IN_TREE = !Configuration.BAN_TRANSPOSITION_IN_TREE;
+                out.println("Ban Transposition In Tree: " + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off"));
             } else if (line.equals("games") || line.startsWith("games ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
                 ((RandomGenInteractive) state.prop.random).rngOn = true;
@@ -355,7 +372,7 @@ public class InteractiveMode {
                 if (action >= 0 && action <= state.getLegalActions().length) {
                     printState = reader.lines.size() == 0;
                     printAction = printState;
-                    states.add(state);
+                    states.add(new GameStep(state, action));
                     state.clearAllSearchInfo();
                     if (!isApplyingHistory) {
                         state = state.clone(false);
@@ -664,8 +681,10 @@ public class InteractiveMode {
                     out.println("  Stasis: Used");
                 }
             } else if (enemy instanceof EnemyBeyond.Darkling darkling) {
-                if (darkling.getNipDamage() > 0) {
-                    out.println("  Nip Damage: " + darkling.getNipDamage());
+                if (darkling.getLowerPossibleNipDmg() == darkling.getUpperPossibleNipDmg()) {
+                    out.println("  Nip Damage: " + darkling.getLowerPossibleNipDmg());
+                } else {
+                    out.println("  Nip Damage: " + darkling.getLowerPossibleNipDmg() + "-" + darkling.getUpperPossibleNipDmg());
                 }
             } else if (enemy instanceof EnemyCity.SnakePlant snakePlant) {
                 out.println("  Malleable: " + (3 + snakePlant.getExtraBlockPerAttack()));
@@ -894,10 +913,25 @@ public class InteractiveMode {
                     drawOrder.add(cardIdx);
                     continue;
                 } else {
-                    var cards = Arrays.stream(state.prop.cardDict).map((c) -> c.cardName.toLowerCase()).toList();
+                    var allCards = Arrays.stream(state.prop.cardDict).map((c) -> c.cardName.toLowerCase()).toList();
+                    // prefer deck first
+                    var cards = Arrays.stream(Utils.shortToIntArray(state.getDeckArrForRead())).mapToObj((c) -> state.prop.cardDict[c].cardName.toLowerCase()).distinct().toList();
                     var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
                     if (card != null) {
-                        drawOrder.add(cards.indexOf(card));
+                        drawOrder.add(allCards.indexOf(card));
+                        continue;
+                    }
+                    // then prefer discard
+                    cards = Arrays.stream(Utils.shortToIntArray(state.getDiscardArrForRead())).mapToObj((c) -> state.prop.cardDict[c].cardName.toLowerCase()).distinct().toList();
+                    card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
+                    if (card != null) {
+                        drawOrder.add(allCards.indexOf(card));
+                        continue;
+                    }
+                    // then prefer all cards
+                    card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
+                    if (card != null) {
+                        drawOrder.add(allCards.indexOf(card));
                         continue;
                     }
                 }
@@ -1036,10 +1070,27 @@ public class InteractiveMode {
                 if (line.equals("b")) {
                     return;
                 }
-                int n = parseInt(line, -1);
-                if (n > 0 || n == -1) {
-                    darkling.setNipDamage(n);
-                    return;
+                if (!line.contains("-")) {
+                    int n = parseInt(line, -1);
+                    if (n > 0) {
+                        darkling.setPossibleNipDmg(state, n);
+                        return;
+                    } else if (n < 0) { // reset
+                        darkling.setLowerPossibleNipDmg(7);
+                        darkling.setUpperPossibleNipDmg(11);
+                        return;
+                    }
+                } else {
+                    String[] args = line.split("-");
+                    if (args.length == 2) {
+                        int lower = parseInt(args[0], -1);
+                        int upper = parseInt(args[1], -1);
+                        if (lower > 0 && upper > 0) {
+                            darkling.setLowerPossibleNipDmg(lower);
+                            darkling.setUpperPossibleNipDmg(upper);
+                            return;
+                        }
+                    }
                 }
             }
         } else {
@@ -1505,13 +1556,10 @@ public class InteractiveMode {
                     }
                 }
             } else if (s instanceof ChanceState cs) {
-                var chanceOutcomes = cs.cache.values().stream().sorted((a, b) -> {
-                    var aStr = a.state.getStateDescStr();
-                    aStr = aStr.length() == 0 ? a.state.toString() : aStr;
-                    var bStr = b.state.getStateDescStr();
-                    bStr = bStr.length() == 0 ? b.state.toString() : bStr;
-                    return aStr.compareTo(bStr);
-                }).toList();
+                var chanceOutcomes = cs.cache.values().stream().map((ss) -> {
+                    var sStr = ss.state.getStateDesc();
+                    return new Tuple<>(ss, sStr.length() == 0 ? ss.state.toString() : sStr.toString());
+                }).sorted(Comparator.comparing(Tuple::v2)).map(Tuple::v1).toList();
                 if (printState) {
                     for (int i = 0; i < chanceOutcomes.size(); i++) {
                         var str = chanceOutcomes.get(i).state.getStateDesc();
@@ -1525,7 +1573,12 @@ public class InteractiveMode {
                     return;
                 }
                 if (line.equals("")) {
-
+                } else if (line.equals("b")) {
+                    if (hist.size() > 1) {
+                        hist.remove(hist.size() - 1);
+                        printState = true;
+                        printAction = true;
+                    }
                 } else {
                     int outcome = parseInt(line, -1);
                     if (outcome < 0 || outcome >= chanceOutcomes.size()) {
@@ -1603,14 +1656,14 @@ public class InteractiveMode {
         int count = Integer.parseInt(args.get(1));
         int numberOfThreads = parseArgsInt(args, "t", 1);
         int batchSize = parseArgsInt(args, "b", 1);
-        boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
+        boolean smartPruneEnable = parseArgsBoolean(args, "prune");
         int forceRootAction = parseArgsInt(args, "a", -1);
 
         long start = System.currentTimeMillis();
         long startNodeCount = state.total_n;
         state.setMultithreaded(numberOfThreads * batchSize > 1);
-        AtomicLong nodeCount = new AtomicLong(state.total_n);
-        AtomicLong nodeDoneCount = new AtomicLong(state.total_n);
+        AtomicLong nodeCount = new AtomicLong(state.total_n + (state.policy == null ? 0 : 1));
+        AtomicLong nodeDoneCount = new AtomicLong(state.total_n + (state.policy == null ? 0 : 1));
         modelExecutor.start(numberOfThreads, batchSize);
         numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
         allocateThreadMCTS(modelExecutor, numberOfThreads);
@@ -1620,7 +1673,7 @@ public class InteractiveMode {
             modelExecutor.addAndStartProducerThread(() -> {
                 long c = nodeCount.addAndGet(1);
                 while (c <= count) {
-                    threadMCTS.get(_i).search(state, false, smartPruneDisable ? -1 : (int) (count - c + 1));
+                    threadMCTS.get(_i).search(state, false, smartPruneEnable ? (int) (count - c + 1) : -1);
                     nodeDoneCount.addAndGet(1);
                     c = nodeCount.addAndGet(1);
                 }
@@ -1628,7 +1681,7 @@ public class InteractiveMode {
                 while (!modelExecutor.producerWaitForClose(_i));
             });
         }
-        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, start, "nodes", null);
+        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, null, start, "nodes", null);
         modelExecutor.stop();
         state.setMultithreaded(false);
 
@@ -1644,20 +1697,20 @@ public class InteractiveMode {
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
-    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, long startTime, String item, Supplier<String> extraDetails) {
+    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, AtomicLong producersCount, long startTime, String item, Supplier<String> extraDetails) {
         long lastPrintTime = System.currentTimeMillis() - 4000; // print after 1 second immediately
         long lastSleepDuration = 5;
-        while (doneCount.get() < totalCount) {
+        while (doneCount.get() < totalCount && (producersCount == null || producersCount.get() > 0)) {
             Utils.sleep(lastSleepDuration);
             lastSleepDuration = Math.min(lastSleepDuration * 2, 100);
             if (System.currentTimeMillis() - lastPrintTime > 5000) {
                 double speed = ((double) doneCount.get() - startCount) / (System.currentTimeMillis() - startTime) * 1000;
-                out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
+                out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
                 lastPrintTime = System.currentTimeMillis();
             }
         }
-        double speed = ((double) Math.max(0, totalCount - startCount)) / (System.currentTimeMillis() - startTime) * 1000;
-        out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + (doneCount.get() - startCount) + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
+        double speed = ((double) Math.max(0, doneCount.get() - startCount)) / (System.currentTimeMillis() - startTime) * 1000;
+        out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
     }
 
     private Tuple<GameState, Integer> runNNPV(GameState state, List<String> pv, String line, List<String> history) {
@@ -1684,20 +1737,31 @@ public class InteractiveMode {
             modelExecutor.start(numberOfThreads, batchSize);
             var numberOfProducers = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
             allocateThreadMCTS(modelExecutor, numberOfProducers);
+            AtomicLong producersCount = new AtomicLong(numberOfProducers);
             var _s = s;
             for (int i = 0; i < numberOfProducers; i++) {
                 final int _i = i;
                 modelExecutor.addAndStartProducerThread(() -> {
                     long c = nodeCount.addAndGet(1);
+                    int consecutiveOneMoveRemaining = 0;
                     while (c <= count) {
                         threadMCTS.get(_i).search(_s, false, smartPruneDisable ? -1 : (int) (count - c + 1));
                         nodeDoneCount.addAndGet(1);
+                        if (threadMCTS.get(_i).numberOfPossibleActions == 1) {
+                            consecutiveOneMoveRemaining++;
+                            if (consecutiveOneMoveRemaining > 20) {
+                                break;
+                            }
+                        } else {
+                            consecutiveOneMoveRemaining = 0;
+                        }
                         c = nodeCount.addAndGet(1);
                     }
+                    producersCount.decrementAndGet();
                     while (!modelExecutor.producerWaitForClose(_i));
                 });
             }
-            waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, curStart, "nodes", () -> {
+            waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, producersCount, curStart, "nodes", () -> {
                 StringBuilder o = new StringBuilder();
                 GameState curS = _s;
                 while (curS.isTerminal() == 0) {
@@ -1756,7 +1820,8 @@ public class InteractiveMode {
                 out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
                 return new Tuple<>(s, action);
             } else if (ns instanceof GameState ns2) {
-                if (clear) { s.clearAllSearchInfo(); ns2.clearAllSearchInfo(); }
+                if (clear || Configuration.isBanTranspositionInTreeOn(ns2)) { s.clearAllSearchInfo(); ns2.clearAllSearchInfo(); }
+                ns2.bannedActions = null;
                 s = ns2;
             } else {
                 out.println("Unknown ns: " + state);
@@ -1852,7 +1917,7 @@ public class InteractiveMode {
                 while (!modelExecutor.producerWaitForClose(_i));
             });
         }
-        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, start, "outcomes", null);
+        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, null, start, "outcomes", null);
         modelExecutor.stop();
 
         var sortedPvs = pvs.entrySet().stream().map(pv -> {
@@ -1918,7 +1983,7 @@ public class InteractiveMode {
                 }
             });
         }
-        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, start, "trials", null);
+        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, null, start, "trials", null);
         modelExecutor.stop();
 
         pvs.forEach((_k, v) -> {

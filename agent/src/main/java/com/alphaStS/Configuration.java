@@ -48,6 +48,10 @@ public class Configuration {
         return TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE && (!TEST_TRANSPOSITION_ALWAYS_EXPAND_NEW_NODE || state.prop.testNewFeature);
     }
 
+    public static boolean isTranspositionAcrossChanceNodeOn(GameState state) {
+        return TRANSPOSITION_ACROSS_CHANCE_NODE && (!TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature);
+    }
+
     public static boolean USE_UTILITY_STD_ERR_FOR_PUCT = false;
     public static boolean TEST_USE_UTILITY_STD_ERR_FOR_PUCT = false;
 
@@ -60,6 +64,13 @@ public class Configuration {
 
     public static boolean isUseDmgDistributionOn(GameState state) {
         return USE_DMG_DISTRIBUTION && (!TEST_USE_DMG_DISTRIBUTION || state.prop.testNewFeature);
+    }
+
+    public static boolean BAN_TRANSPOSITION_IN_TREE = false;
+    public static boolean TEST_BAN_TRANSPOSITION_IN_TREE = false;
+
+    public static boolean isBanTranspositionInTreeOn(GameState state) {
+        return BAN_TRANSPOSITION_IN_TREE && (!TEST_BAN_TRANSPOSITION_IN_TREE || state.prop.testNewFeature);
     }
 
     // having this help network know when it's almost losing due to 50 turns losing rule

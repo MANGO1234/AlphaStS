@@ -29,6 +29,10 @@ public class MCTS {
         this.model = model;
     }
 
+    private static final int SEARCH_SUCCESS = 0;
+    private static final int SEARCH_RETRY = 1;
+    private static final int SEARCH_NO_ACTIONS_LEFT = 2;
+
     void search(GameState state, boolean training, int remainingCalls) {
         exploredV = null;
         search2(state, training, remainingCalls);
@@ -43,14 +47,14 @@ public class MCTS {
         }
     }
 
-    void search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level) {
+    int search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level) {
         if (exploredV != null) {
             for (int i = 0; i < state.prop.v_total_len; i++) {
                 state.initSearchInfo2();
                 v[i] = exploredV[i];
                 state.q[i] += v[i];
             }
-            return;
+            return SEARCH_SUCCESS;
         }
         if (state.terminal_action >= 0) {
             for (int i = 0; i < state.prop.v_total_len; i++) {
@@ -58,7 +62,7 @@ public class MCTS {
                 realV[i] = v[i];
             }
             numberOfPossibleActions = 1;
-            return;
+            return SEARCH_SUCCESS;
         }
         if (state.isTerminal() != 0) {
             state.get_v(v);
@@ -70,7 +74,7 @@ public class MCTS {
             if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
-            return;
+            return SEARCH_SUCCESS;
         }
         if (state.policy == null) {
             state.doEval(model);
@@ -83,7 +87,7 @@ public class MCTS {
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v[GameState.V_COMB_IDX];
             state.varianceS = 0;
-            return;
+            return SEARCH_SUCCESS;
         }
         if (state.n == null) {
             state.initSearchInfo();
@@ -93,6 +97,9 @@ public class MCTS {
         selectAction(state, policy, training, isRoot);
         int action = ret[0];
         int numberOfActions = ret[1];
+        if (numberOfActions == 0) {
+            return SEARCH_NO_ACTIONS_LEFT;
+        }
 
         State nextState = state.ns[action];
         GameState state2;
@@ -103,7 +110,7 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
+                if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     var s = state.transpositions.get(state2);
                     if (s == null || s instanceof ChanceState) {
                         if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
@@ -130,6 +137,9 @@ public class MCTS {
                     this.search2_r(state2, training, remainingCalls, false, level + 1);
                     ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
                 } else {
+                    if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                        state2.doAction(0);
+                    }
                     state.ns[action] = new ChanceState(state2, state, action);
                     this.search2_r(state2, training, remainingCalls, false, level + 1);
                     ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
@@ -162,6 +172,10 @@ public class MCTS {
                         this.search2_r(state2, training, remainingCalls, false, level);
                     }
                 } else if (s instanceof GameState ns) {
+                    if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
+                        addBannedAction(state, action);
+                        return SEARCH_RETRY;
+                    }
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
                         state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
                     }
@@ -173,6 +187,10 @@ public class MCTS {
                         v[i] = ns.q[i] / (ns.total_n + 1);
                     }
                 } else if (s instanceof ChanceState ns) {
+                    if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
+                        addBannedAction(state, action);
+                        return SEARCH_RETRY;
+                    }
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
                         state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
                     }
@@ -192,7 +210,9 @@ public class MCTS {
                 if (state.n[action] < cState.total_n) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
                         state2 = cState.getNextState(true, level);
-                        this.search2_r(state2, training, remainingCalls, false, level + 1);
+                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1)) {
+                            Integer.parseInt(null); // fail for now
+                        }
                         cState.correctV(state2, v, realV);
 //                        if (state.getAction(action).type() == GameActionType.END_TURN) {
                         if (true) {
@@ -205,7 +225,9 @@ public class MCTS {
                     }
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         state2 = cState.getNextState(true, level);
-                        this.search2_r(state2, training, remainingCalls, false, level + 1);
+                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1)) {
+                            Integer.parseInt(null); // fail for now
+                        }
                         cState.correctV(state2, v, realV);
                     }
                     for (int i = 0; i < state.prop.v_total_len; i++) {
@@ -213,7 +235,9 @@ public class MCTS {
                     }
                 } else {
                     state2 = cState.getNextState(true, level);
-                    this.search2_r(state2, training, remainingCalls, false, level + 1);
+                    if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1)) {
+                        Integer.parseInt(null); // fail for now
+                    }
                     cState.correctV(state2, v, realV);
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
                         var parents = state2.transpositionsParent.get(state2);
@@ -225,17 +249,22 @@ public class MCTS {
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.prop.testNewFeature)) {
-                        this.search2_r(nState, training, remainingCalls, false, level);
+                        if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level)) {
+                            return SEARCH_RETRY;
+                        }
                         updateTranspositions(nState, nState, state, action);
-                    }
-                    if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        this.search2_r(nState, training, remainingCalls, false, level);
+                    } else if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
+                        if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level)) {
+                            return SEARCH_RETRY;
+                        }
                     }
                     for (int i = 0; i < state.prop.v_total_len; i++) {
                         v[i] = nState.q[i] / (nState.total_n + 1) * (state.n[action] + 1) - state.q[(action + 1) * state.prop.v_total_len + i];
                     }
                 } else {
-                    this.search2_r(nState, training, remainingCalls, false, level);
+                    if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level)) {
+                       return SEARCH_RETRY;
+                    }
                 }
             }
         }
@@ -262,9 +291,22 @@ public class MCTS {
             }
         }
         numberOfPossibleActions = numberOfActions;
+        return SEARCH_SUCCESS;
     }
 
-    void search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
+    private boolean handleFailedSearch2(GameState state, int action, GameState childState, boolean training, int remainingCalls, boolean isRoot, int level) {
+        while (true) {
+            int ret = search2_r(childState, training, remainingCalls, isRoot, level);
+            if (ret == SEARCH_SUCCESS) {
+                return false;
+            } else if (ret == SEARCH_NO_ACTIONS_LEFT) {
+                addBannedAction(state, action);
+                return true;
+            }
+        }
+    }
+
+    int search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
         if (state.terminal_action >= 0) {
             state.readLock();
             for (int i = 0; i < state.prop.v_total_len; i++) {
@@ -273,7 +315,7 @@ public class MCTS {
             }
             state.readUnlock();
             numberOfPossibleActions = 1;
-            return;
+            return SEARCH_SUCCESS;
         }
 
         if (state.isTerminal() != 0) {
@@ -286,7 +328,7 @@ public class MCTS {
             if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
-            return;
+            return SEARCH_SUCCESS;
         }
 
         if (state.policy == null) {
@@ -303,7 +345,7 @@ public class MCTS {
                 state.varianceM = v[GameState.V_COMB_IDX];
                 state.varianceS = 0;
                 state.writeUnlock();
-                return;
+                return SEARCH_SUCCESS;
             }
             state.writeUnlock();
         }
@@ -322,6 +364,12 @@ public class MCTS {
         selectAction(state, policy, training, isRoot);
         int action = ret[0];
         int numberOfActions = ret[1];
+        if (numberOfActions == 0) {
+            if (addVirtualLoss) {
+                state.virtualLoss.decrementAndGet();
+            }
+            return SEARCH_NO_ACTIONS_LEFT;
+        }
 
         State nextState = state.ns[action];
         if (nextState == null) {
@@ -336,7 +384,7 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
+                if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     state.transpositionsLock.lock();
                     var s = state.transpositions.get(state2);
                     if (s == null || s instanceof ChanceState) {
@@ -353,18 +401,33 @@ public class MCTS {
                     var node = cState.addGeneratedStateParallel(state2);
                     state.ns[action] = cState;
                     state.writeUnlock();
-                    this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false);
+                    if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false)) {
+                        Integer.parseInt(null); // fail for now
+                    }
                     cState.correctVParallel(node, false, v, realV);
                 } else {
+                    if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
+                        state2.doAction(0);
+                    }
                     var cState = new ChanceState(state2, state, action);
                     var node = cState.addGeneratedStateParallel(state2);
                     state.ns[action] = cState;
                     state.writeUnlock();
-                    this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false);
+                    if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false)) {
+                        Integer.parseInt(null); // fail for now
+                    }
                     cState.correctVParallel(node, false, v, realV);
                 }
             } else {
                 state.transpositionsLock.lock();
+                if (state.bannedActions != null && state.bannedActions[action]) {
+                    state.transpositionsLock.unlock();
+                    state.writeUnlock();
+                    if (addVirtualLoss) {
+                        state.virtualLoss.decrementAndGet();
+                    }
+                    return SEARCH_RETRY;
+                }
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
@@ -384,14 +447,33 @@ public class MCTS {
                         state.transpositionsLock.unlock();
                         state.ns[action] = state2;
                         state.writeUnlock();
-                        this.search2parallel_r(state2, training, remainingCalls, false, level, true);
+                        if (handleFailedSearch2Parallel(state, action, state2, training, remainingCalls, false, level, true)) {
+                            if (addVirtualLoss) {
+                                state.virtualLoss.decrementAndGet();
+                            }
+                            return SEARCH_RETRY;
+                        }
                     }
                 } else if (s instanceof GameState ns) {
+                    if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
+                        addBannedAction(state, action);
+                        state.transpositionsLock.unlock();
+                        state.writeUnlock();
+                        if (addVirtualLoss) {
+                            state.virtualLoss.decrementAndGet();
+                        }
+                        return SEARCH_RETRY;
+                    }
                     state.transpositionsLock.unlock();
                     state.ns[action] = ns;
                     state.writeUnlock();
                     if (ns.q == null || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        this.search2parallel_r(ns, training, remainingCalls, false, level, true);
+                        if (handleFailedSearch2Parallel(state, action, ns, training, remainingCalls, false, level, true)) {
+                            if (addVirtualLoss) {
+                                state.virtualLoss.decrementAndGet();
+                            }
+                            return SEARCH_RETRY;
+                        }
                     }
                     ns.readLock();
                     for (int i = 0; i < state.prop.v_total_len; i++) {
@@ -399,12 +481,23 @@ public class MCTS {
                     }
                     ns.readUnlock();
                 } else if (s instanceof ChanceState ns) {
+                    if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
+                        addBannedAction(state, action);
+                        state.transpositionsLock.unlock();
+                        state.writeUnlock();
+                        if (addVirtualLoss) {
+                            state.virtualLoss.decrementAndGet();
+                        }
+                        return SEARCH_RETRY;
+                    }
                     state.transpositionsLock.unlock();
                     state.ns[action] = ns;
                     state.writeUnlock();
                     if (ns.total_n == 0 || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         var n = ns.getNextStateParallel();
-                        this.search2parallel_r(n.v1().state, training, remainingCalls, false, level + 1, false);
+                        if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false)) {
+                            Integer.parseInt(null); // fail for now
+                        }
                         ns.correctVParallel(n.v1(), n.v2(), v, realV);
                     }
                     ns.readLock();
@@ -418,10 +511,13 @@ public class MCTS {
             }
         } else {
             if (nextState instanceof ChanceState cState) {
-                if (state.n[action] < cState.total_n) {
+                if (state.n[action] < cState.total_n && !Configuration.isBanTranspositionInTreeOn(state)) {
+                    // hmm this is buggy because this can be true even if it's not transposed due to multithreading...
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         var n = cState.getNextStateParallel();
-                        this.search2parallel_r(n.v1().state, training, remainingCalls, false, level + 1, false);
+                        if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false)) {
+                            Integer.parseInt(null); // fail for now
+                        }
                         cState.correctVParallel(n.v1(), n.v2(), v, realV);
                     }
                     state.readLock();
@@ -433,13 +529,18 @@ public class MCTS {
                     state.readUnlock();
                 } else {
                     var n = cState.getNextStateParallel();
-                    this.search2parallel_r(n.v1().state, training, remainingCalls, false, level + 1, false);
+                    if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false)) {
+                        Integer.parseInt(null); // fail for now
+                    }
                     cState.correctVParallel(n.v1(), n.v2(), v, realV);
                 }
             } else if (nextState instanceof GameState nState) {
-                if (state.n[action] < nState.total_n + 1) {
+                if (state.n[action] < nState.total_n + 1 && !Configuration.isBanTranspositionInTreeOn(state)) {
+                    // hmm this is buggy because this can be true even if it's not transposed due to multithreading...
                     if (nState.q == null || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        this.search2parallel_r(nState, training, remainingCalls, false, level, true);
+                        if (handleFailedSearch2Parallel(state, action, nState, training, remainingCalls, false, level, true)) {
+                            Integer.parseInt(null); // fail for now
+                        }
                     }
                     state.readLock();
                     nState.readLock();
@@ -449,7 +550,12 @@ public class MCTS {
                     nState.readUnlock();
                     state.readUnlock();
                 } else {
-                    this.search2parallel_r(nState, training, remainingCalls, false, level, true);
+                    if (handleFailedSearch2Parallel(state, action, nState, training, remainingCalls, false, level, true)) {
+                        if (addVirtualLoss) {
+                            state.virtualLoss.decrementAndGet();
+                        }
+                        return SEARCH_RETRY;
+                    }
                 }
             }
         }
@@ -458,7 +564,10 @@ public class MCTS {
         if (state.terminal_action >= 0) {
             state.writeUnlock(); // another thread may have detected terminal action
             search2parallel_r(state, training, remainingCalls, isRoot, level, addVirtualLoss);
-            return;
+            if (addVirtualLoss) {
+                state.virtualLoss.decrementAndGet();
+            }
+            return SEARCH_SUCCESS;
         }
         for (int i = 0; i < state.prop.v_total_len; i++) {
             state.q[(action + 1) * state.prop.v_total_len + i] += v[i];
@@ -486,6 +595,31 @@ public class MCTS {
             state.virtualLoss.decrementAndGet();
         }
         numberOfPossibleActions = numberOfActions;
+        return SEARCH_SUCCESS;
+    }
+
+    private static void addBannedAction(GameState state, int action) {
+        if (state.bannedActions == null) {
+            boolean[] bannedActions = new boolean[state.getLegalActions().length];
+            bannedActions[action] = true;
+            state.bannedActions = bannedActions;
+        } else {
+            state.bannedActions[action] = true;
+        }
+    }
+
+    private boolean handleFailedSearch2Parallel(GameState state, int action, GameState childState, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
+        while (true) {
+            int ret = search2parallel_r(childState, training, remainingCalls, isRoot, level, addVirtualLoss);
+            if (ret == SEARCH_SUCCESS) {
+                return false;
+            } else if (ret == SEARCH_NO_ACTIONS_LEFT) {
+                state.writeLock();
+                addBannedAction(state, action);
+                state.writeUnlock();
+                return true;
+            }
+        }
     }
 
     public boolean cannotImproveState(GameState state) {
@@ -633,7 +767,7 @@ public class MCTS {
             state2 = state.clone(true);
             state2.doAction(action);
             if (state2.isStochastic) {
-                if (Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE && (!Configuration.TEST_TRANSPOSITION_ACROSS_CHANCE_NODE || state.prop.testNewFeature)) {
+                if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     var s = state.transpositions.get(state2);
                     if (s == null) {
                         state.ns[action] = new ChanceState(state2, state, action);
@@ -1121,7 +1255,7 @@ public class MCTS {
         boolean useFightProgress = Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING;
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (policy[i] <= 0) {
+                if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
                     continue;
                 }
                 double q_win = state.n[i] > 0 ? state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX] / state.n[i] : 1;
@@ -1137,7 +1271,7 @@ public class MCTS {
         double[] qValues = new double[state.getLegalActions().length];
         double[] puct = new double[state.getLegalActions().length];
         for (int i = 0; i < state.getLegalActions().length; i++) {
-            if (policy[i] <= 0) {
+            if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
                 continue;
             }
             numberOfActions += 1;
@@ -1188,7 +1322,7 @@ public class MCTS {
         // when training: use KataGo's forced playout to help exploration
         if (Configuration.TRAINING_USE_FORCED_PLAYOUT && training && isRoot) {
             for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (policy[i] <= 0) {
+                if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
                     continue;
                 }
                 var force_n = (int) Math.sqrt(0.5 * policy[i] * state.total_n);
@@ -1206,7 +1340,7 @@ public class MCTS {
         }
         if (!doForcePlayout) {
             for (int i = 0; i < state.getLegalActions().length; i++) {
-                if (policy[i] <= 0) {
+                if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
                     continue;
                 }
                 if (uValues[i] > maxU) {
@@ -1217,7 +1351,7 @@ public class MCTS {
             if (Configuration.USE_NEW_ACTION_SELECTION && state.prop.testNewFeature && state.n[action] > 0) {
                 double maxQ = -100000;
                 for (int i = 0; i < state.getLegalActions().length; i++) {
-                    if (policy[i] <= 0 || state.n[i] <= 0) {
+                    if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                         continue;
                     }
                     if (qValues[i] > maxQ) {
@@ -1228,7 +1362,7 @@ public class MCTS {
                 double currentQ = qValues[action];
                 if (currentQ >= 0.999 * maxQ) {
                     for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (policy[i] <= 0) {
+                        if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
                             continue;
                         }
                         if (state.n[i] > 0 && qValues[i] >= 0.999 * maxQ) {
@@ -1241,7 +1375,7 @@ public class MCTS {
                     }
                     maxU = -1000000;
                     for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (policy[i] <= 0) {
+                        if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i])) {
                             continue;
                         }
                         if (uValues[i] > maxU) {
@@ -1254,7 +1388,7 @@ public class MCTS {
             if (!useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0) {
                 double maxQ = -100000;
                 for (int i = 0; i < state.getLegalActions().length; i++) {
-                    if (policy[i] <= 0 || state.n[i] <= 0) {
+                    if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                         continue;
                     }
                     if (qValues[i] > maxQ) {
@@ -1269,7 +1403,7 @@ public class MCTS {
                 // double currentQ = qValues[action];
                 // if (currentQ >= 0.999 * maxQ) {
                 //     for (int i = 0; i < state.getLegalActions().length; i++) {
-                //         if (policy[i] <= 0 || state.n[i] <= 0) {
+                //         if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                 //             continue;
                 //         }
                 //         double turns = state.q[(i + 1) * state.prop.v_total_len + state.prop.finalTurnNumVIdx] / state.n[i];
@@ -1285,7 +1419,7 @@ public class MCTS {
                 double currentQ = qValues[action];
                 if (currentQ >= 0.999 * maxQ) {
                     for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (policy[i] <= 0 || state.n[i] <= 0) {
+                        if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                             continue;
                         }
                         double turns2 = state.q[(i + 1) * state.prop.v_total_len + state.prop.turnsLeftVIdx] / state.n[i];
@@ -1294,7 +1428,7 @@ public class MCTS {
                         }
                     }
                     for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (policy[i] <= 0 || state.n[i] <= 0) {
+                        if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                             continue;
                         }
                         if (uValues[i] > maxU) {

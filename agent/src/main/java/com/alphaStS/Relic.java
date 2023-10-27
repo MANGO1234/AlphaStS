@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.Action.CardDrawAction;
+import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
@@ -907,11 +908,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }
             state.addOnExhaustHandler("DeadBranch", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    var idx = state.getSearchRandomGen().nextInt(state.prop.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.prop.deadBranchCardsIdxes));
-                    state.addCardToHand(state.prop.deadBranchCardsIdxes[idx]);
-                    state.setIsStochastic();
-                    if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
-                    state.getStateDesc().append("Dead Branch -> ").append(state.prop.cardDict[state.prop.deadBranchCardsIdxes[idx]].cardName);
+                    state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                        @Override public void doAction(GameState state) {
+                            var idx = state.getSearchRandomGen().nextInt(state.prop.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.prop.deadBranchCardsIdxes));
+                            idx = state.addCardToHandGeneration(state.prop.deadBranchCardsIdxes[idx]);
+                            state.setIsStochastic();
+                            if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
+                            state.getStateDesc().append("Dead Branch -> ").append(state.prop.cardDict[idx].cardName);
+                        }
+                    });
                 }
             });
         }
@@ -1219,7 +1224,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Unceasing Top
+    public static class UnceasingTop extends Relic {
+        @Override public void startOfGameSetup(GameState state) {
+            state.prop.hasUnceasingTop = true;
+        }
+    }
 
     // **********************************************************************************************************************************************
     // ************************************************************** Shop Relics *******************************************************************

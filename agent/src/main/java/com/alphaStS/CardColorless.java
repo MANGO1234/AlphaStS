@@ -368,7 +368,7 @@ public class CardColorless {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.handArrTransform(state.prop.upgradeIdxes);
             state.discardArrTransform(state.prop.upgradeIdxes);
-            for (int i = 0; i < state.prop.upgradeIdxes.length; i++) {
+            for (int i = 0; i < state.prop.realCardsLen; i++) {
                 if (state.getDeckForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
                     state.getDeckForWrite()[state.prop.upgradeIdxes[i]] += state.getDeckForWrite()[i];
                     state.getDeckForWrite()[i] = 0;

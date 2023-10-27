@@ -165,77 +165,6 @@ public class MatchSession {
                 }
                 state.clearAllSearchInfo();
             }
-        } else if (false) {
-            nodeCount /= 5;
-            while (state.isTerminal() == 0) {
-                HashMap<GameStep, List<GameStep>> endStateSteps = new HashMap<>();
-                HashMap<GameStep, Integer> endStateCount = new HashMap<>();
-                for (int c = 0; c < 5; c++) {
-                    var tempSteps = new ArrayList<GameStep>();
-                    var cloneState = state.clone(false);
-                    while (true) {
-                        int upto = nodeCount - (cloneState.total_n + (cloneState.policy == null ? 0 : 1));
-                        for (int i = 0; i < upto; i++) {
-                            mcts.search(cloneState, false, upto - i);
-                            if (mcts.numberOfPossibleActions == 1 && cloneState.total_n > 0) {
-                                break;
-                            }
-                        }
-
-                        int action = MCTS.getActionWithMaxNodesOrTerminal(cloneState);
-                        tempSteps.add(new GameStep(cloneState, action));
-
-                        cloneState.prop.makingRealMove = true;
-                        if (cloneState.actionCtx == GameActionCtx.BEGIN_BATTLE) {
-                            cloneState = cloneState.clone(false);
-                            r = cloneState.doAction(0);
-                        } else if (cloneState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
-                            cloneState = cloneState.clone(false);
-                            preBattle_r = cloneState.doAction(0);
-                        } else {
-                            if (nodeCount == 1) {
-                                cloneState = cloneState.clone(false);
-                                cloneState.doAction(action);
-                                if (cloneState.actionCtx == GameActionCtx.BEGIN_TURN) {
-                                    cloneState.doAction(0);
-                                }
-                            } else {
-                                cloneState = getNextState(cloneState, mcts, action, tempSteps.get(tempSteps.size() - 1), false);
-                            }
-                        }
-
-                        if (cloneState.isTerminal() != 0 || cloneState.isStochastic) {
-                            break;
-                        }
-                    }
-
-                    endStateSteps.put(tempSteps.get(tempSteps.size() - 1), tempSteps);
-                    endStateCount.put(tempSteps.get(tempSteps.size() - 1), endStateCount.getOrDefault(tempSteps.get(tempSteps.size() - 1), 0) + 1);
-                }
-
-                // get game step with max count
-                var mostFrequentPV = endStateCount.entrySet().stream().max(Map.Entry.comparingByValue()).get().getKey();
-                var mostFrequentPVSteps = endStateSteps.get(mostFrequentPV);
-                steps.addAll(mostFrequentPVSteps);
-                var lastStep = mostFrequentPVSteps.get(mostFrequentPVSteps.size() - 1);
-                if (lastStep.state().actionCtx == GameActionCtx.BEGIN_BATTLE) {
-                    state = lastStep.state().clone(false);
-                    r = state.doAction(0);
-                } else if (lastStep.state().actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
-                    state = lastStep.state().clone(false);
-                    preBattle_r = state.doAction(0);
-                } else {
-                    if (nodeCount == 1) {
-                        state = lastStep.state().clone(false);
-                        state.doAction(lastStep.action());
-                        if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
-                            state.doAction(0);
-                        }
-                    } else {
-                        state = getNextState(lastStep.state(), mcts, lastStep.action(), steps.get(steps.size() - 1), false);
-                    }
-                }
-            }
         } else {
             state.doEval(mcts.model);
             while (state.isTerminal() == 0) {
@@ -1048,8 +977,6 @@ public class MatchSession {
             vCur = calcExpectedValue((ChanceState) prevStep.state().ns[prevStep.action()], null, mcts, vCur);
             vPro = Arrays.copyOf(vCur, vCur.length);
         }
-        double health = state.getPlayeForRead().getHealth() / (double) state.getPlayeForRead().getMaxHealth();
-        int win = state.isTerminal() > 0 ? 1 : 0;
         ChanceState lastChanceState = null;
         for (int i = steps.size() - 2; i >= 0; i--) {
             if (!USE_Z_TRAINING && steps.get(i).isExplorationMove) {
@@ -1086,8 +1013,6 @@ public class MatchSession {
             }
             steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
             if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
-//                steps.get(i).v[state.prop.qwinVIdx] = win;
-//                steps.get(i).v[state.prop.qwinVIdx + 1] = health;
                 steps.get(i).v[state.prop.qwinVIdx] = steps.get(i).v[GameState.V_WIN_IDX] - (steps.get(i).state().q[GameState.V_WIN_IDX] / (steps.get(i).state().total_n + 1));
                 steps.get(i).v[state.prop.qwinVIdx + 1] = steps.get(i).v[GameState.V_HEALTH_IDX] - (steps.get(i).state().q[GameState.V_HEALTH_IDX] / (steps.get(i).state().total_n + 1));
             }
@@ -1163,6 +1088,9 @@ public class MatchSession {
         while (true) {
             if (state.isTerminal() != 0) {
                 break;
+            }
+            if (Configuration.BAN_TRANSPOSITION_IN_TREE) {
+                state.clearAllSearchInfo();
             }
             int todo = nodeCount - state.total_n;
             for (int i = 0; i < todo; i++) {
@@ -1665,6 +1593,7 @@ public class MatchSession {
                 newState.isStochastic = false;
             }
         }
+        newState.bannedActions = null;
         return newState;
     }
 

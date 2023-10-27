@@ -25,6 +25,7 @@ print(tf.config.list_physical_devices('GPU'))
 
 DO_TRAINING = getFlag('-training')
 USE_GPU = getFlag('-gpu')
+USE_GPU_AGENT_ONLY = getFlag('-gpu_agent')
 SKIP_TRAINING_MATCHES = getFlag('-s')
 PLAY_A_GAME = getFlag('-p')
 PLAY_MATCHES = getFlag('-m')
@@ -50,7 +51,7 @@ if NUMBER_OF_THREADS_TRAINING > 0:
 
 if not USE_GPU:
     import tf2onnx
-    onnx_jar = "onnxruntime/1.10.0/onnxruntime-1.10.0.jar"
+    onnx_jar = "onnxruntime_gpu/1.10.0/onnxruntime_gpu-1.10.0.jar" if USE_GPU_AGENT_ONLY else "onnxruntime/1.10.0/onnxruntime-1.10.0.jar"
 else:
     onnx_jar = "onnxruntime_gpu/1.10.0/onnxruntime_gpu-1.10.0.jar"
 
@@ -547,7 +548,6 @@ if DO_TRAINING:
         print(f'accumulated time={iteration_info["accumulated_time"]}')
         with open(f'{SAVES_DIR}/training.json', 'w') as f:
             json.dump(training_info, f)
-        convertToOnnx(model, input_len, f'{SAVES_DIR}/iteration{training_info["iteration"]}')
 
         if _iteration == ITERATION_COUNT:
             agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,

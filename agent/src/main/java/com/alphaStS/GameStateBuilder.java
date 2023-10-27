@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
+import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,15 @@ public class GameStateBuilder {
     private GameEventHandler startOfGameSetupHandler = null;
     private GameEventHandler endOfPreBattleSetupHandler = null;
     private int[] potionsScenarios;
+    private List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
+
+    public void setEnemiesEncountersIdx(List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx) {
+        this.enemiesEncountersIdx = enemiesEncountersIdx;
+    }
+
+    public List<List<Tuple<Integer, Integer>>> getEnemiesEncountersIdx() {
+        return enemiesEncountersIdx;
+    }
 
     public GameStateBuilder() {
     }

@@ -1319,7 +1319,7 @@ public class CardDefect {
     }
 
     public static class ForceField extends Card {
-        private ForceField(int energyCost) {
+        public ForceField(int energyCost) {
             super("Force Field (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
         }
 
@@ -1365,7 +1365,20 @@ public class CardDefect {
                         }
                         state.handArrTransform(state.prop.forceFieldTransformIndexes);
                         state.discardArrTransform(state.prop.forceFieldTransformIndexes);
+                        state.getCounterForWrite()[counterIdx]++;
                     }
+                }
+            });
+            state.prop.registerCounter("ForceField", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.prop.forceFieldCounterIdx = counterIdx;
                 }
             });
         }
@@ -2802,13 +2815,15 @@ public class CardDefect {
             if (state.getOrbs() != null) {
                 int n = 0;
                 while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
-                    state.evokeOrb(1);
+                    if (upgraded) {
+                        state.evokeOrb(1);
+                    } else {
+                        state.removeRightmostOrb();
+                    }
                     n++;
                 }
                 state.gainEnergy(n);
-                if (upgraded) {
-                    state.draw(n);
-                }
+                state.draw(n);
             }
             return GameActionCtx.PLAY_CARD;
         }

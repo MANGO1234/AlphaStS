@@ -577,6 +577,7 @@ public interface GameStateRandomization {
         @Override public int randomize(GameState state) {
             int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
+            state.prop.enemiesEncounterChosen = r;
             return r;
         }
 
