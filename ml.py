@@ -123,10 +123,13 @@ if os.path.exists(f'{SAVES_DIR}/training.json'):
     with open(f'{SAVES_DIR}/training.json', 'r') as f:
         training_info = json.load(f)
 else:
-    try:
-        os.mkdir(SAVES_DIR)
-    except:
-        pass
+    # try:
+    folder_path = os.path.join("D:/tmp", os.path.basename(SAVES_DIR))
+    os.makedirs(folder_path, exist_ok=True)
+    os.symlink(folder_path, SAVES_DIR, target_is_directory=True)
+    # os.mkdir(SAVES_DIR)
+    # except:
+    #     pass
     training_info = {'iteration': 1, 'iteration_info': {}}
     with open(f'{SAVES_DIR}/training.json', 'w') as f:
         json.dump(training_info, f)
@@ -461,7 +464,7 @@ if DO_TRAINING:
         iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
 
-        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
+        agent_args = ['java', '-XX:HeapDumpPath="D:/tmp/agent.hprof"', '-XX:+HeapDumpOnOutOfMemoryError', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, '-Djava.io.tmpdir=D:/tmp',
                       'com.alphaStS.Main', '--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-training-c', str(TRAINING_NUM_OF_GAMES), '-training-n', str(TRAINING_NODE_COUNT), '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
@@ -564,7 +567,7 @@ if DO_TRAINING:
             json.dump(training_info, f)
 
         if _iteration == ITERATION_COUNT:
-            agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
+            agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, '-Djava.io.tmpdir=D:/tmp',
                                            'com.alphaStS.Main', '--training', '-tm', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stdout.decode('ascii'))
