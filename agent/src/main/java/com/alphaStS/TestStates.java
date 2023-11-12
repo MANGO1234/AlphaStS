@@ -1796,6 +1796,62 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectD() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new Card.Strike(), 3);
+        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Hologram(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.FTL(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.SunderP(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 2);
+        builder.addCard(new CardDefect.ChargeBatteryP(), 1);
+        builder.addCard(new CardDefect.Rainbow(), 1);
+        builder.addCard(new CardDefect.ConsumeP(), 1);
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+        builder.addCard(new CardDefect.StaticDischarge(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 1);
+        builder.setPlayer(new Player(65, 65));
+        EnemyEncounter.addByrdsFight(builder);
+//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        EnemyEncounter.addSlaversEliteFight(builder);
+//        EnemyEncounter.addGremlinLeaderFight2(builder);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
+//                List.of(new Tuple<>(0, -1)),
+//                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
+//                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
+//        ));
+//        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
+//        builder.setRandomization(randomization);
+//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
+//                new int[] { 0, 1, 2 },
+//                new int[] { 3 },
+//                new int[] { 4 }
+//        );
+//        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+//                List.of(new CardCount(new CardDefect.WhiteNoise(), 1)),
+//                List.of(new CardCount(new CardDefect.StaticDischarge(), 1))
+//        ), true);
+//        builder.setRandomization(randomization);
+        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.clearAllSearchInfo();
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "do", "con", "zap", "def", "rain", "str", "co", "p", "coo", "dua", "e", "0", "1", "3", "2", "3", "2", "1", "2", "em", "0", "1", "em", "1", "1", "em", "2", "1", "eho", "0", "27", "eho", "1", "33", "eho", "2", "28", "exit"));
+            }
+        });
+        builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));
+        builder.setPotionsScenarios(3);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.MummifiedHand());
+        builder.addRelic(new Relic.SneckoEye());
+        return new GameState(builder);
+    }
+
     public static GameState TestStateSilent2() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);

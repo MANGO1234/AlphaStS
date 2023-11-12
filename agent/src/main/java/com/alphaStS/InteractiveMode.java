@@ -1142,6 +1142,9 @@ public class InteractiveMode {
             }
             int hpOrig = parseInt(line, -1);
             if (hpOrig >= 0) {
+                if (state.prop.curriculumTraining) {
+                    return;
+                }
                 int oldHp = state.getEnemiesForWrite().getForWrite(curEnemyIdx).getHealth();
                 int oldHpOrig = state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth;
                 state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth = hpOrig;

@@ -2025,6 +2025,9 @@ public final class GameState implements State {
         if (prop.hasToyOrniphopter && prop.potions.size() > 0) {
             return true;
         }
+        if (prop.regenerationCounterIdx >= 0) {
+            return true;
+        }
         if (prop.selfRepairCounterIdx >= 0) {
             return true;
         }

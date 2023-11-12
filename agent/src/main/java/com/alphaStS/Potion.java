@@ -579,6 +579,88 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
+    public static class AttackPotion extends Potion {
+        public AttackPotion() {
+            selectCard1OutOf3 = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+            int idx1 = state.getSearchRandomGen().nextInt(state.prop.attackPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.attackPotionIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.prop.attackPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.attackPotionIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.prop.attackPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.attackPotionIdxes) : null);
+            if (idx2 >= idx1) {
+                idx2++;
+            }
+            if (idx3 >= Math.min(idx1, idx2)) {
+                idx3++;
+            }
+            if (idx3 >= Math.max(idx1, idx2)) {
+                idx3++;
+            }
+            state.setSelect1OutOf3Idxes(state.prop.attackPotionIdxes[idx1], state.prop.attackPotionIdxes[idx2], state.prop.attackPotionIdxes[idx3]);
+            state.setIsStochastic();
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public String toString() {
+            return "Attack Potion";
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var l = new ArrayList<Card>(c);
+            for (Card card : c) {
+                if (card instanceof Card.CardTmpChangeCost t) {
+                    l.add(t.card);
+                }
+            }
+            return l;
+        }
+
+        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+            if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new Card.CardTmpChangeCost(new CardDefect.BallLightning(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Barrage(), 0),
+                        new CardDefect.BeamCell(),
+                        new CardDefect.Claw(),
+                        new Card.CardTmpChangeCost(new CardDefect.ColdSnap(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.CompiledDriver(), 0),
+                        new CardDefect.GoForTheEye(),
+                        new Card.CardTmpChangeCost(new CardDefect.Rebound(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Streamline(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.SweepingBeam(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Blizzard(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.BullsEye(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.DoomAndGloom(), 0),
+                        new CardDefect.FTL(),
+                        new Card.CardTmpChangeCost(new CardDefect.Melter(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.RipAndTear(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Scrape(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Sunder(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.AllForOne(0, 0), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.CoreSurge(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.HyperBeam(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.MeteorStrike(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.ThunderStrike(), 0)
+                );
+            }
+            throw new IllegalStateException();
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleSelect3OutOf1Cards(state.prop);
+            state.prop.attackPotionIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.prop.attackPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+            }
+        }
+    }
+
     public static class SkillPotion extends Potion {
         public SkillPotion() {
             selectCard1OutOf3 = true;

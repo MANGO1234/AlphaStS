@@ -1320,7 +1320,7 @@ public class CardDefect {
 
     public static class ForceField extends Card {
         public ForceField(int energyCost) {
-            super("Force Field (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+            super("Force Field (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }
 
         public ForceField() {
@@ -1386,7 +1386,7 @@ public class CardDefect {
 
     public static class ForceFieldP extends Card {
         private ForceFieldP(int energyCost) {
-            super("Force Field+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
+            super("Force Field+ (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }
 
         public ForceFieldP() {
@@ -2135,7 +2135,7 @@ public class CardDefect {
             });
             state.addOnDamageHandler("StaticDischarge", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (damageDealt >= 0 && isAttack) {
+                    if (damageDealt > 0 && isAttack) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                             state.channelOrb(OrbType.LIGHTNING);
                         }
