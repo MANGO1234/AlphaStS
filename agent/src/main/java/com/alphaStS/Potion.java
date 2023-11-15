@@ -257,14 +257,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 2;
                 }
             });
-            state.addStartOfTurnHandler("DuplicationPotion", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("DuplicationPotion", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForWrite()[counterIdx] != 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }
             });
-            state.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+            state.prop.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -385,7 +385,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             });
             // todo: when's timing of regeneration with regard to burn etc.
-            state.addPreEndOfTurnHandler("Regeneration", new GameEventHandler() {
+            state.prop.addPreEndOfTurnHandler("Regeneration", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().heal(state.getCounterForWrite()[counterIdx]--);
@@ -994,7 +994,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("CultistPotion", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("CultistPotion", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);

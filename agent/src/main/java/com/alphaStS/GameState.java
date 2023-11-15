@@ -344,7 +344,7 @@ public final class GameState implements State {
             orbs = new short[3 * 2];
         }
         if (builder.getStartOfGameSetup() != null) {
-            addStartOfBattleHandler(builder.getStartOfGameSetup());
+            prop.addStartOfBattleHandler(builder.getStartOfGameSetup());
         }
         if (builder.getEndOfPreBattleSetupHandler() != null) {
             prop.endOfPreBattleHandler = builder.getEndOfPreBattleSetupHandler();
@@ -644,7 +644,7 @@ public final class GameState implements State {
         prop.energyRefillCanChange = cards.stream().anyMatch((x) -> x.card().cardName.contains("Berserk"));
 //        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
         if (prop.healEndOfAct) {
-            addEndOfBattleHandler(new GameEventHandler() {
+            prop.addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     var d = state.getPlayeForRead().getMaxHealth() - state.getPlayeForRead().getHealth();
                     state.getPlayerForWrite().heal(d - d / 4);
@@ -3644,139 +3644,6 @@ public final class GameState implements State {
 
     public GameAction getAction(int i) {
         return prop.actionsByCtx[actionCtx.ordinal()][getLegalActions()[i]];
-    }
-
-    public void addStartOfBattleHandler(GameEventHandler handler) {
-        prop.startOfBattleHandlers.add(handler);
-    }
-
-    public void addStartOfBattleHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "StartOfBattler") == null) {
-            prop.gameEventHandlers.put(handlerName + "StartOfBattler", handler);
-            prop.startOfBattleHandlers.add(handler);
-        }
-    }
-
-    public void addEndOfBattleHandler(GameEventHandler handler) {
-        prop.endOfBattleHandlers.add(handler);
-    }
-
-    public void addEndOfBattleHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "EndOfGame") == null) {
-            prop.gameEventHandlers.put(handlerName + "EndOfGame", handler);
-            prop.endOfBattleHandlers.add(handler);
-        }
-    }
-
-    public void addStartOfTurnHandler(GameEventHandler handler) {
-        prop.startOfTurnHandlers.add(handler);
-    }
-
-    public void addStartOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "StartOfTurn") == null) {
-            prop.gameEventHandlers.put(handlerName + "StartOfTurn", handler);
-            prop.startOfTurnHandlers.add(handler);
-        }
-    }
-
-    public void addPreEndOfTurnHandler(GameEventHandler handler) {
-        prop.preEndTurnHandlers.add(handler);
-    }
-
-    public void addPreEndOfTurnHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "PreEndOfTurn") == null) {
-            prop.gameEventHandlers.put(handlerName + "PreEndOfTurn", handler);
-            prop.preEndTurnHandlers.add(handler);
-        }
-    }
-
-    public void addOnExhaustHandler(GameEventHandler handler) {
-        prop.onExhaustHandlers.add(handler);
-    }
-
-    public void addOnExhaustHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnExhaust") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnExhaust", handler);
-            prop.onExhaustHandlers.add(handler);
-        }
-    }
-
-    public void addOnBlockHandler(GameEventHandler handler) {
-        prop.onBlockHandlers.add(handler);
-    }
-
-    public void addOnBlockHandler(String handlerName, GameEventHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnBlock") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnBlock", handler);
-            prop.onBlockHandlers.add(handler);
-        }
-    }
-
-    public void addOnEnemyDeathHandler(GameEventEnemyHandler handler) {
-        prop.onEnemyDeathHandlers.add(handler);
-    }
-
-    public void addOnEnemyDeathHandler(String handlerName, GameEventEnemyHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnEnemyDeath") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnEnemyDeath", handler);
-            prop.onEnemyDeathHandlers.add(handler);
-        }
-    }
-
-
-    public void addOnDamageHandler(OnDamageHandler handler) {
-        prop.onDamageHandlers.add(handler);
-    }
-
-    public void addOnDamageHandler(String handlerName, OnDamageHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnDamage") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnDamage", handler);
-            prop.onDamageHandlers.add(handler);
-        }
-    }
-
-    public void addOnHealHandler(OnDamageHandler handler) {
-        prop.onHealHandlers.add(handler);
-    }
-
-    public void addOnHealHandler(String handlerName, OnDamageHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnHeal") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnHeal", handler);
-            prop.onHealHandlers.add(handler);
-        }
-    }
-
-    public void addOnPreCardPlayedHandler(GameEventCardHandler handler) {
-        prop.onPreCardPlayedHandlers.add(handler);
-    }
-
-    public void addOnPreCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnPreCardPlayed") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnPreCardPlayed", handler);
-            prop.onPreCardPlayedHandlers.add(handler);
-        }
-    }
-
-    public void addOnCardPlayedHandler(GameEventCardHandler handler) {
-        prop.onCardPlayedHandlers.add(handler);
-    }
-
-    public void addOnCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnCardPlayed") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnCardPlayed", handler);
-            prop.onCardPlayedHandlers.add(handler);
-        }
-    }
-
-    public void addOnCardDrawnHandler(GameEventCardHandler handler) {
-        prop.onCardDrawnHandlers.add(handler);
-    }
-
-    public void addOnCardDrawnHandler(String handlerName, GameEventCardHandler handler) {
-        if (prop.gameEventHandlers.get(handlerName + "OnCardDrawn") == null) {
-            prop.gameEventHandlers.put(handlerName + "OnCardDrawn", handler);
-            prop.onCardDrawnHandlers.add(handler);
-        }
     }
 
     public void clearNextStates() { // oom during training due to holding too many states

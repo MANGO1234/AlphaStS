@@ -577,7 +577,7 @@ public class CardColorless {
                     state.getCounterForWrite()[counterIdx] &= ~7;
                 }
             });
-            state.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] >> 3 == 0) {
                         return;

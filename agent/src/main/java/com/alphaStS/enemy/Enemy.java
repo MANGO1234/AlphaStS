@@ -522,7 +522,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
                         var e = state.getEnemiesForRead().get(idx);
@@ -969,7 +969,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var move = state.getEnemiesForRead().get(idx).move;

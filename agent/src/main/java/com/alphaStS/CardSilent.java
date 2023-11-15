@@ -343,7 +343,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("DodgeAndRoll", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("DodgeAndRoll", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
@@ -392,7 +392,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.gainEnergy(state.getCounterForRead()[counterIdx]);
@@ -439,7 +439,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.gainEnergy(state.getCounterForRead()[counterIdx]);
@@ -1155,7 +1155,7 @@ public class CardSilent {
                     isEndlessAgony[i] = true;
                 }
             }
-            state.addOnCardDrawnHandler("EndlessAgony", new GameEventCardHandler() {
+            state.prop.addOnCardDrawnHandler("EndlessAgony", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     state.addGameActionToStartOfDeque(new GameEnvironmentAction() {
                         @Override public void doAction(GameState state) {
@@ -1409,7 +1409,7 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.addStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.addCardToHand(state.prop.shivCardIdx);
@@ -1498,7 +1498,7 @@ public class CardSilent {
             for (int i = 0; i < maxEnergyCost; i++) {
                 state.prop.masterfulStabTransformIndexes[state.prop.findCardIndex(new CardSilent.MasterfulStab(i, maxEnergyCost))] = state.prop.findCardIndex(new CardSilent.MasterfulStab(i + 1, maxEnergyCost));
             }
-            state.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
+            state.prop.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = maxEnergyCost; i > 0; i--) {
@@ -1554,7 +1554,7 @@ public class CardSilent {
             for (int i = 0; i < maxEnergyCost; i++) {
                 state.prop.masterfulStabPTransformIndexes[state.prop.findCardIndex(new CardSilent.MasterfulStabP(i, maxEnergyCost))] = state.prop.findCardIndex(new CardSilent.MasterfulStabP(i + 1, maxEnergyCost));
             }
-            state.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
+            state.prop.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = maxEnergyCost; i > 0; i--) {
@@ -1599,7 +1599,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("NoxiousFume", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("NoxiousFume", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -1649,7 +1649,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("Predator", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("Predator", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.draw(state.getCounterForRead()[counterIdx] * 2);
@@ -1930,7 +1930,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addOnCardPlayedHandler("AThousandCuts", new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler("AThousandCuts", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -2003,7 +2003,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addOnCardPlayedHandler("AfterImage", new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler("AfterImage", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
@@ -2082,14 +2082,14 @@ public class CardSilent {
                     return 2;
                 }
             });
-            state.addStartOfTurnHandler("Burst", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("Burst", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForWrite()[counterIdx] != 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }
             });
-            state.addOnCardPlayedHandler("Burst", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+            state.prop.addOnCardPlayedHandler("Burst", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var card = state.prop.cardDict[cardIdx];
                     if (card.cardType != Card.SKILL || state.getCounterForRead()[counterIdx] == 0) {
@@ -2148,7 +2148,7 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.addOnEnemyDeathHandler("CorpseExplosion", new GameEventEnemyHandler() {
+            state.prop.addOnEnemyDeathHandler("CorpseExplosion", new GameEventEnemyHandler() {
                 @Override public void handle(GameState state, EnemyReadOnly enemy) {
                     if (enemy.getCorpseExplosion() > 0) {
                         var k = enemy.getCorpseExplosion();
@@ -2236,7 +2236,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.addStartOfTurnHandler("Doppelganger", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("Doppelganger", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.gainEnergy(state.getCounterForRead()[counterIdx]);
@@ -2488,7 +2488,7 @@ public class CardSilent {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.nightmareCards = new short[1];
-            state.addStartOfTurnHandler(new GameEventHandler() {
+            state.prop.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.nightmareCardsLen; i++) {
                         state.addCardToHand(state.nightmareCards[i]);
@@ -2550,7 +2550,7 @@ public class CardSilent {
                     }
                 }
             });
-            state.addStartOfTurnHandler("PhantasmalKiller", new GameEventHandler() {
+            state.prop.addStartOfTurnHandler("PhantasmalKiller", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if ((state.getCounterForRead()[counterIdx] >> 8) > 0) {
                         state.getCounterForWrite()[counterIdx] -= 1 << 8;

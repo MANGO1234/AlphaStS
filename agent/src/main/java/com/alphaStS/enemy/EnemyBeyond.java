@@ -74,7 +74,7 @@ public class EnemyBeyond {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var enemy = state.getEnemiesForRead().get(idx);
                     if (state.prop.cardDict[cardIdx].cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
@@ -457,7 +457,7 @@ public class EnemyBeyond {
                     return 13;
                 }
             });
-            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var c = state.getCounterForWrite();
                     if (c[state.prop.timeEaterCounterIdx] == 12) {
@@ -687,7 +687,7 @@ public class EnemyBeyond {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     ((GiantHead) state.getEnemiesForWrite().getForWrite(idx)).slow++;
                 }
@@ -1120,7 +1120,7 @@ public class EnemyBeyond {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.addStartOfBattleHandler(new GameEventHandler() {
+            state.prop.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     var enemies = state.getEnemiesForWrite();
                     for (int i = 0; i < enemies.size(); i++) {
@@ -1696,7 +1696,7 @@ public class EnemyBeyond {
                     return 1;
                 }
             });
-            state.addPreEndOfTurnHandler("Constricted", new GameEventHandler() {
+            state.prop.addPreEndOfTurnHandler("Constricted", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[state.prop.constrictedCounterIdx] > 0) {
                         state.getPlayerForWrite().nonAttackDamage(state, state.getCounterForRead()[state.prop.constrictedCounterIdx], true);

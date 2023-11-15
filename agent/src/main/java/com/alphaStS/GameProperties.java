@@ -372,6 +372,50 @@ public class GameProperties implements Cloneable {
     }
 
 
+    public void addStartOfBattleHandler(GameEventHandler handler) {
+        startOfBattleHandlers.add(handler);
+    }
+
+    public void addStartOfBattleHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "StartOfBattler") == null) {
+            gameEventHandlers.put(handlerName + "StartOfBattler", handler);
+            startOfBattleHandlers.add(handler);
+        }
+    }
+
+    public void addEndOfBattleHandler(GameEventHandler handler) {
+        endOfBattleHandlers.add(handler);
+    }
+
+    public void addEndOfBattleHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "EndOfGame") == null) {
+            gameEventHandlers.put(handlerName + "EndOfGame", handler);
+            endOfBattleHandlers.add(handler);
+        }
+    }
+
+    public void addStartOfTurnHandler(GameEventHandler handler) {
+        startOfTurnHandlers.add(handler);
+    }
+
+    public void addStartOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "StartOfTurn") == null) {
+            gameEventHandlers.put(handlerName + "StartOfTurn", handler);
+            startOfTurnHandlers.add(handler);
+        }
+    }
+
+    public void addPreEndOfTurnHandler(GameEventHandler handler) {
+        preEndTurnHandlers.add(handler);
+    }
+
+    public void addPreEndOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "PreEndOfTurn") == null) {
+            gameEventHandlers.put(handlerName + "PreEndOfTurn", handler);
+            preEndTurnHandlers.add(handler);
+        }
+    }
+
     public void addEndOfTurnHandler(GameEventHandler handler) {
         endOfTurnHandlers.add(handler);
     }
@@ -380,6 +424,95 @@ public class GameProperties implements Cloneable {
         if (gameEventHandlers.get(handlerName + "EndOfTurn") == null) {
             gameEventHandlers.put(handlerName + "EndOfTurn", handler);
             endOfTurnHandlers.add(handler);
+        }
+    }
+
+    public void addOnExhaustHandler(GameEventHandler handler) {
+        onExhaustHandlers.add(handler);
+    }
+
+    public void addOnExhaustHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnExhaust") == null) {
+            gameEventHandlers.put(handlerName + "OnExhaust", handler);
+            onExhaustHandlers.add(handler);
+        }
+    }
+
+    public void addOnBlockHandler(GameEventHandler handler) {
+        onBlockHandlers.add(handler);
+    }
+
+    public void addOnBlockHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnBlock") == null) {
+            gameEventHandlers.put(handlerName + "OnBlock", handler);
+            onBlockHandlers.add(handler);
+        }
+    }
+
+    public void addOnEnemyDeathHandler(GameEventEnemyHandler handler) {
+        onEnemyDeathHandlers.add(handler);
+    }
+
+    public void addOnEnemyDeathHandler(String handlerName, GameEventEnemyHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnEnemyDeath") == null) {
+            gameEventHandlers.put(handlerName + "OnEnemyDeath", handler);
+            onEnemyDeathHandlers.add(handler);
+        }
+    }
+
+
+    public void addOnDamageHandler(OnDamageHandler handler) {
+        onDamageHandlers.add(handler);
+    }
+
+    public void addOnDamageHandler(String handlerName, OnDamageHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnDamage") == null) {
+            gameEventHandlers.put(handlerName + "OnDamage", handler);
+            onDamageHandlers.add(handler);
+        }
+    }
+
+    public void addOnHealHandler(OnDamageHandler handler) {
+        onHealHandlers.add(handler);
+    }
+
+    public void addOnHealHandler(String handlerName, OnDamageHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnHeal") == null) {
+            gameEventHandlers.put(handlerName + "OnHeal", handler);
+            onHealHandlers.add(handler);
+        }
+    }
+
+    public void addOnPreCardPlayedHandler(GameEventCardHandler handler) {
+        onPreCardPlayedHandlers.add(handler);
+    }
+
+    public void addOnPreCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnPreCardPlayed") == null) {
+            gameEventHandlers.put(handlerName + "OnPreCardPlayed", handler);
+            onPreCardPlayedHandlers.add(handler);
+        }
+    }
+
+    public void addOnCardPlayedHandler(GameEventCardHandler handler) {
+        onCardPlayedHandlers.add(handler);
+    }
+
+    public void addOnCardPlayedHandler(String handlerName, GameEventCardHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnCardPlayed") == null) {
+            gameEventHandlers.put(handlerName + "OnCardPlayed", handler);
+            onCardPlayedHandlers.add(handler);
+        }
+    }
+
+    public void addOnCardDrawnHandler(GameEventCardHandler handler) {
+        onCardDrawnHandlers.add(handler);
+    }
+
+    public void addOnCardDrawnHandler(String handlerName, GameEventCardHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnCardDrawn") == null) {
+            gameEventHandlers.put(handlerName + "OnCardDrawn", handler);
+            onCardDrawnHandlers.add(handler);
         }
     }
 
@@ -428,7 +561,7 @@ public class GameProperties implements Cloneable {
 
     public void registerThornCounter(GameState state2, CounterRegistrant registrant) {
         state2.prop.registerCounter("Thorn", registrant, null);
-        state2.addOnDamageHandler(new OnDamageHandler() {
+        state2.prop.addOnDamageHandler(new OnDamageHandler() {
             @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                 if (isAttack && source instanceof EnemyReadOnly enemy2) {
                     var idx = state.getEnemiesForRead().find(enemy2);
@@ -440,7 +573,7 @@ public class GameProperties implements Cloneable {
     }
 
     public void registerMetallicizeHandler(GameState state, int counterIdx) {
-        state.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+        state.prop.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
             }

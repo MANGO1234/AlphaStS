@@ -213,7 +213,7 @@ public class EnemyEnding {
                     }
                 }
             });
-            state.addStartOfBattleHandler(new GameEventHandler() {
+            state.prop.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).isAlive() && state.getEnemiesForRead().get(i) instanceof SpireSpear) {
@@ -222,7 +222,7 @@ public class EnemyEnding {
                     }
                 }
             });
-            state.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
+            state.prop.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
                 @Override public void handle(GameState state2, EnemyReadOnly enemy) {
                     if (enemy instanceof EnemyEnding.SpireShield) {
                         state2.getCounterForWrite()[state2.prop.shieldAndSpireFacingIdx] = 2;
@@ -389,7 +389,7 @@ public class EnemyEnding {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.addOnCardPlayedHandler(new GameEventCardHandler(GameEventCardHandler.HEARTBEAT_PRIORITY) {
+            state.prop.addOnCardPlayedHandler(new GameEventCardHandler(GameEventCardHandler.HEARTBEAT_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i) instanceof CorruptHeart heart) {
@@ -399,7 +399,7 @@ public class EnemyEnding {
                     }
                 }
             });
-            state.addOnDamageHandler(new OnDamageHandler() {
+            state.prop.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof CorruptHeart && ((CorruptHeart) source).buffCount >= 2 && isAttack && damageDealt > 0) {
                         state.addCardToDiscard(state.prop.woundCardIdx);
