@@ -431,7 +431,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("HandOFGreed", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
@@ -558,7 +558,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Panache", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
@@ -755,7 +755,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter(cardName, this, null);
         }
 
@@ -817,7 +817,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerIntangibleCounter();
         }
     }

@@ -332,7 +332,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("DodgeAndRoll", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
@@ -381,7 +381,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("EnergyNextTurn", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 15.0f;
@@ -428,7 +428,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("EnergyNextTurn", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 15.0f;
@@ -556,7 +556,7 @@ public class CardSilent {
             }
         }
 
-        public void startOfGameSetup(GameState state) {
+        public void gamePropertiesSetup(GameState state) {
             if (n >= 2) {
                 state.prop.registerCounter("Prepared", this, new GameProperties.NetworkInputHandler() {
                     @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -655,7 +655,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("SneakyStrike", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
@@ -830,7 +830,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Blur", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
@@ -972,7 +972,7 @@ public class CardSilent {
             return GameActionCtx.SELECT_CARD_HAND;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Concentrate", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
@@ -1071,7 +1071,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             if (state.prop.distractionIndexes == null) {
                 var cards = getPossibleGeneratedCards(null);
                 state.prop.distractionIndexes = new int[cards.size()];
@@ -1148,7 +1148,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             isEndlessAgony = new boolean[state.prop.cardDict.length];
             for (int i = 0; i < state.prop.cardDict.length; i++) {
                 if (state.prop.cardDict[i].cardName.contains("Endless Agony")) {
@@ -1238,7 +1238,7 @@ public class CardSilent {
             return Math.max(energyCost - state.getCounterForRead()[state.prop.eviscerateCounterIdx], 0);
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Eviscerate", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
@@ -1408,7 +1408,7 @@ public class CardSilent {
             return List.of(new CardColorless.Shiv());
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.addStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
@@ -1488,7 +1488,7 @@ public class CardSilent {
             return c;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.masterfulStabIndexes = new int[maxEnergyCost + 1];
             for (int i = 0; i < state.prop.masterfulStabIndexes.length; i++) {
                 state.prop.masterfulStabIndexes[i] = state.prop.findCardIndex(new CardSilent.MasterfulStab(i, maxEnergyCost));
@@ -1544,7 +1544,7 @@ public class CardSilent {
             return c;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.masterfulStabPIndexes = new int[maxEnergyCost + 1];
             for (int i = 0; i < state.prop.masterfulStabPIndexes.length; i++) {
                 state.prop.masterfulStabPIndexes[i] = state.prop.findCardIndex(new CardSilent.MasterfulStabP(i, maxEnergyCost));
@@ -1588,7 +1588,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public void startOfGameSetup(GameState state) {
+        public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("NoxiousFume", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 9.0f;
@@ -1638,7 +1638,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Predator", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
@@ -1865,7 +1865,7 @@ public class CardSilent {
             }
         }
 
-        public void startOfGameSetup(GameState state) {
+        public void gamePropertiesSetup(GameState state) {
             state.chosenCardsArr = new short[2];
             state.prop.registerCounter("WellLaidPlans", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -1919,7 +1919,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public void startOfGameSetup(GameState state) {
+        public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("AThousandCuts", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
@@ -1993,7 +1993,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public void startOfGameSetup(GameState state) {
+        public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("AfterImage", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
@@ -2071,7 +2071,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Burst", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
@@ -2147,7 +2147,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.addOnEnemyDeathHandler("CorpseExplosion", new GameEventEnemyHandler() {
                 @Override public void handle(GameState state, EnemyReadOnly enemy) {
                     if (enemy.getCorpseExplosion() > 0) {
@@ -2225,7 +2225,7 @@ public class CardSilent {
             return state.energy;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Doppelganger", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
@@ -2270,7 +2270,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("Envenom", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
@@ -2333,7 +2333,7 @@ public class CardSilent {
             return c;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             if (state.prop.glassKnifeIndexes != null && (dmg - limit) / 2 + 1 < state.prop.glassKnifeIndexes.length) {
                 return;
             }
@@ -2382,7 +2382,7 @@ public class CardSilent {
             return c;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             if (state.prop.glassKnifePIndexes != null && (dmg - limit) / 2 + 1 < state.prop.glassKnifePIndexes.length) {
                 return;
             }
@@ -2486,7 +2486,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.nightmareCards = new short[1];
             state.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -2527,7 +2527,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("PhantasmalKiller", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = (state.getCounterForRead()[counterIdx] >> 8) / 10.0f;
@@ -2624,7 +2624,7 @@ public class CardSilent {
             }
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerCounter("ToolsOfTheTrade", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] & 0xffff;
@@ -2669,7 +2669,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void startOfGameSetup(GameState state) {
+        @Override public void gamePropertiesSetup(GameState state) {
             state.prop.registerIntangibleCounter();
             state.prop.registerCounter("WraithFormLoseDexterity", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {

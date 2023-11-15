@@ -596,10 +596,10 @@ public final class GameState implements State {
             prop.select1OutOf3CardsReverseIdxes[prop.select1OutOf3CardsIdxes[i]] = i;
         }
         for (Relic relic : relics) {
-            relic.startOfGameSetup(this);
+            relic.gamePropertiesSetup(this);
         }
         for (Card card : prop.cardDict) {
-            card.startOfGameSetup(this);
+            card.gamePropertiesSetup(this);
         }
         for (int i = 0; i < getEnemiesForRead().size(); i++) { // need to use i because setup can modify other enemies
             getEnemiesForRead().get(i).gamePropertiesSetup(this);
