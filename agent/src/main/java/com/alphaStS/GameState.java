@@ -106,10 +106,6 @@ public final class GameState implements State {
 
     boolean[] bannedActions;
 
-    // Solver only
-    BigRational e_health;
-    BigRational e_win;
-
     public void readLock() {
         lock.readLock().lock();
     }

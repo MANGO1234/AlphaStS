@@ -37,7 +37,6 @@ public class MatchSession {
     List<MCTS> mcts = new ArrayList<>();
     List<MCTS> mctsCmp = new ArrayList<>();
     public int[][] scenariosGroup;
-    public GameSolver solver;
     String modelDir;
     String modelCmpDir;
     ModelExecutor modelExecutor;
@@ -324,7 +323,6 @@ public class MatchSession {
         var chanceNodeStats = new HashMap<GameState, ScenarioStats>();
         var games = new ArrayList<Game>();
         var start = System.currentTimeMillis();
-        var solverErrorCount = 0;
         var progressInterval = ((int) Math.ceil(numOfGames / 1000f)) * 25;
         var lastPrintTime = System.currentTimeMillis();
         while (game_i.get() < numOfGames && !playGamesStop) {
@@ -344,9 +342,6 @@ public class MatchSession {
                 List<GameStep> steps = game.steps;
                 List<GameStep> steps2 = result.game2 == null ? null : result.game2.steps;
                 r = game.preBattle_r * battleInfoMap.size() + game.battle_r;
-                if (!training && solver != null) {
-                    solverErrorCount += solver.checkForError(game);
-                }
                 if (Configuration.PRINT_MODEL_COMPARE_DIFF && steps2 != null) {
                     var turns1 = GameStateUtils.groupByTurns(steps);
                     var turns2 = GameStateUtils.groupByTurns(steps2);
@@ -411,9 +406,6 @@ public class MatchSession {
             if ((printProgress && game_i.get() % progressInterval == 0) || game_i.get() == numOfGames || System.currentTimeMillis() - lastPrintTime > 60 * 1000 || playGamesStop || playGamesPause) {
                 lastPrintTime = System.currentTimeMillis();
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
-                if (!training && solver != null) {
-                    System.out.println("Error Count: " + solverErrorCount);
-                }
                 remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
                 if (scenarioStats.size() > 1) {
                     for (var info : combinedInfoMap.entrySet()) {
