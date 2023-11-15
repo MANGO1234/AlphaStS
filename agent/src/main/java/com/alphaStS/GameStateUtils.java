@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 
 public class GameStateUtils {
-
     public static int getRandomEnemyIdx(GameState state, RandomGenCtx ctx) {
         int enemyIdx;
         if (state.enemiesAlive == 0) {
@@ -180,62 +179,7 @@ public class GameStateUtils {
         return desc.toString();
     }
 
-    static private void printTreeH(State s, int depth, Writer writer, String indent) throws IOException {
-        if (depth == 0) {
-            return;
-        }
-        if (s instanceof ChanceState state) {
-            for (ChanceState.Node node : state.cache.values()) {
-                writer.write(indent + "Chance Node (" + node.n + "/" + state.total_node_n + "): " + node.state.toString() + "\n");
-                if (node.state.n == null) {
-                    return;
-                }
-                var list = new ArrayList<int[]>();
-                for (int i = 0; i < node.state.n.length; i++) {
-                    list.add(new int[] { node.state.n[i], i });
-                }
-                list.sort((a, b) -> b[0] != a[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
-                for (var x : list) {
-                    int i = x[1];
-                    if (node.state.ns[i] != null && depth > 1) {
-                        writer.write(indent + "  - action=" + node.state.getActionString(i) + "(" + i + ")\n");
-                    }
-                    printTreeH(node.state.ns[i], depth - 1, writer, indent + "    ");
-                }
-            }
-        } else if (s instanceof GameState state) {
-            writer.write(indent + "Normal Node: " + state.toString() + "\n");
-            if (state.n == null) {
-                return;
-            }
-            var list = new ArrayList<int[]>();
-            for (int i = 0; i < state.n.length; i++) {
-                list.add(new int[] { state.n[i], i });
-            }
-            list.sort((a, b) -> b[0] != a[0] ? Integer.compare(b[0], a[0]) : Integer.compare(a[1], b[1]));
-            for (var x : list) {
-                int i = x[1];
-                if (state.ns[i] != null && depth > 1) {
-                    writer.write(indent + "  - action=" + state.getActionString(i) + "(" + i + ")\n");
-                }
-                printTreeH(state.ns[i], depth - 1, writer, indent + "    ");
-            }
-        }
-    }
-
-    static void printTree(State state, Writer writer, int depth) {
-        try {
-            if (writer == null) {
-                writer = new OutputStreamWriter(System.out);
-            }
-            printTreeH(state, depth, writer, "");
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    static private void printTreeH2(GameState parentState, int parentAction, State s, int depth, Writer writer, String indent) throws IOException {
+    static private void printTreeH(GameState parentState, int parentAction, State s, int depth, Writer writer, String indent) throws IOException {
         if (depth < 0) {
             return;
         }
@@ -249,7 +193,7 @@ public class GameStateUtils {
                 var q_win = node.state.q[GameState.V_WIN_IDX];
                 var q_health = node.state.q[GameState.V_HEALTH_IDX];
                 writer.write(indent + "n=" + n + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
-                printTreeH2(parentState, parentAction, node.state, depth, writer, indent);
+                printTreeH(parentState, parentAction, node.state, depth, writer, indent);
             }
         } else if (s instanceof GameState state) {
             var list = new ArrayList<int[]>();
@@ -271,17 +215,17 @@ public class GameStateUtils {
                     }
                     writer.write("n=" + n + " p=" + Utils.formatFloat(state.policy[i]) + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
                 }
-                printTreeH2(state, i, state.ns[i], depth - 1, writer, indent + "    ");
+                printTreeH(state, i, state.ns[i], depth - 1, writer, indent + "    ");
             }
         }
     }
 
-    static void printTree2(State state, Writer writer, int depth) {
+    static void printTree(State state, Writer writer, int depth) {
         try {
             if (writer == null) {
                 writer = new OutputStreamWriter(System.out);
             }
-            printTreeH2(null, -1, state, depth, writer, "");
+            printTreeH(null, -1, state, depth, writer, "");
             writer.flush();
         } catch (IOException e) {
             e.printStackTrace();

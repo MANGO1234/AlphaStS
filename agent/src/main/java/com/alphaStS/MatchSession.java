@@ -102,7 +102,7 @@ public class MatchSession {
         var refGameIdx = refGame == null ? 0 : findNextChanceAction(refGame, 1);
         if (state.properties.realMoveRandomGen != null) {
             state.setSearchRandomGen(state.properties.realMoveRandomGen.createWithSeed(state.properties.realMoveRandomGen.nextLong(RandomGenCtx.Misc)));
-        } else if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+        } else if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             state.setSearchRandomGen(state.properties.random.createWithSeed(state.properties.random.nextLong(RandomGenCtx.CommonNumberVR)));
         } else {
             state.setSearchRandomGen(state.properties.random);
@@ -858,7 +858,7 @@ public class MatchSession {
         int preBattle_r = 0;
         if (state.properties.realMoveRandomGen != null) {
             state.setSearchRandomGen(state.properties.realMoveRandomGen.createWithSeed(state.properties.realMoveRandomGen.nextLong(RandomGenCtx.Misc)));
-        } else if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+        } else if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             state.setSearchRandomGen(state.properties.random.createWithSeed(state.properties.random.nextLong(RandomGenCtx.CommonNumberVR)));
         } else {
             state.setSearchRandomGen(state.properties.random);
@@ -1038,7 +1038,7 @@ public class MatchSession {
         if (state.n == null || state.policy == null) {
             throw new IllegalArgumentException();
         }
-        if (state.terminal_action >= 0) {
+        if (state.terminalAction >= 0) {
             return 0;
         }
         var snapShot = new double[state.n.length];
@@ -1356,7 +1356,7 @@ public class MatchSession {
     private void pruneForcedPlayouts(List<GameStep> steps) {
         GameState state;
         for (GameStep step : steps) {
-            if (step.action() < 0 || step.state().terminal_action >= 0) {
+            if (step.action() < 0 || step.state().terminalAction >= 0) {
                 break;
             }
             if (step.trainingWriteCount <= 0 || step.state().policyMod == null) {
@@ -1451,8 +1451,8 @@ public class MatchSession {
                                 if (order != null) {
                                     for (int idx2 = 0; idx2 < state.getLegalActions().length; idx2++) {
                                         if (state.getLegalActions()[idx2] == action) {
-                                            if (state.terminal_action >= 0) {
-                                                if (state.terminal_action == idx2) {
+                                            if (state.terminalAction >= 0) {
+                                                if (state.terminalAction == idx2) {
                                                     stream.writeFloat(1);
                                                 } else {
                                                     stream.writeFloat(0);
@@ -1464,8 +1464,8 @@ public class MatchSession {
                                     }
                                 } else {
                                     if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                        if (state.terminal_action >= 0) {
-                                            if (state.terminal_action == idx++) {
+                                        if (state.terminalAction >= 0) {
+                                            if (state.terminalAction == idx++) {
                                                 stream.writeFloat(1);
                                             } else {
                                                 stream.writeFloat(0);
@@ -1513,8 +1513,8 @@ public class MatchSession {
                     for (int action = 0; action < state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length; action++) {
                         if (state.isActionLegal(action)) {
                             if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
-                                if (state.terminal_action >= 0) {
-                                    if (state.terminal_action == idx++) {
+                                if (state.terminalAction >= 0) {
+                                    if (state.terminalAction == idx++) {
                                         stream.writeFloat(1);
                                     } else {
                                         stream.writeFloat(0);

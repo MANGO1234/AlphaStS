@@ -56,9 +56,9 @@ public class MCTS {
             }
             return SEARCH_SUCCESS;
         }
-        if (state.terminal_action >= 0) {
+        if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.q[(state.terminal_action + 1) * state.properties.v_total_len + i] / state.n[state.terminal_action];
+                v[i] = state.q[(state.terminalAction + 1) * state.properties.v_total_len + i] / state.n[state.terminalAction];
                 realV[i] = v[i];
             }
             numberOfPossibleActions = 1;
@@ -283,7 +283,7 @@ public class MCTS {
             if (state.ns[action] instanceof ChanceState) {
                 terminal_v_win = -100;
             } else {
-                state.terminal_action = action;
+                state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double q_total = state.q[(action + 1) * state.properties.v_total_len + i] / state.n[action] * (state.total_n + 1);
                     v[i] = q_total - state.q[i];
@@ -307,10 +307,10 @@ public class MCTS {
     }
 
     int search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
-        if (state.terminal_action >= 0) {
+        if (state.terminalAction >= 0) {
             state.readLock();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.q[(state.terminal_action + 1) * state.properties.v_total_len + i] / state.n[state.terminal_action];
+                v[i] = state.q[(state.terminalAction + 1) * state.properties.v_total_len + i] / state.n[state.terminalAction];
                 realV[i] = v[i];
             }
             state.readUnlock();
@@ -561,7 +561,7 @@ public class MCTS {
         }
 
         state.writeLock();
-        if (state.terminal_action >= 0) {
+        if (state.terminalAction >= 0) {
             state.writeUnlock(); // another thread may have detected terminal action
             search2parallel_r(state, training, remainingCalls, isRoot, level, addVirtualLoss);
             if (addVirtualLoss) {
@@ -583,7 +583,7 @@ public class MCTS {
             if (state.ns[action] instanceof ChanceState) {
                 terminal_v_win = -100;
             } else {
-                state.terminal_action = action;
+                state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double q_total = state.q[(action + 1) * state.properties.v_total_len + i] / state.n[action] * (state.total_n + 1);
                     v[i] = q_total - state.q[i];
@@ -710,9 +710,9 @@ public class MCTS {
     }
 
     void search3_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
-        if (state.terminal_action >= 0) {
+        if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.q[(state.terminal_action + 1) * state.properties.v_total_len + i] / state.n[state.terminal_action];
+                v[i] = state.q[(state.terminalAction + 1) * state.properties.v_total_len + i] / state.n[state.terminalAction];
                 realV[i] = v[i];
             }
             numberOfPossibleActions = 1;
@@ -851,7 +851,7 @@ public class MCTS {
                 terminal_v_win = -100;
                 actionToPropagate = getActionWithMaxNodesOrTerminal(state);
             } else {
-                state.terminal_action = action;
+                state.terminalAction = action;
                 actionToPropagate = action;
             }
         } else {
@@ -938,9 +938,9 @@ public class MCTS {
     }
 
     void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
-        if (state.terminal_action >= 0) {
+        if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.q[(state.terminal_action + 1) * state.properties.v_total_len + i] / state.n[state.terminal_action];;
+                v[i] = state.q[(state.terminalAction + 1) * state.properties.v_total_len + i] / state.n[state.terminalAction];;
             }
             return;
         }
@@ -1042,8 +1042,8 @@ public class MCTS {
             var newVarianceS = state.varianceS + (v[GameState.V_COMB_IDX] - state.varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
             state.varianceM = newVarianceM;
             state.varianceS = newVarianceS;
-            if (line.state instanceof GameState childState && childState.terminal_action >= 0) {
-                state.terminal_action = edge.action();
+            if (line.state instanceof GameState childState && childState.terminalAction >= 0) {
+                state.terminalAction = edge.action();
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double qTotal = childState.q[i] / (childState.total_n + 1) * (state.total_n + 1);
                     v[i] = qTotal - state.q[i];
@@ -1081,7 +1081,7 @@ public class MCTS {
             curLine.q_health += v[GameState.V_HEALTH_IDX];
             parentState.searchFrontier.total_n += 1;
             if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
-                state.terminal_action = -1234;
+                state.terminalAction = -1234;
                 terminal_v_win = v[GameState.V_WIN_IDX];
             }
             return;
@@ -1200,7 +1200,7 @@ public class MCTS {
         }
         state.total_n += 1;
         if (terminal_v_win > 0.5) {
-            state.terminal_action = action;
+            state.terminalAction = action;
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 double qTotal = state.q[(action + 1) * state.properties.v_total_len + i] / state.n[action] * (state.total_n + 1);
                 v[i] = qTotal - state.q[i];
@@ -1473,8 +1473,8 @@ public class MCTS {
     }
 
     public static int getActionRandomOrTerminalWithUncertainty(GameState state) {
-        if (state.terminal_action >= 0) {
-            return state.terminal_action;
+        if (state.terminalAction >= 0) {
+            return state.terminalAction;
         }
         var total_n = 0;
         for (int i = 0; i < state.policy.length; i++) {
@@ -1542,8 +1542,8 @@ public class MCTS {
         if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
             return getActionRandomOrTerminalWithUncertainty(state);
         }
-        if (state.terminal_action >= 0) {
-            return state.terminal_action;
+        if (state.terminalAction >= 0) {
+            return state.terminalAction;
         }
         var total_n = 0;
         for (int i = 0; i < state.policy.length; i++) {
@@ -1570,8 +1570,8 @@ public class MCTS {
     }
 
     public static int getActionRandomOrTerminalSelectScenario(GameState state) {
-        if (state.terminal_action >= 0) {
-            return state.terminal_action;
+        if (state.terminalAction >= 0) {
+            return state.terminalAction;
         }
         var total_n = 0;
         for (int i = 0; i < state.policy.length; i++) {
@@ -1595,8 +1595,8 @@ public class MCTS {
     }
 
     public static int getActionWithMaxNodesOrTerminal(GameState state) {
-        if (state.terminal_action >= 0) {
-            return state.terminal_action;
+        if (state.terminalAction >= 0) {
+            return state.terminalAction;
         }
         if (state.total_n == 0) {
             int action = -1;
@@ -1622,8 +1622,8 @@ public class MCTS {
     }
 
     public static int[] getActionWithMaxNodesOrTerminal2(GameState state) {
-        if (state.terminal_action >= 0) {
-            return new int[] {state.terminal_action};
+        if (state.terminalAction >= 0) {
+            return new int[] {state.terminalAction};
         }
         if (state.total_n == 0) {
             int action = -1;

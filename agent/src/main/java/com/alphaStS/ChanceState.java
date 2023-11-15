@@ -57,10 +57,6 @@ public class ChanceState implements State {
     ReentrantLock randomGenLock;
     public AtomicInteger virtualLoss;
 
-    // GameSolver only
-    BigRational e_health = BigRational.ZERO;
-    BigRational e_win = BigRational.ZERO;
-
     public void readLock() {
         statsLock.readLock().lock();
     }
@@ -92,7 +88,7 @@ public class ChanceState implements State {
             }
         }
         otherCache = new HashMap<>();
-        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && initState != null) {
+        if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && initState != null) {
             if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.properties.testNewFeature)) {
                 searchRandomGen = initState.getSearchRandomGen().getCopy();
             } else {
@@ -181,7 +177,7 @@ public class ChanceState implements State {
         }
 
         var state = parentState.clone(true);
-        if (!parentState.properties.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+        if (!parentState.properties.makingRealMove && Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             state.setSearchRandomGen(searchRandomGen);
         }
         state.doAction(parentAction);
@@ -189,11 +185,11 @@ public class ChanceState implements State {
             state.doAction(0);
         }
         if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.properties.testNewFeature)) {
-            if (!parentState.properties.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            if (!parentState.properties.makingRealMove && Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
                 searchRandomGen = searchRandomGen.getCopy();
             }
         } else {
-            if (!parentState.properties.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+            if (!parentState.properties.makingRealMove && Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
                 searchRandomGen = state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR));
             }
         }
@@ -211,7 +207,7 @@ public class ChanceState implements State {
                 node.state.stateDesc = state.stateDesc;
             }
             if (parentState.properties.makingRealMove) {
-                if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+                if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
                     node.state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
                 }
                 if (state.stateDesc != null) {
@@ -276,7 +272,7 @@ public class ChanceState implements State {
                 return state;
             }
         }
-        if (parentState.properties.makingRealMove && GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+        if (parentState.properties.makingRealMove && Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.getSearchRandomGen().nextLong(RandomGenCtx.CommonNumberVR)));
         }
         return state;
@@ -286,7 +282,7 @@ public class ChanceState implements State {
         virtualLoss.incrementAndGet();
 
         var state = parentState.clone(true);
-        if (GameState.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
+        if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             randomGenLock.lock();
             var gen = searchRandomGen;
             searchRandomGen = gen.createWithSeed(gen.nextLong(RandomGenCtx.CommonNumberVR));

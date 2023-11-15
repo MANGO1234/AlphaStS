@@ -32,7 +32,7 @@ public class SearchFrontier {
             }
             if (line.state instanceof GameState) {
                 GameState state = (GameState) line.state;
-                if (state.terminal_action == -1234) {
+                if (state.terminalAction == -1234) {
                     maxLine = line;
                     break;
                 }

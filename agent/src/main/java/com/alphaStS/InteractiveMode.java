@@ -1641,9 +1641,9 @@ public class InteractiveMode {
             } else {
                 writer = writeToFile ? new BufferedWriter(new FileWriter(modelDir + "/tree.txt")) : new OutputStreamWriter(out);
                 if (action >= 0 && action < state.ns.length && state.ns[action] != null) {
-                    GameStateUtils.printTree2(state.ns[action], writer, depth);
+                    GameStateUtils.printTree(state.ns[action], writer, depth);
                 } else {
-                    GameStateUtils.printTree2(state, writer, depth);
+                    GameStateUtils.printTree(state, writer, depth);
                 }
             }
         } catch (IOException e) {

@@ -20,7 +20,6 @@ import static com.alphaStS.utils.Utils.formatFloat;
 public final class GameState implements State {
     public static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
-    public static final boolean COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION = true;
     public static final int V_COMB_IDX = 0;
     public static final int V_WIN_IDX = 1;
     public static final int V_HEALTH_IDX = 2;
@@ -98,7 +97,7 @@ public final class GameState implements State {
     float[] policyMod; // used in training (with e.g. Dirichlet noise applied or futile pruning applied)
     Map<GameState, State> transpositions; // detect transposition within a "deterministic turn" (i.e. no stochastic transition occurred like drawing)
     Map<GameState, List<Tuple<GameState, Integer>>> transpositionsParent;
-    int terminal_action; // detected a win from child, no need to waste more time search
+    int terminalAction; // detected a win from child, no need to waste more time search
     SearchFrontier searchFrontier;
     ReentrantReadWriteLock lock;
     ReentrantLock transpositionsLock;
@@ -789,7 +788,7 @@ public final class GameState implements State {
         }
 
         // mcts related fields
-        terminal_action = -100;
+        terminalAction = -100;
         transpositions = new HashMap<>();
         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
     }
@@ -1019,7 +1018,7 @@ public final class GameState implements State {
         focus = other.focus;
 
         legalActions = other.legalActions;
-        terminal_action = -100;
+        terminalAction = -100;
         if (properties.multithreadedMTCS) {
             lock = new ReentrantReadWriteLock();
             virtualLoss = new AtomicInteger();
@@ -3685,7 +3684,7 @@ public final class GameState implements State {
         transpositions = new HashMap<>();
         if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
         legalActions = null;
-        terminal_action = -100;
+        terminalAction = -100;
         searchFrontier = null;
         bannedActions = null;
     }
@@ -4160,7 +4159,7 @@ public final class GameState implements State {
         if (properties.makingRealMove || searchRandomGen == null) {
             return properties.realMoveRandomGen != null ? properties.realMoveRandomGen : properties.random;
         }
-        if (COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {
+        if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {
             searchRandomGen = searchRandomGen.getCopy();
             searchRandomGenCloned = true;
         }
