@@ -25,7 +25,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return 0;
         }
         int dmg = ((int) n) - block;
-        if (state.prop.hasBoot && dmg > 0 && dmg < 5) {
+        if (state.properties.hasBoot && dmg > 0 && dmg < 5) {
             dmg = 5;
         }
         int dmgDone = Math.max(0, dmg);
@@ -79,9 +79,9 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public void setBurningHealthBuff(boolean b) {
-        if (property.hasBurningHealthBuff != b) {
-            property = property.clone();
-            property.hasBurningHealthBuff = b;
+        if (properties.hasBurningHealthBuff != b) {
+            properties = properties.clone();
+            properties.hasBurningHealthBuff = b;
         }
     }
 
@@ -130,7 +130,7 @@ public abstract class Enemy extends EnemyReadOnly {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
-        if (!property.isElite || (turnNum > 0 && metallicize > 0)) { // todo: burning elite
+        if (!properties.isElite || (turnNum > 0 && metallicize > 0)) { // todo: burning elite
             gainBlock(metallicize);
         }
         if (platedArmor > 0) {
@@ -159,7 +159,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
     protected void heal(int hp) {
         if (health > 0) {
-            health += Math.min(hp, Math.max(0, property.origHealth - health));
+            health += Math.min(hp, Math.max(0, properties.origHealth - health));
         }
     }
 
@@ -177,7 +177,7 @@ public abstract class Enemy extends EnemyReadOnly {
         switch (type) {
         case VULNERABLE -> {
             this.vulnerable += n;
-            if (state.prop.hasChampionBelt) {
+            if (state.properties.hasChampionBelt) {
                 this.weak += 1;
             }
         }
@@ -187,7 +187,7 @@ public abstract class Enemy extends EnemyReadOnly {
             this.loseStrengthEot += n;
             this.gainStrength(-n);
         }
-        case POISON -> this.poison += n + (state.prop.hasSneckoSkull ? 1 : 0);
+        case POISON -> this.poison += n + (state.properties.hasSneckoSkull ? 1 : 0);
         case CORPSE_EXPLOSION -> this.corpseExplosion += n;
         case LOCK_ON -> this.lockOn += n;
         }
@@ -199,7 +199,7 @@ public abstract class Enemy extends EnemyReadOnly {
     }
 
     public Enemy markAsBurningElite() {
-        property.applyBurningEliteBuff();
+        properties.applyBurningEliteBuff();
         return this;
     }
 
@@ -216,31 +216,31 @@ public abstract class Enemy extends EnemyReadOnly {
         public int currentEnemyIdx;
 
         public MergedEnemy(List<Enemy> possibleEnemies) {
-            super(0, possibleEnemies.stream().mapToInt((enemy) -> enemy.property.numOfMoves).reduce(0, Integer::sum), false);
+            super(0, possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.numOfMoves).reduce(0, Integer::sum), false);
             this.possibleEnemies = possibleEnemies;
-            property.maxHealth = possibleEnemies.stream().mapToInt((enemy) -> enemy.property.maxHealth).reduce(0, Math::max);
-            property.origHealth = property.maxHealth;
-            property.origMaxHealth = property.maxHealth;
+            properties.maxHealth = possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.maxHealth).reduce(0, Math::max);
+            properties.origHealth = properties.maxHealth;
+            properties.origMaxHealth = properties.maxHealth;
             // todo: on isELite and isMinion
-            property.isElite = possibleEnemies.stream().anyMatch((e) -> e.property.isElite);
-            property.isMinion = possibleEnemies.stream().anyMatch((e) -> e.property.isMinion);
-            property.canVulnerable = possibleEnemies.stream().anyMatch((e) -> e.property.canVulnerable);
-            property.canEntangle = possibleEnemies.stream().anyMatch((e) -> e.property.canEntangle);
-            property.canWeaken = possibleEnemies.stream().anyMatch((e) -> e.property.canWeaken);
-            property.canFrail = possibleEnemies.stream().anyMatch((e) -> e.property.canFrail);
-            property.canSlime = possibleEnemies.stream().anyMatch((e) -> e.property.canSlime);
-            property.canDaze = possibleEnemies.stream().anyMatch((e) -> e.property.canDaze);
-            property.canGainStrength = possibleEnemies.stream().anyMatch((e) -> e.property.canGainStrength);
-            property.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.property.canGainRegeneration);
-            property.canHeal = possibleEnemies.stream().anyMatch((e) -> e.property.canHeal);
-            property.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.property.canGainMetallicize);
-            property.canGainPlatedArmor = possibleEnemies.stream().anyMatch((e) -> e.property.canGainPlatedArmor);
-            property.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.property.canGainBlock);
-            property.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerStrength);
-            property.changePlayerDexterity = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerDexterity);
-            property.changePlayerFocus = possibleEnemies.stream().anyMatch((e) -> e.property.changePlayerFocus);
-            property.hasBurningEliteBuff = possibleEnemies.stream().anyMatch((e) -> e.property.hasBurningEliteBuff);
-            property.hasArtifact = possibleEnemies.stream().anyMatch((e) -> e.property.hasArtifact);
+            properties.isElite = possibleEnemies.stream().anyMatch((e) -> e.properties.isElite);
+            properties.isMinion = possibleEnemies.stream().anyMatch((e) -> e.properties.isMinion);
+            properties.canVulnerable = possibleEnemies.stream().anyMatch((e) -> e.properties.canVulnerable);
+            properties.canEntangle = possibleEnemies.stream().anyMatch((e) -> e.properties.canEntangle);
+            properties.canWeaken = possibleEnemies.stream().anyMatch((e) -> e.properties.canWeaken);
+            properties.canFrail = possibleEnemies.stream().anyMatch((e) -> e.properties.canFrail);
+            properties.canSlime = possibleEnemies.stream().anyMatch((e) -> e.properties.canSlime);
+            properties.canDaze = possibleEnemies.stream().anyMatch((e) -> e.properties.canDaze);
+            properties.canGainStrength = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainStrength);
+            properties.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainRegeneration);
+            properties.canHeal = possibleEnemies.stream().anyMatch((e) -> e.properties.canHeal);
+            properties.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainMetallicize);
+            properties.canGainPlatedArmor = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainPlatedArmor);
+            properties.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainBlock);
+            properties.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerStrength);
+            properties.changePlayerDexterity = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerDexterity);
+            properties.changePlayerFocus = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerFocus);
+            properties.hasBurningEliteBuff = possibleEnemies.stream().anyMatch((e) -> e.properties.hasBurningEliteBuff);
+            properties.hasArtifact = possibleEnemies.stream().anyMatch((e) -> e.properties.hasArtifact);
             setEnemy(0);
         }
 
@@ -256,8 +256,8 @@ public abstract class Enemy extends EnemyReadOnly {
             currentEnemyIdx = idx;
         }
 
-        public EnemyProperty getEnemyProperty(int idx) {
-            return possibleEnemies.get(idx).property;
+        public EnemyProperties getEnemyProperty(int idx) {
+            return possibleEnemies.get(idx).properties;
         }
 
         public String getDescName() {
@@ -486,10 +486,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public GremlinNob(int health) {
             super(health, 4, false);
-            property.isElite = true;
-            property.actNumber = 1;
-            property.canVulnerable = true;
-            property.canGainStrength = true;
+            properties.isElite = true;
+            properties.actNumber = 1;
+            properties.canVulnerable = true;
+            properties.canGainStrength = true;
         }
 
         public GremlinNob(GremlinNob other) {
@@ -522,9 +522,9 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                         var e = state.getEnemiesForRead().get(idx);
                         if (e instanceof MergedEnemy m) {
                             if (m.currentEnemy instanceof GremlinNob && e.getMove() > 0) {
@@ -578,11 +578,11 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Lagavulin(int health) {
             super(health, 4, false);
-            property.isElite = true;
-            property.actNumber = 1;
-            property.canGainBlock = true;
-            property.changePlayerStrength = true;
-            property.changePlayerDexterity = true;
+            properties.isElite = true;
+            properties.actNumber = 1;
+            properties.canGainBlock = true;
+            properties.changePlayerStrength = true;
+            properties.changePlayerDexterity = true;
         }
 
         public Lagavulin(Lagavulin other) {
@@ -677,10 +677,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Sentry(int health, int startMove) {
             super(health, 2, false);
-            property.isElite = true;
-            property.actNumber = 1;
-            property.canDaze = true;
-            property.hasArtifact = true;
+            properties.isElite = true;
+            properties.actNumber = 1;
+            properties.canDaze = true;
+            properties.hasArtifact = true;
             this.startMove = startMove;
             artifact = 1;
         }
@@ -698,9 +698,9 @@ public abstract class Enemy extends EnemyReadOnly {
             if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
             } else if (move == BOLT) {
-                state.addCardToDiscard(state.prop.dazedCardIdx);
-                state.addCardToDiscard(state.prop.dazedCardIdx);
-                state.addCardToDiscard(state.prop.dazedCardIdx);
+                state.addCardToDiscard(state.properties.dazedCardIdx);
+                state.addCardToDiscard(state.properties.dazedCardIdx);
+                state.addCardToDiscard(state.properties.dazedCardIdx);
             }
         }
 
@@ -754,9 +754,9 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Hexaghost(int health) {
             super(health, 9, false);
-            property.isBoss = true;
-            property.canGainStrength = true;
-            property.canGainBlock = true;
+            properties.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
             afterFirstInfernal = false;
         }
 
@@ -775,8 +775,8 @@ public abstract class Enemy extends EnemyReadOnly {
                 state.enemyDoDamageToPlayer(this, n, 6);
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
-                state.addCardToDiscard(state.prop.burnCardIdx);
-                state.addCardToDiscard(state.prop.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
             } else if (move == TACKLE_1 || move == TACKLE_2) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
             } else if (move == INFLAME_1) {
@@ -785,16 +785,16 @@ public abstract class Enemy extends EnemyReadOnly {
             } else if (move == INFERNAL_1) {
                 state.enemyDoDamageToPlayer(this, 3, 6);
                 var deck = state.getDeckForRead();
-                state.setCardCountInDeck(state.prop.burnPCardIdx, deck[state.prop.burnPCardIdx] + deck[state.prop.burnCardIdx]);
-                state.setCardCountInDeck(state.prop.burnCardIdx, 0);
-                var burnUpgrade = new int[state.prop.cardDict.length];
+                state.setCardCountInDeck(state.properties.burnPCardIdx, deck[state.properties.burnPCardIdx] + deck[state.properties.burnCardIdx]);
+                state.setCardCountInDeck(state.properties.burnCardIdx, 0);
+                var burnUpgrade = new int[state.properties.cardDict.length];
                 Arrays.fill(burnUpgrade, -1);
-                burnUpgrade[state.prop.burnCardIdx] = state.prop.burnPCardIdx;
+                burnUpgrade[state.properties.burnCardIdx] = state.properties.burnPCardIdx;
                 state.handArrTransform(burnUpgrade);
                 state.discardArrTransform(burnUpgrade);
-                state.addCardToDiscard(state.prop.burnPCardIdx);
-                state.addCardToDiscard(state.prop.burnPCardIdx);
-                state.addCardToDiscard(state.prop.burnPCardIdx);
+                state.addCardToDiscard(state.properties.burnPCardIdx);
+                state.addCardToDiscard(state.properties.burnPCardIdx);
+                state.addCardToDiscard(state.properties.burnPCardIdx);
             }
         }
 
@@ -866,10 +866,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public TheGuardian(int health) {
             super(health, 7, false);
-            property.isBoss = true;
-            property.canGainBlock = true;
-            property.canVulnerable = true;
-            property.canWeaken = true;
+            properties.isBoss = true;
+            properties.canGainBlock = true;
+            properties.canVulnerable = true;
+            properties.canWeaken = true;
             modeShiftDmg = 40;
             maxModeShiftDmg = 40;
         }
@@ -969,9 +969,9 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var move = state.getEnemiesForRead().get(idx).move;
                         if (move == ROLL_ATTACK || move == TWIN_SLAM) {
                             state.doNonAttackDamageToPlayer(4, true, this);
@@ -1023,8 +1023,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public SlimeBoss(int health) {
             super(health, 4, false);
-            property.isBoss = true;
-            property.canSlime = true;
+            properties.isBoss = true;
+            properties.canSlime = true;
         }
 
         public SlimeBoss(SlimeBoss other) {
@@ -1038,7 +1038,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public int damage(double n, GameState state) {
             var dmg = super.damage(n, state);
-            if (health <= property.maxHealth / 2) {
+            if (health <= properties.maxHealth / 2) {
                 move = SPLIT;
             }
             return dmg;
@@ -1046,7 +1046,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
             super.nonAttackDamage(n, blockable, state);
-            if (health <= property.maxHealth / 2) {
+            if (health <= properties.maxHealth / 2) {
                 move = SPLIT;
             }
         }
@@ -1054,7 +1054,7 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == GOOP_SPRAY) {
                 for (int i = 0; i < 5; i++) {
-                    state.addCardToDiscard(state.prop.slimeCardIdx);
+                    state.addCardToDiscard(state.properties.slimeCardIdx);
                 }
             } else if (move == SLAM) {
                 state.enemyDoDamageToPlayer(this, 38, 1);
@@ -1101,7 +1101,7 @@ public abstract class Enemy extends EnemyReadOnly {
         public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(15, RandomGenCtx.Other) + 1;
             health = 10 * (training ? b : 15);
-            if (health <= property.maxHealth / 2) {
+            if (health <= properties.maxHealth / 2) {
                 move = SPLIT;
             }
         }
@@ -1142,9 +1142,9 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public LargeSpikeSlime(int health) {
             super(health, 3, true);
-            property.canSlime = true;
-            property.canFrail = true;
-            splitMaxHealth = property.maxHealth;
+            properties.canSlime = true;
+            properties.canFrail = true;
+            splitMaxHealth = properties.maxHealth;
         }
 
         public LargeSpikeSlime(LargeSpikeSlime other) {
@@ -1179,8 +1179,8 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == FLAME_TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
             } else if (move == LICK) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 3);
             } else if (move == SPLIT) {
@@ -1248,8 +1248,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public MediumSpikeSlime(int health) {
             super(health, 2, true);
-            property.canSlime = true;
-            property.canFrail = true;
+            properties.canSlime = true;
+            properties.canFrail = true;
         }
 
         public MediumSpikeSlime(int health, boolean startDead) {
@@ -1268,7 +1268,7 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == FLAME_TACKLE) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
             } else if (move == LICK) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
             }
@@ -1369,9 +1369,9 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public LargeAcidSlime(int health) {
             super(health, 3, true);
-            property.canSlime = true;
-            property.canWeaken = true;
-            splitMaxHealth = property.maxHealth;
+            properties.canSlime = true;
+            properties.canWeaken = true;
+            splitMaxHealth = properties.maxHealth;
         }
 
         public LargeAcidSlime(int health, boolean startDead) {
@@ -1406,8 +1406,8 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CORROSIVE_SPIT) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == LICK) {
@@ -1486,8 +1486,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public MediumAcidSlime(int health) {
             super(health, 3, true);
-            property.canSlime = true;
-            property.canWeaken = true;
+            properties.canSlime = true;
+            properties.canWeaken = true;
         }
 
         public MediumAcidSlime(int health, boolean startDead) {
@@ -1507,7 +1507,7 @@ public abstract class Enemy extends EnemyReadOnly {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CORROSIVE_SPIT) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == LICK) {
@@ -1570,7 +1570,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public SmallAcidSlime(int health) {
             super(health, 2, false);
-            property.canWeaken = true;
+            properties.canWeaken = true;
         }
 
         public SmallAcidSlime(SmallAcidSlime other) {
@@ -1628,8 +1628,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public RedSlaver(int health) {
             super(health, 3, true);
-            property.canVulnerable = true;
-            property.canEntangle = true;
+            properties.canVulnerable = true;
+            properties.canEntangle = true;
         }
 
         public RedSlaver(RedSlaver other) {
@@ -1726,7 +1726,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public BlueSlaver(int health) {
             super(health, 2, true);
-            property.canWeaken = true;
+            properties.canWeaken = true;
         }
 
         public BlueSlaver(BlueSlaver other) {
@@ -1791,10 +1791,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public JawWorm(int health, boolean isAct3) {
             super(health, 3, true);
-            property.canGainStrength = true;
-            property.canGainBlock = true;
-            property.isAct3 = isAct3;
-            if (property.isAct3) {
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
+            properties.isAct3 = isAct3;
+            if (properties.isAct3) {
                 gainStrength(5);
                 gainBlock(9);
             }
@@ -1821,7 +1821,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
-            if (!property.isAct3 && move == -1) {
+            if (!properties.isAct3 && move == -1) {
                 move = 0;
                 return;
             }
@@ -1879,7 +1879,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Cultist(int health) {
             super(health, 2, false);
-            property.canGainStrength = true;
+            properties.canGainStrength = true;
         }
 
         public Cultist(Cultist other) {
@@ -1971,8 +1971,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public RedLouse(int health) {
             super(health, 2, true);
-            property.canGainStrength = true;
-            property.canGainBlock = true;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
         }
 
         public RedLouse(RedLouse other) {
@@ -2104,7 +2104,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public GreenLouse(int health) {
             super(health, 2, true);
-            property.canWeaken = true;
+            properties.canWeaken = true;
         }
 
         public GreenLouse(GreenLouse other) {
@@ -2213,8 +2213,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public FungiBeast(int health) {
             super(health, 2, true);
-            property.canVulnerable = true;
-            property.canGainStrength = true;
+            properties.canVulnerable = true;
+            properties.canGainStrength = true;
         }
 
         public FungiBeast(FungiBeast other) {
@@ -2303,7 +2303,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Looter(int health) {
             super(health, 5, false);
-            property.canGainBlock = true;
+            properties.canGainBlock = true;
         }
 
         public Looter(Looter other) {
@@ -2376,9 +2376,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addExtraTrainingTarget("Looter", new GameProperties.TrainingTargetRegistrant() {
+            state.properties.addExtraTrainingTarget("Looter", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVArrayIdx(int idx) {
-                    state.prop.looterVArrayIdx = idx;
+                    state.properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
@@ -2392,14 +2392,14 @@ public abstract class Enemy extends EnemyReadOnly {
                                 }
                             }
                         }
-                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
+                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
                     } else if (isTerminal == 0) {
-                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = state.getVOther(state.prop.looterVArrayIdx);
+                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = state.getVOther(state.properties.looterVArrayIdx);
                     }
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
-                    double value = v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx];
+                    double value = v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx];
                     v[GameState.V_HEALTH_IDX] *= (0.9 + (1 - value) * 0.1);
                 }
             });
@@ -2425,7 +2425,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public Mugger(int health) {
             super(health, 5, false);
-            property.canGainBlock = true;
+            properties.canGainBlock = true;
         }
 
         public Mugger(Mugger other) {
@@ -2494,9 +2494,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addExtraTrainingTarget("Mugger", new GameProperties.TrainingTargetRegistrant() {
+            state.properties.addExtraTrainingTarget("Mugger", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVArrayIdx(int idx) {
-                    state.prop.looterVArrayIdx = idx;
+                    state.properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
@@ -2510,14 +2510,14 @@ public abstract class Enemy extends EnemyReadOnly {
                         }
                     }
                     if (isTerminal > 0 || escaped) {
-                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
+                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
                     } else if (isTerminal == 0) {
-                        v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx] = state.getVOther(state.prop.looterVArrayIdx);
+                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = state.getVOther(state.properties.looterVArrayIdx);
                     }
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
-                    double value = v[GameState.V_OTHER_IDX_START + state.prop.looterVArrayIdx];
+                    double value = v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx];
                     v[GameState.V_HEALTH_IDX] *= (0.9 + (1 - value) * 0.1);
                 }
             });
@@ -2541,8 +2541,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public FatGremlin(int health) {
             super(health, 1, false);
-            property.canWeaken = true;
-            property.canFrail = true;
+            properties.canWeaken = true;
+            properties.canFrail = true;
         }
 
         public FatGremlin(FatGremlin other) {
@@ -2590,7 +2590,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
         public MadGremlin(int health) {
             super(health, 1, false);
-            property.canGainStrength = true;
+            properties.canGainStrength = true;
         }
 
         public MadGremlin(MadGremlin other) {
@@ -2753,7 +2753,7 @@ public abstract class Enemy extends EnemyReadOnly {
             var enemies = state.getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 if (enemies.get(i).getName().contains("Gremlin")) {
-                    enemies.get(i).property.canGainBlock = true;
+                    enemies.get(i).properties.canGainBlock = true;
                 }
             }
         }

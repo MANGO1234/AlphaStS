@@ -21,9 +21,9 @@ public class EnemyBeyond {
 
         public AwakenedOne(int health) {
             super(health, 6, true);
-            property.canGainStrength = true;
-            property.canSelfRevive = true;
-            property.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canSelfRevive = true;
+            properties.isBoss = true;
             strength = 2;
         }
 
@@ -40,7 +40,7 @@ public class EnemyBeyond {
             int dmg = super.damage(n, state);
             if (health <= 0) {
                 if (!awakened) {
-                    if (!state.prop.hasRunicDome) {
+                    if (!state.properties.hasRunicDome) {
                         move = REBIRTH;
                     }
                 } else {
@@ -56,7 +56,7 @@ public class EnemyBeyond {
             super.nonAttackDamage(n, blockable, state);
             if (health <= 0) {
                 if (!awakened) {
-                    if (!state.prop.hasRunicDome) {
+                    if (!state.properties.hasRunicDome) {
                         move = REBIRTH;
                     }
                 } else {
@@ -74,10 +74,10 @@ public class EnemyBeyond {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var enemy = state.getEnemiesForRead().get(idx);
-                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
                         state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
                     }
                 }
@@ -91,13 +91,13 @@ public class EnemyBeyond {
                 state.enemyDoDamageToPlayer(this, 6, 4);
             } else if (move == REBIRTH) {
                 removeAllDebuffs();
-                health = property.maxHealth;
+                health = properties.maxHealth;
                 awakened = true;
             } else if (move == DARK_ECHO) {
                 state.enemyDoDamageToPlayer(this, 40, 1);
             } else if (move == SLUDGE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
-                state.addCardToDeck(state.prop.voidCardIdx);
+                state.addCardToDeck(state.properties.voidCardIdx);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 10, 3);
             }
@@ -247,10 +247,10 @@ public class EnemyBeyond {
         public Donu(int health) {
             super(health, 2, false);
             artifact = 3;
-            property.canGainStrength = true;
-            property.canGainPlatedArmor = true;
-            property.hasArtifact = true;
-            property.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canGainPlatedArmor = true;
+            properties.hasArtifact = true;
+            properties.isBoss = true;
         }
 
         public Donu(EnemyBeyond.Donu other) {
@@ -317,11 +317,11 @@ public class EnemyBeyond {
         public Deca(int health) {
             super(health, 2, false);
             artifact = 3;
-            property.canGainStrength = true;
-            property.canGainPlatedArmor = true;
-            property.canDaze = true;
-            property.hasArtifact = true;
-            property.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canGainPlatedArmor = true;
+            properties.canDaze = true;
+            properties.hasArtifact = true;
+            properties.isBoss = true;
         }
 
         public Deca(EnemyBeyond.Deca other) {
@@ -340,8 +340,8 @@ public class EnemyBeyond {
                 }
             } else if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 12, 2);
-                state.addCardToDiscard(state.prop.dazedCardIdx);
-                state.addCardToDiscard(state.prop.dazedCardIdx);
+                state.addCardToDiscard(state.properties.dazedCardIdx);
+                state.addCardToDiscard(state.properties.dazedCardIdx);
             }
         }
 
@@ -394,13 +394,13 @@ public class EnemyBeyond {
 
         public TimeEater(int health) {
             super(health, 4, true);
-            property.canSlime = true;
-            property.canGainStrength = true;
-            property.canGainBlock = true;
-            property.canVulnerable = true;
-            property.canWeaken = true;
-            property.canFrail = true;
-            property.isBoss = true;
+            properties.canSlime = true;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
+            properties.canVulnerable = true;
+            properties.canWeaken = true;
+            properties.canFrail = true;
+            properties.isBoss = true;
         }
 
         public TimeEater(EnemyBeyond.TimeEater other) {
@@ -416,13 +416,13 @@ public class EnemyBeyond {
         @Override public void saveStateForNextMove(GameState state) {
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 if (state.getEnemiesForRead().get(i) instanceof TimeEater) {
-                    startTurnLessHalfHealth = state.getEnemiesForRead().get(i).getHealth() < property.maxHealth / 2;
+                    startTurnLessHalfHealth = state.getEnemiesForRead().get(i).getHealth() < properties.maxHealth / 2;
                 }
             }
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("DrawReduction", new GameProperties.CounterRegistrant() {
+            state.properties.registerCounter("DrawReduction", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.drawReductionCounterIdx = idx;
                 }
@@ -431,7 +431,7 @@ public class EnemyBeyond {
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[state.prop.drawReductionCounterIdx];
+                    input[idx] = state.getCounterForRead()[state.properties.drawReductionCounterIdx];
                     return idx + 1;
                 }
 
@@ -439,7 +439,7 @@ public class EnemyBeyond {
                     return 1;
                 }
             });
-            state.prop.registerCounter("TimeEater", new GameProperties.CounterRegistrant() {
+            state.properties.registerCounter("TimeEater", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.timeEaterCounterIdx = idx;
                 }
@@ -448,7 +448,7 @@ public class EnemyBeyond {
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    int counter = state.getCounterForRead()[state.prop.timeEaterCounterIdx];
+                    int counter = state.getCounterForRead()[state.properties.timeEaterCounterIdx];
                     input[idx + counter] = 0.5f;
                     return idx + 13;
                 }
@@ -457,13 +457,13 @@ public class EnemyBeyond {
                     return 13;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var c = state.getCounterForWrite();
-                    if (c[state.prop.timeEaterCounterIdx] == 12) {
+                    if (c[state.properties.timeEaterCounterIdx] == 12) {
                         Integer.parseInt(null);
                     }
-                    c[state.prop.timeEaterCounterIdx]++;
+                    c[state.properties.timeEaterCounterIdx]++;
                 }
             });
         }
@@ -474,8 +474,8 @@ public class EnemyBeyond {
             } else if (move == HEAD_SLAM) {
                 state.enemyDoDamageToPlayer(this, 32, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.DRAW_REDUCTION, 2);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
-                state.addCardToDiscard(state.prop.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(state.properties.slimeCardIdx);
             } else if (move == RIPPLE) {
                 gainBlock(20);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -491,7 +491,7 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove = -1;
-            if ((state.prop.hasRunicDome ? startTurnLessHalfHealth : (health < property.maxHealth / 2)) && !hasted) {
+            if ((state.properties.hasRunicDome ? startTurnLessHalfHealth : (health < properties.maxHealth / 2)) && !hasted) {
                 hasted = true;
                 newMove = HASTE;
             } else {
@@ -608,9 +608,9 @@ public class EnemyBeyond {
 
         public GiantHead(int health) {
             super(health, 3, true);
-            property.isElite = true;
-            property.actNumber = 3;
-            property.canWeaken = true;
+            properties.isElite = true;
+            properties.actNumber = 3;
+            properties.canWeaken = true;
         }
 
         public GiantHead(EnemyBeyond.GiantHead other) {
@@ -687,7 +687,7 @@ public class EnemyBeyond {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var idx = state.getEnemiesForRead().find(this);
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     ((GiantHead) state.getEnemiesForWrite().getForWrite(idx)).slow++;
                 }
@@ -749,8 +749,8 @@ public class EnemyBeyond {
 
         public Nemesis(int health) {
             super(health, 3, true);
-            property.isElite = true;
-            property.actNumber = 3;
+            properties.isElite = true;
+            properties.actNumber = 3;
         }
 
         public Nemesis(EnemyBeyond.Nemesis other) {
@@ -771,7 +771,7 @@ public class EnemyBeyond {
             int prevHp = health;
             int dmg = super.damage(n, state);
             if (intangible) {
-                if (state.prop.hasBoot) {
+                if (state.properties.hasBoot) {
                     if (prevHp - health > 5) {
                         setHealth(prevHp - 5);
                         return 5;
@@ -796,11 +796,11 @@ public class EnemyBeyond {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DEBUFF) {
-                state.addCardToDiscard(state.prop.burnCardIdx);
-                state.addCardToDiscard(state.prop.burnCardIdx);
-                state.addCardToDiscard(state.prop.burnCardIdx);
-                state.addCardToDiscard(state.prop.burnCardIdx);
-                state.addCardToDiscard(state.prop.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
             } else if (move == ATTACK) {
                 state.enemyDoDamageToPlayer(this, 7, 3);
             } else if (move == SCYTHE) {
@@ -1021,9 +1021,9 @@ public class EnemyBeyond {
 
         public Reptomancer(int health) {
             super(health, 3, true);
-            property.isElite = true;
-            property.actNumber = 3;
-            property.canWeaken = true;
+            properties.isElite = true;
+            properties.actNumber = 3;
+            properties.canWeaken = true;
         }
 
         public Reptomancer(EnemyBeyond.Reptomancer other) {
@@ -1120,7 +1120,7 @@ public class EnemyBeyond {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     var enemies = state.getEnemiesForWrite();
                     for (int i = 0; i < enemies.size(); i++) {
@@ -1169,9 +1169,9 @@ public class EnemyBeyond {
 
         public Dagger(int health) {
             super(health, 2, false);
-            property.isElite = true;
-            property.isMinion = true;
-            property.actNumber = 3;
+            properties.isElite = true;
+            properties.isMinion = true;
+            properties.actNumber = 3;
         }
 
         public Dagger(EnemyBeyond.Dagger other) {
@@ -1185,7 +1185,7 @@ public class EnemyBeyond {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STAB) {
                 state.enemyDoDamageToPlayer(this, 9, 1);
-                state.addCardToDiscard(state.prop.woundCardIdx);
+                state.addCardToDiscard(state.properties.woundCardIdx);
             } else if (move == EXPLODE) {
                 state.enemyDoDamageToPlayer(this, 25, 1);
                 state.killEnemy(state.getEnemiesForRead().find(self), true);
@@ -1236,9 +1236,9 @@ public class EnemyBeyond {
 
         public TheMaw(int health) {
             super(health, 4, false);
-            property.canGainStrength = true;
-            property.canWeaken = true;
-            property.canFrail = true;
+            properties.canGainStrength = true;
+            properties.canWeaken = true;
+            properties.canFrail = true;
         }
 
         public TheMaw(EnemyBeyond.TheMaw other) {
@@ -1343,9 +1343,9 @@ public class EnemyBeyond {
 
         public WrithingMass(int health) {
             super(health, 5, true);
-            property.canWeaken = true;
-            property.canVulnerable = true;
-            property.canGainBlock = true;
+            properties.canWeaken = true;
+            properties.canVulnerable = true;
+            properties.canGainBlock = true;
         }
 
         public WrithingMass(EnemyBeyond.WrithingMass other) {
@@ -1494,9 +1494,9 @@ public class EnemyBeyond {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
+            state.properties.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVArrayIdx(int idx) {
-                    state.prop.writingMassVIdx = idx;
+                    state.properties.writingMassVIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
@@ -1510,14 +1510,14 @@ public class EnemyBeyond {
                                 }
                             }
                         }
-                        v[GameState.V_OTHER_IDX_START + state.prop.writingMassVIdx] = implantUsed ? 1.0f : 0.0f;
+                        v[GameState.V_OTHER_IDX_START + state.properties.writingMassVIdx] = implantUsed ? 1.0f : 0.0f;
                     } else if (isTerminal == 0) {
-                        v[GameState.V_OTHER_IDX_START + state.prop.writingMassVIdx] = state.getVOther(state.prop.writingMassVIdx);
+                        v[GameState.V_OTHER_IDX_START + state.properties.writingMassVIdx] = state.getVOther(state.properties.writingMassVIdx);
                     }
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
-                    double value = v[GameState.V_OTHER_IDX_START + state.prop.writingMassVIdx];
+                    double value = v[GameState.V_OTHER_IDX_START + state.properties.writingMassVIdx];
                     v[GameState.V_HEALTH_IDX] *= 1 - value * implantPenalty;
                 }
             });
@@ -1544,7 +1544,7 @@ public class EnemyBeyond {
 
         public OrbWalker() {
             this(102);
-            property.canGainStrength = true;
+            properties.canGainStrength = true;
         }
 
         public OrbWalker(int health) {
@@ -1562,8 +1562,8 @@ public class EnemyBeyond {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == LASER) {
                 state.enemyDoDamageToPlayer(this, 11, 1);
-                state.addCardToDiscard(state.prop.burnCardIdx);
-                state.addCardToDeck(state.prop.burnCardIdx);
+                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDeck(state.properties.burnCardIdx);
             } else if (move == CLAW) {
                 state.enemyDoDamageToPlayer(this, 16, 1);
             }
@@ -1642,7 +1642,7 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
-            if (state.getCounterForRead()[state.prop.constrictedCounterIdx] == 0 && lastMove != CONSTRICT) {
+            if (state.getCounterForRead()[state.properties.constrictedCounterIdx] == 0 && lastMove != CONSTRICT) {
                 newMove = CONSTRICT;
             } else {
                 if (move == QUICK_TACKLE && lastMove == QUICK_TACKLE) {
@@ -1678,7 +1678,7 @@ public class EnemyBeyond {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Constricted", new GameProperties.CounterRegistrant() {
+            state.properties.registerCounter("Constricted", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.constrictedCounterIdx = idx;
                 }
@@ -1687,7 +1687,7 @@ public class EnemyBeyond {
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    int counter = state.getCounterForRead()[state.prop.constrictedCounterIdx];
+                    int counter = state.getCounterForRead()[state.properties.constrictedCounterIdx];
                     input[idx] = counter / 12.0f;
                     return idx + 1;
                 }
@@ -1696,10 +1696,10 @@ public class EnemyBeyond {
                     return 1;
                 }
             });
-            state.prop.addPreEndOfTurnHandler("Constricted", new GameEventHandler() {
+            state.properties.addPreEndOfTurnHandler("Constricted", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.getCounterForRead()[state.prop.constrictedCounterIdx] > 0) {
-                        state.getPlayerForWrite().nonAttackDamage(state, state.getCounterForRead()[state.prop.constrictedCounterIdx], true);
+                    if (state.getCounterForRead()[state.properties.constrictedCounterIdx] > 0) {
+                        state.getPlayerForWrite().nonAttackDamage(state, state.getCounterForRead()[state.properties.constrictedCounterIdx], true);
                     }
                 }
             });
@@ -1738,9 +1738,9 @@ public class EnemyBeyond {
         public Darkling(int health, boolean middle) {
             super(health, 6, true);
             this.middle = middle;
-            property.canGainStrength = true;
-            property.canGainBlock = true;
-            property.canSelfRevive = true;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
+            properties.canSelfRevive = true;
         }
 
         public Darkling(EnemyBeyond.Darkling other) {
@@ -1797,7 +1797,7 @@ public class EnemyBeyond {
                 gainStrength(2);
             } else if (move == REGROW_1 || move == REGROW_2) {
             } else if (move == REINCARNATE) {
-                health = property.origHealth / 2;
+                health = properties.origHealth / 2;
                 state.adjustEnemiesAlive(1);
             }
         }
@@ -1888,7 +1888,7 @@ public class EnemyBeyond {
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);
-            s = s.replaceFirst("hp=(\\d+)", "hp=$1/" + property.origHealth);
+            s = s.replaceFirst("hp=(\\d+)", "hp=$1/" + properties.origHealth);
             if (lowerPossibleNipDmg != upperPossibleNipDmg) {
                 return s.subSequence(0, s.length() - 1) + ", nipDmg=" + lowerPossibleNipDmg + "-" + upperPossibleNipDmg + "}";
             } else {
@@ -1911,7 +1911,7 @@ public class EnemyBeyond {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = (lowerPossibleNipDmg - 7) / 4.0f;
             input[idx + 1] = (upperPossibleNipDmg - 7) / 4.0f;
-            input[idx + 2] = property.origHealth / (float) property.maxHealth;
+            input[idx + 2] = properties.origHealth / (float) properties.maxHealth;
             return 3;
         }
     }

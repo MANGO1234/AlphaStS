@@ -26,14 +26,14 @@ public class Main {
     public static void main(String[] args) throws IOException {
         var state = TestStates.TestStateReddit();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getNNInput().length + "," + state.prop.totalNumOfActions);
-            for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
-                System.out.print("," + state.prop.extraTrainingTargetsLabel.get(i) + "," + state.prop.extraTrainingTargets.get(i).getNumberOfTargets());
+            System.out.print(state.getNNInput().length + "," + state.properties.totalNumOfActions);
+            for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {
+                System.out.print("," + state.properties.extraTrainingTargetsLabel.get(i) + "," + state.properties.extraTrainingTargets.get(i).getNumberOfTargets());
             }
             return;
         }
 //        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
-        System.out.println("Seed: " + state.prop.random.getSeed(null));
+        System.out.println("Seed: " + state.properties.random.getSeed(null));
 
         boolean GENERATE_TRAINING_GAMES = false;
         boolean TEST_TRAINING_AGENT = false;
@@ -109,23 +109,23 @@ public class Main {
         }
 
         if (!GENERATE_TRAINING_GAMES && GAMES_ADD_ENEMY_RANDOMIZATION) {
-            state.prop.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.prop.randomization);
+            state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
         }
         if (GENERATE_TRAINING_GAMES) {
             Configuration.CPUCT_SCALING = false;
             Configuration.USE_PROGRESSIVE_WIDENING = false;
             Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE = false;
         }
-        var preBattleScenarios = state.prop.preBattleScenarios;
-        var randomization = state.prop.randomization;
-        if (TEST_TRAINING_AGENT && state.prop.preBattleScenarios != null && state.prop.endOfPreBattleHandler == null) {
-            state.prop.preBattleScenarios = null;
-            if (state.prop.randomization == null) {
-                state.prop.randomization = preBattleScenarios;
+        var preBattleScenarios = state.properties.preBattleScenarios;
+        var randomization = state.properties.randomization;
+        if (TEST_TRAINING_AGENT && state.properties.preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
+            state.properties.preBattleScenarios = null;
+            if (state.properties.randomization == null) {
+                state.properties.randomization = preBattleScenarios;
             } else {
-                state.prop.randomization = state.prop.randomization.doAfter(preBattleScenarios);
+                state.properties.randomization = state.properties.randomization.doAfter(preBattleScenarios);
             }
-            if (state.prop.preBattleRandomization == null) {
+            if (state.properties.preBattleRandomization == null) {
                 state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
             }
         }
@@ -200,9 +200,9 @@ public class Main {
         }
 
         MatchSession session = new MatchSession(curIterationDir, COMPARE_DIR);
-        if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES && state.prop.randomization != null) {
+        if (!TEST_TRAINING_AGENT && !GENERATE_TRAINING_GAMES && state.properties.randomization != null) {
 //            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
-        } else if (TEST_TRAINING_AGENT && state.prop.randomization != null) {
+        } else if (TEST_TRAINING_AGENT && state.properties.randomization != null) {
 //            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, 4, 1);
         }
 
@@ -224,10 +224,10 @@ public class Main {
             session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, !TEST_TRAINING_AGENT, PRINT_DMG, false);
 //             session.playGamesForStat(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN);
         }
-        if (GENERATE_TRAINING_GAMES && preBattleScenarios != null && state.prop.endOfPreBattleHandler == null) {
-            state.prop.preBattleScenarios = preBattleScenarios;
-            state.prop.randomization = randomization;
-            if (state.prop.preBattleRandomization == null) {
+        if (GENERATE_TRAINING_GAMES && preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
+            state.properties.preBattleScenarios = preBattleScenarios;
+            state.properties.randomization = randomization;
+            if (state.properties.preBattleRandomization == null) {
                 state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
             }
         }
@@ -245,10 +245,10 @@ public class Main {
             }
             session.TRAINING_WITH_LINE = TRAINING_WITH_LINE;
             long start = System.currentTimeMillis();
-            state.prop.curriculumTraining = CURRICULUM_TRAINING_ON || automatedCurriculumTraining;
-            state.prop.minDifficulty = minDifficulty;
-            state.prop.maxDifficulty = maxDifficulty;
-            state.prop.randomization = new GameStateRandomization.EnemyRandomization(state.prop.curriculumTraining, minDifficulty, maxDifficulty).doAfter(state.prop.randomization);
+            state.properties.curriculumTraining = CURRICULUM_TRAINING_ON || automatedCurriculumTraining;
+            state.properties.minDifficulty = minDifficulty;
+            state.properties.maxDifficulty = maxDifficulty;
+            state.properties.randomization = new GameStateRandomization.EnemyRandomization(state.properties.curriculumTraining, minDifficulty, maxDifficulty).doAfter(state.properties.randomization);
             session.playTrainingGames(state, 200, 100, NUMBER_OF_THREADS, BATCH_SIZE, curIterationDir + "/training_data.bin.lz4");
             if (automatedCurriculumTraining) {
                 if (minDifficulty == totalDifficulty) {

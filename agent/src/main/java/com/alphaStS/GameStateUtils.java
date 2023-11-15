@@ -50,9 +50,9 @@ public class GameStateUtils {
     }
 
     public static int[][] getScenarioGroups(GameState state, int groupSize, int stride) {
-        int size = state.prop.randomization.listRandomizations().size();
-        if (state.prop.preBattleRandomization != null) {
-            size *= state.prop.preBattleRandomization.listRandomizations().size();
+        int size = state.properties.randomization.listRandomizations().size();
+        if (state.properties.preBattleRandomization != null) {
+            size *= state.properties.preBattleRandomization.listRandomizations().size();
         }
         if (size % (groupSize * stride) != 0) {
             return null;
@@ -81,13 +81,13 @@ public class GameStateUtils {
     public static void writeStateDescription(GameState state, Writer writer) throws IOException {
         writer.write("************************** NN Description **************************\n");
         writer.write(state.getNNInputDesc());
-        if (state.prop.randomization != null || state.prop.preBattleRandomization != null) {
+        if (state.properties.randomization != null || state.properties.preBattleRandomization != null) {
             writer.write("\n************************** Randomizations **************************\n");
-            var randomization = state.prop.preBattleRandomization;
+            var randomization = state.properties.preBattleRandomization;
             if (randomization == null) {
-                randomization = state.prop.randomization;
-            } else if (state.prop.randomization != null) {
-                randomization = randomization.doAfter(state.prop.randomization);
+                randomization = state.properties.randomization;
+            } else if (state.properties.randomization != null) {
+                randomization = randomization.doAfter(state.properties.randomization);
             }
             int i = 1;
             for (var info : randomization.listRandomizations().values()) {
@@ -114,31 +114,31 @@ public class GameStateUtils {
         StringBuilder desc = new StringBuilder();
         boolean first = true, first2;
         var cardMap = new HashMap<Card, CardChanges>();
-        for (Card card : from.prop.cardDict) {
+        for (Card card : from.properties.cardDict) {
             cardMap.put(card, new CardChanges());
         }
-        var fromGetHandForRead = GameStateUtils.getCardArrCounts(from.getHandArrForRead(), from.getNumCardsInHand(), from.prop.cardDict.length);
-        var toGetHandForRead = GameStateUtils.getCardArrCounts(to.getHandArrForRead(), to.getNumCardsInHand(), to.prop.cardDict.length);
+        var fromGetHandForRead = GameStateUtils.getCardArrCounts(from.getHandArrForRead(), from.getNumCardsInHand(), from.properties.cardDict.length);
+        var toGetHandForRead = GameStateUtils.getCardArrCounts(to.getHandArrForRead(), to.getNumCardsInHand(), to.properties.cardDict.length);
         for (int i = 0; i < fromGetHandForRead.length; i++) {
             if (fromGetHandForRead[i] != toGetHandForRead[i]) {
-                cardMap.get(from.prop.cardDict[i]).hand = toGetHandForRead[i] - fromGetHandForRead[i];
+                cardMap.get(from.properties.cardDict[i]).hand = toGetHandForRead[i] - fromGetHandForRead[i];
             }
         }
         for (int i = 0; i < from.getDeckForRead().length; i++) {
             if (from.getDeckForRead()[i] != to.getDeckForRead()[i]) {
-                cardMap.get(from.prop.cardDict[i]).deck = to.getDeckForRead()[i] - from.getDeckForRead()[i];
+                cardMap.get(from.properties.cardDict[i]).deck = to.getDeckForRead()[i] - from.getDeckForRead()[i];
             }
         }
-        var fromGetDiscardForRead = GameStateUtils.getCardArrCounts(from.getDiscardArrForRead(), from.getNumCardsInDiscard(), from.prop.cardDict.length);
-        var toGetDiscardForRead = GameStateUtils.getCardArrCounts(to.getDiscardArrForRead(), to.getNumCardsInDiscard(), to.prop.cardDict.length);
+        var fromGetDiscardForRead = GameStateUtils.getCardArrCounts(from.getDiscardArrForRead(), from.getNumCardsInDiscard(), from.properties.cardDict.length);
+        var toGetDiscardForRead = GameStateUtils.getCardArrCounts(to.getDiscardArrForRead(), to.getNumCardsInDiscard(), to.properties.cardDict.length);
         for (int i = 0; i < fromGetDiscardForRead.length; i++) {
             if (fromGetDiscardForRead[i] != toGetDiscardForRead[i]) {
-                cardMap.get(from.prop.cardDict[i]).discard = toGetDiscardForRead[i] - fromGetDiscardForRead[i];
+                cardMap.get(from.properties.cardDict[i]).discard = toGetDiscardForRead[i] - fromGetDiscardForRead[i];
             }
         }
         for (int i = 0; i < from.getExhaustForRead().length; i++) {
             if (from.getExhaustForRead()[i] != to.getExhaustForRead()[i]) {
-                cardMap.get(from.prop.cardDict[i]).exhaust = to.getExhaustForRead()[i] - from.getExhaustForRead()[i];
+                cardMap.get(from.properties.cardDict[i]).exhaust = to.getExhaustForRead()[i] - from.getExhaustForRead()[i];
             }
         }
         first2 = true;
@@ -262,9 +262,9 @@ public class GameStateUtils {
                 if (state.ns[i] != null && depth > 0) {
                     writer.write(indent + "  - action=" + state.getActionString(i) + " (" + i + ")");
                     var n = state.n[i];
-                    var q_comb = state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX];
-                    var q_win = state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX];
-                    var q_health = state.q[(i + 1) * state.prop.v_total_len + GameState.V_HEALTH_IDX];
+                    var q_comb = state.q[(i + 1) * state.properties.v_total_len + GameState.V_COMB_IDX];
+                    var q_win = state.q[(i + 1) * state.properties.v_total_len + GameState.V_WIN_IDX];
+                    var q_health = state.q[(i + 1) * state.properties.v_total_len + GameState.V_HEALTH_IDX];
                     int l = (state.getActionString(i) + " (" + i + ")").length();
                     for (int j = 0; j < 24 - l; j++) {
                         writer.write(' ');
@@ -361,9 +361,9 @@ public class GameStateUtils {
                 var i = x[1];
                 if (state.ns[i] != null && depth > 0) {
                     var n = state.n[i];
-                    var q_comb = state.q[(i + 1) * state.prop.v_total_len + GameState.V_COMB_IDX];
-                    var q_win = state.q[(i + 1) * state.prop.v_total_len + GameState.V_WIN_IDX];
-                    var q_health = state.q[(i + 1) * state.prop.v_total_len + GameState.V_HEALTH_IDX];
+                    var q_comb = state.q[(i + 1) * state.properties.v_total_len + GameState.V_COMB_IDX];
+                    var q_win = state.q[(i + 1) * state.properties.v_total_len + GameState.V_WIN_IDX];
+                    var q_health = state.q[(i + 1) * state.properties.v_total_len + GameState.V_HEALTH_IDX];
                     var label = "%s, n=%d, q=%s/%s/%s".formatted(state.getActionString(i), n, Utils.formatFloat(q_comb / n), Utils.formatFloat(q_win / n), Utils.formatFloat(q_health / n));
                     writer.write(String.format("    \"%s\" -> \"%s\" [label=\"%s\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), System.identityHashCode(state.ns[i]) + ":" + state.ns[i].hashCode(), lineBreak(label, 40)));
                     printDagGraphvizH(state.ns[i], depth - 1, writer, writtenNodes, stopAtChanceNode);

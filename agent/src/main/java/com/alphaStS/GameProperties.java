@@ -526,16 +526,16 @@ public class GameProperties implements Cloneable {
     };
 
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
-        state.prop.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
+        state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
-                input[idx] = state.getCounterForRead()[state.prop.bufferCounterIdx] / 10.0f;
+                input[idx] = state.getCounterForRead()[state.properties.bufferCounterIdx] / 10.0f;
                 return idx + 1;
             }
             @Override public int getInputLenDelta() {
                 return 1;
             }
             @Override public void onRegister(int counterIdx) {
-                state.prop.bufferCounterIdx = counterIdx;
+                state.properties.bufferCounterIdx = counterIdx;
             }
         });
     }
@@ -552,28 +552,28 @@ public class GameProperties implements Cloneable {
         });
         addEndOfTurnHandler("Intangible", new GameEventHandler() {
             @Override public void handle(GameState state) {
-                if (state.getCounterForRead()[state.prop.intangibleCounterIdx] > 0) {
-                    state.getCounterForWrite()[state.prop.intangibleCounterIdx]--;
+                if (state.getCounterForRead()[state.properties.intangibleCounterIdx] > 0) {
+                    state.getCounterForWrite()[state.properties.intangibleCounterIdx]--;
                 }
             }
         });
     }
 
     public void registerThornCounter(GameState state2, CounterRegistrant registrant) {
-        state2.prop.registerCounter("Thorn", registrant, null);
-        state2.prop.addOnDamageHandler(new OnDamageHandler() {
+        state2.properties.registerCounter("Thorn", registrant, null);
+        state2.properties.addOnDamageHandler(new OnDamageHandler() {
             @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                 if (isAttack && source instanceof EnemyReadOnly enemy2) {
                     var idx = state.getEnemiesForRead().find(enemy2);
                     var enemy = state.getEnemiesForWrite().getForWrite(idx);
-                    state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[registrant.getCounterIdx(state.prop)], true);
+                    state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[registrant.getCounterIdx(state.properties)], true);
                 }
             }
         });
     }
 
     public void registerMetallicizeHandler(GameState state, int counterIdx) {
-        state.prop.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+        state.properties.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
             }
@@ -590,7 +590,7 @@ public class GameProperties implements Cloneable {
             }
         }, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
-                input[idx] = state.getCounterForRead()[state.prop.sneckoDebuffCounterIdx] > 0 ? 0.5f : 0.0f;
+                input[idx] = state.getCounterForRead()[state.properties.sneckoDebuffCounterIdx] > 0 ? 0.5f : 0.0f;
                 return idx + 1;
             }
 

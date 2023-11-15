@@ -44,7 +44,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     private static boolean isEliteFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
-            if (enemy.property.isElite) {
+            if (enemy.properties.isElite) {
                 return true;
             }
         }
@@ -53,7 +53,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     private static boolean isBossFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
-            if (enemy.property.isBoss) {
+            if (enemy.properties.isBoss) {
                 return true;
             }
         }
@@ -66,9 +66,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Akabeko extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.buffs |= PlayerBuff.AKABEKO.mask();
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.AKABEKO.mask();
                     }
                 }
@@ -84,7 +84,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class AncientTeaSet extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.energy += 2;
                 }
@@ -94,14 +94,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class ArtOfWar extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.ART_OF_WAR.mask();
                     }
                 }
             });
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum > 1 && (state.buffs & PlayerBuff.ART_OF_WAR.mask()) != 0) {
                         state.gainEnergy(1);
@@ -115,7 +115,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class BagOfMarbles extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             vulnEnemy = true;
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
@@ -127,7 +127,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BagOfPreparation extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1) {
                         state.draw(2);
@@ -141,8 +141,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BronzeScales extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerThornCounter(state, this);
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.registerThornCounter(state, this);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] += 3;
                 }
@@ -153,7 +153,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class CentennialPuzzle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
-            state.prop.addOnDamageHandler(new OnDamageHandler() {
+            state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     if ((state.buffs & PlayerBuff.CENTENNIAL_PUZZLE.mask()) != 0) {
@@ -178,7 +178,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("HappyFlower", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("HappyFlower", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] == 0 ? 3 : counter[counterIdx]) / 3.0f;
@@ -188,12 +188,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
@@ -204,7 +204,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             if (healthReward > 0) {
-                state.prop.addExtraTrainingTarget("HappyFlower", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("HappyFlower", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 3.0;
@@ -251,7 +251,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Nunchaku", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Nunchaku", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
@@ -261,9 +261,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 10) {
@@ -273,13 +273,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
             if (healthReward > 0) {
-                state.prop.addExtraTrainingTarget("Nunchaku", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("Nunchaku", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
@@ -309,7 +309,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Orichalcum extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addPreEndOfTurnHandler(new GameEventHandler(0) {
+            state.properties.addPreEndOfTurnHandler(new GameEventHandler(0) {
                 @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getBlock() == 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
@@ -329,7 +329,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("PenNib", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("PenNib", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
@@ -339,9 +339,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 10) {
@@ -350,13 +350,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
             if (healthReward > 0) {
-                state.prop.addExtraTrainingTarget("PenNib", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("PenNib", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
@@ -386,7 +386,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class PreservedInsect extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isEliteFight(state)) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -404,7 +404,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class TheBoot extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasBoot = true;
+            state.properties.hasBoot = true;
         }
     }
 
@@ -413,7 +413,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class ToyOrnithopter extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasToyOrniphopter = true;
+            state.properties.hasToyOrniphopter = true;
             // technically heals, but we don't actually want to wait for it
         }
     }
@@ -433,7 +433,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BlueCandle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasBlueCandle = true;
+            state.properties.hasBlueCandle = true;
         }
     }
 
@@ -445,9 +445,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex(card));
+                    state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex(card));
                 }
             });
         }
@@ -477,7 +477,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GremlinHorn extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnEnemyDeathHandler("GremlinHorn", new GameEventEnemyHandler() {
+            state.properties.addOnEnemyDeathHandler("GremlinHorn", new GameEventEnemyHandler() {
                 @Override public void handle(GameState state, EnemyReadOnly enemy) {
                     state.gainEnergy(1);
                     state.draw(1);
@@ -488,7 +488,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class HornCleat extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addNNInputHandler("HornCleat", new GameProperties.NetworkInputHandler() {
+            state.properties.addNNInputHandler("HornCleat", new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.turnNum <= 2 ? state.turnNum / 2.0f : -0.5f;
                     return idx + 1;
@@ -497,7 +497,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("HornCleat", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("HornCleat", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 2) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(14);
@@ -509,7 +509,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class InkBottle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("InkBottle", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("InkBottle", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
@@ -519,7 +519,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
@@ -535,7 +535,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Kunai extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             changePlayerDexterity = true;
-            state.prop.registerCounter("Kunai", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Kunai", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
@@ -545,9 +545,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
@@ -557,7 +557,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.properties.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
@@ -567,7 +567,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class LetterOpener extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("LetterOpener", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("LetterOpener", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
@@ -577,9 +577,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
@@ -591,7 +591,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.properties.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
@@ -603,8 +603,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MeatOnTheBone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasMeatOnBone = true;
-            state.prop.addEndOfBattleHandler(new GameEventHandler() {
+            state.properties.hasMeatOnBone = true;
+            state.properties.addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
                         state.getPlayerForWrite().heal(12);
@@ -616,7 +616,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MercuryHourglass extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         state.playerDoNonAttackDamageToEnemy(enemy, 3, true);
@@ -630,13 +630,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MummifiedHand extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         int possibleCards = 0, diff = 0, idx = -1;
-                        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.prop.cardDict.length);
-                        for (int i = 0; i < state.prop.realCardsLen; i++) {
-                            if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
+                        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
+                        for (int i = 0; i < state.properties.realCardsLen; i++) {
+                            if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
                                 possibleCards += hand[i];
                                 diff += 1;
                                 idx = i;
@@ -649,8 +649,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             state.setIsStochastic();
                             var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
                             var acc = 0;
-                            for (int i = 0; i < state.prop.realCardsLen; i++) {
-                                if (hand[i] > 0 && !state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0) {
+                            for (int i = 0; i < state.properties.realCardsLen; i++) {
+                                if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
                                     acc += hand[i];
                                     if (acc > r) {
                                         idx = i;
@@ -660,7 +660,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             }
                         }
                         state.removeCardFromHand(idx);
-                        state.addCardToHand(state.prop.tmp0CostCardTransformIdxes[idx]);
+                        state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
                     }
 //                    if (state.prop.cardDict[cardIdx].cardType != Card.POWER) {
 //                        return;
@@ -709,7 +709,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class OrnamentalFan extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("OrnamentalFan", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("OrnamentalFan", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
@@ -719,9 +719,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
@@ -731,7 +731,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addPreEndOfTurnHandler(new GameEventHandler() {
+            state.properties.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
@@ -746,7 +746,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class Shuriken extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             changePlayerStrength = true;
-            state.prop.registerCounter("Shuriken", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Shuriken", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
@@ -756,9 +756,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnCardPlayedHandler("Shuriken", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("Shuriken", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
@@ -768,7 +768,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addPreEndOfTurnHandler("Shuriken", new GameEventHandler() {
+            state.properties.addPreEndOfTurnHandler("Shuriken", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
@@ -780,7 +780,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class StrikeDummy extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasStrikeDummy = true;
+            state.properties.hasStrikeDummy = true;
         }
     }
 
@@ -802,7 +802,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Sundial", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Sundial", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 3.0f;
@@ -812,16 +812,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.sundialCounterIdx = counterIdx;
+                    state.properties.sundialCounterIdx = counterIdx;
                 }
             });
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
             if (healthReward > 0) {
-                state.prop.addExtraTrainingTarget("Sundial", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("Sundial", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 2.0;
@@ -856,9 +856,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.healPlayer(2);
                     }
                 }
@@ -868,7 +868,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Calipers extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasCaliper = true;
+            state.properties.hasCaliper = true;
         }
     }
 
@@ -880,7 +880,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class CaptainsWheel extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addNNInputHandler("CaptainsWheel", new GameProperties.NetworkInputHandler() {
+            state.properties.addNNInputHandler("CaptainsWheel", new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.turnNum <= 3 ? state.turnNum / 3.0f : -0.5f;
                     return idx + 1;
@@ -889,7 +889,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("CaptainsWheel", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("CaptainsWheel", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 3) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(18);
@@ -901,20 +901,20 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DeadBranch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleCards(state.prop);
-            state.prop.deadBranchCardsIdxes = new int[cards.size()];
+            var cards = getPossibleCards(state.properties);
+            state.properties.deadBranchCardsIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.prop.deadBranchCardsIdxes[i] = state.prop.findCardIndex(cards.get(i));
+                state.properties.deadBranchCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
             }
-            state.prop.addOnExhaustHandler("DeadBranch", new GameEventHandler() {
+            state.properties.addOnExhaustHandler("DeadBranch", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                         @Override public void doAction(GameState state) {
-                            var idx = state.getSearchRandomGen().nextInt(state.prop.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.prop.deadBranchCardsIdxes));
-                            idx = state.addCardToHandGeneration(state.prop.deadBranchCardsIdxes[idx]);
+                            var idx = state.getSearchRandomGen().nextInt(state.properties.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.deadBranchCardsIdxes));
+                            idx = state.addCardToHandGeneration(state.properties.deadBranchCardsIdxes[idx]);
                             state.setIsStochastic();
                             if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
-                            state.getStateDesc().append("Dead Branch -> ").append(state.prop.cardDict[idx].cardName);
+                            state.getStateDesc().append("Dead Branch -> ").append(state.properties.cardDict[idx].cardName);
                         }
                     });
                 }
@@ -1011,7 +1011,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class DuVuDoll extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             for (int i : state.getDeckArrForRead()) {
-                if (state.prop.cardDict[i].cardType == Card.CURSE) {
+                if (state.properties.cardDict[i].cardType == Card.CURSE) {
                     state.getPlayerForWrite().gainStrength(1);
                 }
             }
@@ -1020,10 +1020,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class FossilizedHelix extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerBufferCounter(state, this);
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.registerBufferCounter(state, this);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[state.prop.bufferCounterIdx]++;
+                    state.getCounterForWrite()[state.properties.bufferCounterIdx]++;
                 }
             });
         }
@@ -1037,7 +1037,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Ginger extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasGinger = true;
+            state.properties.hasGinger = true;
         }
     }
 
@@ -1055,7 +1055,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class IceCream extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasIceCream = true;
+            state.properties.hasIceCream = true;
         }
     }
 
@@ -1078,7 +1078,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("IncenseBurner", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("IncenseBurner", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[counter[counterIdx]] = 1;
@@ -1088,24 +1088,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 6;
                 }
             });
-            state.prop.registerIntangibleCounter();
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.registerIntangibleCounter();
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx]++;
                     if (state.getCounterForWrite()[counterIdx] == 6) {
                         state.getCounterForWrite()[counterIdx] = 0;
-                        state.getCounterForWrite()[state.prop.intangibleCounterIdx]++;
+                        state.getCounterForWrite()[state.properties.intangibleCounterIdx]++;
                     }
                 }
             });
-            state.prop.incenseBurnerRewardType = rewardType;
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.incenseBurnerRewardType = rewardType;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
             if (rewardType == DEFAULT_REWARD) {
-                state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 5.0;
@@ -1119,7 +1119,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 });
             } else if (rewardType == SHIELD_AND_SPEAR_REWARD) {
-                state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             for (int i = 0; i < 7; i++) {
@@ -1147,7 +1147,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 });
             } else if (rewardType == HEART_REWARD) {
-                state.prop.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             for (int i = 0; i < 7; i++) {
@@ -1197,8 +1197,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class ThreadAndNeedle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.playerPlatedArmorCanChange = true;
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.playerPlatedArmorCanChange = true;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().gainPlatedArmor(4);
                 }
@@ -1208,25 +1208,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Torii extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasTorri = true;
+            state.properties.hasTorri = true;
         }
     }
 
     public static class TungstenRod extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasTungstenRod = true;
+            state.properties.hasTungstenRod = true;
         }
     }
 
     public static class Turnip extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasTurnip = true;
+            state.properties.hasTurnip = true;
         }
     }
 
     public static class UnceasingTop extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasUnceasingTop = true;
+            state.properties.hasUnceasingTop = true;
         }
     }
 
@@ -1244,7 +1244,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MedicalKit extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasMedicalKit = true;
+            state.properties.hasMedicalKit = true;
         }
     }
 
@@ -1252,7 +1252,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class OrangePellets extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("OrangePellets", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("OrangePellets", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] & 1) != 0 ? 0.1f : 0.0f;
@@ -1264,16 +1264,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 3;
                 }
             });
-            state.prop.addOnCardPlayedHandler("OrangePellets", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("OrangePellets", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0b111) {
                         return;
                     }
-                    if (state.prop.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.getCounterForWrite()[counterIdx] |= 1;
-                    } else if (state.prop.cardDict[cardIdx].cardType == Card.SKILL) {
+                    } else if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                         state.getCounterForWrite()[counterIdx] |= 1 << 1;
-                    } else if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    } else if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.getCounterForWrite()[counterIdx] |= 1 << 2;
                     }
                     if (state.getCounterForRead()[counterIdx] == 0b111) {
@@ -1281,7 +1281,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addEndOfTurnHandler("OrangePellets", new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("OrangePellets", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
@@ -1304,7 +1304,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class StrangeSpoon extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasStrangeSpoon = true;
+            state.properties.hasStrangeSpoon = true;
         }
     }
 
@@ -1317,12 +1317,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         public static void changeToSelectionCtx(GameState state) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.toolboxIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.toolboxIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.toolboxIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.toolboxIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.toolboxIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.toolboxIdxes) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.properties.toolboxIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.toolboxIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.properties.toolboxIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.toolboxIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.properties.toolboxIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.toolboxIdxes) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -1332,7 +1332,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             if (idx3 >= Math.max(idx1, idx2)) {
                 idx3++;
             }
-            state.setSelect1OutOf3Idxes(state.prop.toolboxIdxes[idx1], state.prop.toolboxIdxes[idx2], state.prop.toolboxIdxes[idx3]);
+            state.setSelect1OutOf3Idxes(state.properties.toolboxIdxes[idx1], state.properties.toolboxIdxes[idx2], state.properties.toolboxIdxes[idx3]);
             state.setIsStochastic();
             state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, false);
         }
@@ -1388,11 +1388,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasToolbox = true;
-            var cards = getPossibleSelect3OutOf1Cards(state.prop);
-            state.prop.toolboxIdxes = new int[cards.size()];
+            state.properties.hasToolbox = true;
+            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            state.properties.toolboxIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.prop.toolboxIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+                state.properties.toolboxIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
             }
         }
     }
@@ -1442,7 +1442,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class PhilosophersStone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.energyRefill += 1;
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     var enemies = state.getEnemiesForWrite();
                     for (int i = 0; i < enemies.size(); i++) {
@@ -1456,19 +1456,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class RunicDome extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.energyRefill += 1;
-            state.prop.hasRunicDome = true;
+            state.properties.hasRunicDome = true;
         }
     }
 
     public static class RunicPyramid extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasRunicPyramid = true;
+            state.properties.hasRunicPyramid = true;
         }
     }
 
     public static class SacredBark extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasSacredBark = true;
+            state.properties.hasSacredBark = true;
         }
     }
 
@@ -1486,10 +1486,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.setupSneckoIndexes();
-            state.prop.registerSneckoDebuffCounter();
-            state.prop.hasSneckoEye = true;
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.setupSneckoIndexes();
+            state.properties.registerSneckoDebuffCounter();
+            state.properties.hasSneckoEye = true;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().applyDebuff(state, DebuffType.SNECKO, 1);
                 }
@@ -1507,7 +1507,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class VelvetChoker extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.energyRefill += 1;
-            state.prop.registerCounter("VelvetChoker", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("VelvetChoker", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx + state.getCounterForRead()[counterIdx]] = 0.5f;
                     return idx + 7;
@@ -1516,14 +1516,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 7;
                 }
             });
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 6) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }
             });
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = 0;
                 }
@@ -1548,7 +1548,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GremlinVisage extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 1);
                 }
@@ -1566,14 +1566,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class OddMushroom extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasOddMushroom = true;
+            state.properties.hasOddMushroom = true;
         }
     }
 
     public static class RedMask extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             weakEnemy = true;
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         enemy.applyDebuff(state, DebuffType.WEAK, 1);
@@ -1588,12 +1588,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class WarpedTongs extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     int possibleCards = 0, diff = 0;
-                    var seen = new boolean[state.prop.cardDict.length];
+                    var seen = new boolean[state.properties.cardDict.length];
                     for (int i = 0; i < state.handArrLen; i++) {
-                        if (state.prop.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
+                        if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
                             possibleCards++;
                             if (!seen[state.getHandArrForRead()[i]]) {
                                 diff++;
@@ -1610,9 +1610,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandWarpedTongs, state);
                     }
                     for (int i = 0; i < state.handArrLen; i++) {
-                        if (state.prop.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
+                        if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
                             if (r == 0) {
-                                state.getHandArrForWrite()[i] = (short) state.prop.upgradeIdxes[state.getHandArrForRead()[i]];
+                                state.getHandArrForWrite()[i] = (short) state.properties.upgradeIdxes[state.getHandArrForRead()[i]];
                                 break;
                             }
                             r--;
@@ -1633,8 +1633,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BurningBlood extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasBurningBlood = true;
-            state.prop.addEndOfBattleHandler("BurningBlood", new GameEventHandler(1) {
+            state.properties.hasBurningBlood = true;
+            state.properties.addEndOfBattleHandler("BurningBlood", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
                     state.healPlayer(6);
                 }
@@ -1644,7 +1644,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class RingOfSerpent extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1) {
                         state.draw(2);
@@ -1656,7 +1656,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class RedSkull extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnDamageHandler(new OnDamageHandler() {
+            state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
                         if (state.getPlayeForRead().getHealth() + damageDealt > state.getPlayeForRead().getMaxHealth() / 2) {
@@ -1665,7 +1665,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.prop.addOnHealHandler(new OnDamageHandler() {
+            state.properties.addOnHealHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int healed) {
                     if (state.getPlayeForRead().getHealth() > state.getPlayeForRead().getMaxHealth() / 2) {
                         if (state.getPlayeForRead().getHealth() - healed <= state.getPlayeForRead().getMaxHealth() / 2) {
@@ -1679,13 +1679,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class PaperPhrog extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasPaperPhrog = true;
+            state.properties.hasPaperPhrog = true;
         }
     }
 
     public static class ChampionBelt extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasChampionBelt = true;
+            state.properties.hasChampionBelt = true;
         }
     }
 
@@ -1695,25 +1695,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class PaperCrane extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasPaperCrane = true;
+            state.properties.hasPaperCrane = true;
         }
     }
 
     public static class SneckoSkull extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasSneckoSkull = true;
+            state.properties.hasSneckoSkull = true;
         }
     }
 
     public static class Tingsha extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasTingsha = true;
+            state.properties.hasTingsha = true;
         }
     }
 
     public static class ToughBandages extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasToughBandages = true;
+            state.properties.hasToughBandages = true;
         }
     }
 
@@ -1723,7 +1723,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class CrackedOrb extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.channelOrb(OrbType.LIGHTNING);
                 }
@@ -1733,7 +1733,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DataDisk extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.gainFocus(1);
                 }
@@ -1743,7 +1743,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class EmotionChip extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("EmotionChip", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("EmotionChip", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = counter[counterIdx] / 10.0f;
@@ -1753,14 +1753,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
             });
-            state.prop.addOnDamageHandler(new OnDamageHandler() {
+            state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0) {
                         state.getCounterForWrite()[counterIdx] = 1;
                     }
                 }
             });
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
@@ -1773,13 +1773,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GoldPlatedCable extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.hasGoldPlatedCable = true;
+            state.properties.hasGoldPlatedCable = true;
         }
     }
 
     public static class NuclearBattery extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.channelOrb(OrbType.PLASMA);
                 }
@@ -1789,8 +1789,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class RunicCapacitor extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.maxNumOfOrbs = Math.min(state.prop.maxNumOfOrbs + 3, 10);
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + 3, 10);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.gainOrbSlot(3);
                 }
@@ -1808,8 +1808,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.maxNumOfOrbs = 10;
-            state.prop.registerCounter("Inserter", this, new GameProperties.NetworkInputHandler() {
+            state.properties.maxNumOfOrbs = 10;
+            state.properties.registerCounter("Inserter", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
                     input[idx] = (counter[counterIdx] + 1) / 10.0f;
@@ -1819,15 +1819,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.inserterCounterIdx = counterIdx;
+                    state.properties.inserterCounterIdx = counterIdx;
                 }
             });
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] = n;
                 }
             });
-            state.prop.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx]++;
                     if (state.getCounterForWrite()[counterIdx] == 2) {
@@ -1837,7 +1837,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             if (healthReward > 0) {
-                state.prop.addExtraTrainingTarget("Inserter", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("Inserter", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx];

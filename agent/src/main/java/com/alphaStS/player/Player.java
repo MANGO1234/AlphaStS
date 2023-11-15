@@ -14,15 +14,15 @@ public class Player extends PlayerReadOnly {
     public int damage(GameState state, int n) {
         int startHealth = health;
         int dmg = Math.max(0, n - block);
-        if (dmg <= 5 && dmg >= 2 && state.prop.hasTorri) {
+        if (dmg <= 5 && dmg >= 2 && state.properties.hasTorri) {
             dmg = 1;
         }
-        if (dmg > 0 && state.prop.hasTungstenRod) {
+        if (dmg > 0 && state.properties.hasTungstenRod) {
             dmg -= 1;
         }
-        if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+        if (n > block && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
             dmg = 0;
-            state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
+            state.getCounterForWrite()[state.properties.bufferCounterIdx]--;
         }
         health -= dmg;
         block = Math.max(0, block - n);
@@ -43,23 +43,23 @@ public class Player extends PlayerReadOnly {
         int startHealth = health;
         if (blockable) {
             int dmg = Math.max(0, n - block);
-            if (dmg > 0 && state.prop.hasTungstenRod) {
+            if (dmg > 0 && state.properties.hasTungstenRod) {
                 dmg -= 1;
             }
-            if (n > block && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+            if (n > block && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
                 dmg = 0;
-                state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
+                state.getCounterForWrite()[state.properties.bufferCounterIdx]--;
             }
             health -= dmg;
             block = Math.max(0, block - n);
         } else {
             int dmg = n;
-            if (dmg > 0 && state.prop.hasTungstenRod) {
+            if (dmg > 0 && state.properties.hasTungstenRod) {
                 dmg -= 1;
             }
-            if (dmg >= 0 && state.prop.bufferCounterIdx >= 0 && state.getCounterForRead()[state.prop.bufferCounterIdx] > 0) {
+            if (dmg >= 0 && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
                 dmg = 0;
-                state.getCounterForWrite()[state.prop.bufferCounterIdx]--;
+                state.getCounterForWrite()[state.properties.bufferCounterIdx]--;
             }
             health -= dmg;
         }
@@ -74,10 +74,10 @@ public class Player extends PlayerReadOnly {
     }
 
     private void tryReviveWithFairyInABottle(GameState state) {
-        for (int i = 0; i < state.prop.potions.size(); i++) {
-            if (state.potionUsable(i) && state.prop.potions.get(i) instanceof Potion.FairyInABottle) {
+        for (int i = 0; i < state.properties.potions.size(); i++) {
+            if (state.potionUsable(i) && state.properties.potions.get(i) instanceof Potion.FairyInABottle) {
                 state.getPotionsStateForWrite()[i * 3] = 0;
-                state.prop.potions.get(i).use(state, -1);
+                state.properties.potions.get(i).use(state, -1);
                 break;
             }
         }
@@ -123,9 +123,9 @@ public class Player extends PlayerReadOnly {
         if (n == 0) {
             return;
         }
-        if (state.prop.hasGinger && type == DebuffType.WEAK) {
+        if (state.properties.hasGinger && type == DebuffType.WEAK) {
             return;
-        } else if (state.prop.hasTurnip && type == DebuffType.FRAIL) {
+        } else if (state.properties.hasTurnip && type == DebuffType.FRAIL) {
             return;
         }
         if (artifact > 0) {
@@ -141,15 +141,15 @@ public class Player extends PlayerReadOnly {
         case LOSE_DEXTERITY -> this.gainDexterity(-n);
         case LOSE_STRENGTH_EOT -> this.loseStrengthEot += n;
         case LOSE_DEXTERITY_EOT -> this.loseDexterityEot += n;
-        case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.prop.loseDexterityPerTurnCounterIdx] += n;
+        case LOSE_DEXTERITY_PER_TURN -> state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] += n;
         case NO_MORE_CARD_DRAW -> this.cannotDrawCard = true;
         case ENTANGLED -> this.entangled = state.getActionCtx() == GameActionCtx.BEGIN_TURN && this.entangled == 0 ? n + 1 : n;
         case HEX -> this.hexed = true;
         case LOSE_FOCUS -> state.gainFocus(-n);
-        case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] += n;
-        case CONSTRICTED -> state.getCounterForWrite()[state.prop.constrictedCounterIdx] += n;
-        case DRAW_REDUCTION -> state.getCounterForWrite()[state.prop.drawReductionCounterIdx] += n;
-        case SNECKO -> state.getCounterForWrite()[state.prop.sneckoDebuffCounterIdx] = 1;
+        case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
+        case CONSTRICTED -> state.getCounterForWrite()[state.properties.constrictedCounterIdx] += n;
+        case DRAW_REDUCTION -> state.getCounterForWrite()[state.properties.drawReductionCounterIdx] += n;
+        case SNECKO -> state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 1;
         }
     }
 
@@ -182,9 +182,9 @@ public class Player extends PlayerReadOnly {
         loseStrengthEot = 0;
         loseDexterityEot = 0;
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
-        } else if (state.prop.blurCounterIdx >= 0 && state.getCounterForRead()[state.prop.blurCounterIdx] > 0) {
-            state.getCounterForWrite()[state.prop.blurCounterIdx]--;
-        } else if (state.prop.hasCaliper) {
+        } else if (state.properties.blurCounterIdx >= 0 && state.getCounterForRead()[state.properties.blurCounterIdx] > 0) {
+            state.getCounterForWrite()[state.properties.blurCounterIdx]--;
+        } else if (state.properties.hasCaliper) {
             block = Math.max(block - 15, 0);
         } else {
             block = 0;
@@ -227,20 +227,20 @@ public class Player extends PlayerReadOnly {
         if (dexterity < 0) {
             dexterity = 0;
         }
-        if (state.prop.loseDexterityPerTurnCounterIdx >= 0) {
-            state.getCounterForWrite()[state.prop.loseDexterityPerTurnCounterIdx] = 0;
+        if (state.properties.loseDexterityPerTurnCounterIdx >= 0) {
+            state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] = 0;
         }
-        if (state.prop.loseFocusPerTurnCounterIdx >= 0) {
-            state.getCounterForWrite()[state.prop.loseFocusPerTurnCounterIdx] = 0;
+        if (state.properties.loseFocusPerTurnCounterIdx >= 0) {
+            state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] = 0;
         }
-        if (state.prop.constrictedCounterIdx >= 0) {
-            state.getCounterForWrite()[state.prop.constrictedCounterIdx] = 0;
+        if (state.properties.constrictedCounterIdx >= 0) {
+            state.getCounterForWrite()[state.properties.constrictedCounterIdx] = 0;
         }
-        if (state.prop.drawReductionCounterIdx >= 0) {
-            state.getCounterForWrite()[state.prop.drawReductionCounterIdx] = 0;
+        if (state.properties.drawReductionCounterIdx >= 0) {
+            state.getCounterForWrite()[state.properties.drawReductionCounterIdx] = 0;
         }
-        if (state.prop.sneckoDebuffCounterIdx >= 0) {
-            state.getCounterForWrite()[state.prop.sneckoDebuffCounterIdx] = 0;
+        if (state.properties.sneckoDebuffCounterIdx >= 0) {
+            state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 0;
         }
 
     }

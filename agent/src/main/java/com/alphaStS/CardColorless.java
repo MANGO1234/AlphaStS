@@ -225,7 +225,7 @@ public class CardColorless {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < state.handArrLen; i++) {
-                if (state.prop.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
+                if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
                     return GameActionCtx.PLAY_CARD;
                 }
             }
@@ -366,21 +366,21 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.handArrTransform(state.prop.upgradeIdxes);
-            state.discardArrTransform(state.prop.upgradeIdxes);
-            for (int i = 0; i < state.prop.realCardsLen; i++) {
-                if (state.getDeckForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getDeckForWrite()[state.prop.upgradeIdxes[i]] += state.getDeckForWrite()[i];
+            state.handArrTransform(state.properties.upgradeIdxes);
+            state.discardArrTransform(state.properties.upgradeIdxes);
+            for (int i = 0; i < state.properties.realCardsLen; i++) {
+                if (state.getDeckForRead()[i] > 0 && state.properties.upgradeIdxes[i] >= 0) {
+                    state.getDeckForWrite()[state.properties.upgradeIdxes[i]] += state.getDeckForWrite()[i];
                     state.getDeckForWrite()[i] = 0;
                 }
-                if (state.getExhaustForRead()[i] > 0 && state.prop.upgradeIdxes[i] >= 0) {
-                    state.getExhaustForWrite()[state.prop.upgradeIdxes[i]] += state.getExhaustForRead()[i];
+                if (state.getExhaustForRead()[i] > 0 && state.properties.upgradeIdxes[i] >= 0) {
+                    state.getExhaustForWrite()[state.properties.upgradeIdxes[i]] += state.getExhaustForRead()[i];
                     state.getExhaustForWrite()[i] = 0;
                 }
             }
             for (int i = 0; i < state.deckArrLen; i++) {
-                if (state.prop.upgradeIdxes[state.getDeckArrForRead()[i]] >= 0) {
-                    state.getDeckArrForWrite()[i] = (short) state.prop.upgradeIdxes[state.getDeckArrForRead()[i]];
+                if (state.properties.upgradeIdxes[state.getDeckArrForRead()[i]] >= 0) {
+                    state.getDeckArrForWrite()[i] = (short) state.properties.upgradeIdxes[state.getDeckArrForRead()[i]];
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -418,7 +418,7 @@ public class CardColorless {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            if (!state.getEnemiesForRead().get(idx).property.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+            if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
@@ -432,7 +432,7 @@ public class CardColorless {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("HandOFGreed", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("HandOFGreed", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
                     return idx + 1;
@@ -442,7 +442,7 @@ public class CardColorless {
                 }
             });
             if (healthRewardRatio > 0) {
-                state.prop.addExtraTrainingTarget("HandOFGreed", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("HandOFGreed", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 100.0;
@@ -473,7 +473,7 @@ public class CardColorless {
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
             count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.handArrLen, idx);
-            if (idx < state.prop.realCardsLen) {
+            if (idx < state.properties.realCardsLen) {
                 count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.discardArrLen, idx);
                 count += state.getDeckForRead()[idx];
             }
@@ -486,7 +486,7 @@ public class CardColorless {
             }
             // todo: very very hacky, temp
             var idxes = new int[5];
-            state.prop.findCardIndex(idxes, "Hand Of Greed");
+            state.properties.findCardIndex(idxes, "Hand Of Greed");
             boolean canUpgrade = false;
             for (int i = 0; i < idxes.length; i++) {
                 if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
@@ -559,7 +559,7 @@ public class CardColorless {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Panache", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Panache", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
                     return idx + 1;
@@ -572,12 +572,12 @@ public class CardColorless {
                     return (counter & ((1 << 16) - 1)) + "/" + (counter >> 16);
                 }
             });
-            state.prop.addEndOfTurnHandler("Panache", new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("Panache", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getCounterForWrite()[counterIdx] &= ~7;
                 }
             });
-            state.prop.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("Panache", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] >> 3 == 0) {
                         return;
@@ -756,7 +756,7 @@ public class CardColorless {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter(cardName, this, null);
+            state.properties.registerCounter(cardName, this, null);
         }
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
@@ -813,12 +813,12 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[state.prop.intangibleCounterIdx]++;
+            state.getCounterForWrite()[state.properties.intangibleCounterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerIntangibleCounter();
+            state.properties.registerIntangibleCounter();
         }
     }
 

@@ -158,7 +158,7 @@ public class ModelPlain implements Model {
         NNOutput o = cache.get(hash);
         if (o != null) {
             if (!Arrays.equals(o.legalActions(), state.getLegalActions()) &&
-                    (state.getActionCtx() != GameActionCtx.SELECT_ENEMY || state.prop.enemiesReordering == null)) {
+                    (state.getActionCtx() != GameActionCtx.SELECT_ENEMY || state.properties.enemiesReordering == null)) {
                 System.err.println(Arrays.toString(state.getNNInput()));
                 System.err.println(state);
                 System.err.println(Arrays.toString(o.legalActions()));
@@ -179,19 +179,19 @@ public class ModelPlain implements Model {
             float v_win = ((float[][]) output.get(1).getValue())[0][0];
 
             float[] policy = ((float[][]) output.get(2).getValue())[0];
-            if (state.prop.maxNumOfActions != state.prop.totalNumOfActions) {
+            if (state.properties.maxNumOfActions != state.properties.totalNumOfActions) {
                 if (state.getActionCtx() == GameActionCtx.PLAY_CARD) {
-                    policy = Arrays.copyOf(policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
+                    policy = Arrays.copyOf(policy, state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
                 } else if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
-                    int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                    int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                    int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                    int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
                     policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                 } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
-                    int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                    if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                        startIdx += state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                    int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                    if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                        startIdx += state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
                     }
-                    int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
+                    int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
                     policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                 }
             }
@@ -212,14 +212,14 @@ public class ModelPlain implements Model {
             }
 
             float[] v_other = null;
-            if (output.size() > 3 && state.prop.extraOutputLen > 0) {
-                v_other = new float[state.prop.extraOutputLen];
+            if (output.size() > 3 && state.properties.extraOutputLen > 0) {
+                v_other = new float[state.properties.extraOutputLen];
                 int idx = 0;
-                for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
-                    int n = state.prop.extraTrainingTargets.get(i).getNumberOfTargets();
+                for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {
+                    int n = state.properties.extraTrainingTargets.get(i).getNumberOfTargets();
                     if (n == 1) {
                         float value = ((float[][]) output.get(3 + i).getValue())[0][0];
-                        if (state.prop.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
+                        if (state.properties.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
                             v_other[idx] = value;
                         } else {
                             v_other[idx] = (value + 1) / 2;
@@ -278,19 +278,19 @@ public class ModelPlain implements Model {
                 float v_win = ((float[][]) output.get(1).getValue())[row][0];
 
                 float[] policy = ((float[][]) output.get(2).getValue())[row];
-                if (state.prop.maxNumOfActions != state.prop.totalNumOfActions) {
+                if (state.properties.maxNumOfActions != state.properties.totalNumOfActions) {
                     if (state.getActionCtx() == GameActionCtx.PLAY_CARD) {
-                        policy = Arrays.copyOf(policy, state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
+                        policy = Arrays.copyOf(policy, state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length);
                     } else if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
-                        int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                        int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                        int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                        int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
                         policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                     } else if (state.getActionCtx() == GameActionCtx.SELECT_SCENARIO) {
-                        int startIdx = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
-                        if (state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
-                            startIdx += state.prop.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
+                        int startIdx = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length;
+                        if (state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null) {
+                            startIdx += state.properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()].length;
                         }
-                        int lenToCopy = state.prop.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
+                        int lenToCopy = state.properties.actionsByCtx[GameActionCtx.SELECT_SCENARIO.ordinal()].length;
                         policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                     }
                 }
@@ -311,14 +311,14 @@ public class ModelPlain implements Model {
                 }
 
                 float[] v_other = null;
-                if (output.size() > 3 && state.prop.extraOutputLen > 0) {
-                    v_other = new float[state.prop.extraOutputLen];
+                if (output.size() > 3 && state.properties.extraOutputLen > 0) {
+                    v_other = new float[state.properties.extraOutputLen];
                     int idx = 0;
-                    for (int i = 0; i < state.prop.extraTrainingTargets.size(); i++) {
-                        int n = state.prop.extraTrainingTargets.get(i).getNumberOfTargets();
+                    for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {
+                        int n = state.properties.extraTrainingTargets.get(i).getNumberOfTargets();
                         if (n == 1) {
                             float value = ((float[][]) output.get(3 + i).getValue())[row][0];
-                            if (state.prop.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
+                            if (state.properties.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
                                 v_other[idx] = value;
                             } else {
                                 v_other[idx] = (value + 1) / 2;

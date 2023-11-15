@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class EnemyReadOnly {
-    public static class EnemyProperty implements Cloneable {
+    public static class EnemyProperties implements Cloneable {
         public int numOfMoves;
         public int maxHealth;
         public int origHealth; // during randomization, property cloning can be set to change origHealth, origMaxHealth and hasBurningHealthBuff for that battle
@@ -39,7 +39,7 @@ public abstract class EnemyReadOnly {
         public boolean canSelfRevive;
         public boolean isAct3;
 
-        public EnemyProperty(int numOfMoves, boolean useLast2MovesForMoveSelection) {
+        public EnemyProperties(int numOfMoves, boolean useLast2MovesForMoveSelection) {
             this.numOfMoves = numOfMoves;
             this.useLast2MovesForMoveSelection = useLast2MovesForMoveSelection;
         }
@@ -55,16 +55,16 @@ public abstract class EnemyReadOnly {
             return hasBurningEliteBuff;
         }
 
-        public EnemyProperty clone() {
+        public EnemyProperties clone() {
             try {
-                return (EnemyProperty) super.clone();
+                return (EnemyProperties) super.clone();
             } catch (CloneNotSupportedException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    public EnemyProperty property;
+    public EnemyProperties properties;
     protected int health;
     protected int block;
     protected int strength;
@@ -83,14 +83,14 @@ public abstract class EnemyReadOnly {
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;
-        property = new EnemyProperty(numOfMoves, useLast2MovesForMoveSelection);
-        property.maxHealth = health;
-        property.origMaxHealth = health;
-        property.origHealth = health;
+        properties = new EnemyProperties(numOfMoves, useLast2MovesForMoveSelection);
+        properties.maxHealth = health;
+        properties.origMaxHealth = health;
+        properties.origHealth = health;
     }
 
     public EnemyReadOnly(EnemyReadOnly other) {
-        this.property = other.property;
+        this.properties = other.properties;
     }
 
     public abstract void doMove(GameState state, EnemyReadOnly self);
@@ -113,7 +113,7 @@ public abstract class EnemyReadOnly {
     public abstract String getName();
 
     protected void copyFieldsFrom(Enemy other) {
-        property = other.property;
+        properties = other.properties;
         health = other.health;
         block = other.block;
         strength = other.strength;
@@ -184,7 +184,7 @@ public abstract class EnemyReadOnly {
     }
 
     public boolean hasBurningHealthBuff() {
-        return property.hasBurningHealthBuff;
+        return properties.hasBurningHealthBuff;
     }
 
     public int getMove() {
@@ -212,12 +212,12 @@ public abstract class EnemyReadOnly {
             str += ", gainStrEot=" + -loseStrengthEot;
         }
         if (move >= 0) {
-            if (state.prop.hasRunicDome) {
+            if (state.properties.hasRunicDome) {
                 str += ", lastMove=" + getMoveString(state);
             } else {
                 str += ", move=" + getMoveString(state);
             }
-            if (property.useLast2MovesForMoveSelection) {
+            if (properties.useLast2MovesForMoveSelection) {
                 if (lastMove >= 0) {
                     str += " [prev=" + getLastMoveString(state) + "]";
                 }

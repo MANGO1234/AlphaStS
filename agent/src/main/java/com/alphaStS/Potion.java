@@ -65,7 +65,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark ? 6 : 3;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -82,7 +82,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark ? 6 : 3;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -98,7 +98,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 40 : 20;
+            int n = state.properties.hasSacredBark ? 40 : 20;
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
             return GameActionCtx.PLAY_CARD;
         }
@@ -110,7 +110,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class ExplosivePotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 20 : 10;
+            int n = state.properties.hasSacredBark ? 20 : 10;
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, n);
             }
@@ -124,9 +124,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class CunningPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark ? 6 : 3;
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(state.prop.shivPCardIdx);
+                state.addCardToHand(state.properties.shivPCardIdx);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -147,7 +147,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 12 : 6;
+            int n = state.properties.hasSacredBark ? 12 : 6;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -163,7 +163,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark ? 4 : 2;
             state.getPlayerForWrite().gainStrength(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -179,7 +179,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark ? 4 : 2;
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -196,7 +196,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 10 : 5;
+            int n = state.properties.hasSacredBark ? 10 : 5;
             state.getPlayerForWrite().gainStrength(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
@@ -214,7 +214,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 10 : 5;
+            int n = state.properties.hasSacredBark ? 10 : 5;
             state.getPlayerForWrite().gainDexterity(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, n);
             return GameActionCtx.PLAY_CARD;
@@ -227,7 +227,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class BlockPotion extends Potion {
         public int getBlockAmount(GameState state) {
-            return state.prop.hasSacredBark ? 24 : 12;
+            return state.properties.hasSacredBark ? 24 : 12;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -242,12 +242,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DuplicationPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 2 : 1;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 2 : 1;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("DuplicationPotion", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("DuplicationPotion", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
                     input[idx + 1] = (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0 ? 0.5f : 0;
@@ -257,14 +257,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 2;
                 }
             });
-            state.prop.addStartOfTurnHandler("DuplicationPotion", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("DuplicationPotion", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForWrite()[counterIdx] != 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }
             });
-            state.prop.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+            state.properties.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -278,7 +278,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         counters[counterIdx]--;
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
-                            var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
@@ -307,7 +307,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class PotionOfCapacity extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.gainOrbSlot(state.prop.hasSacredBark ? 4 : 2);
+            state.gainOrbSlot(state.properties.hasSacredBark ? 4 : 2);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -316,7 +316,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.maxNumOfOrbs = Math.min(state.prop.maxNumOfOrbs + 2, 10);
+            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + 2, 10);
         }
     }
 
@@ -333,7 +333,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public int getHealAmount(GameState state) {
-            int n = state.prop.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark ? 4 : 2;
             return heal == 0 ? state.getPlayeForRead().getMaxHealth() * n / 10 : heal;
         }
 
@@ -353,16 +353,16 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public int getRegenerationAmount(GameState state) {
-            return state.prop.hasSacredBark ? 10 : 5;
+            return state.properties.hasSacredBark ? 10 : 5;
         }
 
         public int getHealAmount(GameState state) {
-            int n = state.prop.hasSacredBark ? 10 : 5;
+            int n = state.properties.hasSacredBark ? 10 : 5;
             return n * (n + 1) / 2;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 10 : 5;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 10 : 5;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -371,7 +371,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Regeneration", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Regeneration", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int counter = state.getCounterForRead()[counterIdx];
                     input[idx] = counter / 10.0f;
@@ -381,11 +381,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.regenerationCounterIdx = counterIdx;
+                    state.properties.regenerationCounterIdx = counterIdx;
                 }
             });
             // todo: when's timing of regeneration with regard to burn etc.
-            state.prop.addPreEndOfTurnHandler("Regeneration", new GameEventHandler() {
+            state.properties.addPreEndOfTurnHandler("Regeneration", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().heal(state.getCounterForWrite()[counterIdx]--);
@@ -401,7 +401,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 2 : 1;
+            int n = state.properties.hasSacredBark ? 2 : 1;
             state.getPlayerForWrite().gainArtifact(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -413,7 +413,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class EnergyPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark ? 4 : 2;
             state.gainEnergy(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -428,7 +428,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark ? 6 : 3;
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -452,7 +452,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.registerThornCounter(state, this);
+            state.properties.registerThornCounter(state, this);
         }
     }
 
@@ -466,12 +466,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 return GameActionCtx.PLAY_CARD; // tested, potion is wasted
             }
             state.removeCardFromDiscard(idx);
-            if (state.prop.tmp0CostCardTransformIdxes[idx] >= 0) {
-                state.addCardToHand(state.prop.tmp0CostCardTransformIdxes[idx]);
+            if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
+                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
             } else {
                 state.addCardToHand(idx);
             }
-            if (state.prop.hasSacredBark) {
+            if (state.properties.hasSacredBark) {
                 state.getCounterForWrite()[counterIdx]++;
                 if (state.getCounterForWrite()[counterIdx] == 2) {
                     state.getCounterForWrite()[counterIdx] = 0;
@@ -492,7 +492,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("LiquidMemory", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("LiquidMemory", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int counter = state.getCounterForRead()[counterIdx];
                     input[idx] = counter / 2.0f;
@@ -507,22 +507,22 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DistilledChaos extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.prop.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark ? 6 : 3;
             for (int i = 0; i < n; i++) {
                 state.addGameActionToStartOfDeque(curState -> {
                     int cardIdx = curState.drawOneCardSpecial();
                     if (cardIdx < 0) {
                         return;
                     }
-                    if (state.prop.makingRealMove || state.prop.stateDescOn) {
+                    if (state.properties.makingRealMove || state.properties.stateDescOn) {
                         if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
-                        state.getStateDesc().append(state.prop.cardDict[cardIdx].cardName);
+                        state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
                     }
-                    var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                    var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                     curState.playCard(action, -1, true,false, false, false, -1, -1);
                     while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                         int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                        if (curState.prop.makingRealMove || state.prop.stateDescOn) {
+                        if (curState.properties.makingRealMove || state.properties.stateDescOn) {
                             curState.getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : curState.getEnemiesForRead().get(enemyIdx).getName())
                                     .append(" (").append(enemyIdx).append(")");
                         }
@@ -540,7 +540,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class BlessingOfTheForge extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.handArrTransform(state.prop.upgradeIdxes);
+            state.handArrTransform(state.properties.upgradeIdxes);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -555,7 +555,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class EssenceOfSteel extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 8 : 4;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 8 : 4;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -564,7 +564,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -573,7 +573,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.registerMetallicizeHandler(state, counterIdx);
+                    state.properties.registerMetallicizeHandler(state, counterIdx);
                 }
             });
         }
@@ -586,12 +586,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.attackPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.attackPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.attackPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.attackPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.attackPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.attackPotionIdxes) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.properties.attackPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.attackPotionIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.properties.attackPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.attackPotionIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.properties.attackPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.attackPotionIdxes) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -601,7 +601,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             if (idx3 >= Math.max(idx1, idx2)) {
                 idx3++;
             }
-            state.setSelect1OutOf3Idxes(state.prop.attackPotionIdxes[idx1], state.prop.attackPotionIdxes[idx2], state.prop.attackPotionIdxes[idx3]);
+            state.setSelect1OutOf3Idxes(state.properties.attackPotionIdxes[idx1], state.properties.attackPotionIdxes[idx2], state.properties.attackPotionIdxes[idx3]);
             state.setIsStochastic();
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
@@ -653,10 +653,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.prop);
-            state.prop.attackPotionIdxes = new int[cards.size()];
+            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            state.properties.attackPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.prop.attackPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+                state.properties.attackPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
             }
         }
     }
@@ -668,12 +668,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.skillPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.skillPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.skillPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.skillPotionIdxes) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.properties.skillPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.skillPotionIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.properties.skillPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.skillPotionIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.properties.skillPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.skillPotionIdxes) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -683,7 +683,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             if (idx3 >= Math.max(idx1, idx2)) {
                 idx3++;
             }
-            state.setSelect1OutOf3Idxes(state.prop.skillPotionIdxes[idx1], state.prop.skillPotionIdxes[idx2], state.prop.skillPotionIdxes[idx3]);
+            state.setSelect1OutOf3Idxes(state.properties.skillPotionIdxes[idx1], state.properties.skillPotionIdxes[idx2], state.properties.skillPotionIdxes[idx3]);
             state.setIsStochastic();
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
@@ -775,10 +775,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.prop);
-            state.prop.skillPotionIdxes = new int[cards.size()];
+            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            state.properties.skillPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.prop.skillPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+                state.properties.skillPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
             }
         }
     }
@@ -790,12 +790,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.potions) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.potions) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.powerPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.potions) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.potions) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.potions) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.potions) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -805,7 +805,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             if (idx3 >= Math.max(idx1, idx2)) {
                 idx3++;
             }
-            state.setSelect1OutOf3Idxes(state.prop.powerPotionIdxes[idx1], state.prop.powerPotionIdxes[idx2], state.prop.powerPotionIdxes[idx3]);
+            state.setSelect1OutOf3Idxes(state.properties.powerPotionIdxes[idx1], state.properties.powerPotionIdxes[idx2], state.properties.powerPotionIdxes[idx3]);
             state.setIsStochastic();
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
@@ -847,10 +847,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.prop);
-            state.prop.powerPotionIdxes = new int[cards.size()];
+            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            state.properties.powerPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.prop.powerPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+                state.properties.powerPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
             }
         }
     }
@@ -862,12 +862,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.prop.colorlessPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.prop.colorlessPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.prop.colorlessPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.prop.colorlessPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.prop.colorlessPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.prop.colorlessPotionIdxes) : null);
+            int idx1 = state.getSearchRandomGen().nextInt(state.properties.colorlessPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.colorlessPotionIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.properties.colorlessPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.colorlessPotionIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.properties.colorlessPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.colorlessPotionIdxes) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }
@@ -877,7 +877,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             if (idx3 >= Math.max(idx1, idx2)) {
                 idx3++;
             }
-            state.setSelect1OutOf3Idxes(state.prop.colorlessPotionIdxes[idx1], state.prop.colorlessPotionIdxes[idx2], state.prop.colorlessPotionIdxes[idx3]);
+            state.setSelect1OutOf3Idxes(state.properties.colorlessPotionIdxes[idx1], state.properties.colorlessPotionIdxes[idx2], state.properties.colorlessPotionIdxes[idx3]);
             state.setIsStochastic();
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
@@ -937,10 +937,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.prop);
-            state.prop.colorlessPotionIdxes = new int[cards.size()];
+            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            state.properties.colorlessPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.prop.colorlessPotionIdxes[i] = state.prop.select1OutOf3CardsReverseIdxes[state.prop.findCardIndex(cards.get(i))];
+                state.properties.colorlessPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
             }
         }
     }
@@ -949,7 +949,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
             for (int i = 0; i < state.handArrLen; i++) {
-                var snecko = state.prop.sneckoIdxes[state.getHandArrForRead()[i]];
+                var snecko = state.properties.sneckoIdxes[state.getHandArrForRead()[i]];
                 if (snecko[0] > 1) {
                     state.getHandArrForWrite()[i] = (short) snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(state, i)) + 1];
                 }
@@ -962,7 +962,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.setupSneckoIndexes();
+            state.properties.setupSneckoIndexes();
         }
 
         @Override public String toString() {
@@ -976,7 +976,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.prop.hasSacredBark ? 2 : 1;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 2 : 1;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -985,7 +985,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("CultistPotion", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("CultistPotion", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
                     return idx + 1;
@@ -994,7 +994,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("CultistPotion", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("CultistPotion", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
@@ -1010,7 +1010,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            if (idx >= 0 && idx < state.prop.cardDict.length) {
+            if (idx >= 0 && idx < state.properties.cardDict.length) {
                 state.discardCardFromHand(idx);
                 state.getCounterForWrite()[counterIdx]++;
                 return GameActionCtx.SELECT_CARD_HAND;
@@ -1025,7 +1025,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("GamblersBrew", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("GamblersBrew", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -1045,7 +1045,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public int getHealAmount(GameState state) {
-            return (int) ((state.prop.hasSacredBark ? 0.6 : 0.3) * this.playerMaxHp);
+            return (int) ((state.properties.hasSacredBark ? 0.6 : 0.3) * this.playerMaxHp);
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -1064,7 +1064,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.gainFocus(state.prop.hasSacredBark ? 4 : 2);
+            state.gainFocus(state.properties.hasSacredBark ? 4 : 2);
             return GameActionCtx.PLAY_CARD;
         }
 

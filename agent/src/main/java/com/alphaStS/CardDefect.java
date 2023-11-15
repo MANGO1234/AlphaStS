@@ -161,7 +161,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("ChargeBattery", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("ChargeBattery", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
                     return idx + 1;
@@ -170,7 +170,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("ChargeBattery", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("ChargeBattery", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.gainEnergy(state.getCounterForWrite()[counterIdx]);
                     state.getCounterForWrite()[counterIdx] = 0;
@@ -214,14 +214,14 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             var exhaust = state.getExhaustForWrite();
             for (int i = limit - 1; i > 0; i--) {
-                for (int j = 0; j < state.getDeckForRead()[state.prop.clawIndexes[i - 1]]; j++) {
-                    state.addCardToDeck(state.prop.clawIndexes[i]);
+                for (int j = 0; j < state.getDeckForRead()[state.properties.clawIndexes[i - 1]]; j++) {
+                    state.addCardToDeck(state.properties.clawIndexes[i]);
                 }
-                state.setCardCountInDeck(state.prop.clawIndexes[i - 1], 0);
-                state.handArrTransform(state.prop.clawTransformIndexes);
-                state.discardArrTransform(state.prop.clawTransformIndexes);
-                exhaust[state.prop.clawIndexes[i]] += exhaust[state.prop.clawIndexes[i - 1]];
-                exhaust[state.prop.clawIndexes[i - 1]] = 0;
+                state.setCardCountInDeck(state.properties.clawIndexes[i - 1], 0);
+                state.handArrTransform(state.properties.clawTransformIndexes);
+                state.discardArrTransform(state.properties.clawTransformIndexes);
+                exhaust[state.properties.clawIndexes[i]] += exhaust[state.properties.clawIndexes[i - 1]];
+                exhaust[state.properties.clawIndexes[i - 1]] = 0;
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -235,14 +235,14 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.clawIndexes = new int[limit];
-            for (int i = 0; i < state.prop.clawIndexes.length; i++) {
-                state.prop.clawIndexes[i] = state.prop.findCardIndex(new Claw(3 + i * 2));
+            state.properties.clawIndexes = new int[limit];
+            for (int i = 0; i < state.properties.clawIndexes.length; i++) {
+                state.properties.clawIndexes[i] = state.properties.findCardIndex(new Claw(3 + i * 2));
             }
-            state.prop.clawTransformIndexes = new int[state.prop.cardDict.length];
-            Arrays.fill(state.prop.clawTransformIndexes, -1);
+            state.properties.clawTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.clawTransformIndexes, -1);
             for (int i = 0; i < limit - 1; i++) {
-                state.prop.clawTransformIndexes[state.prop.findCardIndex(new Claw(3 + i * 2))] = state.prop.findCardIndex(new Claw(3 + (i + 1) * 2));
+                state.properties.clawTransformIndexes[state.properties.findCardIndex(new Claw(3 + i * 2))] = state.properties.findCardIndex(new Claw(3 + (i + 1) * 2));
             }
         }
 
@@ -279,14 +279,14 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             var exhaust = state.getExhaustForWrite();
             for (int i = limit - 1; i > 0; i--) {
-                for (int j = 0; j < state.getDeckForRead()[state.prop.clawPIndexes[i - 1]]; j++) {
-                    state.addCardToDeck(state.prop.clawPIndexes[i]);
+                for (int j = 0; j < state.getDeckForRead()[state.properties.clawPIndexes[i - 1]]; j++) {
+                    state.addCardToDeck(state.properties.clawPIndexes[i]);
                 }
-                state.setCardCountInDeck(state.prop.clawPIndexes[i - 1], 0);
-                state.handArrTransform(state.prop.clawPTransformIndexes);
-                state.discardArrTransform(state.prop.clawPTransformIndexes);
-                exhaust[state.prop.clawPIndexes[i]] += exhaust[state.prop.clawPIndexes[i - 1]];
-                exhaust[state.prop.clawPIndexes[i - 1]] = 0;
+                state.setCardCountInDeck(state.properties.clawPIndexes[i - 1], 0);
+                state.handArrTransform(state.properties.clawPTransformIndexes);
+                state.discardArrTransform(state.properties.clawPTransformIndexes);
+                exhaust[state.properties.clawPIndexes[i]] += exhaust[state.properties.clawPIndexes[i - 1]];
+                exhaust[state.properties.clawPIndexes[i - 1]] = 0;
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -300,14 +300,14 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.clawPIndexes = new int[limit];
-            for (int i = 0; i < state.prop.clawPIndexes.length; i++) {
-                state.prop.clawPIndexes[i] = state.prop.findCardIndex(new ClawP(5 + i * 2));
+            state.properties.clawPIndexes = new int[limit];
+            for (int i = 0; i < state.properties.clawPIndexes.length; i++) {
+                state.properties.clawPIndexes[i] = state.properties.findCardIndex(new ClawP(5 + i * 2));
             }
-            state.prop.clawPTransformIndexes = new int[state.prop.cardDict.length];
-            Arrays.fill(state.prop.clawPTransformIndexes, -1);
+            state.properties.clawPTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.clawPTransformIndexes, -1);
             for (int i = 0; i < limit - 1; i++) {
-                state.prop.clawPTransformIndexes[state.prop.findCardIndex(new ClawP(5 + i * 2))] = state.prop.findCardIndex(new ClawP(5 + (i + 1) * 2));
+                state.properties.clawPTransformIndexes[state.properties.findCardIndex(new ClawP(5 + i * 2))] = state.properties.findCardIndex(new ClawP(5 + (i + 1) * 2));
             }
         }
 
@@ -520,7 +520,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Rebound", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Rebound", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
                     return idx + 1;
@@ -529,10 +529,10 @@ public class CardDefect {
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.reboundCounterIdx = counterIdx;
+                    state.properties.reboundCounterIdx = counterIdx;
                 }
             });
-            state.prop.addEndOfTurnHandler("Rebound", new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("Rebound", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
@@ -592,7 +592,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.cardInDiscardInNNInput = true;
+            state.properties.cardInDiscardInNNInput = true;
         }
     }
 
@@ -640,12 +640,12 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.prop.steamBarrierIndexes != null && state.prop.steamBarrierIndexes.length > n - limit + 1) {
+            if (state.properties.steamBarrierIndexes != null && state.properties.steamBarrierIndexes.length > n - limit + 1) {
                 return;
             }
-            state.prop.steamBarrierIndexes = new int[n - limit + 1];
+            state.properties.steamBarrierIndexes = new int[n - limit + 1];
             for (int i = limit; i <= n; i++) {
-                state.prop.steamBarrierIndexes[i - limit] = state.prop.findCardIndex(new SteamBarrier(i, limit));
+                state.properties.steamBarrierIndexes[i - limit] = state.properties.findCardIndex(new SteamBarrier(i, limit));
             }
         }
 
@@ -690,12 +690,12 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.prop.steamBarrierPIndexes != null && state.prop.steamBarrierPIndexes.length > n - limit + 1) {
+            if (state.properties.steamBarrierPIndexes != null && state.properties.steamBarrierPIndexes.length > n - limit + 1) {
                 return;
             }
-            state.prop.steamBarrierPIndexes = new int[n - limit + 1];
+            state.properties.steamBarrierPIndexes = new int[n - limit + 1];
             for (int i = limit; i <= n; i++) {
-                state.prop.steamBarrierPIndexes[i - limit] = state.prop.findCardIndex(new SteamBarrierP(i, limit));
+                state.properties.steamBarrierPIndexes[i - limit] = state.properties.findCardIndex(new SteamBarrierP(i, limit));
             }
         }
 
@@ -724,9 +724,9 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.streamlineIndexes = new int[3];
+            state.properties.streamlineIndexes = new int[3];
             for (int i = 0; i < 3; i++) {
-                state.prop.streamlineIndexes[i] = state.prop.findCardIndex(new Streamline(i));
+                state.properties.streamlineIndexes[i] = state.properties.findCardIndex(new Streamline(i));
             }
         }
 
@@ -755,9 +755,9 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.streamlinePIndexes = new int[3];
+            state.properties.streamlinePIndexes = new int[3];
             for (int i = 0; i < 3; i++) {
-                state.prop.streamlinePIndexes[i] = state.prop.findCardIndex(new StreamlineP(i));
+                state.properties.streamlinePIndexes[i] = state.properties.findCardIndex(new StreamlineP(i));
             }
         }
 
@@ -805,7 +805,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainEnergy(n);
-            state.addCardToDiscard(state.prop.voidCardIdx);
+            state.addCardToDiscard(state.properties.voidCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -897,7 +897,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Blizzard", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Blizzard", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
                     return idx + 1;
@@ -996,7 +996,7 @@ public class CardDefect {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.prop.maxNumOfOrbs = Math.min(state.prop.maxNumOfOrbs + n, 10);
+            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + n, 10);
         }
     }
 
@@ -1226,7 +1226,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Equilibrium", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Equilibrium", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
                     return idx + 1;
@@ -1235,7 +1235,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
+            state.properties.addEndOfTurnHandler("Equilibirum", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx]--;
@@ -1280,7 +1280,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("FTL", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("FTL", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
                     return idx + 1;
@@ -1289,14 +1289,14 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("FTL", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("FTL", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }
             });
-            state.prop.addOnCardPlayedHandler("FTL", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("FTL", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] <= 3) {
                         state.getCounterForWrite()[counterIdx]++;
@@ -1337,39 +1337,39 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.forceFieldIndexes = new int[5];
+            state.properties.forceFieldIndexes = new int[5];
             for (int i = 0; i < 5; i++) {
-                state.prop.forceFieldIndexes[i] = state.prop.findCardIndex(new ForceField(i));
+                state.properties.forceFieldIndexes[i] = state.properties.findCardIndex(new ForceField(i));
             }
-            state.prop.forceFieldTransformIndexes = new int[state.prop.cardDict.length];
-            Arrays.fill(state.prop.forceFieldTransformIndexes, -1);
+            state.properties.forceFieldTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.forceFieldTransformIndexes, -1);
             for (int i = 0; i < 4; i++) {
-                state.prop.forceFieldTransformIndexes[state.prop.forceFieldIndexes[i + 1]] = state.prop.forceFieldIndexes[i];
+                state.properties.forceFieldTransformIndexes[state.properties.forceFieldIndexes[i + 1]] = state.properties.forceFieldIndexes[i];
             }
-            state.prop.addOnCardPlayedHandler("Force Field", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("Force Field", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         for (int i = 0; i < 4; i++) {
-                            if (state.getDeckForRead()[state.prop.forceFieldIndexes[i + 1]] > 0) {
-                                state.getDeckForWrite()[state.prop.forceFieldIndexes[i]] += state.getDeckForWrite()[state.prop.forceFieldIndexes[i + 1]];
-                                state.getDeckForWrite()[state.prop.forceFieldIndexes[i + 1]] = 0;
+                            if (state.getDeckForRead()[state.properties.forceFieldIndexes[i + 1]] > 0) {
+                                state.getDeckForWrite()[state.properties.forceFieldIndexes[i]] += state.getDeckForWrite()[state.properties.forceFieldIndexes[i + 1]];
+                                state.getDeckForWrite()[state.properties.forceFieldIndexes[i + 1]] = 0;
                             }
                             var exhaust = state.getExhaustForWrite();
-                            exhaust[state.prop.forceFieldIndexes[i]] += exhaust[state.prop.forceFieldIndexes[i + 1]];
-                            exhaust[state.prop.forceFieldIndexes[i + 1]] = 0;
+                            exhaust[state.properties.forceFieldIndexes[i]] += exhaust[state.properties.forceFieldIndexes[i + 1]];
+                            exhaust[state.properties.forceFieldIndexes[i + 1]] = 0;
                         }
                         for (int i = 0; i < state.deckArrLen; i++) {
-                            if (state.prop.forceFieldTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
-                                state.getDeckArrForWrite()[i] = (short) state.prop.forceFieldTransformIndexes[state.getDeckArrForRead()[i]];
+                            if (state.properties.forceFieldTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
+                                state.getDeckArrForWrite()[i] = (short) state.properties.forceFieldTransformIndexes[state.getDeckArrForRead()[i]];
                             }
                         }
-                        state.handArrTransform(state.prop.forceFieldTransformIndexes);
-                        state.discardArrTransform(state.prop.forceFieldTransformIndexes);
+                        state.handArrTransform(state.properties.forceFieldTransformIndexes);
+                        state.discardArrTransform(state.properties.forceFieldTransformIndexes);
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }
             });
-            state.prop.registerCounter("ForceField", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("ForceField", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -1378,7 +1378,7 @@ public class CardDefect {
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.forceFieldCounterIdx = counterIdx;
+                    state.properties.forceFieldCounterIdx = counterIdx;
                 }
             });
         }
@@ -1403,34 +1403,34 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.forceFieldPIndexes = new int[5];
+            state.properties.forceFieldPIndexes = new int[5];
             for (int i = 0; i < 5; i++) {
-                state.prop.forceFieldPIndexes[i] = state.prop.findCardIndex(new ForceField(i));
+                state.properties.forceFieldPIndexes[i] = state.properties.findCardIndex(new ForceField(i));
             }
-            state.prop.forceFieldPTransformIndexes = new int[state.prop.cardDict.length];
-            Arrays.fill(state.prop.forceFieldPTransformIndexes, -1);
+            state.properties.forceFieldPTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.forceFieldPTransformIndexes, -1);
             for (int i = 0; i < 4; i++) {
-                state.prop.forceFieldPTransformIndexes[state.prop.forceFieldPIndexes[i + 1]] = state.prop.forceFieldPIndexes[i];
+                state.properties.forceFieldPTransformIndexes[state.properties.forceFieldPIndexes[i + 1]] = state.properties.forceFieldPIndexes[i];
             }
-            state.prop.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         for (int i = 0; i < 4; i++) {
-                            if (state.getDeckForRead()[state.prop.forceFieldPIndexes[i + 1]] > 0) {
-                                state.getDeckForWrite()[state.prop.forceFieldPIndexes[i]] += state.getDeckForWrite()[state.prop.forceFieldPIndexes[i + 1]];
-                                state.getDeckForWrite()[state.prop.forceFieldPIndexes[i + 1]] = 0;
+                            if (state.getDeckForRead()[state.properties.forceFieldPIndexes[i + 1]] > 0) {
+                                state.getDeckForWrite()[state.properties.forceFieldPIndexes[i]] += state.getDeckForWrite()[state.properties.forceFieldPIndexes[i + 1]];
+                                state.getDeckForWrite()[state.properties.forceFieldPIndexes[i + 1]] = 0;
                             }
                             var exhaust = state.getExhaustForWrite();
-                            exhaust[state.prop.forceFieldPIndexes[i]] += exhaust[state.prop.forceFieldPIndexes[i + 1]];
-                            exhaust[state.prop.forceFieldPIndexes[i + 1]] = 0;
+                            exhaust[state.properties.forceFieldPIndexes[i]] += exhaust[state.properties.forceFieldPIndexes[i + 1]];
+                            exhaust[state.properties.forceFieldPIndexes[i + 1]] = 0;
                         }
                         for (int i = 0; i < state.deckArrLen; i++) {
-                            if (state.prop.forceFieldPTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
-                                state.getDeckArrForWrite()[i] = (short) state.prop.forceFieldPTransformIndexes[state.getDeckArrForRead()[i]];
+                            if (state.properties.forceFieldPTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
+                                state.getDeckArrForWrite()[i] = (short) state.properties.forceFieldPTransformIndexes[state.getDeckArrForRead()[i]];
                             }
                         }
-                        state.handArrTransform(state.prop.forceFieldPTransformIndexes);
-                        state.discardArrTransform(state.prop.forceFieldPTransformIndexes);
+                        state.handArrTransform(state.properties.forceFieldPTransformIndexes);
+                        state.discardArrTransform(state.properties.forceFieldPTransformIndexes);
                     }
                 }
             });
@@ -1481,7 +1481,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("GeneticAlgorithm", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("GeneticAlgorithm", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 16.0f;
                     return idx + 1;
@@ -1491,7 +1491,7 @@ public class CardDefect {
                 }
             });
             if (healthRewardRatio > 0) {
-                state.prop.addExtraTrainingTarget("GeneticAlgorithm", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget("GeneticAlgorithm", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal != 0) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
@@ -1525,7 +1525,7 @@ public class CardDefect {
         private static int getCardCount(GameState state, int idx) {
             int count = 0;
             count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.getNumCardsInHand(), idx);
-            if (idx < state.prop.realCardsLen) {
+            if (idx < state.properties.realCardsLen) {
                 count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), idx);
                 count += state.getDeckForRead()[idx];
             }
@@ -1540,20 +1540,20 @@ public class CardDefect {
             var idxes = new int[5];
 
             boolean canUpgrade = false;
-            state.prop.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Perm 0)", "Apotheosis (Perm 2)", "Apotheosis (Perm 3)");
+            state.properties.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Perm 0)", "Apotheosis (Perm 2)", "Apotheosis (Perm 3)");
             for (int i = 0; i < idxes.length; i++) {
                 if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            state.prop.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
+            state.properties.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
             for (int i = 0; i < idxes.length; i++) {
                 if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            for (int i = 0; i < state.prop.potions.size(); i++) {
-                if (state.prop.potions.get(i) instanceof Potion.BlessingOfTheForge) {
+            for (int i = 0; i < state.properties.potions.size(); i++) {
+                if (state.properties.potions.get(i) instanceof Potion.BlessingOfTheForge) {
                     if (state.potionUsable(i)) {
                         canUpgrade = true;
                     }
@@ -1562,9 +1562,9 @@ public class CardDefect {
 
             int maxGA = 0;
             int maxGAP = 0;
-            for (int i = 0; i < state.prop.cardDict.length; i++) {
-                if (state.prop.cardDict[i].cardName.startsWith("Genetic Algorithm")) {
-                    if (state.prop.cardDict[i].cardName.startsWith("Genetic Algorithm+")) {
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (state.properties.cardDict[i].cardName.startsWith("Genetic Algorithm")) {
+                    if (state.properties.cardDict[i].cardName.startsWith("Genetic Algorithm+")) {
                         maxGAP += getCardCount(state, i);
                     } else {
                         if (canUpgrade) {
@@ -1649,7 +1649,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Heatsinks", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Heatsinks", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -1658,9 +1658,9 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addOnPreCardPlayedHandler("Heatsinks", new GameEventCardHandler() {
+            state.properties.addOnPreCardPlayedHandler("Heatsinks", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.getCounterForRead()[counterIdx] > 0 && state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
                 }
@@ -1692,7 +1692,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("HelloWorld", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("HelloWorld", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -1704,9 +1704,9 @@ public class CardDefect {
             var c = getPossibleGeneratedCards();
             cardsIdx = new int[c.size()];
             for (int i = 0; i < c.size(); i++) {
-                cardsIdx[i] = state.prop.findCardIndex(c.get(i));
+                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
             }
-            state.prop.addStartOfTurnHandler("HelloWorld", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("HelloWorld", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
@@ -1777,7 +1777,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Loop", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Loop", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -1786,7 +1786,7 @@ public class CardDefect {
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.loopCounterIdx = counterIdx;
+                    state.properties.loopCounterIdx = counterIdx;
                 }
             });
         }
@@ -1848,7 +1848,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.draw(n);
-            state.addCardToDiscard(state.prop.burnCardIdx);
+            state.addCardToDiscard(state.properties.burnCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1877,7 +1877,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int cost = Math.max(0, state.prop.cardDict[idx].energyCost(state));
+            int cost = Math.max(0, state.properties.cardDict[idx].energyCost(state));
             state.exhaustCardFromHand(idx);
             state.gainEnergy(cost);
             return GameActionCtx.PLAY_CARD;
@@ -1973,13 +1973,13 @@ public class CardDefect {
             boolean stochastic = state.isStochastic;
             var i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
-            if (state.prop.makingRealMove && !stochastic && state.isStochastic) {
+            if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
                 state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
             }
             i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
-                if (state.prop.makingRealMove && !stochastic && state.isStochastic) {
+                if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
                     state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
                 }
             }
@@ -2014,7 +2014,7 @@ public class CardDefect {
             var drawCount = Math.min((n + 1) / 2, GameState.HAND_LIMIT - handCount);
             state.draw(drawCount);
             for (int i = drawCount + handCount - 1; i >= handCount; i--) {
-                var card = state.prop.cardDict[state.getHandArrForRead()[i]];
+                var card = state.properties.cardDict[state.getHandArrForRead()[i]];
                 if (card.energyCost != 0) { // discardCardFromHand will discard the card from right first
                     state.discardCardFromHand(state.getHandArrForRead()[i]);
                 }
@@ -2050,7 +2050,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("SelfRepair", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("SelfRepair", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
                     return idx + 1;
@@ -2059,7 +2059,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
+            state.properties.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
                 }
@@ -2124,7 +2124,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("StaticDischarge", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("StaticDischarge", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -2133,7 +2133,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addOnDamageHandler("StaticDischarge", new OnDamageHandler() {
+            state.properties.addOnDamageHandler("StaticDischarge", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0 && isAttack) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
@@ -2169,7 +2169,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Storm", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Storm", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -2178,9 +2178,9 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addOnPreCardPlayedHandler("Storm", new GameEventCardHandler() {
+            state.properties.addOnPreCardPlayedHandler("Storm", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.getCounterForRead()[counterIdx] > 0 && state.prop.cardDict[cardIdx].cardType == Card.POWER) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         var _n = state.getCounterForRead()[counterIdx];
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                             @Override public void doAction(GameState state) {
@@ -2286,7 +2286,7 @@ public class CardDefect {
             var c = getPossibleGeneratedCards();
             cardsIdx = new int[c.size()];
             for (int i = 0; i < c.size(); i++) {
-                cardsIdx[i] = state.prop.findCardIndex(c.get(i));
+                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
             }
         }
 
@@ -2361,7 +2361,7 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
             for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
                 var cardIdx = (int) state.getDiscardArrForRead()[i];
-                if (state.prop.cardDict[cardIdx].energyCost == 0) {
+                if (state.properties.cardDict[cardIdx].energyCost == 0) {
                     state.removeCardFromDiscardByPosition(i);
                     i--;
                     state.addCardToHand(cardIdx);
@@ -2371,17 +2371,17 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.discard0CardOrderMatters = true;
-            state.prop.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
-            state.prop.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
-            state.prop.discardOrder0CardReverseIdx = new int[state.prop.realCardsLen];
+            state.properties.discard0CardOrderMatters = true;
+            state.properties.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
+            state.properties.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
+            state.properties.discardOrder0CardReverseIdx = new int[state.properties.realCardsLen];
             int k = 0;
-            for (int i = 0; i < state.prop.realCardsLen; i++) {
-                if (state.prop.cardDict[i].realEnergyCost() == 0) {
-                    state.prop.discardOrder0CardReverseIdx[i] = k++;
+            for (int i = 0; i < state.properties.realCardsLen; i++) {
+                if (state.properties.cardDict[i].realEnergyCost() == 0) {
+                    state.properties.discardOrder0CardReverseIdx[i] = k++;
                 }
             }
-            state.prop.discardOrder0CostNumber = k;
+            state.properties.discardOrder0CostNumber = k;
         }
 
         public Card getUpgrade() {
@@ -2415,7 +2415,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Amplify", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Amplify", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
                     return idx + 1;
@@ -2424,16 +2424,16 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("Amplify", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("Amplify", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForWrite()[counterIdx] != 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }
             });
-            state.prop.addOnCardPlayedHandler("Amplify", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+            state.properties.addOnCardPlayedHandler("Amplify", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    var card = state.prop.cardDict[cardIdx];
+                    var card = state.properties.cardDict[cardIdx];
                     if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
                         return;
                     }
@@ -2444,7 +2444,7 @@ public class CardDefect {
                         counters[counterIdx]--;
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
-                            var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
@@ -2484,7 +2484,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("BiasedLoseFocus", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("BiasedLoseFocus", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
                     return idx + 1;
@@ -2494,7 +2494,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("LoseFocusPerTurn", new GameEventHandler(10) {
+            state.properties.addStartOfTurnHandler("LoseFocusPerTurn", new GameEventHandler(10) {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, state.getCounterForRead()[counterIdx]);
@@ -2530,12 +2530,12 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[state.prop.bufferCounterIdx] += n;
+            state.getCounterForWrite()[state.properties.bufferCounterIdx] += n;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerBufferCounter(state, this);
+            state.properties.registerBufferCounter(state, this);
         }
     }
 
@@ -2592,7 +2592,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("CreativeAI", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("CreativeAI", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
                     return idx + 1;
@@ -2604,9 +2604,9 @@ public class CardDefect {
             var c = getPossibleGeneratedCards();
             cardsIdx = new int[c.size()];
             for (int i = 0; i < c.size(); i++) {
-                cardsIdx[i] = state.prop.findCardIndex(c.get(i));
+                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
             }
-            state.prop.addStartOfTurnHandler("CreativeAI", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("CreativeAI", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
@@ -2615,7 +2615,7 @@ public class CardDefect {
                     }
                 }
             });
-            state.prop.maxNumOfOrbs = 10;
+            state.properties.maxNumOfOrbs = 10;
         }
 
         private static List<Card> cards;
@@ -2677,7 +2677,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("EchoForm", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("EchoForm", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     int counter = state.getCounterForRead()[counterIdx];
                     float playingClonedCard = 0.0f;
@@ -2702,7 +2702,7 @@ public class CardDefect {
                     }
                 }
             });
-            state.prop.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+            state.properties.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 0) {
                         state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];
@@ -2710,14 +2710,14 @@ public class CardDefect {
                     if (cloned) { // todo: think only echo formed card doesn't count toward card played
                         return;
                     }
-                    boolean isEcho = state.prop.cardDict[cardIdx].cardName.startsWith("Echo Form");
+                    boolean isEcho = state.properties.cardDict[cardIdx].cardName.startsWith("Echo Form");
                     if (isEcho) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
                     int cardsPlayThisTurn = (state.getCounterForRead()[counterIdx] & ((1 << 16) - 1));
                     if (cardsPlayThisTurn < state.getCounterForRead()[counterIdx] >> 16) {
                         state.addGameActionToStartOfDeque(curState -> {
-                            var action = curState.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
                             if (curState.playCard(action, lastIdx, false,true, false, false, energyUsed, cloneParentLocation)) {
                                 curState.runActionsInQueueIfNonEmpty();
@@ -2732,7 +2732,7 @@ public class CardDefect {
                     }
                 }
             });
-            state.prop.addStartOfTurnHandler("EchoForm", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("EchoForm", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     int counter = state.getCounterForRead()[counterIdx];
                     state.getCounterForWrite()[counterIdx] = counter & (((1 << 16) - 1) << 16);
@@ -2775,7 +2775,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Electrodynamics", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Electrodynamics", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
                     return idx + 1;
@@ -2784,7 +2784,7 @@ public class CardDefect {
                     return 1;
                 }
                 @Override public void onRegister(int counterIdx) {
-                    state.prop.electrodynamicsCounterIdx = counterIdx;
+                    state.properties.electrodynamicsCounterIdx = counterIdx;
                 }
             });
         }
@@ -2883,7 +2883,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("MachineLearning", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("MachineLearning", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
                     return idx + 1;
@@ -2892,7 +2892,7 @@ public class CardDefect {
                     return 1;
                 }
             });
-            state.prop.addStartOfTurnHandler("MachineLearning", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("MachineLearning", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.draw(state.getCounterForRead()[counterIdx]);
                 }
@@ -2922,7 +2922,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.prop.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.properties.hasStrikeDummy ? 3 : 0));
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
@@ -3009,7 +3009,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.discardHand(false);
-            if (!state.prop.isInteractive) {
+            if (!state.properties.isInteractive) {
                 state.getDrawOrderForWrite().clear();
             }
             state.reshuffle();
@@ -3063,7 +3063,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Seek+", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("Seek+", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
                     return idx + 1;
@@ -3091,13 +3091,13 @@ public class CardDefect {
                     break;
                 }
                 var enemy = state.getEnemiesForWrite().getForWrite(j);
-                state.playerDoDamageToEnemy(enemy, n + (state.prop.hasStrikeDummy ? 3 : 0));
+                state.playerDoDamageToEnemy(enemy, n + (state.properties.hasStrikeDummy ? 3 : 0));
             }
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("ThunderStrike", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("ThunderStrike", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
                     return idx + 1;

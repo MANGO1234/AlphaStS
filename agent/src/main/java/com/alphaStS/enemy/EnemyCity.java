@@ -1,7 +1,6 @@
 package com.alphaStS.enemy;
 
 import com.alphaStS.*;
-import com.alphaStS.Action.GameEnvironmentAction;
 
 import java.util.List;
 
@@ -25,13 +24,13 @@ public class EnemyCity {
 
         public TheChamp(int health) {
             super(health, 7, true);
-            property.canGainStrength = true;
-            property.canGainMetallicize = true;
-            property.canWeaken = true;
-            property.canVulnerable = true;
-            property.canFrail = true;
-            property.canGainBlock = true;
-            property.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canGainMetallicize = true;
+            properties.canWeaken = true;
+            properties.canVulnerable = true;
+            properties.canFrail = true;
+            properties.canGainBlock = true;
+            properties.isBoss = true;
         }
 
         public TheChamp(TheChamp other) {
@@ -72,7 +71,7 @@ public class EnemyCity {
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
             numTurns++;
-            if (health < property.maxHealth / 2 && !angered) {
+            if (health < properties.maxHealth / 2 && !angered) {
                 angered = true;
                 newMove = ANGER;
             } else if (angered && move != EXECUTE && lastMove != EXECUTE) {
@@ -179,10 +178,10 @@ public class EnemyCity {
         public BronzeAutomaton(int health) {
             super(health, 7, false);
             artifact = 3;
-            property.canGainStrength = true;
-            property.canGainBlock = true;
-            property.hasArtifact = true;
-            property.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
+            properties.hasArtifact = true;
+            properties.isBoss = true;
         }
 
         public BronzeAutomaton(BronzeAutomaton other) {
@@ -325,11 +324,11 @@ public class EnemyCity {
                 var cardsLen = state.getNumCardsInDeck() == 0 ? state.getNumCardsInDiscard() : state.getNumCardsInDeck();
                 var cardRarityCounts = new int[Card.RARE + 1];
                 var cardRarityDiffCount = new int[Card.RARE + 1];
-                var seen = new boolean[state.prop.cardDict.length];
+                var seen = new boolean[state.properties.cardDict.length];
                 for (int i = 0; i < cardsLen; i++) {
-                    cardRarityCounts[state.prop.cardDict[cards[i]].rarity]++;
+                    cardRarityCounts[state.properties.cardDict[cards[i]].rarity]++;
                     if (!seen[cards[i]]) {
-                        cardRarityDiffCount[state.prop.cardDict[cards[i]].rarity]++;
+                        cardRarityDiffCount[state.properties.cardDict[cards[i]].rarity]++;
                         seen[cards[i]] = true;
                     }
                 }
@@ -344,7 +343,7 @@ public class EnemyCity {
                     int r = 0;
                     if (cardRarityDiffCount[rarity] > 1) {
                         state.setIsStochastic();
-                        if (state.prop.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
+                        if (state.properties.random instanceof InteractiveMode.RandomGenInteractive rgi && !rgi.rngOn) {
                             r = rgi.selectBronzeOrbStasis(state, cards, cardsLen, rarity,this, state.getEnemiesForRead().find(self));
                         } else {
                             r = state.getSearchRandomGen().nextInt(cardRarityCounts[rarity], RandomGenCtx.BronzeOrb, this);
@@ -352,7 +351,7 @@ public class EnemyCity {
                     }
                     int acc = 0;
                     for (int i = 0; i < cardsLen; i++) {
-                        if (rarity == state.prop.cardDict[cards[i]].rarity) {
+                        if (rarity == state.properties.cardDict[cards[i]].rarity) {
                             if (acc == r) {
                                 stasisCardIdx = cards[i];
                                 if (state.getNumCardsInDeck() > 0) {
@@ -366,7 +365,7 @@ public class EnemyCity {
                         }
                     }
                     if (stasisCardIdx >= 0) {
-                        state.getStateDesc().append(state.getStateDesc().length() > 0 ? "; " : "").append("Stasis Took ").append(state.prop.cardDict[stasisCardIdx].cardName);
+                        state.getStateDesc().append(state.getStateDesc().length() > 0 ? "; " : "").append("Stasis Took ").append(state.properties.cardDict[stasisCardIdx].cardName);
                     }
                 }
                 usedStasis = true;
@@ -413,7 +412,7 @@ public class EnemyCity {
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(6, RandomGenCtx.Other) + 1;
             if (training && b < 6) {
-                health = (int) Math.round(((double) (property.maxHealth * b)) / 6);
+                health = (int) Math.round(((double) (properties.maxHealth * b)) / 6);
             } else {
                 health = 54 + random.nextInt(7, RandomGenCtx.Other);
             }
@@ -428,7 +427,7 @@ public class EnemyCity {
             if (!usedStasis) {
                 return s.subSequence(0, s.length() - 1) + ", stasisNotUsed}";
             } else if (stasisCardIdx >= 0) {
-                return s.subSequence(0, s.length() - 1) + ", stasisCard=" + state.prop.cardDict[stasisCardIdx].cardName + "}";
+                return s.subSequence(0, s.length() - 1) + ", stasisCard=" + state.properties.cardDict[stasisCardIdx].cardName + "}";
             } else {
                 return s;
             }
@@ -469,12 +468,12 @@ public class EnemyCity {
 
         public TheCollector(int health) {
             super(health, 4, true);
-            property.canGainStrength = true;
-            property.canGainBlock = true;
-            property.canVulnerable = true;
-            property.canWeaken = true;
-            property.canFrail = true;
-            property.isBoss = true;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
+            properties.canVulnerable = true;
+            properties.canWeaken = true;
+            properties.canFrail = true;
+            properties.isBoss = true;
         }
 
         public TheCollector(TheCollector other) {
@@ -614,7 +613,7 @@ public class EnemyCity {
 
         public TorchHead(int health) {
             super(health, 1, false);
-            property.canGainStrength = true;
+            properties.canGainStrength = true;
             this.health = 0;
         }
 
@@ -647,7 +646,7 @@ public class EnemyCity {
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(2, RandomGenCtx.Other) + 1;
             if (training && b < 2) {
-                health = (int) Math.round(((double) (property.maxHealth * b)) / 2);
+                health = (int) Math.round(((double) (properties.maxHealth * b)) / 2);
             } else {
                 health = 40 + random.nextInt(6, RandomGenCtx.Other);
             }
@@ -675,10 +674,10 @@ public class EnemyCity {
 
         public GremlinLeader(int health) {
             super(health, 3, false);
-            property.isElite = true;
-            property.actNumber = 2;
-            property.canGainStrength = true;
-            property.canGainBlock = true;
+            properties.isElite = true;
+            properties.actNumber = 2;
+            properties.canGainStrength = true;
+            properties.canGainBlock = true;
         }
 
         public GremlinLeader(GremlinLeader other) {
@@ -756,8 +755,8 @@ public class EnemyCity {
                             ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(4);
                         }
                         var enemy = (MergedEnemy) enemies.get(startIdx + j);
-                        enemy.randomize(state.getSearchRandomGen(), state.prop.curriculumTraining, -1);
-                        enemy.property.origHealth = enemy.getHealth();
+                        enemy.randomize(state.getSearchRandomGen(), state.properties.curriculumTraining, -1);
+                        enemy.properties.origHealth = enemy.getHealth();
                     }
                     if (state.enemiesAlive != 4) {
                         var j = 0;
@@ -979,8 +978,8 @@ public class EnemyCity {
             var enemies = state.getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
                 if (enemies.get(i).getName().contains("Gremlin")) {
-                    enemies.get(i).property.canGainBlock = true;
-                    enemies.get(i).property.canGainStrength = true;
+                    enemies.get(i).properties.canGainBlock = true;
+                    enemies.get(i).properties.canGainStrength = true;
                 }
             }
         }
@@ -1025,8 +1024,8 @@ public class EnemyCity {
 
         public BookOfStabbing(int health) {
             super(health, 2, true);
-            property.isElite = true;
-            property.actNumber = 2;
+            properties.isElite = true;
+            properties.actNumber = 2;
             stabCount = 1;
         }
 
@@ -1111,10 +1110,10 @@ public class EnemyCity {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnDamageHandler("BookOfStabbing", new OnDamageHandler() {
+            state.properties.addOnDamageHandler("BookOfStabbing", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof BookOfStabbing && damageDealt > 0) {
-                        state.addCardToDiscard(state.prop.woundCardIdx);
+                        state.addCardToDiscard(state.properties.woundCardIdx);
                     }
                 }
             });
@@ -1130,9 +1129,9 @@ public class EnemyCity {
 
         public Taskmaster(int health) {
             super(health, 1, false);
-            property.isElite = true;
-            property.actNumber = 2;
-            property.canGainStrength = true;
+            properties.isElite = true;
+            properties.actNumber = 2;
+            properties.canGainStrength = true;
         }
 
         public Taskmaster(Taskmaster other) {
@@ -1147,9 +1146,9 @@ public class EnemyCity {
             if (move == SCOURING_WHIP) {
                 state.enemyDoDamageToPlayer(this, 7, 1);
                 gainStrength(1);
-                state.addCardToDiscard(state.prop.woundCardIdx);
-                state.addCardToDiscard(state.prop.woundCardIdx);
-                state.addCardToDiscard(state.prop.woundCardIdx);
+                state.addCardToDiscard(state.properties.woundCardIdx);
+                state.addCardToDiscard(state.properties.woundCardIdx);
+                state.addCardToDiscard(state.properties.woundCardIdx);
             }
         }
 
@@ -1202,7 +1201,7 @@ public class EnemyCity {
 
         public Byrd(int health) {
             super(health, 5, true);
-            property.canGainStrength = true;
+            properties.canGainStrength = true;
         }
 
         public Byrd(Byrd other) {
@@ -1361,9 +1360,9 @@ public class EnemyCity {
 
         public SphericGuardian(int health) {
             super(health, 4, false);
-            property.canFrail = true;
-            property.canGainBlock = true;
-            property.hasArtifact = true;
+            properties.canFrail = true;
+            properties.canGainBlock = true;
+            properties.hasArtifact = true;
             artifact = 3;
             block = 40;
         }
@@ -1439,9 +1438,9 @@ public class EnemyCity {
 
         public ShelledParasite(int health) {
             super(health, 4, true);
-            property.canFrail = true;
-            property.canGainBlock = true;
-            property.canHeal = true;
+            properties.canFrail = true;
+            properties.canGainBlock = true;
+            properties.canHeal = true;
             metallicize = 14;
         }
 
@@ -1544,8 +1543,8 @@ public class EnemyCity {
 
         public Snecko(int health) {
             super(health, 3, true);
-            property.canWeaken = true;
-            property.canVulnerable = true;
+            properties.canWeaken = true;
+            properties.canVulnerable = true;
         }
 
         public Snecko(Snecko other) {
@@ -1618,8 +1617,8 @@ public class EnemyCity {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.setupSneckoIndexes();
-            state.prop.registerSneckoDebuffCounter();
+            state.properties.setupSneckoIndexes();
+            state.properties.registerSneckoDebuffCounter();
         }
     }
 
@@ -1682,7 +1681,7 @@ public class EnemyCity {
 
         public Romeo(int health) {
             super(health, 4, false);
-            property.canWeaken = true;
+            properties.canWeaken = true;
         }
 
         public Romeo(Romeo other) {
@@ -1745,8 +1744,8 @@ public class EnemyCity {
 
         public Bear(int health) {
             super(health, 3, false);
-            property.changePlayerDexterity = true;
-            property.canGainBlock = true;
+            properties.changePlayerDexterity = true;
+            properties.canGainBlock = true;
         }
 
         public Bear(Bear other) {
@@ -1811,9 +1810,9 @@ public class EnemyCity {
 
         public Centurion(int health) {
             super(health, 3, false);
-            property.canGainBlock = true;
-            property.canGainStrength = true;
-            property.canHeal = true;
+            properties.canGainBlock = true;
+            properties.canGainStrength = true;
+            properties.canHeal = true;
         }
 
         public Centurion(Centurion other) {
@@ -1892,9 +1891,9 @@ public class EnemyCity {
 
         public Mystic(int health) {
             super(health, 3, true);
-            property.canGainStrength = true;
-            property.canFrail = true;
-            property.canHeal = true;
+            properties.canGainStrength = true;
+            properties.canFrail = true;
+            properties.canHeal = true;
         }
 
         public Mystic(Mystic other) {
@@ -1923,7 +1922,7 @@ public class EnemyCity {
         @Override public void nextMove(GameState state, RandomGen random) {
             int maxDiff = 0;
             for (var enemy : state.getEnemiesForRead()) {
-                maxDiff = Math.max(enemy.property.origHealth - enemy.getHealth(), maxDiff);
+                maxDiff = Math.max(enemy.properties.origHealth - enemy.getHealth(), maxDiff);
             }
             int newMove;
             if (maxDiff > 20 && move != HEAL && lastMove != HEAL) {
@@ -1981,10 +1980,10 @@ public class EnemyCity {
 
         public Chosen(int health) {
             super(health, 5, false);
-            property.canGainStrength = true;
-            property.canWeaken = true;
-            property.canVulnerable = true;
-            property.canDaze = true;
+            properties.canGainStrength = true;
+            properties.canWeaken = true;
+            properties.canVulnerable = true;
+            properties.canDaze = true;
         }
 
         public Chosen(Chosen other) {
@@ -2061,14 +2060,14 @@ public class EnemyCity {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.prop.cardDict[cardIdx].cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
-                        state.addCardToDeck(state.prop.dazedCardIdx);
+                    if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
+                        state.addCardToDeck(state.properties.dazedCardIdx);
                     }
                 }
             });
-            state.prop.addNNInputHandler("Hex", new GameProperties.NetworkInputHandler() {
+            state.properties.addNNInputHandler("Hex", new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getPlayeForRead().isHexed() ? 0.5f : -0.5f;
                     return idx + 1;
@@ -2093,9 +2092,9 @@ public class EnemyCity {
 
         public SnakePlant(int health) {
             super(health, 2, true);
-            property.canWeaken = true;
-            property.canFrail = true;
-            property.canGainBlock = true;
+            properties.canWeaken = true;
+            properties.canFrail = true;
+            properties.canGainBlock = true;
         }
 
         public SnakePlant(SnakePlant other) {

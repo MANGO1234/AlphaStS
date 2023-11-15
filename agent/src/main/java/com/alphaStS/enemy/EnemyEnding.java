@@ -17,12 +17,12 @@ public class EnemyEnding {
         public SpireShield(int health) {
             super(health, 3, true);
             artifact = 2;
-            property.hasArtifact = true;
-            property.canGainBlock = true;
-            property.canGainStrength = true;
-            property.changePlayerStrength = true;
-            property.changePlayerFocus = true;
-            property.isElite = true;
+            properties.hasArtifact = true;
+            properties.canGainBlock = true;
+            properties.canGainStrength = true;
+            properties.changePlayerStrength = true;
+            properties.changePlayerFocus = true;
+            properties.isElite = true;
         }
 
         public SpireShield(SpireShield other) {
@@ -107,10 +107,10 @@ public class EnemyEnding {
         public SpireSpear(int health) {
             super(health, 3, true);
             artifact = 2;
-            property.hasArtifact = true;
-            property.canGainBlock = true;
-            property.canGainStrength = true;
-            property.isElite = true;
+            properties.hasArtifact = true;
+            properties.canGainBlock = true;
+            properties.canGainStrength = true;
+            properties.isElite = true;
         }
 
         public SpireSpear(SpireSpear other) {
@@ -124,10 +124,10 @@ public class EnemyEnding {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BURN_STRIKE) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
-                state.addCardToDeck(state.prop.burnCardIdx);
-                state.addCardToDeck(state.prop.burnCardIdx);
-                state.getDrawOrderForWrite().pushOnTop(state.prop.burnCardIdx);
-                state.getDrawOrderForWrite().pushOnTop(state.prop.burnCardIdx);
+                state.addCardToDeck(state.properties.burnCardIdx);
+                state.addCardToDeck(state.properties.burnCardIdx);
+                state.getDrawOrderForWrite().pushOnTop(state.properties.burnCardIdx);
+                state.getDrawOrderForWrite().pushOnTop(state.properties.burnCardIdx);
             } else if (move == PIERCER) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     enemy.gainStrength(2);
@@ -182,7 +182,7 @@ public class EnemyEnding {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.registerCounter("Shield & Spear Facing", new GameProperties.CounterRegistrant() {
+            state.properties.registerCounter("Shield & Spear Facing", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
                     gameProperties.shieldAndSpireFacingIdx = idx;
                 }
@@ -191,7 +191,7 @@ public class EnemyEnding {
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    int facing = state.getCounterForRead()[state.prop.shieldAndSpireFacingIdx];
+                    int facing = state.getCounterForRead()[state.properties.shieldAndSpireFacingIdx];
                     if (facing == 1 || facing == 2) {
                         input[idx + facing - 1] = 0.5f;
                     }
@@ -203,7 +203,7 @@ public class EnemyEnding {
                 }
 
                 @Override public String getDisplayString(GameState state) {
-                    int facing = state.getCounterForRead()[state.prop.shieldAndSpireFacingIdx];
+                    int facing = state.getCounterForRead()[state.properties.shieldAndSpireFacingIdx];
                     if (facing == 1) {
                         return "Shield";
                     } else if (facing == 2) {
@@ -213,21 +213,21 @@ public class EnemyEnding {
                     }
                 }
             });
-            state.prop.addStartOfBattleHandler(new GameEventHandler() {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).isAlive() && state.getEnemiesForRead().get(i) instanceof SpireSpear) {
-                            state.getCounterForWrite()[state.prop.shieldAndSpireFacingIdx] = 2;
+                            state.getCounterForWrite()[state.properties.shieldAndSpireFacingIdx] = 2;
                         }
                     }
                 }
             });
-            state.prop.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
+            state.properties.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
                 @Override public void handle(GameState state2, EnemyReadOnly enemy) {
                     if (enemy instanceof EnemyEnding.SpireShield) {
-                        state2.getCounterForWrite()[state2.prop.shieldAndSpireFacingIdx] = 2;
+                        state2.getCounterForWrite()[state2.properties.shieldAndSpireFacingIdx] = 2;
                     } else {
-                        state2.getCounterForWrite()[state2.prop.shieldAndSpireFacingIdx] = 1;
+                        state2.getCounterForWrite()[state2.properties.shieldAndSpireFacingIdx] = 1;
                     }
                 }
             });
@@ -262,13 +262,13 @@ public class EnemyEnding {
 
         public CorruptHeart(int health) {
             super(health, 4, true);
-            property.hasArtifact = true;
-            property.canGainStrength = true;
-            property.canVulnerable = true;
-            property.canWeaken = true;
-            property.canFrail = true;
-            property.canDaze = true;
-            property.isBoss = true;
+            properties.hasArtifact = true;
+            properties.canGainStrength = true;
+            properties.canVulnerable = true;
+            properties.canWeaken = true;
+            properties.canFrail = true;
+            properties.canDaze = true;
+            properties.isBoss = true;
         }
 
         public CorruptHeart(CorruptHeart other) {
@@ -321,11 +321,11 @@ public class EnemyEnding {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
-                state.addCardToDeck(state.prop.dazedCardIdx);
-                state.addCardToDeck(state.prop.burnCardIdx);
-                state.addCardToDeck(state.prop.voidCardIdx);
-                state.addCardToDeck(state.prop.slimeCardIdx);
-                state.addCardToDeck(state.prop.woundCardIdx);
+                state.addCardToDeck(state.properties.dazedCardIdx);
+                state.addCardToDeck(state.properties.burnCardIdx);
+                state.addCardToDeck(state.properties.voidCardIdx);
+                state.addCardToDeck(state.properties.slimeCardIdx);
+                state.addCardToDeck(state.properties.woundCardIdx);
             } else if (move == BLOOD_SHOT) {
                 state.enemyDoDamageToPlayer(this, 2, 15);
             } else if (move == ECHO) {
@@ -389,7 +389,7 @@ public class EnemyEnding {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.prop.addOnCardPlayedHandler(new GameEventCardHandler(GameEventCardHandler.HEARTBEAT_PRIORITY) {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler(GameEventCardHandler.HEARTBEAT_PRIORITY) {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i) instanceof CorruptHeart heart) {
@@ -399,14 +399,14 @@ public class EnemyEnding {
                     }
                 }
             });
-            state.prop.addOnDamageHandler(new OnDamageHandler() {
+            state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof CorruptHeart && ((CorruptHeart) source).buffCount >= 2 && isAttack && damageDealt > 0) {
-                        state.addCardToDiscard(state.prop.woundCardIdx);
+                        state.addCardToDiscard(state.properties.woundCardIdx);
                     }
                 }
             });
-            state.prop.isHeartFight = true;
+            state.properties.isHeartFight = true;
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn(), new Card.Wound(), new Card.Dazed(), new Card.Slime(), new Card.Void()); }

@@ -337,8 +337,8 @@ public interface GameStateRandomization {
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
-                    enemy.property = enemy.property.clone();
-                    enemy.property.origHealth = enemy.getHealth();
+                    enemy.properties = enemy.properties.clone();
+                    enemy.properties.origHealth = enemy.getHealth();
                 }
             } else if (minDifficulty == maxDifficulty) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -346,8 +346,8 @@ public interface GameStateRandomization {
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
-                    enemy.property = enemy.property.clone();
-                    enemy.property.origHealth = enemy.getHealth();
+                    enemy.properties = enemy.properties.clone();
+                    enemy.properties.origHealth = enemy.getHealth();
                 }
             } else {
                 int enemiesAlive = 0;
@@ -364,8 +364,8 @@ public interface GameStateRandomization {
                 for (int j = 0; j < enemiesAlive; j++) {
                     allowed.add(j);
                 }
-                state.prop.difficulty = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
-                for (int j = 0; j < state.prop.difficulty - enemiesAlive; j++) {
+                state.properties.difficulty = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
+                for (int j = 0; j < state.properties.difficulty - enemiesAlive; j++) {
                     i = state.getSearchRandomGen().nextInt(allowed.size(), RandomGenCtx.Other); // currently equal probability
                     difficulties[allowed.get(i)]++;
                     if (difficulties[allowed.get(i)] == maxDifficulties[allowed.get(i)] - 1) {
@@ -378,8 +378,8 @@ public interface GameStateRandomization {
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
-                    enemy.property = enemy.property.clone();
-                    enemy.property.origHealth = enemy.getHealth();
+                    enemy.properties = enemy.properties.clone();
+                    enemy.properties.origHealth = enemy.getHealth();
                 }
             }
             return 0;
@@ -387,7 +387,7 @@ public interface GameStateRandomization {
 
         @Override public void randomize(GameState state, int r) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                enemy.setHealth(enemy.property.maxHealth);
+                enemy.setHealth(enemy.properties.maxHealth);
             }
             randomize(state);
         }
@@ -532,10 +532,10 @@ public interface GameStateRandomization {
             for (CardCount cardCount : s) {
                 if (addCardCount) {
                     for (int i = 0; i < cardCount.count(); i++) {
-                        state.addCardToDeck(state.prop.findCardIndex(cardCount.card()));
+                        state.addCardToDeck(state.properties.findCardIndex(cardCount.card()));
                     }
                 } else {
-                    state.setCardCountInDeck(state.prop.findCardIndex(cardCount.card()), cardCount.count());
+                    state.setCardCountInDeck(state.properties.findCardIndex(cardCount.card()), cardCount.count());
                 }
             }
         }
@@ -577,7 +577,7 @@ public interface GameStateRandomization {
         @Override public int randomize(GameState state) {
             int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
-            state.prop.enemiesEncounterChosen = r;
+            state.properties.enemiesEncounterChosen = r;
             return r;
         }
 
@@ -594,7 +594,7 @@ public interface GameStateRandomization {
                     e.setEnemy(t.v2());
                     enemy.setHealth(e.getEnemyProperty(t.v2()).maxHealth);
                 } else {
-                    enemy.setHealth(enemy.property.maxHealth);
+                    enemy.setHealth(enemy.properties.maxHealth);
                 }
             }
             state.enemiesAlive = enemiesIdx.size();
@@ -643,9 +643,9 @@ public interface GameStateRandomization {
             switch (r) {
                 case 0 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.property.hasBurningEliteBuff()) {
+                        if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(true);
-                            enemy.setHealth(enemy.property.maxHealth);
+                            enemy.setHealth(enemy.properties.maxHealth);
                             enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(0);
                             enemy.setRegeneration(0);
@@ -654,10 +654,10 @@ public interface GameStateRandomization {
                 }
                 case 1 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.property.hasBurningEliteBuff()) {
+                        if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
-                            enemy.setHealth(enemy.property.origMaxHealth);
-                            enemy.gainStrength(enemy.property.actNumber + 1);
+                            enemy.setHealth(enemy.properties.origMaxHealth);
+                            enemy.gainStrength(enemy.properties.actNumber + 1);
                             enemy.setMetallicize(0);
                             enemy.setRegeneration(0);
                         }
@@ -665,23 +665,23 @@ public interface GameStateRandomization {
                 }
                 case 2 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.property.hasBurningEliteBuff()) {
+                        if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
-                            enemy.setHealth(enemy.property.origMaxHealth);
+                            enemy.setHealth(enemy.properties.origMaxHealth);
                             enemy.gainStrength(-enemy.getStrength());
-                            enemy.setMetallicize(2 * enemy.property.actNumber + 2);
+                            enemy.setMetallicize(2 * enemy.properties.actNumber + 2);
                             enemy.setRegeneration(0);
                         }
                     }
                 }
                 case 3 -> {
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        if (enemy.property.hasBurningEliteBuff()) {
+                        if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
-                            enemy.setHealth(enemy.property.origMaxHealth);
+                            enemy.setHealth(enemy.properties.origMaxHealth);
                             enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(0);
-                            enemy.setRegeneration(2 * enemy.property.actNumber + 1);
+                            enemy.setRegeneration(2 * enemy.properties.actNumber + 1);
                         }
                     }
                 }

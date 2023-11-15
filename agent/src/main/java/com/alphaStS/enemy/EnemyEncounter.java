@@ -103,7 +103,7 @@ public class EnemyEncounter {
             }
             for (int i = 0; i < 4; i++) {
                 var enemy = state.getEnemiesForWrite().getForWrite(enemies.get(i));
-                enemy.setHealth(enemy.property.maxHealth);
+                enemy.setHealth(enemy.properties.maxHealth);
             }
             state.enemiesAlive = 4;
         }
@@ -192,7 +192,7 @@ public class EnemyEncounter {
             }
             for (int i = 0; i < 3; i++) {
                 var enemy = state.getEnemiesForWrite().getForWrite(enemies.get(i));
-                enemy.setHealth(enemy.property.maxHealth);
+                enemy.setHealth(enemy.properties.maxHealth);
             }
             state.enemiesAlive = 3;
         }
@@ -290,7 +290,7 @@ public class EnemyEncounter {
                 enemy.setEnemy(enemies.get(i));
                 enemy.setHealth(enemy.getEnemyProperty(i).maxHealth);
             }
-            state.getEnemiesForWrite().getForWrite(startIdx + 3).setHealth(state.getEnemiesForRead().get(startIdx + 3).property.maxHealth);
+            state.getEnemiesForWrite().getForWrite(startIdx + 3).setHealth(state.getEnemiesForRead().get(startIdx + 3).properties.maxHealth);
             state.enemiesAlive = 3;
         }
 
@@ -317,49 +317,49 @@ public class EnemyEncounter {
         // todo: in some situations, order matter, create a variant where order matters
         var start = builder.getEnemies().size();
         Enemy enemy = new Enemy.MadGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.MadGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.MadGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.SneakyGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.SneakyGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.SneakyGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.FatGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.FatGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.FatGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.ShieldGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.ShieldGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.ShieldGremlin();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.GremlinWizard();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.GremlinWizard();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         enemy = new Enemy.GremlinWizard();
-        enemy.property.isMinion = true;
+        enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         builder.addEnemy(new EnemyCity.GremlinLeader());
         builder.setRandomization(new GremlinLeaderRandomization(builder.getEnemies(), start).doAfter(builder.getRandomization()));
@@ -372,19 +372,19 @@ public class EnemyEncounter {
         var gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(), new Enemy.GremlinWizard(),
                 new Enemy.ShieldGremlin());
         for (var gremlin : gremlinList) {
-            gremlin.property.isMinion = true;
+            gremlin.properties.isMinion = true;
         }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
         gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(),
                 new Enemy.ShieldGremlin(), new Enemy.GremlinWizard());
         for (var gremlin : gremlinList) {
-            gremlin.property.isMinion = true;
+            gremlin.properties.isMinion = true;
         }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
         gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(),
                 new Enemy.ShieldGremlin(), new Enemy.GremlinWizard());
         for (var gremlin : gremlinList) {
-            gremlin.property.isMinion = true;
+            gremlin.properties.isMinion = true;
         }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
         builder.addEnemy(new EnemyCity.GremlinLeader());
@@ -424,11 +424,11 @@ public class EnemyEncounter {
 
     public static void addSlaversEliteFight(GameStateBuilder builder) {
         Enemy enemy = new Enemy.BlueSlaver();
-        enemy.property.isElite = true;
+        enemy.properties.isElite = true;
         builder.addEnemy(enemy);
         builder.addEnemy(new EnemyCity.Taskmaster());
         enemy = new Enemy.RedSlaver();
-        enemy.property.isElite = true;
+        enemy.properties.isElite = true;
         builder.addEnemy(enemy);
     }
 

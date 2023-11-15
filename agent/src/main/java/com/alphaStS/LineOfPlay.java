@@ -34,7 +34,7 @@ public class LineOfPlay {
     }
 
     public List<Integer> getActions(GameState s) {
-        var rand = s.prop.random;
+        var rand = s.properties.random;
         var actions = new ArrayList<Integer>();
         var line = this;
         if (line.parentLines == null) {

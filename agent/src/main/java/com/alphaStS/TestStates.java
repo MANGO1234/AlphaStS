@@ -52,7 +52,7 @@ public class TestStates {
 
     public static GameState BasicGremlinNobState2() {
         var state = BasicGremlinNobState();
-        state.prop.randomization = state.prop.randomization.fixR(3);
+        state.properties.randomization = state.properties.randomization.fixR(3);
         return state;
     }
 
@@ -644,7 +644,7 @@ public class TestStates {
                 "Upgrade Uppercut"
         )).union( 6.0 / 7, new GameStateRandomization.SimpleCustomRandomization(List.of(
                 (state) -> {
-                    state.setCardCountInDeck(state.prop.findCardIndex(new Card.Strike()), 5);
+                    state.setCardCountInDeck(state.properties.findCardIndex(new Card.Strike()), 5);
                     state.getPlayerForWrite().setOrigHealth(57);
                 }
         )));
@@ -2010,12 +2010,12 @@ public class TestStates {
         builder.addEnemy(new EnemyBeyond.TimeEater());
         builder.setStartOfGameSetup(new GameEventHandler() {
             @Override public void handle(GameState state) {
-                state.prop.innateOrder = new ArrayList<>();
-                state.prop.innateOrder.add(state.prop.findCardIndex("Boot Sequence"));
-                state.prop.innateOrder.add(state.prop.findCardIndex("Dramatic Entrance+"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Defend"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Stack+"));
+                state.properties.innateOrder = new ArrayList<>();
+                state.properties.innateOrder.add(state.properties.findCardIndex("Boot Sequence"));
+                state.properties.innateOrder.add(state.properties.findCardIndex("Dramatic Entrance+"));
+                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Defend"));
+                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Defend"));
+                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Stack+"));
             }
         });
         builder.setPlayer(new Player(63, 63));
@@ -2070,16 +2070,16 @@ public class TestStates {
         EnemyEncounter.addAwakenedOneFight(builder);
         builder.setStartOfGameSetup(new GameEventHandler() {
             @Override public void handle(GameState state) {
-                state.prop.innateOrder = new ArrayList<>();
-                state.prop.innateOrder.add(state.prop.findCardIndex("Boot Sequence"));
-                state.prop.innateOrder.add(state.prop.findCardIndex("Dramatic Entrance+"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Ascender's Bane"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Rebound"));
-                state.getDrawOrderForWrite().pushOnTop(state.prop.findCardIndex("Reboot+"));
+                state.properties.innateOrder = new ArrayList<>();
+                state.properties.innateOrder.add(state.properties.findCardIndex("Boot Sequence"));
+                state.properties.innateOrder.add(state.properties.findCardIndex("Dramatic Entrance+"));
+                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Ascender's Bane"));
+                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Rebound"));
+                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Reboot+"));
                 for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
                     if (state.getEnemiesForWrite().get(i) instanceof Enemy.Cultist) {
                         state.getEnemiesForWrite().getForWrite(i).setHealth(56);
-                        state.getEnemiesForWrite().getForWrite(i).property.origHealth = 56;
+                        state.getEnemiesForWrite().getForWrite(i).properties.origHealth = 56;
                     }
                 }
             }

@@ -87,14 +87,14 @@ public class InteractiveMode {
             reader.addCmdsToQueue(history);
             isApplyingHistory = true;
             prevSearchRandomGen = state.getSearchRandomGen();
-            prevRealMoveRandomGen = state.prop.realMoveRandomGen;
-            prevRandom = state.prop.random;
+            prevRealMoveRandomGen = state.properties.realMoveRandomGen;
+            prevRandom = state.properties.random;
         } else {
             interactiveRecordSeed(state, history);
         }
-        state.setSearchRandomGen(state.prop.random);
-        state.prop.random = new RandomGenInteractive(this, reader, history);
-        state.prop.realMoveRandomGen = null;
+        state.setSearchRandomGen(state.properties.random);
+        state.properties.random = new RandomGenInteractive(this, reader, history);
+        state.properties.realMoveRandomGen = null;
 
         boolean printState = true;
         boolean printAction = true;
@@ -113,8 +113,8 @@ public class InteractiveMode {
             if (line.equals("exit")) {
                 if (isApplyingHistory) {
                     state.setSearchRandomGen(prevSearchRandomGen);
-                    state.prop.realMoveRandomGen = prevRealMoveRandomGen;
-                    state.prop.random = prevRandom;
+                    state.properties.realMoveRandomGen = prevRealMoveRandomGen;
+                    state.properties.random = prevRandom;
                 }
                 return;
             }
@@ -131,17 +131,17 @@ public class InteractiveMode {
                         states.add(new GameStep(parentState, i));
                         history.add("# End of Turn");
                         history.add("# " + state);
-                        state.prop.makingRealMove = true;
+                        state.properties.makingRealMove = true;
                         state.doAction(i);
-                        state.prop.makingRealMove = false;
+                        state.properties.makingRealMove = false;
                         break;
                     }
                 }
                 for (int i = 0; i < state.getLegalActions().length; i++) {
                     if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
-                        state.prop.makingRealMove = true;
+                        state.properties.makingRealMove = true;
                         state.doAction(i);
-                        state.prop.makingRealMove = false;
+                        state.properties.makingRealMove = false;
                         history.add("# Start of Turn");
                         history.add("# " + state);
                         break;
@@ -156,21 +156,21 @@ public class InteractiveMode {
                 out.println("Deck");
                 for (int i = 0; i < state.getDeckForRead().length; i++) {
                     if (state.getDeckForRead()[i] > 0) {
-                        out.println("  " + state.getDeckForRead()[i] + " " + state.prop.cardDict[i].cardName);
+                        out.println("  " + state.getDeckForRead()[i] + " " + state.properties.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("s")) {
                 out.println("Discard");
-                var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.prop.realCardsLen);
+                var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.realCardsLen);
                 for (int i = 0; i < discard.length; i++) {
-                    if (discard[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() != 0)) {
-                        out.println("  " + discard[i] + " " + state.prop.cardDict[i].cardName);
+                    if (discard[i] > 0 && (!state.properties.discard0CardOrderMatters || state.properties.cardDict[i].realEnergyCost() != 0)) {
+                        out.println("  " + discard[i] + " " + state.properties.cardDict[i].cardName);
                     }
                 }
-                if (state.prop.discard0CardOrderMatters) {
+                if (state.properties.discard0CardOrderMatters) {
                     for (int i = 0; i < state.discardArrLen; i++) {
-                        if (state.prop.cardDict[state.discardArr[i]].realEnergyCost() == 0) {
-                            out.println("  " + state.prop.cardDict[state.discardArr[i]].cardName);
+                        if (state.properties.cardDict[state.discardArr[i]].realEnergyCost() == 0) {
+                            out.println("  " + state.properties.cardDict[state.discardArr[i]].cardName);
                         }
                     }
                 }
@@ -178,7 +178,7 @@ public class InteractiveMode {
                 out.println("Exhaust");
                 for (int i = 0; i < state.getExhaustForRead().length; i++) {
                     if (state.getExhaustForRead()[i] > 0) {
-                        out.println("  " + state.getExhaustForRead()[i] + " " + state.prop.cardDict[i].cardName);
+                        out.println("  " + state.getExhaustForRead()[i] + " " + state.properties.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("i")) {
@@ -274,42 +274,42 @@ public class InteractiveMode {
             } else if (line.equals("tree") || line.startsWith("tree ")) {
                 printTree(state, line, modelDir);
             } else if (line.startsWith("n ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
                 runMCTS(state, line);
                 interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.startsWith("nn ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 if (line.substring(3).equals("exec")) {
                     reader.addCmdsToQueue(nnPV);
                 } else if (line.substring(3).equals("execv")) {
                     reader.addCmdsToQueue(nnPV.subList(0, nnPV.size() - 1));
                 } else {
-                    ((RandomGenInteractive) state.prop.random).rngOn = true;
+                    ((RandomGenInteractive) state.properties.random).rngOn = true;
                     nnPV.clear();
                     runNNPV(state, nnPV, line, history);
                     interactiveRecordSeed(state, history);
-                    ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                    ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
                 }
             } else if (line.startsWith("nnc ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
                 runNNPVChance(reader, state, line);
                 interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnv ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
                 runNNPVVolatility(state, line);
                 interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnn ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
 //                runNNPV2(state, line);
                 interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.equals("progressive")) {
                 Configuration.USE_PROGRESSIVE_WIDENING = !Configuration.USE_PROGRESSIVE_WIDENING;
                 out.println("Progressive Widening: " + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off"));
@@ -323,33 +323,33 @@ public class InteractiveMode {
                 Configuration.BAN_TRANSPOSITION_IN_TREE = !Configuration.BAN_TRANSPOSITION_IN_TREE;
                 out.println("Ban Transposition In Tree: " + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off"));
             } else if (line.equals("games") || line.startsWith("games ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
                 runGames(modelDir, state, line);
                 interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.equals("cmpSet") || line.startsWith("cmpSet ")) {
                 runGamesCmpSetup(state, line);
             } else if (line.equals("cmp") || line.startsWith("cmp ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.prop.random).rngOn;
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
                 runGamesCmp(reader, modelDir, line);
                 interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.prop.random).rngOn = prevRngOff;
+                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.startsWith("seed ")) {
                 interactiveSetSeed(state, Long.parseLong(line.split(" ")[1]), Long.parseLong(line.split(" ")[2]));
             } else if (line.equals("rng off")) {
-                ((RandomGenInteractive) state.prop.random).rngOn = false;
+                ((RandomGenInteractive) state.properties.random).rngOn = false;
             } else if (line.equals("rng on")) {
-                ((RandomGenInteractive) state.prop.random).rngOn = true;
+                ((RandomGenInteractive) state.properties.random).rngOn = true;
             } else if (line.equals("test off")) {
-                state.prop.testNewFeature = false;
+                state.properties.testNewFeature = false;
             } else if (line.equals("test on")) {
-                state.prop.testNewFeature = true;
+                state.properties.testNewFeature = true;
             } else if (line.equals("stateDesc off")) {
-                state.prop.stateDescOn = false;
+                state.properties.stateDescOn = false;
             }  else if (line.equals("stateDesc on")) {
-                state.prop.stateDescOn = true;
+                state.properties.stateDescOn = true;
             } else if (line.equals("desc")) {
                 GameStateUtils.writeStateDescription(state, new BufferedWriter(new OutputStreamWriter(out)));
             } else if (line.equals("")) {
@@ -377,11 +377,11 @@ public class InteractiveMode {
                     if (!isApplyingHistory) {
                         state = state.clone(false);
                     }
-                    state.prop.makingRealMove = true;
-                    state.prop.isInteractive = true;
+                    state.properties.makingRealMove = true;
+                    state.properties.isInteractive = true;
                     state.doAction(action);
-                    state.prop.isInteractive = false;
-                    state.prop.makingRealMove = false;
+                    state.properties.isInteractive = false;
+                    state.properties.makingRealMove = false;
                 } else {
                     out.println("Unknown Command.");
                 }
@@ -390,12 +390,12 @@ public class InteractiveMode {
     }
 
     private static void interactiveSetSeed(GameState state, long a, long b) {
-        ((RandomGenInteractive) state.prop.random).random.setSeed(a);
+        ((RandomGenInteractive) state.properties.random).random.setSeed(a);
         ((RandomGen.RandomGenPlain) state.getSearchRandomGen()).random.setSeed(b);
     }
 
     private static void interactiveRecordSeed(GameState state, List<String> history) {
-        history.add("seed " + state.prop.random.getSeed(null)  + " " + state.getSearchRandomGen().getSeed(null));
+        history.add("seed " + state.properties.random.getSeed(null)  + " " + state.getSearchRandomGen().getSeed(null));
     }
 
     private static List<String> filterHistory(List<String> history) {
@@ -444,9 +444,9 @@ public class InteractiveMode {
             } else if (line.startsWith("m")) {
                 try {
                     var s = state.clone(false);
-                    s.prop = state.prop.clone();
-                    s.prop.random = new RandomGen.RandomGenPlain();
-                    s.prop.makingRealMove = false;
+                    s.properties = state.properties.clone();
+                    s.properties.random = new RandomGen.RandomGenPlain();
+                    s.properties.makingRealMove = false;
                     interactiveStartH(s, null, modelDir, new ArrayList<>());
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -468,7 +468,7 @@ public class InteractiveMode {
                     curGames.forEach(g -> g.steps().remove(0)); // reuse games from previous state if possible
                     curGames = new ArrayList<>(curGames.stream().filter(g -> g.steps().get(0).state().equals(step.state())).toList());
                     out.println("****************** " + i + "/" + game.size() + " (" + (numberOfGames - curGames.size()) + ")");
-                    step.state().prop.makingRealMove = false;
+                    step.state().properties.makingRealMove = false;
                     curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, false, true));
                     var stats = new ScenarioStats();
                     for (MatchSession.Game g : curGames) {
@@ -480,7 +480,7 @@ public class InteractiveMode {
                 for (int i = 0; i < game.size(); i++) {
                     out.format("\n%-6s%-20s%-20s%-20s", "Index", "Q", "Death Percentage", "Average Damage");
                     for (int j = 0; j < statsArr.get(0).potionsUsedAgg.length; j++) {
-                        String potionName = state.prop.potions.get(j).toString();
+                        String potionName = state.properties.potions.get(j).toString();
                         out.format("%-20s", potionName);
                     }
                     out.println();
@@ -508,7 +508,7 @@ public class InteractiveMode {
 
                 out.format("\n%-6s%-20s%-20s%-20s", "Index", "Q", "Death Percentage", "Average Damage");
                 for (int i = 0; i < statsArr.get(0).potionsUsedAgg.length; i++) {
-                    String potionName = state.prop.potions.get(i).toString();
+                    String potionName = state.properties.potions.get(i).toString();
                     out.format("%-20s", potionName);
                 }
                 out.println();
@@ -532,7 +532,7 @@ public class InteractiveMode {
                 out.format(" \"Average Damage\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (double) s.totalDamageTaken / s.numOfGames)).collect(Collectors.joining(", ")));
                 for (int i = 0; i < statsArr.get(0).potionsUsedAgg.length; i++) {
                     final int ii = i;
-                    out.format(" \"%s\" \"[%s]\"", state.prop.potions.get(i), statsArr.stream().map(s -> String.format("%.3f", (double) s.potionsUsedAgg[ii] / (s.numOfGames - s.deathCount))).collect(Collectors.joining(", ")));
+                    out.format(" \"%s\" \"[%s]\"", state.properties.potions.get(i), statsArr.stream().map(s -> String.format("%.3f", (double) s.potionsUsedAgg[ii] / (s.numOfGames - s.deathCount))).collect(Collectors.joining(", ")));
                 }
                 out.println();
             } else if (line.startsWith("check ")) { // for each action in the game, find whether the network would've changed its mind with higher amount of nodes
@@ -546,7 +546,7 @@ public class InteractiveMode {
                 while (start < game.size() - 1) {
                     out.println(start + "/" + game.size());
                     var step = game.get(start);
-                    step.state().prop.makingRealMove = false;
+                    step.state().properties.makingRealMove = false;
                     List<String> pv = new ArrayList<>();
                     runNNPV(step.state().clone(false), pv, "nn " + nodeCount + " t=" + numberOfThreads + " b=" + batchSize, null);
                     List<GameStep> pv1 = new ArrayList<>();
@@ -627,11 +627,11 @@ public class InteractiveMode {
         out.println("Enemies Alive: " + state.enemiesAlive);
         for (var enemy : state.getEnemiesForRead()) {
             enemyArrayIdx++;
-            if (!(enemy.isAlive() || enemy.property.canSelfRevive)) {
+            if (!(enemy.isAlive() || enemy.properties.canSelfRevive)) {
                 continue;
             }
             out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
-            out.println("  HP: " + enemy.getHealth() + "/" + enemy.property.origHealth);
+            out.println("  HP: " + enemy.getHealth() + "/" + enemy.properties.origHealth);
             if (enemy.getStrength() != 0) {
                 out.println("  Strength: " + enemy.getStrength());
             }
@@ -676,7 +676,7 @@ public class InteractiveMode {
                 if (!orb.usedStasis()) {
                     out.println("  Stasis: Not Used");
                 } else if (orb.getStasisCard() >= 0) {
-                    out.println("  Stasis: Used (" + state.prop.cardDict[orb.getStasisCard()].cardName + ")");
+                    out.println("  Stasis: Used (" + state.properties.cardDict[orb.getStasisCard()].cardName + ")");
                 } else {
                     out.println("  Stasis: Used");
                 }
@@ -706,7 +706,7 @@ public class InteractiveMode {
             }
             if (states.size() > 0) {
                 GameState prevState = states.get(states.size() - 1);
-                if (state.prop.hasRunicDome) {
+                if (state.properties.hasRunicDome) {
                     String prevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getMove());
                     String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
                     out.println("  Last Move: " + prevMove);
@@ -776,12 +776,12 @@ public class InteractiveMode {
                 }
             }
         }
-        if (state.prop.counterHandlersNonNull.length > 0) {
+        if (state.properties.counterHandlersNonNull.length > 0) {
             out.println("  Other:");
-            for (int i = 0; i < state.prop.counterHandlers.length; i++) {
-                if (state.prop.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
-                    String counterStr = state.prop.counterHandlers[i].getDisplayString(state);
-                    out.println("    - " + state.prop.counterNames[i] + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[i]));
+            for (int i = 0; i < state.properties.counterHandlers.length; i++) {
+                if (state.properties.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
+                    String counterStr = state.properties.counterHandlers[i].getDisplayString(state);
+                    out.println("    - " + state.properties.counterNames[i] + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[i]));
                 }
             }
             if (state.getPlayeForRead().isEntangled()) {
@@ -790,9 +790,9 @@ public class InteractiveMode {
             if (state.getPlayeForRead().cannotDrawCard()) {
                 out.println("  - Cannot Draw Card");
             }
-            for (int i = 0; i < state.prop.potions.size(); i++) {
+            for (int i = 0; i < state.properties.potions.size(); i++) {
                 if (state.potionUsable(i)) {
-                    out.println("  - " + state.prop.potions.get(i) + ": " + state.potionPenalty(i));
+                    out.println("  - " + state.properties.potions.get(i) + ": " + state.potionPenalty(i));
                 }
             }
         }
@@ -803,34 +803,34 @@ public class InteractiveMode {
                 if (i != state.getDrawOrderForRead().size() - 1) {
                     out.print(", ");
                 }
-                out.print(state.prop.cardDict[state.getDrawOrderForRead().ithCardFromTop(i)].cardName);
+                out.print(state.properties.cardDict[state.getDrawOrderForRead().ithCardFromTop(i)].cardName);
             }
             out.println("]");
         }
         out.println("Hand (" + state.handArrLen + ")");
-        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.prop.cardDict.length);
+        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.cardDict.length);
         for (int i = 0; i < hand.length; i++) {
-            if (hand[i] > 0 && (!state.prop.discard0CardOrderMatters || state.prop.cardDict[i].realEnergyCost() != 0)) {
-                out.println("  " + hand[i] + " " + state.prop.cardDict[i].cardName);
+            if (hand[i] > 0 && (!state.properties.discard0CardOrderMatters || state.properties.cardDict[i].realEnergyCost() != 0)) {
+                out.println("  " + hand[i] + " " + state.properties.cardDict[i].cardName);
             }
         }
-        if (state.prop.discard0CardOrderMatters) {
+        if (state.properties.discard0CardOrderMatters) {
             for (int i = 0; i < state.handArrLen; i++) {
-                if (state.prop.cardDict[state.handArr[i]].realEnergyCost() == 0) {
-                    out.println("  " + state.prop.cardDict[state.handArr[i]].cardName);
+                if (state.properties.cardDict[state.handArr[i]].realEnergyCost() == 0) {
+                    out.println("  " + state.properties.cardDict[state.handArr[i]].cardName);
                 }
             }
         }
         if (state.chosenCardsArrLen > 0) {
             out.println("Chosen");
             for (int i = 0; i < state.chosenCardsArrLen; i++) {
-                out.println("  " + state.prop.cardDict[state.chosenCardsArr[i]].cardName);
+                out.println("  " + state.properties.cardDict[state.chosenCardsArr[i]].cardName);
             }
         }
         if (state.nightmareCards != null && state.nightmareCardsLen > 0) {
             out.print("Nightmare: ");
             for (int i = 0; i < state.nightmareCardsLen; i++) {
-                out.print((i == 0 ? "" : ", ") + state.prop.cardDict[state.nightmareCards[i]].cardName);
+                out.print((i == 0 ? "" : ", ") + state.properties.cardDict[state.nightmareCards[i]].cardName);
             }
             out.println();
         }
@@ -870,8 +870,8 @@ public class InteractiveMode {
     }
 
     private void setDrawOrder(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        for (int i = 0; i < state.prop.cardDict.length; i++) {
-            out.println(i + ". " + state.prop.cardDict[i].cardName);
+        for (int i = 0; i < state.properties.cardDict.length; i++) {
+            out.println(i + ". " + state.properties.cardDict[i].cardName);
         }
         var drawOrder = new ArrayList<Integer>();
         for (int i = 0; i < state.getDrawOrderForRead().size(); i++) {
@@ -880,7 +880,7 @@ public class InteractiveMode {
         while (true) {
             out.print("[");
             for (int i = 0; i < drawOrder.size(); i++) {
-                out.print(state.prop.cardDict[drawOrder.get(i)].cardName + (i == drawOrder.size() - 1 ? "" : ", "));
+                out.print(state.properties.cardDict[drawOrder.get(i)].cardName + (i == drawOrder.size() - 1 ? "" : ", "));
             }
             out.println("]");
 
@@ -897,7 +897,7 @@ public class InteractiveMode {
                 out.print("[");
                 for (int i = 0; i < drawOrder.size(); i++) {
                     var idx = state.getDrawOrderForRead().ithCardFromTop(i);
-                    out.print(state.prop.cardDict[idx].cardName + (i == drawOrder.size() - 1 ? "" : ", "));
+                    out.print(state.properties.cardDict[idx].cardName + (i == drawOrder.size() - 1 ? "" : ", "));
                 }
                 out.println("]");
                 return;
@@ -909,20 +909,20 @@ public class InteractiveMode {
                 drawOrder.clear();
             } else {
                 int cardIdx = parseInt(line, -1);
-                if (cardIdx >= 0 && cardIdx < state.prop.cardDict.length) {
+                if (cardIdx >= 0 && cardIdx < state.properties.cardDict.length) {
                     drawOrder.add(cardIdx);
                     continue;
                 } else {
-                    var allCards = Arrays.stream(state.prop.cardDict).map((c) -> c.cardName.toLowerCase()).toList();
+                    var allCards = Arrays.stream(state.properties.cardDict).map((c) -> c.cardName.toLowerCase()).toList();
                     // prefer deck first
-                    var cards = Arrays.stream(Utils.shortToIntArray(state.getDeckArrForRead())).mapToObj((c) -> state.prop.cardDict[c].cardName.toLowerCase()).distinct().toList();
+                    var cards = Arrays.stream(Utils.shortToIntArray(state.getDeckArrForRead())).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).distinct().toList();
                     var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
                     if (card != null) {
                         drawOrder.add(allCards.indexOf(card));
                         continue;
                     }
                     // then prefer discard
-                    cards = Arrays.stream(Utils.shortToIntArray(state.getDiscardArrForRead())).mapToObj((c) -> state.prop.cardDict[c].cardName.toLowerCase()).distinct().toList();
+                    cards = Arrays.stream(Utils.shortToIntArray(state.getDiscardArrForRead())).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).distinct().toList();
                     card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
                     if (card != null) {
                         drawOrder.add(allCards.indexOf(card));
@@ -983,7 +983,7 @@ public class InteractiveMode {
         }
         EnemyReadOnly curEnemy = state.getEnemiesForRead().get(curEnemyIdx);
 
-        for (int i = 0; i < curEnemy.property.numOfMoves; i++) {
+        for (int i = 0; i < curEnemy.properties.numOfMoves; i++) {
             out.println(i + ". " + curEnemy.getMoveString(state, i));
         }
         while (true) {
@@ -994,11 +994,11 @@ public class InteractiveMode {
                 return;
             }
             int moveIdx = parseInt(line, -1);
-            if (moveIdx >= 0 && moveIdx < curEnemy.property.numOfMoves) {
+            if (moveIdx >= 0 && moveIdx < curEnemy.properties.numOfMoves) {
                 state.getEnemiesForWrite().getForWrite(curEnemyIdx).setMove(moveIdx);
                 return;
             } else {
-                var movesOrig = IntStream.range(0, curEnemy.property.numOfMoves).mapToObj((i) -> curEnemy.getMoveString(state, i)).toList();
+                var movesOrig = IntStream.range(0, curEnemy.properties.numOfMoves).mapToObj((i) -> curEnemy.getMoveString(state, i)).toList();
                 var moves = movesOrig.stream().map((x) -> x.toLowerCase(Locale.ROOT)).toList();
                 var move = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), moves);
                 if (move != null) {
@@ -1142,13 +1142,13 @@ public class InteractiveMode {
             }
             int hpOrig = parseInt(line, -1);
             if (hpOrig >= 0) {
-                if (state.prop.curriculumTraining) {
+                if (state.properties.curriculumTraining) {
                     return;
                 }
                 int oldHp = state.getEnemiesForWrite().getForWrite(curEnemyIdx).getHealth();
-                int oldHpOrig = state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth;
-                state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.origHealth = hpOrig;
-                int hp = Math.max(0, Math.min(state.getEnemiesForWrite().getForWrite(curEnemyIdx).property.maxHealth, oldHp + (hpOrig - oldHpOrig)));
+                int oldHpOrig = state.getEnemiesForWrite().getForWrite(curEnemyIdx).properties.origHealth;
+                state.getEnemiesForWrite().getForWrite(curEnemyIdx).properties.origHealth = hpOrig;
+                int hp = Math.max(0, Math.min(state.getEnemiesForWrite().getForWrite(curEnemyIdx).properties.maxHealth, oldHp + (hpOrig - oldHpOrig)));
                 if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
                     state.reviveEnemy(curEnemyIdx, true, hp);
                 } else {
@@ -1170,7 +1170,7 @@ public class InteractiveMode {
         var s = line.substring(4).split(" ");
         var potionIdx = -1;
         var util = 0;
-        if (s.length == 1 && state.prop.potions.size() == 1) {
+        if (s.length == 1 && state.properties.potions.size() == 1) {
             potionIdx = 0;
         } else if (s.length >= 2) {
             potionIdx = parseInt(s[0], -1);
@@ -1181,12 +1181,12 @@ public class InteractiveMode {
             return;
         }
         if (util == 0) {
-            out.println("Set " + state.prop.potions.get(potionIdx) + " to unusable.");
+            out.println("Set " + state.properties.potions.get(potionIdx) + " to unusable.");
             state.getPotionsStateForWrite()[potionIdx * 3] = 0;
             state.getPotionsStateForWrite()[potionIdx * 3 + 1] = 100;
             state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 0;
         } else {
-            out.println("Set " + state.prop.potions.get(potionIdx) + " utility to " + util + ".");
+            out.println("Set " + state.properties.potions.get(potionIdx) + " utility to " + util + ".");
             state.getPotionsStateForWrite()[potionIdx * 3] = 1;
             state.getPotionsStateForWrite()[potionIdx * 3 + 1] = (short) util;
             state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 1;
@@ -1194,22 +1194,22 @@ public class InteractiveMode {
     }
 
     private void addCardToHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        for (int i = 0; i < state.prop.cardDict.length; i++) {
-            out.println(i + ". " + state.prop.cardDict[i].cardName);
+        for (int i = 0; i < state.properties.cardDict.length; i++) {
+            out.println(i + ". " + state.properties.cardDict[i].cardName);
         }
-        state.addCardToHand(readIntCommand(reader, history, state.prop.cardDict.length));
+        state.addCardToHand(readIntCommand(reader, history, state.properties.cardDict.length));
     }
 
     private void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
         for (int i = 0; i < state.handArrLen; i++) {
-            out.println(i + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
+            out.println(i + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
         }
         state.removeCardFromHandByPosition(readIntCommand(reader, history, state.handArrLen));
     }
 
     int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
         for (int i = 0; i < state.handArrLen; i++) {
-            out.println(i + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
+            out.println(i + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
         }
         return readIntCommand(reader, history, state.handArrLen);
     }
@@ -1217,8 +1217,8 @@ public class InteractiveMode {
     int selectCardForWarpedTongs(BufferedReader reader, GameState state, List<String> history) throws IOException {
         int nonUpgradedCardCount = 0;
         for (int i = 0; i < state.handArrLen; i++) {
-            if (state.prop.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
-                out.println(nonUpgradedCardCount + ". " + state.prop.cardDict[state.getHandArrForRead()[i]].cardName);
+            if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
+                out.println(nonUpgradedCardCount + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
                 nonUpgradedCardCount++;
             }
         }
@@ -1226,11 +1226,11 @@ public class InteractiveMode {
     }
 
     int selectCardForMummifiedHand(BufferedReader reader, GameState state, List<String> history) throws IOException {
-        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.prop.cardDict.length);
+        var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
         int cardCount = 0;
         for (int i = 0; i < hand.length; i++) {
-            if (!state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0 && hand[i] > 0) {
-                out.println(cardCount + ". " + state.prop.cardDict[i].cardName);
+            if (!state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0 && hand[i] > 0) {
+                out.println(cardCount + ". " + state.properties.cardDict[i].cardName);
                 cardCount++;
             }
         }
@@ -1243,7 +1243,7 @@ public class InteractiveMode {
                 int acc = 0;
                 int k = 0;
                 for (int i = 0; i < hand.length && k <= r; i++) {
-                    if (!state.prop.cardDict[i].isXCost && state.prop.cardDict[i].energyCost > 0 && hand[i] > 0) {
+                    if (!state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0 && hand[i] > 0) {
                         acc += hand[i];
                         k++;
                     }
@@ -1302,7 +1302,7 @@ public class InteractiveMode {
             if (i == currentIdx1 || i == currentIdx2) {
                 continue;
             }
-            var card = state.prop.cardDict[state.prop.select1OutOf3CardsIdxes[potionsIdxes[i]]];
+            var card = state.properties.cardDict[state.properties.select1OutOf3CardsIdxes[potionsIdxes[i]]];
             out.println(p + ". " + card.cardName);
             p++;
         }
@@ -1310,9 +1310,9 @@ public class InteractiveMode {
     }
 
     int selectCostForSnecko(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
-        var snecko = arg.v1().prop.sneckoIdxes[arg.v2()];
+        var snecko = arg.v1().properties.sneckoIdxes[arg.v2()];
         var sneckoMapping = IntStream.range(1, snecko[0] + 1)
-                .mapToObj((i) -> new Tuple<>(i - 1, arg.v1().prop.cardDict[snecko[i]]))
+                .mapToObj((i) -> new Tuple<>(i - 1, arg.v1().properties.cardDict[snecko[i]]))
                 .map((t) -> new Tuple3<>(t.v2().energyCost(arg.v1()), t.v2().cardName, t.v1()))
                 .sorted(Comparator.comparingInt(Tuple3::v1))
                 .toList();
@@ -1347,7 +1347,7 @@ public class InteractiveMode {
         var state = t.v1();
         var cardIdxes = t.v2();
         for (int i = 0; i < cardIdxes.length; i++) {
-            out.println(i + ". " + state.prop.cardDict[cardIdxes[i]].cardName);
+            out.println(i + ". " + state.properties.cardDict[cardIdxes[i]].cardName);
         }
         return readIntCommand(reader, history, cardIdxes.length);
     }
@@ -1384,9 +1384,9 @@ public class InteractiveMode {
         if (writeFile) {
             session.setMatchLogFile("matches_interactive.txt.gz");
         }
-        var prevRandomization = state.prop.randomization;
+        var prevRandomization = state.properties.randomization;
         if (randomizationScenario >= 0) {
-            state.prop.randomization = state.prop.randomization.fixR(randomizationScenario);
+            state.properties.randomization = state.properties.randomization.fixR(randomizationScenario);
         }
         try {
             session.playGames(state, numberOfGames, nodeCount, numberOfThreads, batchSize, true, printDamageDistribution, false);
@@ -1394,7 +1394,7 @@ public class InteractiveMode {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        state.prop.randomization = prevRandomization;
+        state.properties.randomization = prevRandomization;
     }
 
     private static GameState state1;
@@ -1410,7 +1410,7 @@ public class InteractiveMode {
         int startingAction = -1;
         if (s.length >= 3) {
             if (s[2].equals("e")) {
-                startingAction = state.prop.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+                startingAction = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
             } else {
                 startingAction = parseInt(s[2], -1);
             }
@@ -1445,9 +1445,9 @@ public class InteractiveMode {
             out.println("States not set");
             return;
         }
-        var prevRandomization = state1.prop.randomization;
+        var prevRandomization = state1.properties.randomization;
         if (randomizationScenario >= 0) {
-            state1.prop.randomization = state1.prop.randomization.fixR(randomizationScenario);
+            state1.properties.randomization = state1.properties.randomization.fixR(randomizationScenario);
         }
         out.println(state1);
         if (startingAction1 >= 0) {
@@ -1463,7 +1463,7 @@ public class InteractiveMode {
             return;
         }
         session.playGames(state1, numberOfGames, nodeCount, numberOfThreads, batchSize, true, false, false);
-        state1.prop.randomization = prevRandomization;
+        state1.properties.randomization = prevRandomization;
     }
 
     private void exploreTree(GameState root, BufferedReader reader, String modelDir) throws IOException {
@@ -1689,12 +1689,12 @@ public class InteractiveMode {
         state.setMultithreaded(false);
 
         out.println(state);
-        if (state.prop.qwinVIdx >= 0) {
-            out.println("Q-Win: " + state.q[state.prop.qwinVIdx] / (state.total_n + 1));
-            out.println("Q-Health: " + state.q[state.prop.qwinVIdx + 1] / (state.total_n + 1));
+        if (state.properties.qwinVIdx >= 0) {
+            out.println("Q-Win: " + state.q[state.properties.qwinVIdx] / (state.total_n + 1));
+            out.println("Q-Health: " + state.q[state.properties.qwinVIdx + 1] / (state.total_n + 1));
         }
-        if (state.prop.turnsLeftVIdx >= 0) {
-            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.prop.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.turnNum));
+        if (state.properties.turnsLeftVIdx >= 0) {
+            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.turnNum));
         }
         System.gc(); System.gc(); System.gc();
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
@@ -1791,17 +1791,17 @@ public class InteractiveMode {
                 return null;
             }
             int max_n = s.n[action];
-            int baseIdx = (action + 1) * s.prop.v_total_len;
+            int baseIdx = (action + 1) * s.properties.v_total_len;
             var o = new StringBuilder();
             o.append("  ").append(++move_i).append(". ").append(s.getActionString(action)).append(": n=").append(max_n);
             o.append(", q=").append(formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n));
             o.append(", q_win=").append(formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n));
             o.append(", q_health=").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n)).append(" (").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth())).append(")");
-            if (s.prop.fightProgressVIdx >= 0 && s.q[baseIdx + GameState.V_COMB_IDX] / max_n < 0.001) {
-                o.append(", q_progress").append(formatFloat(s.q[baseIdx + s.prop.fightProgressVIdx] / max_n));
+            if (s.properties.fightProgressVIdx >= 0 && s.q[baseIdx + GameState.V_COMB_IDX] / max_n < 0.001) {
+                o.append(", q_progress").append(formatFloat(s.q[baseIdx + s.properties.fightProgressVIdx] / max_n));
             }
-            if (s.prop.turnsLeftVIdx >= 0) {
-                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.prop.turnsLeftVIdx] / max_n * 50 - state.turnNum));
+            if (s.properties.turnsLeftVIdx >= 0) {
+                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * 50 - state.turnNum));
             }
             out.println(o);
             finalOuput.append("\n").append(o);
@@ -1876,11 +1876,11 @@ public class InteractiveMode {
 
         GameState s = state.clone(false);
         ChanceState cs = new ChanceState(null, s, chanceAction);
-        s.prop.makingRealMove = true;
+        s.properties.makingRealMove = true;
         for (int i = 0; i < 1000000; i++) {
             cs.getNextState(false, -1);
         }
-        s.prop.makingRealMove = false;
+        s.properties.makingRealMove = false;
         out.println("Number of Outcomes: " + cs.cache.size());
         out.println("Continue? (y/n)");
         out.print("> ");
@@ -1964,7 +1964,7 @@ public class InteractiveMode {
             modelExecutor.addAndStartProducerThread(() -> {
                 while (trialsRemaining.getAndDecrement() > 0) {
                     GameState s = state.clone(false);
-                    interactiveSetSeed(s, s.prop.random.nextLong(RandomGenCtx.Other), s.prop.random.nextLong(RandomGenCtx.Other));
+                    interactiveSetSeed(s, s.properties.random.nextLong(RandomGenCtx.Other), s.properties.random.nextLong(RandomGenCtx.Other));
                     List<String> pv = new ArrayList<>();
                     var k = runNNPVInternal(s, threadMCTS.get(_i), pv, nodeCount, clear);
                     k.v1().clearAllSearchInfo();
@@ -2200,7 +2200,7 @@ public class InteractiveMode {
 
         public void selectEnemyMove(GameState state, Enemy enemy, int enemyIdx) {
             interactiveMode.out.println("Select move for " + enemy.getName() + " (" + enemyIdx + ")");
-            for (int i = 0; i < enemy.property.numOfMoves; i++) {
+            for (int i = 0; i < enemy.properties.numOfMoves; i++) {
                 interactiveMode.out.println(i + ". " + enemy.getMoveString(state, i));
             }
             while (true) {
@@ -2213,7 +2213,7 @@ public class InteractiveMode {
                 }
                 history.add(line);
                 int r = parseInt(line, -1);
-                if (0 <= r && r < enemy.property.numOfMoves) {
+                if (0 <= r && r < enemy.properties.numOfMoves) {
                     enemy.setMove(r);
                     return;
                 }
@@ -2225,8 +2225,8 @@ public class InteractiveMode {
             interactiveMode.out.println("Select card for " + enemy.getName() + " (" + enemyIdx + ")" + " to take");
             int cardCount = 0;
             for (int i = 0; i < cardsLen; i++) {
-                if (rarity == state.prop.cardDict[cards[i]].rarity) {
-                    interactiveMode.out.println(cardCount + ". " + state.prop.cardDict[cards[i]].cardName);
+                if (rarity == state.properties.cardDict[cards[i]].rarity) {
+                    interactiveMode.out.println(cardCount + ". " + state.properties.cardDict[cards[i]].cardName);
                     cardCount++;
                 }
             }
