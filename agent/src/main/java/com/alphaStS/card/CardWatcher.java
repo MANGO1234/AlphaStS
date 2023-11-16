@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
 public class CardWatcher {
     // Eruption

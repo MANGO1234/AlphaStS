@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
 import java.util.Collections;
 import java.util.HashMap;

@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;

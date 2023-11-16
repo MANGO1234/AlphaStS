@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.card.Card;
+import com.alphaStS.card.CardCount;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;

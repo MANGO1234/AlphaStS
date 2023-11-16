@@ -1,12 +1,8 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
-import com.alphaStS.Action.CardDrawAction;
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.*;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 public class CardOther {
     // **********************************************************************************************************
@@ -104,7 +100,7 @@ public class CardOther {
             cardIndex = state.properties.findCardIndex(this);
         }
 
-        @Override void onExhaust(GameState state) {
+        @Override public void onExhaust(GameState state) {
             state.addCardToHand(cardIndex);
         }
     }

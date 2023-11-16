@@ -1,4 +1,8 @@
-package com.alphaStS;
+package com.alphaStS.card;
+
+import com.alphaStS.GameActionCtx;
+import com.alphaStS.GameProperties;
+import com.alphaStS.GameState;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,7 +20,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public final int cardType;
     public final String cardName;
-    int energyCost;
+    public final int energyCost;
     public final int rarity;
     public boolean ethereal = false;
     public boolean innate = false;
@@ -74,10 +78,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return energyCost;
     }
 
-    GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
-    void onExhaust(GameState state) {}
-    List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
-    int onPlayTransformCardIdx(GameProperties prop) { return -1; }
+    public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
+    public void onExhaust(GameState state) {}
+    public List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    public int onPlayTransformCardIdx(GameProperties prop) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
     public void gamePropertiesSetup(GameState state) {}
     public void onDiscard(GameState state) {}
@@ -147,10 +151,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             return card.getCounterIdx(gameProperties);
         }
 
-        GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
-        void onExhaust(GameState state) { card.onExhaust(state); }
-        List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
-        int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
+        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
+        public void onExhaust(GameState state) { card.onExhaust(state); }
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
         public int realEnergyCost() {
@@ -205,10 +209,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             card.setCounterIdx(gameProperties, idx);
         }
 
-        GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
-        void onExhaust(GameState state) { card.onExhaust(state); }
-        List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
-        int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
+        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
+        public void onExhaust(GameState state) { card.onExhaust(state); }
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
         public Card getUpgrade() {
@@ -262,7 +266,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class DefendP extends Card {
         public DefendP() {
             super("Defend+", Card.SKILL, 1, Card.COMMON);
-            energyCost = 1;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

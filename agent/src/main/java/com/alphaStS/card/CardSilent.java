@@ -1,5 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
+import com.alphaStS.*;
 import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
@@ -2038,7 +2039,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
         }
     }

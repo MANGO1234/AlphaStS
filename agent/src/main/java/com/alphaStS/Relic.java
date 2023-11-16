@@ -2,6 +2,10 @@ package com.alphaStS;
 
 import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.Action.GameEnvironmentAction;
+import com.alphaStS.card.Card;
+import com.alphaStS.card.CardColorless;
+import com.alphaStS.card.CardDefect;
+import com.alphaStS.card.CardOther;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;

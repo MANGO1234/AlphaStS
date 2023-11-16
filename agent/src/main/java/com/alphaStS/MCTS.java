@@ -3,6 +3,8 @@ package com.alphaStS;
 import java.util.*;
 
 import cc.mallet.types.Dirichlet;
+import com.alphaStS.card.CardColorless;
+import com.alphaStS.card.CardDefect;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.Tuple;

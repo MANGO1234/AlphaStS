@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
 public record CardCount(Card card, int count) {
     @Override

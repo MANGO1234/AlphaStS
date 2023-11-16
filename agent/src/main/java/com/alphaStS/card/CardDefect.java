@@ -1,5 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
+import com.alphaStS.*;
 import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.Action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
@@ -1746,7 +1747,7 @@ public class CardDefect {
             return cards;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return getPossibleGeneratedCards();
         }
     }
@@ -2327,7 +2328,7 @@ public class CardDefect {
             return cards;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return getPossibleGeneratedCards();
         }
     }
@@ -2642,7 +2643,7 @@ public class CardDefect {
             return cards;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return getPossibleGeneratedCards();
         }
     }

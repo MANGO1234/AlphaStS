@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.card.Card;
 import com.alphaStS.utils.Utils;
 
 import java.io.*;

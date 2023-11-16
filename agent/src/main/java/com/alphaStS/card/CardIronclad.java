@@ -1,5 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
+import com.alphaStS.*;
 import com.alphaStS.Action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
@@ -1102,7 +1103,7 @@ public class CardIronclad {
             return card.cardType == Card.ATTACK;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
         }
     }
@@ -1123,7 +1124,7 @@ public class CardIronclad {
             return card.cardType == Card.ATTACK;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
         }
     }

@@ -1,6 +1,6 @@
 package com.alphaStS.enemy;
 
-import com.alphaStS.Card;
+import com.alphaStS.card.Card;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 

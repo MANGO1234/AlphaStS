@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.Action.GameEnvironmentAction;
+import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
@@ -33,21 +34,21 @@ public final class GameState implements State {
     public boolean isStochastic;
     StringBuilder stateDesc;
     public GameProperties properties;
-    GameActionCtx actionCtx;
+    public GameActionCtx actionCtx;
     boolean actionCardIsCloned;
 
-    short[] handArr;
-    int handArrLen;
-    short[] discardArr;
-    int discardArrLen;
+    public short[] handArr;
+    public int handArrLen;
+    public short[] discardArr;
+    public int discardArrLen;
     private byte[] exhaust;
-    byte[] deck;
-    short[] deckArr;
-    int deckArrLen;
-    short[] chosenCardsArr; // well laid plans, todo: gambler's potion? to know about any potential discard effect
-    short chosenCardsArrLen;
-    short[] nightmareCards;
-    short nightmareCardsLen;
+    public byte[] deck;
+    public short[] deckArr;
+    public int deckArrLen;
+    public short[] chosenCardsArr; // well laid plans, todo: gambler's potion? to know about any potential discard effect
+    public short chosenCardsArrLen;
+    public short[] nightmareCards;
+    public short nightmareCardsLen;
     private boolean deckCloned;
     private boolean handCloned;
     private boolean discardCloned;
@@ -68,8 +69,8 @@ public final class GameState implements State {
     public RandomGen searchRandomGen;
 
     CircularArray<GameEnvironmentAction> gameActionDeque;
-    int energy;
-    int energyRefill;
+    public int energy;
+    public int energyRefill;
     GameAction currentAction;
     public short turnNum;
     int playerTurnStartMaxPossibleHealth;
@@ -1106,7 +1107,7 @@ public final class GameState implements State {
         return drawnIdx;
     }
 
-    int drawOneCardSpecial() {
+    public int drawOneCardSpecial() {
         setIsStochastic();
         if (deckArrLen == 0) {
             reshuffle();
@@ -1161,13 +1162,13 @@ public final class GameState implements State {
         return actionCtx;
     }
 
-    boolean playCard(GameAction action, int selectIdx,
-            boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
-            boolean cloned, // flag to know current card is a cloned card
-            boolean useEnergy, // when cloning/havoc/etc., do not use energy
-            boolean exhaustWhenPlayed, // havoc only flag
-            int overrideEnergyCost, // when cloning, need to know cost of X card to use
-            int cloneParentLocation // when cloning, need to transform the prev card (e.g. Streamline)
+    public boolean playCard(GameAction action, int selectIdx,
+                            boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
+                            boolean cloned, // flag to know current card is a cloned card
+                            boolean useEnergy, // when cloning/havoc/etc., do not use energy
+                            boolean exhaustWhenPlayed, // havoc only flag
+                            int overrideEnergyCost, // when cloning, need to know cost of X card to use
+                            int cloneParentLocation // when cloning, need to transform the prev card (e.g. Streamline)
     ) {
         int cardIdx = action.idx();
         int lastSelectedIdx = -1;
@@ -3516,7 +3517,7 @@ public final class GameState implements State {
         gameActionDeque.addFirst(action);
     }
 
-    void exhaustCardFromHand(int cardIdx) {
+    public void exhaustCardFromHand(int cardIdx) {
         removeCardFromHand(cardIdx);
         exhaustedCardHandle(cardIdx, false);
     }
@@ -3529,7 +3530,7 @@ public final class GameState implements State {
         }
     }
 
-    void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
+    public void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
         if (cardIdx >= properties.realCardsLen) {
             cardIdx = properties.tmp0CostCardReverseTransformIdxes[cardIdx];
         }
