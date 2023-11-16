@@ -1031,7 +1031,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GamblingChip extends Relic {
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return List.of(new Card.GamblingChips());
+            return List.of(new CardOther.GamblingChips());
         }
     }
 

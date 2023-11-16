@@ -837,7 +837,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return "Hexaghost";
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn(), new Card.BurnP()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn(), new CardOther.BurnP()); }
     }
 
     public static class TheGuardian extends Enemy {

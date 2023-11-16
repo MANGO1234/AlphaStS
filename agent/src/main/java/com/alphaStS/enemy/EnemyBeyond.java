@@ -104,7 +104,7 @@ public class EnemyBeyond {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
-            return List.of(new Card.Void());
+            return List.of(new CardOther.Void());
         }
 
         @Override public void nextMove(GameState state, RandomGen random) {
@@ -968,7 +968,7 @@ public class EnemyBeyond {
             intangible = !intangible;
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn()); }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
@@ -1197,7 +1197,7 @@ public class EnemyBeyond {
             move++;
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Wound()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Wound()); }
 
         @Override public String getMoveString(GameState state, int move) {
             if (move == STAB) {
@@ -1602,7 +1602,7 @@ public class EnemyBeyond {
             }
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn()); }
 
         @Override public String getName() {
             return "Orb Walker";

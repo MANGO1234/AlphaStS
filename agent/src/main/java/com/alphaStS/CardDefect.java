@@ -810,7 +810,7 @@ public class CardDefect {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return List.of(new Card.Void());
+            return List.of(new CardOther.Void());
         }
     }
 
@@ -1853,7 +1853,7 @@ public class CardDefect {
         }
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return List.of(new Burn());
+            return List.of(new CardOther.Burn());
         }
     }
 

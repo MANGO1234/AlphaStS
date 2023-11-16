@@ -13,29 +13,29 @@ import java.util.List;
 public class TestStates {
     public static GameState BasicGremlinNobState() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.BashP(), 0);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardIronclad.BashP(), 0);
         builder.addCard(new Card.Strike(), 5);
         builder.addCard(new Card.StrikeP(), 0);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.DefendP(), 0);
         builder.addEnemy(new Enemy.GremlinNob());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Bash(), 1),
+                List.of(new CardCount(new CardIronclad.Bash(), 1),
                         new CardCount(new Card.Strike(), 5),
                         new CardCount(new Card.Defend(), 4)),
-                List.of(new CardCount(new Card.Bash(), 1),
+                List.of(new CardCount(new CardIronclad.Bash(), 1),
                         new CardCount(new Card.Strike(), 4),
                         new CardCount(new Card.StrikeP(), 1),
                         new CardCount(new Card.Defend(), 4)),
-                List.of(new CardCount(new Card.Bash(), 1),
+                List.of(new CardCount(new CardIronclad.Bash(), 1),
                         new CardCount(new Card.Strike(), 3),
                         new CardCount(new Card.StrikeP(), 2),
                         new CardCount(new Card.Defend(), 4)),
-                List.of(new CardCount(new Card.BashP(), 1),
+                List.of(new CardCount(new CardIronclad.BashP(), 1),
                         new CardCount(new Card.Strike(), 5),
                         new CardCount(new Card.Defend(), 4)),
-                List.of(new CardCount(new Card.Bash(), 1),
+                List.of(new CardCount(new CardIronclad.Bash(), 1),
                         new CardCount(new Card.Strike(), 5),
                         new CardCount(new Card.DefendP(), 4))
         )).setDescriptions(
@@ -58,17 +58,17 @@ public class TestStates {
 
     public static GameState BasicJawWormState() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 5);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardSilent.Neutralize(), 0);
         builder.addCard(new CardSilent.Survivor(), 0);
         builder.addCard(new CardSilent.Acrobatics(), 0);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addEnemy(new Enemy.JawWorm(false));
         builder.addRelic(new Relic.RingOfSerpent());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Bash(), 1),
+                List.of(new CardCount(new CardIronclad.Bash(), 1),
                         new CardCount(new Card.Strike(), 5),
                         new CardCount(new Card.Defend(), 4)),
                 List.of(new CardCount(new Card.Strike(), 5),
@@ -92,15 +92,15 @@ public class TestStates {
 
     public static GameState BasicSentriesState() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.SeverSoul(), 1);
-        builder.addCard(new Card.Clash(), 1);
-        builder.addCard(new Card.Headbutt(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.BurningPactP(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.SeverSoul(), 1);
+        builder.addCard(new CardIronclad.Clash(), 1);
+        builder.addCard(new CardIronclad.Headbutt(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.BurningPactP(), 1);
         EnemyEncounter.addSentriesFight(builder);
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
@@ -112,16 +112,16 @@ public class TestStates {
     public static GameState BasicLagavulinState() {
         // https://youtu.be/1CELexRf5ZE?t=2205
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 2);
-        builder.addCard(new Card.BodySlam(), 1);
-        builder.addCard(new Card.Cleave(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.Impervious(), 1);
-        builder.addCard(new Card.SeeingRed(), 1);
-        builder.addCard(new Card.Exhume(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.BodySlam(), 1);
+        builder.addCard(new CardIronclad.Cleave(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.Impervious(), 1);
+        builder.addCard(new CardIronclad.SeeingRed(), 1);
+        builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addEnemy(new Enemy.Lagavulin());
         builder.addPotion(new Potion.DexterityPotion());
         builder.setPlayer(new Player(73, 75));
@@ -130,16 +130,16 @@ public class TestStates {
 
     public static GameState BasicLagavulinState2() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 5);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.Impervious(), 1);
-        builder.addCard(new Card.SeeingRed(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.PommelStrike(), 1);
-        builder.addCard(new Card.Shockwave(), 1);
-        builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new CardIronclad.Impervious(), 1);
+        builder.addCard(new CardIronclad.SeeingRed(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.PommelStrike(), 1);
+        builder.addCard(new CardIronclad.Shockwave(), 1);
+        builder.addCard(new CardIronclad.Inflame(), 1);
         builder.addEnemy(new Enemy.Lagavulin());
         builder.setPlayer(new Player(60, 75));
         return new GameState(builder);
@@ -147,17 +147,17 @@ public class TestStates {
 
     public static GameState GuardianState() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.BodySlamP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.HemokinesisP(), 1);
-        builder.addCard(new Card.Metallicize(), 1);
-        builder.addCard(new Card.Hemokinesis(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.FlameBarrier(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.BodySlamP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.HemokinesisP(), 1);
+        builder.addCard(new CardIronclad.Metallicize(), 1);
+        builder.addCard(new CardIronclad.Hemokinesis(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.FlameBarrier(), 1);
         builder.addEnemy(new Enemy.TheGuardian());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.setPlayer(new Player(36, 75));
@@ -166,36 +166,36 @@ public class TestStates {
 
     public static GameState GuardianState2() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.BashP(), 1);
+        builder.addCard(new CardIronclad.BashP(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Clash(), 1);
-        builder.addCard(new Card.Armanent(), 1);
-        builder.addCard(new Card.Carnage(), 1);
-        builder.addCard(new Card.CarnageP(), 0);
-        builder.addCard(new Card.Metallicize(), 1);
-        builder.addCard(new Card.Shockwave(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.ShrugItOffP(), 0);
-        builder.addCard(new Card.PowerThrough(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Clash(), 1);
+        builder.addCard(new CardIronclad.Armanent(), 1);
+        builder.addCard(new CardIronclad.Carnage(), 1);
+        builder.addCard(new CardIronclad.CarnageP(), 0);
+        builder.addCard(new CardIronclad.Metallicize(), 1);
+        builder.addCard(new CardIronclad.Shockwave(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.ShrugItOffP(), 0);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addEnemy(new Enemy.TheGuardian());
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.DuVuDoll());
         builder.addRelic(new Relic.WarpedTongs());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Carnage(), 1),
-                        new CardCount(new Card.ShrugItOff(), 1),
-                        new CardCount(new Card.PowerThrough(), 1)),
-                List.of(new CardCount(new Card.Carnage(), 1),
-                        new CardCount(new Card.ShrugItOffP(), 1),
-                        new CardCount(new Card.PowerThrough(), 1)),
-                List.of(new CardCount(new Card.CarnageP(), 1),
-                        new CardCount(new Card.ShrugItOff(), 1),
-                        new CardCount(new Card.PowerThrough(), 1)),
-                List.of(new CardCount(new Card.Carnage(), 1),
-                        new CardCount(new Card.ShrugItOff(), 1))
+                List.of(new CardCount(new CardIronclad.Carnage(), 1),
+                        new CardCount(new CardIronclad.ShrugItOff(), 1),
+                        new CardCount(new CardIronclad.PowerThrough(), 1)),
+                List.of(new CardCount(new CardIronclad.Carnage(), 1),
+                        new CardCount(new CardIronclad.ShrugItOffP(), 1),
+                        new CardCount(new CardIronclad.PowerThrough(), 1)),
+                List.of(new CardCount(new CardIronclad.CarnageP(), 1),
+                        new CardCount(new CardIronclad.ShrugItOff(), 1),
+                        new CardCount(new CardIronclad.PowerThrough(), 1)),
+                List.of(new CardCount(new CardIronclad.Carnage(), 1),
+                        new CardCount(new CardIronclad.ShrugItOff(), 1))
         )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
                 (state) -> state.getPlayerForWrite().setOrigHealth(41),
                 (state) -> state.getPlayerForWrite().setOrigHealth(19),
@@ -214,8 +214,8 @@ public class TestStates {
 
     public static GameState BasicInfiniteState() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.BashP(), 1);
-        builder.addCard(new Card.Dropkick(), 2);
+        builder.addCard(new CardIronclad.BashP(), 1);
+        builder.addCard(new CardIronclad.Dropkick(), 2);
         builder.addEnemy(new Enemy.TheGuardian());
         builder.setPlayer(new Player(41, 75));
         return new GameState(builder);
@@ -224,18 +224,18 @@ public class TestStates {
     public static GameState SlimeBossStateLC() {
         // https://youtu.be/wKbAoS80HA0?t=11397
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 5);
         builder.addCard(new Card.Defend(), 3);
         builder.addCard(new Card.DefendP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Corruption(), 1);
-        builder.addCard(new Card.TwinStrike(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.ShockwaveP(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.FlameBarrierP(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Corruption(), 1);
+        builder.addCard(new CardIronclad.TwinStrike(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.ShockwaveP(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.FlameBarrierP(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
         EnemyEncounter.addSlimeBossFight(builder);
         builder.addRelic(new Relic.Anchor());
         var player = new Player(47, 75);
@@ -247,13 +247,13 @@ public class TestStates {
 
     public static GameState TestState() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Inflame(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Inflame(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         EnemyEncounter.addSentriesFight(builder);
         builder.addEnemy(new Enemy.GremlinNob());
@@ -271,28 +271,28 @@ public class TestStates {
 
     public static GameState TestState2() {
         GameStateBuilder builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Inflame(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Inflame(), 1);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.SeeingRed(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.DemonForm(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.SeeingRed(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.DemonForm(), 1);
         EnemyEncounter.addSentriesFight(builder);
         builder.addEnemy(new Enemy.GremlinNob());
         builder.addEnemy(new Enemy.Lagavulin());
         builder.addRelic(new Relic.BagOfPreparation());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Combust(), 1), new CardCount(new Card.IronWave(), 1)),
-                List.of(new CardCount(new Card.Combust(), 1), new CardCount(new Card.DemonForm(), 1)),
-                List.of(new CardCount(new Card.SeeingRed(), 1), new CardCount(new Card.IronWave(), 1)),
-                List.of(new CardCount(new Card.SeeingRed(), 1), new CardCount(new Card.DemonForm(), 1)),
-                List.of(new CardCount(new Card.Combust(), 1))
+                List.of(new CardCount(new CardIronclad.Combust(), 1), new CardCount(new CardIronclad.IronWave(), 1)),
+                List.of(new CardCount(new CardIronclad.Combust(), 1), new CardCount(new CardIronclad.DemonForm(), 1)),
+                List.of(new CardCount(new CardIronclad.SeeingRed(), 1), new CardCount(new CardIronclad.IronWave(), 1)),
+                List.of(new CardCount(new CardIronclad.SeeingRed(), 1), new CardCount(new CardIronclad.DemonForm(), 1)),
+                List.of(new CardCount(new CardIronclad.Combust(), 1))
         ));
         randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
                 new int[] { 0, 1, 2 },
@@ -306,33 +306,33 @@ public class TestStates {
 
     public static GameState TestState3() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.AngerP(), 0);
-        builder.addCard(new Card.Inflame(), 1);
-        builder.addCard(new Card.InflameP(), 0);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.AngerP(), 0);
+        builder.addCard(new CardIronclad.Inflame(), 1);
+        builder.addCard(new CardIronclad.InflameP(), 0);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.CombustP(), 0);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.IronWaveP(), 0);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addCard(new CardColorless.DarkShacklesP(), 0);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.CombustP(), 0);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.IronWaveP(), 0);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
         builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
         builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
         randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
         var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.InflameP(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.Combust(), 1)),
-                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWaveP(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.Combust(), 1)),
-                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.AngerP(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.Combust(), 1)),
-                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShacklesP(), 1), new CardCount(new Card.Combust(), 1)),
-                List.of(new CardCount(new Card.Inflame(), 1), new CardCount(new Card.IronWave(), 1), new CardCount(new Card.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new Card.CombustP(), 1))
+                List.of(new CardCount(new CardIronclad.InflameP(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.Combust(), 1)),
+                List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWaveP(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.Combust(), 1)),
+                List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.AngerP(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.Combust(), 1)),
+                List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShacklesP(), 1), new CardCount(new CardIronclad.Combust(), 1)),
+                List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.CombustP(), 1))
         ));
         randomization = randomization.doAfter(startOfGameScenarios);
         builder.setRandomization(randomization);
@@ -345,19 +345,19 @@ public class TestStates {
 
     public static GameState TestState4() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Inflame(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Inflame(), 1);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
         //        builder.addCard(new Card.Pummel(), 1);
         builder.addEnemy(new Enemy.Lagavulin().markAsBurningElite());
         builder.addEnemy(new Enemy.GremlinNob().markAsBurningElite());
@@ -379,24 +379,24 @@ public class TestStates {
 
     public static GameState TestState5() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new CardColorless.Bite(), 5);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.InflameP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.InflameP(), 1);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PommelStrike(), 1);
+        builder.addCard(new CardIronclad.Corruption(), 1);
+        builder.addCard(new CardIronclad.Havoc(), 1);
+        builder.addCard(new CardIronclad.FlameBarrier(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PommelStrike(), 1);
-        builder.addCard(new Card.Corruption(), 1);
-        builder.addCard(new Card.Havoc(), 1);
-        builder.addCard(new Card.FlameBarrier(), 1);
-        //        builder.addCard(new Card.Impervious(), 1);
+        //        builder.addCard(new CardIronclad.Impervious(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
@@ -409,31 +409,31 @@ public class TestStates {
 
     public static GameState TestState6() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new CardColorless.Bite(), 5);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.InflameP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.InflameP(), 1);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.CombustP(), 0);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        //        builder.addCard(new CardIronclad.SpotWeaknessP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.BattleTranceP(), 0);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PommelStrike(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 0);
+        builder.addCard(new CardIronclad.Corruption(), 1);
+        //        builder.addCard(new CardIronclad.CorruptionP(), 1);
+        builder.addCard(new CardIronclad.Havoc(), 1);
+        //        builder.addCard(new CardIronclad.HavocP(), 1);
+        builder.addCard(new CardIronclad.FlameBarrier(), 1);
+        builder.addCard(new CardIronclad.SeeingRedP(), 1);
+        //        builder.addCard(new CardIronclad.Impervious(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.CombustP(), 0);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        //        builder.addCard(new Card.SpotWeaknessP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.BattleTranceP(), 0);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PommelStrike(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 0);
-        builder.addCard(new Card.Corruption(), 1);
-        //        builder.addCard(new Card.CorruptionP(), 1);
-        builder.addCard(new Card.Havoc(), 1);
-        //        builder.addCard(new Card.HavocP(), 1);
-        builder.addCard(new Card.FlameBarrier(), 1);
-        builder.addCard(new Card.SeeingRedP(), 1);
-        //        builder.addCard(new Card.Impervious(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
@@ -441,15 +441,15 @@ public class TestStates {
         EnemyEncounter.addSlaversEliteFight(builder);
         GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3});
         var randomization2 = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.PommelStrikeP(), 1),
-                        new CardCount(new Card.BattleTrance(), 1),
-                        new CardCount(new Card.Combust(), 1)),
-                List.of(new CardCount(new Card.PommelStrike(), 1),
-                        new CardCount(new Card.BattleTranceP(), 1),
-                        new CardCount(new Card.Combust(), 1)),
-                List.of(new CardCount(new Card.PommelStrike(), 1),
-                        new CardCount(new Card.BattleTrance(), 1),
-                        new CardCount(new Card.CombustP(), 1))
+                List.of(new CardCount(new CardIronclad.PommelStrikeP(), 1),
+                        new CardCount(new CardIronclad.BattleTrance(), 1),
+                        new CardCount(new CardIronclad.Combust(), 1)),
+                List.of(new CardCount(new CardIronclad.PommelStrike(), 1),
+                        new CardCount(new CardIronclad.BattleTranceP(), 1),
+                        new CardCount(new CardIronclad.Combust(), 1)),
+                List.of(new CardCount(new CardIronclad.PommelStrike(), 1),
+                        new CardCount(new CardIronclad.BattleTrance(), 1),
+                        new CardCount(new CardIronclad.CombustP(), 1))
         ));
         randomization = randomization.doAfter(randomization2);
         builder.setRandomization(randomization);
@@ -470,27 +470,27 @@ public class TestStates {
 
     public static GameState TestState7() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new CardColorless.Bite(), 5);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.InflameP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.InflameP(), 1);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 2);
+        builder.addCard(new CardIronclad.BattleTranceP(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 1);
+        builder.addCard(new CardIronclad.Corruption(), 1);
+        builder.addCard(new CardIronclad.Havoc(), 1);
+        builder.addCard(new CardIronclad.FlameBarrier(), 1);
+        builder.addCard(new CardIronclad.SeeingRedP(), 1);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.Impervious(), 1);
+        builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 2);
-        builder.addCard(new Card.BattleTranceP(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 1);
-        builder.addCard(new Card.Corruption(), 1);
-        builder.addCard(new Card.Havoc(), 1);
-        builder.addCard(new Card.FlameBarrier(), 1);
-        builder.addCard(new Card.SeeingRedP(), 1);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.Impervious(), 1);
-        builder.addCard(new Card.Shockwave(), 1);
         builder.addCard(new CardColorless.RitualDaggerP(15), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
@@ -498,7 +498,7 @@ public class TestStates {
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.HornCleat());
         builder.addRelic(new Relic.BurningBlood());
-        builder.addRelic(new Relic.BottledLightning(new Card.BattleTranceP()));
+        builder.addRelic(new Relic.BottledLightning(new CardIronclad.BattleTranceP()));
         //        builder.addEnemy(new EnemyCity.BookOfStabbing());
         builder.addEnemy(new EnemyCity.TheChamp());
         builder.addPotion(new Potion.DistilledChaos());
@@ -511,17 +511,17 @@ public class TestStates {
         var builder = new GameStateBuilder();
         builder.addCard(new Card.Strike(), 3);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.BodySlam(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.TrueGritP(), 1);
-        builder.addCard(new Card.Rage(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.BurningPact(), 1);
-        builder.addCard(new Card.Reaper(), 1);
-        builder.addCard(new Card.DemonForm(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.BodySlam(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.TrueGritP(), 1);
+        builder.addCard(new CardIronclad.Rage(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.BurningPact(), 1);
+        builder.addCard(new CardIronclad.Reaper(), 1);
+        builder.addCard(new CardIronclad.DemonForm(), 1);
         builder.addEnemy(new Enemy.TheGuardian());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.Vajira());
@@ -536,39 +536,39 @@ public class TestStates {
 
     public static GameState TestState9() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new CardColorless.Bite(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.InflameP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.InflameP(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new Card.Combust(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 2);
-        builder.addCard(new Card.BattleTranceP(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 1);
-        builder.addCard(new Card.Corruption(), 1);
-        builder.addCard(new Card.Havoc(), 1);
-        builder.addCard(new Card.FlameBarrier(), 1);
-        builder.addCard(new Card.SeeingRedP(), 1);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.Impervious(), 1);
-        builder.addCard(new Card.Shockwave(), 1);
+        builder.addCard(new CardIronclad.Combust(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 2);
+        builder.addCard(new CardIronclad.BattleTranceP(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 1);
+        builder.addCard(new CardIronclad.Corruption(), 1);
+        builder.addCard(new CardIronclad.Havoc(), 1);
+        builder.addCard(new CardIronclad.FlameBarrier(), 1);
+        builder.addCard(new CardIronclad.SeeingRedP(), 1);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.Impervious(), 1);
+        builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardColorless.RitualDaggerP(30), 1);
-        builder.addCard(new Card.BrutalityP(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.Shockwave(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 1);
+        builder.addCard(new CardIronclad.BrutalityP(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.Shockwave(), 1);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.HornCleat());
         builder.addRelic(new Relic.BurningBlood());
-        builder.addRelic(new Relic.BottledLightning(new Card.BattleTranceP()));
+        builder.addRelic(new Relic.BottledLightning(new CardIronclad.BattleTranceP()));
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.OddlySmoothStone());
@@ -585,17 +585,17 @@ public class TestStates {
 
     public static GameState TestState10() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.Exhume(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.WildStrike(), 2);
-        builder.addCard(new Card.SecondWind(), 1);
-        builder.addCard(new Card.Inflame(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.Exhume(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.WildStrike(), 2);
+        builder.addCard(new CardIronclad.SecondWind(), 1);
+        builder.addCard(new CardIronclad.Inflame(), 1);
         builder.addEnemy(new Enemy.TheGuardian());
         builder.addRelic(new Relic.ArtOfWar());
         //        builder.addPotion(new Potion.WeakPotion());
@@ -606,17 +606,17 @@ public class TestStates {
 
     public static GameState TestState12() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.AngerP(), 0);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.Uppercut(), 1);
-        builder.addCard(new Card.UppercutP(), 0);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.AngerP(), 0);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.Uppercut(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 0);
+        builder.addCard(new CardIronclad.IronWave(), 0);
         builder.addCard(new CardColorless.Finesse(), 1);
-        builder.addCard(new Card.IronWave(), 0);
         builder.addRelic(new Relic.Vajira());
         EnemyEncounter.addSentriesFight(builder);
         builder.addEnemy(new Enemy.GremlinNob());
@@ -628,12 +628,12 @@ public class TestStates {
         );
         GameStateRandomization scenarios = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardColorless.Finesse(), 1)),
-                List.of(new CardCount(new Card.IronWave(), 1))
+                List.of(new CardCount(new CardIronclad.IronWave(), 1))
         ));
         scenarios = scenarios.doAfter(new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Uppercut(), 1), new CardCount(new Card.Anger(), 1)),
-                List.of(new CardCount(new Card.Uppercut(), 1), new CardCount(new Card.AngerP(), 1)),
-                List.of(new CardCount(new Card.UppercutP(), 1), new CardCount(new Card.Anger(), 1))
+                List.of(new CardCount(new CardIronclad.Uppercut(), 1), new CardCount(new CardIronclad.Anger(), 1)),
+                List.of(new CardCount(new CardIronclad.Uppercut(), 1), new CardCount(new CardIronclad.AngerP(), 1)),
+                List.of(new CardCount(new CardIronclad.UppercutP(), 1), new CardCount(new CardIronclad.Anger(), 1))
         )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
                 (state) -> state.getPlayerForWrite().setOrigHealth(57),
                 (state) -> state.getPlayerForWrite().setOrigHealth(40),
@@ -656,18 +656,18 @@ public class TestStates {
 
     public static GameState TestState13() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(2, 2));
@@ -689,29 +689,29 @@ public class TestStates {
 
     public static GameState TestState14() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 1);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.DisarmP(), 0);
-        builder.addCard(new Card.PowerThroughP(), 0);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 1);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.DisarmP(), 0);
+        builder.addCard(new CardIronclad.PowerThroughP(), 0);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(8, 2));
         builder.addEnemy(new Enemy.Hexaghost());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Disarm(), 1), new CardCount(new Card.PowerThroughP(), 1)),
-                List.of(new CardCount(new Card.DisarmP(), 1), new CardCount(new Card.PowerThrough(), 1))
+                List.of(new CardCount(new CardIronclad.Disarm(), 1), new CardCount(new CardIronclad.PowerThroughP(), 1)),
+                List.of(new CardCount(new CardIronclad.DisarmP(), 1), new CardCount(new CardIronclad.PowerThrough(), 1))
         ));
         builder.setRandomization(randomization);
         builder.addPotion(new Potion.LiquidMemory());
@@ -721,26 +721,26 @@ public class TestStates {
 
     public static GameState TestState15() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 2);
-        builder.addCard(new Card.SwordBoomerang(), 2);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.PowerThroughP(), 1);
-        builder.addCard(new Card.Feed(), 1);
-        builder.addCard(new Card.FiendFire(), 1);
-        builder.addCard(new Card.Sentinel(), 1);
-        builder.addCard(new Card.PommelStrike(), 1);
-        builder.addCard(new Card.SeverSoul(), 1);
-        builder.addCard(new Card.DemonForm(), 1);
-        builder.addCard(new Card.Evolve(), 1);
-        builder.addCard(new Card.Havoc(), 0);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 2);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 2);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.PowerThroughP(), 1);
+        builder.addCard(new CardIronclad.Feed(), 1);
+        builder.addCard(new CardIronclad.FiendFire(), 1);
+        builder.addCard(new CardIronclad.Sentinel(), 1);
+        builder.addCard(new CardIronclad.PommelStrike(), 1);
+        builder.addCard(new CardIronclad.SeverSoul(), 1);
+        builder.addCard(new CardIronclad.DemonForm(), 1);
+        builder.addCard(new CardIronclad.Evolve(), 1);
+        builder.addCard(new CardIronclad.Havoc(), 0);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(7, 2));
@@ -753,7 +753,7 @@ public class TestStates {
         //        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(),
-                List.of(new CardCount(new Card.Havoc(), 1))
+                List.of(new CardCount(new CardIronclad.Havoc(), 1))
         ));
         builder.setRandomization(randomization);
         //        builder.addPotion(new Potion.LiquidMemory());
@@ -763,28 +763,28 @@ public class TestStates {
 
     public static GameState TestState16() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Anger(), 1);
-        builder.addCard(new Card.AngerP(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.BattleTranceP(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 2);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PowerThroughP(), 1);
-        builder.addCard(new Card.Feed(8), 1);
-        builder.addCard(new Card.FiendFireP(), 1);
-        builder.addCard(new Card.Sentinel(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 1);
-        builder.addCard(new Card.DemonFormP(), 1);
-        builder.addCard(new Card.Evolve(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Anger(), 1);
+        builder.addCard(new CardIronclad.AngerP(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.BattleTranceP(), 1);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 2);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PowerThroughP(), 1);
+        builder.addCard(new CardIronclad.Feed(8), 1);
+        builder.addCard(new CardIronclad.FiendFireP(), 1);
+        builder.addCard(new CardIronclad.Sentinel(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 1);
+        builder.addCard(new CardIronclad.DemonFormP(), 1);
+        builder.addCard(new CardIronclad.Evolve(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(9, 8));
@@ -816,33 +816,33 @@ public class TestStates {
 
     public static GameState TestState16b() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.AngerP(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.BattleTranceP(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 2);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PowerThroughP(), 1);
-        builder.addCard(new Card.Feed(), 1);
-        builder.addCard(new Card.FiendFireP(), 1);
-        builder.addCard(new Card.Sentinel(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 2);
-        builder.addCard(new Card.DemonFormP(), 1);
-        builder.addCard(new Card.Evolve(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.Offering(), 1);
-        builder.addCard(new Card.DarkEmbraceP(), 1);
-        builder.addCard(new Card.FeelNoPain(), 2);
-        builder.addCard(new Card.ShockwaveP(), 1);
-        builder.addCard(new Card.WarcryP(), 2);
-        builder.addCard(new Card.Exhume(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.AngerP(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.BattleTranceP(), 1);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 2);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PowerThroughP(), 1);
+        builder.addCard(new CardIronclad.Feed(), 1);
+        builder.addCard(new CardIronclad.FiendFireP(), 1);
+        builder.addCard(new CardIronclad.Sentinel(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 2);
+        builder.addCard(new CardIronclad.DemonFormP(), 1);
+        builder.addCard(new CardIronclad.Evolve(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.Offering(), 1);
+        builder.addCard(new CardIronclad.DarkEmbraceP(), 1);
+        builder.addCard(new CardIronclad.FeelNoPain(), 2);
+        builder.addCard(new CardIronclad.ShockwaveP(), 1);
+        builder.addCard(new CardIronclad.WarcryP(), 2);
+        builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
@@ -866,33 +866,33 @@ public class TestStates {
 
     public static GameState TestState16c2() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.AngerP(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.BattleTranceP(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 2);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PowerThroughP(), 1);
-        builder.addCard(new Card.Feed(), 1);
-        builder.addCard(new Card.FiendFireP(), 1);
-        builder.addCard(new Card.Sentinel(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 2);
-        builder.addCard(new Card.DemonFormP(), 1);
-        builder.addCard(new Card.Evolve(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.Offering(), 1);
-        builder.addCard(new Card.DarkEmbraceP(), 1);
-        builder.addCard(new Card.FeelNoPain(), 2);
-        builder.addCard(new Card.ShockwaveP(), 1);
-        builder.addCard(new Card.WarcryP(), 2);
-        builder.addCard(new Card.Exhume(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.AngerP(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.BattleTranceP(), 1);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 2);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PowerThroughP(), 1);
+        builder.addCard(new CardIronclad.Feed(), 1);
+        builder.addCard(new CardIronclad.FiendFireP(), 1);
+        builder.addCard(new CardIronclad.Sentinel(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 2);
+        builder.addCard(new CardIronclad.DemonFormP(), 1);
+        builder.addCard(new CardIronclad.Evolve(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.Offering(), 1);
+        builder.addCard(new CardIronclad.DarkEmbraceP(), 1);
+        builder.addCard(new CardIronclad.FeelNoPain(), 2);
+        builder.addCard(new CardIronclad.ShockwaveP(), 1);
+        builder.addCard(new CardIronclad.WarcryP(), 2);
+        builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
@@ -916,32 +916,32 @@ public class TestStates {
 
     public static GameState TestStateIronCladHeart() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.AngerP(), 1);
-        builder.addCard(new Card.Thunderclap(), 1);
-        builder.addCard(new Card.UppercutP(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.SpotWeakness(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.BattleTrance(), 2);
-        builder.addCard(new Card.BattleTranceP(), 1);
-        builder.addCard(new Card.SwordBoomerang(), 2);
-        builder.addCard(new Card.Disarm(), 1);
-        builder.addCard(new Card.PowerThrough(), 1);
-        builder.addCard(new Card.PowerThroughP(), 1);
-        builder.addCard(new Card.Feed(0), 1);
-        builder.addCard(new Card.FiendFireP(), 1);
-        builder.addCard(new Card.PommelStrikeP(), 2);
-        builder.addCard(new Card.DemonFormP(), 1);
-        builder.addCard(new Card.EvolveP(), 1);
-        builder.addCard(new Card.ShrugItOff(), 2);
-        builder.addCard(new Card.Offering(), 1);
-        builder.addCard(new Card.DarkEmbraceP(), 1);
-        builder.addCard(new Card.FeelNoPain(), 2);
-        builder.addCard(new Card.ShockwaveP(), 1);
-        builder.addCard(new Card.WarcryP(), 2);
-        builder.addCard(new Card.Exhume(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.AngerP(), 1);
+        builder.addCard(new CardIronclad.Thunderclap(), 1);
+        builder.addCard(new CardIronclad.UppercutP(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.SpotWeakness(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 2);
+        builder.addCard(new CardIronclad.BattleTranceP(), 1);
+        builder.addCard(new CardIronclad.SwordBoomerang(), 2);
+        builder.addCard(new CardIronclad.Disarm(), 1);
+        builder.addCard(new CardIronclad.PowerThrough(), 1);
+        builder.addCard(new CardIronclad.PowerThroughP(), 1);
+        builder.addCard(new CardIronclad.Feed(0), 1);
+        builder.addCard(new CardIronclad.FiendFireP(), 1);
+        builder.addCard(new CardIronclad.PommelStrikeP(), 2);
+        builder.addCard(new CardIronclad.DemonFormP(), 1);
+        builder.addCard(new CardIronclad.EvolveP(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 2);
+        builder.addCard(new CardIronclad.Offering(), 1);
+        builder.addCard(new CardIronclad.DarkEmbraceP(), 1);
+        builder.addCard(new CardIronclad.FeelNoPain(), 2);
+        builder.addCard(new CardIronclad.ShockwaveP(), 1);
+        builder.addCard(new CardIronclad.WarcryP(), 2);
+        builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
@@ -968,28 +968,28 @@ public class TestStates {
 
     public static GameState TestState17() {
         var builder = new GameStateBuilder();
-        builder.addCard(new Card.Bash(), 1);
+        builder.addCard(new CardIronclad.Bash(), 1);
         builder.addCard(new Card.Strike(), 5);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
-        builder.addCard(new Card.Carnage(), 1);
-        builder.addCard(new Card.ArmanentP(), 1);
-        builder.addCard(new Card.Metallicize(), 1);
-        builder.addCard(new Card.IronWave(), 1);
-        builder.addCard(new Card.ShrugItOff(), 1);
-        builder.addCard(new Card.BattleTrance(), 1);
-        builder.addCard(new Card.ImmolateP(), 1);
-        builder.addCard(new Card.Anger(), 0);
-        builder.addCard(new Card.Headbutt(), 0);
-        builder.addCard(new Card.Evolve(), 0);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardIronclad.Carnage(), 1);
+        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.Metallicize(), 1);
+        builder.addCard(new CardIronclad.IronWave(), 1);
+        builder.addCard(new CardIronclad.ShrugItOff(), 1);
+        builder.addCard(new CardIronclad.BattleTrance(), 1);
+        builder.addCard(new CardIronclad.ImmolateP(), 1);
+        builder.addCard(new CardIronclad.Anger(), 0);
+        builder.addCard(new CardIronclad.Headbutt(), 0);
+        builder.addCard(new CardIronclad.Evolve(), 0);
         EnemyEncounter.addSlimeBossFight(builder);
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
-                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 1)),
-                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 0)),
-                List.of(new CardCount(new Card.Anger(), 1), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 1)),
-                List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 1), new CardCount(new Card.Evolve(), 1)),
-                List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 0)),
-                List.of(new CardCount(new Card.Anger(), 0), new CardCount(new Card.Headbutt(), 0), new CardCount(new Card.Evolve(), 1))
+                List.of(new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardIronclad.Headbutt(), 1), new CardCount(new CardIronclad.Evolve(), 1)),
+                List.of(new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardIronclad.Headbutt(), 1), new CardCount(new CardIronclad.Evolve(), 0)),
+                List.of(new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardIronclad.Headbutt(), 0), new CardCount(new CardIronclad.Evolve(), 1)),
+                List.of(new CardCount(new CardIronclad.Anger(), 0), new CardCount(new CardIronclad.Headbutt(), 1), new CardCount(new CardIronclad.Evolve(), 1)),
+                List.of(new CardCount(new CardIronclad.Anger(), 0), new CardCount(new CardIronclad.Headbutt(), 0), new CardCount(new CardIronclad.Evolve(), 0)),
+                List.of(new CardCount(new CardIronclad.Anger(), 0), new CardCount(new CardIronclad.Headbutt(), 0), new CardCount(new CardIronclad.Evolve(), 1))
                 ));
         builder.setRandomization(randomization);
         builder.addPotion(new Potion.BloodPotion(16));
@@ -1007,7 +1007,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Strike(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.SunderP(), 1);
@@ -1046,7 +1046,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Strike(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
@@ -1105,7 +1105,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.StrikeP(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
@@ -1129,7 +1129,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BeamCellP(), 1);
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
-        builder.addCard(new Card.Parasite(), 1);
+        builder.addCard(new CardOther.Parasite(), 1);
         EnemyEncounter.addDonuAndDecaFight(builder);
 //        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
 //        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
@@ -1168,7 +1168,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.StrikeP(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
@@ -1193,7 +1193,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BeamCellP(), 1);
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
-        builder.addCard(new Card.Parasite(), 1);
+        builder.addCard(new CardOther.Parasite(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
@@ -1221,7 +1221,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.StrikeP(), 2);
         builder.addCard(new Card.Defend(), 4);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
@@ -1246,7 +1246,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BeamCellP(), 1);
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
-        builder.addCard(new Card.Parasite(), 1);
+        builder.addCard(new CardOther.Parasite(), 1);
         builder.addEnemy(new EnemyEnding.CorruptHeart());
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
@@ -1277,7 +1277,7 @@ public class TestStates {
         builder.addCard(new Card.StrikeP(), 1);
         builder.addCard(new Card.Defend(), 3);
         builder.addCard(new Card.DefendP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.ZapP(), 0);
         builder.addCard(new CardDefect.DualCastP(), 1);
@@ -1336,7 +1336,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 3);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.BeamCell(), 1);
@@ -1356,7 +1356,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.SILENT);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 5);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardSilent.Survivor(), 1);
         builder.addCard(new CardSilent.NeutralizeP(), 1);
         builder.addCard(new CardSilent.EndlessAgony(), 1);
@@ -1415,7 +1415,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.SILENT);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 5);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardSilent.Survivor(), 1);
         builder.addCard(new CardSilent.NeutralizeP(), 1);
         builder.addCard(new CardSilent.EndlessAgony(), 1);
@@ -1476,7 +1476,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 3);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 2);
@@ -1545,7 +1545,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 1);
@@ -1571,7 +1571,7 @@ public class TestStates {
         builder.addCard(new CardDefect.EchoForm(), 1);
         builder.addCard(new CardDefect.HologramP(), 1);
         builder.addCard(new CardDefect.CoolheadedP(), 1);
-        builder.addCard(new Card.Decay(), 1);
+        builder.addCard(new CardOther.Decay(), 1);
 //        EnemyEncounter.addShieldAndSpearFight(builder);
 //        EnemyEncounter.addDonuAndDecaFight(builder);
 //        EnemyEncounter.addAwakenedOneFight(builder);
@@ -1614,7 +1614,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 1);
@@ -1642,7 +1642,7 @@ public class TestStates {
         builder.addCard(new CardDefect.CoolheadedP(), 1);
         builder.addCard(new CardDefect.Loop(), 1);
         builder.addCard(new CardDefect.StackP(), 1);
-        builder.addCard(new Card.Decay(), 1);
+        builder.addCard(new CardOther.Decay(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
 //        builder.addEnemy(new EnemyEnding.CorruptHeart());
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
@@ -1690,7 +1690,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 1);
@@ -1718,7 +1718,7 @@ public class TestStates {
         builder.addCard(new CardDefect.CoolheadedP(), 1);
         builder.addCard(new CardDefect.Loop(), 1);
         builder.addCard(new CardDefect.StackP(), 1);
-        builder.addCard(new Card.Decay(), 1);
+        builder.addCard(new CardOther.Decay(), 1);
         builder.addEnemy(new EnemyEnding.CorruptHeart());
 //        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
 //            @Override public void handle(GameState state) {
@@ -1747,7 +1747,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 3);
         builder.addCard(new Card.Strike(), 1);
         builder.addCard(new Card.StrikeP(), 1);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
         builder.addCard(new CardDefect.DualCastP(), 1);
         builder.addCard(new CardDefect.CoolheadedP(), 2);
@@ -1801,7 +1801,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 3);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.Hologram(), 1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
@@ -1857,7 +1857,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.SILENT);
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 5);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardSilent.Survivor(), 1);
         builder.addCard(new CardSilent.NeutralizeP(), 1);
         builder.addCard(new CardSilent.EndlessAgony(), 1);
@@ -1879,7 +1879,7 @@ public class TestStates {
         builder.addCard(new CardSilent.DodgeAndRoll(), 1);
         builder.addCard(new CardSilent.CloakAndDagger(), 1);
         builder.addCard(new CardSilent.CloakAndDaggerP(), 0);
-        builder.addCard(new Card.Writhe(), 1);
+        builder.addCard(new CardOther.Writhe(), 1);
         builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
         builder.addEnemy(new EnemyCity.BookOfStabbing());
@@ -1921,7 +1921,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Strike(), 2);
         builder.addCard(new Card.Defend(), 2);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.Rebound(), 1);
@@ -1976,7 +1976,7 @@ public class TestStates {
         boolean test = false;
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 2);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.Rebound(), 1);
@@ -2039,7 +2039,7 @@ public class TestStates {
         boolean test = true;
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new Card.Defend(), 2);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardDefect.Rebound(), 1);
@@ -2105,7 +2105,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.SILENT);
         builder.addCard(new Card.Defend(), 5);
         builder.addCard(new Card.Strike(), 5);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardSilent.Survivor(), 1);
         builder.addCard(new CardSilent.Neutralize(), 1);
         builder.addCard(new CardColorless.Panacea(), 1);
@@ -2141,7 +2141,7 @@ public class TestStates {
     public static GameState TestStateReddit() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);
-        builder.addCard(new Card.AscendersBane(), 1);
+        builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
         builder.addCard(new CardDefect.DualCast(), 1);
         builder.addCard(new CardColorless.SecretTechnique(), 1);

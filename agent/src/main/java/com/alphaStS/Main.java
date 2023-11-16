@@ -24,7 +24,7 @@ enum ServerRequestType {
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        var state = TestStates.TestStateReddit();
+        var state = TestStates.TestState();
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.properties.totalNumOfActions);
             for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {

@@ -1106,7 +1106,7 @@ public class EnemyCity {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
-            return List.of(new Card.Wound());
+            return List.of(new CardOther.Wound());
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1177,7 +1177,7 @@ public class EnemyCity {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) {
-            return List.of(new Card.Wound());
+            return List.of(new CardOther.Wound());
         }
     }
 

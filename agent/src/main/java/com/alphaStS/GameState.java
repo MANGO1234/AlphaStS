@@ -829,7 +829,7 @@ public final class GameState implements State {
         Set<Integer> l = new HashSet<>();
         for (Enemy enemy : enemies) {
             if (enemy.properties.canDaze) {
-                l.add(properties.findCardIndex(new Card.Dazed()));
+                l.add(properties.findCardIndex(new CardOther.Dazed()));
             }
             l.addAll(enemy.getPossibleGeneratedCards(properties, cards.stream().map(CardCount::card).toList()).stream().map(properties::findCardIndex).toList());
         }
@@ -918,10 +918,10 @@ public final class GameState implements State {
     private List<CardCount> collectAllPossibleCards(List<CardCount> cards, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
         var set = new HashSet<>(cards);
         if (enemies.stream().anyMatch((x) -> x.properties.canSlime)) {
-            set.add(new CardCount(new Card.Slime(), 0));
+            set.add(new CardCount(new CardOther.Slime(), 0));
         }
         if (enemies.stream().anyMatch((x) -> x.properties.canDaze)) {
-            set.add(new CardCount(new Card.Dazed(), 0));
+            set.add(new CardCount(new CardOther.Dazed(), 0));
         }
         do {
             var newSet = new HashSet<>(set);
@@ -2058,7 +2058,7 @@ public final class GameState implements State {
             }
             v += maxPossibleRegen * (maxPossibleRegen + 1) / 2;
             if (properties.feedCounterIdx >= 0) {
-                v += Card.Feed.getMaxPossibleFeedRemaining(this);
+                v += CardIronclad.Feed.getMaxPossibleFeedRemaining(this);
             }
             if (properties.healCardsIdxes != null) {
                 for (int i = 0; i < properties.healCardsIdxes.length; i++) {

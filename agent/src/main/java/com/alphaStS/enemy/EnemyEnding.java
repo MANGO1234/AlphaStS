@@ -166,7 +166,7 @@ public class EnemyEnding {
             return "Unknown";
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn()); }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(9, RandomGenCtx.Other) + 1;
@@ -409,7 +409,7 @@ public class EnemyEnding {
             state.properties.isHeartFight = true;
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new Card.Burn(), new Card.Wound(), new Card.Dazed(), new Card.Slime(), new Card.Void()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn(), new CardOther.Wound(), new CardOther.Dazed(), new CardOther.Slime(), new CardOther.Void()); }
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);

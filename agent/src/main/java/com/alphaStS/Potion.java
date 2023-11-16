@@ -704,7 +704,38 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            if (gameProperties.character == CharacterEnum.SILENT) {
+            if (gameProperties.character == CharacterEnum.IRONCLAD) {
+                return List.of(
+                        new Card.CardTmpChangeCost(new CardIronclad.Armanent(), 0),
+                        new CardIronclad.Flex(),
+                        new Card.CardTmpChangeCost(new CardIronclad.Havoc(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.ShrugItOff(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.TrueGrit(), 0),
+                        new CardIronclad.Warcry(),
+                        new CardIronclad.BattleTrance(),
+                        new CardIronclad.Bloodletting(),
+                        new Card.CardTmpChangeCost(new CardIronclad.BurningPact(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.Disarm(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.DualWield(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.Entrench(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.FlameBarrier(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.GhostlyArmor(), 0),
+                        new Card.CardTmpChangeCost(new CardOther.FakeInfernalBlade(), 0),
+                        new CardIronclad.Intimidate(),
+                        new Card.CardTmpChangeCost(new CardIronclad.PowerThrough(), 0),
+                        new CardIronclad.Rage(),
+                        new Card.CardTmpChangeCost(new CardIronclad.SecondWind(), 0),
+                        new CardIronclad.SeeingRed(),
+                        new Card.CardTmpChangeCost(new CardIronclad.Sentinel(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.Shockwave(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.SpotWeakness(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.DoubleTap(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.Exhume(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.Impervious(), 0),
+                        new Card.CardTmpChangeCost(new CardIronclad.LimitBreak(), 0),
+                        new CardIronclad.Offering()
+                );
+            } else if (gameProperties.character == CharacterEnum.SILENT) {
                 return List.of(
                         new Card.CardTmpChangeCost(new CardSilent.Acrobatics(), 0),
                         new Card.CardTmpChangeCost(new CardSilent.Backflip(), 0),
@@ -740,38 +771,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new Card.CardTmpChangeCost(new CardSilent.PhantasmalKiller(), 0),
                         new Card.CardTmpChangeCost(new CardSilent.StormOfSteel(), 0)
                 );
+            } else {
+                throw new IllegalArgumentException();
             }
-            // todo: need to pass in character
-            return List.of(
-                    new Card.CardTmpChangeCost(new Card.Armanent(), 0),
-                    new Card.Flex(),
-                    new Card.CardTmpChangeCost(new Card.Havoc(), 0),
-                    new Card.CardTmpChangeCost(new Card.ShrugItOff(), 0),
-                    new Card.CardTmpChangeCost(new Card.TrueGrit(), 0),
-                    new Card.Warcry(),
-                    new Card.BattleTrance(),
-                    new Card.Bloodletting(),
-                    new Card.CardTmpChangeCost(new Card.BurningPact(), 0),
-                    new Card.CardTmpChangeCost(new Card.Disarm(), 0),
-                    new Card.CardTmpChangeCost(new Card.DualWield(), 0),
-                    new Card.CardTmpChangeCost(new Card.Entrench(), 0),
-                    new Card.CardTmpChangeCost(new Card.FlameBarrier(), 0),
-                    new Card.CardTmpChangeCost(new Card.GhostlyArmor(), 0),
-                    new Card.CardTmpChangeCost(new Card.FakeInfernalBlade(), 0),
-                    new Card.Intimidate(),
-                    new Card.CardTmpChangeCost(new Card.PowerThrough(), 0),
-                    new Card.Rage(),
-                    new Card.CardTmpChangeCost(new Card.SecondWind(), 0),
-                    new Card.SeeingRed(),
-                    new Card.CardTmpChangeCost(new Card.Sentinel(), 0),
-                    new Card.CardTmpChangeCost(new Card.Shockwave(), 0),
-                    new Card.CardTmpChangeCost(new Card.SpotWeakness(), 0),
-                    new Card.CardTmpChangeCost(new Card.DoubleTap(), 0),
-                    new Card.CardTmpChangeCost(new Card.Exhume(), 0),
-                    new Card.CardTmpChangeCost(new Card.Impervious(), 0),
-                    new Card.CardTmpChangeCost(new Card.LimitBreak(), 0),
-                    new Card.Offering()
-            );
         }
 
         public void gamePropertiesSetup(GameState state) {
