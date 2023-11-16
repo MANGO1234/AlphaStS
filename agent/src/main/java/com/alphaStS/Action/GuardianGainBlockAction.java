@@ -2,6 +2,7 @@ package com.alphaStS.action;
 
 import com.alphaStS.GameState;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyExordium;
 import com.alphaStS.enemy.EnemyReadOnly;
 
 public class GuardianGainBlockAction implements GameEnvironmentAction {
@@ -21,7 +22,7 @@ public class GuardianGainBlockAction implements GameEnvironmentAction {
 
     @Override public void doAction(GameState state) {
         for (EnemyReadOnly enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-            if (enemy instanceof Enemy.TheGuardian e) {
+            if (enemy instanceof EnemyExordium.TheGuardian e) {
                 e.gainBlock(20);
             }
         }

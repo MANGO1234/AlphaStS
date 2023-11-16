@@ -730,7 +730,7 @@ public class EnemyCity {
                     var enemies = state.getEnemiesForWrite();
                     var startIdx = 0;
                     for (int i = 0; i < enemies.size(); i++) {
-                        if (enemies.get(i) instanceof Enemy.MergedEnemy m && m.possibleEnemies.get(0) instanceof Enemy.MadGremlin) {
+                        if (enemies.get(i) instanceof Enemy.MergedEnemy m && m.possibleEnemies.get(0) instanceof EnemyExordium.MadGremlin) {
                             startIdx = i;
                             break;
                         }
@@ -775,7 +775,7 @@ public class EnemyCity {
                     var enemies = state.getEnemiesForWrite();
                     var startIdx = 0;
                     for (int i = 0; i < enemies.size(); i++) {
-                        if (enemies.get(i) instanceof Enemy.MadGremlin) {
+                        if (enemies.get(i) instanceof EnemyExordium.MadGremlin) {
                             startIdx = i;
                             break;
                         }

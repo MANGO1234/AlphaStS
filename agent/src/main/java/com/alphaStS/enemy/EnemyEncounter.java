@@ -302,63 +302,63 @@ public class EnemyEncounter {
     public static void addGremlinGangFight(GameStateBuilder builder) {
         // todo: in some situations, order matter, create a variant where order matters (would require 20 enemies instead of 8)
         var start = builder.getEnemies().size();
-        builder.addEnemy(new Enemy.MadGremlin());
-        builder.addEnemy(new Enemy.MadGremlin());
-        builder.addEnemy(new Enemy.SneakyGremlin());
-        builder.addEnemy(new Enemy.SneakyGremlin());
-        builder.addEnemy(new Enemy.FatGremlin());
-        builder.addEnemy(new Enemy.FatGremlin());
-        builder.addEnemy(new Enemy.ShieldGremlin());
-        builder.addEnemy(new Enemy.GremlinWizard());
+        builder.addEnemy(new EnemyExordium.MadGremlin());
+        builder.addEnemy(new EnemyExordium.MadGremlin());
+        builder.addEnemy(new EnemyExordium.SneakyGremlin());
+        builder.addEnemy(new EnemyExordium.SneakyGremlin());
+        builder.addEnemy(new EnemyExordium.FatGremlin());
+        builder.addEnemy(new EnemyExordium.FatGremlin());
+        builder.addEnemy(new EnemyExordium.ShieldGremlin());
+        builder.addEnemy(new EnemyExordium.GremlinWizard());
         builder.setRandomization(new GremlinGangRandomization(builder.getEnemies(), start).doAfter(builder.getRandomization()));
     }
 
     public static void addGremlinLeaderFight(GameStateBuilder builder) {
         // todo: in some situations, order matter, create a variant where order matters
         var start = builder.getEnemies().size();
-        Enemy enemy = new Enemy.MadGremlin();
+        Enemy enemy = new EnemyExordium.MadGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.MadGremlin();
+        enemy = new EnemyExordium.MadGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.MadGremlin();
+        enemy = new EnemyExordium.MadGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.SneakyGremlin();
+        enemy = new EnemyExordium.SneakyGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.SneakyGremlin();
+        enemy = new EnemyExordium.SneakyGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.SneakyGremlin();
+        enemy = new EnemyExordium.SneakyGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.FatGremlin();
+        enemy = new EnemyExordium.FatGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.FatGremlin();
+        enemy = new EnemyExordium.FatGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.FatGremlin();
+        enemy = new EnemyExordium.FatGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.ShieldGremlin();
+        enemy = new EnemyExordium.ShieldGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.ShieldGremlin();
+        enemy = new EnemyExordium.ShieldGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.ShieldGremlin();
+        enemy = new EnemyExordium.ShieldGremlin();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.GremlinWizard();
+        enemy = new EnemyExordium.GremlinWizard();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.GremlinWizard();
+        enemy = new EnemyExordium.GremlinWizard();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
-        enemy = new Enemy.GremlinWizard();
+        enemy = new EnemyExordium.GremlinWizard();
         enemy.properties.isMinion = true;
         builder.addEnemy(enemy);
         builder.addEnemy(new EnemyCity.GremlinLeader());
@@ -369,20 +369,20 @@ public class EnemyEncounter {
     public static void addGremlinLeaderFight2(GameStateBuilder builder) {
         // todo: in some situations, order matter
         var start = builder.getEnemies().size();
-        var gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(), new Enemy.GremlinWizard(),
-                new Enemy.ShieldGremlin());
+        var gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(), new EnemyExordium.GremlinWizard(),
+                new EnemyExordium.ShieldGremlin());
         for (var gremlin : gremlinList) {
             gremlin.properties.isMinion = true;
         }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
-        gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(),
-                new Enemy.ShieldGremlin(), new Enemy.GremlinWizard());
+        gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(),
+                new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
         for (var gremlin : gremlinList) {
             gremlin.properties.isMinion = true;
         }
         builder.addEnemy(new Enemy.MergedEnemy(gremlinList));
-        gremlinList = List.of(new Enemy.MadGremlin(), new Enemy.SneakyGremlin(), new Enemy.FatGremlin(),
-                new Enemy.ShieldGremlin(), new Enemy.GremlinWizard());
+        gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(),
+                new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
         for (var gremlin : gremlinList) {
             gremlin.properties.isMinion = true;
         }
@@ -423,18 +423,18 @@ public class EnemyEncounter {
     }
 
     public static void addSlaversEliteFight(GameStateBuilder builder) {
-        Enemy enemy = new Enemy.BlueSlaver();
+        Enemy enemy = new EnemyExordium.BlueSlaver();
         enemy.properties.isElite = true;
         builder.addEnemy(enemy);
         builder.addEnemy(new EnemyCity.Taskmaster());
-        enemy = new Enemy.RedSlaver();
+        enemy = new EnemyExordium.RedSlaver();
         enemy.properties.isElite = true;
         builder.addEnemy(enemy);
     }
 
     public static void addAwakenedOneFight(GameStateBuilder builder) {
-        builder.addEnemy(new Enemy.Cultist());
-        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemy(new EnemyExordium.Cultist());
+        builder.addEnemy(new EnemyExordium.Cultist());
         builder.addEnemy(new EnemyBeyond.AwakenedOne());
     }
 
@@ -444,13 +444,13 @@ public class EnemyEncounter {
     }
 
     public static void addSlimeBossFight(GameStateBuilder builder) {
-        builder.addEnemy(new Enemy.SlimeBoss());
-        builder.addEnemy(new Enemy.LargeSpikeSlime(75, true));
-        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
-        builder.addEnemy(new Enemy.MediumSpikeSlime(37, true));
-        builder.addEnemy(new Enemy.LargeAcidSlime(75, true));
-        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
-        builder.addEnemy(new Enemy.MediumAcidSlime(37, true));
+        builder.addEnemy(new EnemyExordium.SlimeBoss());
+        builder.addEnemy(new EnemyExordium.LargeSpikeSlime(75, true));
+        builder.addEnemy(new EnemyExordium.MediumSpikeSlime(37, true));
+        builder.addEnemy(new EnemyExordium.MediumSpikeSlime(37, true));
+        builder.addEnemy(new EnemyExordium.LargeAcidSlime(75, true));
+        builder.addEnemy(new EnemyExordium.MediumAcidSlime(37, true));
+        builder.addEnemy(new EnemyExordium.MediumAcidSlime(37, true));
     }
 
     public static void addByrdsFight(GameStateBuilder builder) {
@@ -495,13 +495,13 @@ public class EnemyEncounter {
     public static void addSentriesFight(GameStateBuilder builder, boolean burning) {
         var start = builder.getEnemies().size();
         if (burning) {
-            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
-            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM).markAsBurningElite());
-            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT).markAsBurningElite());
+            builder.addEnemy(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT).markAsBurningElite());
+            builder.addEnemy(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BEAM).markAsBurningElite());
+            builder.addEnemy(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT).markAsBurningElite());
         } else {
-            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
-            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BEAM));
-            builder.addEnemy(new Enemy.Sentry(45, Enemy.Sentry.BOLT));
+            builder.addEnemy(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT));
+            builder.addEnemy(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BEAM));
+            builder.addEnemy(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT));
         }
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -513,9 +513,9 @@ public class EnemyEncounter {
 
     public static void addCultistsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemy(new Enemy.Cultist());
-        builder.addEnemy(new Enemy.Cultist());
-        builder.addEnemy(new Enemy.Cultist());
+        builder.addEnemy(new EnemyExordium.Cultist());
+        builder.addEnemy(new EnemyExordium.Cultist());
+        builder.addEnemy(new EnemyExordium.Cultist());
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -561,9 +561,9 @@ public class EnemyEncounter {
 
     public static void addTripleJawWormsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
-        builder.addEnemy(new Enemy.JawWorm(true));
-        builder.addEnemy(new Enemy.JawWorm(true));
-        builder.addEnemy(new Enemy.JawWorm(true));
+        builder.addEnemy(new EnemyExordium.JawWorm(true));
+        builder.addEnemy(new EnemyExordium.JawWorm(true));
+        builder.addEnemy(new EnemyExordium.JawWorm(true));
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {

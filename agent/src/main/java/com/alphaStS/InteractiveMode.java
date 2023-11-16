@@ -662,15 +662,15 @@ public class InteractiveMode {
             if (enemy.getLoseStrengthEot() != 0) {
                 out.println("  Gain Strength EOT: " + -enemy.getLoseStrengthEot());
             }
-            if (enemy instanceof Enemy.RedLouse louse) {
+            if (enemy instanceof EnemyExordium.RedLouse louse) {
                 if (!louse.hasCurledUp()) {
                     out.println("  Curl Up: " + louse.getCurlUpAmount());
                 }
-            } else if (enemy instanceof Enemy.GreenLouse louse) {
+            } else if (enemy instanceof EnemyExordium.GreenLouse louse) {
                 if (!louse.hasCurledUp()) {
                     out.println("  Curl Up: " + louse.getCurlUpAmount());
                 }
-            } else if (enemy instanceof Enemy.TheGuardian guardian) {
+            } else if (enemy instanceof EnemyExordium.TheGuardian guardian) {
                 out.println("  Mode Shift Damage: " + guardian.getModeShiftDmg() + "/" + guardian.getMaxModeShiftDmg());
             } else if (enemy instanceof EnemyCity.BronzeOrb orb) {
                 if (!orb.usedStasis()) {
@@ -1017,8 +1017,8 @@ public class InteractiveMode {
             return;
         }
 
-        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.RedLouse ||
-                state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.GreenLouse) {
+        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.RedLouse ||
+                state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.GreenLouse) {
             while (true) {
                 out.print("0. Curl-Up");
                 out.print("1. Damage");
@@ -1037,9 +1037,9 @@ public class InteractiveMode {
                     }
                     int n = parseInt(line, -1);
                     if (n > 0) {
-                        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.RedLouse louse) {
+                        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.RedLouse louse) {
                             louse.setCurlUpAmount(n);
-                        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.GreenLouse louse) {
+                        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.GreenLouse louse) {
                             louse.setCurlUpAmount(n);
                         }
                         return;
@@ -1053,9 +1053,9 @@ public class InteractiveMode {
                     }
                     int n = parseInt(line, -1);
                     if (n > 0) {
-                        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.RedLouse louse) {
+                        if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.RedLouse louse) {
                             louse.setD(n);
-                        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof Enemy.GreenLouse louse) {
+                        } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.GreenLouse louse) {
                             louse.setD(n);
                         }
                         return;
@@ -1155,7 +1155,7 @@ public class InteractiveMode {
                     if (hp == 0) {
                         state.killEnemy(curEnemyIdx, false);
                     } else {
-                        if (state.getEnemiesForWrite().getForWrite(curEnemyIdx) instanceof Enemy.LargeSpikeSlime s) {
+                        if (state.getEnemiesForWrite().getForWrite(curEnemyIdx) instanceof EnemyExordium.LargeSpikeSlime s) {
                             s.setSplitMaxHealth(hpOrig);
                         }
                         state.getEnemiesForWrite().getForWrite(curEnemyIdx).setHealth(hp);

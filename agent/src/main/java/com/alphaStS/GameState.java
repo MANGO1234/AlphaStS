@@ -1922,29 +1922,29 @@ public final class GameState implements State {
                         int enemyIdx = properties.enemiesEncountersIdx == null ? i : properties.enemiesEncountersIdx.get(properties.enemiesEncounterChosen).get(i).v1();
                         EnemyReadOnly enemy = getEnemiesForRead().get(enemyIdx);
                         boolean addedMod = false;
-                        if (enemy instanceof Enemy.SlimeBoss boss) {
+                        if (enemy instanceof EnemyExordium.SlimeBoss boss) {
                             isSlimeBossAlive = boss.getHealth() > 0;
-                        } else if (enemy instanceof Enemy.LargeSpikeSlime slime) {
+                        } else if (enemy instanceof EnemyExordium.LargeSpikeSlime slime) {
                             isSpikeSlimeLAlive = slime.getHealth() > 0;
                             if (isSlimeBossAlive) {
                                 totalCurHp += enemy.properties.maxHealth;
                                 totalMaxHp += enemy.properties.maxHealth;
                                 addedMod = true;
                             }
-                        } else if (enemy instanceof Enemy.LargeAcidSlime slime) {
+                        } else if (enemy instanceof EnemyExordium.LargeAcidSlime slime) {
                             isAcidSlimeLAlive = slime.getHealth() > 0;
                             if (isSlimeBossAlive) {
                                 totalCurHp += enemy.properties.maxHealth;
                                 totalMaxHp += enemy.properties.maxHealth;
                                 addedMod = true;
                             }
-                        } else if (enemy instanceof Enemy.MediumSpikeSlime slime) {
+                        } else if (enemy instanceof EnemyExordium.MediumSpikeSlime slime) {
                             if (isSlimeBossAlive || isSpikeSlimeLAlive) {
                                 totalCurHp += enemy.properties.maxHealth;
                                 totalMaxHp += enemy.properties.maxHealth;
                                 addedMod = true;
                             }
-                        } else if (enemy instanceof Enemy.MediumAcidSlime slime) {
+                        } else if (enemy instanceof EnemyExordium.MediumAcidSlime slime) {
                             if (isSlimeBossAlive || isAcidSlimeLAlive) {
                                 totalCurHp += enemy.properties.maxHealth;
                                 totalMaxHp += enemy.properties.maxHealth;
@@ -1960,7 +1960,7 @@ public final class GameState implements State {
                             }
                         } else if (enemy instanceof EnemyCity.TorchHead) {
                             addedMod = true;
-                        } else if (isGremlinLeaderAlive && ((enemy instanceof Enemy.FatGremlin) || (enemy instanceof Enemy.GremlinWizard) || (enemy instanceof Enemy.MadGremlin) || (enemy instanceof Enemy.ShieldGremlin) || (enemy instanceof Enemy.SneakyGremlin))) {
+                        } else if (isGremlinLeaderAlive && ((enemy instanceof EnemyExordium.FatGremlin) || (enemy instanceof EnemyExordium.GremlinWizard) || (enemy instanceof EnemyExordium.MadGremlin) || (enemy instanceof EnemyExordium.ShieldGremlin) || (enemy instanceof EnemyExordium.SneakyGremlin))) {
                             addedMod = true;
                         }
                         if (!addedMod) {
@@ -2836,7 +2836,7 @@ public final class GameState implements State {
                 }
             }
             inputLen += enemy.getNNInputLen(properties);
-            if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
+            if (enemy instanceof EnemyExordium.RedLouse || enemy instanceof EnemyExordium.GreenLouse) {
                 inputLen += 1;
             }
         }
@@ -3061,7 +3061,7 @@ public final class GameState implements State {
             if (desc != null) {
                 str += "        " + desc + "\n";
             }
-            if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
+            if (enemy instanceof EnemyExordium.RedLouse || enemy instanceof EnemyExordium.GreenLouse) {
                 str += "        1 input to keep track of louse damage\n";
             }
         }
@@ -3396,9 +3396,9 @@ public final class GameState implements State {
                     }
                 }
                 idx += enemy.writeNNInput(properties, x, idx);
-                if (enemy instanceof Enemy.RedLouse louse) {
+                if (enemy instanceof EnemyExordium.RedLouse louse) {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
-                } else if (enemy instanceof Enemy.GreenLouse louse) {
+                } else if (enemy instanceof EnemyExordium.GreenLouse louse) {
                     x[idx++] = (louse.getCurlUpAmount() - 10) / 2.0f;
                 }
             } else {
@@ -3481,7 +3481,7 @@ public final class GameState implements State {
                 for (int i = 0; i < enemy.getNNInputLen(properties); i++) {
                     x[idx++] = -0.1f;
                 }
-                if (enemy instanceof Enemy.RedLouse || enemy instanceof Enemy.GreenLouse) {
+                if (enemy instanceof EnemyExordium.RedLouse || enemy instanceof EnemyExordium.GreenLouse) {
                     x[idx++] = -0.1f;
                 }
             }
