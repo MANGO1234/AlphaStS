@@ -770,7 +770,6 @@ public class MatchSession {
 
     boolean USE_Z_TRAINING;
     boolean POLICY_CAP_ON;
-    boolean TRAINING_WITH_LINE;
 
     private double[] calcExpectedValue2(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
@@ -1211,7 +1210,7 @@ public class MatchSession {
                     writer.write("Battle Randomization: " + info.get(game.battle_r).desc() + "\n");
                 }
             }
-            if (!TRAINING_WITH_LINE && game.noTemperatureTurn >= 0) {
+            if (game.noTemperatureTurn >= 0) {
                 writer.write("No Temperature Moves From Turn " + game.noTemperatureTurn + "\n");
             }
             writer.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");

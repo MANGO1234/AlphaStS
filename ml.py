@@ -456,7 +456,7 @@ if DO_TRAINING:
         iter_start = time.time()
 
         agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                      'com.alphaStS.Main', '-training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-dir', SAVES_DIR]
+                      'com.alphaStS.Main', '--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
                 matches_count = 1000
@@ -464,7 +464,7 @@ if DO_TRAINING:
                 matches_count = 1000 + 500 * (training_info["iteration"] - 17)
             else:
                 matches_count = 5000
-            agent_args += ['-tm', '-c', str(matches_count), '-n', '1']
+            agent_args += ['-c', str(matches_count), '-n', '1']
         if Z_TRAIN_WINDOW_END > 0:
             agent_args += ['-z_train', str(Z_TRAIN_WINDOW_END)]
         if training_info['iteration'] < CURRICULUM_TRAINING_END:
@@ -551,7 +551,7 @@ if DO_TRAINING:
 
         if _iteration == ITERATION_COUNT:
             agent_output = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                                           'com.alphaStS.Main', '-tm', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
+                                           'com.alphaStS.Main', '--training', '-tm', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-c', '5000', '-n', '1', '-dir', SAVES_DIR], capture_output=True)
             if len(agent_output.stderr) > 0:
                 print(agent_output.stdout.decode('ascii'))
                 print(agent_output.stderr.decode('ascii'))
