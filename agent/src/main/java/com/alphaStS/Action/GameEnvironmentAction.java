@@ -1,4 +1,4 @@
-package com.alphaStS.Action;
+package com.alphaStS.action;
 
 import com.alphaStS.GameState;
 

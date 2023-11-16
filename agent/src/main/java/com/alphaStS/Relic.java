@@ -1,7 +1,7 @@
 package com.alphaStS;
 
-import com.alphaStS.Action.CardDrawAction;
-import com.alphaStS.Action.GameEnvironmentAction;
+import com.alphaStS.action.CardDrawAction;
+import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardColorless;
 import com.alphaStS.card.CardDefect;

@@ -1,6 +1,6 @@
 package com.alphaStS;
 
-import com.alphaStS.Action.GameEnvironmentAction;
+import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;

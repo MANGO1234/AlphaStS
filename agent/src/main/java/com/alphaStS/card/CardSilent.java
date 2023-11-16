@@ -1,7 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.Action.GameEnvironmentAction;
+import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 

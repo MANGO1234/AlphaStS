@@ -1,8 +1,8 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.Action.CardDrawAction;
-import com.alphaStS.Action.GameEnvironmentAction;
+import com.alphaStS.action.CardDrawAction;
+import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;

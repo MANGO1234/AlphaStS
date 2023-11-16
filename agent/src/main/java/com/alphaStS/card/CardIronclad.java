@@ -1,7 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.Action.CardDrawAction;
+import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 
