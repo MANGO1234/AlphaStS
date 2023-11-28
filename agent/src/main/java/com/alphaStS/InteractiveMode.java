@@ -89,12 +89,13 @@ public class InteractiveMode {
             prevSearchRandomGen = state.getSearchRandomGen();
             prevRealMoveRandomGen = state.properties.realMoveRandomGen;
             prevRandom = state.properties.random;
-        } else {
-            interactiveRecordSeed(state, history);
         }
         state.setSearchRandomGen(state.properties.random);
         state.properties.random = new RandomGenInteractive(this, reader, history);
         state.properties.realMoveRandomGen = null;
+        if (history.size() == 0) {
+            interactiveRecordSeed(state, history);
+        }
 
         boolean printState = true;
         boolean printAction = true;
