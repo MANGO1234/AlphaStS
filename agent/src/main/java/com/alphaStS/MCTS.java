@@ -288,7 +288,7 @@ public class MCTS {
                 state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double q_total = state.q[(action + 1) * state.properties.v_total_len + i] / state.n[action] * (state.total_n + 1);
-                    v[i] = q_total - state.q[i];
+                    v[i] += q_total - state.q[i];
                 }
             }
         }
@@ -588,7 +588,7 @@ public class MCTS {
                 state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double q_total = state.q[(action + 1) * state.properties.v_total_len + i] / state.n[action] * (state.total_n + 1);
-                    v[i] = q_total - state.q[i];
+                    v[i] += q_total - state.q[i];
                 }
             }
         }
