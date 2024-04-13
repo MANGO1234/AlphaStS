@@ -1985,7 +1985,6 @@ public class EnemyCity {
             properties.canGainStrength = true;
             properties.canWeaken = true;
             properties.canVulnerable = true;
-            properties.canDaze = true;
         }
 
         public Chosen(Chosen other) {
@@ -2047,6 +2046,8 @@ public class EnemyCity {
             }
             return "Unknown";
         }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
 
         public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(6, RandomGenCtx.Other, null) + 1;

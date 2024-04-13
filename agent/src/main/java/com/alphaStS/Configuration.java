@@ -3,7 +3,9 @@ package com.alphaStS;
 public class Configuration {
     public static boolean DO_NOT_USE_CACHED_STATE_WHEN_MAKING_REAL_MOVE = false;
 
+    // During training, percentage of games played with no temperature
     public static float TRAINING_PERCENTAGE_NO_TEMPERATURE = 0.2f;
+    // During training, enable KataGo's forced playout
     public static boolean TRAINING_USE_FORCED_PLAYOUT = true;
     public static boolean TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION = false;
     public static boolean CARD_IN_HAND_IN_NN_INPUT = true;
@@ -12,7 +14,7 @@ public class Configuration {
     public static float PRE_BATTLE_SCENARIO_TEMP = 0f;
 
     public static boolean PRINT_MODEL_COMPARE_DIFF = false;
-    public static int CMP_DEVIATION_NUM_RERUN = 3;
+    public static int CMP_DEVIATION_NUM_RERUN = 0;
     public static int SLEEP_PER_GAME = 0;
     public static int SLEEP_PER_GAME_TRAINING = 0;
     public static boolean USE_REMOTE_SERVERS = true;
@@ -60,13 +62,6 @@ public class Configuration {
         return isTranspositionAlwaysExpandNewNodeOn(state) && USE_UTILITY_STD_ERR_FOR_PUCT && (!TEST_USE_UTILITY_STD_ERR_FOR_PUCT || state.properties.testNewFeature);
     }
 
-    public static boolean USE_DMG_DISTRIBUTION = false;
-    public static boolean TEST_USE_DMG_DISTRIBUTION = false;
-
-    public static boolean isUseDmgDistributionOn(GameState state) {
-        return USE_DMG_DISTRIBUTION && (!TEST_USE_DMG_DISTRIBUTION || state.properties.testNewFeature);
-    }
-
     public static boolean BAN_TRANSPOSITION_IN_TREE = false;
     public static boolean TEST_BAN_TRANSPOSITION_IN_TREE = false;
 
@@ -85,6 +80,9 @@ public class Configuration {
     // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
     public static boolean USE_TURNS_LEFT_HEAD = true;
 
+    // print model prediction error compare to actual result
+    public static boolean STATS_PRINT_PREDICTION_ERRORS = false;
+    public static boolean STATS_PRINT_CARD_USAGE_COUNT = true;
 
     public static boolean USE_NEW_ACTION_SELECTION = false;
 

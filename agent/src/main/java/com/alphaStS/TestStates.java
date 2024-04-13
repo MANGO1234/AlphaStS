@@ -6,8 +6,6 @@ import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +18,7 @@ public class TestStates {
         builder.addCard(new Card.StrikeP(), 0);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.DefendP(), 0);
-        builder.addEnemy(new EnemyExordium.GremlinNob());
+        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.Bash(), 1),
                         new CardCount(new Card.Strike(), 5),
@@ -66,7 +64,7 @@ public class TestStates {
         builder.addCard(new CardSilent.Survivor(), 0);
         builder.addCard(new CardSilent.Acrobatics(), 0);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addEnemy(new EnemyExordium.JawWorm(false));
+        builder.addEnemyEncounter(new EnemyExordium.JawWorm(false));
         builder.addRelic(new Relic.RingOfSerpent());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.Bash(), 1),
@@ -123,7 +121,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Impervious(), 1);
         builder.addCard(new CardIronclad.SeeingRed(), 1);
         builder.addCard(new CardIronclad.Exhume(), 1);
-        builder.addEnemy(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.addPotion(new Potion.DexterityPotion());
         builder.setPlayer(new Player(73, 75));
         return new GameState(builder);
@@ -141,7 +139,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.PommelStrike(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardIronclad.Inflame(), 1);
-        builder.addEnemy(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.setPlayer(new Player(60, 75));
         return new GameState(builder);
     }
@@ -159,7 +157,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Hemokinesis(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.FlameBarrier(), 1);
-        builder.addEnemy(new EnemyExordium.TheGuardian());
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.setPlayer(new Player(36, 75));
         return new GameState(builder);
@@ -181,7 +179,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.ShrugItOff(), 1);
         builder.addCard(new CardIronclad.ShrugItOffP(), 0);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
-        builder.addEnemy(new EnemyExordium.TheGuardian());
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
         builder.addRelic(new Relic.AncientTeaSet());
         builder.addRelic(new Relic.DuVuDoll());
         builder.addRelic(new Relic.WarpedTongs());
@@ -217,7 +215,7 @@ public class TestStates {
         var builder = new GameStateBuilder();
         builder.addCard(new CardIronclad.BashP(), 1);
         builder.addCard(new CardIronclad.Dropkick(), 2);
-        builder.addEnemy(new EnemyExordium.TheGuardian());
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
         builder.setPlayer(new Player(41, 75));
         return new GameState(builder);
     }
@@ -257,15 +255,9 @@ public class TestStates {
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         EnemyEncounter.addSentriesFight(builder);
-        builder.addEnemy(new EnemyExordium.GremlinNob());
-        builder.addEnemy(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.addRelic(new Relic.BagOfPreparation());
-        var randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
-        );
-        builder.setRandomization(randomization);
         builder.setPlayer(new Player(43, 75));
         return new GameState(builder);
     }
@@ -285,8 +277,8 @@ public class TestStates {
         builder.addCard(new CardIronclad.DemonForm(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         EnemyEncounter.addSentriesFight(builder);
-        builder.addEnemy(new EnemyExordium.GremlinNob());
-        builder.addEnemy(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.addRelic(new Relic.BagOfPreparation());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.Combust(), 1), new CardCount(new CardIronclad.IronWave(), 1)),
@@ -294,12 +286,7 @@ public class TestStates {
                 List.of(new CardCount(new CardIronclad.SeeingRed(), 1), new CardCount(new CardIronclad.IronWave(), 1)),
                 List.of(new CardCount(new CardIronclad.SeeingRed(), 1), new CardCount(new CardIronclad.DemonForm(), 1)),
                 List.of(new CardCount(new CardIronclad.Combust(), 1))
-        ));
-        randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
-        ).doAfter(randomization).fixR(0, 1, 2, 12, 13, 14);
+        )).fixR(0, 4);
         builder.setRandomization(randomization);
         builder.setPlayer(new Player(41, 75));
         return new GameState(builder);
@@ -324,20 +311,17 @@ public class TestStates {
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addCard(new CardColorless.DarkShacklesP(), 0);
-        builder.addEnemy(new EnemyExordium.Lagavulin().markAsBurningElite());
-        builder.addEnemy(new EnemyExordium.GremlinNob().markAsBurningElite());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
-        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
-        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
+        builder.setBurningElite();
+        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.InflameP(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.Combust(), 1)),
                 List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWaveP(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.Combust(), 1)),
                 List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.AngerP(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.Combust(), 1)),
                 List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShacklesP(), 1), new CardCount(new CardIronclad.Combust(), 1)),
                 List.of(new CardCount(new CardIronclad.Inflame(), 1), new CardCount(new CardIronclad.IronWave(), 1), new CardCount(new CardIronclad.Anger(), 1), new CardCount(new CardColorless.DarkShackles(), 1), new CardCount(new CardIronclad.CombustP(), 1))
         ));
-        randomization = randomization.doAfter(startOfGameScenarios);
         builder.setRandomization(randomization);
-        //        builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addPotion(new Potion.WeakPotion());
         builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(16, 75));
@@ -360,18 +344,16 @@ public class TestStates {
         builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         //        builder.addCard(new Card.Pummel(), 1);
-        builder.addEnemy(new EnemyExordium.Lagavulin().markAsBurningElite());
-        builder.addEnemy(new EnemyExordium.GremlinNob().markAsBurningElite());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
+        builder.setBurningElite();
         builder.addRelic(new Relic.BagOfPreparation());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1});
-        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
         //        var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
         //                List.of(),
         //                List.of(new CardCount(new Card.Pummel(), 1)),
         //                List.of(new CardCount(new Card.PowerThrough(), 1))
         //        ));
         //        randomization = randomization.doAfter(startOfGameScenarios);
-        builder.setRandomization(randomization);
         //        builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(43, 75));
@@ -401,7 +383,7 @@ public class TestStates {
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
-        EnemyEncounter.addGremlinLeaderFight(builder);
+        EnemyEncounter.addGremlinLeaderFight2(builder);
         builder.addPotion(new Potion.FirePotion());
         builder.addPotion(new Potion.DistilledChaos());
         builder.setPlayer(new Player(33, 60));
@@ -421,27 +403,22 @@ public class TestStates {
         builder.addCard(new CardIronclad.CombustP(), 0);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        //        builder.addCard(new CardIronclad.SpotWeaknessP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 0);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addCard(new CardIronclad.PommelStrike(), 1);
         builder.addCard(new CardIronclad.PommelStrikeP(), 0);
         builder.addCard(new CardIronclad.Corruption(), 1);
-        //        builder.addCard(new CardIronclad.CorruptionP(), 1);
         builder.addCard(new CardIronclad.Havoc(), 1);
-        //        builder.addCard(new CardIronclad.HavocP(), 1);
         builder.addCard(new CardIronclad.FlameBarrier(), 1);
         builder.addCard(new CardIronclad.SeeingRedP(), 1);
-        //        builder.addCard(new CardIronclad.Impervious(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
         EnemyEncounter.addSlaversEliteFight(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3});
-        var randomization2 = new GameStateRandomization.CardCountRandomization(List.of(
+        var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.PommelStrikeP(), 1),
                         new CardCount(new CardIronclad.BattleTrance(), 1),
                         new CardCount(new CardIronclad.Combust(), 1)),
@@ -452,18 +429,7 @@ public class TestStates {
                         new CardCount(new CardIronclad.BattleTrance(), 1),
                         new CardCount(new CardIronclad.CombustP(), 1))
         ));
-        randomization = randomization.doAfter(randomization2);
         builder.setRandomization(randomization);
-        //        builder.addEnemy(new EnemyExordium.TheGuardian());
-        //        EnemyEncounter.addByrdsFight(builder);
-        //        builder.addEnemy(new EnemyCity.SphericGuardian());
-        //        builder.addEnemy(new EnemyCity.Pointy());
-        //        builder.addEnemy(new EnemyCity.Romeo());
-        //        builder.addEnemy(new EnemyCity.Bear());
-        //        builder.setRandomization(startOfGameScenarios);
-        //        builder.setPreBattleScenarios(startOf GameScenarios);
-        //        builder.addPotion(new Potion.LiquidMemory());
-        //        builder.setPlayer(new Player(75, 87));
         builder.addPotion(new Potion.DistilledChaos());
         builder.setPlayer(new Player(43, 60));
         return new GameState(builder);
@@ -500,8 +466,7 @@ public class TestStates {
         builder.addRelic(new Relic.HornCleat());
         builder.addRelic(new Relic.BurningBlood());
         builder.addRelic(new Relic.BottledLightning(new CardIronclad.BattleTranceP()));
-        //        builder.addEnemy(new EnemyCity.BookOfStabbing());
-        builder.addEnemy(new EnemyCity.TheChamp());
+        builder.addEnemyEncounter(new EnemyCity.TheChamp());
         builder.addPotion(new Potion.DistilledChaos());
         builder.addPotion(new Potion.EnergyPotion());
         builder.setPlayer(new Player(54, 60));
@@ -523,7 +488,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.BurningPact(), 1);
         builder.addCard(new CardIronclad.Reaper(), 1);
         builder.addCard(new CardIronclad.DemonForm(), 1);
-        builder.addEnemy(new EnemyExordium.TheGuardian());
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.RedSkull());
@@ -597,7 +562,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.WildStrike(), 2);
         builder.addCard(new CardIronclad.SecondWind(), 1);
         builder.addCard(new CardIronclad.Inflame(), 1);
-        builder.addEnemy(new EnemyExordium.TheGuardian());
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
         builder.addRelic(new Relic.ArtOfWar());
         //        builder.addPotion(new Potion.WeakPotion());
         //        builder.addPotion(new Potion.DuplicationPotion());
@@ -620,13 +585,8 @@ public class TestStates {
         builder.addCard(new CardColorless.Finesse(), 1);
         builder.addRelic(new Relic.Vajira());
         EnemyEncounter.addSentriesFight(builder);
-        builder.addEnemy(new EnemyExordium.GremlinNob());
-        builder.addEnemy(new EnemyExordium.Lagavulin());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 },
-                new int[] { 4 }
-        );
+        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         GameStateRandomization scenarios = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardColorless.Finesse(), 1)),
                 List.of(new CardCount(new CardIronclad.IronWave(), 1))
@@ -649,7 +609,6 @@ public class TestStates {
                     state.getPlayerForWrite().setOrigHealth(57);
                 }
         )));
-        builder.setRandomization(randomization);
         builder.setPreBattleScenarios(scenarios);
         builder.setPlayer(new Player(40, 57));
         return new GameState(builder);
@@ -672,16 +631,10 @@ public class TestStates {
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(2, 2));
-        EnemyEncounter.addSentriesFight(builder, true);
-        //        builder.addEnemy(new EnemyExordium.GremlinNob());
-        builder.addEnemy(new EnemyExordium.Lagavulin().markAsBurningElite());
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-                new int[] { 0, 1, 2 },
-                new int[] { 3 }
-                //                new int[] { 4 }
-        );
-        randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
-        builder.setRandomization(randomization);
+        EnemyEncounter.addSentriesFight(builder);
+        //        builder.addEnemyEncounter(new EnemyExordium.GremlinNob());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
+        builder.setBurningElite();
         builder.addPotion(new Potion.SwiftPotion());
         builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(38, 38));
@@ -709,7 +662,7 @@ public class TestStates {
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
         builder.addRelic(new Relic.Nunchaku(8, 2));
-        builder.addEnemy(new EnemyExordium.Hexaghost());
+        builder.addEnemyEncounter(new EnemyExordium.Hexaghost());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.Disarm(), 1), new CardCount(new CardIronclad.PowerThroughP(), 1)),
                 List.of(new CardCount(new CardIronclad.DisarmP(), 1), new CardCount(new CardIronclad.PowerThrough(), 1))
@@ -747,17 +700,11 @@ public class TestStates {
         builder.addRelic(new Relic.Nunchaku(7, 2));
         builder.addRelic(new Relic.GremlinHorn());
         EnemyEncounter.addByrdsFight(builder);
-        //        builder.addEnemy(new EnemyCity.BookOfStabbing());
-        //        EnemyEncounter.addSlaversEliteFight(builder);
-        //        EnemyEncounter.addGremlinLeaderFight(builder);
-        //        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), new int[] {0}, new int[] {1, 2, 3}, new int[] {4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19});
-        //        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(),
                 List.of(new CardCount(new CardIronclad.Havoc(), 1))
         ));
         builder.setRandomization(randomization);
-        //        builder.addPotion(new Potion.LiquidMemory());
         builder.setPlayer(new Player(66, 70));
         return new GameState(builder);
     }
@@ -793,22 +740,16 @@ public class TestStates {
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.HappyFlower(0, 8));
         builder.addRelic(new Relic.HornCleat());
-        builder.addEnemy(new EnemyCity.TheChamp());
-//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        builder.addEnemyEncounter(new EnemyCity.TheChamp());
+//        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
 //        EnemyEncounter.addSlaversEliteFight(builder);
 //        EnemyEncounter.addGremlinLeaderFight2(builder);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-//                List.of(new Tuple<>(0, -1)),
-//                List.of(new Tuple<>(0, -1), new Tuple<>(1, -1), new Tuple<>(2, -1)),
-//                List.of(new Tuple<>(3, 0), new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, -1))
-//        ));
-//        randomization = randomization.followByIf(0, builder.getRandomization().collapse("Random Gremlins"));
-//        GameStateRandomization randomization2 = new GameStateRandomization.CardCountRandomization(List.of(
+//        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //                List.of(),
 //                List.of(new CardCount(new Card.HeadbuttP(), 1)),
 //                List.of(new CardCount(new Card.TrueGritP(), 1))
 //        ));
-//        builder.setRandomization(randomization.doAfter(randomization2));
+//        builder.setRandomization(randomization);
 //        builder.addPotion(new Potion.LiquidMemory());
 //        builder.addPotion(new Potion.SneckoPotion());
         builder.setPlayer(new Player(97, 101));
@@ -857,7 +798,7 @@ public class TestStates {
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.ToyOrnithopter());
-        builder.addEnemy(new EnemyBeyond.TimeEater());
+        builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
 //        builder.addPotion(new Potion.SneckoPotion());
 //        builder.addPotion(new Potion.LiquidMemory());
 //        builder.addPotion(new Potion.WeakPotion());
@@ -957,7 +898,7 @@ public class TestStates {
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.InkBottle());
-        builder.addEnemy(new EnemyEnding.CorruptHeart());
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
 //        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
@@ -1021,16 +962,9 @@ public class TestStates {
         builder.addCard(new CardDefect.Consume(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
-//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
 //        EnemyEncounter.addSlaversEliteFight(builder);
         EnemyEncounter.addGremlinLeaderFight2(builder);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-//                List.of(new Tuple<>(0, -1)),
-//                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
-//                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
-//        ));
-//        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
-        builder.setRandomization(builder.getRandomization().collapse("Random Gremlins"));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
@@ -1066,18 +1000,11 @@ public class TestStates {
         builder.addCard(new CardDefect.StreamlineP(), 0);
         builder.addCard(new CardDefect.Darkness(), 1);
         builder.addCard(new CardDefect.DarknessP(), 0);
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
 //        EnemyEncounter.addSlaversEliteFight(builder);
 //        EnemyEncounter.addGremlinLeaderFight2(builder);
 //        EnemyEncounter.addBronzeAutomatonFight(builder);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-//            List.of(new Tuple<>(0, -1)),
-////            List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1))
-////            List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1))
-////            List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
-//        ));
-//        GameState randomization = randomization.followByIf(1, builder.getRandomization().collapse("Random Gremlins"));
-//        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+//        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //                List.of(new CardCount(new CardDefect.Reboot(), 0), new CardCount(new CardDefect.RebootP(), 1),
 //                        new CardCount(new CardDefect.Darkness(), 0), new CardCount(new CardDefect.DarknessP(), 0)),
 //                List.of(new CardCount(new CardDefect.Reboot(), 0), new CardCount(new CardDefect.RebootP(), 1),
@@ -1132,9 +1059,10 @@ public class TestStates {
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
         EnemyEncounter.addDonuAndDecaFight(builder);
-//        builder.addEnemy(new EnemyBeyond.GiantHead().markAsBurningElite());
-//        builder.addEnemy(new EnemyBeyond.Nemesis().markAsBurningElite());
-//        EnemyEncounter.addReptomancerFight(builder, true);
+//        builder.addEnemyEncounter(new EnemyBeyond.GiantHead());
+//        builder.addEnemyEncounter(new EnemyBeyond.Nemesis());
+//        EnemyEncounter.addReptomancerFight(builder);
+//        builder.setBurningElite();
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //                List.of(new CardCount(new CardDefect.CoolheadedP(), 1)),
 //                List.of(new CardCount(new CardDefect.BarrageP(), 1))
@@ -1248,7 +1176,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
-        builder.addEnemy(new EnemyEnding.CorruptHeart());
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
@@ -1293,7 +1221,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Coolheaded(), 1);
         builder.addCard(new CardDefect.CoolheadedP(), 0);
         builder.addCard(new CardDefect.Turbo(), 1);
-        builder.addEnemy(new EnemyExordium.TheGuardian());
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //                List.of(new CardCount(new CardDefect.BiasedCognition(), 1)),
 //                List.of(new CardCount(new CardDefect.BiasedCognition(), 0))
@@ -1344,7 +1272,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BootSequence(), 1);
         builder.addCard(new CardDefect.DoomAndGloomP(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
-        builder.addEnemy(new EnemyExordium.Lagavulin());
+        builder.addEnemyEncounter(new EnemyExordium.Lagavulin());
         builder.addPotion(new Potion.FocusPotion());
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.TungstenRod());
@@ -1445,15 +1373,11 @@ public class TestStates {
         builder.addCard(new CardColorless.MasterOfStrategy(), 1);
         builder.addCard(new CardColorless.ThinkingAhead(), 1);
         builder.addCard(new CardColorless.SecretTechnique(), 1);
-        builder.addEnemy(new EnemyEnding.CorruptHeart());
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
         builder.setPotionsScenarios(1);
         builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
-//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-//            @Override public void handle(GameState state) {
-////                new InteractiveMode().interactiveApplyHistory(state, List.of("rng off", "do", "def", "mal+", "def", "cal", "pha+", "legswe+", "e", "0", "1", "exit"));
-//            }
-//        });
+//        builder.setGameStateViaInteractiveMode(List.of("rng off", "do", "def", "mal+", "def", "cal", "pha+", "legswe+", "e", "0", "1", "exit"));
         builder.addRelic(new Relic.MummifiedHand());
         builder.addRelic(new Relic.RingOfSerpent());
         builder.addRelic(new Relic.Shuriken());
@@ -1499,9 +1423,7 @@ public class TestStates {
         builder.addCard(new CardDefect.SweepingBeam(), 0);
         builder.addCard(new CardDefect.GoForTheEye(), 0);
         builder.addCard(new CardDefect.HyperBeam(), 0);
-        builder.addEnemy(new EnemyCity.TorchHead());
-        builder.addEnemy(new EnemyCity.TorchHead());
-        builder.addEnemy(new EnemyCity.TheCollector());
+        builder.addEnemyEncounter(new EnemyCity.TorchHead(), new EnemyCity.TorchHead(), new EnemyCity.TheCollector());
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //            List.of(new CardCount(new CardDefect.BiasedCognition(), 2), new CardCount(new CardDefect.BiasedCognitionP(), 1), new CardCount(new CardDefect.SweepingBeam(), 1)),
 //            List.of(new CardCount(new CardDefect.BiasedCognition(), 2), new CardCount(new CardDefect.BiasedCognitionP(), 1), new CardCount(new CardDefect.GoForTheEye(), 1)),
@@ -1522,12 +1444,7 @@ public class TestStates {
 //                "Health 28 + Upgrade Biased Cognition"
 //        );
 //        builder.setRandomization(randomization);
-         builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-             @Override public void handle(GameState state) {
-                 state.clearAllSearchInfo();
-                 new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "dua", "bi", "zap", "strea2", "e", "0", "exit"));
-             }
-         });
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "dua", "bi", "zap", "strea2", "e", "0", "exit"));
         builder.addPotion(new Potion.DexterityPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
@@ -1576,26 +1493,15 @@ public class TestStates {
 //        EnemyEncounter.addShieldAndSpearFight(builder);
 //        EnemyEncounter.addDonuAndDecaFight(builder);
 //        EnemyEncounter.addAwakenedOneFight(builder);
-        builder.addEnemy(new EnemyBeyond.TimeEater());
+        builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //            List.of(new CardCount(new CardDefect.FissionP(), 1)),
 //            List.of(new CardCount(new CardDefect.AmplifyP(), 1)),
 //            List.of(new CardCount(new CardDefect.EquilibirumP(), 1)),
 //            List.of()
 //        ), true);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-//                List.of(new Tuple<>(0, -1), new Tuple<>(1, -1)),
-//                List.of(new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1)),
-//                List.of(new Tuple<>(5, -1))
-//        )).fixR(2);
 //        builder.setRandomization(randomization);
-        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "def", "coo", "com", "p", "compi", "loop+", "e", "rng off", "0", "em", "2", "exit")
-                );
-            }
-        });
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "def", "coo", "com", "p", "compi", "loop+", "e", "rng off", "0", "em", "2", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.FairyInABottle(98).setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
@@ -1645,7 +1551,7 @@ public class TestStates {
         builder.addCard(new CardDefect.StackP(), 1);
         builder.addCard(new CardOther.Decay(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
-//        builder.addEnemy(new EnemyEnding.CorruptHeart());
+//        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //            List.of(new CardCount(new CardDefect.Loop(), 1)),
 //            List.of(new CardCount(new CardDefect.StackP(), 1)),
@@ -1659,18 +1565,8 @@ public class TestStates {
 //                "Health 88, Upgrade Biased Cognition",
 //                "Health 78"
 //        ));
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-        //                List.of(new Tuple<>(0, -1), new Tuple<>(1, -1)),
-        //                List.of(new Tuple<>(2, -1), new Tuple<>(3, -1), new Tuple<>(4, -1)),
-        //                List.of(new Tuple<>(5, -1))
-        //        )).fixR(2);
 //        builder.setRandomization(randomization);
-        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "0", "19", "18", "13", "em", "1", "0", "em", "0", "1", "exit"));
-            }
-        });
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "em", "1", "0", "em", "0", "1", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.FairyInABottle(98).setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
@@ -1720,13 +1616,8 @@ public class TestStates {
         builder.addCard(new CardDefect.Loop(), 1);
         builder.addCard(new CardDefect.StackP(), 1);
         builder.addCard(new CardOther.Decay(), 1);
-        builder.addEnemy(new EnemyEnding.CorruptHeart());
-//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-//            @Override public void handle(GameState state) {
-//                state.clearAllSearchInfo();
-//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "0", "19", "18", "13", "em", "1", "0", "em", "0", "1", "exit"));
-//            }
-//        });
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+//        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "em", "1", "0", "em", "0", "1", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FairyInABottle(98).setBasePenaltyRatio(100));
         builder.setPotionsScenarios(1);
@@ -1756,7 +1647,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BallLightning(), 1);
         builder.addCard(new CardDefect.CompiledDriver(), 2);
         builder.addCard(new CardDefect.CompiledDriverP(), 1);
-        builder.addCard(new CardDefect.Equilibirum(), 1);
+        builder.addCard(new CardDefect.Equilibrium(), 1);
         builder.addCard(new CardDefect.BeamCellP(), 1);
         builder.addCard(new CardDefect.BufferP(), 1);
         builder.addCard(new CardDefect.Sunder(), 1);
@@ -1776,12 +1667,7 @@ public class TestStates {
         builder.setPlayer(new Player(63, 77));
 //        EnemyEncounter.addAwakenedOneFight(builder);
 //        EnemyEncounter.addDonuAndDecaFight(builder);
-        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "do", "def", "sta", "def", "coo+", "tur", "agg+", "com+", "holo+", "mac", "e", "0", "1", "2", "2", "2", "0", "0", "1", "3", "1", "exit"));
-            }
-        });
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "do", "def", "sta", "def", "coo+", "tur", "agg+", "com+", "holo+", "mac", "e", "0", "1", "2", "2", "2", "0", "0", "1", "3", "1", "exit"));
 //        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(95));
         builder.setPotionsScenarios(1);
@@ -1818,32 +1704,15 @@ public class TestStates {
         builder.addCard(new CardDefect.EchoForm(), 1);
         builder.setPlayer(new Player(65, 65));
         EnemyEncounter.addByrdsFight(builder);
-//        builder.addEnemy(new EnemyCity.BookOfStabbing());
+//        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
 //        EnemyEncounter.addSlaversEliteFight(builder);
 //        EnemyEncounter.addGremlinLeaderFight2(builder);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-//                List.of(new Tuple<>(0, -1)),
-//                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
-//                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
-//        ));
-//        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
-//        builder.setRandomization(randomization);
-//        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(),
-//                new int[] { 0, 1, 2 },
-//                new int[] { 3 },
-//                new int[] { 4 }
-//        );
 //        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
 //                List.of(new CardCount(new CardDefect.WhiteNoise(), 1)),
 //                List.of(new CardCount(new CardDefect.StaticDischarge(), 1))
 //        ), true);
 //        builder.setRandomization(randomization);
-        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.clearAllSearchInfo();
-                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "rng off", "do", "con", "zap", "def", "rain", "str", "co", "p", "coo", "dua", "e", "0", "1", "3", "2", "3", "2", "1", "2", "em", "0", "1", "em", "1", "1", "em", "2", "1", "eho", "0", "27", "eho", "1", "33", "eho", "2", "28", "exit"));
-            }
-        });
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "do", "con", "zap", "def", "rain", "str", "co", "p", "coo", "dua", "e", "0", "1", "3", "2", "3", "2", "1", "2", "em", "0", "1", "em", "1", "1", "em", "2", "1", "eho", "0", "27", "eho", "1", "33", "eho", "2", "28", "exit"));
         builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(3);
@@ -1883,16 +1752,9 @@ public class TestStates {
         builder.addCard(new CardOther.Writhe(), 1);
         builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
         EnemyEncounter.addSlaversEliteFight(builder);
         //        EnemyEncounter.addGremlinLeaderFight2(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-                List.of(new Tuple<>(0, -1)),
-                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1))
-                //                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
-        ));
-        //        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
-        builder.setRandomization(randomization);
         var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardSilent.CloakAndDaggerP(), 0), new CardCount(new CardSilent.CloakAndDagger(), 0),
                         new CardCount(new CardSilent.TerrorP(), 1), new CardCount(new CardSilent.Terror(), 0)),
@@ -1945,9 +1807,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Skim(), 0);
         builder.addCard(new CardDefect.Streamline(), 0);
         builder.addCard(new CardDefect.SeekP(), 0);
-        builder.addEnemy(new EnemyCity.TorchHead());
-        builder.addEnemy(new EnemyCity.TorchHead());
-        builder.addEnemy(new EnemyCity.TheCollector());
+        builder.addEnemyEncounter(new EnemyCity.TorchHead(), new EnemyCity.TorchHead(), new EnemyCity.TheCollector());
         var startOfGameScenarios = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardDefect.Seek(), 1)),
                 List.of(new CardCount(new CardDefect.SeekP(), 1), new CardCount(new CardDefect.Streamline(), 1),
@@ -2008,7 +1868,7 @@ public class TestStates {
         builder.addPotion(new Potion.FairyInABottle(71).setBasePenaltyRatio(80));
         builder.addPotion(new Potion.SpeedPotion().setBasePenaltyRatio(95));
         builder.setPotionsScenarios(1);
-        builder.addEnemy(new EnemyBeyond.TimeEater());
+        builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
         builder.setStartOfGameSetup(new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.properties.innateOrder = new ArrayList<>();
@@ -2167,28 +2027,17 @@ public class TestStates {
         builder.addCard(new CardColorless.Apotheosis(), 1);
         builder.addCard(new CardDefect.CompiledDriver(), 0);
         builder.addCard(new CardDefect.Rebound(), 0);
-        builder.addEnemy(new EnemyCity.BookOfStabbing());
+        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
         EnemyEncounter.addSlaversEliteFight(builder);
         EnemyEncounter.addGremlinLeaderFight2(builder);
-        GameStateRandomization randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), List.of(
-                List.of(new Tuple<>(0, -1)),
-                List.of(new Tuple<>(1, -1), new Tuple<>(2, -1), new Tuple<>(3, -1)),
-                List.of(new Tuple<>(4, 0), new Tuple<>(5, 0), new Tuple<>(6, 0), new Tuple<>(7, -1))
-        ));
-        randomization = randomization.followByIf(2, builder.getRandomization().collapse("Random Gremlins"));
-        randomization = new GameStateRandomization.CardCountRandomization(List.of(
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardDefect.CompiledDriver(), 1)),
                 List.of(new CardCount(new CardDefect.Rebound(), 1)),
                 List.of(new CardCount(new CardDefect.BeamCellP(), 1)),
                 List.of()
-        ), true).doAfter(randomization);
+        ), true);
         builder.setRandomization(randomization);
-//        builder.setEndOfPreBattleSetupHandler(new GameEventHandler() {
-//            @Override public void handle(GameState state) {
-//                state.clearAllSearchInfo();
-//                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, List.of("", "do", "stat", "gl", "self", "agg", "reinf", "e", "0", "exit"));
-//            }
-//        });
+//        builder.setGameStateViaInteractiveMode(List.of("", "do", "stat", "gl", "self", "agg", "reinf", "e", "0", "exit"));
         builder.setPlayer(new Player(55, 55));
         builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));

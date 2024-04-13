@@ -321,7 +321,6 @@ public class EnemyBeyond {
             artifact = 3;
             properties.canGainStrength = true;
             properties.canGainPlatedArmor = true;
-            properties.canDaze = true;
             properties.hasArtifact = true;
             properties.isBoss = true;
         }
@@ -367,6 +366,8 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
+
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
                 difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
@@ -396,7 +397,6 @@ public class EnemyBeyond {
 
         public TimeEater(int health) {
             super(health, 4, true);
-            properties.canSlime = true;
             properties.canGainStrength = true;
             properties.canGainBlock = true;
             properties.canVulnerable = true;
@@ -422,6 +422,8 @@ public class EnemyBeyond {
                 }
             }
         }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("DrawReduction", new GameProperties.CounterRegistrant() {
@@ -1498,7 +1500,7 @@ public class EnemyBeyond {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVArrayIdx(int idx) {
-                    state.properties.writingMassVIdx = idx;
+                    state.properties.writhingMassVIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
@@ -1512,14 +1514,14 @@ public class EnemyBeyond {
                                 }
                             }
                         }
-                        v[GameState.V_OTHER_IDX_START + state.properties.writingMassVIdx] = implantUsed ? 1.0f : 0.0f;
+                        v[GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx] = implantUsed ? 1.0f : 0.0f;
                     } else if (isTerminal == 0) {
-                        v[GameState.V_OTHER_IDX_START + state.properties.writingMassVIdx] = state.getVOther(state.properties.writingMassVIdx);
+                        v[GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx] = state.getVOther(state.properties.writhingMassVIdx);
                     }
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
-                    double value = v[GameState.V_OTHER_IDX_START + state.properties.writingMassVIdx];
+                    double value = v[GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx];
                     v[GameState.V_HEALTH_IDX] *= 1 - value * implantPenalty;
                 }
             });

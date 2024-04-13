@@ -25,7 +25,7 @@ enum ServerRequestType {
 public class Main {
     public static void main(String[] args) throws IOException {
         var state = TestStates.TestState();
-//        ((RandomGen.RandomGenPlain) state.prop.random).random.setSeed(5);
+//        ((RandomGen.RandomGenPlain) state.properties.random).random.setSeed(5);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
             System.out.print(state.getNNInput().length + "," + state.properties.totalNumOfActions);
@@ -60,9 +60,10 @@ public class Main {
     private static int BATCH_SIZE = 1;
     private static boolean WRITE_MATCHES = false;
     private static boolean PRINT_DMG = false;
+    private static boolean MAKE_PRE_BATTLE_SCENARIOS_RANDOM = false;
     private static boolean TEST_TRAINING_AGENT_ONLY = false;
     private static String COMPARE_DIR = null;
-    private static final int[][] SCENARIO_GROUPS = null;
+    private static int[] SCENARIO_GROUPS_PARAM = null;
     private static String SAVES_DIR = "../saves";
     private static String CUR_ITER_DIRECTORY;
     private static String PREV_ITER_DIRECTORY;
@@ -104,10 +105,11 @@ public class Main {
             SAVES_DIR = "../saves";
             WRITE_MATCHES = true;
             PRINT_DMG = true;
+            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             NUMBER_OF_NODES_PER_TURN = 100;
-//            SCENARIO_GROUPS = GameStateUtils.getScenarioGroups(state, 4, 1);
-//            iteration = 56;
+            SCENARIO_GROUPS_PARAM = new int[] { 4, 1 };
+//            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
@@ -132,6 +134,7 @@ public class Main {
 
     private static void interactiveMode(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
+        state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
 //        MatchSession.readMatchLogFile(CUR_ITER_DIRECTORY + "/matches.txt.gz", CUR_ITER_DIRECTORY, state);
         new InteractiveMode().interactiveStart(state, SAVES_DIR, CUR_ITER_DIRECTORY);
     }
@@ -139,15 +142,23 @@ public class Main {
     private static void playGames(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
         state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
-//        state.properties.randomization = state.properties.randomization.fixR(0, 2, 4);
-        MatchSession session = new MatchSession(CUR_ITER_DIRECTORY, COMPARE_DIR);
+        MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
+        session.setModelComparison(COMPARE_DIR, state, -1);
         if (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES) {
             session.setMatchLogFile("matches.txt.gz");
         }
-        if (state.properties.randomization != null) {
-            session.scenariosGroup = SCENARIO_GROUPS;
+        var preBattleScenarios = state.properties.preBattleScenarios;
+        var randomization = state.properties.randomization;
+        if (MAKE_PRE_BATTLE_SCENARIOS_RANDOM) {
+            makePreBattleScenariosRandom(state, preBattleScenarios);
+        }
+        if (state.properties.randomization != null && SCENARIO_GROUPS_PARAM != null) {
+            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, SCENARIO_GROUPS_PARAM[0], SCENARIO_GROUPS_PARAM[1]);
         }
         session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, true, PRINT_DMG, false);
+        if (MAKE_PRE_BATTLE_SCENARIOS_RANDOM) {
+            unmakePreBattleScenariosRandom(state, preBattleScenarios, randomization);
+        }
         session.flushAndCloseFileWriters();
     }
 
@@ -168,19 +179,7 @@ public class Main {
         Configuration.CPUCT_SCALING = false;
         Configuration.USE_PROGRESSIVE_WIDENING = false;
         Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE = false;
-        var preBattleScenarios = state.properties.preBattleScenarios;
-        var randomization = state.properties.randomization;
-        if (state.properties.preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
-            state.properties.preBattleScenarios = null;
-            if (state.properties.randomization == null) {
-                state.properties.randomization = preBattleScenarios;
-            } else {
-                state.properties.randomization = state.properties.randomization.doAfter(preBattleScenarios);
-            }
-            if (state.properties.preBattleRandomization == null) {
-                state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
-            }
-        }
+        state.properties.isTraining = true;
 
         int minDifficulty = -1;
         int maxDifficulty = -1;
@@ -212,23 +211,19 @@ public class Main {
             }
         }
 
-        MatchSession session = new MatchSession(CUR_ITER_DIRECTORY, COMPARE_DIR);
-        if (state.properties.randomization != null) {
-            session.scenariosGroup = SCENARIO_GROUPS;
-        }
+        MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
             session.setMatchLogFile("training_matches.txt.gz");
         }
         session.training = true;
-        session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, false, PRINT_DMG, false);
-
-        if (preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
-            state.properties.preBattleScenarios = preBattleScenarios;
-            state.properties.randomization = randomization;
-            if (state.properties.preBattleRandomization == null) {
-                state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
-            }
+        var preBattleScenarios = state.properties.preBattleScenarios;
+        var randomization = state.properties.randomization;
+        makePreBattleScenariosRandom(state, preBattleScenarios);
+        if (state.properties.randomization != null && SCENARIO_GROUPS_PARAM != null) {
+            session.scenariosGroup = GameStateUtils.getScenarioGroups(state, SCENARIO_GROUPS_PARAM[0], SCENARIO_GROUPS_PARAM[1]);
         }
+        session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, false, PRINT_DMG, false);
+        unmakePreBattleScenariosRandom(state, preBattleScenarios, randomization);
 
         if (TEST_TRAINING_AGENT_ONLY) {
             return;
@@ -286,6 +281,30 @@ public class Main {
         session.flushAndCloseFileWriters();
     }
 
+    private static void unmakePreBattleScenariosRandom(GameState state, GameStateRandomization preBattleScenarios, GameStateRandomization randomization) {
+        if (preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
+            state.properties.preBattleScenarios = preBattleScenarios;
+            state.properties.randomization = randomization;
+            if (state.properties.preBattleRandomization == null) {
+                state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
+            }
+        }
+    }
+
+    private static void makePreBattleScenariosRandom(GameState state, GameStateRandomization preBattleScenarios) {
+        if (state.properties.preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
+            state.properties.preBattleScenarios = null;
+            if (state.properties.randomization == null) {
+                state.properties.randomization = preBattleScenarios;
+            } else {
+                state.properties.randomization = state.properties.randomization.doAfter(preBattleScenarios);
+            }
+            if (state.properties.preBattleRandomization == null) {
+                state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+            }
+        }
+    }
+
     private static void startServer(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
         JsonFactory jsonFactory = new JsonFactory();
@@ -311,7 +330,8 @@ public class Main {
                             break;
                         }
                         if (session == null) {
-                            session = new MatchSession(modelDir, modelCmpDir);
+                            session = new MatchSession(modelDir);
+                            session.setModelComparison(modelCmpDir, state, -1);
                             numOfGames = 0;
                             newNumOfGames = 0;
                         }
@@ -335,7 +355,7 @@ public class Main {
                             break;
                         }
                         if (session == null) {
-                            session = new MatchSession(modelDir, modelCmpDir);
+                            session = new MatchSession(modelDir);
                         } else if (session.remoteNumOfGames.get() > -123456 && session.modelExecutor.isRunning()) {
                             session.stopPlayGamesRemote();
                             numOfGames = 0;

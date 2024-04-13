@@ -214,7 +214,6 @@ public class EnemyExordium {
             super(health, 2, false);
             properties.isElite = true;
             properties.actNumber = 1;
-            properties.canDaze = true;
             properties.hasArtifact = true;
             this.startMove = startMove;
             artifact = 1;
@@ -255,6 +254,8 @@ public class EnemyExordium {
             }
             return "Unknown";
         }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
 
         public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(4, RandomGenCtx.Other) + 1;
@@ -559,7 +560,6 @@ public class EnemyExordium {
         public SlimeBoss(int health) {
             super(health, 4, false);
             properties.isBoss = true;
-            properties.canSlime = true;
         }
 
         public SlimeBoss(SlimeBoss other) {
@@ -633,6 +633,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
+
         public void randomize(RandomGen random, boolean training, int difficulty) {
             int b = random.nextInt(15, RandomGenCtx.Other) + 1;
             health = 10 * (training ? b : 15);
@@ -677,7 +679,6 @@ public class EnemyExordium {
 
         public LargeSpikeSlime(int health) {
             super(health, 3, true);
-            properties.canSlime = true;
             properties.canFrail = true;
             splitMaxHealth = properties.maxHealth;
         }
@@ -763,6 +764,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
+
         public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 67 + random.nextInt(7, RandomGenCtx.Other);
             splitMaxHealth = health;
@@ -783,7 +786,6 @@ public class EnemyExordium {
 
         public MediumSpikeSlime(int health) {
             super(health, 2, true);
-            properties.canSlime = true;
             properties.canFrail = true;
         }
 
@@ -836,6 +838,8 @@ public class EnemyExordium {
             }
             return "Unknown";
         }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
 
         public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 29 + random.nextInt(6, RandomGenCtx.Other);
@@ -904,7 +908,6 @@ public class EnemyExordium {
 
         public LargeAcidSlime(int health) {
             super(health, 3, true);
-            properties.canSlime = true;
             properties.canWeaken = true;
             splitMaxHealth = properties.maxHealth;
         }
@@ -1000,6 +1003,8 @@ public class EnemyExordium {
             return "Unknown";
         }
 
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
+
         public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 68 + random.nextInt(5, RandomGenCtx.Other);
             splitMaxHealth = health;
@@ -1021,7 +1026,6 @@ public class EnemyExordium {
 
         public MediumAcidSlime(int health) {
             super(health, 3, true);
-            properties.canSlime = true;
             properties.canWeaken = true;
         }
 
@@ -1085,6 +1089,8 @@ public class EnemyExordium {
             }
             return "Unknown";
         }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Slime()); }
 
         public void randomize(RandomGen random, boolean training, int difficulty) {
             health = 29 + random.nextInt(6, RandomGenCtx.Other);

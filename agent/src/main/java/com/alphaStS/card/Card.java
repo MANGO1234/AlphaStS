@@ -81,6 +81,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
     public List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
     public int onPlayTransformCardIdx(GameProperties prop) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
     public void gamePropertiesSetup(GameState state) {}
@@ -154,6 +155,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         public void onExhaust(GameState state) { card.onExhaust(state); }
         public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
@@ -212,6 +214,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         public void onExhaust(GameState state) { card.onExhaust(state); }
         public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }

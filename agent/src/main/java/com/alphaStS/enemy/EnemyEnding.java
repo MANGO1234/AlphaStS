@@ -269,7 +269,6 @@ public class EnemyEnding {
             properties.canVulnerable = true;
             properties.canWeaken = true;
             properties.canFrail = true;
-            properties.canDaze = true;
             properties.isBoss = true;
         }
 

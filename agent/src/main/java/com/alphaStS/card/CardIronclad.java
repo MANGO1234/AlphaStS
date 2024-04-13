@@ -51,6 +51,10 @@ public class CardIronclad {
             state.addCardToDiscard(state.properties.angerCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new Anger());
+        }
     }
 
     public static class AngerP extends Card {
@@ -63,6 +67,10 @@ public class CardIronclad {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 8);
             state.addCardToDiscard(state.properties.angerPCardIdx);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new AngerP());
         }
     }
 

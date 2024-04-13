@@ -251,7 +251,6 @@ public class InteractiveMode {
                     out.print("List.of(\"\"");
                     List<String> hist = filterHistory(history);
                     hist.remove(0);
-                    hist.remove(0);
                     hist = hist.stream().filter(x -> !x.startsWith("#")).collect(Collectors.toList());
                     for (String l : hist) {
                         out.print(", \"" + l + "\"");
@@ -471,7 +470,7 @@ public class InteractiveMode {
                     out.println("****************** " + i + "/" + game.size() + " (" + (numberOfGames - curGames.size()) + ")");
                     step.state().properties.makingRealMove = false;
                     curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, false, true));
-                    var stats = new ScenarioStats();
+                    var stats = new ScenarioStats(state.properties);
                     for (MatchSession.Game g : curGames) {
                         stats.add(g.steps(), 0);
                     }
@@ -854,7 +853,8 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.SELECT_CARD_1_OUT_OF_3 ||
                     state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
                     state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE ||
-                    state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND) {
+                    state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND ||
+                    state.getAction(i).type() == GameActionType.AFTER_RANDOMIZATION) {
                 out.println(i + ". " + state.getActionString(i));
             } else if (state.getAction(i).type() == GameActionType.END_TURN) {
                 out.println("e. End Turn");
@@ -1438,10 +1438,9 @@ public class InteractiveMode {
         int batchSize = parseArgsInt(args, "b", 1);
         int numberOfGames = parseArgsInt(args, "c", 100);
         int randomizationScenario = parseArgsInt(args, "r", -1);
-        MatchSession session = new MatchSession(modelDir, modelDir);
+        MatchSession session = new MatchSession(modelDir);
         session.startingAction = startingAction1;
-        session.origStateCmp = state2;
-        session.startingActionCmp = startingAction2;
+        session.setModelComparison(modelDir, state2, startingAction2);
         if (state1 == null || state2 == null) {
             out.println("States not set");
             return;

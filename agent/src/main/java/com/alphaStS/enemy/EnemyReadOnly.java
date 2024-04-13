@@ -22,8 +22,6 @@ public abstract class EnemyReadOnly {
         public boolean canEntangle = false;
         public boolean canWeaken = false;
         public boolean canFrail = false;
-        public boolean canSlime = false;
-        public boolean canDaze = false;
         public boolean canGainStrength = false;
         public boolean canGainRegeneration = false;
         public boolean canHeal = false;

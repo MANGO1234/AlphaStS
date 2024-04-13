@@ -230,8 +230,6 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.canEntangle = possibleEnemies.stream().anyMatch((e) -> e.properties.canEntangle);
             properties.canWeaken = possibleEnemies.stream().anyMatch((e) -> e.properties.canWeaken);
             properties.canFrail = possibleEnemies.stream().anyMatch((e) -> e.properties.canFrail);
-            properties.canSlime = possibleEnemies.stream().anyMatch((e) -> e.properties.canSlime);
-            properties.canDaze = possibleEnemies.stream().anyMatch((e) -> e.properties.canDaze);
             properties.canGainStrength = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainStrength);
             properties.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainRegeneration);
             properties.canHeal = possibleEnemies.stream().anyMatch((e) -> e.properties.canHeal);

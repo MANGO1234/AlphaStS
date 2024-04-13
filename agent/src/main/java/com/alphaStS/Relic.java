@@ -15,6 +15,7 @@ import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -25,10 +26,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean weakEnemy;
     public boolean healPlayer;
     public boolean selectCard1OutOf3;
+    public int[] preBattleScenariosEnabled;
 
     public void gamePropertiesSetup(GameState state) {}
     List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
+    List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) { return List.of(); }
     List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
+    public Relic setPreBattleScenariosEnabled(int... preBattleScenariosEnabled) {
+        this.preBattleScenariosEnabled = preBattleScenariosEnabled;
+        Arrays.sort(this.preBattleScenariosEnabled);
+        return this;
+    }
+
+    public boolean isRelicEnabledInScenario(int scenario) {
+        return preBattleScenariosEnabled == null || Arrays.binarySearch(preBattleScenariosEnabled, scenario) >= 0;
+    }
 
     int counterIdx = -1;
 
@@ -666,44 +678,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.removeCardFromHand(idx);
                         state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
                     }
-//                    if (state.prop.cardDict[cardIdx].cardType != Card.POWER) {
-//                        return;
-//                    }
-//                    int possibleCards = 0, diff = 0;
-//                    var seen = new boolean[state.prop.cardDict.length];
-//                    for (int i = 0; i < state.handArrLen; i++) {
-//                        var idx = state.getHandArrForRead()[i];
-//                        if (!state.prop.cardDict[idx].isXCost && state.prop.cardDict[idx].energyCost > 0) {
-//                            possibleCards++;
-//                            if (!seen[state.getHandArrForRead()[i]]) {
-//                                diff++;
-//                                seen[state.getHandArrForRead()[i]] = true;
-//                            }
-//                        }
-//                    }
-//                    if (possibleCards == 0) {
-//                        return;
-//                    }
-//                    int r = 0;
-//                    if (diff > 1) {
-//                        state.setIsStochastic();
-//                        r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
-//                    }
-//                    for (int i = 0; i < state.handArrLen; i++) {
-//                        var idx = state.getHandArrForRead()[i];
-//                        if (!state.prop.cardDict[idx].isXCost && state.prop.cardDict[idx].energyCost > 0) {
-//                            if (r == 0) {
-//                                state.getHandArrForWrite()[i] = (short) state.prop.tmp0CostCardTransformIdxes[state.getHandArrForRead()[i]];
-//                                break;
-//                            }
-//                            r--;
-//                        }
-//                    }
                 }
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) {
             if (cards.stream().allMatch((c) -> c.cardType != Card.POWER)) {
                 return List.of();
             }
@@ -964,7 +943,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         new CardDefect.DoubleEnergy(),
                         new CardDefect.EchoForm(),
                         new CardDefect.Electrodynamics(),
-                        new CardDefect.Equilibirum(),
+                        new CardDefect.Equilibrium(),
                         new CardDefect.Fission(),
                         new CardDefect.ForceField(),
                         new CardDefect.FTL(),
@@ -1300,9 +1279,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class SlingOfCourage extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            if (isEliteFight(state)) {
-                state.getPlayerForWrite().gainStrength(2);
-            }
+            state.properties.addStartOfTurnHandler("SlingOfCourage", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                        if (isEliteFight(state)) {
+                            state.getPlayerForWrite().gainStrength(2);
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -1650,7 +1635,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 1) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
                         state.draw(2);
                     }
                 }
@@ -1859,6 +1844,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public CounterStat getCounterStat() {
             return new CounterStat(counterIdx, "Inserter");
+        }
+    }
+
+    public static class BiasedCognitionLimit extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BiasedCognitionLimit", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.biasedCognitionLimitCounterIdx = counterIdx;
+                }
+            });
         }
     }
 }

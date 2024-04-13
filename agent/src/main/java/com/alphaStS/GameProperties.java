@@ -5,10 +5,13 @@ import com.alphaStS.card.CardDefect;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.model.Model;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
 
 public class GameProperties implements Cloneable {
@@ -17,8 +20,14 @@ public class GameProperties implements Cloneable {
     public boolean doingComparison;
     public boolean testPotionOutput = true;
     public boolean curriculumTraining;
+    public boolean isTraining;
     public int minDifficulty;
     public int maxDifficulty;
+    public MCTS currentMCTS;
+    public ConcurrentMap<GameState, double[]> biasedCognitionLimitCache = new ConcurrentHashMap<>();
+    public boolean biasedCognitionLimitSet;
+    public int biasedCognitionLimitUsed;
+    public double[] biasedCognitionLimitDistribution;
     public boolean playerArtifactCanChange;
     public boolean playerStrengthCanChange;
     public boolean playerDexterityCanChange;
@@ -100,6 +109,7 @@ public class GameProperties implements Cloneable {
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] forceFieldIndexes;
+    public int[] forceFieldTmp0Indexes;
     public int[] forceFieldTransformIndexes;
     public int[] forceFieldPIndexes;
     public int[] forceFieldPTransformIndexes;
@@ -139,7 +149,6 @@ public class GameProperties implements Cloneable {
     public int phantasmalKillerCounterIdx = -1;
     public int reboundCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
-    public int writhingMassCounterIdx = -1;
     public int envenomCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int bufferCounterIdx = -1;
@@ -149,8 +158,9 @@ public class GameProperties implements Cloneable {
     public int forceFieldCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
+    public int biasedCognitionLimitCounterIdx = -1;
     public int looterVArrayIdx = -1;
-    public int writingMassVIdx = -1;
+    public int writhingMassVIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -227,7 +237,6 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
     public GameStateRandomization preBattleScenariosBackup;
-    public int preBattleScenariosChosen = -1;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
     public List<BiConsumer<GameState, int[]>> enemiesReordering;
 
@@ -372,7 +381,6 @@ public class GameProperties implements Cloneable {
             extraTrainingTargetsLabel.add(registrants.get(i).getKey());
         }
     }
-
 
     public void addStartOfBattleHandler(GameEventHandler handler) {
         startOfBattleHandlers.add(handler);
@@ -563,7 +571,7 @@ public class GameProperties implements Cloneable {
 
     public void registerThornCounter(GameState state2, CounterRegistrant registrant) {
         state2.properties.registerCounter("Thorn", registrant, null);
-        state2.properties.addOnDamageHandler(new OnDamageHandler() {
+        state2.properties.addOnDamageHandler("Thorn", new OnDamageHandler() {
             @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                 if (isAttack && source instanceof EnemyReadOnly enemy2) {
                     var idx = state.getEnemiesForRead().find(enemy2);

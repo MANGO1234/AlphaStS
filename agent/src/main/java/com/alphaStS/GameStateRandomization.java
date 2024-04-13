@@ -13,6 +13,7 @@ public interface GameStateRandomization {
     int randomize(GameState state);
     void randomize(GameState state, int r);
     Map<Integer, Info> listRandomizations();
+    List<Card> getPossibleGeneratedCards();
 
     default GameStateRandomization doAfter(GameStateRandomization prev) {
         if (prev == null) {
@@ -87,6 +88,13 @@ public interface GameStateRandomization {
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards());
+            cards.addAll(b.getPossibleGeneratedCards());
+            return cards;
+        }
     }
 
     class Join implements GameStateRandomization {
@@ -120,6 +128,13 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards());
+            cards.addAll(b.getPossibleGeneratedCards());
+            return cards;
         }
     }
 
@@ -164,6 +179,13 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards());
+            cards.addAll(b.getPossibleGeneratedCards());
+            return cards;
         }
     }
 
@@ -233,6 +255,13 @@ public interface GameStateRandomization {
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            List<Card> cards = new ArrayList<>();
+            cards.addAll(a.getPossibleGeneratedCards());
+            cards.addAll(b.getPossibleGeneratedCards());
+            return cards;
+        }
     }
 
     class FixedRandomization implements GameStateRandomization {
@@ -264,6 +293,10 @@ public interface GameStateRandomization {
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return a.getPossibleGeneratedCards(); // better to return all the underlying cards to reuse neural network
+        }
     }
 
     class CollapsedRandomization implements GameStateRandomization {
@@ -287,6 +320,11 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return a.getPossibleGeneratedCards();
         }
     }
 
@@ -312,6 +350,10 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return a.getPossibleGeneratedCards(); // better to return all the underlying cards to reuse neural network
         }
     }
 
@@ -399,6 +441,10 @@ public interface GameStateRandomization {
             map.put(0, new Info(1, "Randomize enemy starting state (e.g. health)" + (curriculumTraining ? " with curriculum training" : "")));
             return map;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
+        }
     }
 
     class PotionUtilityRandomization implements GameStateRandomization {
@@ -457,6 +503,10 @@ public interface GameStateRandomization {
         public int getSteps() {
             return steps;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
+        }
     }
 
     class PotionsUtilityRandomization implements GameStateRandomization {
@@ -487,6 +537,10 @@ public interface GameStateRandomization {
             var map = new HashMap<>(randomization.listRandomizations());
             map.put(0, new Info(map.get(0).chance, "No potions can be used"));
             return map;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
         }
     }
 
@@ -544,6 +598,10 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return scenarios.stream().flatMap((s) -> s.stream().map(CardCount::card)).distinct().toList();
         }
     }
 
@@ -605,6 +663,10 @@ public interface GameStateRandomization {
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
+        }
     }
 
     class SimpleCustomRandomization implements GameStateRandomization {
@@ -631,6 +693,10 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
         }
     }
 
@@ -698,6 +764,10 @@ public interface GameStateRandomization {
             map.put(3, new Info(1.0 / 4, "+Regeneration"));
             return map;
         }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
+        }
     }
 
     // todo
@@ -742,6 +812,10 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
         }
     }
 }

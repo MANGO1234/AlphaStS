@@ -2039,7 +2039,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) {
             return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
         }
     }

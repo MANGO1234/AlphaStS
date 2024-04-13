@@ -695,10 +695,17 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             var c = getPossibleSelect3OutOf1Cards(gameProperties);
-            var l = new ArrayList<Card>(c);
+            var l = new ArrayList<>(c);
             for (Card card : c) {
                 if (card instanceof Card.CardTmpChangeCost t) {
                     l.add(t.card);
+                    if (t.card instanceof CardDefect.ForceField forceField) {
+                        for (Card possibleGeneratedCard : forceField.getPossibleGeneratedCards(cards)) {
+                            if (possibleGeneratedCard.energyCost > 0) {
+                                l.add(new Card.CardTmpChangeCost(possibleGeneratedCard, 0));
+                            }
+                        }
+                    }
                 }
             }
             return l;
@@ -772,6 +779,43 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new Card.CardTmpChangeCost(new CardSilent.PhantasmalKiller(), 0),
                         new Card.CardTmpChangeCost(new CardSilent.StormOfSteel(), 0)
                 );
+            } else if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new Card.CardTmpChangeCost(new CardDefect.ChargeBattery(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Coolheaded(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Hologram(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Leap(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Recursion(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Stack(), 0),
+                        new CardDefect.SteamBarrier(),
+                        new CardDefect.Turbo(),
+                        new Card.CardTmpChangeCost(new CardDefect.Aggregate(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.AutoShields(), 0),
+                        new CardDefect.BootSequence(),
+                        new Card.CardTmpChangeCost(new CardDefect.Chaos(), 0),
+                        new CardDefect.Chill(),
+                        new Card.CardTmpChangeCost(new CardDefect.Consume(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Darkness(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.DoubleEnergy(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Equilibrium(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.ForceField(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Fusion(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.GeneticAlgorithm(1, 0), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Glacier(), 0),
+                        new CardDefect.Overclock(),
+                        new Card.CardTmpChangeCost(new CardDefect.Recycle(), 0),
+                        new CardDefect.ReinforcedBody(),
+                        new Card.CardTmpChangeCost(new CardDefect.Reprogram(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Skim(), 0),
+                        new CardDefect.Tempest(),
+                        new Card.CardTmpChangeCost(new CardDefect.WhiteNoise(), 0),
+                        new Card.CardTmpChangeCost(new CardDefect.Amplify(), 0),
+                        new CardDefect.Fission(),
+                        new CardDefect.MultiCast(),
+                        new Card.CardTmpChangeCost(new CardDefect.Rainbow(), 0),
+                        new CardDefect.Reboot(),
+                        new CardDefect.Seek()
+                );
             } else {
                 throw new IllegalArgumentException();
             }
@@ -794,11 +838,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
             int idx1 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.potions) : null);
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.powerPotionIdxes) : null);
             int idx2 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.potions) : null);
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.powerPotionIdxes) : null);
             int idx3 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.potions) : null);
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.powerPotionIdxes) : null);
             if (idx2 >= idx1) {
                 idx2++;
             }

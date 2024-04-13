@@ -12,4 +12,5 @@ public enum GameActionCtx {
     SELECT_CARD_1_OUT_OF_3,
     SELECT_SCENARIO,
     BEGIN_TURN,
+    AFTER_RANDOMIZATION,
 }

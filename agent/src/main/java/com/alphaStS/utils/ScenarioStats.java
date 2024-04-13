@@ -1,15 +1,17 @@
 package com.alphaStS.utils;
 
-import com.alphaStS.GameState;
-import com.alphaStS.GameStateRandomization;
-import com.alphaStS.GameStep;
+import com.alphaStS.*;
 import com.alphaStS.MatchSession.GameResult;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class ScenarioStats {
+    protected final GameProperties properties;
+
     public int numOfGames;
     public int deathCount;
     public int totalDamageTaken;
@@ -25,6 +27,12 @@ public class ScenarioStats {
     public long totalTurns;
     public long totalTurnsInWins;
     public List<CounterStat> counterStats;
+    public int[] cardsUsedCount;
+    public int[] select1OutOf3Count;
+    public long biasedCognitionLimit;
+    public int[] biasedCognitionLimitUsedCount;
+    public double[] biasedCognitionLimitDist;
+    public Map<Integer, Tuple<Double, Integer>> predictionError;
 
     public boolean hasState2;
     public long numberOfDivergences;
@@ -46,38 +54,38 @@ public class ScenarioStats {
     public long modelCalls2;
     public long totalTurns2;
 
-    public static ScenarioStats combine(ScenarioStats... stats) {
-        ScenarioStats total = new ScenarioStats();
-        if (stats.length > 0) {
-            total.potionsUsed = new int[stats[0].potionsUsed.length];
-            total.potionsUsedAgg = new int[stats[0].potionsUsedAgg.length];
-            total.damageCount = new HashMap<>();
-            total.damageCountNoDeath = new HashMap<>();
-            total.counterStats = new ArrayList<>();
-            for (int i = 0; i < stats[0].counterStats.size(); i++) {
-                total.counterStats.add(stats[0].counterStats.get(i).copy());
+    public ScenarioStats(GameProperties properties) {
+        this.properties = properties;
+        damageCount = new HashMap<>();
+        damageCountNoDeath = new HashMap<>();
+        potionsUsed = new int[1 << properties.potions.size()];
+        potionsUsedAgg = new int[properties.potions.size()];
+        counterStats = new ArrayList<>();
+        for (var entry : properties.counterRegistrants.entrySet()) {
+            CounterStat counterStat = entry.getValue().get(0).getCounterStat();
+            if (counterStat != null) {
+                counterStats.add(counterStat);
             }
         }
+        cardsUsedCount = new int[properties.cardDict.length];
+        select1OutOf3Count = new int[properties.cardDict.length];
+        biasedCognitionLimitUsedCount = new int[100];
+        biasedCognitionLimitDist = new double[100];
+        predictionError = new HashMap<>();
+    }
+
+    public static ScenarioStats combine(ScenarioStats... stats) {
+        if (stats.length == 0) {
+            throw new IllegalArgumentException();
+        }
+        ScenarioStats total = new ScenarioStats(stats[0].properties);
         for (ScenarioStats stat : stats) {
-            total.add(stat, null);
+            total.add(stat);
         }
         return total;
     }
 
-    public void add(ScenarioStats stat, GameState state) {
-        if (damageCount == null) {
-            damageCount = new HashMap<>();
-            damageCountNoDeath = new HashMap<>();
-            potionsUsed = new int[1 << state.properties.potions.size()];
-            potionsUsedAgg = new int[state.properties.potions.size()];
-            counterStats = new ArrayList<>();
-            for (var entry : state.properties.counterRegistrants.entrySet()) {
-                CounterStat counterStat = entry.getValue().get(0).getCounterStat();
-                if (counterStat != null) {
-                    counterStats.add(counterStat);
-                }
-            }
-        }
+    public void add(ScenarioStats stat) {
         numOfGames += stat.numOfGames;
         numberOfDivergences += stat.numberOfDivergences;
         numberOfSamples += stat.numberOfSamples;
@@ -102,6 +110,21 @@ public class ScenarioStats {
         }
         for (int i = 0; i < counterStats.size(); i++) {
             counterStats.get(i).add(stat.counterStats.get(i));
+        }
+        for (int i = 0; i < cardsUsedCount.length; i++) {
+            cardsUsedCount[i] += stat.cardsUsedCount[i];
+        }
+        for (int i = 0; i < select1OutOf3Count.length; i++) {
+            select1OutOf3Count[i] += stat.select1OutOf3Count[i];
+        }
+        biasedCognitionLimit += stat.biasedCognitionLimit;
+        for (int i = 0; i < biasedCognitionLimitDist.length; i++) {
+            biasedCognitionLimitUsedCount[i] += stat.biasedCognitionLimitUsedCount[i];
+            biasedCognitionLimitDist[i] += stat.biasedCognitionLimitDist[i];
+        }
+        for (var turnEntry : stat.predictionError.entrySet()) {
+            predictionError.computeIfAbsent(turnEntry.getKey(), (k) -> new Tuple<>(0.0, 0));
+            predictionError.computeIfPresent(turnEntry.getKey(), (k, v) -> new Tuple<>(v.v1() + turnEntry.getValue().v1(), v.v2() + turnEntry.getValue().v2()));
         }
         finalQComb += stat.finalQComb;
         modelCalls += stat.modelCalls;
@@ -140,19 +163,6 @@ public class ScenarioStats {
         this.modelCalls += modelCalls;
         totalTurns += state.turnNum;
         totalTurnsInWins += (state.isTerminal() == 1 ? state.turnNum : 0);
-        if (damageCount == null) {
-            damageCount = new HashMap<>();
-            damageCountNoDeath = new HashMap<>();
-            potionsUsed = new int[1 << state.properties.potions.size()];
-            potionsUsedAgg = new int[state.properties.potions.size()];
-            counterStats = new ArrayList<>();
-            for (var entry : state.properties.counterRegistrants.entrySet()) {
-                CounterStat counterStat = entry.getValue().get(0).getCounterStat();
-                if (counterStat != null) {
-                    counterStats.add(counterStat);
-                }
-            }
-        }
         int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
         numOfGames++;
         deathCount += (state.isTerminal() == -1 ? 1 : 0);
@@ -162,6 +172,29 @@ public class ScenarioStats {
         if (state.isTerminal() == 1) {
             damageCountNoDeath.putIfAbsent(damageTaken, 0);
             damageCountNoDeath.computeIfPresent(damageTaken, (k, v) -> v + 1);
+        }
+        for (int i = 0; i < steps.size() - 1; i++) {
+            if (steps.get(i).state().getAction(steps.get(i).action()).type() == GameActionType.PLAY_CARD) {
+                cardsUsedCount[steps.get(i).state().getAction(steps.get(i).action()).idx()] += 1;
+            } else if (steps.get(i).state().getAction(steps.get(i).action()).type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
+                select1OutOf3Count[steps.get(i).state().getAction(steps.get(i).action()).idx()] += 1;
+            }
+        }
+        biasedCognitionLimit += state.properties.biasedCognitionLimitUsed;
+        biasedCognitionLimitUsedCount[state.properties.biasedCognitionLimitUsed] += 1;
+        if (state.properties.biasedCognitionLimitDistribution != null) {
+            for (int i = 0; i < state.properties.biasedCognitionLimitDistribution.length; i++) {
+                biasedCognitionLimitDist[i] += state.properties.biasedCognitionLimitDistribution[i];
+            }
+        }
+        var finalQ = state.get_q();
+        for (int i = 0; i < steps.size() - 1; i++) {
+            var curState = steps.get(i).state();
+            if (curState.turnNum < 1) {
+                continue;
+            }
+            predictionError.computeIfAbsent(state.turnNum - curState.turnNum, (k) -> new Tuple<>(0.0, 0));
+            predictionError.computeIfPresent(state.turnNum - curState.turnNum, (k, v) -> new Tuple<>(v.v1() + curState.get_q_TreeSearch(GameState.V_COMB_IDX) - finalQ, v.v2() + 1));
         }
         if (state.isTerminal() > 0) {
             finalQComb += state.get_q();
@@ -190,8 +223,8 @@ public class ScenarioStats {
                     feedHealTotal += state.getCounterForWrite()[state.properties.geneticAlgorithmCounterIdx];
                 }
             }
-            for (int i = 0; i < counterStats.size(); i++) {
-                counterStats.get(i).add(state);
+            for (CounterStat counterStat : counterStats) {
+                counterStat.add(state);
             }
         }
     }
@@ -267,8 +300,8 @@ public class ScenarioStats {
                 }
             }
 
-            for (int i = 0; i < counterStats.size(); i++) {
-                counterStats.get(i).addComparison(state, state2);
+            for (CounterStat counterStat : counterStats) {
+                counterStat.addComparison(state, state2);
             }
         }
 
@@ -353,8 +386,8 @@ public class ScenarioStats {
         if (state.properties.feedCounterIdx >= 0) {
             System.out.println(indent + "Feed Killed Percentage: " + String.format("%.5f", ((double) feedKilledEnemy) / (numOfGames - deathCount)) + "(Average=" + ((double) feedHealTotal) / feedKilledEnemy + ")");
         }
-        for (int i = 0; i < counterStats.size(); i++) {
-            counterStats.get(i).printStat(indent, numOfGames - deathCount);
+        for (CounterStat counterStat : counterStats) {
+            counterStat.printStat(indent, numOfGames - deathCount);
         }
         System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb / (numOfGames - deathCount)));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
@@ -377,8 +410,8 @@ public class ScenarioStats {
             if (state.properties.feedCounterIdx >= 0) {
                 System.out.println(indent + "Win/Loss Feed: " + winByFeed + "/" + lossByFeed + " (" + winByFeedAmt / (double) winByFeed + "/" + lossByFeedAmt / (double) lossByFeed + "/" + (winByFeedAmt - lossByFeedAmt) / (double) (winByFeed + lossByFeed) + ")");
             }
-            for (int i = 0; i < counterStats.size(); i++) {
-                counterStats.get(i).printCmpStat(indent);
+            for (CounterStat counterStat : counterStats) {
+                counterStat.printCmpStat(indent);
             }
             ds.clear();
             winDmgs.forEach(ds::addValue);
@@ -427,9 +460,50 @@ public class ScenarioStats {
             System.out.printf("%sQ Diff: %6.5f [%6.5f - %6.5f]\n", indent, vQ, vQL, vQU);
         }
         if (printDmg) {
-            for (Map.Entry<Integer, Integer> dmgEntry : damageCount.entrySet().stream().sorted(Comparator.comparing(Map.Entry::getKey)).toList()) {
+            for (var dmgEntry : damageCount.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
                 System.out.println(indent + dmgEntry.getKey() + ": " + dmgEntry.getValue() + " (" + Utils.formatFloat(dmgEntry.getValue() / (float) numOfGames * 100) + "%)");
             }
+        }
+        if (Configuration.STATS_PRINT_CARD_USAGE_COUNT) {
+            var usedCountList = IntStream.range(0, cardsUsedCount.length)
+                    .filter(x -> cardsUsedCount[x] > 0)
+                    .mapToObj(x -> new Tuple<>(properties.cardDict[x], cardsUsedCount[x]))
+                    .sorted(Comparator.comparing(x -> -x.v2()))
+                    .toList();
+            for (int i = 0; i < usedCountList.size(); i++) {
+                System.out.print(i == 0 ? indent + "Card Usage: [" : ", ");
+                System.out.print(usedCountList.get(i).v1().cardName + ": " + usedCountList.get(i).v2() + " (" + Utils.formatFloat( usedCountList.get(i).v2() / (double) numOfGames * 100) + "%)");
+            }
+            System.out.println("]");
+            var select1OutOf3CountList = IntStream.range(0, select1OutOf3Count.length)
+                    .filter(x -> select1OutOf3Count[x] > 0)
+                    .mapToObj(x -> new Tuple<>(properties.cardDict[x], select1OutOf3Count[x]))
+                    .sorted(Comparator.comparing(x -> -x.v2()))
+                    .toList();
+            var total = IntStream.of(select1OutOf3Count).sum();
+            for (int i = 0; i < select1OutOf3CountList.size(); i++) {
+                System.out.print(i == 0 ? indent + "Select 1 Out Of 3 Card Chosen Count: [" : ", ");
+                System.out.print(select1OutOf3CountList.get(i).v1().cardName + ": " + select1OutOf3CountList.get(i).v2() + " (" + Utils.formatFloat( select1OutOf3CountList.get(i).v2() / (double) total * 100) + "%)");
+            }
+            System.out.println("]");
+        }
+        if (properties.biasedCognitionLimitCounterIdx >= 0) {
+            System.out.printf("%sBiased Cognition Limit: %s", indent, Utils.formatFloat(((double) biasedCognitionLimit) / numOfGames));
+            for (int i = 0; i < biasedCognitionLimitDist.length; i++) {
+                System.out.print(i == 0 ? indent + "Biased Cognition Limit Distribution: [" : ", ");
+                System.out.print(i + ": " + Utils.formatFloat(biasedCognitionLimitDist[i] / numOfGames) + (biasedCognitionLimitUsedCount[i] == 0 ? "" : " (" + biasedCognitionLimitUsedCount[i] + ")"));
+            }
+            System.out.println("]");
+        }
+        if (Configuration.STATS_PRINT_PREDICTION_ERRORS) {
+            var totalError = 0.0;
+            var totalTurns = 0;
+            for (var turnEntry : predictionError.entrySet()) {
+                totalError += turnEntry.getValue().v1();
+                totalTurns += turnEntry.getValue().v2();
+                System.out.println(indent + turnEntry.getKey() + ": " + turnEntry.getValue().v1() / turnEntry.getValue().v2() + " (" + turnEntry.getValue().v2() + " samples)");
+            }
+            System.out.println("Total: " + totalError / totalTurns);
         }
     }
 

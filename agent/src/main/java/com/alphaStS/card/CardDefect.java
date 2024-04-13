@@ -1251,8 +1251,8 @@ public class CardDefect {
         }
     }
 
-    public static class Equilibirum extends CardDefect._EquilibirumT {
-        public Equilibirum() {
+    public static class Equilibrium extends CardDefect._EquilibirumT {
+        public Equilibrium() {
             super("Equilibirum", 13);
         }
     }
@@ -1339,13 +1339,23 @@ public class CardDefect {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.forceFieldIndexes = new int[5];
+            state.properties.forceFieldTmp0Indexes = new int[5];
+            Arrays.fill(state.properties.forceFieldTmp0Indexes, -1);
             for (int i = 0; i < 5; i++) {
                 state.properties.forceFieldIndexes[i] = state.properties.findCardIndex(new ForceField(i));
+                if (i == 0) {
+                    state.properties.forceFieldTmp0Indexes[i] = state.properties.findCardIndex(new ForceField(i));
+                } else {
+                    state.properties.forceFieldTmp0Indexes[i] = state.properties.findCardIndex(new CardTmpChangeCost(new ForceField(i), 0));
+                }
             }
             state.properties.forceFieldTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.forceFieldTransformIndexes, -1);
             for (int i = 0; i < 4; i++) {
                 state.properties.forceFieldTransformIndexes[state.properties.forceFieldIndexes[i + 1]] = state.properties.forceFieldIndexes[i];
+                if (state.properties.forceFieldTmp0Indexes[i + 1] >= 0) {
+                    state.properties.forceFieldTransformIndexes[state.properties.forceFieldTmp0Indexes[i + 1]] = state.properties.forceFieldTmp0Indexes[i];
+                }
             }
             state.properties.addOnCardPlayedHandler("Force Field", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
@@ -1354,10 +1364,10 @@ public class CardDefect {
                             if (state.getDeckForRead()[state.properties.forceFieldIndexes[i + 1]] > 0) {
                                 state.getDeckForWrite()[state.properties.forceFieldIndexes[i]] += state.getDeckForWrite()[state.properties.forceFieldIndexes[i + 1]];
                                 state.getDeckForWrite()[state.properties.forceFieldIndexes[i + 1]] = 0;
+                                var exhaust = state.getExhaustForWrite();
+                                exhaust[state.properties.forceFieldIndexes[i]] += exhaust[state.properties.forceFieldIndexes[i + 1]];
+                                exhaust[state.properties.forceFieldIndexes[i + 1]] = 0;
                             }
-                            var exhaust = state.getExhaustForWrite();
-                            exhaust[state.properties.forceFieldIndexes[i]] += exhaust[state.properties.forceFieldIndexes[i + 1]];
-                            exhaust[state.properties.forceFieldIndexes[i + 1]] = 0;
                         }
                         for (int i = 0; i < state.deckArrLen; i++) {
                             if (state.properties.forceFieldTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {

@@ -38,21 +38,26 @@ public class MatchSession {
     List<MCTS> mctsCmp = new ArrayList<>();
     public int[][] scenariosGroup;
     String modelDir;
-    String modelCmpDir;
     ModelExecutor modelExecutor;
+    String modelCmpDir;
     ModelExecutor modelExecutorCmp;
+    GameState stateToCompare;
+    int stateToCompareStartingAction = -1;
     private int producersCount;
 
     public MatchSession(String dir) {
-        this(dir, null);
+        modelDir = dir;
+        modelExecutor = new ModelExecutor(modelDir);
     }
 
-    public MatchSession(String dir, String dirCmp) {
-        modelDir = dir;
-        modelCmpDir = dirCmp;
-        modelExecutor = new ModelExecutor(modelDir);
+    public void setModelComparison(String dirCmp, GameState state, int startingAction) {
         if (dirCmp != null) {
+            modelCmpDir = dirCmp;
             modelExecutorCmp = new ModelExecutor(modelCmpDir);
+            stateToCompare = state.clone(false);
+            stateToCompare.properties = stateToCompare.properties.clone();
+            stateToCompare.properties.biasedCognitionLimitCache = new ConcurrentHashMap<>(stateToCompare.properties.biasedCognitionLimitCache);
+            stateToCompareStartingAction = startingAction;
         }
     }
 
@@ -78,9 +83,7 @@ public class MatchSession {
         }
     }
 
-    GameState origStateCmp;
     int startingAction = -1;
-    int startingActionCmp = -1;
 
     private int findNextChanceAction(Game game, int startIdx) {
         while (startIdx < game.steps.size()) {
@@ -381,10 +384,10 @@ public class MatchSession {
                         }
                     }
                 }
-                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(game.steps, result.modelCalls);
                 scenarioStats.get(r).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 if (scenarioStats.size() == 1 && startingAction >= 0 && game.steps.get(0).state().isStochastic) {
-                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats()).add(game.steps, result.modelCalls);
+                    chanceNodeStats.computeIfAbsent(game.steps.get(0).state(), (k) -> new ScenarioStats(origState.properties)).add(game.steps, result.modelCalls);
                     chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 }
                 game_i.incrementAndGet();
@@ -394,7 +397,7 @@ public class MatchSession {
                 }
             } else {
                 r = result.remoteR;
-                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats()).add(result.remoteStats, origState);
+                scenarioStats.computeIfAbsent(r, (k) -> new ScenarioStats(origState.properties)).add(result.remoteStats);
                 remoteServerGames.computeIfPresent(result.remoteServer, (k, x) -> x + 1);
                 if (matchLogWriter != null) {
                     matchLogWriter.write("*** Match " + game_i + " (Remote) ***\n");
@@ -603,7 +606,7 @@ public class MatchSession {
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
-        var stat = new ScenarioStats();
+        var stat = new ScenarioStats(origState.properties);
         stat.add(steps, result.modelCalls);
         stat.add(steps, steps2, result.modelCalls2, result.reruns);
         var ret = getInfoMaps(origState);
@@ -642,6 +645,7 @@ public class MatchSession {
                  }
                 var state = origState.clone(false);
                 state.properties = state.properties.clone();
+                state.properties.currentMCTS = mcts.get(threadIdx);
                 state.properties.doingComparison = mctsCmp.size() > 0;
                 var randomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
                 state.properties.realMoveRandomGen = randomGen;
@@ -655,14 +659,15 @@ public class MatchSession {
                 List<GameResult> reruns = null;
                 if (mctsCmp.size() > 0) {
                     randomGen.timeTravelToBeginning();
-                    var state2 = (origStateCmp != null ? origStateCmp : origState).clone(false);
+                    var state2 = stateToCompare.clone(false);
                     state2.properties = state2.properties.clone();
+                    state2.properties.currentMCTS = mcts.get(threadIdx);
                     state2.properties.doingComparison = true;
                     state2.properties.realMoveRandomGen = randomGen;
                     randomGen.useNewCommonNumberVR = false;
                     state2.properties.testNewFeature = false;
                     mctsCmp.get(threadIdx).model.startRecordCalls();
-                    game2 = session.playGame(state2, startingActionCmp, game1, mctsCmp.get(threadIdx), nodeCount);
+                    game2 = session.playGame(state2, stateToCompareStartingAction, game1, mctsCmp.get(threadIdx), nodeCount);
                     modelCalls2 = mctsCmp.get(threadIdx).model.endRecordCalls();
 
                     var turns1 = GameStateUtils.groupByTurns(game1.steps);
@@ -850,6 +855,7 @@ public class MatchSession {
         var augmentedSteps = new ArrayList<GameStep>();
         var state = origState.clone(false);
         state.properties = state.properties.clone();
+        state.properties.currentMCTS = mcts;
         boolean doNotExplore = state.properties.random.nextFloat(RandomGenCtx.Other) < Configuration.TRAINING_PERCENTAGE_NO_TEMPERATURE;
         boolean noMoreExplore = false;
         int noTemperatureTurn = doNotExplore ? 0 : -1;
