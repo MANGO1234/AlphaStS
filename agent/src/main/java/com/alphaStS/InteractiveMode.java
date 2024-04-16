@@ -310,18 +310,41 @@ public class InteractiveMode {
 //                runNNPV2(state, line);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
-            } else if (line.equals("progressive")) {
-                Configuration.USE_PROGRESSIVE_WIDENING = !Configuration.USE_PROGRESSIVE_WIDENING;
-                out.println("Progressive Widening: " + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off"));
-            } else if (line.equals("progressive2")) {
-                Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS;
-                out.println("Progressive Widening Improvement: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off"));
-            } else if (line.equals("progressive3")) {
-                Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2;
-                out.println("Progressive Widening Improvement 2: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off"));
-            } else if (line.equals("ban")) {
-                Configuration.BAN_TRANSPOSITION_IN_TREE = !Configuration.BAN_TRANSPOSITION_IN_TREE;
-                out.println("Ban Transposition In Tree: " + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off"));
+            } else if (line.equals("config")) {
+                out.println("1. Progressive Widening (" + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off") + ")");
+                out.println("2. Progressive Widening Improvements (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off") + ")");
+                out.println("3. Progressive Widening Improvements 2 (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off") + ")");
+                out.println("4. Ban Transposition In Tree (" + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off") + ")");
+                out.println("5. Flatten Policy As Nodes Increase (" + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off") + ")");
+                out.println("6. Prioritize Chance Nodes Before Deterministic In Tree (" + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off") + ")");
+                out.println("0. Exit");
+                while (true) {
+                    out.print("> ");
+                    line = reader.readLine();
+                    history.add(line);
+                    int r = parseInt(line, -1);
+                    if (r == 0) {
+                        break;
+                    } else if (r == 1) {
+                        Configuration.USE_PROGRESSIVE_WIDENING = !Configuration.USE_PROGRESSIVE_WIDENING;
+                        out.println("Progressive Widening: " + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off"));
+                    } else if (r == 2) {
+                        Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS;
+                        out.println("Progressive Widening Improvement: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off"));
+                    } else if (r == 3) {
+                        Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2;
+                        out.println("Progressive Widening Improvement 2: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off"));
+                    } else if (r == 4) {
+                        Configuration.BAN_TRANSPOSITION_IN_TREE = !Configuration.BAN_TRANSPOSITION_IN_TREE;
+                        out.println("Ban Transposition In Tree: " + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off"));
+                    } else if (r == 5) {
+                        Configuration.FLATTEN_POLICY_AS_NODES_INCREASE = !Configuration.FLATTEN_POLICY_AS_NODES_INCREASE;
+                        out.println("Flatten Policy As Nodes Increase: " + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off"));
+                    } else if (r == 6) {
+                        Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE = !Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE;
+                        out.println("Prioritize Chance Nodes Before Deterministic In Tree: " + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off"));
+                    }
+                }
             } else if (line.equals("games") || line.startsWith("games ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
@@ -1353,6 +1376,28 @@ public class InteractiveMode {
         return readIntCommand(reader, history, cardIdxes.length);
     }
 
+
+    private int selectShieldAndSpear(BufferedReader reader, Tuple<GameState, int[]> arg, List<String> history) {
+        out.println("Select Spire Shield Debuff");
+        out.println("0. Focus");
+        out.println("1. Strength");
+        while (true) {
+            out.print("> ");
+            String line;
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (0 <= r && r < 2) {
+                return r;
+            }
+            out.println("Unknown Move");
+        }
+    }
+
     private int readIntCommand(BufferedReader reader, List<String> history, int x) throws IOException {
         while (true) {
             out.print("> ");
@@ -2174,6 +2219,9 @@ public class InteractiveMode {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            }
+            case ShieldAndSpear -> {
+                return interactiveMode.selectShieldAndSpear(reader, (Tuple<GameState, int[]>) arg, history);
             }
             case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb -> {
                 try {

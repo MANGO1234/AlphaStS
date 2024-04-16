@@ -296,7 +296,14 @@ public class EnemyEncounter {
     }
 
     public static void addAwakenedOneFight(GameStateBuilder builder) {
+        var start = builder.getEnemies().size();
         builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
+        builder.addEnemyReordering((state, order) -> {
+            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 1).getHealth()) {
+                order[start] = start + 1;
+                order[start + 1] = start;
+            }
+        });
     }
 
     public static void addDonuAndDecaFight(GameStateBuilder builder) {

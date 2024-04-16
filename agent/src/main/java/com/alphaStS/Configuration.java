@@ -69,6 +69,20 @@ public class Configuration {
         return BAN_TRANSPOSITION_IN_TREE && (!TEST_BAN_TRANSPOSITION_IN_TREE || state.properties.testNewFeature);
     }
 
+    public static boolean PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE = true;
+    public static boolean TEST_PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE = false;
+
+    public static boolean isPrioritizeChanceNodesBeforeDeterministicInTreeOn(GameState state) {
+        return PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE && (!TEST_PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE || state.properties.testNewFeature);
+    }
+
+    public static boolean FLATTEN_POLICY_AS_NODES_INCREASE = true;
+    public static boolean TEST_FLATTEN_POLICY_AS_NODES_INCREASE = true;
+
+    public static boolean isFlattenPolicyAsNodesIncreaseOn(GameState state) {
+        return FLATTEN_POLICY_AS_NODES_INCREASE && (!TEST_FLATTEN_POLICY_AS_NODES_INCREASE || state.properties.testNewFeature);
+    }
+
     // having this help network know when it's almost losing due to 50 turns losing rule
     // basic testing show it helps a bit in preventing losing to 50 turns
     // combine with USE_TURNS_LEFT_HEAD below for maximum effect

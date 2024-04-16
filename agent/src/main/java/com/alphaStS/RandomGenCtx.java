@@ -16,7 +16,7 @@ public enum RandomGenCtx {
     GremlinLeader,
     BronzeOrb,
     Chaos,
-    ShieldAndSpire,
+    ShieldAndSpear,
     Snecko,
     RandomCardGen,
     SelectCard1OutOf3,

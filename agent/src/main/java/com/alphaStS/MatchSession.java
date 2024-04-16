@@ -406,7 +406,7 @@ public class MatchSession {
                 game_i.incrementAndGet();
             }
 
-            if ((printProgress && game_i.get() % progressInterval == 0) || game_i.get() == numOfGames || System.currentTimeMillis() - lastPrintTime > 60 * 1000 || playGamesStop || playGamesPause) {
+            if ((printProgress && game_i.get() % progressInterval == 0) || game_i.get() == numOfGames || System.currentTimeMillis() - lastPrintTime > 60 * 1000 || playGamesStop) {
                 lastPrintTime = System.currentTimeMillis();
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
                 remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));

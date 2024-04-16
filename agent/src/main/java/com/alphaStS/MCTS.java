@@ -43,13 +43,13 @@ public class MCTS {
     void search2(GameState state, boolean training, int remainingCalls) {
         terminal_v_win = -100;
         if (state.properties.multithreadedMTCS) {
-            search2parallel_r(state, training, remainingCalls, true, 0, false);
+            search2parallel_r(state, training, remainingCalls, true, 0, false, null);
         } else {
-            search2_r(state, training, remainingCalls, true, 0);
+            search2_r(state, training, remainingCalls, true, 0, null);
         }
     }
 
-    int search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level) {
+    int search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, List<Tuple<GameState, Integer>> deterministicPath) {
         if (exploredV != null) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.initSearchInfo2();
@@ -96,11 +96,28 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        selectAction(state, policy, training, isRoot);
+        selectAction(state, policy, training, isRoot, true);
         int action = ret[0];
         int numberOfActions = ret[1];
-        if (numberOfActions == 0) {
-            return SEARCH_NO_ACTIONS_LEFT;
+        while (true) {
+            if (numberOfActions == 0) {
+                return SEARCH_NO_ACTIONS_LEFT;
+            }
+            if (!Configuration.isPrioritizeChanceNodesBeforeDeterministicInTreeOn(state) || state.ns[action] != null) {
+                break;
+            } else if (state.getAction(action).type() == GameActionType.END_TURN || state.getAction(action).type() == GameActionType.BEGIN_TURN) {
+                break;
+            }
+            GameState newState = state.clone(false);
+            newState.doAction(action);
+            if (newState.isStochastic && checkDeterministicPath(deterministicPath, state, action)) {
+                addBannedAction(state, action);
+                selectAction(state, policy, training, isRoot, false);
+                action = ret[0];
+                numberOfActions = ret[1];
+            } else {
+                break;
+            }
         }
 
         State nextState = state.ns[action];
@@ -135,17 +152,14 @@ public class MCTS {
                             state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
                         }
                     }
-                    state.ns[action] = new ChanceState(state2, state, action);
-                    this.search2_r(state2, training, remainingCalls, false, level + 1);
-                    ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
                 } else {
                     if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
                         state2.doAction(0);
                     }
-                    state.ns[action] = new ChanceState(state2, state, action);
-                    this.search2_r(state2, training, remainingCalls, false, level + 1);
-                    ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
                 }
+                state.ns[action] = new ChanceState(state2, state, action);
+                this.search2_r(state2, training, remainingCalls, false, level + 1, null);
+                ((ChanceState) (state.ns[action])).correctV(state2, v, realV);
             } else {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
@@ -161,7 +175,7 @@ public class MCTS {
                             state.transpositionsParent.put(parentState, parents);
                             parents.add(new Tuple<>(state, action));
                         }
-                        this.search2_r(state2, training, remainingCalls, false, level + 1);
+                        this.search2_r(state2, training, remainingCalls, false, level + 1, null);
                         cState.correctV(state2, v, realV);
                     } else {
                         state.ns[action] = state2;
@@ -171,7 +185,8 @@ public class MCTS {
                             state.transpositionsParent.put(state2, parents);
                             parents.add(new Tuple<>(state, action));
                         }
-                        this.search2_r(state2, training, remainingCalls, false, level);
+                        this.search2_r(state2, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action));
+                        deterministicPathPop(deterministicPath);
                     }
                 } else if (s instanceof GameState ns) {
                     if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
@@ -182,7 +197,8 @@ public class MCTS {
                         state.transpositionsParent.get(state2).add(new Tuple<>(state, action));
                     }
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        this.search2_r(ns, training, remainingCalls, false, level);
+                        this.search2_r(ns, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action));
+                        deterministicPathPop(deterministicPath);
                     }
                     state.ns[action] = ns;
                     for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -198,7 +214,7 @@ public class MCTS {
                     }
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         state2 = ns.getNextState(true, level);
-                        this.search2_r(state2, training, remainingCalls, false, level + 1);
+                        this.search2_r(state2, training, remainingCalls, false, level + 1, null);
                         ns.correctV(state2, v, realV);
                     }
                     state.ns[action] = ns;
@@ -212,7 +228,7 @@ public class MCTS {
                 if (state.n[action] < cState.total_n) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
                         state2 = cState.getNextState(true, level);
-                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1)) {
+                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, deterministicPath)) {
                             Integer.parseInt(null); // fail for now
                         }
                         cState.correctV(state2, v, realV);
@@ -227,7 +243,7 @@ public class MCTS {
                     }
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         state2 = cState.getNextState(true, level);
-                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1)) {
+                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, deterministicPath)) {
                             Integer.parseInt(null); // fail for now
                         }
                         cState.correctV(state2, v, realV);
@@ -237,7 +253,7 @@ public class MCTS {
                     }
                 } else {
                     state2 = cState.getNextState(true, level);
-                    if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1)) {
+                    if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, deterministicPath)) {
                         Integer.parseInt(null); // fail for now
                     }
                     cState.correctV(state2, v, realV);
@@ -251,12 +267,12 @@ public class MCTS {
             } else if (nextState instanceof GameState nState) {
                 if (state.n[action] < nState.total_n + 1) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
-                        if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level)) {
+                        if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action))) {
                             return SEARCH_RETRY;
                         }
                         updateTranspositions(nState, nState, state, action);
                     } else if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level)) {
+                        if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action))) {
                             return SEARCH_RETRY;
                         }
                     }
@@ -264,7 +280,7 @@ public class MCTS {
                         v[i] = nState.q[i] / (nState.total_n + 1) * (state.n[action] + 1) - state.q[(action + 1) * state.properties.v_total_len + i];
                     }
                 } else {
-                    if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level)) {
+                    if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action))) {
                        return SEARCH_RETRY;
                     }
                 }
@@ -296,9 +312,142 @@ public class MCTS {
         return SEARCH_SUCCESS;
     }
 
-    private boolean handleFailedSearch2(GameState state, int action, GameState childState, boolean training, int remainingCalls, boolean isRoot, int level) {
+    private boolean checkDeterministicPath(List<Tuple<GameState, Integer>> deterministicPath, GameState state, int action) {
+        if (deterministicPath == null) {
+            return false;
+        }
+        boolean debug = false;
+        var rand = state.getSearchRandomGen().getCopy();
+        var seen = new HashSet<GameState>();
+        for (int i = 0; i < 100; i++) {
+            var newRand = new RandomGen.RandomGenByCtx(rand.nextLong(RandomGenCtx.Other));
+            var newState = state.clone(false);
+            newState.setSearchRandomGen(newRand.getCopy());
+            newState.doAction(action);
+            if (seen.contains(newState)) {
+                continue;
+            }
+            seen.add(newState);
+
+            int causalAction = deterministicPath.size();
+            if (state.getAction(action).type() == GameActionType.SELECT_ENEMY ||
+                    state.getAction(action).type() == GameActionType.SELECT_CARD_HAND ||
+                    state.getAction(action).type() == GameActionType.SELECT_CARD_EXHAUST ||
+                    state.getAction(action).type() == GameActionType.SELECT_CARD_DECK ||
+                    state.getAction(action).type() == GameActionType.SELECT_CARD_DISCARD) {
+                for (int dIdx = deterministicPath.size() - 1; dIdx >= 0; dIdx--) {
+                    var actionOb = deterministicPath.get(dIdx).v1().getAction(deterministicPath.get(dIdx).v2());
+                    if (actionOb.type() == GameActionType.PLAY_CARD || actionOb.type() == GameActionType.USE_POTION){
+                        causalAction = dIdx;
+                    }
+                }
+            }
+            boolean success = false;
+            for (int dIdx = causalAction - 1; dIdx >= 0; dIdx--) {
+                if (!cannotPlayStochasticActionEarlier(deterministicPath, dIdx, causalAction, state, action, newState, newRand, debug)) {
+                    success = true;
+                    break;
+                }
+            }
+            if (!success) {
+                return false;
+            }
+        }
+        if (debug) {
+            System.out.println("banned action: " + state.getActionString(action) + " from " + state);
+        }
+        return true;
+    }
+
+    private static boolean cannotPlayStochasticActionEarlier(List<Tuple<GameState, Integer>> deterministicPath, int dIdx, int causalActionIdx, GameState state, int action, GameState newState, RandomGen.RandomGenByCtx newRand, boolean debug) {
+        var replayState = deterministicPath.get(dIdx).v1().clone(false);
+        replayState.setSearchRandomGen(newRand.getCopy());
+        var len = replayState.getLegalActions().length;
+        var found = false;
+        for (int j = causalActionIdx; j < deterministicPath.size(); j++) {
+            var originalAction = deterministicPath.get(j).v1().getAction(deterministicPath.get(j).v2());
+            len = replayState.getLegalActions().length;
+            found = false;
+            for (int k = 0; k < len; k++) {
+                if (replayState.getAction(k).equals(originalAction)) {
+                    replayState.isStochastic = false;
+                    replayState.doAction(k);
+                    replayState.clearAllSearchInfo();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found || replayState.isStochastic) {
+                if (debug) {
+                    System.out.println("failed 4");
+                }
+                return true;
+            }
+        }
+        found = false;
+        for (int k = 0; k < len; k++) {
+            if (replayState.getAction(k).equals(state.getAction(action))) {
+                replayState.doAction(k);
+                replayState.clearAllSearchInfo();
+                found = true;
+                break;
+            }
+        }
+        if (!found || !replayState.isStochastic) {
+            if (debug) {
+                System.out.println("failed 1");
+            }
+            return true;
+        }
+        for (int j = dIdx; j < causalActionIdx; j++) {
+            var originalAction = deterministicPath.get(j).v1().getAction(deterministicPath.get(j).v2());
+            len = replayState.getLegalActions().length;
+            found = false;
+            for (int k = 0; k < len; k++) {
+                if (replayState.getAction(k).equals(originalAction)) {
+                    replayState.isStochastic = false;
+                    replayState.doAction(k);
+                    replayState.clearAllSearchInfo();
+                    found = true;
+                    break;
+                }
+            }
+            if (!found || replayState.isStochastic) {
+                if (debug) {
+                    System.out.println("failed 2 " + found + " " + replayState.isStochastic + state.getActionString(action));
+                }
+                return true;
+            }
+        }
+        if (!replayState.equals(newState)) {
+            if (debug) {
+                System.out.println("failed 3 " + replayState + " " + newState + " xx " + state);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private List<Tuple<GameState, Integer>> deterministicPathPush(List<Tuple<GameState, Integer>> deterministicPath, GameState state, int action) {
+        if (!Configuration.isPrioritizeChanceNodesBeforeDeterministicInTreeOn(state)) {
+            return null;
+        }
+        if (deterministicPath == null) {
+            deterministicPath = new ArrayList<>();
+        }
+        deterministicPath.add(new Tuple<>(state, action));
+        return deterministicPath;
+    }
+
+    private void deterministicPathPop(List<Tuple<GameState, Integer>> deterministicPath) {
+        if (deterministicPath != null) {
+            deterministicPath.remove(deterministicPath.size() - 1);
+        }
+    }
+
+    private boolean handleFailedSearch2(GameState state, int action, GameState childState, boolean training, int remainingCalls, boolean isRoot, int level, List<Tuple<GameState, Integer>> deterministicPath) {
         while (true) {
-            int ret = search2_r(childState, training, remainingCalls, isRoot, level);
+            int ret = search2_r(childState, training, remainingCalls, isRoot, level, deterministicPath);
             if (ret == SEARCH_SUCCESS) {
                 return false;
             } else if (ret == SEARCH_NO_ACTIONS_LEFT) {
@@ -308,7 +457,7 @@ public class MCTS {
         }
     }
 
-    int search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
+    int search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss, List<Tuple<GameState, Integer>> deterministicPath) {
         if (state.terminalAction >= 0) {
             state.readLock();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -363,14 +512,35 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        selectAction(state, policy, training, isRoot);
+        selectAction(state, policy, training, isRoot, true);
         int action = ret[0];
         int numberOfActions = ret[1];
-        if (numberOfActions == 0) {
-            if (addVirtualLoss) {
-                state.virtualLoss.decrementAndGet();
+        while (true) {
+            if (numberOfActions == 0) {
+                if (addVirtualLoss) {
+                    state.virtualLoss.decrementAndGet();
+                }
+                return SEARCH_NO_ACTIONS_LEFT;
             }
-            return SEARCH_NO_ACTIONS_LEFT;
+            if (!Configuration.isPrioritizeChanceNodesBeforeDeterministicInTreeOn(state) || state.ns[action] != null) {
+                break;
+            } else if (state.getAction(action).type() == GameActionType.END_TURN || state.getAction(action).type() == GameActionType.BEGIN_TURN) {
+                break;
+            }
+            state.readLock();
+            GameState newState = state.clone(false);
+            state.readUnlock();
+            newState.doAction(action);
+            if (newState.isStochastic && checkDeterministicPath(deterministicPath, state, action)) {
+                state.writeLock();
+                addBannedAction(state, action);
+                state.writeUnlock();
+                selectAction(state, policy, training, isRoot, false);
+                action = ret[0];
+                numberOfActions = ret[1];
+            } else {
+                break;
+            }
         }
 
         State nextState = state.ns[action];
@@ -403,7 +573,7 @@ public class MCTS {
                     var node = cState.addGeneratedStateParallel(state2);
                     state.ns[action] = cState;
                     state.writeUnlock();
-                    if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false)) {
+                    if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false, null)) {
                         Integer.parseInt(null); // fail for now
                     }
                     cState.correctVParallel(node, false, v, realV);
@@ -415,7 +585,7 @@ public class MCTS {
                     var node = cState.addGeneratedStateParallel(state2);
                     state.ns[action] = cState;
                     state.writeUnlock();
-                    if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false)) {
+                    if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false, null)) {
                         Integer.parseInt(null); // fail for now
                     }
                     cState.correctVParallel(node, false, v, realV);
@@ -442,14 +612,14 @@ public class MCTS {
                         state.transpositionsLock.unlock();
                         state.ns[action] = cState;
                         state.writeUnlock();
-                        this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false);
+                        this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false, null);
                         cState.correctVParallel(node, false, v, realV);
                     } else {
                         state.transpositions.put(state2, state2);
                         state.transpositionsLock.unlock();
                         state.ns[action] = state2;
                         state.writeUnlock();
-                        if (handleFailedSearch2Parallel(state, action, state2, training, remainingCalls, false, level, true)) {
+                        if (handleFailedSearch2Parallel(state, action, state2, training, remainingCalls, false, level, true, deterministicPathPush(deterministicPath, state, action))) {
                             if (addVirtualLoss) {
                                 state.virtualLoss.decrementAndGet();
                             }
@@ -470,7 +640,7 @@ public class MCTS {
                     state.ns[action] = ns;
                     state.writeUnlock();
                     if (ns.q == null || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        if (handleFailedSearch2Parallel(state, action, ns, training, remainingCalls, false, level, true)) {
+                        if (handleFailedSearch2Parallel(state, action, ns, training, remainingCalls, false, level, true, deterministicPathPush(deterministicPath, state, action))) {
                             if (addVirtualLoss) {
                                 state.virtualLoss.decrementAndGet();
                             }
@@ -497,7 +667,7 @@ public class MCTS {
                     state.writeUnlock();
                     if (ns.total_n == 0 || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         var n = ns.getNextStateParallel();
-                        if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false)) {
+                        if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false, null)) {
                             Integer.parseInt(null); // fail for now
                         }
                         ns.correctVParallel(n.v1(), n.v2(), v, realV);
@@ -517,7 +687,7 @@ public class MCTS {
                     // hmm this is buggy because this can be true even if it's not transposed due to multithreading...
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         var n = cState.getNextStateParallel();
-                        if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false)) {
+                        if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false, null)) {
                             Integer.parseInt(null); // fail for now
                         }
                         cState.correctVParallel(n.v1(), n.v2(), v, realV);
@@ -531,7 +701,7 @@ public class MCTS {
                     state.readUnlock();
                 } else {
                     var n = cState.getNextStateParallel();
-                    if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false)) {
+                    if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false, null)) {
                         Integer.parseInt(null); // fail for now
                     }
                     cState.correctVParallel(n.v1(), n.v2(), v, realV);
@@ -540,8 +710,9 @@ public class MCTS {
                 if (state.n[action] < nState.total_n + 1 && !Configuration.isBanTranspositionInTreeOn(state)) {
                     // hmm this is buggy because this can be true even if it's not transposed due to multithreading...
                     if (nState.q == null || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
-                        if (handleFailedSearch2Parallel(state, action, nState, training, remainingCalls, false, level, true)) {
-                            Integer.parseInt(null); // fail for now
+                        if (handleFailedSearch2Parallel(state, action, nState, training, remainingCalls, false, level, true, deterministicPathPush(deterministicPath, state, action))) {
+//                            Integer.parseInt(null); // fail for now
+                            return SEARCH_RETRY;
                         }
                     }
                     state.readLock();
@@ -552,7 +723,7 @@ public class MCTS {
                     nState.readUnlock();
                     state.readUnlock();
                 } else {
-                    if (handleFailedSearch2Parallel(state, action, nState, training, remainingCalls, false, level, true)) {
+                    if (handleFailedSearch2Parallel(state, action, nState, training, remainingCalls, false, level, true, deterministicPathPush(deterministicPath, state, action))) {
                         if (addVirtualLoss) {
                             state.virtualLoss.decrementAndGet();
                         }
@@ -565,7 +736,7 @@ public class MCTS {
         state.writeLock();
         if (state.terminalAction >= 0) {
             state.writeUnlock(); // another thread may have detected terminal action
-            search2parallel_r(state, training, remainingCalls, isRoot, level, addVirtualLoss);
+            search2parallel_r(state, training, remainingCalls, isRoot, level, addVirtualLoss, null);
             if (addVirtualLoss) {
                 state.virtualLoss.decrementAndGet();
             }
@@ -610,9 +781,9 @@ public class MCTS {
         }
     }
 
-    private boolean handleFailedSearch2Parallel(GameState state, int action, GameState childState, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss) {
+    private boolean handleFailedSearch2Parallel(GameState state, int action, GameState childState, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss, List<Tuple<GameState, Integer>> deterministicPath) {
         while (true) {
-            int ret = search2parallel_r(childState, training, remainingCalls, isRoot, level, addVirtualLoss);
+            int ret = search2parallel_r(childState, training, remainingCalls, isRoot, level, addVirtualLoss, deterministicPath);
             if (ret == SEARCH_SUCCESS) {
                 return false;
             } else if (ret == SEARCH_NO_ACTIONS_LEFT) {
@@ -756,7 +927,7 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        selectAction(state, policy, training, isRoot);
+        selectAction(state, policy, training, isRoot, true);
         int action = ret[0];
         int numberOfActions = ret[1];
 
@@ -897,7 +1068,7 @@ public class MCTS {
         }
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
-        selectAction(state, policy, training, isRoot);
+        selectAction(state, policy, training, isRoot, true);
         int action = ret[0];
         int numberOfActions = ret[1];
 
@@ -1245,7 +1416,7 @@ public class MCTS {
         return state.policyMod;
     }
 
-    private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot) {
+    private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot, boolean firstCall) {
         // MCTS caller force root action to be taken
         if (isRoot && forceRootAction >= 0) {
             ret[0] = forceRootAction;
@@ -1280,7 +1451,7 @@ public class MCTS {
             int childN = state.n[i];
 
             // multithreaded mcts -> add virtual loss
-            if (state.properties.multithreadedMTCS) {
+            if (state.properties.multithreadedMTCS && firstCall) {
                 if (state.ns[i] != null && state.ns[i] instanceof GameState s) {
                     childN += s.virtualLoss.getPlain();
                 } else if (state.ns[i] != null && state.ns[i] instanceof ChanceState s) {
@@ -1302,7 +1473,6 @@ public class MCTS {
                 // cpuct scaling is equivalent to scaling the numerator in sqrt(state.total_n) / (1 + childN) further to encourage exploration
                 // noticing at high nodes very little exploration is done if the initial policy is low with logaritmic scaling
                 // so switch to total_n^0.25 which seem to work better?
-                // todo: reduce impact of policy as nodes are visited more may be a better idea? only at root?
 //                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
                 cpuct = cpuct * sqrt(sqrt(Math.max(state.total_n, 1)));
             }
@@ -1389,12 +1559,14 @@ public class MCTS {
             }
             if (!useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0) {
                 double maxQ = -100000;
+                int maxAction = -1;
                 for (int i = 0; i < state.getLegalActions().length; i++) {
                     if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                         continue;
                     }
                     if (qValues[i] > maxQ) {
                         maxQ = qValues[i];
+                        maxAction = i;
                     }
                 }
 
@@ -1451,6 +1623,17 @@ public class MCTS {
         }
         int max_n = Utils.max(state.n);
         float[] newPolicy = policy;
+        if (Configuration.isFlattenPolicyAsNodesIncreaseOn(state) && state.total_n > 100) {
+            newPolicy = new float[policy.length];
+            var sum = 0.0;
+            for (int i = 0; i < policy.length; i++) {
+                newPolicy[i] = (float) Math.pow(policy[i], (double) 100 / state.total_n);
+                sum += newPolicy[i];
+            }
+            for (int i = 0; i < policy.length; i++) {
+                newPolicy[i] /= sum;
+            }
+        }
         for (int i = 0; i < policy.length; i++) {
             if (policy[i] > 0 && max_n - state.n[i] > remainingCalls) {
                 if (newPolicy == policy) {

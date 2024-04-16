@@ -3721,7 +3721,7 @@ public final class GameState implements State {
     }
 
     public void gainEnergy(int n) {
-        energy += n;
+        energy = Math.max(energy + n, 0);
     }
 
     public void addCardToHand(int cardIndex) {

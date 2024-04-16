@@ -40,7 +40,7 @@ public class EnemyEnding {
                 state.enemyDoDamageToPlayer(this, 14, 1);
                 if (state.getOrbs() != null) {
                     state.setIsStochastic();
-                    if (state.getSearchRandomGen().nextInt(2, RandomGenCtx.ShieldAndSpire) == 0) {
+                    if (state.getSearchRandomGen().nextInt(2, RandomGenCtx.ShieldAndSpear, null) == 0) {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, 1);
                     } else {
                         state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, 1);

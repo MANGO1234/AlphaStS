@@ -1176,7 +1176,29 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // todo: Pocketwatch
     // Prayer Wheel: No need to implement
     // Shovel: No need to implement
-    // todo: Stone Calendar
+
+    public static class StoneCalendar extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addNNInputHandler("StoneCalendar", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.turnNum <= 7 ? state.turnNum / 7.0f : -0.5f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("StoneCalendar", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 7) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, 52, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static class ThreadAndNeedle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {

@@ -6,6 +6,8 @@ import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1776,6 +1778,66 @@ public class TestStates {
         builder.addRelic(new Relic.SlaversCollar());
         builder.addRelic(new Relic.PreservedInsect());
         builder.setPlayer(new Player(38, 38));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateDefectRun4() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.BiasedCognitionP(), 1);
+        builder.addCard(new CardDefect.SweepingBeam(), 2);
+        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.FTL(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 4);
+        builder.addCard(new CardDefect.Coolheaded(), 2);
+        builder.addCard(new CardDefect.Hologram(), 1);
+        builder.addCard(new CardDefect.SteamBarrier(), 1);
+        builder.addCard(new CardDefect.BallLightning(), 1);
+        builder.addCard(new CardDefect.CoreSurge(), 2);
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 1);
+        builder.addCard(new CardDefect.Storm(), 1);
+        builder.addCard(new CardDefect.Barrage(), 1);
+        builder.addCard(new CardDefect.MeteorStrike(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addCard(new CardDefect.Scrape(), 1);
+        builder.addCard(new CardDefect.GoForTheEyeP(), 1);
+        builder.addCard(new CardDefect.DefragmentP(), 1);
+        builder.addCard(new CardDefect.Heatsinks(), 1);
+        builder.addCard(new CardDefect.SeekP(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.TurboP(), 1);
+        builder.addCard(new CardDefect.GlacierP(), 1);
+        builder.addCard(new CardOther.Writhe(), 1);
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.BronzeScales());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.Nunchaku(9, 0));
+        builder.addRelic(new Relic.BlueCandle());
+        builder.addRelic(new Relic.MummifiedHand());
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.Shuriken());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.StrikeDummy());
+        builder.addRelic(new Relic.RunicPyramid());
+        builder.addRelic(new Relic.RunicCapacitor());
+        builder.addRelic(new Relic.Sundial(2, 0));
+        builder.addRelic(new Relic.Orichalcum());
+        builder.addRelic(new Relic.StoneCalendar());
+        builder.setGameStateViaInteractiveMode(List.of("", "0", "rng off", "do", "seek+", "mete", "core", "skim", "comp", "glac", "e", "0", "exit"));
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.Skim(), 1)),
+                List.of()
+        ), true);
+        builder.setPreBattleScenarios(randomization);
+        builder.setPlayer(new Player(71, 71));
         return new GameState(builder);
     }
 
