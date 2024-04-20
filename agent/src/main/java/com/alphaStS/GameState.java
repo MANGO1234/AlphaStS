@@ -42,9 +42,10 @@ public final class GameState implements State {
     public int handArrLen;
     public short[] discardArr;
     public int discardArrLen;
-    private byte[] exhaust;
     public short[] deckArr;
     public int deckArrLen;
+    public short[] exhaustArr;
+    public int exhaustArrLen;
     public short[] chosenCardsArr; // well laid plans, todo: gambler's potion? to know about any potential discard effect
     public short chosenCardsArrLen;
     public short[] nightmareCards;
@@ -191,6 +192,14 @@ public final class GameState implements State {
         }
     }
 
+    public void exhaustArrTransform(int[] transformIdxes) {
+        for (int i = 0; i < exhaustArrLen; i++) {
+            if (transformIdxes[exhaustArr[i]] >= 0) {
+                getExhaustArrForWrite()[i] = (short) transformIdxes[exhaustArr[i]];
+            }
+        }
+    }
+
     public void addNightmareCard(int idx) {
         if (idx >= properties.realCardsLen) {
             nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, properties.tmp0CostCardReverseTransformIdxes[idx]);
@@ -219,11 +228,11 @@ public final class GameState implements State {
         if (!cardIdxArrEqual(handArr, handArrLen, gameState.handArr, gameState.handArrLen)) return false;
         if (!cardIdxArrEqual(discardArr, discardArrLen, gameState.discardArr, gameState.discardArrLen)) return false;
         if (!cardIdxArrEqual(deckArr, deckArrLen, gameState.deckArr, gameState.deckArrLen)) return false;
+        if (!cardIdxArrEqual(exhaustArr, exhaustArrLen, gameState.exhaustArr, gameState.exhaustArrLen)) return false;
         if (false && properties.discard0CardOrderMatters) {
             if (!cardArray0CostCardOrderEquals(handArr, gameState.handArr, handArrLen)) return false;
             if (!cardArray0CostCardOrderEquals(discardArr, gameState.discardArr, discardArrLen)) return false;
         }
-        if (!Arrays.equals(exhaust, gameState.exhaust)) return false;
         if (!cardIdxArrEqual(chosenCardsArr, chosenCardsArrLen, gameState.chosenCardsArr, gameState.chosenCardsArrLen)) return false;
         if (!Objects.equals(enemies, gameState.enemies)) return false;
         if (!Objects.equals(player, gameState.player)) return false;
@@ -465,7 +474,7 @@ public final class GameState implements State {
         }
         handArr = new short[0];
         discardArr = new short[0];
-        exhaust = new byte[properties.realCardsLen];
+        exhaustArr = new short[0];
         for (CardCount cardCount : cardCounts) {
             deckArrLen += cardCount.count();
         }
@@ -916,7 +925,8 @@ public final class GameState implements State {
         discardArrLen = other.discardArrLen;
         deckArr = other.deckArr;
         deckArrLen = other.deckArrLen;
-        exhaust = other.exhaust;
+        exhaustArr = other.exhaustArr;
+        exhaustArrLen = other.exhaustArrLen;
         if (other.chosenCardsArr != null) {
             chosenCardsArr = other.chosenCardsArr;
             chosenCardsArrLen = other.chosenCardsArrLen;
@@ -1246,9 +1256,13 @@ public final class GameState implements State {
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
                 int possibleChoicesCount = 0, lastIdx = 0;
-                for (int j = 0; j < exhaust.length; j++) {
-                    possibleChoicesCount += exhaust[j] > 0 ? 1 : 0;
-                    lastIdx = exhaust[j] > 0 ? j : lastIdx;
+                boolean[] seen = new boolean[properties.realCardsLen];
+                for (int j = 0; j < exhaustArrLen; j++) {
+                    if (!seen[exhaustArr[j]]) {
+                        possibleChoicesCount++;
+                        lastIdx = exhaustArr[j];
+                        seen[exhaustArr[j]] = true;
+                    }
                 }
                 if (selectIdx >= 0) {
                     setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
@@ -1321,10 +1335,7 @@ public final class GameState implements State {
                 if (cloneParentLocation == GameState.DISCARD) {
                     transformTopMostCard(getDiscardArrForWrite(), discardArrLen, prevCardIdx, cardIdx);
                 } else if (cloneParentLocation == GameState.EXHAUST) {
-                    if (getExhaustForWrite()[prevCardIdx] > 0) {
-                        getExhaustForWrite()[prevCardIdx]--;
-                        getExhaustForWrite()[cardIdx]++;
-                    }
+                    transformTopMostCard(getExhaustArrForWrite(), exhaustArrLen, prevCardIdx, cardIdx);
                 } else if (cloneParentLocation == GameState.DECK) {
                     transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
                 } else if (cloneParentLocation == GameState.ON_TOP_OF_DECK) {
@@ -1862,12 +1873,6 @@ public final class GameState implements State {
                 return false;
             }
             return enemies.get(a[action].idx()).isAlive();
-        } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
-            GameAction[] a = properties.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()];
-            if (action < 0 || action >= a.length) {
-                return false;
-            }
-            return exhaust[a[action].idx()] > 0;
         } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
             GameAction[] a = properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()];
             if (action < 0 || action >= a.length) {
@@ -2229,11 +2234,7 @@ public final class GameState implements State {
     }
 
     public int getNumCardsInExhaust() {
-        int c = 0;
-        for (int i = 0; i < exhaust.length; i++) {
-            c += exhaust[i];
-        }
-        return c;
+        return exhaustArrLen;
     }
 
     @Override public String toString() {
@@ -2315,15 +2316,10 @@ public final class GameState implements State {
             }
         }
         str.append("]");
-        boolean hasExhaust = false;
-        for (int i = 0; i < exhaust.length; i++) {
-            if (exhaust[i] > 0) {
-                hasExhaust = true;
-            }
-        }
-        if (hasExhaust) {
+        if (exhaustArrLen > 0) {
             str.append(", exhaust=[");
             first = true;
+            var exhaust = GameStateUtils.getCardArrCounts(exhaustArr, exhaustArrLen, properties.realCardsLen);
             for (int i = 0; i < exhaust.length; i++) {
                 if (exhaust[i] > 0) {
                     if (!first) {
@@ -2621,6 +2617,8 @@ public final class GameState implements State {
                 getLegalActionsSelectCardFromArr(discardArr, discardArrLen);
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
                 getLegalActionsSelectCardFromArr(deckArr, deckArrLen);
+            } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
+                getLegalActionsSelectCardFromArr(exhaustArr, exhaustArrLen);
             } else {
                 int count = 0;
                 for (int i = 0; i < properties.maxNumOfActions; i++) {
@@ -3132,7 +3130,8 @@ public final class GameState implements State {
 //        }
 //        idx += prop.discardIdxes.length;
         if (properties.selectFromExhaust) {
-            for (int i = 0; i < properties.realCardsLen; i++) {
+            var exhaust = GameStateUtils.getCardArrCounts(exhaustArr, exhaustArrLen, properties.realCardsLen);
+            for (int i = 0; i < exhaust.length; i++) {
                 x[idx++] = exhaust[i] / (float) 10.0;
             }
         }
@@ -3564,7 +3563,7 @@ public final class GameState implements State {
             doNonAttackDamageToPlayer(1, false, null);
         }
         properties.cardDict[cardIdx].onExhaust(this);
-        getExhaustForWrite()[cardIdx] += 1;
+        addCardToExhaust(cardIdx);
         for (int i = 0; i < properties.onExhaustHandlers.size(); i++) {
             properties.onExhaustHandlers.get(i).handle(this);
         }
@@ -3867,6 +3866,23 @@ public final class GameState implements State {
         getDrawOrderForWrite().pushOnTop(idx);
     }
 
+    public void addCardToExhaust(int cardIndex) {
+        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmp0CostCardReverseTransformIdxes[cardIndex] : cardIndex;
+        exhaustArr = cardIdxArrAdd(exhaustArr, !exhaustCloned, exhaustArrLen, cardIndex);
+        exhaustArrLen++;
+        exhaustCloned = true;
+    }
+
+    public void removeCardFromExhaust(int cardIndex) {
+        for (int i = exhaustArrLen - 1; i >= 0; i--) {
+            if (exhaustArr[i] == cardIndex) {
+                getExhaustArrForWrite()[i] = getExhaustArrForRead()[exhaustArrLen - 1];
+                exhaustArrLen--;
+                break;
+            }
+        }
+    }
+
     public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
         var player = getPlayeForRead();
         double dmg = dmgInt;
@@ -4073,16 +4089,16 @@ public final class GameState implements State {
         return discardArr;
     }
 
-    public byte[] getExhaustForRead() {
-        return exhaust;
+    public short[] getExhaustArrForRead() {
+        return exhaustArr;
     }
 
-    public byte[] getExhaustForWrite() {
+    public short[] getExhaustArrForWrite() {
         if (!exhaustCloned) {
-            exhaust = Arrays.copyOf(exhaust, exhaust.length);
+            exhaustArr = Arrays.copyOf(exhaustArr, Math.min(exhaustArr.length, exhaustArrLen + 2));
             exhaustCloned = true;
         }
-        return exhaust;
+        return exhaustArr;
     }
 
     public void addCardToChosenCards(int cardIndex) {

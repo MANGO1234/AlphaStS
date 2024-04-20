@@ -178,9 +178,10 @@ public class InteractiveMode {
                 }
             } else if (line.equals("x")) {
                 out.println("Exhaust");
-                for (int i = 0; i < state.getExhaustForRead().length; i++) {
-                    if (state.getExhaustForRead()[i] > 0) {
-                        out.println("  " + state.getExhaustForRead()[i] + " " + state.properties.cardDict[i].cardName);
+                var exhaust = GameStateUtils.getCardArrCounts(state.getExhaustArrForRead(), state.getNumCardsInExhaust(), state.properties.realCardsLen);
+                for (int i = 0; i < exhaust.length; i++) {
+                    if (exhaust[i] > 0) {
+                        out.println("  " + exhaust[i] + " " + state.properties.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("i")) {

@@ -370,17 +370,7 @@ public class CardColorless {
             state.handArrTransform(state.properties.upgradeIdxes);
             state.discardArrTransform(state.properties.upgradeIdxes);
             state.deckArrTransform(state.properties.upgradeIdxes);
-            for (int i = 0; i < state.properties.realCardsLen; i++) {
-                if (state.getExhaustForRead()[i] > 0 && state.properties.upgradeIdxes[i] >= 0) {
-                    state.getExhaustForWrite()[state.properties.upgradeIdxes[i]] += state.getExhaustForRead()[i];
-                    state.getExhaustForWrite()[i] = 0;
-                }
-            }
-            for (int i = 0; i < state.deckArrLen; i++) {
-                if (state.properties.upgradeIdxes[state.getDeckArrForRead()[i]] >= 0) {
-                    state.getDeckArrForWrite()[i] = (short) state.properties.upgradeIdxes[state.getDeckArrForRead()[i]];
-                }
-            }
+            state.exhaustArrTransform(state.properties.upgradeIdxes);
             return GameActionCtx.PLAY_CARD;
         }
 

@@ -773,14 +773,10 @@ public class CardIronclad {
             state.properties.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    for (int i = 0; i < 4; i++) {
-                        var exhaust = state.getExhaustForWrite();
-                        exhaust[state.properties.bloodForBloodIndexes[i]] += exhaust[state.properties.bloodForBloodIndexes[i + 1]];
-                        exhaust[state.properties.bloodForBloodIndexes[i + 1]] = 0;
-                    }
                     state.handArrTransform(state.properties.bloodForBloodTransformIndexes);
                     state.discardArrTransform(state.properties.bloodForBloodTransformIndexes);
                     state.deckArrTransform(state.properties.bloodForBloodTransformIndexes);
+                    state.exhaustArrTransform(state.properties.bloodForBloodTransformIndexes);
                 }
             });
         }
@@ -818,14 +814,10 @@ public class CardIronclad {
             state.properties.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    for (int i = 0; i < 3; i++) {
-                        var exhaust = state.getExhaustForWrite();
-                        exhaust[state.properties.bloodForBloodPIndexes[i]] += exhaust[state.properties.bloodForBloodPIndexes[i + 1]];
-                        exhaust[state.properties.bloodForBloodPIndexes[i + 1]] = 0;
-                    }
                     state.handArrTransform(state.properties.bloodForBloodPTransformIndexes);
                     state.discardArrTransform(state.properties.bloodForBloodPTransformIndexes);
                     state.deckArrTransform(state.properties.bloodForBloodPTransformIndexes);
+                    state.exhaustArrTransform(state.properties.bloodForBloodPTransformIndexes);
                 }
             });
         }
@@ -2367,7 +2359,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getExhaustForWrite()[idx] -= 1;
+            state.removeCardFromExhaust(idx);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2381,7 +2373,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getExhaustForWrite()[idx] -= 1;
+            state.removeCardFromExhaust(idx);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }

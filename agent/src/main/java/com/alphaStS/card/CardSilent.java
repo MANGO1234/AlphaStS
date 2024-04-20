@@ -1502,15 +1502,10 @@ public class CardSilent {
             state.properties.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    for (int i = maxEnergyCost; i > 0; i--) {
-                        if (state.getExhaustForRead()[state.properties.masterfulStabIndexes[i - 1]] > 0) {
-                            state.getExhaustForWrite()[state.properties.masterfulStabIndexes[i]] += state.getExhaustForWrite()[state.properties.masterfulStabIndexes[i - 1]];
-                            state.getExhaustForWrite()[state.properties.masterfulStabIndexes[i - 1]] = 0;
-                        }
-                    }
                     state.handArrTransform(state.properties.masterfulStabTransformIndexes);
                     state.discardArrTransform(state.properties.masterfulStabTransformIndexes);
                     state.deckArrTransform(state.properties.masterfulStabTransformIndexes);
+                    state.exhaustArrTransform(state.properties.masterfulStabTransformIndexes);
                 }
             });
         }
@@ -1555,15 +1550,10 @@ public class CardSilent {
             state.properties.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    for (int i = maxEnergyCost; i > 0; i--) {
-                        if (state.getExhaustForRead()[state.properties.masterfulStabPIndexes[i - 1]] > 0) {
-                            state.getExhaustForWrite()[state.properties.masterfulStabPIndexes[i]] += state.getExhaustForWrite()[state.properties.masterfulStabPIndexes[i - 1]];
-                            state.getExhaustForWrite()[state.properties.masterfulStabPIndexes[i - 1]] = 0;
-                        }
-                    }
                     state.handArrTransform(state.properties.masterfulStabPTransformIndexes);
                     state.discardArrTransform(state.properties.masterfulStabPTransformIndexes);
                     state.deckArrTransform(state.properties.masterfulStabPTransformIndexes);
+                    state.exhaustArrTransform(state.properties.masterfulStabPTransformIndexes);
                 }
             });
         }

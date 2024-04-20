@@ -138,9 +138,11 @@ public class GameStateUtils {
                 cardMap.get(from.properties.cardDict[i]).discard = toGetDiscardForRead[i] - fromGetDiscardForRead[i];
             }
         }
-        for (int i = 0; i < from.getExhaustForRead().length; i++) {
-            if (from.getExhaustForRead()[i] != to.getExhaustForRead()[i]) {
-                cardMap.get(from.properties.cardDict[i]).exhaust = to.getExhaustForRead()[i] - from.getExhaustForRead()[i];
+        var fromGetExhaustForRead = GameStateUtils.getCardArrCounts(from.getExhaustArrForRead(), from.getNumCardsInExhaust(), from.properties.cardDict.length);
+        var toGetExhaustForRead = GameStateUtils.getCardArrCounts(to.getExhaustArrForRead(), to.getNumCardsInExhaust(), to.properties.cardDict.length);
+        for (int i = 0; i < fromGetExhaustForRead.length; i++) {
+            if (fromGetExhaustForRead[i] != toGetExhaustForRead[i]) {
+                cardMap.get(from.properties.cardDict[i]).exhaust = toGetExhaustForRead[i] - fromGetExhaustForRead[i];
             }
         }
         first2 = true;
