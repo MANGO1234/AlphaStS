@@ -320,14 +320,12 @@ public class EnemyExordium {
                 gainBlock(12);
             } else if (move == INFERNAL_1) {
                 state.enemyDoDamageToPlayer(this, 3, 6);
-                var deck = state.getDeckForRead();
-                state.setCardCountInDeck(state.properties.burnPCardIdx, deck[state.properties.burnPCardIdx] + deck[state.properties.burnCardIdx]);
-                state.setCardCountInDeck(state.properties.burnCardIdx, 0);
                 var burnUpgrade = new int[state.properties.cardDict.length];
                 Arrays.fill(burnUpgrade, -1);
                 burnUpgrade[state.properties.burnCardIdx] = state.properties.burnPCardIdx;
                 state.handArrTransform(burnUpgrade);
                 state.discardArrTransform(burnUpgrade);
+                state.deckArrTransform(burnUpgrade);
                 state.addCardToDiscard(state.properties.burnPCardIdx);
                 state.addCardToDiscard(state.properties.burnPCardIdx);
                 state.addCardToDiscard(state.properties.burnPCardIdx);

@@ -124,9 +124,11 @@ public class GameStateUtils {
                 cardMap.get(from.properties.cardDict[i]).hand = toGetHandForRead[i] - fromGetHandForRead[i];
             }
         }
-        for (int i = 0; i < from.getDeckForRead().length; i++) {
-            if (from.getDeckForRead()[i] != to.getDeckForRead()[i]) {
-                cardMap.get(from.properties.cardDict[i]).deck = to.getDeckForRead()[i] - from.getDeckForRead()[i];
+        var fromGetDeckForRead = GameStateUtils.getCardArrCounts(from.getDeckArrForRead(), from.getNumCardsInDeck(), from.properties.cardDict.length);
+        var toGetDeckForRead = GameStateUtils.getCardArrCounts(to.getDeckArrForRead(), to.getNumCardsInDeck(), to.properties.cardDict.length);
+        for (int i = 0; i < fromGetDeckForRead.length; i++) {
+            if (fromGetDeckForRead[i] != toGetDeckForRead[i]) {
+                cardMap.get(from.properties.cardDict[i]).deck = toGetDeckForRead[i] - fromGetDeckForRead[i];
             }
         }
         var fromGetDiscardForRead = GameStateUtils.getCardArrCounts(from.getDiscardArrForRead(), from.getNumCardsInDiscard(), from.properties.cardDict.length);

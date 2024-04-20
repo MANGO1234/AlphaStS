@@ -155,9 +155,10 @@ public class InteractiveMode {
                 }
             } else if (line.equals("a")) {
                 out.println("Deck");
-                for (int i = 0; i < state.getDeckForRead().length; i++) {
-                    if (state.getDeckForRead()[i] > 0) {
-                        out.println("  " + state.getDeckForRead()[i] + " " + state.properties.cardDict[i].cardName);
+                var deck = GameStateUtils.getCardArrCounts(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.realCardsLen);
+                for (int i = 0; i < deck.length; i++) {
+                    if (deck[i] > 0) {
+                        out.println("  " + deck[i] + " " + state.properties.cardDict[i].cardName);
                     }
                 }
             } else if (line.equals("s")) {

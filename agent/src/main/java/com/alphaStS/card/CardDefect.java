@@ -215,12 +215,9 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             var exhaust = state.getExhaustForWrite();
             for (int i = limit - 1; i > 0; i--) {
-                for (int j = 0; j < state.getDeckForRead()[state.properties.clawIndexes[i - 1]]; j++) {
-                    state.addCardToDeck(state.properties.clawIndexes[i]);
-                }
-                state.setCardCountInDeck(state.properties.clawIndexes[i - 1], 0);
                 state.handArrTransform(state.properties.clawTransformIndexes);
                 state.discardArrTransform(state.properties.clawTransformIndexes);
+                state.deckArrTransform(state.properties.clawTransformIndexes);
                 exhaust[state.properties.clawIndexes[i]] += exhaust[state.properties.clawIndexes[i - 1]];
                 exhaust[state.properties.clawIndexes[i - 1]] = 0;
             }
@@ -280,12 +277,9 @@ public class CardDefect {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             var exhaust = state.getExhaustForWrite();
             for (int i = limit - 1; i > 0; i--) {
-                for (int j = 0; j < state.getDeckForRead()[state.properties.clawPIndexes[i - 1]]; j++) {
-                    state.addCardToDeck(state.properties.clawPIndexes[i]);
-                }
-                state.setCardCountInDeck(state.properties.clawPIndexes[i - 1], 0);
                 state.handArrTransform(state.properties.clawPTransformIndexes);
                 state.discardArrTransform(state.properties.clawPTransformIndexes);
+                state.deckArrTransform(state.properties.clawPTransformIndexes);
                 exhaust[state.properties.clawPIndexes[i]] += exhaust[state.properties.clawPIndexes[i - 1]];
                 exhaust[state.properties.clawPIndexes[i - 1]] = 0;
             }
@@ -1361,13 +1355,9 @@ public class CardDefect {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         for (int i = 0; i < 4; i++) {
-                            if (state.getDeckForRead()[state.properties.forceFieldIndexes[i + 1]] > 0) {
-                                state.getDeckForWrite()[state.properties.forceFieldIndexes[i]] += state.getDeckForWrite()[state.properties.forceFieldIndexes[i + 1]];
-                                state.getDeckForWrite()[state.properties.forceFieldIndexes[i + 1]] = 0;
-                                var exhaust = state.getExhaustForWrite();
-                                exhaust[state.properties.forceFieldIndexes[i]] += exhaust[state.properties.forceFieldIndexes[i + 1]];
-                                exhaust[state.properties.forceFieldIndexes[i + 1]] = 0;
-                            }
+                            var exhaust = state.getExhaustForWrite();
+                            exhaust[state.properties.forceFieldIndexes[i]] += exhaust[state.properties.forceFieldIndexes[i + 1]];
+                            exhaust[state.properties.forceFieldIndexes[i + 1]] = 0;
                         }
                         for (int i = 0; i < state.deckArrLen; i++) {
                             if (state.properties.forceFieldTransformIndexes[state.getDeckArrForRead()[i]] >= 0) {
@@ -1376,6 +1366,7 @@ public class CardDefect {
                         }
                         state.handArrTransform(state.properties.forceFieldTransformIndexes);
                         state.discardArrTransform(state.properties.forceFieldTransformIndexes);
+                        state.deckArrTransform(state.properties.forceFieldTransformIndexes);
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }
@@ -1427,10 +1418,6 @@ public class CardDefect {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         for (int i = 0; i < 4; i++) {
-                            if (state.getDeckForRead()[state.properties.forceFieldPIndexes[i + 1]] > 0) {
-                                state.getDeckForWrite()[state.properties.forceFieldPIndexes[i]] += state.getDeckForWrite()[state.properties.forceFieldPIndexes[i + 1]];
-                                state.getDeckForWrite()[state.properties.forceFieldPIndexes[i + 1]] = 0;
-                            }
                             var exhaust = state.getExhaustForWrite();
                             exhaust[state.properties.forceFieldPIndexes[i]] += exhaust[state.properties.forceFieldPIndexes[i + 1]];
                             exhaust[state.properties.forceFieldPIndexes[i + 1]] = 0;
@@ -1442,6 +1429,7 @@ public class CardDefect {
                         }
                         state.handArrTransform(state.properties.forceFieldPTransformIndexes);
                         state.discardArrTransform(state.properties.forceFieldPTransformIndexes);
+                        state.deckArrTransform(state.properties.forceFieldPTransformIndexes);
                     }
                 }
             });
@@ -1538,7 +1526,7 @@ public class CardDefect {
             count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.getNumCardsInHand(), idx);
             if (idx < state.properties.realCardsLen) {
                 count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), idx);
-                count += state.getDeckForRead()[idx];
+                count += GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), idx);
             }
             return count;
         }

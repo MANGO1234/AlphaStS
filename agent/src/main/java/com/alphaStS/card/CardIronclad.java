@@ -419,11 +419,7 @@ public class CardIronclad {
             }
             count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
             count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
-            for (int i = 0; i < state.properties.strikeCardIdxes.length; i++) {
-                if (state.properties.strikeCardIdxes[i] < state.properties.realCardsLen) {
-                    count += state.getDeckForRead()[state.properties.strikeCardIdxes[i]];
-                }
-            }
+            count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), strikes);
             int dmg = 6 + 2 * count + (state.properties.hasStrikeDummy ? 3 : 0);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
@@ -444,11 +440,7 @@ public class CardIronclad {
             }
             count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
             count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
-            for (int i = 0; i < state.properties.strikeCardIdxes.length; i++) {
-                if (state.properties.strikeCardIdxes[i] < state.properties.realCardsLen) {
-                    count += state.getDeckForRead()[state.properties.strikeCardIdxes[i]];
-                }
-            }
+            count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), strikes);
             int dmg = 6 + 3 * count + (state.properties.hasStrikeDummy ? 3 : 0);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
@@ -782,16 +774,13 @@ public class CardIronclad {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = 0; i < 4; i++) {
-                        if (state.getDeckForRead()[state.properties.bloodForBloodIndexes[i + 1]] > 0) {
-                            state.getDeckForWrite()[state.properties.bloodForBloodIndexes[i]] += state.getDeckForWrite()[state.properties.bloodForBloodIndexes[i + 1]];
-                            state.getDeckForWrite()[state.properties.bloodForBloodIndexes[i + 1]] = 0;
-                        }
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.properties.bloodForBloodIndexes[i]] += exhaust[state.properties.bloodForBloodIndexes[i + 1]];
                         exhaust[state.properties.bloodForBloodIndexes[i + 1]] = 0;
                     }
                     state.handArrTransform(state.properties.bloodForBloodTransformIndexes);
                     state.discardArrTransform(state.properties.bloodForBloodTransformIndexes);
+                    state.deckArrTransform(state.properties.bloodForBloodTransformIndexes);
                 }
             });
         }
@@ -830,16 +819,13 @@ public class CardIronclad {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     for (int i = 0; i < 3; i++) {
-                        if (state.getDeckForRead()[state.properties.bloodForBloodPIndexes[i + 1]] > 0) {
-                            state.getDeckForWrite()[state.properties.bloodForBloodPIndexes[i]] += state.getDeckForWrite()[state.properties.bloodForBloodPIndexes[i + 1]];
-                            state.getDeckForWrite()[state.properties.bloodForBloodPIndexes[i + 1]] = 0;
-                        }
                         var exhaust = state.getExhaustForWrite();
                         exhaust[state.properties.bloodForBloodPIndexes[i]] += exhaust[state.properties.bloodForBloodPIndexes[i + 1]];
                         exhaust[state.properties.bloodForBloodPIndexes[i + 1]] = 0;
                     }
                     state.handArrTransform(state.properties.bloodForBloodPTransformIndexes);
                     state.discardArrTransform(state.properties.bloodForBloodPTransformIndexes);
+                    state.deckArrTransform(state.properties.bloodForBloodPTransformIndexes);
                 }
             });
         }
@@ -2480,7 +2466,7 @@ public class CardIronclad {
             count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.getNumCardsInHand(), idx);
             if (idx < state.properties.realCardsLen) {
                 count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), idx);
-                count += state.getDeckForRead()[idx];
+                count += GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), idx);
             }
             return count;
         }
