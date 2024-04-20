@@ -761,14 +761,10 @@ public class CardIronclad {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.bloodForBloodIndexes = new int[5];
-            for (int i = 0; i < 5; i++) {
-                state.properties.bloodForBloodIndexes[i] = state.properties.findCardIndex(new BloodForBlood(i));
-            }
             state.properties.bloodForBloodTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.bloodForBloodTransformIndexes, -1);
             for (int i = 0; i < 4; i++) {
-                state.properties.bloodForBloodTransformIndexes[state.properties.bloodForBloodIndexes[i + 1]] = state.properties.bloodForBloodIndexes[i];
+                state.properties.bloodForBloodTransformIndexes[state.properties.findCardIndex(new BloodForBlood(i + 1))] = state.properties.findCardIndex(new BloodForBlood(i));
             }
             state.properties.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
@@ -802,14 +798,10 @@ public class CardIronclad {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.bloodForBloodPIndexes = new int[4];
-            for (int i = 0; i < 4; i++) {
-                state.properties.bloodForBloodPIndexes[i] = state.properties.findCardIndex(new BloodForBloodP(i));
-            }
             state.properties.bloodForBloodPTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.bloodForBloodPTransformIndexes, -1);
             for (int i = 0; i < 4; i++) {
-                state.properties.bloodForBloodPTransformIndexes[state.properties.bloodForBloodPIndexes[i + 1]] = state.properties.bloodForBloodPIndexes[i];
+                state.properties.bloodForBloodPTransformIndexes[state.properties.findCardIndex(new BloodForBloodP(i + 1))] = state.properties.findCardIndex(new BloodForBloodP(i));
             }
             state.properties.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {

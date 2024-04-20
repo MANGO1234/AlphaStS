@@ -1490,10 +1490,6 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.masterfulStabIndexes = new int[maxEnergyCost + 1];
-            for (int i = 0; i < state.properties.masterfulStabIndexes.length; i++) {
-                state.properties.masterfulStabIndexes[i] = state.properties.findCardIndex(new CardSilent.MasterfulStab(i, maxEnergyCost));
-            }
             state.properties.masterfulStabTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.masterfulStabTransformIndexes, -1);
             for (int i = 0; i < maxEnergyCost; i++) {
@@ -1538,10 +1534,6 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.masterfulStabPIndexes = new int[maxEnergyCost + 1];
-            for (int i = 0; i < state.properties.masterfulStabPIndexes.length; i++) {
-                state.properties.masterfulStabPIndexes[i] = state.properties.findCardIndex(new CardSilent.MasterfulStabP(i, maxEnergyCost));
-            }
             state.properties.masterfulStabPTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.masterfulStabPTransformIndexes, -1);
             for (int i = 0; i < maxEnergyCost; i++) {

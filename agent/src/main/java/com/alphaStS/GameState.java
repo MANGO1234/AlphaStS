@@ -3100,18 +3100,14 @@ public final class GameState implements State {
             }
             idx += properties.preBattleScenariosBackup.listRandomizations().size();
         }
-        var deck = GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.realCardsLen);
-        for (int i = 0; i < deck.length; i++) {
-            x[idx++] = deck[i] / (float) 10.0;
+        for (int i = 0; i < deckArrLen; i++) {
+            x[idx + deckArr[i]] += (float) 0.1;
         }
-        var hand = GameStateUtils.getCardArrCounts(handArr, handArrLen, properties.cardDict.length);
-        for (int i = 0; i < hand.length; i++) {
-            x[idx++] = hand[i] / (float) 10.0;
+        idx += properties.realCardsLen;
+        for (int i = 0; i < handArrLen; i++) {
+            x[idx + handArr[i]] += (float) 0.1;
         }
-//        for (int i = 0; i < handArrLen; i++) {
-//            x[idx + handArr[i]] += (float) 0.1;
-//        }
-//        idx += prop.cardDict.length;
+        idx += properties.cardDict.length;
         if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
             x[idx++] = (handArrLen - 5) / 10.0f;
         }
@@ -3121,19 +3117,15 @@ public final class GameState implements State {
         if (properties.cardInDiscardInNNInput) {
             x[idx++] = getNumCardsInDiscard() / 40.0f;
         }
-        var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
-        for (int i = 0; i < properties.discardIdxes.length; i++) {
-            x[idx++] = discard[properties.discardIdxes[i]] / (float) 10.0;
+        for (int i = 0; i < discardArrLen; i++) {
+            x[idx + properties.discardReverseIdxes[discardArr[i]]] += (float) 0.1;
         }
-//        for (int i = 0; i < discardArrLen; i++) {
-//            x[idx + prop.discardReverseIdxes[discardArr[i]]] += (float) 0.1;
-//        }
-//        idx += prop.discardIdxes.length;
+        idx += properties.discardIdxes.length;
         if (properties.selectFromExhaust) {
-            var exhaust = GameStateUtils.getCardArrCounts(exhaustArr, exhaustArrLen, properties.realCardsLen);
-            for (int i = 0; i < exhaust.length; i++) {
-                x[idx++] = exhaust[i] / (float) 10.0;
+            for (int i = 0; i < discardArrLen; i++) {
+                x[idx + discardArr[i]] += (float) 0.1;
             }
+            idx += properties.realCardsLen;
         }
         if (needChosenCardsInInput() && chosenCardsArr != null) {
             for (int i = 0; i < chosenCardsArrLen; i++) {
