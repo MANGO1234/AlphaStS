@@ -145,7 +145,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 1) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
                         state.draw(2);
                     }
                 }
@@ -250,7 +250,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Lantern extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energy += 1;
+            state.properties.addStartOfBattleHandler("BagOfPreparation", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                        state.gainEnergy(1);
+                    }
+                }
+            });
         }
     }
 
@@ -1241,7 +1247,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Winged Greaves: No need to implement
     // Cauldron: No need to implement
     // todo: Chemical X
-    // todo: Clockwork Souvenir
+
+    public static class ClockworkSouvenir extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("ClockworkSouvenir", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                        state.getPlayerForWrite().gainArtifact(1);
+                    }
+                }
+            });
+        }
+    }
+
     // Dollys Mirror: No need to implement
     // todo: Frozen Eye
     // todo: Hand Drill

@@ -2454,6 +2454,9 @@ public class CardDefect {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("BiasedLoseFocus", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
+                    if (counterIdx != state.properties.loseFocusPerTurnCounterIdx) {
+                        throw new IllegalStateException();
+                    }
                     input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
                     return idx + 1;
                 }

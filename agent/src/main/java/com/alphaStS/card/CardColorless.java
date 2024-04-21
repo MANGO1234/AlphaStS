@@ -1,6 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 
 import java.util.List;
@@ -657,7 +658,67 @@ public class CardColorless {
         }
     }
 
-    // The Bomb
+    private static abstract class _TheBombT extends Card {
+        private final int n;
+
+        public _TheBombT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TheBomb", this, 3, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 5.0f;
+                    input[idx + 2] = state.getCounterForRead()[counterIdx + 2] / 5.0f;
+                    return idx + 3;
+                }
+                @Override public int getInputLenDelta() {
+                    return 3;
+                }
+            });
+            state.properties.addEndOfTurnHandler("TheBomb", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx + 2] > 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, n, true);
+                        }
+                        state.getCounterForWrite()[counterIdx + 2] = 0;
+                    }
+                    if (state.getCounterForRead()[counterIdx + 1] > 0) {
+                        state.getCounterForWrite()[counterIdx + 2] = state.getCounterForRead()[counterIdx + 1];
+                        state.getCounterForWrite()[counterIdx + 1] = 0;
+                    }
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx + 1] = state.getCounterForRead()[counterIdx];
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+
+        public int countersNeeded(GameState state) {
+            return 3;
+        }
+    }
+
+    public static class TheBomb extends CardColorless._TheBombT {
+        public TheBomb() {
+            super("The Bomb", Card.SKILL, 2, 40);
+        }
+    }
+
+    public static class TheBombP extends CardColorless._TheBombT {
+        public TheBombP() {
+            super("The Bomb+", Card.SKILL, 2, 50);
+        }
+    }
 
     private static abstract class _ThinkingAheadT extends Card {
         public _ThinkingAheadT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {

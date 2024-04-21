@@ -136,7 +136,10 @@ public class Main {
         parseCommonArgs(state, args);
         state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
 //        MatchSession.readMatchLogFile(CUR_ITER_DIRECTORY + "/matches.txt.gz", CUR_ITER_DIRECTORY, state);
-        new InteractiveMode().interactiveStart(state, SAVES_DIR, CUR_ITER_DIRECTORY);
+        new InteractiveMode()
+                .setDefaultNumberOfThreads(NUMBER_OF_THREADS)
+                .setDefaultBatchSize(BATCH_SIZE)
+                .interactiveStart(state, SAVES_DIR, CUR_ITER_DIRECTORY);
     }
 
     private static void playGames(GameState state, String[] args) throws IOException {

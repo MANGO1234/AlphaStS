@@ -78,6 +78,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return energyCost;
     }
 
+    public Card setInnate(boolean innate) {
+        this.innate = innate;
+        return this;
+    }
+
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
     public List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }

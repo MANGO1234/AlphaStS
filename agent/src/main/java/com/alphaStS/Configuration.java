@@ -76,8 +76,8 @@ public class Configuration {
         return PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE && (!TEST_PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE || state.properties.testNewFeature);
     }
 
-    public static boolean FLATTEN_POLICY_AS_NODES_INCREASE = true;
-    public static boolean TEST_FLATTEN_POLICY_AS_NODES_INCREASE = true;
+    public static boolean FLATTEN_POLICY_AS_NODES_INCREASE = false;
+    public static boolean TEST_FLATTEN_POLICY_AS_NODES_INCREASE = false;
 
     public static boolean isFlattenPolicyAsNodesIncreaseOn(GameState state) {
         return FLATTEN_POLICY_AS_NODES_INCREASE && (!TEST_FLATTEN_POLICY_AS_NODES_INCREASE || state.properties.testNewFeature);

@@ -571,9 +571,7 @@ public final class GameState implements State {
             potions.get(i).gamePropertiesSetup(this);
         }
         properties.compileCounterInfo();
-        if (properties.counterNames.length > 0) {
-            counter = new int[properties.counterNames.length];
-        }
+        counter = new int[properties.counterLength];
         Collections.sort(properties.startOfBattleHandlers);
         Collections.sort(properties.endOfBattleHandlers);
         Collections.sort(properties.startOfTurnHandlers);

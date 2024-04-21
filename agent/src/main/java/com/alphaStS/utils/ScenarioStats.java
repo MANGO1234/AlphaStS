@@ -74,11 +74,8 @@ public class ScenarioStats {
         predictionError = new HashMap<>();
     }
 
-    public static ScenarioStats combine(ScenarioStats... stats) {
-        if (stats.length == 0) {
-            throw new IllegalArgumentException();
-        }
-        ScenarioStats total = new ScenarioStats(stats[0].properties);
+    public static ScenarioStats combine(GameProperties properties, ScenarioStats... stats) {
+        ScenarioStats total = new ScenarioStats(properties);
         for (ScenarioStats stat : stats) {
             total.add(stat);
         }

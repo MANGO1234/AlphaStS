@@ -300,6 +300,7 @@ public class GameProperties implements Cloneable {
 
     public Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
     Map<String, Integer> counterIdx = new HashMap<>();
+    Map<String, Integer> counterLens = new HashMap<>();
     Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
     Map<String, NetworkInputHandler> nnInputHandlerMap = new HashMap<>();
     NetworkInputHandler[] nnInputHandlers;
@@ -309,12 +310,17 @@ public class GameProperties implements Cloneable {
         nnInputHandlerMap.putIfAbsent(name, handler);
     }
 
-    public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
+    public void registerCounter(String name, CounterRegistrant registrant, int counterLen, NetworkInputHandler handler) {
         var registrants = counterRegistrants.computeIfAbsent(name, k -> new ArrayList<>());
         registrants.add(registrant);
+        counterLens.putIfAbsent(name, counterLen);
         if (handler != null) {
             counterHandlerMap.putIfAbsent(name, handler);
         }
+    }
+
+    public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
+        registerCounter(name, registrant, 1, handler);
     }
 
     public boolean hasCounter(String name) {
@@ -327,21 +333,27 @@ public class GameProperties implements Cloneable {
 
     String[] counterNames;
     NetworkInputHandler[] counterHandlers;
+    int[] counterLenInArr;
     NetworkInputHandler[] counterHandlersNonNull;
+    int counterLength;
 
     public void compileCounterInfo() {
         var names = counterRegistrants.keySet().stream().sorted().toList();
         counterNames = names.toArray(new String[] {});
         counterHandlers = new NetworkInputHandler[counterNames.length];
+        counterLenInArr = new int[counterNames.length];
+        counterLength = 0;
         for (int i = 0; i < counterNames.length; i++) {
             counterHandlers[i] = counterHandlerMap.get(counterNames[i]);
+            counterLenInArr[i] = counterLens.get(counterNames[i]);
             for (CounterRegistrant registrant : counterRegistrants.get(counterNames[i])) {
-                registrant.setCounterIdx(this, i);
+                registrant.setCounterIdx(this, counterLength);
             }
-            counterIdx.put(counterNames[i], i);
+            counterIdx.put(counterNames[i], counterLength);
             if (counterHandlers[i] != null) {
-                counterHandlers[i].onRegister(i);
+                counterHandlers[i].onRegister(counterLength);
             }
+            counterLength += counterLenInArr[i];
         }
         counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList()
                 .toArray(new NetworkInputHandler[0]);

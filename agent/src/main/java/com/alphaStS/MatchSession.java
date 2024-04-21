@@ -428,10 +428,10 @@ public class MatchSession {
                     for (int i = 0; i < scenariosGroup.length; i++) {
                         System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
                         var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
-                        ScenarioStats.combine(group).printStats(origState, false , 4);
+                        ScenarioStats.combine(origState.properties, group).printStats(origState, false , 4);
                     }
                 }
-                ScenarioStats.combine(scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDmg && game_i.get() == numOfGames, 0);
+                ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDmg && game_i.get() == numOfGames, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 var modelsPrint = modelExecutor.getExecutorModels();
                 for (int i = 0; i < modelsPrint.size(); i++) {

@@ -24,6 +24,18 @@ public class InteractiveMode {
     private PrintStream out = System.out;
     private ModelExecutor modelExecutor;
     private List<MCTS> threadMCTS = new ArrayList<>();
+    private int DEFAULT_NUMBER_OF_THREADS = 1;
+    private int DEFAULT_BATCH_SIZE = 1;
+
+    public InteractiveMode setDefaultNumberOfThreads(int numThreads) {
+        DEFAULT_NUMBER_OF_THREADS = numThreads;
+        return this;
+    }
+
+    public InteractiveMode setDefaultBatchSize(int batchSize) {
+        DEFAULT_BATCH_SIZE = batchSize;
+        return this;
+    }
 
     private void allocateThreadMCTS(ModelExecutor modelExecutor, int numThreads) {
         for (int i = 0; i < modelExecutor.getExecutorModels().size(); i++) {
@@ -481,8 +493,8 @@ public class InteractiveMode {
                 // use to find critical actions/bad rng/mistakes by analyzing changes in those stats
                 List<String> args = Arrays.asList(line.split(" "));
                 int numberOfGames = parseArgsInt(args, "c", 100);
-                int numberOfThreads = parseArgsInt(args, "t", 1);
-                int batchSize = parseArgsInt(args, "b", 1);
+                int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+                int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
                 int nodeCount = parseArgsInt(args, "n", 500);
 
                 var statsArr = new ArrayList<ScenarioStats>();
@@ -563,8 +575,8 @@ public class InteractiveMode {
             } else if (line.startsWith("check ")) { // for each action in the game, find whether the network would've changed its mind with higher amount of nodes
                 List<String> args = Arrays.asList(line.split(" "));
                 int nodeCount = parseArgsInt(args, "n", 500);
-                int numberOfThreads = parseArgsInt(args, "t", 1);
-                int batchSize = parseArgsInt(args, "b", 1);
+                int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+                int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
 
                 var pvs = new ArrayList<Tuple<Tuple<Integer, Integer>, Tuple<List<GameStep>, List<GameStep>>>>();
                 var start = 0;
@@ -803,11 +815,17 @@ public class InteractiveMode {
         }
         if (state.properties.counterHandlersNonNull.length > 0) {
             out.println("  Other:");
+            int idx = 0;
             for (int i = 0; i < state.properties.counterHandlers.length; i++) {
-                if (state.properties.counterHandlers[i] != null && state.getCounterForRead()[i] != 0) {
-                    String counterStr = state.properties.counterHandlers[i].getDisplayString(state);
-                    out.println("    - " + state.properties.counterNames[i] + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[i]));
+                if (state.properties.counterHandlers[i] != null) {
+                    for (int j = 0; j < state.properties.counterLenInArr[i]; j++) {
+                        if (state.getCounterForRead()[idx + j] != 0) {
+                            String counterStr = state.properties.counterHandlers[i].getDisplayString(state);
+                            out.println("    - " + state.properties.counterNames[i] + j + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[idx + j]));
+                        }
+                    }
                 }
+                idx += state.properties.counterLenInArr[i];
             }
             if (state.getPlayeForRead().isEntangled()) {
                 out.println("  - Entangled");
@@ -1078,7 +1096,7 @@ public class InteractiveMode {
                         return;
                     }
                     int n = parseInt(line, -1);
-                    if (n > 0) {
+                    if (n >= -1) {
                         if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.RedLouse louse) {
                             louse.setD(n);
                         } else if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.GreenLouse louse) {
@@ -1416,8 +1434,8 @@ public class InteractiveMode {
     private void runGames(String modelDir, GameState state, String line) {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 500);
-        int numberOfThreads = parseArgsInt(args, "t", 1);
-        int batchSize = parseArgsInt(args, "b", 1);
+        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         int numberOfGames = parseArgsInt(args, "c", 100);
         int randomizationScenario = parseArgsInt(args, "r", -1);
         boolean printDamageDistribution = parseArgsBoolean(args, "dmg");
@@ -1481,8 +1499,8 @@ public class InteractiveMode {
     private void runGamesCmp(BufferedReader reader, String modelDir, String line) throws IOException {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 500);
-        int numberOfThreads = parseArgsInt(args, "t", 1);
-        int batchSize = parseArgsInt(args, "b", 1);
+        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         int numberOfGames = parseArgsInt(args, "c", 100);
         int randomizationScenario = parseArgsInt(args, "r", -1);
         MatchSession session = new MatchSession(modelDir);
@@ -1704,8 +1722,8 @@ public class InteractiveMode {
             out.println("<node count>");
         }
         int count = Integer.parseInt(args.get(1));
-        int numberOfThreads = parseArgsInt(args, "t", 1);
-        int batchSize = parseArgsInt(args, "b", 1);
+        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         boolean smartPruneEnable = parseArgsBoolean(args, "prune");
         int forceRootAction = parseArgsInt(args, "a", -1);
 
@@ -1769,8 +1787,8 @@ public class InteractiveMode {
             out.println("<node count>");
         }
         int count = parseInt(args.get(1), 1000);
-        int numberOfThreads = parseArgsInt(args, "t", 1);
-        int batchSize = parseArgsInt(args, "b", 1);
+        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
         boolean clear = parseArgsBoolean(args, "clear");
 
@@ -1913,8 +1931,8 @@ public class InteractiveMode {
     private void runNNPVChance(BufferedReader reader, GameState state, String line) throws IOException {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 100);
-        int numberOfThreads = parseArgsInt(args, "t", 1);
-        int batchSize = parseArgsInt(args, "b", 1);
+        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         int chanceAction = parseArgsInt(args, "a", -1);
         if (chanceAction < 0) {
             out.println("Unknown action.");
@@ -1995,8 +2013,8 @@ public class InteractiveMode {
         List<String> args = Arrays.asList(line.split(" "));
         int trialCount = parseArgsInt(args, "c", 100);
         int nodeCount = parseArgsInt(args, "n", 100);
-        int numberOfThreads = parseArgsInt(args, "t", 1);
-        int batchSize = parseArgsInt(args, "b", 1);
+        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
+        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         boolean clear = parseArgsBoolean(args, "clear");
 
         long start = System.currentTimeMillis();
