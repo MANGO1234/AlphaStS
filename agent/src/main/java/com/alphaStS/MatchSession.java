@@ -975,13 +975,15 @@ public class MatchSession {
             vPro = Arrays.copyOf(vCur, vCur.length);
         }
         ChanceState lastChanceState = null;
+        boolean contaminatedByTemp = false;
         for (int i = steps.size() - 2; i >= 0; i--) {
             if (!USE_Z_TRAINING && steps.get(i).isExplorationMove) {
                 List<GameStep> extraSteps = new ArrayList<>();
                 ChanceState cState = findBestLineChanceState(steps.get(i).state(), nodeCount, mcts, extraSteps);
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
                 // to reduce this effect, seems ok so far, also check if we are transposing and skip for transposing
-                if (cState != null && (lastChanceState == null || !cState.equals(lastChanceState))) {
+                if (cState != null && !cState.equals(lastChanceState)) {
+                    contaminatedByTemp = true;
                     double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
                     if (lastChanceState != null || ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
                         state = steps.get(i).state().clone(false);
@@ -1008,6 +1010,7 @@ public class MatchSession {
 //                    augmentedSteps.addAll(extraSteps);
                 }
             }
+            steps.get(i).resultContaminatedByTemp = contaminatedByTemp;
             steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
             if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
                 steps.get(i).v[state.properties.qwinVIdx] = steps.get(i).v[GameState.V_WIN_IDX] - (steps.get(i).state().q[GameState.V_WIN_IDX] / (steps.get(i).state().total_n + 1));
@@ -1421,7 +1424,11 @@ public class MatchSession {
                     stream.writeFloat(x[j]);
                 }
                 for (int j = 1; j < GameState.V_OTHER_IDX_START; j++) {
-                    stream.writeFloat((float) ((step.v[j] * 2) - 1));
+                    if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
+                        stream.writeFloat((float) -100);
+                    } else {
+                        stream.writeFloat((float) ((step.v[j] * 2) - 1));
+                    }
                 }
                 int v_idx = GameState.V_OTHER_IDX_START;
                 int k = 0;
@@ -1431,9 +1438,17 @@ public class MatchSession {
                         if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z")) {
                             stream.writeFloat((float) (step.v[v_idx]));
                          } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
-                             stream.writeFloat((float) ((((step.v[v_idx] - step.state().turnNum / 50.0) * 2) - 1)));
+                            if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
+                                stream.writeFloat((float) -100);
+                            } else {
+                                stream.writeFloat((float) ((((step.v[v_idx] - step.state().turnNum / 50.0) * 2) - 1)));
+                            }
                         } else {
-                            stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
+                            if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
+                                stream.writeFloat((float) -100);
+                            } else {
+                                stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
+                            }
                         }
                     } else {
                         for (int j = 0; j < n; j++) {

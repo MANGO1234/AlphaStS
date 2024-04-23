@@ -485,7 +485,7 @@ public class ScenarioStats {
             System.out.println("]");
         }
         if (properties.biasedCognitionLimitCounterIdx >= 0) {
-            System.out.printf("%sBiased Cognition Limit: %s", indent, Utils.formatFloat(((double) biasedCognitionLimit) / numOfGames));
+            System.out.printf("%sBiased Cognition Limit: %s\n", indent, Utils.formatFloat(((double) biasedCognitionLimit) / numOfGames));
             for (int i = 0; i < biasedCognitionLimitDist.length; i++) {
                 System.out.print(i == 0 ? indent + "Biased Cognition Limit Distribution: [" : ", ");
                 System.out.print(i + ": " + Utils.formatFloat(biasedCognitionLimitDist[i] / numOfGames) + (biasedCognitionLimitUsedCount[i] == 0 ? "" : " (" + biasedCognitionLimitUsedCount[i] + ")"));

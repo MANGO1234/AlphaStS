@@ -1006,9 +1006,13 @@ public final class GameState implements State {
             }
             int i, cardIdx;
             if (drawOrder.size() > 0) {
-                i = getDrawOrderForWrite().drawTop();
+                i = getDrawOrderForWrite().peekTop();
+                int prevLen = drawOrder.size();
                 if (!drawCardByIdx(i, true)) {
                     continue;
+                }
+                if (prevLen == drawOrder.size()) {
+                    getDrawOrderForWrite().drawTop();
                 }
                 cardIdx = i;
                 drawnIdx = i;
@@ -2550,7 +2554,7 @@ public final class GameState implements State {
                             }
 
                             if (properties.biasedCognitionLimitCounterIdx >= 0) {
-                                if (properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress() < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
+                                if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress() < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
                                     continue;
                                 }
                             }

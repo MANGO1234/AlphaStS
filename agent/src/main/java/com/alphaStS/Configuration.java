@@ -8,6 +8,7 @@ public class Configuration {
     // During training, enable KataGo's forced playout
     public static boolean TRAINING_USE_FORCED_PLAYOUT = true;
     public static boolean TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION = false;
+    public static boolean TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES = false;
     public static boolean CARD_IN_HAND_IN_NN_INPUT = true;
     public static boolean CARD_IN_DECK_IN_NN_INPUT = true;
 

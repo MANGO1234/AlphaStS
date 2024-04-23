@@ -156,8 +156,8 @@ else:
     policy_head = layers.Dense(num_of_actions, use_bias=True, activation='linear', name="policy_head")(x)
     exp_other_heads = []
     loss = {
-        'exp_health_head': 'mean_squared_error',
-        'exp_win_head': 'mean_squared_error',
+        'exp_health_head': mse_ignoring_out_of_bound,
+        'exp_win_head': mse_ignoring_out_of_bound,
         'policy_head': softmax_cross_entropy_with_logits
     }
     loss_weights = {'exp_health_head': 0.45, 'policy_head': 0.1, 'exp_win_head': 0.45}
@@ -165,11 +165,11 @@ else:
     for v_other in v_other_lens:
         if v_other == 1:
             if v_other_label[idx].startswith('z_'):
-                loss[f'{v_other_label[idx]}_head'] = 'mean_squared_error'
+                loss[f'{v_other_label[idx]}_head'] = mse_ignoring_out_of_bound
                 exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(layers.Lambda(lambda x: tf.stop_gradient(x))(x)))
                 loss_weights[f'{v_other_label[idx]}_head'] = 0.25
             else:
-                loss[f'{v_other_label[idx]}_head'] = 'mean_squared_error'
+                loss[f'{v_other_label[idx]}_head'] = mse_ignoring_out_of_bound
                 exp_other_heads.append(layers.Dense(1, name=f"{v_other_label[idx]}_head", use_bias=True, activation='tanh')(x))
                 loss_weights[f'{v_other_label[idx]}_head'] = 0.25
         else:

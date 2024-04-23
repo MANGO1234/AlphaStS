@@ -50,9 +50,9 @@ public class DrawOrderReadOnly {
     }
 
     public void remove(int cardIndex) {
-        for (int i = 0; i < len; i++) {
+        for (int i = len - 1; i >= 0; i--) {
             if (order[i] == cardIndex) {
-                for (int j = i; j < len - 1; j++) {
+                for (int j = i; j < len; j++) {
                     order[j] = order[j + 1];
                 }
                 len--;

@@ -113,6 +113,7 @@ public class Main {
 //            COMPARE_DIR = "../saves/iteration60";
 //            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
 //            COMPARE_DIR = SAVES_DIR + "/iteration60";
+            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
         }
 
         ObjectMapper mapper = new ObjectMapper();

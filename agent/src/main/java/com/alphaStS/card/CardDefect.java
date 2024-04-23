@@ -1341,7 +1341,7 @@ public class CardDefect {
                     state.properties.forceFieldTransformIndexes[forceFieldTmp0Indexes[i + 1]] = forceFieldTmp0Indexes[i];
                 }
             }
-            state.properties.addOnCardPlayedHandler("Force Field", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.handArrTransform(state.properties.forceFieldTransformIndexes);
@@ -1386,12 +1386,24 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            var forceFieldPTmp0Indexes = new int[5];
+            Arrays.fill(forceFieldPTmp0Indexes, -1);
+            for (int i = 0; i < 5; i++) {
+                if (i == 0) {
+                    forceFieldPTmp0Indexes[i] = state.properties.findCardIndex(new ForceFieldP(i));
+                } else {
+                    forceFieldPTmp0Indexes[i] = state.properties.findCardIndex(new CardTmpChangeCost(new ForceFieldP(i), 0));
+                }
+            }
             state.properties.forceFieldPTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.forceFieldPTransformIndexes, -1);
             for (int i = 0; i < 4; i++) {
-                state.properties.forceFieldPTransformIndexes[state.properties.findCardIndex(new ForceField(i + 1))] = state.properties.findCardIndex(new ForceField(i));
+                state.properties.forceFieldPTransformIndexes[state.properties.findCardIndex(new ForceFieldP(i + 1))] = state.properties.findCardIndex(new ForceFieldP(i));
+                if (forceFieldPTmp0Indexes[i + 1] >= 0) {
+                    state.properties.forceFieldPTransformIndexes[forceFieldPTmp0Indexes[i + 1]] = forceFieldPTmp0Indexes[i];
+                }
             }
-            state.properties.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("ForceField+", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.handArrTransform(state.properties.forceFieldPTransformIndexes);
@@ -1400,6 +1412,18 @@ public class CardDefect {
                         state.exhaustArrTransform(state.properties.forceFieldPTransformIndexes);
                         state.getCounterForWrite()[counterIdx]++;
                     }
+                }
+            });
+            state.properties.registerCounter("ForceField", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.forceFieldCounterIdx = counterIdx;
                 }
             });
         }
@@ -2825,7 +2849,7 @@ public class CardDefect {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, n);
             }
-            state.gainFocus(-3);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, 3);
             return GameActionCtx.PLAY_CARD;
         }
     }

@@ -20,6 +20,13 @@ public class DrawOrder extends DrawOrderReadOnly {
         return order[--len];
     }
 
+    public int peekTop() {
+        if (len == 0) {
+            return -1;
+        }
+        return order[len - 1];
+    }
+
     public void clear() {
         len = 0;
     }
