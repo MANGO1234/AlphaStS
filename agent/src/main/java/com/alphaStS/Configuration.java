@@ -97,7 +97,7 @@ public class Configuration {
 
     // print model prediction error compare to actual result
     public static boolean STATS_PRINT_PREDICTION_ERRORS = false;
-    public static boolean STATS_PRINT_CARD_USAGE_COUNT = true;
+    public static boolean STATS_PRINT_CARD_USAGE_COUNT = false;
 
     public static boolean USE_NEW_ACTION_SELECTION = false;
 

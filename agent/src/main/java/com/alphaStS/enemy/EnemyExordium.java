@@ -1462,7 +1462,7 @@ public class EnemyExordium {
             if (training) {
                 health = (int) Math.round(((double) (health * difficulty)) / 5);
             } else {
-                health = 50 + random.nextInt(7, RandomGenCtx.Other);
+                health = 50 + random.nextInt(7, RandomGenCtx.RandomEnemyHealth, 50);
             }
         }
 

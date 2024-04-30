@@ -1841,6 +1841,66 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectRun5() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new Card.Defend(), 3);
+        builder.addCard(new Card.DefendP(), 1);
+        builder.addCard(new CardDefect.SweepingBeam(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.ColdSnapP(), 1);
+        builder.addCard(new CardDefect.HyperBeamP(), 1);
+        builder.addCard(new CardDefect.DefragmentP().setInnate(true), 1);
+        builder.addCard(new CardDefect.SelfRepairHeart(), 2);
+        builder.addCard(new CardDefect.ChargeBattery(), 2);
+        builder.addCard(new CardDefect.Rebound(), 1);
+        builder.addCard(new CardDefect.BiasedCognitionP(), 3);
+        builder.addCard(new CardDefect.Sunder(), 1);
+        builder.addCard(new CardDefect.Seek(), 1);
+        builder.addCard(new CardDefect.FTLP(), 1);
+        builder.addCard(new CardDefect.FTL(), 1);
+        builder.addCard(new CardDefect.Equilibrium(), 1);
+        builder.addCard(new CardDefect.MachineLearningP(), 1);
+        builder.addCard(new CardDefect.CompiledDriverP(), 1);
+        builder.addCard(new CardDefect.CapacitorP(), 1);
+        builder.addCard(new CardDefect.Rainbow(), 1);
+        builder.addCard(new CardDefect.HeatsinksP(), 2);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.DarknessP(), 1);
+        builder.addCard(new CardDefect.TurboP(), 1);
+        builder.addCard(new CardDefect.RecursionP(), 1);
+        builder.addCard(new CardDefect.Overclock(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardColorless.ThinkingAhead(), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.ClockworkSouvenir());
+        builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.FusionHammer());
+        builder.addRelic(new Relic.CaptainsWheel());
+        builder.addRelic(new Relic.PhilosophersStone());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.ToyOrnithopter());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.BronzeScales());
+        builder.addRelic(new Relic.TheBoot());
+        builder.addRelic(new Relic.PenNib(9, 0));
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "bias+", "think", "dua", "sel", "def", "e", "exit"));
+//        builder.addRelic(new Relic.BiasedCognitionLimit());
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        builder.addPotion(new Potion.AttackPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.DexterityPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.LizardTail(67).setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(7);
+        builder.setPlayer(new Player(39, 54));
+        return new GameState(builder);
+    }
+
     public static GameState TestStateStreamerRun() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);

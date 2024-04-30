@@ -1646,7 +1646,7 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
-            if (state.getCounterForRead()[state.properties.constrictedCounterIdx] == 0 && lastMove != CONSTRICT) {
+            if (state.getCounterForRead()[state.properties.constrictedCounterIdx] == 0 && move != CONSTRICT) {
                 newMove = CONSTRICT;
             } else {
                 if (move == QUICK_TACKLE && lastMove == QUICK_TACKLE) {
@@ -1657,14 +1657,6 @@ public class EnemyBeyond {
                     int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
                     newMove = r < 50 ? QUICK_TACKLE : SMASH;
                 }
-//                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
-//                if (r < 50 && !(move == QUICK_TACKLE && lastMove == QUICK_TACKLE)) {
-//                    newMove = QUICK_TACKLE;
-//                } else if (!(move == SMASH && lastMove == SMASH)) {
-//                    newMove = SMASH;
-//                } else {
-//                    newMove = QUICK_TACKLE;
-//                }
             }
             lastMove = move;
             move = newMove;

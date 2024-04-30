@@ -5,7 +5,6 @@ import com.alphaStS.card.CardDefect;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
-import com.alphaStS.model.Model;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 
@@ -18,13 +17,10 @@ public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
     public boolean multithreadedMTCS;
     public boolean doingComparison;
-    public boolean testPotionOutput = true;
     public boolean curriculumTraining;
     public boolean isTraining;
-    public int minDifficulty;
-    public int maxDifficulty;
     public MCTS currentMCTS;
-    public ConcurrentMap<GameState, double[]> biasedCognitionLimitCache = new ConcurrentHashMap<>();
+    public ConcurrentMap<GameState, Tuple<double[], double[]>> biasedCognitionLimitCache = new ConcurrentHashMap<>();
     public boolean biasedCognitionLimitSet;
     public int biasedCognitionLimitUsed;
     public double[] biasedCognitionLimitDistribution;
@@ -200,6 +196,7 @@ public class GameProperties implements Cloneable {
     public boolean healEndOfAct;
     public int inputLen;
     public int extraOutputLen;
+    public int v_total_len;
     public boolean cardInDiscardInNNInput;
     public boolean discard0CardOrderMatters;
     public int discardOrderMaxKeepTrackIn10s; // currently, those are sent manually in all or one
@@ -212,6 +209,7 @@ public class GameProperties implements Cloneable {
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();
+    public List<Relic> relics;
     GameEventHandler endOfPreBattleHandler;
     public List<GameEventHandler> startOfBattleHandlers = new ArrayList<>();
     public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
@@ -230,6 +228,7 @@ public class GameProperties implements Cloneable {
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
     public GameStateRandomization preBattleScenariosBackup;
+    public GameStateRandomization.EnemyHealthRandomization enemyHealthRandomization;
     public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
     public List<BiConsumer<GameState, int[]>> enemiesReordering;
 
@@ -237,12 +236,11 @@ public class GameProperties implements Cloneable {
     public int maxNumOfOrbs;
 
     public double cpuct = 0.1;
-    public int difficulty;
     public int fightProgressVIdx;
-    public int qwinVIdx = -1;
-    public int dmgDistVIdx = -1;
     public int turnsLeftVIdx = -1;
-    public int v_total_len;
+    public int qwinVIdx = -1;
+
+    public int difficultyChosen;
 
     public GameProperties clone() {
         try {
@@ -277,6 +275,15 @@ public class GameProperties implements Cloneable {
             Integer v = cardIndexCache.get(cardNames[i]);
             idxes[i] = v == null ? -1 : v;
         }
+    }
+
+    public Relic getRelic(Class relicClass) {
+        for (int i = 0; i < relics.size(); i++) {
+            if (relics.get(i).getClass() == relicClass) {
+                return relics.get(i);
+            }
+        }
+        return null;
     }
 
     public interface CounterRegistrant {

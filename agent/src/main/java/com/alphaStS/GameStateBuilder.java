@@ -183,7 +183,7 @@ public class GameStateBuilder {
         var desc = new String[info.size()];
         for (int i = 0; i < info.size(); i++) {
             var _i = i;
-            setters.add((state) -> state.preBattleScenariosChosen = _i);
+            setters.add((state) -> state.preBattleScenariosChosenIdx = _i);
             desc[i] = info.get(i).desc();
         }
         preBattleGameScenarios = randomization.join(new GameStateRandomization.SimpleCustomRandomization(setters)).setDescriptions(desc);

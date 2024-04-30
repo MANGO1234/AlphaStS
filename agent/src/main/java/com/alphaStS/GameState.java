@@ -18,6 +18,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import static com.alphaStS.utils.Utils.formatFloat;
+import static com.alphaStS.utils.Utils.max;
 
 public final class GameState implements State {
     public static final int HAND_LIMIT = 10;
@@ -76,7 +77,9 @@ public final class GameState implements State {
     public short turnNum;
     int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
-    int preBattleScenariosChosen = -1;
+    public int preBattleRandomizationIdxChosen = -1;
+    public int preBattleScenariosChosenIdx = -1;
+    public int battleRandomizationIdxChosen = -1;
 
     // various other buffs/debuffs
     public long buffs;
@@ -241,7 +244,9 @@ public final class GameState implements State {
         if (focus != gameState.focus) return false;
         if (!Arrays.equals(orbs, gameState.orbs)) return false;
         if (!cardIdxArrEqual(nightmareCards, nightmareCardsLen, gameState.nightmareCards, gameState.nightmareCardsLen)) return false;
-        if (preBattleScenariosChosen != gameState.preBattleScenariosChosen) return false;
+        if (preBattleRandomizationIdxChosen != gameState.preBattleRandomizationIdxChosen) return false;
+        if (preBattleScenariosChosenIdx != gameState.preBattleScenariosChosenIdx) return false;
+        if (battleRandomizationIdxChosen != gameState.battleRandomizationIdxChosen) return false;
         boolean dequeIsNull = gameActionDeque == null || gameActionDeque.size() == 0;
         boolean oDequeIsNull = gameState.gameActionDeque == null || gameState.gameActionDeque.size() == 0;
         if (dequeIsNull != oDequeIsNull) {
@@ -304,10 +309,12 @@ public final class GameState implements State {
         properties = new GameProperties();
         properties.randomization = randomization;
         properties.preBattleRandomization = preBattleRandomization;
+        properties.enemyHealthRandomization = new GameStateRandomization.EnemyHealthRandomization(false, null);
         properties.potions = potions;
         properties.potionsScenarios = builder.getPotionsScenarios();
         properties.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         properties.character = builder.getCharacter();
+        properties.relics = builder.getRelics();
         properties.enemiesEncountersIdx = builder.getEnemiesEncountersIdx();
         if (properties.enemiesEncountersIdx != null) {
             if (properties.randomization != null) {
@@ -325,40 +332,7 @@ public final class GameState implements State {
         }
         properties.potionsVArrayIdx = new int[properties.potions.size()];
         Arrays.fill(properties.potionsVArrayIdx, -1);
-        for (int i = 0; i < properties.potions.size(); i++) {
-            if (properties.testPotionOutput && properties.potions.get(i) instanceof Potion.FairyInABottle) {
-                int _i = i;
-                properties.addExtraTrainingTarget((properties.potions.get(i) + "" + i).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
-                    @Override public void setVArrayIdx(int idx) {
-                        properties.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
-                    }
-                }, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                        if (isTerminal != 0) {
-                            if (state.potionsState[_i * 3] == 1 || state.potionsState[_i * 3 + 2] == 0) {
-                                v[state.properties.potionsVArrayIdx[_i]] = 1;
-                            } else {
-                                v[state.properties.potionsVArrayIdx[_i]] = 0;
-                            }
-                        } else {
-                            if (state.potionsState[_i * 3 + 2] == 0) {
-                                v[state.properties.potionsVArrayIdx[_i]] = 1;
-                            } else if (state.potionsState[_i * 3] == 0) {
-                                v[state.properties.potionsVArrayIdx[_i]] = 0;
-                            } else {
-                                v[state.properties.potionsVArrayIdx[_i]] = state.getVOther(state.properties.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START);
-                            }
-                        }
-                    }
-
-                    @Override public void updateQValues(GameState state, double[] v) {
-                        if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
-                            v[V_HEALTH_IDX] += pot.getHealAmount(state) * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
-                        }
-                    }
-                });
-            }
-        }
+        registerPotionTrainingTargets();
         if (builder.getCharacter() == CharacterEnum.DEFECT) {
             properties.maxNumOfOrbs = 3;
             orbs = new short[3 * 2];
@@ -734,6 +708,45 @@ public final class GameState implements State {
         }
     }
 
+    private void registerPotionTrainingTargets() {
+        for (int i = 0; i < properties.potions.size(); i++) {
+            if (properties.potions.get(i) instanceof Potion.FairyInABottle || (properties.hasToyOrniphopter && !properties.isHeartFight)) {
+                int _i = i;
+                properties.addExtraTrainingTarget((properties.potions.get(i) + "" + i).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
+                    @Override public void setVArrayIdx(int idx) {
+                        properties.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
+                    }
+                }, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal != 0) {
+                            if (state.potionsState[_i * 3] == 1 || state.potionsState[_i * 3 + 2] == 0) {
+                                v[state.properties.potionsVArrayIdx[_i]] = 1;
+                            } else {
+                                v[state.properties.potionsVArrayIdx[_i]] = 0;
+                            }
+                        } else {
+                            if (state.potionsState[_i * 3 + 2] == 0) {
+                                v[state.properties.potionsVArrayIdx[_i]] = 1;
+                            } else if (state.potionsState[_i * 3] == 0) {
+                                v[state.properties.potionsVArrayIdx[_i]] = 0;
+                            } else {
+                                v[state.properties.potionsVArrayIdx[_i]] = state.getVOther(state.properties.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START);
+                            }
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
+                            v[V_HEALTH_IDX] += pot.getHealAmount(state) * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
+                        } else {
+                            v[V_HEALTH_IDX] += 5 * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
     private int[] findCardThatCanHealIdxes(List<Card> cards, List<Relic> relics) {
         // todo
         long c = cards.stream().filter((x) -> x.healPlayer).count();
@@ -935,7 +948,9 @@ public final class GameState implements State {
         turnNum = other.turnNum;
         playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
-        preBattleScenariosChosen = other.preBattleScenariosChosen;
+        preBattleRandomizationIdxChosen = other.preBattleRandomizationIdxChosen;
+        preBattleScenariosChosenIdx = other.preBattleScenariosChosenIdx;
+        battleRandomizationIdxChosen = other.battleRandomizationIdxChosen;
         energyRefill = other.energyRefill;
         player = other.player;
         enemies = other.enemies;
@@ -1547,15 +1562,23 @@ public final class GameState implements State {
             return;
         }
         if (false) {
+            this.getCounterForWrite()[properties.biasedCognitionLimitCounterIdx] = 40;
             properties.biasedCognitionLimitUsed = this.getCounterForWrite()[properties.biasedCognitionLimitCounterIdx];
             return;
         }
         if (properties.currentMCTS == null) {
             return;
         }
+        boolean prevRngOn = false;
+        if (properties.random instanceof InteractiveMode.RandomGenInteractive) {
+            prevRngOn = ((InteractiveMode.RandomGenInteractive) properties.random).rngOn;
+            ((InteractiveMode.RandomGenInteractive) properties.random).rngOn = true;
+        }
         var q = properties.biasedCognitionLimitCache.get(this);
+        double[] q_win, q_comb;
         if (q == null) {
-            q = new double[100];
+            q_win = new double[100];
+            q_comb = new double[100];
             properties.biasedCognitionLimitSet = true;
             for (int i = 0; i < 100; i++) {
                 var c = this.clone(false);
@@ -1564,33 +1587,38 @@ public final class GameState implements State {
                 for (int j = 0; j < upto; j++) {
                     properties.currentMCTS.search(c, false, -1);
                 }
-                q[i] = c.get_q_TreeSearch(GameState.V_WIN_IDX);
+                q_win[i] = c.get_q_TreeSearch(GameState.V_WIN_IDX);
+                q_comb[i] = c.get_q_TreeSearch(GameState.V_COMB_IDX);
             }
             properties.biasedCognitionLimitSet = false;
-            var qTmp = properties.biasedCognitionLimitCache.putIfAbsent(this.clone(false), q);
-            q = qTmp == null ? q : qTmp;
+            var qTmp = properties.biasedCognitionLimitCache.putIfAbsent(this.clone(false), new Tuple<>(q_win, q_comb));
+            q_win = qTmp == null ? q_win : qTmp.v1();
+            q_comb = qTmp == null ? q_comb : qTmp.v2();
+        } else {
+            q_win = q.v1();
+            q_comb = q.v2();
         }
-        properties.biasedCognitionLimitDistribution = q;
-        q = Arrays.copyOf(q, q.length);
+        properties.biasedCognitionLimitDistribution = q_win;
+        q_win = Arrays.copyOf(q_win, q_win.length);
         if (properties.isTraining) {
             var minQ = 100000.0;
-            for (int i = 0; i < q.length; i++) {
-                if (q[i] < minQ) {
-                    minQ = q[i];
+            for (int i = 0; i < q_win.length; i++) {
+                if (q_win[i] < minQ) {
+                    minQ = q_win[i];
                 }
             }
             var sum = 0.0;
-            for (int i = 0; i < q.length; i++) {
-                q[i] = Math.pow(q[i] - minQ, 3);
-                sum += q[i];
+            for (int i = 0; i < q_win.length; i++) {
+                q_win[i] = Math.pow(q_win[i] - minQ, 3);
+                sum += q_win[i];
             }
-            for (int i = 0; i < q.length; i++) {
-                q[i] /= sum;
+            for (int i = 0; i < q_win.length; i++) {
+                q_win[i] /= sum;
             }
             var r = getSearchRandomGen().nextDouble(RandomGenCtx.Misc);
             var t = 0.0;
-            for (int i = 0; i < q.length; i++) {
-                t += q[i];
+            for (int i = 0; i < q_win.length; i++) {
+                t += q_win[i];
                 if (t >= r) {
                     getCounterForWrite()[properties.biasedCognitionLimitCounterIdx] = i;
                     break;
@@ -1600,13 +1628,24 @@ public final class GameState implements State {
             // select highest
             var maxIdx = -1;
             var maxQ = -100.0;
-            for (int i = 0; i < q.length; i++) {
-                if (q[i] > maxQ) {
-                    maxQ = q[i];
+            for (int i = 0; i < q_win.length; i++) {
+                if (q_win[i] > maxQ) {
+                    maxQ = q_win[i];
                     maxIdx = i;
                 }
             }
-            getCounterForWrite()[properties.biasedCognitionLimitCounterIdx] = maxIdx;
+            var maxIdx2 = maxIdx;
+//            maxQ = q_comb[maxIdx];
+//            for (int i = 0; i < q_comb.length; i++) {
+//                if (q_comb[i] > maxQ && q_win[i] > q_win[maxIdx] * 0.99) {
+//                    maxQ = q_comb[i];
+//                    maxIdx2 = i;
+//                }
+//            }
+            getCounterForWrite()[properties.biasedCognitionLimitCounterIdx] = maxIdx2;
+        }
+        if (properties.random instanceof InteractiveMode.RandomGenInteractive) {
+            ((InteractiveMode.RandomGenInteractive) properties.random).rngOn = prevRngOn;
         }
         properties.biasedCognitionLimitUsed = this.getCounterForWrite()[properties.biasedCognitionLimitCounterIdx];
     }
@@ -1754,9 +1793,10 @@ public final class GameState implements State {
         int ret = 0;
         if (action.type() == GameActionType.BEGIN_BATTLE) {
             if (properties.randomization != null) {
-                ret = properties.randomization.randomize(this);
+                ret = battleRandomizationIdxChosen = properties.randomization.randomize(this);
                 setIsStochastic();
             }
+            properties.enemyHealthRandomization.randomize(this);
             for (GameEventHandler handler : properties.startOfBattleHandlers) {
                 handler.handle(this);
             }
@@ -1822,7 +1862,7 @@ public final class GameState implements State {
             usePotion(action, -1);
         } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
             if (properties.preBattleRandomization != null) {
-                ret = properties.preBattleRandomization.randomize(this);
+                ret = preBattleRandomizationIdxChosen = properties.preBattleRandomization.randomize(this);
             }
             setActionCtx(properties.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
             if (properties.endOfPreBattleHandler != null) {
@@ -1945,6 +1985,32 @@ public final class GameState implements State {
         out[V_COMB_IDX] = calc_q(out);
     }
 
+    public int getScenarioIdxChosen() {
+        int idx = 0;
+        if (properties.preBattleRandomization != null) {
+            idx = preBattleRandomizationIdxChosen;
+            if (preBattleRandomizationIdxChosen < 0) {
+                System.out.println(this);
+                throw new RuntimeException();
+            }
+        }
+        if (properties.preBattleScenarios != null) {
+            idx *= properties.preBattleScenarios.listRandomizations().size();
+            idx += preBattleScenariosChosenIdx;
+            if (preBattleScenariosChosenIdx < 0) {
+                throw new RuntimeException();
+            }
+        }
+        if (properties.randomization != null) {
+            idx *= properties.randomization.listRandomizations().size();
+            idx += battleRandomizationIdxChosen;
+            if (battleRandomizationIdxChosen < 0) {
+                throw new RuntimeException();
+            }
+        }
+        return idx;
+    }
+
     private double calcFightProgress() {
         int totalMaxHp = 0;
         int totalCurHp = 0;
@@ -2060,13 +2126,13 @@ public final class GameState implements State {
             int maxPossibleRegen = 0;
             if (properties.potions.size() > 0) {
                 for (int i = 0; i < properties.potions.size(); i++) {
-                    if (potionsState[i * 3] == 1 && properties.hasToyOrniphopter) {
+                    if (potionUsable(i) && properties.hasToyOrniphopter && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
                         v += 5;
                     }
-                    if (potionsState[i * 3] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot) {
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.BloodPotion pot) {
                         v += pot.getHealAmount(this);
                     }
-                    if (potionsState[i * 3] == 1 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot) {
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion pot) {
                         maxPossibleRegen += pot.getRegenerationAmount(this);
                     }
                 }
@@ -2119,18 +2185,24 @@ public final class GameState implements State {
             }
 
             int hp;
+            int maxPossibleHealth = getPlayeForRead().getHealth();
+            for (int i = 0; i < properties.potions.size(); i++) {
+                if (properties.potions.get(i) instanceof Potion.FairyInABottle pot) {
+                    maxPossibleHealth = Math.max(maxPossibleHealth, pot.getHealAmount(this));
+                }
+            }
             if (properties.hasMeatOnBone) {
                 // todo: feed and meat on bone interaction when they are together
                 // todo: self repair and meat on bone interaction when they are together
-                if (getPlayeForRead().getHealth() >= getPlayeForRead().getMaxHealth() / 2 + 12) {
-                    hp = Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
-                } else if (getPlayeForRead().getHealth() + v < getPlayeForRead().getMaxHealth() / 2) {
-                    hp = getPlayeForRead().getHealth() + v + 12;
+                if (maxPossibleHealth >= getPlayeForRead().getMaxHealth() / 2 + 12) {
+                    hp = Math.min(getPlayeForRead().getMaxHealth(), maxPossibleHealth + v);
+                } else if (maxPossibleHealth + v < getPlayeForRead().getMaxHealth() / 2) {
+                    hp = maxPossibleHealth + v + 12;
                 } else {
-                    hp = Math.min(getPlayeForRead().getMaxHealth(), Math.max(getPlayeForRead().getHealth() + v, getPlayeForRead().getMaxHealth() / 2 + 12));
+                    hp = Math.min(getPlayeForRead().getMaxHealth(), Math.max(maxPossibleHealth + v, getPlayeForRead().getMaxHealth() / 2 + 12));
                 }
             } else {
-                hp = Math.min(getPlayeForRead().getMaxHealth(), getPlayeForRead().getHealth() + v);
+                hp = Math.min(getPlayeForRead().getMaxHealth(), maxPossibleHealth + v);
             }
             if (properties.healEndOfAct) {
                 hp += (getPlayeForRead().getMaxHealth() - hp) - (getPlayeForRead().getMaxHealth() - hp) / 4;
@@ -2165,9 +2237,6 @@ public final class GameState implements State {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (properties.potionsVArrayIdx[i] >= 0) {
-                continue;
-            }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !properties.isHeartFight) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
@@ -2180,10 +2249,6 @@ public final class GameState implements State {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.FairyInABottle pot && !properties.isHeartFight) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
-            }
         }
         for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
             properties.extraTrainingTargets.get(i).updateQValues(this, v);
@@ -2192,11 +2257,11 @@ public final class GameState implements State {
         v[V_WIN_IDX] = win;
         v[V_HEALTH_IDX] = health;
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (properties.potionsVArrayIdx[i] >= 0) {
-                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[V_OTHER_IDX_START + i];
+            if (properties.potions.get(i) instanceof Potion.FairyInABottle) {
+                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[properties.potionsVArrayIdx[i]];
                 continue;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
@@ -2407,6 +2472,11 @@ public final class GameState implements State {
                 }
             }
             str.append("]");
+        }
+        for (int i = 0; i < properties.potions.size(); i++) {
+            if (properties.potions.get(i) instanceof Potion.FairyInABottle && !potionUsed(i)) {
+                str.append(", ").append(properties.potions.get(i));
+            }
         }
         if (properties.counterHandlersNonNull.length > 0) {
             StringBuilder tmp = new StringBuilder();
@@ -3097,8 +3167,8 @@ public final class GameState implements State {
             x[idx++] = turnNum / 50.0f;
         }
         if (properties.preBattleScenariosBackup != null) {
-            if (preBattleScenariosChosen >= 0) {
-                x[idx + preBattleScenariosChosen] = 0.5f;
+            if (preBattleScenariosChosenIdx >= 0) {
+                x[idx + preBattleScenariosChosenIdx] = 0.5f;
             }
             idx += properties.preBattleScenariosBackup.listRandomizations().size();
         }
@@ -4165,7 +4235,11 @@ public final class GameState implements State {
     }
 
     public RandomGen getSearchRandomGen() {
-        if (properties.makingRealMove || searchRandomGen == null) {
+        return getSearchRandomGen(properties.makingRealMove);
+    }
+
+    public RandomGen getSearchRandomGen(boolean realMove) {
+        if (realMove || searchRandomGen == null) {
             return properties.realMoveRandomGen != null ? properties.realMoveRandomGen : properties.random;
         }
         if (Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION && !searchRandomGenCloned) {

@@ -1418,6 +1418,25 @@ public class InteractiveMode {
         }
     }
 
+    private int selectEnemyHealth(BufferedReader reader, int baseHealth, int bound, List<String> history) {
+        out.printf("Select Enemy Health (%d - %d): %n\n", baseHealth, baseHealth + bound - 1);
+        while (true) {
+            out.print("> ");
+            String line;
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (baseHealth <= r && r < baseHealth + bound) {
+                return r - baseHealth;
+            }
+            out.println("Unknown Health");
+        }
+    }
+
     private int readIntCommand(BufferedReader reader, List<String> history, int x) throws IOException {
         while (true) {
             out.print("> ");
@@ -2242,6 +2261,9 @@ public class InteractiveMode {
             }
             case ShieldAndSpear -> {
                 return interactiveMode.selectShieldAndSpear(reader, (Tuple<GameState, int[]>) arg, history);
+            }
+            case RandomEnemyHealth -> {
+                return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);
             }
             case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb -> {
                 try {

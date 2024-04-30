@@ -145,7 +145,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("BagOfPreparation", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.draw(2);
                     }
                 }
@@ -252,7 +252,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("BagOfPreparation", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.gainEnergy(1);
                     }
                 }
@@ -1252,7 +1252,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler("ClockworkSouvenir", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.getPlayerForWrite().gainArtifact(1);
                     }
                 }
@@ -1321,7 +1321,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("SlingOfCourage", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         if (isEliteFight(state)) {
                             state.getPlayerForWrite().gainStrength(2);
                         }
@@ -1675,7 +1675,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosen)) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.draw(2);
                     }
                 }

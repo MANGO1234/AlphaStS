@@ -20,6 +20,7 @@ public enum RandomGenCtx {
     Snecko,
     RandomCardGen,
     SelectCard1OutOf3,
+    RandomEnemyHealth,
     Misc,
     CommonNumberVR,
     BeginningOfGameRandomization,

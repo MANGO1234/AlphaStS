@@ -6,7 +6,5 @@ public class ServerRequest {
     public int nodeCount;
     public boolean zTraining;
     public boolean curriculumTraining;
-    public int minDifficulty;
-    public int maxDifficulty;
     public byte[] bytes;
 }

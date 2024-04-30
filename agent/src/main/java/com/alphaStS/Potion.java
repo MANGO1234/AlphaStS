@@ -1085,7 +1085,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class FairyInABottle extends Potion {
-        private final int playerMaxHp;
+        protected final int playerMaxHp;
 
         public FairyInABottle(int playerMaxHP) {
             this.playerMaxHp = playerMaxHP;
@@ -1102,6 +1102,20 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Fairy In A Bottle";
+        }
+    }
+
+    public static class LizardTail extends FairyInABottle {
+        public LizardTail(int playerMaxHP) {
+            super(playerMaxHP);
+        }
+
+        public int getHealAmount(GameState state) {
+            return (int) (0.5 * this.playerMaxHp);
+        }
+
+        @Override public String toString() {
+            return "Lizard Tail";
         }
     }
 

@@ -1,7 +1,7 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.Enemy;
 import com.alphaStS.model.ModelPlain;
+import com.alphaStS.utils.Tuple3;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -12,8 +12,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 enum ServerRequestType {
     PLAY_GAMES,
@@ -135,7 +134,6 @@ public class Main {
 
     private static void interactiveMode(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
-        state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
 //        MatchSession.readMatchLogFile(CUR_ITER_DIRECTORY + "/matches.txt.gz", CUR_ITER_DIRECTORY, state);
         new InteractiveMode()
                 .setDefaultNumberOfThreads(NUMBER_OF_THREADS)
@@ -145,7 +143,6 @@ public class Main {
 
     private static void playGames(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
-        state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         session.setModelComparison(COMPARE_DIR, state, -1);
         if (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES) {
@@ -168,7 +165,6 @@ public class Main {
 
     private static void playGameAndViewGame(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
-        state.properties.randomization = new GameStateRandomization.EnemyRandomization(false, -1, -1).doAfter(state.properties.randomization);
 //        state.properties.randomization = state.properties.randomization.fixR(0, 2, 4);
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         var writer = new OutputStreamWriter(System.out);
@@ -185,41 +181,20 @@ public class Main {
         Configuration.TRANSPOSITION_ACROSS_CHANCE_NODE = false;
         state.properties.isTraining = true;
 
-        int minDifficulty = -1;
-        int maxDifficulty = -1;
-        boolean automatedCurriculumTraining = true;
-        int totalDifficulty = 0;
-        int enemiesAlive = 0;
-        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-            if (enemy.getMaxRandomizeDifficulty() <= 0) {
-                automatedCurriculumTraining = false;
-                break;
-            }
-            totalDifficulty += enemy.getMaxRandomizeDifficulty();
-            enemiesAlive++;
-        }
-        if (automatedCurriculumTraining) {
-            if (ITERATION == 1) {
-                minDifficulty = enemiesAlive;
-                maxDifficulty = (enemiesAlive + totalDifficulty + 1) / 2;
-            } else {
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                    JsonNode root = mapper.readTree(new File(PREV_ITER_DIRECTORY + "/training.json"));
-                    if (root.get("minDifficulty") != null) {
-                        minDifficulty = root.get("minDifficulty").asInt();
-                        maxDifficulty = root.get("maxDifficulty").asInt();
-                    }
-                } catch (FileNotFoundException e) {
-                }
-            }
+        var randomizationScenarioToDifficulty = new HashMap<Integer, Tuple3<Integer, Integer, Integer>>();
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode root = mapper.readTree(new File(PREV_ITER_DIRECTORY + "/training.json"));
+            root.get("difficultyByScenario").fields().forEachRemaining(node -> {
+                randomizationScenarioToDifficulty.put(Integer.valueOf(node.getKey()), new Tuple3<>(node.getValue().get("minDifficulty").asInt(), node.getValue().get("maxDifficulty").asInt(), node.getValue().get("totalDifficulty").asInt()));
+            });
+        } catch (FileNotFoundException e) {
         }
 
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
             session.setMatchLogFile("training_matches.txt.gz");
         }
-        session.training = true;
         var preBattleScenarios = state.properties.preBattleScenarios;
         var randomization = state.properties.randomization;
         makePreBattleScenariosRandom(state, preBattleScenarios);
@@ -244,31 +219,36 @@ public class Main {
             Configuration.TRAINING_POLICY_SURPRISE_WEIGHTING = false;
         }
         long start = System.currentTimeMillis();
-        state.properties.curriculumTraining = CURRICULUM_TRAINING_ON || automatedCurriculumTraining;
-        state.properties.minDifficulty = minDifficulty;
-        state.properties.maxDifficulty = maxDifficulty;
-        state.properties.randomization = new GameStateRandomization.EnemyRandomization(state.properties.curriculumTraining, minDifficulty, maxDifficulty).doAfter(state.properties.randomization);
+        state.properties.enemyHealthRandomization = new GameStateRandomization.EnemyHealthRandomization(CURRICULUM_TRAINING_ON, randomizationScenarioToDifficulty);
         session.playTrainingGames(state, 200, 100, NUMBER_OF_THREADS, BATCH_SIZE, CUR_ITER_DIRECTORY + "/training_data.bin.lz4");
-        if (automatedCurriculumTraining) {
-            if (minDifficulty == totalDifficulty) {
-            } else if (session.difficulty < minDifficulty) {
+
+        ObjectNode node = mapper.createObjectNode();
+        ObjectNode difficultyNode = mapper.createObjectNode();
+        node.set("difficultyByScenario", difficultyNode);
+        for (Map.Entry<Integer, Tuple3<Integer, Integer, Integer>> difficultySetting : randomizationScenarioToDifficulty.entrySet()) {
+            var minDifficulty = difficultySetting.getValue().v1();
+            var maxDifficulty = difficultySetting.getValue().v2();
+            var totalDifficulty = difficultySetting.getValue().v3();
+            var sessionDifficultyReached = session.difficultyReachedByScenario.get(difficultySetting.getKey());
+            if (minDifficulty.equals(totalDifficulty)) {
+            } else if (sessionDifficultyReached == null || sessionDifficultyReached < minDifficulty) {
                 minDifficulty -= (minDifficulty + 7) / 8;
             } else {
-                if (session.difficulty == maxDifficulty) {
-                    minDifficulty = minDifficulty + (session.difficulty - minDifficulty + 3) / 4;
-                    maxDifficulty = session.difficulty + (totalDifficulty - session.difficulty + 3) / 4;
+                if (sessionDifficultyReached.equals(maxDifficulty)) {
+                    minDifficulty = minDifficulty + (sessionDifficultyReached - minDifficulty + 3) / 4;
+                    maxDifficulty = sessionDifficultyReached + (totalDifficulty - sessionDifficultyReached + 3) / 4;
                 } else {
-                    maxDifficulty = (session.difficulty + maxDifficulty + 1) / 2;
+                    maxDifficulty = (sessionDifficultyReached + maxDifficulty + 1) / 2;
                 }
             }
-            ObjectMapper mapper = new ObjectMapper();
-            ObjectNode node = mapper.createObjectNode();
-            node.put("minDifficulty", minDifficulty);
-            node.put("maxDifficulty", maxDifficulty);
-            node.put("difficulty", session.difficulty);
-            try (var writer = new BufferedWriter(new FileWriter(CUR_ITER_DIRECTORY + "/training.json"))) {
-                writer.write(node.toString());
-            }
+            var jsonNode = mapper.createObjectNode();
+            jsonNode.put("minDifficulty", minDifficulty);
+            jsonNode.put("maxDifficulty", maxDifficulty);
+            jsonNode.put("totalDifficulty", totalDifficulty);
+            difficultyNode.set(difficultySetting.getKey().toString(), jsonNode);
+        }
+        try (var writer = new BufferedWriter(new FileWriter(CUR_ITER_DIRECTORY + "/training.json"))) {
+            writer.write(node.toString());
         }
 
         long end = System.currentTimeMillis();

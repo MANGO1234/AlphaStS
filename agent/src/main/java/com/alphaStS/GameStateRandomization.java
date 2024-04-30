@@ -5,6 +5,7 @@ import com.alphaStS.card.CardCount;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -357,34 +358,48 @@ public interface GameStateRandomization {
         }
     }
 
-    class EnemyRandomization implements GameStateRandomization {
-        private final boolean curriculumTraining;
-        private final int minDifficulty;
-        private final int maxDifficulty;
+    class EnemyHealthRandomization implements GameStateRandomization {
+        private Map<Integer, Tuple3<Integer, Integer, Integer>> randomizationScenarioToDifficulty;
+        private final boolean curriculumTrainingIfNoDifficulty;
 
-        public EnemyRandomization(boolean curriculumTraining, int minDifficulty, int maxDifficulty) {
-            this.curriculumTraining = curriculumTraining;
-            this.minDifficulty = minDifficulty;
-            this.maxDifficulty = maxDifficulty;
+        public EnemyHealthRandomization(boolean curriculumTrainingIfNoDifficulty, Map<Integer, Tuple3<Integer, Integer, Integer>> randomizationScenarioToDifficulty) {
+            this.curriculumTrainingIfNoDifficulty = curriculumTrainingIfNoDifficulty;
+            this.randomizationScenarioToDifficulty = randomizationScenarioToDifficulty;
         }
 
         @Override public int randomize(GameState state) {
-            if (!curriculumTraining || minDifficulty <= 0) {
-                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    if (enemy.getMaxRandomizeDifficulty() > 0) {
-                        state.setIsStochastic();
-                        var r = state.getSearchRandomGen().nextInt(enemy.getMaxRandomizeDifficulty(), RandomGenCtx.Other) + 1;
-                        enemy.randomize(state.getSearchRandomGen(), curriculumTraining, r);
-                    } else {
-                        enemy.randomize(state.getSearchRandomGen(), curriculumTraining, -1);
-                    }
-                    if (enemy.hasBurningHealthBuff()) {
-                        enemy.setHealth((int) (enemy.getHealth() * 1.25));
-                    }
-                    enemy.properties = enemy.properties.clone();
-                    enemy.properties.origHealth = enemy.getHealth();
+            int minDifficulty = -1;
+            int maxDifficulty = -1;
+            int totalDifficulty = 0;
+            int enemiesAlive = 0;
+            boolean canAutomateTraining = true;
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                if (enemy.getMaxRandomizeDifficulty() <= 0) {
+                    canAutomateTraining = false;
+                    break;
                 }
-            } else if (minDifficulty == maxDifficulty) {
+            }
+            if (state.properties.isTraining && canAutomateTraining) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemiesAlive++;
+                    totalDifficulty += enemy.getMaxRandomizeDifficulty();
+                }
+                if (enemiesAlive != state.enemiesAlive) {
+                    throw new RuntimeException();
+                }
+                if (randomizationScenarioToDifficulty != null) {
+                    var difficulty = randomizationScenarioToDifficulty.get(state.getScenarioIdxChosen());
+                    if (difficulty == null) {
+                        minDifficulty = enemiesAlive;
+                        maxDifficulty = (enemiesAlive + totalDifficulty + 1) / 2;
+                        randomizationScenarioToDifficulty.put(state.getScenarioIdxChosen(), new Tuple3<>(minDifficulty, maxDifficulty, totalDifficulty));
+                    } else {
+                        minDifficulty = difficulty.v1();
+                        maxDifficulty = difficulty.v2();
+                    }
+                }
+            }
+            if (!state.properties.isTraining || (!curriculumTrainingIfNoDifficulty && (minDifficulty <= 0 || minDifficulty == totalDifficulty))) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     enemy.randomize(state.getSearchRandomGen(), false, -1);
                     if (enemy.hasBurningHealthBuff()) {
@@ -393,11 +408,22 @@ public interface GameStateRandomization {
                     enemy.properties = enemy.properties.clone();
                     enemy.properties.origHealth = enemy.getHealth();
                 }
-            } else {
-                int enemiesAlive = 0;
-                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    enemiesAlive++;
+            } else if (minDifficulty == maxDifficulty) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    if (enemy.getMaxRandomizeDifficulty() > 0) {
+                        state.setIsStochastic();
+                        var r = state.getSearchRandomGen().nextInt(enemy.getMaxRandomizeDifficulty(), RandomGenCtx.Other) + 1;
+                        enemy.randomize(state.getSearchRandomGen(), true, r);
+                    } else {
+                        enemy.randomize(state.getSearchRandomGen(), true, -1);
+                    }
+                    if (enemy.hasBurningHealthBuff()) {
+                        enemy.setHealth((int) (enemy.getHealth() * 1.25));
+                    }
+                    enemy.properties = enemy.properties.clone();
+                    enemy.properties.origHealth = enemy.getHealth();
                 }
+            } else {
                 int[] maxDifficulties = new int[enemiesAlive];
                 int[] difficulties = new int[enemiesAlive];
                 int i = 0;
@@ -408,8 +434,8 @@ public interface GameStateRandomization {
                 for (int j = 0; j < enemiesAlive; j++) {
                     allowed.add(j);
                 }
-                state.properties.difficulty = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
-                for (int j = 0; j < state.properties.difficulty - enemiesAlive; j++) {
+                state.properties.difficultyChosen = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
+                for (int j = 0; j < state.properties.difficultyChosen - enemiesAlive; j++) {
                     i = state.getSearchRandomGen().nextInt(allowed.size(), RandomGenCtx.Other); // currently equal probability
                     difficulties[allowed.get(i)]++;
                     if (difficulties[allowed.get(i)] == maxDifficulties[allowed.get(i)] - 1) {
@@ -438,7 +464,7 @@ public interface GameStateRandomization {
 
         @Override public Map<Integer, Info> listRandomizations() {
             Map<Integer, Info> map = new HashMap<>();
-            map.put(0, new Info(1, "Randomize enemy starting state (e.g. health)" + (curriculumTraining ? " with curriculum training" : "")));
+            map.put(0, new Info(1, "Randomize enemy starting state (e.g. health)" + (curriculumTrainingIfNoDifficulty ? " with curriculum training" : "")));
             return map;
         }
 

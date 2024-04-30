@@ -1717,7 +1717,7 @@ public class MCTS {
             p[i] = (float) (p[i] / total_p);
         }
 
-        double r = state.properties.random.nextDouble(RandomGenCtx.Other);
+        double r = state.getSearchRandomGen(true).nextDouble(RandomGenCtx.Other);
         int action = -1;
         double acc = 0.0;
         for (int i = 0; i < p.length; i++) {
@@ -1746,7 +1746,7 @@ public class MCTS {
         if (total_n == 0) {
             total_n = state.total_n;
         }
-        int r = state.properties.random.nextInt(total_n, RandomGenCtx.Other);
+        int r = state.getSearchRandomGen(true).nextInt(total_n, RandomGenCtx.Other);
         int acc = 0;
         int action = -1;
         for (int i = 0; i < state.policy.length; i++) {
@@ -1771,7 +1771,7 @@ public class MCTS {
                 total_n += Math.pow(state.n[i], Configuration.PRE_BATTLE_SCENARIO_TEMP);
             }
         }
-        int r = state.properties.random.nextInt(total_n, RandomGenCtx.Other);
+        int r = state.getSearchRandomGen(true).nextInt(total_n, RandomGenCtx.Other);
         int acc = 0;
         int action = -1;
         for (int i = 0; i < state.policy.length; i++) {

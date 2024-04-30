@@ -14,7 +14,7 @@ public class Player extends PlayerReadOnly {
     public int damage(GameState state, int n) {
         int startHealth = health;
         int dmg = Math.max(0, n - block);
-        if (dmg <= 5 && dmg >= 2 && state.properties.hasTorri) {
+        if (dmg <= 5 && dmg >= 2 && state.properties.hasTorri && state.properties.getRelic(Relic.Torii.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
             dmg = 1;
         }
         if (dmg > 0 && state.properties.hasTungstenRod) {
