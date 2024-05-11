@@ -304,7 +304,33 @@ public class CardColorless {
         }
     }
 
-    // Panic Button
+    private static abstract class _PanicButtonT extends Card {
+        private final int n;
+
+        public _PanicButtonT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_BLOCK_FROM_CARDS, 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class PanicButton extends _PanicButtonT {
+        public PanicButton() {
+            super("Panic Button", Card.SKILL, 0, 30);
+        }
+    }
+
+    public static class PanicButtonP extends _PanicButtonT {
+        public PanicButtonP() {
+            super("Panic Button+", Card.SKILL, 0, 40);
+        }
+    }
+
     // Purity
 
     private static abstract class _SwiftStrikeT extends Card {

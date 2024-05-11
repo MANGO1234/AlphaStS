@@ -1835,7 +1835,7 @@ public class TestStates {
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardDefect.Skim(), 1)),
                 List.of()
-        ), true);
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK);
         builder.setPreBattleScenarios(randomization);
         builder.setPlayer(new Player(71, 71));
         return new GameState(builder);
@@ -2157,7 +2157,7 @@ public class TestStates {
                 List.of(new CardCount(new CardDefect.Rebound(), 1)),
                 List.of(new CardCount(new CardDefect.BeamCellP(), 1)),
                 List.of()
-        ), true);
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK);
         builder.setRandomization(randomization);
 //        builder.setGameStateViaInteractiveMode(List.of("", "do", "stat", "gl", "self", "agg", "reinf", "e", "0", "exit"));
         builder.setPlayer(new Player(55, 55));

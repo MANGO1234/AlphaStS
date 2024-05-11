@@ -2155,6 +2155,9 @@ public final class GameState implements State {
                             v += enemy.getHealth();
                         }
                     }
+                    if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Bite")) {
+                        v = getPlayeForRead().getMaxHealth();
+                    }
                     if (properties.cardDict[properties.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ||
                             properties.cardDict[properties.healCardsIdxes[i]] instanceof CardDefect.SelfRepairP) {
                         int m = getNonExhaustCount(properties.healCardsIdxes[i]);
@@ -2187,7 +2190,7 @@ public final class GameState implements State {
             int hp;
             int maxPossibleHealth = getPlayeForRead().getHealth();
             for (int i = 0; i < properties.potions.size(); i++) {
-                if (properties.potions.get(i) instanceof Potion.FairyInABottle pot) {
+                if (potionUsable(i) && properties.potions.get(i) instanceof Potion.FairyInABottle pot) {
                     maxPossibleHealth = Math.max(maxPossibleHealth, pot.getHealAmount(this));
                 }
             }
@@ -2257,7 +2260,7 @@ public final class GameState implements State {
         v[V_WIN_IDX] = win;
         v[V_HEALTH_IDX] = health;
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (properties.potions.get(i) instanceof Potion.FairyInABottle) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.FairyInABottle) {
                 base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[properties.potionsVArrayIdx[i]];
                 continue;
             }

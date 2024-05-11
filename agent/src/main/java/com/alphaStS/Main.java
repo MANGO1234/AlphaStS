@@ -104,14 +104,11 @@ public class Main {
             SAVES_DIR = "../saves";
             WRITE_MATCHES = true;
             PRINT_DMG = true;
-            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             NUMBER_OF_NODES_PER_TURN = 100;
             SCENARIO_GROUPS_PARAM = new int[] { 4, 1 };
 //            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";
-//            COMPARE_DIR = SAVES_DIR + "/iteration" + (iteration - 2);
-//            COMPARE_DIR = SAVES_DIR + "/iteration60";
             MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
         }
 

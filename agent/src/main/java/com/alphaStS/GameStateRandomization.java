@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardCount;
+import com.alphaStS.card.CardIronclad;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
@@ -573,9 +574,14 @@ public interface GameStateRandomization {
     class CardCountRandomization implements GameStateRandomization {
         private final List<List<CardCount>> scenarios;
         private final Map<Integer, Info> infoMap;
-        private final boolean addCardCount;
+        private final int type;
 
-        public CardCountRandomization(List<List<CardCount>> scenarios, boolean addInstead) {
+        public final static int SET_NUMBER_OF_CARDS_IN_DECK = 0;
+        public final static int ADD_TO_DECK = 1;
+        public final static int UPGRADE = 2;
+        public final static int REMOVE_FROM_DECK = 3;
+
+        public CardCountRandomization(List<List<CardCount>> scenarios, int type) {
             var map = new HashMap<Card, Integer>();
             for (List<CardCount> scenario : scenarios) {
                 for (CardCount cardCount : scenario) {
@@ -591,16 +597,21 @@ public interface GameStateRandomization {
                 }
                 this.scenarios.add(m.entrySet().stream().map((e) -> new CardCount(e.getKey(), e.getValue())).toList());
                 var desc = String.join(", ", scenarios.get(i).stream().map((e) -> e.count() + " " + e.card().cardName).toList());
+                if (type == UPGRADE) {
+                    desc = String.join(", ", scenarios.get(i).stream().map((e) -> "Upgrade " + e.count() + " " + e.card().cardName).toList());
+                } else if (type == REMOVE_FROM_DECK) {
+                    desc = String.join(", ", scenarios.get(i).stream().map((e) -> "-" + e.count() + " " + e.card().cardName).toList());
+                }
                 if (desc.length() == 0) {
                     desc = "No Change";
                 }
                 infoMap.put(i, new Info(1.0 / scenarios.size(), desc));
             }
-            addCardCount = addInstead;
+            this.type = type;
         }
 
         public CardCountRandomization(List<List<CardCount>> scenarios) {
-            this(scenarios, false);
+            this(scenarios, SET_NUMBER_OF_CARDS_IN_DECK);
         }
 
         @Override public int randomize(GameState state) {
@@ -612,9 +623,24 @@ public interface GameStateRandomization {
         @Override public void randomize(GameState state, int r) {
             var s = scenarios.get(r);
             for (CardCount cardCount : s) {
-                if (addCardCount) {
+                if (type == ADD_TO_DECK) {
                     for (int i = 0; i < cardCount.count(); i++) {
                         state.addCardToDeck(state.properties.findCardIndex(cardCount.card()));
+                    }
+                } else if (type == UPGRADE) {
+                    if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cardCount.card())) < cardCount.count()) {
+                        throw new RuntimeException("Not enough cards in deck");
+                    }
+                    for (int i = 0; i < cardCount.count(); i++) {
+                        state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()));
+                        state.addCardToDeck(state.properties.findCardIndex(cardCount.card().getUpgrade()));
+                    }
+                } else if (type == REMOVE_FROM_DECK) {
+                    if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cardCount.card())) < cardCount.count()) {
+                        throw new RuntimeException("Not enough cards in deck");
+                    }
+                    for (int i = 0; i < cardCount.count(); i++) {
+                        state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()));
                     }
                 } else {
                     state.setCardCountInDeck(state.properties.findCardIndex(cardCount.card()), cardCount.count());
@@ -627,7 +653,11 @@ public interface GameStateRandomization {
         }
 
         @Override public List<Card> getPossibleGeneratedCards() {
-            return scenarios.stream().flatMap((s) -> s.stream().map(CardCount::card)).distinct().toList();
+            if (type == UPGRADE) {
+                return scenarios.stream().flatMap((s) -> s.stream().map(CardCount::card)).map(Card::getUpgrade).distinct().toList();
+            } else {
+                return scenarios.stream().flatMap((s) -> s.stream().map(CardCount::card)).distinct().toList();
+            }
         }
     }
 

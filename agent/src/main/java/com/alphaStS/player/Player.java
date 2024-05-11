@@ -90,6 +90,9 @@ public class Player extends PlayerReadOnly {
     }
 
     public int gainBlock(int n) {
+        if (noMoreBlockFromCards > 0) {
+            return 0;
+        }
         n += dexterity;
         n = frail > 0? (n - (n + 3) / 4) : n;
         if (n < 0) {
@@ -149,6 +152,7 @@ public class Player extends PlayerReadOnly {
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
         case CONSTRICTED -> state.getCounterForWrite()[state.properties.constrictedCounterIdx] += n;
         case DRAW_REDUCTION -> state.getCounterForWrite()[state.properties.drawReductionCounterIdx] += n;
+        case NO_BLOCK_FROM_CARDS -> this.noMoreBlockFromCards += n;
         case SNECKO -> state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 1;
         }
     }
@@ -172,6 +176,9 @@ public class Player extends PlayerReadOnly {
         }
         if (entangled > 0) {
             entangled -= 1;
+        }
+        if (noMoreBlockFromCards > 0) {
+            noMoreBlockFromCards -= 1;
         }
         if (loseStrengthEot > 0) {
             applyDebuff(state, DebuffType.LOSE_STRENGTH, loseStrengthEot);
@@ -227,6 +234,7 @@ public class Player extends PlayerReadOnly {
         if (dexterity < 0) {
             dexterity = 0;
         }
+        noMoreBlockFromCards = 0;
         if (state.properties.loseDexterityPerTurnCounterIdx >= 0) {
             state.getCounterForWrite()[state.properties.loseDexterityPerTurnCounterIdx] = 0;
         }

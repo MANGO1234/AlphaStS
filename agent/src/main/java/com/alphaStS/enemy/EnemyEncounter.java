@@ -365,6 +365,14 @@ public class EnemyEncounter {
         });
     }
 
+    public static void addRobbersEventFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(new EnemyCity.Pointy(), new EnemyCity.Romeo(), new EnemyCity.Bear());
+    }
+
+    public static void addCollectorFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(new EnemyCity.TorchHead(), new EnemyCity.TorchHead(), new EnemyCity.TheCollector());
+    }
+
     public static void addCultistsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
         builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());

@@ -20,4 +20,5 @@ public enum DebuffType {
     DRAW_REDUCTION,
     SNECKO,
     LOCK_ON,
+    NO_BLOCK_FROM_CARDS,
 }

@@ -2456,7 +2456,7 @@ public class CardIronclad {
         }
 
         public static int getMaxPossibleFeedRemaining(GameState state) {
-            if (state.isTerminal() != 0 || state.properties.isHeartFight) {
+            if (state.properties.isHeartFight) {
                 return 0;
             }
             // todo: very very hacky

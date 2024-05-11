@@ -1516,6 +1516,10 @@ public class InteractiveMode {
     }
 
     private void runGamesCmp(BufferedReader reader, String modelDir, String line) throws IOException {
+        if (state1 == null || state2 == null) {
+            out.println("States not set");
+            return;
+        }
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 500);
         int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
@@ -1525,10 +1529,6 @@ public class InteractiveMode {
         MatchSession session = new MatchSession(modelDir);
         session.startingAction = startingAction1;
         session.setModelComparison(modelDir, state2, startingAction2);
-        if (state1 == null || state2 == null) {
-            out.println("States not set");
-            return;
-        }
         var prevRandomization = state1.properties.randomization;
         if (randomizationScenario >= 0) {
             state1.properties.randomization = state1.properties.randomization.fixR(randomizationScenario);

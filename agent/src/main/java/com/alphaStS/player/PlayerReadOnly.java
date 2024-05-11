@@ -19,6 +19,7 @@ public class PlayerReadOnly {
     protected int loseStrengthEot;
     protected int loseDexterityEot;
     protected int platedArmor;
+    protected short noMoreBlockFromCards;
 
     public PlayerReadOnly(int health, int maxHealth) {
         this.maxHealth = maxHealth;
@@ -43,6 +44,7 @@ public class PlayerReadOnly {
         loseStrengthEot = other.loseStrengthEot;
         loseDexterityEot = other.loseDexterityEot;
         platedArmor = other.platedArmor;
+        noMoreBlockFromCards = other.noMoreBlockFromCards;
     }
 
     public int getMaxHealth() {
@@ -147,6 +149,9 @@ public class PlayerReadOnly {
         if (loseDexterityEot > 0) {
             str += ", loseDexEot=" + loseDexterityEot;
         }
+        if (noMoreBlockFromCards > 0) {
+            str += ", noMoreBlockFromCards=" + noMoreBlockFromCards;
+        }
         return str + '}';
     }
 
@@ -156,7 +161,7 @@ public class PlayerReadOnly {
         if (o == null || getClass() != o.getClass())
             return false;
         PlayerReadOnly that = (PlayerReadOnly) o;
-        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot;
+        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && noMoreBlockFromCards == that.noMoreBlockFromCards;
     }
 
     @Override public int hashCode() {

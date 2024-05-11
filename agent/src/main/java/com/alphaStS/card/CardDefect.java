@@ -1525,9 +1525,6 @@ public class CardDefect {
         }
 
         public static int getMaxPossibleGARemaining(GameState state) {
-            if (state.isTerminal() != 0) {
-                return 0;
-            }
             // todo: very very hacky
             var idxes = new int[5];
 

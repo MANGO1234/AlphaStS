@@ -54,8 +54,15 @@ public class GameStateUtils {
         if (state.properties.preBattleRandomization != null) {
             size *= state.properties.preBattleRandomization.listRandomizations().size();
         }
-        if (size % (groupSize * stride) != 0) {
-            return null;
+        if (stride >= 1) {
+            if (size % (groupSize * stride) != 0) {
+                return null;
+            }
+        } else {
+            if (size % groupSize != 0) {
+                return null;
+            }
+            stride = size / groupSize;
         }
         int[][] groups = new int[size / groupSize][groupSize];
         int offset = 0;

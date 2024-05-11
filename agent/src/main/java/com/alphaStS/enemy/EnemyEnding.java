@@ -419,7 +419,7 @@ public class EnemyEnding {
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
-                health = (int) Math.round(health * difficulty / 40);
+                health = health / 40 * difficulty;
             } else {
                 health = 800;
             }
