@@ -347,7 +347,7 @@ public class EnemyExordium {
                 return "Activate";
             } else if (move == DIVIDER) {
                 int n = state.getPlayeForRead().getHealth() / 12 + 1;
-                return "Attack " + state.enemyCalcDamageToPlayer(this, 3) + "x6";
+                return "Attack " + state.enemyCalcDamageToPlayer(this, n) + "x6";
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 6);
             } else if (move == TACKLE_1 || move == TACKLE_2) {

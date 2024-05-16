@@ -153,7 +153,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Blood Vial: No need to implement
+    public static class BloodVial extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasBloodVial = true;
+            state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
+                @Override public void handle(GameState state) {
+                    state.healPlayer(2);
+                }
+            });
+        }
+    }
 
     public static class BronzeScales extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1429,7 +1438,121 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     // ************************************************************** Boss Relics *******************************************************************
     // **********************************************************************************************************************************************
-    // Astrolabe: No need to implement
+    public static class Astrolabe extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleCards(state.properties);
+            state.properties.astrolabeCardsIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.astrolabeCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
+            }
+            state.properties.addStartOfBattleHandler("Astrolabe", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.properties.makingRealMove) {
+                        state.properties.astrolabeCardsTransformed = new int[3];
+                    }
+                    state.setIsStochastic();
+                    if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
+                    state.getStateDesc().append("Astrolabe -> ");
+                    for (int i = 0; i < 3; i++) {
+                        var idx = state.getSearchRandomGen().nextInt(state.properties.astrolabeCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.astrolabeCardsIdxes));
+                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx]);
+                        if (i > 0) state.stateDesc.append(" + ");
+                        state.getStateDesc().append(state.properties.cardDict[state.properties.astrolabeCardsIdxes[idx]].cardName);
+                        if (state.properties.makingRealMove) {
+                            state.properties.astrolabeCardsTransformed[i] = idx;
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if (properties.character == CharacterEnum.DEFECT) {
+                return getPossibleCards(properties);
+            }
+            return null;
+        }
+
+        List<Card> getPossibleCards(GameProperties gameProperties) {
+            if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new CardDefect.AggregateP(),
+                        new CardDefect.AllForOneP(0, 0),
+                        new CardDefect.AmplifyP(),
+                        new CardDefect.AutoShieldsP(),
+                        new CardDefect.BallLightningP(),
+                        new CardDefect.BarrageP(),
+                        new CardDefect.BeamCellP(),
+                        new CardDefect.BiasedCognitionP(),
+                        new CardDefect.BlizzardP(),
+                        new CardDefect.BootSequenceP(),
+                        new CardDefect.BufferP(),
+                        new CardDefect.BullsEyeP(),
+                        new CardDefect.CapacitorP(),
+                        new CardDefect.ChaosP(),
+                        new CardDefect.ChargeBatteryP(),
+                        new CardDefect.ChillP(),
+                        new CardDefect.ClawP(5),
+                        new CardDefect.ColdSnapP(),
+                        new CardDefect.CompiledDriverP(),
+                        new CardDefect.ConsumeP(),
+                        new CardDefect.CoolheadedP(),
+                        new CardDefect.CoreSurgeP(),
+                        new CardDefect.CreativeAIP(),
+                        new CardDefect.DarknessP(),
+                        new CardDefect.DefragmentP(),
+                        new CardDefect.DoomAndGloomP(),
+                        new CardDefect.DoubleEnergyP(),
+                        new CardDefect.EchoFormP(),
+                        new CardDefect.ElectrodynamicsP(),
+                        new CardDefect.EquilibriumP(),
+                        new CardDefect.FissionP(),
+                        new CardDefect.ForceFieldP(),
+                        new CardDefect.FTLP(),
+                        new CardDefect.FusionP(),
+                        new CardDefect.GeneticAlgorithmP(19, 3),
+                        new CardDefect.GlacierP(),
+                        new CardDefect.GoForTheEyeP(),
+                        new CardDefect.HeatsinksP(),
+                        new CardDefect.HelloWorldP(),
+                        new CardDefect.HologramP(),
+                        new CardDefect.HyperBeamP(),
+                        new CardDefect.LeapP(),
+                        new CardDefect.LoopP(),
+                        new CardDefect.MachineLearningP(),
+                        new CardDefect.MelterP(),
+                        new CardDefect.MeteorStrikeP(),
+                        new CardDefect.MultiCastP(),
+                        new CardDefect.OverclockP(),
+                        new CardDefect.RainbowP(),
+                        new CardDefect.RebootP(),
+                        new CardDefect.ReboundP(),
+                        new CardDefect.RecursionP(),
+                        new CardDefect.RecycleP(),
+                        new CardDefect.ReinforcedBodyP(),
+                        new CardDefect.ReprogramP(),
+                        new CardDefect.RipAndTearP(),
+                        new CardDefect.ScrapeP(),
+                        new CardDefect.SeekP(),
+                        new CardDefect.SelfRepairP(),
+                        new CardDefect.SkimP(),
+                        new CardDefect.StackP(),
+                        new CardDefect.StaticDischargeP(),
+                        new CardDefect.SteamBarrierP(),
+                        new CardDefect.StormP(),
+                        new CardDefect.StreamlineP(),
+                        new CardDefect.SunderP(),
+                        new CardDefect.SweepingBeamP(),
+                        new CardDefect.TempestP(),
+                        new CardDefect.ThunderStrikeP(),
+                        new CardDefect.TurboP(),
+                        new CardDefect.WhiteNoiseP()
+                );
+            }
+            throw new IllegalArgumentException();
+        }
+    }
+
     // Black Star: No need to implement
 
     public static class BustedCrown extends Relic {
@@ -1569,7 +1692,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ************************************************************** Event Relics ******************************************************************
     // **********************************************************************************************************************************************
 
-    // Bloody Idol: No need to implement, well can get gold in combat...
+    public static class BloodyIdol extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasBloodyIdol = true;
+            state.properties.addEndOfBattleHandler("BloodyIdol", new GameEventHandler(1) {
+                @Override public void handle(GameState state) {
+                    state.healPlayer(5);
+                }
+            });
+        }
+    }
+
     // Cultist Mask: No need to implement
     // todo: Enchiridion
     // Face Of Cleric: No need to implement

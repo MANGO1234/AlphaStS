@@ -903,7 +903,7 @@ public class MatchSession {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
-                action = MCTS.getActionRandomOrTerminal(state);
+                action = MCTS.getActionRandomOrTerminal(state, false);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
             }
             var step = new GameStep(state, action);
@@ -950,6 +950,7 @@ public class MatchSession {
         ChanceState lastChanceState = null;
         boolean contaminatedByTemp = false;
         for (int i = steps.size() - 2; i >= 0; i--) {
+            int isBetter = 0;
             if (!USE_Z_TRAINING && steps.get(i).isExplorationMove) {
                 List<GameStep> extraSteps = new ArrayList<>();
                 ChanceState cState = findBestLineChanceState(steps.get(i).state(), nodeCount, mcts, extraSteps);
@@ -959,6 +960,9 @@ public class MatchSession {
                     contaminatedByTemp = true;
                     double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
                     if (lastChanceState != null || ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
+                        if (ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
+                            isBetter = -1;
+                        }
                         state = steps.get(i).state().clone(false);
                         state.setSearchRandomGen(steps.get(i).searchRandomGenMCTS);
                         state.policyMod = steps.get(i).state().policyMod;
@@ -975,6 +979,8 @@ public class MatchSession {
                         vCur = ret;
                         vPro = Arrays.copyOf(ret, ret.length);
                         lastChanceState = cState;
+                    } else {
+                        isBetter = 1;
                     }
 //                    for (GameStep step : extraSteps) {
 //                        step.v = ret;
@@ -986,8 +992,15 @@ public class MatchSession {
             steps.get(i).resultContaminatedByTemp = contaminatedByTemp;
             steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
             if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
-                steps.get(i).v[state.properties.qwinVIdx] = steps.get(i).v[GameState.V_WIN_IDX] - (steps.get(i).state().q[GameState.V_WIN_IDX] / (steps.get(i).state().total_n + 1));
-                steps.get(i).v[state.properties.qwinVIdx + 1] = steps.get(i).v[GameState.V_HEALTH_IDX] - (steps.get(i).state().q[GameState.V_HEALTH_IDX] / (steps.get(i).state().total_n + 1));
+                if (!USE_Z_TRAINING && steps.get(i).isExplorationMove && steps.get(i + 1).v != null) {
+                    var vWin = steps.get(i + 1).v[state.properties.qwinVIdx] - (-10);
+                    if (isBetter < 0) {
+                        steps.get(i + 1).v[state.properties.qwinVIdx] = 0.75 * vWin;
+                    } else if (isBetter > 0) {
+                        steps.get(i + 1).v[state.properties.qwinVIdx] = 1 - 0.75 * (1 - vWin);
+                    }
+                }
+                steps.get(i).v[state.properties.qwinVIdx] = -10 + steps.get(i).state().getVOther(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START);
             }
             state = steps.get(i).state();
             state.clearNextStates();
@@ -1421,7 +1434,7 @@ public class MatchSession {
                 for (var target : state.properties.extraTrainingTargets) {
                     int n = target.getNumberOfTargets();
                     if (n == 1) {
-                        if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z")) {
+                        if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z") && false) {
                             stream.writeFloat((float) (step.v[v_idx]));
                          } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
                             if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {

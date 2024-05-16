@@ -4,10 +4,7 @@ import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.player.Player;
-import com.alphaStS.utils.Tuple;
 
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -995,7 +992,7 @@ public class TestStates {
         builder.addCard(new CardDefect.EchoForm(), 2);
         builder.addCard(new CardDefect.Consume(), 1);
         builder.addCard(new CardDefect.ConsumeP(), 0);
-        builder.addCard(new CardDefect.EquilibirumP(), 1);
+        builder.addCard(new CardDefect.EquilibriumP(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.RebootP(), 1);
@@ -1045,7 +1042,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BootSequenceP(), 1);
         builder.addCard(new CardDefect.EchoForm(), 2);
         builder.addCard(new CardDefect.ConsumeP(), 1);
-        builder.addCard(new CardDefect.EquilibirumP(), 1);
+        builder.addCard(new CardDefect.EquilibriumP(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.RebootP(), 1);
@@ -1109,7 +1106,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BootSequenceP(), 1);
         builder.addCard(new CardDefect.EchoForm(), 2);
         builder.addCard(new CardDefect.ConsumeP(), 1);
-        builder.addCard(new CardDefect.EquilibirumP(), 1);
+        builder.addCard(new CardDefect.EquilibriumP(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.RebootP(), 1);
@@ -1162,7 +1159,7 @@ public class TestStates {
         builder.addCard(new CardDefect.BootSequenceP(), 1);
         builder.addCard(new CardDefect.EchoForm(), 2);
         builder.addCard(new CardDefect.ConsumeP(), 1);
-        builder.addCard(new CardDefect.EquilibirumP(), 1);
+        builder.addCard(new CardDefect.EquilibriumP(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.RebootP(), 1);

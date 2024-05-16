@@ -7,7 +7,6 @@ import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
 
 import java.util.*;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class ScenarioStats {
     protected final GameProperties properties;
@@ -29,6 +28,7 @@ public class ScenarioStats {
     public List<CounterStat> counterStats;
     public int[] cardsUsedCount;
     public int[] select1OutOf3Count;
+    public int[][] astrolabeCount;
     public long biasedCognitionLimit;
     public int[] biasedCognitionLimitUsedCount;
     public double[] biasedCognitionLimitDist;
@@ -69,6 +69,9 @@ public class ScenarioStats {
         }
         cardsUsedCount = new int[properties.cardDict.length];
         select1OutOf3Count = new int[properties.cardDict.length];
+        if (properties.astrolabeCardsIdxes != null) {
+            astrolabeCount = new int[properties.astrolabeCardsIdxes.length][2];
+        }
         biasedCognitionLimitUsedCount = new int[100];
         biasedCognitionLimitDist = new double[100];
         predictionError = new HashMap<>();
@@ -113,6 +116,12 @@ public class ScenarioStats {
         }
         for (int i = 0; i < select1OutOf3Count.length; i++) {
             select1OutOf3Count[i] += stat.select1OutOf3Count[i];
+        }
+        if (properties.astrolabeCardsIdxes != null) {
+            for (int i = 0; i < properties.astrolabeCardsIdxes.length; i++) {
+                astrolabeCount[i][0] += stat.astrolabeCount[i][0];
+                astrolabeCount[i][1] += stat.astrolabeCount[i][1];
+            }
         }
         biasedCognitionLimit += stat.biasedCognitionLimit;
         for (int i = 0; i < biasedCognitionLimitDist.length; i++) {
@@ -175,6 +184,14 @@ public class ScenarioStats {
                 cardsUsedCount[steps.get(i).state().getAction(steps.get(i).action()).idx()] += 1;
             } else if (steps.get(i).state().getAction(steps.get(i).action()).type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
                 select1OutOf3Count[steps.get(i).state().getAction(steps.get(i).action()).idx()] += 1;
+            }
+        }
+        if (properties.astrolabeCardsIdxes != null) {
+            for (int i = 0; i < state.properties.astrolabeCardsTransformed.length; i++) {
+                if (state.isTerminal() > 0) {
+                    astrolabeCount[state.properties.astrolabeCardsTransformed[i]][0] += 1;
+                }
+                astrolabeCount[state.properties.astrolabeCardsTransformed[i]][1] += 1;
             }
         }
         biasedCognitionLimit += state.properties.biasedCognitionLimitUsed;
@@ -483,6 +500,18 @@ public class ScenarioStats {
                 System.out.print(select1OutOf3CountList.get(i).v1().cardName + ": " + select1OutOf3CountList.get(i).v2() + " (" + Utils.formatFloat( select1OutOf3CountList.get(i).v2() / (double) total * 100) + "%)");
             }
             System.out.println("]");
+            if (properties.astrolabeCardsIdxes != null) {
+                var transformedCountList = IntStream.range(0, properties.astrolabeCardsIdxes.length)
+                        .filter(x -> astrolabeCount[x][1] > 0)
+                        .mapToObj(x -> new Tuple3<>(properties.cardDict[properties.astrolabeCardsIdxes[x]], astrolabeCount[x], 100 * astrolabeCount[x][0] / (double) astrolabeCount[x][1]))
+                        .sorted(Comparator.comparing(x -> -x.v3()))
+                        .toList();
+                for (int i = 0; i < transformedCountList.size(); i++) {
+                    System.out.print(i == 0 ? indent + "Astrolabe Card Count: [" : ", ");
+                    System.out.print(transformedCountList.get(i).v1().cardName + ": " + Utils.formatFloat(transformedCountList.get(i).v3()) + "% (" + transformedCountList.get(i).v2()[0] + "/" + transformedCountList.get(i).v2()[1] + ")");
+                }
+                System.out.println("]");
+            }
         }
         if (properties.biasedCognitionLimitCounterIdx >= 0) {
             System.out.printf("%sBiased Cognition Limit: %s\n", indent, Utils.formatFloat(((double) biasedCognitionLimit) / numOfGames));

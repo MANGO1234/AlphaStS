@@ -293,9 +293,13 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 12;
+        }
+
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
-                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
+//                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
                 health = (int) Math.round(((double) (health * difficulty)) / 12);
             } else {
                 health = 265;
@@ -368,9 +372,13 @@ public class EnemyBeyond {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 12;
+        }
+
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
-                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
+//                difficulty = random.nextInt(12, RandomGenCtx.Other) + 1;
                 health = (int) Math.round(((double) (health * difficulty)) / 12);
             } else {
                 health = 265;
@@ -542,10 +550,14 @@ public class EnemyBeyond {
             return "Unknown";
         }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 24;
+        }
+
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
             if (training) {
-                int b = random.nextInt(24, RandomGenCtx.Other) + 1;
-                health = (int) Math.round((health * b) / 24.0);
+//                int difficulty = random.nextInt(24, RandomGenCtx.Other) + 1;
+                health = (int) Math.round((health * difficulty) / 24.0);
                 if (health < 240) {
                     hasted = true;
                 }
@@ -1719,13 +1731,12 @@ public class EnemyBeyond {
         private static final int NIP = 0;
         private static final int CHOMP = 1;
         private static final int HARDEN = 2;
-        private static final int REGROW_1 = 3;
-        private static final int REGROW_2 = 4;
-        private static final int REINCARNATE = 5;
+        private static final int REGROW = 3;
+        private static final int REINCARNATE = 4;
 
         private int lowerPossibleNipDmg = 7;
         private int upperPossibleNipDmg = 11;
-        private boolean middle;
+        private final boolean middle;
 
         public Darkling(boolean middle) {
             this(59, middle);
@@ -1770,7 +1781,7 @@ public class EnemyBeyond {
             int prevHealth = health;
             int dmg = super.damage(n, state);
             if (health <= 0 && prevHealth > 0) {
-                move = REGROW_1;
+                move = REGROW;
             }
             return dmg;
         }
@@ -1779,7 +1790,7 @@ public class EnemyBeyond {
             int prevHealth = health;
             super.nonAttackDamage(n, blockable, state);
             if (health <= 0 && prevHealth > 0) {
-                move = REGROW_1;
+                move = REGROW;
             }
         }
 
@@ -1791,7 +1802,7 @@ public class EnemyBeyond {
             } else if (move == HARDEN) {
                 gainBlock(12);
                 gainStrength(2);
-            } else if (move == REGROW_1 || move == REGROW_2) {
+            } else if (move == REGROW) {
             } else if (move == REINCARNATE) {
                 health = properties.origHealth / 2;
                 state.adjustEnemiesAlive(1);
@@ -1800,9 +1811,7 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove = -1;
-            if (move == REGROW_1) {
-                newMove = REGROW_2;
-            } else if (move == REGROW_2) {
+            if (move == REGROW) {
                 newMove = REINCARNATE;
                 reviveReset();
             } else if (move < 0) {
@@ -1861,7 +1870,7 @@ public class EnemyBeyond {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 9) + "x2";
             } else if (move == HARDEN) {
                 return "Gain 12 Block and 2 Strength";
-            } else if (move == REGROW_1 || move == REGROW_2) {
+            } else if (move == REGROW) {
                 return "Regrow";
             } else if (move == REINCARNATE) {
                 return "Reincarnate";
@@ -1909,6 +1918,207 @@ public class EnemyBeyond {
             input[idx + 1] = (upperPossibleNipDmg - 7) / 4.0f;
             input[idx + 2] = properties.origHealth / (float) properties.maxHealth;
             return 3;
+        }
+    }
+
+    public static class Repulsor extends Enemy {
+        private static final int BASH = 0;
+        private static final int REPULSE = 1;
+
+        public Repulsor() {
+            this(38);
+        }
+
+        public Repulsor(int health) {
+            super(health, 2, false);
+        }
+
+        public Repulsor(EnemyBeyond.Repulsor other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.Repulsor(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == BASH) {
+                state.enemyDoDamageToPlayer(this, 13, 1);
+            } else if (move == REPULSE) {
+                state.addCardToDeck(state.properties.dazedCardIdx);
+                state.addCardToDeck(state.properties.dazedCardIdx);
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            int newMove;
+            if (move == BASH) {
+                newMove = REPULSE;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                newMove = r < 80 ? REPULSE : BASH;
+            }
+            lastMove = move;
+            move = newMove;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == BASH) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 13);
+            } else if (move == REPULSE) {
+                return "Shuffle 2 Dazed";
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            health = 31 + random.nextInt(8, RandomGenCtx.Other);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed()); }
+
+        @Override public String getName() {
+            return "Repulsor";
+        }
+    }
+
+    public static class Exploder extends Enemy {
+        private static final int SLAM_1 = 0;
+        private static final int SLAM_2 = 1;
+        private static final int EXPLODE = 2;
+
+        public Exploder() {
+            this(35);
+        }
+
+        public Exploder(int health) {
+            super(health, 2, false);
+        }
+
+        public Exploder(EnemyBeyond.Exploder other) {
+            super(other);
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.Exploder(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == SLAM_1 || move == SLAM_2) {
+                state.enemyDoDamageToPlayer(this, 11, 1);
+            } else if (move == EXPLODE) {
+                state.enemyDoDamageToPlayer(this, 30, 1);
+                health = 0;
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            lastMove = move;
+            if (lastMove < 0) {
+                move = SLAM_1;
+            } else if (lastMove == SLAM_1) {
+                move = SLAM_2;
+            } else if (lastMove == SLAM_2) {
+                move = EXPLODE;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == SLAM_1 || move == SLAM_2) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 11);
+            } else if (move == EXPLODE) {
+                return "Dies and Explode " + state.enemyCalcDamageToPlayer(this, 30);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            health = 30 + random.nextInt(6, RandomGenCtx.Other);
+        }
+
+        @Override public String getName() {
+            return "Exploder";
+        }
+    }
+
+    public static class Spiker extends Enemy {
+        private static final int CUT = 0;
+        private static final int SPIKE = 1;
+        private int thorn = 7;
+
+        public Spiker() {
+            this(60);
+        }
+
+        public Spiker(int health) {
+            super(health, 2, false);
+        }
+
+        public Spiker(EnemyBeyond.Spiker other) {
+            super(other);
+            thorn = other.thorn;
+        }
+
+        @Override public Enemy copy() {
+            return new EnemyBeyond.Spiker(this);
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            if (move == CUT) {
+                state.enemyDoDamageToPlayer(this, 9, 1);
+            } else if (move == SPIKE) {
+                thorn += 2;
+            }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            lastMove = move;
+            if (thorn == 19) {
+                move = CUT;
+            } else if (lastMove == CUT) {
+                move = SPIKE;
+            } else {
+                int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);
+                move = r < 50 ? CUT : SPIKE;
+            }
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == CUT) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 9);
+            } else if (move == SPIKE) {
+                return "Increase Thorn By 2 ";
+            }
+            return "Unknown";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && thorn == ((EnemyBeyond.Spiker) o).thorn;
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            health = 44 + random.nextInt(17, RandomGenCtx.Other);
+        }
+
+        @Override public String getName() {
+            return "Spiker";
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of thorn for Spiker";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = (thorn - 7) / 12.0f;
+            return 1;
+        }
+
+        public int getThorn() {
+            return thorn;
         }
     }
 }

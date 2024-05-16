@@ -55,6 +55,8 @@ public class Main {
     private static boolean CURRICULUM_TRAINING_ON = false;
     private static int NUMBER_OF_GAMES_TO_PLAY = 5;
     private static int NUMBER_OF_NODES_PER_TURN = 1000;
+    private static int TRAINING_NUMBER_OF_GAMES_TO_PLAY = 200;
+    private static int TRAINING_NUMBER_OF_NODES_PER_TURN = 100;
     private static int NUMBER_OF_THREADS = 1;
     private static int BATCH_SIZE = 1;
     private static boolean WRITE_MATCHES = false;
@@ -85,6 +87,14 @@ public class Main {
             }
             if (args[i].equals("-n")) {
                 NUMBER_OF_NODES_PER_TURN = Integer.parseInt(args[i + 1]);
+                i++;
+            }
+            if (args[i].equals("-training-c")) {
+                TRAINING_NUMBER_OF_GAMES_TO_PLAY = Integer.parseInt(args[i + 1]);
+                i++;
+            }
+            if (args[i].equals("-training-n")) {
+                TRAINING_NUMBER_OF_NODES_PER_TURN = Integer.parseInt(args[i + 1]);
                 i++;
             }
             if (args[i].equals("-dir")) {
@@ -217,7 +227,7 @@ public class Main {
         }
         long start = System.currentTimeMillis();
         state.properties.enemyHealthRandomization = new GameStateRandomization.EnemyHealthRandomization(CURRICULUM_TRAINING_ON, randomizationScenarioToDifficulty);
-        session.playTrainingGames(state, 200, 100, NUMBER_OF_THREADS, BATCH_SIZE, CUR_ITER_DIRECTORY + "/training_data.bin.lz4");
+        session.playTrainingGames(state, TRAINING_NUMBER_OF_GAMES_TO_PLAY, TRAINING_NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, CUR_ITER_DIRECTORY + "/training_data.bin.lz4");
 
         ObjectNode node = mapper.createObjectNode();
         ObjectNode difficultyNode = mapper.createObjectNode();

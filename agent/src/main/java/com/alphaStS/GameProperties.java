@@ -72,6 +72,7 @@ public class GameProperties implements Cloneable {
     public int[] skillPotionIdxes;
     public int[] powerPotionIdxes;
     public int[] colorlessPotionIdxes;
+    public int[] astrolabeCardsIdxes;
     public int[] deadBranchCardsIdxes;
     public int[] toolboxIdxes;
     public int[][] sneckoIdxes;
@@ -83,6 +84,7 @@ public class GameProperties implements Cloneable {
     public int burnPCardIdx = -1;
     public int dazedCardIdx = -1;
     public int slimeCardIdx = -1;
+    public int normalityCardIdx = -1;
     public int woundCardIdx = -1;
     public int voidCardIdx = -1;
     public int shivCardIdx = -1;
@@ -172,6 +174,8 @@ public class GameProperties implements Cloneable {
     public boolean hasPaperPhrog;
     public boolean hasMeatOnBone;
     public boolean hasBurningBlood;
+    public boolean hasBloodyIdol;
+    public boolean hasBloodVial;
     public boolean hasPaperCrane;
     public boolean hasSneckoSkull;
     public boolean hasSneckoEye;
@@ -206,6 +210,7 @@ public class GameProperties implements Cloneable {
     public List<Integer> innateOrder;
     public List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
     public int enemiesEncounterChosen;
+    public int[] astrolabeCardsTransformed;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();

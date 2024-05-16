@@ -9,6 +9,7 @@ import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 import static java.lang.Math.sqrt;
 
@@ -334,7 +335,8 @@ public class MCTS {
                     state.getAction(action).type() == GameActionType.SELECT_CARD_HAND ||
                     state.getAction(action).type() == GameActionType.SELECT_CARD_EXHAUST ||
                     state.getAction(action).type() == GameActionType.SELECT_CARD_DECK ||
-                    state.getAction(action).type() == GameActionType.SELECT_CARD_DISCARD) {
+                    state.getAction(action).type() == GameActionType.SELECT_CARD_DISCARD ||
+                    state.getAction(action).type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
                 for (int dIdx = deterministicPath.size() - 1; dIdx >= 0; dIdx--) {
                     var actionOb = deterministicPath.get(dIdx).v1().getAction(deterministicPath.get(dIdx).v2());
                     if (actionOb.type() == GameActionType.PLAY_CARD || actionOb.type() == GameActionType.USE_POTION){
@@ -1669,47 +1671,47 @@ public class MCTS {
             return state.terminalAction;
         }
         var total_n = 0;
+        DescriptiveStatistics ds = new DescriptiveStatistics();
+        var uncertainty = new double[state.policy.length];
         for (int i = 0; i < state.policy.length; i++) {
             if (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0)) {
-                total_n += state.n[i];
+                total_n += state.n[i] * state.n[i];
+                if (state.ns[i] instanceof ChanceState cs) {
+                    var t = 0.0;
+                    for (ChanceState.Node node : cs.cache.values()) {
+                        t += node.state.getVOther(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START) * node.n / cs.total_node_n;
+                    }
+                    ds.addValue(t);
+                    uncertainty[i] = t;
+                } else {
+                    ds.addValue(((GameState) state.ns[i]).getVOther(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START));
+                    uncertainty[i] = ((GameState) state.ns[i]).getVOther(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START);
+                }
             }
         }
         boolean useAll = false;
         if (total_n == 0) {
             useAll = true;
-            total_n = state.total_n;
         }
-        var minD = 100.0;
+        var max = ds.getMax();
+        var min = ds.getMin();
+        var p = new double[state.n.length];
         for (int i = 0; i < state.policy.length; i++) {
-            if (useAll || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
-                var k1 = state.q[(i + 1) * state.properties.v_total_len + state.properties.qwinVIdx] / state.n[i];
-                var k2 = state.q[(i + 1) * state.properties.v_total_len + state.properties.qwinVIdx + 1] / state.n[i];
-                double kk = Math.max(Math.abs((float) (k1)) + Math.abs((float) (k2)), 0.000001f);
-                if (kk < minD) {
-                    minD = Math.min(kk, minD);
+            if (useAll) {
+                p[i] = state.n[i];
+            } else if ((state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
+                var pow = 2.0;
+                if (max == min) {
+                    pow = 1;
+                } else {
+                    pow = pow + 2 * ((uncertainty[i] - min) / (max - min) - 0.5);
                 }
-            }
-        }
-        if (useAll) {
-            minD = 0.000001f;
-        }
-        var p = new float[state.n.length];
-        for (int i = 0; i < state.policy.length; i++) {
-            if (useAll || (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
-                double ratio = 1.0;
-                if (state.n[i] > 0) {
-                    var k1 = state.n[i] > 0 ? state.q[(i + 1) * state.properties.v_total_len + state.properties.qwinVIdx] / state.n[i] : 0;
-                    var k2 = state.n[i] > 0 ? state.q[(i + 1) * state.properties.v_total_len + state.properties.qwinVIdx + 1] / state.n[i] : 0;
-                    double kk = Math.max(Math.abs((float) (k1)) + Math.abs((float) (k2)), 0.000001f) / minD;
-                    if (kk != 0) {
-                        ratio = kk;
-                    }
-                }
-                p[i] = state.n[i] / (float) total_n / (float) ratio;
+                p[i] = Math.pow(state.n[i] + 1, pow);
             }
         }
 
         var total_p = 0.0;
+        var prevP = Arrays.copyOf(p, p.length);
         for (int i = 0; i < p.length; i++) {
             total_p += p[i];
         }
@@ -1730,8 +1732,8 @@ public class MCTS {
         return action;
     }
 
-    public static int getActionRandomOrTerminal(GameState state) {
-        if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
+    public static int getActionRandomOrTerminal(GameState state, boolean useUncertainty) {
+        if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION && useUncertainty && !Configuration.USE_Z_TRAINING) {
             return getActionRandomOrTerminalWithUncertainty(state);
         }
         if (state.terminalAction >= 0) {

@@ -17,7 +17,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 from misc import getFlag, getFlagValue
 
-print(tf.config.list_physical_devices('GPU'))
+print(f'GUP Devices: {tf.config.list_physical_devices("GPU")}')
 
 # rand.seed(5)
 # np.random.seed(5)
@@ -34,7 +34,8 @@ BATCH_PER_THREAD = int(getFlagValue('-b', 1))
 NUMBER_OF_THREADS_TRAINING = int(getFlagValue('-tt', 0))
 ITERATION_COUNT = int(getFlagValue('-c', 5))
 Z_TRAIN_WINDOW_END = int(getFlagValue('-z', -1))
-NODE_COUNT = int(getFlagValue('-n', 1000))
+TRAINING_NUM_OF_GAMES = int(getFlagValue('-training-c', 200))
+TRAINING_NODE_COUNT = int(getFlagValue('-training-n', 100))
 DYNAMIC_BATCH_SIZE_FACTOR = int(getFlagValue('-dynamic_batch', 0))
 SAVES_DIR = getFlagValue('-dir', './saves')
 SKIP_FIRST = getFlag('-skip_first')
@@ -460,8 +461,8 @@ if DO_TRAINING:
         iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
 
-        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
-                      'com.alphaStS.Main', '--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-dir', SAVES_DIR]
+        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath',
+                      'com.alphaStS.Main', '--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-training-c', str(TRAINING_NUM_OF_GAMES), '-training-n', str(TRAINING_NODE_COUNT), '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:
                 matches_count = 1000

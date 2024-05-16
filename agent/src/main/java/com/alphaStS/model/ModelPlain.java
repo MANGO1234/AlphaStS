@@ -221,6 +221,7 @@ public class ModelPlain implements Model {
                         float value = ((float[][]) output.get(3 + i).getValue())[0][0];
                         if (state.properties.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
                             v_other[idx] = value;
+                            v_other[idx] = (value + 1) / 2;
                         } else {
                             v_other[idx] = (value + 1) / 2;
                         }
@@ -320,6 +321,7 @@ public class ModelPlain implements Model {
                             float value = ((float[][]) output.get(3 + i).getValue())[row][0];
                             if (state.properties.extraTrainingTargetsLabel.get(i).startsWith("Z")) {
                                 v_other[idx] = value;
+                                v_other[idx] = (value + 1) / 2;
                             } else {
                                 v_other[idx] = (value + 1) / 2;
                             }

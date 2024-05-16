@@ -5,6 +5,7 @@ import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
@@ -281,7 +282,7 @@ public class CardDefect {
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = 0; i < limit; i++) {
-                c.add(new Claw(5 + i * 2, limit));
+                c.add(new ClawP(5 + i * 2, limit));
             }
             return c;
         }
@@ -1239,13 +1240,13 @@ public class CardDefect {
 
     public static class Equilibrium extends CardDefect._EquilibirumT {
         public Equilibrium() {
-            super("Equilibirum", 13);
+            super("Equilibrium", 13);
         }
     }
 
-    public static class EquilibirumP extends CardDefect._EquilibirumT {
-        public EquilibirumP() {
-            super("Equilibirum+", 16);
+    public static class EquilibriumP extends CardDefect._EquilibirumT {
+        public EquilibriumP() {
+            super("Equilibrium+", 16);
         }
     }
 
@@ -1467,7 +1468,11 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            if (state.properties.echoFormCounterIdx >= 0 && state.getCounterForRead()[state.properties.echoFormCounterIdx] < 0) {
+                state.getPlayerForWrite().gainBlock(block + blockInc);
+            } else {
+                state.getPlayerForWrite().gainBlock(block);
+            }
             state.getCounterForWrite()[counterIdx] += blockInc;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1526,17 +1531,17 @@ public class CardDefect {
 
         public static int getMaxPossibleGARemaining(GameState state) {
             // todo: very very hacky
-            var idxes = new int[5];
+            var idxes = new int[20];
 
             boolean canUpgrade = false;
-            state.properties.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Perm 0)", "Apotheosis (Perm 2)", "Apotheosis (Perm 3)");
-            for (int i = 0; i < idxes.length; i++) {
+            state.properties.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Tmp 1)", "Apotheosis (Perm 0)", "Apotheosis (Perm 1)", "Apotheosis (Perm 3)");
+            for (int i = 0; i < 6; i++) {
                 if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            state.properties.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
-            for (int i = 0; i < idxes.length; i++) {
+            state.properties.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Tmp 1)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
+            for (int i = 0; i < 6; i++) {
                 if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
@@ -1564,11 +1569,24 @@ public class CardDefect {
                     }
                 }
             }
+            if (state.properties.echoFormCounterIdx >= 0) {
+                state.properties.findCardIndex(idxes, "Echo Form", "Echo Form (Tmp 0)", "Echo Form (Tmp 1)", "Echo Form (Perm 0)", "Echo Form (Perm 1)", "Echo Form (Perm 2)", "Echo Form+", "Echo Form+ (Tmp 0)", "Echo Form+ (Tmp 1)", "Echo Form+ (Perm 0)", "Echo Form+ (Perm 1)", "Echo Form+ (Perm 2)");
+                for (int i = 0; i < 12; i++) {
+                    if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                        maxGAP *= 2;
+                        maxGA *= 2;
+                    }
+                }
+            }
             return maxGAP * 3 + maxGA * 2;
         }
 
         public Card getUpgrade() {
             return new CardDefect.GeneticAlgorithmP(block, healthRewardRatio);
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "GeneticAlgorithm");
         }
     }
 
@@ -1961,9 +1979,11 @@ public class CardDefect {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             boolean stochastic = state.isStochastic;
             var i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
-            if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
-                state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+            if (i >= 0) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
+                if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
+                    state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+                }
             }
             i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
@@ -1999,10 +2019,10 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            var handCount = state.handArrLen;
-            var drawCount = Math.min((n + 1) / 2, GameState.HAND_LIMIT - handCount);
-            state.draw(drawCount);
-            for (int i = drawCount + handCount - 1; i >= handCount; i--) {
+            var handCount = state.getNumCardsInHand();
+            state.draw(Math.min((n + 1) / 2, GameState.HAND_LIMIT - handCount));
+            var newHandCount = state.getNumCardsInHand();
+            for (int i = newHandCount - 1; i >= handCount; i--) {
                 var card = state.properties.cardDict[state.getHandArrForRead()[i]];
                 if (card.energyCost != 0) { // discardCardFromHand will discard the card from right first
                     state.discardCardFromHand(state.getHandArrForRead()[i]);

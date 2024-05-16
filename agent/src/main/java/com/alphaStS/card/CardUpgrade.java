@@ -120,7 +120,7 @@ public class CardUpgrade {
         map.put(new CardDefect.Defragment(), new CardDefect.DefragmentP());
         map.put(new CardDefect.DoomAndGloom(), new CardDefect.DoomAndGloomP());
         map.put(new CardDefect.DoubleEnergy(), new CardDefect.DoubleEnergyP());
-        map.put(new CardDefect.Equilibrium(), new CardDefect.EquilibirumP());
+        map.put(new CardDefect.Equilibrium(), new CardDefect.EquilibriumP());
         map.put(new CardDefect.FTL(), new CardDefect.FTLP());
         map.put(new CardDefect.ForceField(), new CardDefect.ForceFieldP());
         map.put(new CardDefect.Fusion(), new CardDefect.FusionP());

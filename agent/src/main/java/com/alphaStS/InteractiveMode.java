@@ -1119,7 +1119,7 @@ public class InteractiveMode {
                     if (n > 0) {
                         darkling.setPossibleNipDmg(state, n);
                         return;
-                    } else if (n < 0) { // reset
+                    } else if (n == 0) { // reset
                         darkling.setLowerPossibleNipDmg(7);
                         darkling.setUpperPossibleNipDmg(11);
                         return;
@@ -1775,7 +1775,6 @@ public class InteractiveMode {
         out.println(state);
         if (state.properties.qwinVIdx >= 0) {
             out.println("Q-Win: " + state.q[state.properties.qwinVIdx] / (state.total_n + 1));
-            out.println("Q-Health: " + state.q[state.properties.qwinVIdx + 1] / (state.total_n + 1));
         }
         if (state.properties.turnsLeftVIdx >= 0) {
             out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.turnNum));

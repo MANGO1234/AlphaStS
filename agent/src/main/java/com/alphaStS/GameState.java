@@ -18,7 +18,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import static com.alphaStS.utils.Utils.formatFloat;
-import static com.alphaStS.utils.Utils.max;
 
 public final class GameState implements State {
     public static final int HAND_LIMIT = 10;
@@ -488,6 +487,8 @@ public final class GameState implements State {
                 properties.dazedCardIdx = i;
             } else if (cards.get(i).cardName.equals("Slimed")) {
                 properties.slimeCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Normality")) {
+                properties.normalityCardIdx = i;
             } else if (cards.get(i).cardName.equals("Wound")) {
                 properties.woundCardIdx = i;
             } else if (cards.get(i).cardName.equals("Void")) {
@@ -646,22 +647,6 @@ public final class GameState implements State {
                         v[state.properties.qwinVIdx] = 0;
                     } else if (isTerminal == 0) {
                         v[state.properties.qwinVIdx] = state.getVOther(properties.qwinVIdx - V_OTHER_IDX_START);
-                    }
-                }
-
-                @Override public void updateQValues(GameState state, double[] v) {}
-            });
-            properties.addExtraTrainingTarget("ZBHealth", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
-                }
-            }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                    if (isTerminal > 0) {
-                        v[state.properties.qwinVIdx + 1] = 0;
-                    } else if (isTerminal < 0) {
-                        v[state.properties.qwinVIdx + 1] = 0;
-                    } else if (isTerminal == 0) {
-                        v[state.properties.qwinVIdx + 1] = state.getVOther(properties.qwinVIdx + 1 - V_OTHER_IDX_START);
                     }
                 }
 
@@ -1788,7 +1773,7 @@ public final class GameState implements State {
         }
     }
 
-    public int doAction(int actionIdx) {
+    public void doAction(int actionIdx) {
         GameAction action = properties.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         int ret = 0;
         if (action.type() == GameActionType.BEGIN_BATTLE) {
@@ -1899,7 +1884,6 @@ public final class GameState implements State {
             }
             searchFrontier = null;
         }
-        return ret;
     }
 
     boolean isActionLegal(int action) {
@@ -2080,7 +2064,7 @@ public final class GameState implements State {
     }
 
     private boolean checkIfCanHeal() {
-        if (properties.hasBurningBlood || properties.healEndOfAct) {
+        if (properties.hasBurningBlood || properties.hasBloodyIdol || properties.hasBloodVial || properties.healEndOfAct) {
             return true;
         }
         if (properties.hasToyOrniphopter && properties.potions.size() > 0) {
@@ -2206,6 +2190,12 @@ public final class GameState implements State {
                 }
             } else {
                 hp = Math.min(getPlayeForRead().getMaxHealth(), maxPossibleHealth + v);
+            }
+            if (properties.hasBloodyIdol) {
+                hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 5);
+            }
+            if (properties.hasBloodVial) {
+                hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 2);
             }
             if (properties.healEndOfAct) {
                 hp += (getPlayeForRead().getMaxHealth() - hp) - (getPlayeForRead().getMaxHealth() - hp) / 4;
@@ -2603,7 +2593,7 @@ public final class GameState implements State {
                     }
                 }
                 if (!(properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12) &&
-                    !(properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3) &&
+                    !(properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) &&
                     !(properties.velvetChokerCounterIndexIdx >= 0 && counter[properties.velvetChokerCounterIndexIdx] >= 6)) {
                     for (int i = 0; i < handArrLen; i++) {
                         if (!legal[handArr[i]]) {
@@ -2631,6 +2621,20 @@ public final class GameState implements State {
                                     continue;
                                 }
                             }
+                            // how to stall genetic algo for echo form more effectively
+//                            if (properties.echoFormCounterIdx >= 0 && properties.cardDict[handArr[i]].cardName.startsWith("Genetic Algorithm+ (19)")) {
+//                                if (getCounterForRead()[properties.echoFormCounterIdx] == 0) {
+//                                    continue;
+//                                }
+//                                int cardsPlayThisTurn = (getCounterForRead()[properties.echoFormCounterIdx] & ((1 << 16) - 1));
+//                                int limit = getCounterForRead()[properties.echoFormCounterIdx] >> 16;
+////                                if (cardsPlayThisTurn >= limit) {
+////                                    continue;
+////                                }
+//                                if (limit == 0) {
+//                                    continue;
+//                                }
+//                            }
                             count++;
                             legal[handArr[i]] = true;
                         }
@@ -3977,6 +3981,9 @@ public final class GameState implements State {
                 }
             } else if (dmgDone > 0 && properties.envenomCounterIdx >= 0 && getCounterForRead()[properties.envenomCounterIdx] > 0) {
                 enemy.applyDebuff(this, DebuffType.POISON, getCounterForRead()[properties.envenomCounterIdx]);
+            }
+            if (enemy instanceof EnemyBeyond.Spiker spiker) {
+                doNonAttackDamageToPlayer(spiker.getThorn(), true, spiker);
             }
             if (!enemy.isAlive()) {
                 adjustEnemiesAlive(-1);
