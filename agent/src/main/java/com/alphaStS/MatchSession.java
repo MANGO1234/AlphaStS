@@ -108,7 +108,7 @@ public class MatchSession {
         }
         if (startingAction >= 0) {
             state.properties.makingRealMove = true;
-            state.doAction(startingAction);
+            state = state.doAction(startingAction);
             state.properties.makingRealMove = false;
         }
 
@@ -130,14 +130,14 @@ public class MatchSession {
                     state.properties.makingRealMove = true;
                     if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                         state = state.clone(false);
-                        state.doAction(0);
+                        state = state.doAction(0);
                     } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                         state = state.clone(false);
-                        state.doAction(0);
+                        state = state.doAction(0);
                     } else {
                         if (nodeCount == 1) {
                             state = state.clone(false);
-                            state.doAction(action);
+                            state = state.doAction(action);
                         } else {
                             state = getNextState(state, mcts, action, steps.get(steps.size() - 1), false);
                         }
@@ -153,7 +153,7 @@ public class MatchSession {
                 if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
                     steps.add(new GameStep(state, 0));
                     state = state.clone(false);
-                    state.doAction(0);
+                    state = state.doAction(0);
                     RefRet ret = syncWithRef(refGame, refGameIdx, steps, state, 0);
                     if (ret != null) {
                         state = ret.state;
@@ -179,16 +179,16 @@ public class MatchSession {
                 state.properties.makingRealMove = true;
                 if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                     state = state.clone(false);
-                    state.doAction(0);
+                    state = state.doAction(0);
                 } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                     state = state.clone(false);
-                    state.doAction(0);
+                    state = state.doAction(0);
                 } else {
                     if (nodeCount == 1) {
                         state = state.clone(false);
-                        state.doAction(action);
+                        state = state.doAction(action);
                         if (state.actionCtx == GameActionCtx.BEGIN_TURN) {
-                            state.doAction(0);
+                            state = state.doAction(0);
                         }
                     } else {
                         state = getNextState(state, mcts, action, steps.get(steps.size() - 1), false);
@@ -357,7 +357,7 @@ public class MatchSession {
                         if (ts1.actionCtx != GameActionCtx.BEGIN_TURN) {
                             for (int j = 0; j < ts1.getLegalActions().length; j++) {
                                 if (ts1.getAction(j).type() == GameActionType.END_TURN) {
-                                    ts1.doAction(j);
+                                    ts1 = ts1.doAction(j);
                                     break;
                                 }
                             }
@@ -365,7 +365,7 @@ public class MatchSession {
                         if (ts2.actionCtx != GameActionCtx.BEGIN_TURN) {
                             for (int j = 0; j < ts2.getLegalActions().length; j++) {
                                 if (ts2.getAction(j).type() == GameActionType.END_TURN) {
-                                    ts2.doAction(j);
+                                    ts2 = ts2.doAction(j);
                                     break;
                                 }
                             }
@@ -635,95 +635,98 @@ public class MatchSession {
         var session = this;
         modelExecutor.addAndStartProducerThread(() -> {
             int idx = numToPlay.getAndDecrement();
-            while (idx > 0) {
-                if (playGamesStop) break;
-                if (deq.size() >= (nodeCount == 1 ? 1000 : 40) || playGamesPause) {
-                     if (numToPlay.get() <= -123456) {
-                         break; // only when this a remote server thread
-                     }
-                     modelExecutor.sleep(200);
-                     continue;
-                 }
-                var state = origState.clone(false);
-                state.properties = state.properties.clone();
-                state.properties.currentMCTS = mcts.get(threadIdx);
-                state.properties.doingComparison = mctsCmp.size() > 0;
-                var randomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
-                state.properties.realMoveRandomGen = randomGen;
-                randomGen.useNewCommonNumberVR = true;
-                state.properties.testNewFeature = true;
-                mcts.get(threadIdx).model.startRecordCalls();
-                var game1 = session.playGame(state, startingAction, null, mcts.get(threadIdx), nodeCount);
-                var modelCalls = mcts.get(threadIdx).model.endRecordCalls();
-                Game game2 = null;
-                var modelCalls2 = 0;
-                List<GameResult> reruns = null;
-                if (mctsCmp.size() > 0) {
-                    randomGen.timeTravelToBeginning();
-                    var state2 = stateToCompare.clone(false);
-                    state2.properties = state2.properties.clone();
-                    state2.properties.currentMCTS = mcts.get(threadIdx);
-                    state2.properties.doingComparison = true;
-                    state2.properties.realMoveRandomGen = randomGen;
-                    randomGen.useNewCommonNumberVR = false;
-                    state2.properties.testNewFeature = false;
-                    mctsCmp.get(threadIdx).model.startRecordCalls();
-                    game2 = session.playGame(state2, stateToCompareStartingAction, game1, mctsCmp.get(threadIdx), nodeCount);
-                    modelCalls2 = mctsCmp.get(threadIdx).model.endRecordCalls();
+            try {
+                while (idx > 0) {
+                    if (playGamesStop) break;
+                    if (deq.size() >= (nodeCount == 1 ? 1000 : 40) || playGamesPause) {
+                        if (numToPlay.get() <= -123456) {
+                            break; // only when this a remote server thread
+                        }
+                        modelExecutor.sleep(200);
+                        continue;
+                    }
+                    var state = origState.clone(false);
+                    state.properties = state.properties.clone();
+                    state.properties.currentMCTS = mcts.get(threadIdx);
+                    state.properties.doingComparison = mctsCmp.size() > 0;
+                    var randomGen = new RandomGen.RandomGenByCtx(seeds.get(idx - 1));
+                    state.properties.realMoveRandomGen = randomGen;
+                    randomGen.useNewCommonNumberVR = true;
+                    state.properties.testNewFeature = true;
+                    mcts.get(threadIdx).model.startRecordCalls();
+                    var game1 = session.playGame(state, startingAction, null, mcts.get(threadIdx), nodeCount);
+                    var modelCalls = mcts.get(threadIdx).model.endRecordCalls();
+                    Game game2 = null;
+                    var modelCalls2 = 0;
+                    List<GameResult> reruns = null;
+                    if (mctsCmp.size() > 0) {
+                        randomGen.timeTravelToBeginning();
+                        var state2 = stateToCompare.clone(false);
+                        state2.properties = state2.properties.clone();
+                        state2.properties.currentMCTS = mcts.get(threadIdx);
+                        state2.properties.doingComparison = true;
+                        state2.properties.realMoveRandomGen = randomGen;
+                        randomGen.useNewCommonNumberVR = false;
+                        state2.properties.testNewFeature = false;
+                        mctsCmp.get(threadIdx).model.startRecordCalls();
+                        game2 = session.playGame(state2, stateToCompareStartingAction, game1, mctsCmp.get(threadIdx), nodeCount);
+                        modelCalls2 = mctsCmp.get(threadIdx).model.endRecordCalls();
 
-                    var turns1 = GameStateUtils.groupByTurns(game1.steps);
-                    var turns2 = GameStateUtils.groupByTurns(game2.steps);
-                    for (int turnI = 1; turnI < Math.min(turns1.size(), turns2.size()); turnI++) {
-                        var t1 = turns1.get(turnI);
-                        var t2 = turns2.get(turnI);
-                        var ts1 = t1.get(t1.size() - 1).state().clone(false);
-                        var ts2 = t2.get(t2.size() - 1).state().clone(false);
-                        for (int j = 0; j < ts1.getLegalActions().length; j++) {
-                            if (ts1.getAction(j).type() == GameActionType.END_TURN) {
-                                ts1.doAction(j);
-                                break;
-                            }
-                        }
-                        for (int j = 0; j < ts2.getLegalActions().length; j++) {
-                            if (ts2.getAction(j).type() == GameActionType.END_TURN) {
-                                ts2.doAction(j);
-                                break;
-                            }
-                        }
-                        if (!ts1.equals(ts2)) {
-                            reruns = new ArrayList<>();
-                            for (int j = 0; j < Configuration.CMP_DEVIATION_NUM_RERUN; j++) {
-                                var rerunState = ts1.clone(false);
-                                rerunState.properties = rerunState.properties.clone();
-                                randomGen = new RandomGen.RandomGenByCtx(state.properties.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
-                                rerunState.properties.realMoveRandomGen = randomGen;
-                                randomGen.useNewCommonNumberVR = true;
-                                var rerunGame1 = session.playGame(rerunState, -1, null, mcts.get(threadIdx), nodeCount);
-                                Game rerunGame2 = null;
-                                if (mctsCmp.size() > 0) {
-                                    randomGen.useNewCommonNumberVR = false;
-                                    randomGen.timeTravelToBeginning();
-                                    var rerunState2 = ts2.clone(false);
-                                    rerunState2.properties = rerunState2.properties.clone();
-                                    rerunState2.properties.realMoveRandomGen = randomGen;
-                                    rerunGame2 = session.playGame(rerunState2, -1, game1, mctsCmp.get(threadIdx), nodeCount);
+                        var turns1 = GameStateUtils.groupByTurns(game1.steps);
+                        var turns2 = GameStateUtils.groupByTurns(game2.steps);
+                        for (int turnI = 1; turnI < Math.min(turns1.size(), turns2.size()); turnI++) {
+                            var t1 = turns1.get(turnI);
+                            var t2 = turns2.get(turnI);
+                            var ts1 = t1.get(t1.size() - 1).state().clone(false);
+                            var ts2 = t2.get(t2.size() - 1).state().clone(false);
+                            for (int j = 0; j < ts1.getLegalActions().length; j++) {
+                                if (ts1.getAction(j).type() == GameActionType.END_TURN) {
+                                    ts1 = ts1.doAction(j);
+                                    break;
                                 }
-                                reruns.add(new GameResult(rerunGame1, 0, rerunGame2, 0, 0, null, null,0, null, null));
                             }
-                            break;
+                            for (int j = 0; j < ts2.getLegalActions().length; j++) {
+                                if (ts2.getAction(j).type() == GameActionType.END_TURN) {
+                                    ts2 = ts2.doAction(j);
+                                    break;
+                                }
+                            }
+                            if (!ts1.equals(ts2)) {
+                                reruns = new ArrayList<>();
+                                for (int j = 0; j < Configuration.CMP_DEVIATION_NUM_RERUN; j++) {
+                                    var rerunState = ts1.clone(false);
+                                    rerunState.properties = rerunState.properties.clone();
+                                    randomGen = new RandomGen.RandomGenByCtx(state.properties.realMoveRandomGen.nextLong(RandomGenCtx.Misc));
+                                    rerunState.properties.realMoveRandomGen = randomGen;
+                                    randomGen.useNewCommonNumberVR = true;
+                                    var rerunGame1 = session.playGame(rerunState, -1, null, mcts.get(threadIdx), nodeCount);
+                                    Game rerunGame2 = null;
+                                    if (mctsCmp.size() > 0) {
+                                        randomGen.useNewCommonNumberVR = false;
+                                        randomGen.timeTravelToBeginning();
+                                        var rerunState2 = ts2.clone(false);
+                                        rerunState2.properties = rerunState2.properties.clone();
+                                        rerunState2.properties.realMoveRandomGen = randomGen;
+                                        rerunGame2 = session.playGame(rerunState2, -1, game1, mctsCmp.get(threadIdx), nodeCount);
+                                    }
+                                    reruns.add(new GameResult(rerunGame1, 0, rerunGame2, 0, 0, null, null,0, null, null));
+                                }
+                                break;
+                            }
                         }
                     }
-                }
 
-                try {
                     deq.putLast(new GameResult(game1, modelCalls, game2, modelCalls2, seeds.get(idx - 1), reruns, null,0, null, null));
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    idx = numToPlay.getAndDecrement();
+                    if (nodeCount > 1) {
+                        modelExecutor.sleep(Configuration.SLEEP_PER_GAME);
+                    }
                 }
-                idx = numToPlay.getAndDecrement();
-                if (nodeCount > 1) {
-                    modelExecutor.sleep(Configuration.SLEEP_PER_GAME);
-                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (Exception e) {
+                System.out.println("Seed failed on: " + seeds.get(idx - 1));
+                throw e;
             }
             waitForBatchExecutorToFinish(threadIdx);
         });
@@ -863,15 +866,15 @@ public class MatchSession {
         int prevTurnNum = 1;
         while (state.isTerminal() == 0) {
             int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
-            if (!doNotExplore && state.turnNum <= turnsToSkip) {
+            if (!doNotExplore && state.realTurnNum <= turnsToSkip) {
                 todo = 1;
             }
-            if (!doNotExplore && !noMoreExplore && state.turnNum != prevTurnNum && state.getSearchRandomGen(true).nextFloat(RandomGenCtx.Other) < 0.02) {
+            if (!doNotExplore && !noMoreExplore && state.realTurnNum != prevTurnNum && state.getSearchRandomGen(true).nextFloat(RandomGenCtx.Other) < 0.02) {
                 noTemperatureTurn = prevTurnNum;
                 noMoreExplore = true;
             }
             RandomGen randomGenClone = state.getSearchRandomGen().getCopy();
-            prevTurnNum = state.turnNum;
+            prevTurnNum = state.realTurnNum;
             for (int i = 0; i < todo; i++) {
                 mcts.search(state, !quickPass, todo - i);
                 if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
@@ -884,7 +887,7 @@ public class MatchSession {
 
             int action;
             int greedyAction;
-            if (!doNotExplore && Configuration.TRAINING_SKIP_OPENING_TURNS && state.turnNum <= turnsToSkip) {
+            if (!doNotExplore && Configuration.TRAINING_SKIP_OPENING_TURNS && state.realTurnNum <= turnsToSkip) {
                 double t = state.getSearchRandomGen(true).nextFloat(RandomGenCtx.Other);
                 double k = 0;
                 int i;
@@ -899,7 +902,7 @@ public class MatchSession {
             } else if (state.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                 action = MCTS.getActionRandomOrTerminalSelectScenario(state);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
-            } else if (doNotExplore || noMoreExplore || quickPass || state.turnNum >= 100) {
+            } else if (doNotExplore || noMoreExplore || quickPass || state.realTurnNum >= 100) {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
@@ -910,7 +913,7 @@ public class MatchSession {
             step.trainingWriteCount = !quickPass ? 1 : 0;
             step.isExplorationMove = greedyAction != action;
             step.searchRandomGenMCTS = randomGenClone;
-            if (!doNotExplore && state.turnNum <= turnsToSkip) {
+            if (!doNotExplore && state.realTurnNum <= turnsToSkip) {
                 step.trainingWriteCount = 0;
                 step.trainingSkipOpening = true;
             }
@@ -921,12 +924,12 @@ public class MatchSession {
             if (state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 state = state.clone(false);
                 state.properties.makingRealMove = true;
-                state.doAction(0);
+                state = state.doAction(0);
                 state.properties.makingRealMove = false;
             } else if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                 state = state.clone(false);
                 state.properties.makingRealMove = true;
-                state.doAction(0);
+                state = state.doAction(0);
                 state.properties.makingRealMove = false;
             } else {
                 state.properties.makingRealMove = true;
@@ -1440,7 +1443,7 @@ public class MatchSession {
                             if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
                                 stream.writeFloat((float) -100);
                             } else {
-                                stream.writeFloat((float) ((((step.v[v_idx] - step.state().turnNum / 50.0) * 2) - 1)));
+                                stream.writeFloat((float) ((((step.v[v_idx] - step.state().realTurnNum / 50.0) * 2) - 1)));
                             }
                         } else {
                             if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
@@ -1592,7 +1595,7 @@ public class MatchSession {
             }
             if (nextState == null) {
                 newState = state.clone(false);
-                newState.doAction(action);
+                newState = newState.doAction(action);
             } else {
                 newState = (GameState) nextState;
                 if (clone) {
@@ -1657,7 +1660,7 @@ public class MatchSession {
                     int idx = -1;
                     if (state.actionCtx == GameActionCtx.BEGIN_TURN && !action.equals("Begin Turn")) {
                         state = state.clone(false);
-                        state.doAction(0);
+                        state = state.doAction(0);
                     }
                     for (int i = 0; i < state.getLegalActions().length; i++) {
                         if (state.getActionString(i).equals(action)) {
@@ -1676,7 +1679,7 @@ public class MatchSession {
                     game.add(new GameStep(state, idx));
                     game.get(game.size() - 1).stateStr = stateStr;
                     state = state.clone(false);
-                    state.doAction(idx);
+                    state = state.doAction(idx);
                 }
                 l = reader.readLine();
             }

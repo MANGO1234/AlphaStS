@@ -1,9 +1,6 @@
 package com.alphaStS.enemy;
 
-import com.alphaStS.GameState;
-import com.alphaStS.GameStateBuilder;
-import com.alphaStS.GameStateRandomization;
-import com.alphaStS.RandomGenCtx;
+import com.alphaStS.*;
 import com.alphaStS.card.Card;
 
 import java.util.*;
@@ -460,5 +457,36 @@ public class EnemyEncounter {
 
     public static void addShieldAndSpearFight(GameStateBuilder builder) {
         builder.addEnemyEncounter(new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear());
+    }
+
+    public static void addShieldAndSpearFollowByHeartFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear(), new EnemyEnding.CorruptHeart(800, true));
+        builder.setSwitchBattleHandler((state) -> {
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                if (state.getEnemiesForRead().get(i) instanceof EnemyEnding.CorruptHeart heart) {
+                    if (heart.getInvincible() >= 0) {
+                        return state;
+                    }
+                }
+            }
+            var newState = state.properties.originalGameState.clone(false);
+            newState.doAction(0);
+            if (newState.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+                newState.doAction(state.preBattleScenariosChosenIdx);
+            }
+            newState.killEnemy(0, false);
+            newState.killEnemy(1, false);
+            newState.reviveEnemy(2, false, -1);
+            ((EnemyEnding.CorruptHeart) newState.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
+            newState.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth());
+            for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
+                newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];
+            }
+            newState.properties = state.properties;
+            newState.preBattleRandomizationIdxChosen = state.preBattleRandomizationIdxChosen;
+            newState.battleRandomizationIdxChosen = state.battleRandomizationIdxChosen;
+            newState.realTurnNum = state.realTurnNum;
+            return newState;
+        });
     }
 }

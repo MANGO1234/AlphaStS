@@ -58,8 +58,8 @@ public class ScenarioStats {
         this.properties = properties;
         damageCount = new HashMap<>();
         damageCountNoDeath = new HashMap<>();
-        potionsUsed = new int[1 << properties.potions.size()];
-        potionsUsedAgg = new int[properties.potions.size()];
+        potionsUsed = new int[1 << properties.nonGeneratedPotionsLength];
+        potionsUsedAgg = new int[properties.nonGeneratedPotionsLength];
         counterStats = new ArrayList<>();
         for (var entry : properties.counterRegistrants.entrySet()) {
             CounterStat counterStat = entry.getValue().get(0).getCounterStat();
@@ -167,8 +167,8 @@ public class ScenarioStats {
     public void add(List<GameStep> steps, int modelCalls) {
         GameState state = steps.get(steps.size() - 1).state();
         this.modelCalls += modelCalls;
-        totalTurns += state.turnNum;
-        totalTurnsInWins += (state.isTerminal() == 1 ? state.turnNum : 0);
+        totalTurns += state.realTurnNum;
+        totalTurnsInWins += (state.isTerminal() == 1 ? state.realTurnNum : 0);
         int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
         numOfGames++;
         deathCount += (state.isTerminal() == -1 ? 1 : 0);
@@ -213,7 +213,7 @@ public class ScenarioStats {
         if (state.isTerminal() > 0) {
             finalQComb += state.get_q();
             int idx = 0;
-            for (int i = 0; i < state.properties.potions.size(); i++) {
+            for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                 if (state.potionUsed(i)) {
                     idx |= 1 << i;
                     potionsUsedAgg[i]++;
@@ -251,7 +251,7 @@ public class ScenarioStats {
         numberOfSamples += reruns != null ? 1 + reruns.size() : 0;
         hasState2 = true;
         this.modelCalls2 += modelCalls2;
-        totalTurns2 += steps2.get(steps2.size() - 1).state().turnNum;
+        totalTurns2 += steps2.get(steps2.size() - 1).state().realTurnNum;
 
         List<List<GameStep>> stepsArr = new ArrayList<>();
         List<List<GameStep>> stepsArr2 = new ArrayList<>();
@@ -276,11 +276,11 @@ public class ScenarioStats {
                 }
             }
 
-            if (winByPotion == null && state.properties.potions.size() > 0) {
-                winByPotion = new int[state.properties.potions.size()];
-                lossByPotion = new int[state.properties.potions.size()];
+            if (winByPotion == null && state.properties.nonGeneratedPotionsLength > 0) {
+                winByPotion = new int[state.properties.nonGeneratedPotionsLength];
+                lossByPotion = new int[state.properties.nonGeneratedPotionsLength];
             }
-            for (int i = 0; i < state.properties.potions.size(); i++) {
+            for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                 if (!state.potionUsed(i) && state2.potionUsed(i)) {
                     winByPotion[i]++;
                 } else if (state.potionUsed(i) && !state2.potionUsed(i)) {
@@ -381,16 +381,18 @@ public class ScenarioStats {
         if (potionsUsed != null && potionsUsed.length > 1) {
             System.out.println(indent + "Potion Usage Percentage (By Combo):");
             for (int i = 1; i < potionsUsed.length; i++) {
-                StringBuilder desc = new StringBuilder();
-                for (int j = 0; j < state.properties.potions.size(); j++) {
-                    if ((i & (1 << j)) > 0) {
-                        desc.append(desc.length() > 0 ? "+" : "").append(state.properties.potions.get(j));
+                if (potionsUsed[i] > 0) {
+                    StringBuilder desc = new StringBuilder();
+                    for (int j = 0; j < state.properties.nonGeneratedPotionsLength; j++) {
+                        if ((i & (1 << j)) > 0) {
+                            desc.append(desc.length() > 0 ? "+" : "").append(state.properties.potions.get(j));
+                        }
                     }
+                    System.out.println(indent + "    " + desc + " Used Percentage: " + String.format("%.5f", ((double) potionsUsed[i]) / (numOfGames - deathCount)));
                 }
-                System.out.println(indent + "    " + desc + " Used Percentage: " + String.format("%.5f", ((double) potionsUsed[i]) / (numOfGames - deathCount)));
             }
             System.out.println(indent + "Potion Usage Percentage (By Potion):");
-            for (int i = 0; i < state.properties.potions.size(); i++) {
+            for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                 System.out.println(indent + "    " + state.properties.potions.get(i) + " Used Percentage: " + String.format("%.5f", ((double) potionsUsedAgg[i]) / (numOfGames - deathCount)));
             }
         }
@@ -414,7 +416,7 @@ public class ScenarioStats {
             System.out.println(indent + "Win/Loss Q: " + winQs.size() + "/" + lossQs.size());
             System.out.println(indent + "Win/Loss Dmg: " + winDmgs.size() + "/" + lossDmgs.size());
             if (winByPotion != null) {
-                for (int i = 0; i < state.properties.potions.size(); i++) {
+                for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                     printBinomialStat(indent, "Win/Loss Potion " + state.properties.potions.get(i), winByPotion[i], lossByPotion[i]);
                 }
             }

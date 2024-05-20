@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
@@ -2070,7 +2071,16 @@ public class CardDefect {
             });
             state.properties.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
+                    var isHeartFight = false;
+                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                        if (state.getEnemiesForRead().get(i) instanceof EnemyEnding.CorruptHeart heart && heart.getInvincible() >= 0) {
+                            isHeartFight = true;
+                            break;
+                        }
+                    }
+                    if (!isHeartFight) {
+                        state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }

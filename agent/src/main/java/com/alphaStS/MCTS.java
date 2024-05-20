@@ -110,7 +110,7 @@ public class MCTS {
                 break;
             }
             GameState newState = state.clone(false);
-            newState.doAction(action);
+            newState = newState.doAction(action);
             if (newState.isStochastic && checkDeterministicPath(deterministicPath, state, action)) {
                 addBannedAction(state, action);
                 selectAction(state, policy, training, isRoot, false);
@@ -128,13 +128,13 @@ public class MCTS {
         }
         if (nextState == null) {
             state2 = state.clone(true);
-            state2.doAction(action);
+            state2 = state2.doAction(action);
             if (state2.isStochastic) {
                 if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     var s = state.transpositions.get(state2);
                     if (s == null || s instanceof ChanceState) {
                         if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                            state2.doAction(0);
+                            state2 = state2.doAction(0);
                         } else {
                             state.transpositions.put(state2, state2);
                             if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
@@ -155,7 +155,7 @@ public class MCTS {
                     }
                 } else {
                     if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                        state2.doAction(0);
+                        state2 = state2.doAction(0);
                     }
                 }
                 state.ns[action] = new ChanceState(state2, state, action);
@@ -167,7 +167,7 @@ public class MCTS {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
                         var parentState = state2;
                         state2 = parentState.clone(false);
-                        state2.doAction(0);
+                        state2 = state2.doAction(0);
                         var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(parentState, cState);
@@ -236,7 +236,7 @@ public class MCTS {
 //                        if (state.getAction(action).type() == GameActionType.END_TURN) {
                         if (true) {
                             var newS = state.clone(true);
-                            newS.doAction(action);
+                            newS = newS.doAction(action);
                             updateTranspositions(newS, state2, state, action);
                         } else {
                             Integer.parseInt(null);
@@ -324,7 +324,7 @@ public class MCTS {
             var newRand = new RandomGen.RandomGenByCtx(rand.nextLong(RandomGenCtx.Other));
             var newState = state.clone(false);
             newState.setSearchRandomGen(newRand.getCopy());
-            newState.doAction(action);
+            newState = newState.doAction(action);
             if (seen.contains(newState)) {
                 continue;
             }
@@ -373,7 +373,7 @@ public class MCTS {
             for (int k = 0; k < len; k++) {
                 if (replayState.getAction(k).equals(originalAction)) {
                     replayState.isStochastic = false;
-                    replayState.doAction(k);
+                    replayState = replayState.doAction(k);
                     replayState.clearAllSearchInfo();
                     found = true;
                     break;
@@ -389,7 +389,7 @@ public class MCTS {
         found = false;
         for (int k = 0; k < len; k++) {
             if (replayState.getAction(k).equals(state.getAction(action))) {
-                replayState.doAction(k);
+                replayState = replayState.doAction(k);
                 replayState.clearAllSearchInfo();
                 found = true;
                 break;
@@ -402,13 +402,17 @@ public class MCTS {
             return true;
         }
         for (int j = dIdx; j < causalActionIdx; j++) {
+            var isTerminal = replayState.isTerminal();
+            if (isTerminal != 0) {
+                return isTerminal == newState.isTerminal() && replayState.equals(newState);
+            }
             var originalAction = deterministicPath.get(j).v1().getAction(deterministicPath.get(j).v2());
             len = replayState.getLegalActions().length;
             found = false;
             for (int k = 0; k < len; k++) {
                 if (replayState.getAction(k).equals(originalAction)) {
                     replayState.isStochastic = false;
-                    replayState.doAction(k);
+                    replayState = replayState.doAction(k);
                     replayState.clearAllSearchInfo();
                     found = true;
                     break;
@@ -532,7 +536,7 @@ public class MCTS {
             state.readLock();
             GameState newState = state.clone(false);
             state.readUnlock();
-            newState.doAction(action);
+            newState = newState.doAction(action);
             if (newState.isStochastic && checkDeterministicPath(deterministicPath, state, action)) {
                 state.writeLock();
                 addBannedAction(state, action);
@@ -556,14 +560,14 @@ public class MCTS {
         GameState state2;
         if (nextState == null) {
             state2 = state.clone(true);
-            state2.doAction(action);
+            state2 = state2.doAction(action);
             if (state2.isStochastic) {
                 if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     state.transpositionsLock.lock();
                     var s = state.transpositions.get(state2);
                     if (s == null || s instanceof ChanceState) {
                         if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                            state2.doAction(0);
+                            state2 = state2.doAction(0);
                         } else {
                             state.transpositions.put(state2, state2);
                         }
@@ -581,7 +585,7 @@ public class MCTS {
                     cState.correctVParallel(node, false, v, realV);
                 } else {
                     if (Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN && state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                        state2.doAction(0);
+                        state2 = state2.doAction(0);
                     }
                     var cState = new ChanceState(state2, state, action);
                     var node = cState.addGeneratedStateParallel(state2);
@@ -607,7 +611,7 @@ public class MCTS {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
                         var parentState = state2;
                         state2 = parentState.clone(false);
-                        state2.doAction(0);
+                        state2 = state2.doAction(0);
                         var cState = new ChanceState(state2, parentState, 0);
                         var node = cState.addGeneratedStateParallel(state2);
                         state.transpositions.put(parentState, cState);
@@ -940,7 +944,7 @@ public class MCTS {
         }
         if (nextState == null) {
             state2 = state.clone(true);
-            state2.doAction(action);
+            state2 = state2.doAction(action);
             if (state2.isStochastic) {
                 if (Configuration.isTranspositionAcrossChanceNodeOn(state)) {
                     var s = state.transpositions.get(state2);
@@ -966,7 +970,7 @@ public class MCTS {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
                         var parentState = state2;
                         state2 = parentState.clone(false);
-                        state2.doAction(0);
+                        state2 = state2.doAction(0);
                         var cState = new ChanceState(state2, parentState, 0);
                         state.ns[action] = cState;
                         state.transpositions.put(parentState, cState);
@@ -1078,9 +1082,9 @@ public class MCTS {
         GameState state2;
         if (nextState == null) {
             state2 = state.clone(true);
-            state2.doAction(action);
+            state2 = state2.doAction(action);
             if (state2.actionCtx == GameActionCtx.BEGIN_TURN) {
-                state2.doAction(0);
+                state2 = state2.doAction(0);
             }
             if (state2.isStochastic) {
                 state.ns[action] = new ChanceState(state2, state, action);
@@ -1322,13 +1326,13 @@ public class MCTS {
         }
 
         var nextState = state.clone(true);
-        nextState.doAction(action);
+        nextState = nextState.doAction(action);
         if (nextState.isStochastic || nextState.actionCtx == GameActionCtx.BEGIN_TURN) {
             var cState = nextState.isStochastic ? new ChanceState(null, state, action) : null;
             if (!nextState.isStochastic) {
                 cState = new ChanceState(null, nextState, 0);
                 nextState = nextState.clone(false);
-                nextState.doAction(0);
+                nextState = nextState.doAction(0);
             }
             var transposedLine = parentState.searchFrontier.getLine(cState);
             if (transposedLine == null) {

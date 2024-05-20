@@ -83,10 +83,14 @@ public class EnemyEnding {
             return "Unknown";
         }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 6;
+        }
+
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(6, RandomGenCtx.Other) + 1;
-            if (training && b < 6) {
-                health = (int) Math.round(((double) (health * b)) / 6);
+//            int b = random.nextInt(6, RandomGenCtx.Other) + 1;
+            if (training) {
+                health = (int) Math.round(((double) (health * difficulty)) / 6);
             } else {
                 health = 125;
             }
@@ -170,10 +174,14 @@ public class EnemyEnding {
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn()); }
 
+        @Override public int getMaxRandomizeDifficulty() {
+            return 9;
+        }
+
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
-            int b = random.nextInt(9, RandomGenCtx.Other) + 1;
-            if (training && b < 9) {
-                health = (int) Math.round(((double) (health * b)) / 9);
+//            int b = random.nextInt(9, RandomGenCtx.Other) + 1;
+            if (training) {
+                health = (int) Math.round(((double) (health * difficulty)) / 9);
             } else {
                 health = 180;
             }
@@ -250,6 +258,10 @@ public class EnemyEnding {
             return invincible;
         }
 
+        public void setInvincible(int invincible) {
+            this.invincible = invincible;
+        }
+
         public int getBeatOfDeath() {
             return beatOfDeath;
         }
@@ -259,10 +271,10 @@ public class EnemyEnding {
         }
 
         public CorruptHeart() {
-            this(800);
+            this(800, false);
         }
 
-        public CorruptHeart(int health) {
+        public CorruptHeart(int health, boolean dead) {
             super(health, 4, true);
             properties.hasArtifact = true;
             properties.canGainStrength = true;
@@ -270,6 +282,10 @@ public class EnemyEnding {
             properties.canWeaken = true;
             properties.canFrail = true;
             properties.isBoss = true;
+            if (dead) {
+                this.health = 0;
+                this.invincible = -1;
+            }
         }
 
         public CorruptHeart(CorruptHeart other) {
@@ -396,6 +412,8 @@ public class EnemyEnding {
                         if (state.getEnemiesForRead().get(i) instanceof CorruptHeart heart) {
                             state.doNonAttackDamageToPlayer(heart.beatOfDeath, true, heart);
                             break;
+                        } else if (state.getEnemiesForRead().get(i).isAlive()) {
+                            break;
                         }
                     }
                 }
@@ -408,6 +426,7 @@ public class EnemyEnding {
                 }
             });
             state.properties.isHeartFight = true;
+            state.properties.isHeartGauntlet = state.properties.switchBattleHandler != null;
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn(), new CardOther.Wound(), new CardOther.Dazed(), new CardOther.Slime(), new CardOther.Void()); }

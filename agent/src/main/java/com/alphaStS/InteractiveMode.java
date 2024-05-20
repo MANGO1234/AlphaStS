@@ -145,7 +145,7 @@ public class InteractiveMode {
                         history.add("# End of Turn");
                         history.add("# " + state);
                         state.properties.makingRealMove = true;
-                        state.doAction(i);
+                        state = state.doAction(i);
                         state.properties.makingRealMove = false;
                         break;
                     }
@@ -153,7 +153,7 @@ public class InteractiveMode {
                 for (int i = 0; i < state.getLegalActions().length; i++) {
                     if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
                         state.properties.makingRealMove = true;
-                        state.doAction(i);
+                        state = state.doAction(i);
                         state.properties.makingRealMove = false;
                         history.add("# Start of Turn");
                         history.add("# " + state);
@@ -206,7 +206,7 @@ public class InteractiveMode {
                     out.println((++m) + ". " + states.get(i).state().getActionString(states.get(i).action()));
                     var tmp = states.get(i).state().clone(false);
                     tmp.getDrawOrderForWrite().clear(); // todo: need to do parallel actions so e.g. rebound works
-                    tmp.doAction(states.get(i).action());
+                    tmp = tmp.doAction(states.get(i).action());
                     if ((tmp.isStochastic || states.get(i).state().getAction(states.get(i).action()).type() == GameActionType.END_TURN) && i < states.size() - 1) {
                         out.println("\n" + states.get(i + 1));
                         m = 0;
@@ -416,7 +416,7 @@ public class InteractiveMode {
                     }
                     state.properties.makingRealMove = true;
                     state.properties.isInteractive = true;
-                    state.doAction(action);
+                    state = state.doAction(action);
                     state.properties.isInteractive = false;
                     state.properties.makingRealMove = false;
                 } else {
@@ -593,7 +593,7 @@ public class InteractiveMode {
                             if (pv.get(i).equals(s.getActionString(j))) {
                                 pv1.add(new GameStep(s, j));
                                 s = s.clone(false);
-                                s.doAction(j);
+                                s = s.doAction(j);
                             }
                         }
                     }
@@ -610,7 +610,7 @@ public class InteractiveMode {
                     }
                     if (pv2.get(pv2.size() - 1).action() >= 0) {
                         s = pv2.get(pv2.size() - 1).state().clone(false);
-                        s.doAction(pv2.get(pv2.size() - 1).action());
+                        s = s.doAction(pv2.get(pv2.size() - 1).action());
                         if (!s.isStochastic) {
                             pv2.add(new GameStep(s, -1));
                         }
@@ -1777,7 +1777,7 @@ public class InteractiveMode {
             out.println("Q-Win: " + state.q[state.properties.qwinVIdx] / (state.total_n + 1));
         }
         if (state.properties.turnsLeftVIdx >= 0) {
-            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.turnNum));
+            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.realTurnNum));
         }
         System.gc(); System.gc(); System.gc();
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
@@ -1884,7 +1884,7 @@ public class InteractiveMode {
                 o.append(", q_progress").append(formatFloat(s.q[baseIdx + s.properties.fightProgressVIdx] / max_n));
             }
             if (s.properties.turnsLeftVIdx >= 0) {
-                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * 50 - state.turnNum));
+                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * 50 - state.realTurnNum));
             }
             out.println(o);
             finalOuput.append("\n").append(o);
@@ -2053,7 +2053,7 @@ public class InteractiveMode {
                     k.v1().clearAllSearchInfo();
                     if (k.v1().getAction(k.v2()).type() == GameActionType.END_TURN) {
                         var t = k.v1().clone(false);
-                        t.doAction(k.v2());
+                        t = t.doAction(k.v2());
                         if (!t.isStochastic) {
                             k = new Tuple<>(t, 0);
                         }

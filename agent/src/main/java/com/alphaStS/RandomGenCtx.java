@@ -18,6 +18,7 @@ public enum RandomGenCtx {
     Chaos,
     ShieldAndSpear,
     Snecko,
+    EntropicBrew,
     RandomCardGen,
     SelectCard1OutOf3,
     RandomEnemyHealth,

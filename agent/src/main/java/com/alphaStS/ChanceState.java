@@ -180,9 +180,9 @@ public class ChanceState implements State {
         if (!parentState.properties.makingRealMove && Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
             state.setSearchRandomGen(searchRandomGen);
         }
-        state.doAction(parentAction);
+        state = state.doAction(parentAction);
         if ((Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN || !state.isStochastic) && state.actionCtx == GameActionCtx.BEGIN_TURN) {
-            state.doAction(0);
+            state = state.doAction(0);
         }
         if (Configuration.NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION && (!Configuration.TEST_NEW_COMMON_RANOM_NUMBER_VARIANCE_REDUCTION || parentState.properties.testNewFeature)) {
             if (!parentState.properties.makingRealMove && Configuration.COMMON_RANDOM_NUMBER_VARIANCE_REDUCTION) {
@@ -289,15 +289,16 @@ public class ChanceState implements State {
             randomGenLock.unlock();
             state.setSearchRandomGen(gen);
         }
-        state.doAction(parentAction);
+        state = state.doAction(parentAction);
         if ((Configuration.COMBINE_END_AND_BEGIN_TURN_FOR_STOCHASTIC_BEGIN || !state.isStochastic) && state.actionCtx == GameActionCtx.BEGIN_TURN) {
-            state.doAction(0);
+            state = state.doAction(0);
         }
 
+        var _s = state;
         if (!Configuration.USE_PROGRESSIVE_WIDENING) {
-            return new Tuple<>(cache.computeIfAbsent(state, k -> new Node(state, 0)), Boolean.FALSE);
+            return new Tuple<>(cache.computeIfAbsent(state, k -> new Node(_s, 0)), Boolean.FALSE);
         } else {
-            Node n = cache.computeIfAbsent(state, k -> new Node(state, 0));
+            Node n = cache.computeIfAbsent(state, k -> new Node(_s, 0));
             if (n.n > 0) {
                 return new Tuple<>(n, Boolean.FALSE);
             }

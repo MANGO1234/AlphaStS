@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class GameStateBuilder {
     private Player player = null;
@@ -36,6 +37,15 @@ public class GameStateBuilder {
     private int[] potionsScenarios;
     private List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
     private boolean isBurningElite;
+    private Function<GameState, GameState> switchBattleHandler;
+
+    public void setSwitchBattleHandler(Function<GameState, GameState> switchBattleHandler) {
+        this.switchBattleHandler = switchBattleHandler;
+    }
+
+    public Function<GameState, GameState> getSwitchBattleHandler() {
+        return switchBattleHandler;
+    }
 
     public void setEnemiesEncountersIdx(List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx) {
         this.enemiesEncountersIdx = enemiesEncountersIdx;
@@ -150,6 +160,27 @@ public class GameStateBuilder {
     }
 
     public List<Potion> getPotions() {
+        for (int i = 0; i < potions.size(); i++) {
+            if (potions.get(i) instanceof Potion.EntropicBrew pot) {
+                pot.initPossibleGeneratedPotions(character, getPlayer().getMaxHealth(), true);
+                for (int potionIdx = 0; potionIdx < pot.commonPotions.size(); potionIdx++) {
+                    for (int j = 0; j < pot.maxPotionSlot; j++) {
+                        potions.add(pot.commonPotions.get(potionIdx).get(j));
+                    }
+                }
+                for (int potionIdx = 0; potionIdx < pot.uncommonPotions.size(); potionIdx++) {
+                    for (int j = 0; j < pot.maxPotionSlot; j++) {
+                        potions.add(pot.uncommonPotions.get(potionIdx).get(j));
+                    }
+                }
+                for (int potionIdx = 0; potionIdx < pot.rarePotions.size(); potionIdx++) {
+                    for (int j = 0; j < pot.maxPotionSlot; j++) {
+                        potions.add(pot.rarePotions.get(potionIdx).get(j));
+                    }
+                }
+                break;
+            }
+        }
         return potions;
     }
 

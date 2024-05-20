@@ -2,8 +2,10 @@ package com.alphaStS;
 
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
 
@@ -24,8 +26,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean healPlayer;
     boolean selectFromHand;
     boolean selectFromDiscard;
+    boolean isGenerated;
+    int generatedIdx;
     int counterIdx = -1;
-    private short basePenaltyRatio = 80;
+    protected short basePenaltyRatio = 80;
     private int penaltyRatioSteps = 1;
 
     public short getBasePenaltyRatio() {
@@ -46,6 +50,16 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         return this;
     }
 
+    public Potion setIsGenerated(boolean isGenerated, int idx) {
+        this.isGenerated = isGenerated;
+        this.generatedIdx = idx;
+        return this;
+    }
+
+    public boolean getIsGenerated() {
+        return isGenerated;
+    }
+
     public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
     }
@@ -59,8 +73,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
     public void gamePropertiesSetup(GameState state) {}
 
-    public static class VulnerablePotion extends Potion {
-        public VulnerablePotion() {
+
+    public static class FearPotion extends Potion {
+        public FearPotion() {
             vulnEnemy = true;
             selectEnemy = true;
         }
@@ -72,7 +87,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public String toString() {
-            return "Vulnerable Potion";
+            return "Fear Potion";
         }
     }
 
@@ -317,7 +332,23 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + 2, 10);
+            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + (state.properties.hasSacredBark ? 4 : 2), 10);
+        }
+    }
+
+    public static class EssenceOfDarkness extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (state.getOrbs() != null) {
+                var count = state.getOrbs().length / 2;
+                for (int i = 0; i < count; i++) {
+                    state.channelOrb(OrbType.DARK);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Essence of Darkness";
         }
     }
 
@@ -353,7 +384,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             healPlayer = true;
         }
 
-        public int getRegenerationAmount(GameState state) {
+        public static int getRegenerationAmount(GameState state) {
             return state.properties.hasSacredBark ? 10 : 5;
         }
 
@@ -508,32 +539,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DistilledChaos extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 6 : 3;
-            for (int i = 0; i < n; i++) {
-                state.addGameActionToStartOfDeque(curState -> {
-                    int cardIdx = curState.drawOneCardSpecial();
-                    if (cardIdx < 0) {
-                        return;
-                    }
-                    if (state.properties.makingRealMove || state.properties.stateDescOn) {
-                        if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
-                        state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
-                    }
-                    var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                    curState.playCard(action, -1, true,false, false, false, -1, -1);
-                    while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                        if (curState.properties.makingRealMove || state.properties.stateDescOn) {
-                            curState.getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : curState.getEnemiesForRead().get(enemyIdx).getName())
-                                    .append(" (").append(enemyIdx).append(")");
-                        }
-                        curState.playCard(action, enemyIdx, true,false, false, false, -1, -1);
-                    }
-                });
-            }
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 6 : 3;
             return GameActionCtx.PLAY_CARD;
         }
 
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DistilledChaos", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.distilledChaosCounterIdx = counterIdx;
+                }
+            });
+        }
         @Override public String toString() {
             return "Distilled Chaos";
         }
@@ -992,7 +1015,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
     }
 
-    public static class SneckoPotion extends Potion {
+    public static class SneckoOil extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.draw(5);
             for (int i = 0; i < state.handArrLen; i++) {
@@ -1013,7 +1036,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public String toString() {
-            return "Snecko Potion";
+            return "Snecko Oil";
         }
     }
 
@@ -1136,13 +1159,13 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class SmokeBomb extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            boolean gameEnd = false;
+            boolean gameEnd = true;
             for (EnemyReadOnly enemyReadOnly : state.getEnemiesForRead()) {
-                if (!enemyReadOnly.isAlive()) {
-                    gameEnd = true;
+                if (enemyReadOnly.isAlive() && !(enemyReadOnly instanceof EnemyEnding.CorruptHeart)) {
+                    gameEnd = false;
                 }
             }
-            if (gameEnd) {
+            if (!gameEnd) {
                 for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
                     if (state.getEnemiesForWrite().get(i).isAlive()) {
                         state.killEnemy(i, false);
@@ -1154,6 +1177,302 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Smoke Bomb";
+        }
+    }
+
+    public static class EntropicBrew extends Potion {
+        public int maxPotionSlot = 2;
+
+        public EntropicBrew(int maxPotionSlot) {
+            this.maxPotionSlot = maxPotionSlot;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int numPotions = 0;
+            for (int i = 0; i < state.properties.potions.size(); i++) {
+                if (state.properties.potions.get(i).isGenerated) {
+                    break;
+                }
+                if (state.potionUsable(i)) {
+                    numPotions++;
+                }
+            }
+            for (int i = numPotions; i < maxPotionSlot; i++) {
+                state.setIsStochastic();
+                int r = state.getSearchRandomGen().nextInt(100, RandomGenCtx.EntropicBrew);
+                Potion potion;
+                if (r < 65) {
+                    int r2 = state.getSearchRandomGen().nextInt(commonPotions.size(), RandomGenCtx.EntropicBrew);
+                    potion = commonPotions.get(r2).get(state.getSearchRandomGen().nextInt(commonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
+                } else if (r < 90) {
+                    int r2 = state.getSearchRandomGen().nextInt(uncommonPotions.size(), RandomGenCtx.EntropicBrew);
+                    potion = uncommonPotions.get(r2).get(state.getSearchRandomGen().nextInt(uncommonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
+                } else {
+                    int r2 = state.getSearchRandomGen().nextInt(rarePotions.size(), RandomGenCtx.EntropicBrew);
+                    potion = rarePotions.get(r2).get(state.getSearchRandomGen().nextInt(rarePotions.get(r2).size(), RandomGenCtx.EntropicBrew));
+                }
+                for (int j = 0; j < state.properties.potions.size(); j++) {
+                    if (!state.properties.potions.get(j).isGenerated) {
+                        continue;
+                    }
+                    if (state.properties.potions.get(j).getClass().equals(potion.getClass()) && !state.potionUsable(j)) {
+                        state.setPotionUsable(j);
+                        break;
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Entropic Brew";
+        }
+
+        public List<List<Potion>> commonPotions = new ArrayList<>();
+        public List<List<Potion>> uncommonPotions = new ArrayList<>();
+        public List<List<Potion>> rarePotions = new ArrayList<>();
+
+        public void initPossibleGeneratedPotions(CharacterEnum character, int maxHealth, boolean firstCall) {
+            commonPotions.add(List.of(
+                    new AttackPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new AttackPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new AttackPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new AttackPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            // neural network would be too large
+            commonPotions.add(List.of(
+                    new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new BlockPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new BlockPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new BlockPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new BlockPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            // neural network would be too large
+            commonPotions.add(List.of(
+                    new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new DexterityPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new DexterityPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new DexterityPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new DexterityPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new EnergyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EnergyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EnergyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EnergyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new ExplosivePotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new ExplosivePotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new ExplosivePotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new ExplosivePotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new FearPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new FearPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new FearPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new FearPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new FirePotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new FirePotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new FirePotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new FirePotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new FlexPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new FlexPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new FlexPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new FlexPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new PowerPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new PowerPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new PowerPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new PowerPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new SkillPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new SkillPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new SkillPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new SkillPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new SpeedPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new SpeedPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new SpeedPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new SpeedPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new StrengthPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new StrengthPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new StrengthPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new StrengthPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new SwiftPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new SwiftPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new SwiftPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new SwiftPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            commonPotions.add(List.of(
+                    new WeakPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new WeakPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new WeakPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new WeakPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new AncientPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new AncientPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new AncientPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new AncientPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new DistilledChaos().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new DistilledChaos().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new DistilledChaos().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new DistilledChaos().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new DuplicationPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new DuplicationPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new DuplicationPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new DuplicationPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new EssenceOfSteel().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EssenceOfSteel().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EssenceOfSteel().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EssenceOfSteel().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new GamblersBrew().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new GamblersBrew().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new GamblersBrew().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new GamblersBrew().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new LiquidBronze().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidBronze().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidBronze().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidBronze().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new LiquidMemory().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidMemory().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidMemory().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new LiquidMemory().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            uncommonPotions.add(List.of(
+                    new RegenerationPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new RegenerationPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new RegenerationPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new RegenerationPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            rarePotions.add(List.of(
+                    new CultistPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new CultistPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new CultistPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new CultistPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            var entropicBrewIdx = rarePotions.size();
+            rarePotions.add(List.of(
+                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            rarePotions.add(List.of(
+                    new FairyInABottle(maxHealth).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new FairyInABottle(maxHealth).setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new FairyInABottle(maxHealth).setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new FairyInABottle(maxHealth).setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            rarePotions.add(List.of(
+                    new SmokeBomb().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new SmokeBomb().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new SmokeBomb().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new SmokeBomb().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            // crashing + neural network would be too large
+            rarePotions.add(List.of(
+                    new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+            ));
+            if (character == CharacterEnum.IRONCLAD) {
+                commonPotions.add(List.of(
+                        new Potion.BloodPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.BloodPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.BloodPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.BloodPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                // Elixir
+                // HeartOfIron
+            } else if (character == CharacterEnum.SILENT) {
+                commonPotions.add(List.of(
+                        new Potion.PoisonPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.PoisonPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.PoisonPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.PoisonPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                uncommonPotions.add(List.of(
+                        new CunningPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new CunningPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new CunningPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new CunningPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                // GhostInAJar
+            } else if (character == CharacterEnum.DEFECT) {
+                commonPotions.add(List.of(
+                        new Potion.FocusPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.FocusPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.FocusPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new Potion.FocusPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                uncommonPotions.add(List.of(
+                        new PotionOfCapacity().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new PotionOfCapacity().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new PotionOfCapacity().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new PotionOfCapacity().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                uncommonPotions.add(List.of(
+                        new EssenceOfDarkness().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EssenceOfDarkness().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EssenceOfDarkness().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EssenceOfDarkness().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else if (character == CharacterEnum.WATCHER) {
+                // BottledMiracle
+                // StancePotion
+                // Ambrosia
+            }
+            if (firstCall) {
+                for (int i = 0; i < rarePotions.get(entropicBrewIdx).size(); i++) {
+                    ((EntropicBrew) rarePotions.get(entropicBrewIdx).get(i)).initPossibleGeneratedPotions(character, maxHealth, false);
+                }
+            }
+        }
+    }
+
+    public static class EmptyPotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Empty Potion";
         }
     }
 }

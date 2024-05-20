@@ -12,6 +12,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class GameProperties implements Cloneable {
     public boolean testNewFeature = true;
@@ -51,6 +52,7 @@ public class GameProperties implements Cloneable {
     public boolean stateDescOn;
     public Card[] cardDict;
     public List<Potion> potions;
+    public int nonGeneratedPotionsLength;
     public int[] potionsVArrayIdx;
     public int[] potionsScenarios;
     public EnemyList originalEnemies;
@@ -191,6 +193,7 @@ public class GameProperties implements Cloneable {
     public int timeEaterCounterIdx = -1;
     public int normalityCounterIdx = -1;
     public int penNibCounterIdx = -1;
+    public int distilledChaosCounterIdx = -1;
 
     // cached game properties for generating NN input
     public int shieldAndSpireFacingIdx = -1;
@@ -209,6 +212,9 @@ public class GameProperties implements Cloneable {
     public int[] discardOrder0CardReverseIdx;
     public List<Integer> innateOrder;
     public List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
+    public Function<GameState, GameState> switchBattleHandler;
+    public GameState originalGameState;
+    public boolean isHeartGauntlet;
     public int enemiesEncounterChosen;
     public int[] astrolabeCardsTransformed;
 

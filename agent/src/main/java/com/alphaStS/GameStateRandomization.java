@@ -4,6 +4,8 @@ import com.alphaStS.card.Card;
 import com.alphaStS.card.CardCount;
 import com.alphaStS.card.CardIronclad;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEnding;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
@@ -369,6 +371,9 @@ public interface GameStateRandomization {
         }
 
         @Override public int randomize(GameState state) {
+            if (state.properties.isHeartGauntlet && state.enemiesAlive == 1) {
+                return 0;
+            }
             int minDifficulty = -1;
             int maxDifficulty = -1;
             int totalDifficulty = 0;
@@ -381,9 +386,18 @@ public interface GameStateRandomization {
                 }
             }
             if (state.properties.isTraining && canAutomateTraining) {
-                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    enemiesAlive++;
-                    totalDifficulty += enemy.getMaxRandomizeDifficulty();
+                if (state.properties.isHeartGauntlet) {
+                    for (EnemyReadOnly enemy : state.getEnemiesForWrite()) {
+                        totalDifficulty += ((Enemy) enemy).getMaxRandomizeDifficulty();
+                    }
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        enemiesAlive++;
+                    }
+                } else {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        enemiesAlive++;
+                        totalDifficulty += ((Enemy) enemy).getMaxRandomizeDifficulty();
+                    }
                 }
                 if (enemiesAlive != state.enemiesAlive) {
                     throw new RuntimeException();
@@ -425,6 +439,29 @@ public interface GameStateRandomization {
                     enemy.properties.origHealth = enemy.getHealth();
                 }
             } else {
+                state.properties.difficultyChosen = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
+                var difficultyChosen = state.properties.difficultyChosen;
+                if (state.properties.isHeartGauntlet) {
+                    if (state.properties.difficultyChosen < 40) { // after beating shield and spear fight, hear fight
+                        state.killEnemy(0, false);
+                        state.killEnemy(1, false);
+                        state.reviveEnemy(2, false, -1);
+                        ((EnemyEnding.CorruptHeart) state.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.randomize(state.getSearchRandomGen(), true, state.properties.difficultyChosen + 1);
+                            if (enemy.hasBurningHealthBuff()) {
+                                enemy.setHealth((int) (enemy.getHealth() * 1.25));
+                            }
+                            enemy.properties = enemy.properties.clone();
+                            enemy.properties.origHealth = enemy.getHealth();
+                        }
+                        return 0;
+                    }
+                    difficultyChosen -= 40;
+                    if (difficultyChosen <= 2) {
+                        difficultyChosen = 2;
+                    }
+                }
                 int[] maxDifficulties = new int[enemiesAlive];
                 int[] difficulties = new int[enemiesAlive];
                 int i = 0;
@@ -435,8 +472,7 @@ public interface GameStateRandomization {
                 for (int j = 0; j < enemiesAlive; j++) {
                     allowed.add(j);
                 }
-                state.properties.difficultyChosen = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
-                for (int j = 0; j < state.properties.difficultyChosen - enemiesAlive; j++) {
+                for (int j = 0; j < difficultyChosen - enemiesAlive; j++) {
                     i = state.getSearchRandomGen().nextInt(allowed.size(), RandomGenCtx.Other); // currently equal probability
                     difficulties[allowed.get(i)]++;
                     if (difficulties[allowed.get(i)] == maxDifficulties[allowed.get(i)] - 1) {
@@ -457,6 +493,9 @@ public interface GameStateRandomization {
         }
 
         @Override public void randomize(GameState state, int r) {
+            if (state.properties.isHeartGauntlet && state.enemiesAlive == 1) {
+                return;
+            }
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 enemy.setHealth(enemy.properties.maxHealth);
             }
@@ -542,7 +581,10 @@ public interface GameStateRandomization {
         public PotionsUtilityRandomization(List<Potion> potions) {
             GameStateRandomization randomization = null;
             for (int i = 0; i < potions.size(); i++) {
-                if (potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.BlockPotion || potions.get(i) instanceof Potion.RegenerationPotion || potions.get(i) instanceof Potion.FairyInABottle) {
+                if (potions.get(i).isGenerated) {
+                    continue;
+                }
+                if (potions.get(i) instanceof Potion.BloodPotion || potions.get(i) instanceof Potion.BlockPotion || potions.get(i) instanceof Potion.FairyInABottle) {
                     randomization = new PotionUtilityRandomization(potions.get(i), i, potions.get(i).getPenaltyRatioSteps(), potions.get(i).getBasePenaltyRatio()).fixR(1).doAfter(randomization);
                     continue;
                 }
@@ -553,10 +595,20 @@ public interface GameStateRandomization {
 
         // todo: think of a better distribution
         @Override public int randomize(GameState state) {
+            for (int i = 0; i < state.properties.potions.size(); i++) {
+                if (state.properties.potions.get(i).isGenerated) {
+                    state.setPotionUnusable(i, state.properties.potions.get(i).basePenaltyRatio);
+                }
+            }
             return randomization.randomize(state);
         }
 
         @Override public void randomize(GameState state, int r) {
+            for (int i = 0; i < state.properties.potions.size(); i++) {
+                if (state.properties.potions.get(i).isGenerated) {
+                    state.setPotionUnusable(i, state.properties.potions.get(i).basePenaltyRatio);
+                }
+            }
             randomization.randomize(state, r);
         }
 

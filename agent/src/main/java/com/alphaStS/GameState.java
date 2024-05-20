@@ -74,6 +74,7 @@ public final class GameState implements State {
     public int energyRefill;
     GameAction currentAction;
     public short turnNum;
+    public short realTurnNum;
     int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
     public int preBattleRandomizationIdxChosen = -1;
@@ -306,10 +307,19 @@ public final class GameState implements State {
         GameStateRandomization preBattleScenarios = builder.getPreBattleScenarios();
         // game properties (shared)
         properties = new GameProperties();
+        properties.originalGameState = this;
+        properties.switchBattleHandler = builder.getSwitchBattleHandler();
         properties.randomization = randomization;
         properties.preBattleRandomization = preBattleRandomization;
         properties.enemyHealthRandomization = new GameStateRandomization.EnemyHealthRandomization(false, null);
         properties.potions = potions;
+        properties.nonGeneratedPotionsLength = potions.size();
+        for (int i = 0; i < potions.size(); i++) {
+            if (potions.get(i).isGenerated) {
+                properties.nonGeneratedPotionsLength = i;
+                break;
+            }
+        }
         properties.potionsScenarios = builder.getPotionsScenarios();
         properties.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         properties.character = builder.getCharacter();
@@ -663,9 +673,9 @@ public final class GameState implements State {
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                     if (isTerminal != 0) {
-                        v[state.properties.turnsLeftVIdx] = state.turnNum / 50.0;
+                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / 50.0;
                     } else if (isTerminal == 0) {
-                        v[state.properties.turnsLeftVIdx] = state.turnNum / 50.0 + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START);
+                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / 50.0 + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START);
                         v[state.properties.turnsLeftVIdx] = Math.min(v[state.properties.turnsLeftVIdx], 1.0);
                     }
                 }
@@ -931,6 +941,7 @@ public final class GameState implements State {
         nightmareCardsLen = other.nightmareCardsLen;
         energy = other.energy;
         turnNum = other.turnNum;
+        realTurnNum = other.realTurnNum;
         playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
         preBattleRandomizationIdxChosen = other.preBattleRandomizationIdxChosen;
@@ -1512,6 +1523,7 @@ public final class GameState implements State {
 
     void beginTurnPart2() {
         turnNum++;
+        realTurnNum++;
         var drawCount = 5;
         if (properties.drawReductionCounterIdx >= 0 && getCounterForRead()[properties.drawReductionCounterIdx] > 0) {
             drawCount--;
@@ -1773,12 +1785,11 @@ public final class GameState implements State {
         }
     }
 
-    public void doAction(int actionIdx) {
+    public GameState doAction(int actionIdx) {
         GameAction action = properties.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
-        int ret = 0;
         if (action.type() == GameActionType.BEGIN_BATTLE) {
             if (properties.randomization != null) {
-                ret = battleRandomizationIdxChosen = properties.randomization.randomize(this);
+                battleRandomizationIdxChosen = properties.randomization.randomize(this);
                 setIsStochastic();
             }
             properties.enemyHealthRandomization.randomize(this);
@@ -1843,11 +1854,19 @@ public final class GameState implements State {
                 beginTurnPart2();
             }
         } else if (action.type() == GameActionType.USE_POTION) {
-            getPotionsStateForWrite()[action.idx() * 3] = 0;
+            if (properties.potions.get(action.idx()).isGenerated) {
+                for (int i = 3; i >= 0; i--) {
+                    if (potionUsable(action.idx() + i)) {
+                        getPotionsStateForWrite()[(action.idx() + i) * 3] = 0;
+                    }
+                }
+            } else {
+                getPotionsStateForWrite()[action.idx() * 3] = 0;
+            }
             usePotion(action, -1);
         } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
             if (properties.preBattleRandomization != null) {
-                ret = preBattleRandomizationIdxChosen = properties.preBattleRandomization.randomize(this);
+                preBattleRandomizationIdxChosen = properties.preBattleRandomization.randomize(this);
             }
             setActionCtx(properties.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
             if (properties.endOfPreBattleHandler != null) {
@@ -1874,6 +1893,29 @@ public final class GameState implements State {
                 runActionsInQueueIfNonEmpty();
             }
         }
+        while (actionCtx == GameActionCtx.PLAY_CARD && properties.distilledChaosCounterIdx >= 0 && getCounterForRead()[properties.distilledChaosCounterIdx] > 0 && isTerminal() == 0) {
+            getCounterForWrite()[properties.distilledChaosCounterIdx]--;
+            int cardIdx = drawOneCardSpecial();
+            if (cardIdx < 0) {
+                continue;
+            }
+            if (properties.makingRealMove || properties.stateDescOn) {
+                if (getStateDesc().length() > 0)
+                    stateDesc.append(", ");
+                getStateDesc().append(properties.cardDict[cardIdx].cardName);
+            }
+            var nextAction = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+            playCard(nextAction, -1, true, false, false, false, -1, -1);
+            int i = 0;
+            while (actionCtx == GameActionCtx.SELECT_ENEMY && isTerminal() == 0) {
+                int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
+                if (properties.makingRealMove || properties.stateDescOn) {
+                    getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : getEnemiesForRead().get(enemyIdx).getName())
+                            .append(" (").append(enemyIdx).append(")");
+                }
+                playCard(nextAction, enemyIdx, true, false, false, false, -1, -1);
+            }
+        }
         legalActions = null;
         v_other = null;
         policy = null;
@@ -1884,6 +1926,10 @@ public final class GameState implements State {
             }
             searchFrontier = null;
         }
+        if (isTerminal() > 0 && properties.switchBattleHandler != null) {
+            return properties.switchBattleHandler.apply(this);
+        }
+        return this;
     }
 
     boolean isActionLegal(int action) {
@@ -2053,6 +2099,12 @@ public final class GameState implements State {
                 addedMod = true;
             } else if (isGremlinLeaderAlive && ((enemy instanceof EnemyExordium.FatGremlin) || (enemy instanceof EnemyExordium.GremlinWizard) || (enemy instanceof EnemyExordium.MadGremlin) || (enemy instanceof EnemyExordium.ShieldGremlin) || (enemy instanceof EnemyExordium.SneakyGremlin))) {
                 addedMod = true;
+            } else if (properties.isHeartGauntlet && enemy instanceof EnemyEnding.CorruptHeart) {
+                if (getEnemiesForRead().get(0).getHealth() > 0 || getEnemiesForRead().get(1).getHealth() > 0) {
+                    totalCurHp += enemy.properties.maxHealth;
+                    totalMaxHp += enemy.properties.maxHealth;
+                    addedMod = true;
+                }
             }
             if (!addedMod) {
                 totalCurHp += enemy.getHealth();
@@ -2116,8 +2168,11 @@ public final class GameState implements State {
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.BloodPotion pot) {
                         v += pot.getHealAmount(this);
                     }
-                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion pot) {
-                        maxPossibleRegen += pot.getRegenerationAmount(this);
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion) {
+                        maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
+                    }
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.EntropicBrew pot) {
+                        maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * pot.maxPotionSlot;
                     }
                 }
             }
@@ -2300,7 +2355,11 @@ public final class GameState implements State {
     @Override public String toString() {
         boolean first;
         StringBuilder str = new StringBuilder("{");
-        str.append("turn=").append(turnNum).append(", ");
+        str.append("turn=").append(turnNum);
+        if (realTurnNum != turnNum) {
+            str.append(" (").append(realTurnNum).append(")");
+        }
+        str.append(", ");
         if (properties.biasedCognitionLimitCounterIdx >= 0) {
             str.append("biasedCogLimit=").append(getCounterForRead()[properties.biasedCognitionLimitCounterIdx]).append(", ");
         }
@@ -2467,7 +2526,7 @@ public final class GameState implements State {
             str.append("]");
         }
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (properties.potions.get(i) instanceof Potion.FairyInABottle && !potionUsed(i)) {
+            if (properties.potions.get(i) instanceof Potion.FairyInABottle && !potionUsed(i) && potionUsable(i)) {
                 str.append(", ").append(properties.potions.get(i));
             }
         }
@@ -2577,16 +2636,15 @@ public final class GameState implements State {
                 int count = 1;
                 if (!(properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12)) {
                     for (int i = 0; i < properties.potions.size(); i++) {
-                        if (potionsState[i * 3] == 1 && properties.potions.get(i) instanceof Potion.SmokeBomb) {
-                            boolean gameEnd = false;
-                            for (EnemyReadOnly enemyReadOnly : getEnemiesForRead()) {
-                                if (!enemyReadOnly.isAlive()) {
-                                    gameEnd = true;
-                                }
+                        if (potionUsable(i) && properties.potions.get(i) instanceof Potion.SmokeBomb) {
+                            if (!properties.isHeartFight) {
+                                legal[properties.cardDict.length + i] = true;
+                                count++;
                             }
-                            legal[properties.cardDict.length + i] = gameEnd;
-                            count++;
-                        } else if (potionsState[i * 3] == 1 && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
+                        } else if (potionUsable(i) && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
+                            if (properties.potions.get(i).isGenerated && properties.potions.get(i).generatedIdx > 0) {
+                                continue;
+                            }
                             legal[properties.cardDict.length + i] = true;
                             count++;
                         }
@@ -4328,6 +4386,17 @@ public final class GameState implements State {
 
     public int potionPenalty(int i) {
         return potionsState[i * 3 + 1];
+    }
+
+    public void setPotionUsable(int i) {
+        potionsState[i * 3] = 1;
+        potionsState[i * 3 + 2] = 1;
+    }
+
+    public void setPotionUnusable(int i, short penalty) {
+        potionsState[i * 3] = 0;
+        potionsState[i * 3 + 1] = penalty;
+        potionsState[i * 3 + 2] = 0;
     }
 
     public void setSelect1OutOf3Idxes(int idx1, int idx2, int idx3) {
