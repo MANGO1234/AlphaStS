@@ -906,7 +906,7 @@ public class MatchSession {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
-                action = MCTS.getActionRandomOrTerminal(state, false);
+                action = mcts.getActionRandomOrTerminal(state, false);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
             }
             var step = new GameStep(state, action);

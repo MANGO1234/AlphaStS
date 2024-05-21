@@ -3834,6 +3834,23 @@ public final class GameState implements State {
         bannedActions = null;
     }
 
+    public void borrowSearchInfoFrom(GameState state) {
+        policy = state.policy;
+        v_health = state.v_health;
+        v_win = state.v_win;
+        v_other = state.v_other;
+        q = state.q;
+        n = state.n;
+        ns = state.ns;
+        total_n = state.total_n;
+        transpositions = state.transpositions;
+        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = state.transpositionsParent;
+        legalActions = state.legalActions;
+        terminalAction = state.terminalAction;
+        searchFrontier = state.searchFrontier;
+        bannedActions = state.bannedActions;
+    }
+
     public void gainEnergy(int n) {
         energy = Math.max(energy + n, 0);
     }

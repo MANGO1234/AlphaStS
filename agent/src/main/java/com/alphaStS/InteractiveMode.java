@@ -1322,7 +1322,7 @@ public class InteractiveMode {
         }
     }
 
-    int selectGremlinForGremlinLeaderEncounter(BufferedReader reader, GameStateRandomization randomization, List<String> history) throws IOException {
+    int selectGremlinForGremlinLeaderEncounter(BufferedReader reader, List<String> history) throws IOException {
         out.println("0. Mad Gremlin");
         out.println("1. Sneaky Gremlin");
         out.println("2. Fat Gremlin");
@@ -1378,13 +1378,48 @@ public class InteractiveMode {
         return readIntCommand(reader, history, state.enemiesAlive);
     }
 
-    int selectChaosOrb(BufferedReader reader, GameState state, List<String> history) throws IOException {
+    int selectChaosOrb(BufferedReader reader, List<String> history) throws IOException {
         out.println("Select orb type for Chaos");
         out.println("0. Lightning");
         out.println("1. Frost");
         out.println("2. Dark");
         out.println("3. Plasma");
         return readIntCommand(reader, history, 4);
+    }
+
+    int selectEntropicBrew(BufferedReader reader, Tuple<Potion.EntropicBrew, Integer> arg, List<String> history) throws IOException {
+        if (arg.v2() < 0) {
+            out.println("Select potion rarity for Entropic Brew");
+            out.println("0. Common");
+            out.println("1. Uncommon");
+            out.println("2. Rare");
+            int r = readIntCommand(reader, history, 3);
+            if (r == 0) {
+                return 0;
+            } else if (r == 1) {
+                return 65;
+            } else {
+                return 90;
+            }
+        } else if (arg.v2() < 65) {
+            out.println("Select common potion for Entropic Brew");
+            for (int i = 0; i < arg.v1().commonPotions.size(); i++) {
+                out.println(i + ". " + arg.v1().commonPotions.get(i).get(0));
+            }
+            return readIntCommand(reader, history, arg.v1().commonPotions.size());
+        } else if (arg.v2() < 90) {
+            out.println("Select uncommon potion for Entropic Brew");
+            for (int i = 0; i < arg.v1().uncommonPotions.size(); i++) {
+                out.println(i + ". " + arg.v1().uncommonPotions.get(i).get(0));
+            }
+            return readIntCommand(reader, history, arg.v1().uncommonPotions.size());
+        } else {
+            out.println("Select rare potion for Entropic Brew");
+            for (int i = 0; i < arg.v1().rarePotions.size(); i++) {
+                out.println(i + ". " + arg.v1().rarePotions.get(i).get(0));
+            }
+            return readIntCommand(reader, history, arg.v1().rarePotions.size());
+        }
     }
 
     int selectRandomCardGen(BufferedReader reader, Tuple<GameState, int[]> t, List<String> history) throws IOException {
@@ -1397,7 +1432,7 @@ public class InteractiveMode {
     }
 
 
-    private int selectShieldAndSpear(BufferedReader reader, Tuple<GameState, int[]> arg, List<String> history) {
+    private int selectShieldAndSpear(BufferedReader reader, List<String> history) {
         out.println("Select Spire Shield Debuff");
         out.println("0. Focus");
         out.println("1. Strength");
@@ -2224,7 +2259,7 @@ public class InteractiveMode {
             }
             case GremlinLeader -> {
                 try {
-                    return interactiveMode.selectGremlinForGremlinLeaderEncounter(reader, (GameStateRandomization) arg, history);
+                    return interactiveMode.selectGremlinForGremlinLeaderEncounter(reader, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -2246,7 +2281,14 @@ public class InteractiveMode {
             }
             case Chaos -> {
                 try {
-                    return interactiveMode.selectChaosOrb(reader, (GameState) arg, history);
+                    return interactiveMode.selectChaosOrb(reader, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case EntropicBrew -> {
+                try {
+                    return interactiveMode.selectEntropicBrew(reader, (Tuple<Potion.EntropicBrew, Integer>) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
@@ -2259,7 +2301,7 @@ public class InteractiveMode {
                 }
             }
             case ShieldAndSpear -> {
-                return interactiveMode.selectShieldAndSpear(reader, (Tuple<GameState, int[]>) arg, history);
+                return interactiveMode.selectShieldAndSpear(reader, history);
             }
             case RandomEnemyHealth -> {
                 return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);

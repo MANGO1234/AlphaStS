@@ -1199,16 +1199,16 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             }
             for (int i = numPotions; i < maxPotionSlot; i++) {
                 state.setIsStochastic();
-                int r = state.getSearchRandomGen().nextInt(100, RandomGenCtx.EntropicBrew);
+                int r = state.getSearchRandomGen().nextInt(100, RandomGenCtx.EntropicBrew, new Tuple<>(this, -1));
                 Potion potion;
                 if (r < 65) {
-                    int r2 = state.getSearchRandomGen().nextInt(commonPotions.size(), RandomGenCtx.EntropicBrew);
+                    int r2 = state.getSearchRandomGen().nextInt(commonPotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
                     potion = commonPotions.get(r2).get(state.getSearchRandomGen().nextInt(commonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
                 } else if (r < 90) {
-                    int r2 = state.getSearchRandomGen().nextInt(uncommonPotions.size(), RandomGenCtx.EntropicBrew);
+                    int r2 = state.getSearchRandomGen().nextInt(uncommonPotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
                     potion = uncommonPotions.get(r2).get(state.getSearchRandomGen().nextInt(uncommonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
                 } else {
-                    int r2 = state.getSearchRandomGen().nextInt(rarePotions.size(), RandomGenCtx.EntropicBrew);
+                    int r2 = state.getSearchRandomGen().nextInt(rarePotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
                     potion = rarePotions.get(r2).get(state.getSearchRandomGen().nextInt(rarePotions.get(r2).size(), RandomGenCtx.EntropicBrew));
                 }
                 for (int j = 0; j < state.properties.potions.size(); j++) {
