@@ -1,0 +1,37 @@
+Some documentation of common commands (incomplete).
+
+This controls the draw order:
+do ("draw order")
+   clear ("clear draw order")
+   p ("pop last card in draw order")
+   e ("save draw order, end changes and go back")
+   b ("cancel changes and go back")
+
+eho ("set original enemy health"): set max health and modify health to match, used at beginning of game 
+eh ("set enemy health"): set health without changing max health, used at any time if health doesn't match
+
+em ("set enemy move"): set current enemy move
+
+"rng off": use this to control rng roll as they happens (e.g. when defect lightning orb hits multiple enemy, you will be prompted on which enemy is hit, or when Begin Battle rolls one of the enemy encounter, you can select the enemy encounter)
+"rng on": turn off the above feature and re-enable rng
+
+"n <node count>": do a MCTS search for the given node count
+"nn <node count>": do a MCT search for the given node count until a action with random outcome occurs
+"reset": reset the current tree from the result of a "n" or "nn" command
+"nn exec": execute the result of the nn call above
+"nn execv": same as "nn exec" but doesn't exectue the final action with random outcome
+"states": see all the actions taken until the current state
+
+"save": save current play session to session.txt (saved seed + every command used)
+"load": load a saved play session from session.txt
+"save <session name e.g. 2>": save session to session_2.txt
+"load <session name e.g. 2>": load session from session_2.txt
+"save play": special command that give something like
+List.of("", )
+
+Can be passed to builder to set the initial state.
+
+builder.set
+
+Which can be used to specfically train a neural net on some specific state.
+Note: need to remove commands before "Pre-Battle" action is chosen

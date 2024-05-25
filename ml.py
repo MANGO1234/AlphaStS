@@ -461,7 +461,7 @@ if DO_TRAINING:
         iteration_info = training_info['iteration_info'][str(_iteration)]
         iter_start = time.time()
 
-        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath',
+        agent_args = ['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH,
                       'com.alphaStS.Main', '--training', '-t', str(NUMBER_OF_THREADS), '-b', str(BATCH_PER_THREAD), '-training-c', str(TRAINING_NUM_OF_GAMES), '-training-n', str(TRAINING_NODE_COUNT), '-dir', SAVES_DIR]
         if not SKIP_TRAINING_MATCHES and _iteration > 1:
             if training_info["iteration"] < 17:

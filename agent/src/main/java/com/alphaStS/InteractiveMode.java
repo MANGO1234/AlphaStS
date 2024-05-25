@@ -105,6 +105,7 @@ public class InteractiveMode {
         state.setSearchRandomGen(state.properties.random);
         state.properties.random = new RandomGenInteractive(this, reader, history);
         state.properties.realMoveRandomGen = null;
+        int lastHistoryIdxAfterPreBattle = 0;
         if (history.size() == 0) {
             interactiveRecordSeed(state, history);
         }
@@ -263,8 +264,7 @@ public class InteractiveMode {
                 }
                 if (suffix.equals("play")) {
                     out.print("List.of(\"\"");
-                    List<String> hist = filterHistory(history);
-                    hist.remove(0);
+                    List<String> hist = filterHistory(history.subList(lastHistoryIdxAfterPreBattle, history.size()));
                     hist = hist.stream().filter(x -> !x.startsWith("#")).collect(Collectors.toList());
                     for (String l : hist) {
                         out.print(", \"" + l + "\"");
@@ -413,6 +413,9 @@ public class InteractiveMode {
                     state.clearAllSearchInfo();
                     if (!isApplyingHistory) {
                         state = state.clone(false);
+                    }
+                    if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                        lastHistoryIdxAfterPreBattle = history.size();
                     }
                     state.properties.makingRealMove = true;
                     state.properties.isInteractive = true;
