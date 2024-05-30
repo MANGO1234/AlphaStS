@@ -124,7 +124,7 @@ public class CardUpgrade {
         map.put(new CardDefect.FTL(), new CardDefect.FTLP());
         map.put(new CardDefect.ForceField(), new CardDefect.ForceFieldP());
         map.put(new CardDefect.Fusion(), new CardDefect.FusionP());
-//        map.put(new CardDefect.GeneticAlgorithm(1), new CardDefect.GeneticAlgorithmP(1));
+        map.put(new CardDefect.GeneticAlgorithm(1), new CardDefect.GeneticAlgorithmP(1));
         map.put(new CardDefect.Glacier(), new CardDefect.GlacierP());
         map.put(new CardDefect.Heatsinks(), new CardDefect.HeatsinksP());
         map.put(new CardDefect.HelloWorld(), new CardDefect.HelloWorldP());
@@ -143,7 +143,7 @@ public class CardUpgrade {
         map.put(new CardDefect.Sunder(), new CardDefect.SunderP());
         map.put(new CardDefect.Tempest(), new CardDefect.TempestP());
         map.put(new CardDefect.WhiteNoise(), new CardDefect.WhiteNoiseP());
-//        map.put(new CardDefect.AllForOne(0, 0), new CardDefect.AllForOneP(0, 0));
+        map.put(new CardDefect.AllForOne(0, 0), new CardDefect.AllForOneP(0, 0));
         map.put(new CardDefect.Amplify(), new CardDefect.AmplifyP());
         map.put(new CardDefect.BiasedCognition(), new CardDefect.BiasedCognitionP());
         map.put(new CardDefect.Buffer(), new CardDefect.BufferP());
@@ -153,7 +153,7 @@ public class CardUpgrade {
         map.put(new CardDefect.Electrodynamics(), new CardDefect.ElectrodynamicsP());
         map.put(new CardDefect.Fission(), new CardDefect.FissionP());
         map.put(new CardDefect.HyperBeam(), new CardDefect.HyperBeamP());
-        map.put(new CardDefect.MachineLearningP(), new CardDefect.MachineLearningP());
+        map.put(new CardDefect.MachineLearning(), new CardDefect.MachineLearningP());
         map.put(new CardDefect.MeteorStrike(), new CardDefect.MeteorStrikeP());
         map.put(new CardDefect.MultiCast(), new CardDefect.MultiCastP());
         map.put(new CardDefect.Rainbow(), new CardDefect.RainbowP());

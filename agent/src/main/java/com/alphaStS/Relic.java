@@ -369,7 +369,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-            });
+            }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
@@ -383,7 +383,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = n;
+                    if (state.isFirstEncounter()) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
                 }
             });
             if (healthReward > 0) {
@@ -872,7 +874,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class OddlySmoothStone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.getPlayerForWrite().gainDexterity(1);
+            state.properties.addStartOfTurnHandler("OddlySmoothStone", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().gainDexterity(1);
+                    }
+                }
+            });
         }
     }
 
@@ -1589,7 +1597,139 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Pandora's Box: No need to implement
+    public static class PandorasBox extends Relic {
+        private final int n;
+        private boolean upgradeSkill = true;
+        private boolean upgradeAttack = false;
+        private boolean upgradePower = false;
+
+        public PandorasBox(int n) {
+            this.n = n;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleCards(state.properties);
+            state.properties.astrolabeCardsIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.astrolabeCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
+            }
+            state.properties.addStartOfBattleHandler("PandorasBox", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.properties.makingRealMove) {
+                        state.properties.astrolabeCardsTransformed = new int[n];
+                    }
+                    state.setIsStochastic();
+                    if (state.getStateDesc().length() > 0)
+                        state.stateDesc.append(", ");
+                    state.getStateDesc().append("Pandora's Box -> ");
+                    for (int i = 0; i < n; i++) {
+                        var idx = state.getSearchRandomGen().nextInt(state.properties.astrolabeCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.astrolabeCardsIdxes));
+                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx]);
+                        if (i > 0)
+                            state.stateDesc.append(" + ");
+                        state.getStateDesc().append(state.properties.cardDict[state.properties.astrolabeCardsIdxes[idx]].cardName);
+                        if (state.properties.makingRealMove) {
+                            state.properties.astrolabeCardsTransformed[i] = idx;
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if (properties.character == CharacterEnum.DEFECT) {
+                return getPossibleCards(properties);
+            }
+            return null;
+        }
+
+        List<Card> getPossibleCards(GameProperties gameProperties) {
+            List<Card> cards = new ArrayList<>();
+            if (gameProperties.character == CharacterEnum.DEFECT) {
+                cards.add(new CardDefect.Aggregate());
+                cards.add(new CardDefect.AllForOne(0, 0));
+                cards.add(new CardDefect.Amplify());
+                cards.add(new CardDefect.AutoShields());
+                cards.add(new CardDefect.BallLightning());
+                cards.add(new CardDefect.Barrage());
+                cards.add(new CardDefect.BeamCell());
+                cards.add(new CardDefect.BiasedCognition());
+                cards.add(new CardDefect.Blizzard());
+                cards.add(new CardDefect.BootSequence());
+                cards.add(new CardDefect.Buffer());
+                cards.add(new CardDefect.BullsEye());
+                cards.add(new CardDefect.Capacitor());
+                cards.add(new CardDefect.Chaos());
+                cards.add(new CardDefect.ChargeBattery());
+                cards.add(new CardDefect.Chill());
+                cards.add(new CardDefect.Claw(5));
+                cards.add(new CardDefect.ColdSnap());
+                cards.add(new CardDefect.CompiledDriver());
+                cards.add(new CardDefect.Consume());
+                cards.add(new CardDefect.Coolheaded());
+                cards.add(new CardDefect.CoreSurge());
+                cards.add(new CardDefect.CreativeAI());
+                cards.add(new CardDefect.Darkness());
+                cards.add(new CardDefect.Defragment());
+                cards.add(new CardDefect.DoomAndGloom());
+                cards.add(new CardDefect.DoubleEnergy());
+                cards.add(new CardDefect.EchoForm());
+                cards.add(new CardDefect.Electrodynamics());
+                cards.add(new CardDefect.Equilibrium());
+                cards.add(new CardDefect.Fission());
+                cards.add(new CardDefect.ForceField());
+                cards.add(new CardDefect.FTL());
+                cards.add(new CardDefect.Fusion());
+                cards.add(new CardDefect.GeneticAlgorithm(19, 3));
+                cards.add(new CardDefect.Glacier());
+                cards.add(new CardDefect.GoForTheEye());
+                cards.add(new CardDefect.Heatsinks());
+                cards.add(new CardDefect.HelloWorld());
+                cards.add(new CardDefect.Hologram());
+                cards.add(new CardDefect.HyperBeam());
+                cards.add(new CardDefect.Leap());
+                cards.add(new CardDefect.Loop());
+                cards.add(new CardDefect.MachineLearning());
+                cards.add(new CardDefect.Melter());
+                cards.add(new CardDefect.MeteorStrike());
+                cards.add(new CardDefect.MultiCast());
+                cards.add(new CardDefect.Overclock());
+                cards.add(new CardDefect.Rainbow());
+                cards.add(new CardDefect.Reboot());
+                cards.add(new CardDefect.Rebound());
+                cards.add(new CardDefect.Recursion());
+                cards.add(new CardDefect.Recycle());
+                cards.add(new CardDefect.ReinforcedBody());
+                cards.add(new CardDefect.Reprogram());
+                cards.add(new CardDefect.RipAndTear());
+                cards.add(new CardDefect.Scrape());
+                cards.add(new CardDefect.Seek());
+                cards.add(new CardDefect.SelfRepair());
+                cards.add(new CardDefect.Skim());
+                cards.add(new CardDefect.Stack());
+                cards.add(new CardDefect.StaticDischarge());
+                cards.add(new CardDefect.SteamBarrier());
+                cards.add(new CardDefect.Storm());
+                cards.add(new CardDefect.Streamline());
+                cards.add(new CardDefect.Sunder());
+                cards.add(new CardDefect.SweepingBeam());
+                cards.add(new CardDefect.Tempest());
+                cards.add(new CardDefect.ThunderStrike());
+                cards.add(new CardDefect.Turbo());
+                cards.add(new CardDefect.WhiteNoise());
+            } else {
+                throw new IllegalArgumentException();
+            }
+            if (upgradeSkill) {
+                for (int i = 0; i < cards.size(); i++) {
+                    if (cards.get(i).cardType == Card.SKILL) {
+                        cards.set(i, cards.get(i).getUpgrade());
+                    }
+                }
+            }
+            return cards;
+        }
+    }
 
     public static class PhilosophersStone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1658,19 +1798,26 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Tiny House: No need to implement
     public static class VelvetChoker extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energyRefill += 1;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
             state.properties.registerCounter("VelvetChoker", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx + state.getCounterForRead()[counterIdx]] = 0.5f;
                     return idx + 7;
                 }
+
                 @Override public int getInputLenDelta() {
                     return 7;
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
-                    if (state.getCounterForRead()[counterIdx] < 6) {
+                    if (state.getCounterForRead()[counterIdx] < 6 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }

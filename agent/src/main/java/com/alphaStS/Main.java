@@ -237,6 +237,8 @@ public class Main {
             var maxDifficulty = difficultySetting.getValue().v2();
             var totalDifficulty = difficultySetting.getValue().v3();
             var sessionDifficultyReached = session.difficultyReachedByScenario.get(difficultySetting.getKey());
+            StringBuilder k = new StringBuilder();
+            k.append(difficultySetting.getKey()).append(": (").append(minDifficulty).append(", ").append(maxDifficulty).append(")");
             if (minDifficulty.equals(totalDifficulty)) {
             } else if (sessionDifficultyReached == null || sessionDifficultyReached < minDifficulty) {
                 minDifficulty -= (minDifficulty + 7) / 8;
@@ -248,10 +250,15 @@ public class Main {
                     maxDifficulty = (sessionDifficultyReached + maxDifficulty + 1) / 2;
                 }
             }
+            if (minDifficulty < maxDifficulty) {
+                k.append(" * ").append(sessionDifficultyReached == null ? 0 : sessionDifficultyReached).append(" -> (").append(minDifficulty).append(", ").append(maxDifficulty).append(")");
+                System.out.println(k);
+            }
             var jsonNode = mapper.createObjectNode();
             jsonNode.put("minDifficulty", minDifficulty);
             jsonNode.put("maxDifficulty", maxDifficulty);
             jsonNode.put("totalDifficulty", totalDifficulty);
+            jsonNode.put("sessionDifficultyReached", sessionDifficultyReached == null ? sessionDifficultyReached : maxDifficulty);
             difficultyNode.set(difficultySetting.getKey().toString(), jsonNode);
         }
         try (var writer = new BufferedWriter(new FileWriter(CUR_ITER_DIRECTORY + "/training.json"))) {

@@ -246,8 +246,11 @@ public class InteractiveMode {
             } else if (line.equals("rc")) { // remove card from hand
                 removeCardFromHandSelectScreen(reader, state, history);
                 state.clearAllSearchInfo();
-            } else if (line.equals("ac")) { // add card to hand
+            } else if (line.equals("ach")) { // add card to hand
                 addCardToHandSelectScreen(reader, state, history);
+                state.clearAllSearchInfo();
+            } else if (line.equals("acd")) { // add card to deck
+                addCardToDeckSelectScreen(reader, state, history);
                 state.clearAllSearchInfo();
             } else if (line.equals("reset")) {
                 state.clearAllSearchInfo();
@@ -265,7 +268,7 @@ public class InteractiveMode {
                 if (suffix.equals("play")) {
                     out.print("List.of(\"\"");
                     List<String> hist = filterHistory(history.subList(lastHistoryIdxAfterPreBattle, history.size()));
-                    hist = hist.stream().filter(x -> !x.startsWith("#")).collect(Collectors.toList());
+                    hist = hist.stream().filter(x -> !x.startsWith("#") && !x.startsWith("seed ")).collect(Collectors.toList());
                     for (String l : hist) {
                         out.print(", \"" + l + "\"");
                     }
@@ -816,19 +819,17 @@ public class InteractiveMode {
                 }
             }
         }
-        if (state.properties.counterHandlersNonNull.length > 0) {
+        if (state.properties.atLeastOneCounterHasNNHandler) {
             out.println("  Other:");
-            int idx = 0;
-            for (int i = 0; i < state.properties.counterHandlers.length; i++) {
-                if (state.properties.counterHandlers[i] != null) {
-                    for (int j = 0; j < state.properties.counterLenInArr[i]; j++) {
-                        if (state.getCounterForRead()[idx + j] != 0) {
-                            String counterStr = state.properties.counterHandlers[i].getDisplayString(state);
-                            out.println("    - " + state.properties.counterNames[i] + j + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[idx + j]));
+            for (int i = 0; i < state.properties.counterInfos.length; i++) {
+                if (state.properties.counterInfos[i].handler != null) {
+                    for (int j = 0; j < state.properties.counterInfos[i].length; j++) {
+                        if (state.getCounterForRead()[state.properties.counterInfos[i].idx + j] != 0) {
+                            String counterStr = state.properties.counterInfos[i].handler.getDisplayString(state);
+                            out.println("    - " + state.properties.counterInfos[i].name + j + "=" + (counterStr != null ? counterStr : state.getCounterForRead()[state.properties.counterInfos[i].idx + j]));
                         }
                     }
                 }
-                idx += state.properties.counterLenInArr[i];
             }
             if (state.getPlayeForRead().isEntangled()) {
                 out.println("  - Entangled");
@@ -1245,6 +1246,13 @@ public class InteractiveMode {
             out.println(i + ". " + state.properties.cardDict[i].cardName);
         }
         state.addCardToHand(readIntCommand(reader, history, state.properties.cardDict.length));
+    }
+
+    private void addCardToDeckSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        for (int i = 0; i < state.properties.realCardsLen; i++) {
+            out.println(i + ". " + state.properties.cardDict[i].cardName);
+        }
+        state.addCardToDeck(readIntCommand(reader, history, state.properties.realCardsLen));
     }
 
     private void removeCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {

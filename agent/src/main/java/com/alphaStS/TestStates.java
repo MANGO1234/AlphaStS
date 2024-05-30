@@ -1964,6 +1964,74 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectRun7() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.SunderP(), 1);
+        builder.addCard(new CardDefect.MachineLearning(), 1);
+        builder.addCard(new CardDefect.BallLightning(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 2);
+        builder.addCard(new CardDefect.ColdSnapP(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardDefect.AggregateP(), 2);
+        builder.addCard(new CardDefect.ChargeBatteryP(), 1);
+        builder.addCard(new CardDefect.BootSequenceP(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 1);
+        builder.addCard(new CardDefect.ChaosP(), 1);
+        builder.addCard(new CardDefect.AllForOne(0, 0), 1);
+        builder.addCard(new CardDefect.ConsumeP(), 1);
+        builder.addCard(new CardDefect.RecursionP(), 1);
+        builder.addCard(new CardDefect.GoForTheEyeP(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 2);
+        builder.addCard(new CardDefect.DefragmentP(), 3);
+        builder.addCard(new CardDefect.HologramP(), 2);
+        builder.addCard(new CardDefect.TurboP(), 2);
+        builder.addCard(new CardDefect.OverclockP(), 2);
+        builder.addCard(new CardDefect.DoubleEnergyP(), 1);
+        builder.addCard(new CardDefect.HeatsinksP(), 1);
+        builder.addCard(new CardDefect.SeekP(), 1);
+        builder.addCard(new CardDefect.RecycleP(), 1);
+        builder.addCard(new CardDefect.Capacitor(), 1);
+        builder.addCard(new CardDefect.GeneticAlgorithmP(37, 0), 1);
+        builder.addCard(new CardDefect.GeneticAlgorithmP(43, 0), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.SlingOfCourage());
+        builder.addRelic(new Relic.IceCream());
+        builder.addRelic(new Relic.DataDisk());
+        builder.addRelic(new Relic.Orichalcum());
+        builder.addRelic(new Relic.BloodVial());
+        builder.addRelic(new Relic.PenNib(7, 0));
+        builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.RunicPyramid());
+        builder.addRelic(new Relic.Akabeko());
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.MedicalKit());
+        builder.addRelic(new Relic.TungstenRod());
+        builder.addPotion(new Potion.LizardTail(83).setBasePenaltyRatio(100));
+//        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.PotionOfCapacity().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
+//        builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+//        EnemyEncounter.addShieldAndSpearFollowByHeartFight(builder);
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.Capacitor(), 1)),
+                List.of(new CardCount(new CardDefect.BarrageP(), 1)),
+                List.of(new CardCount(new CardDefect.MultiCastP(), 1)),
+                List.of()
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK);
+        builder.setPreBattleScenarios(randomization);
+        builder.setPlayer(new Player(83, 83));
+        builder.setGameStateViaInteractiveMode(List.of("", "1", "do", "bea", "co", "co", "p", "p", "cold", "col+", "char", "e", "0", "exit"));
+        return new GameState(builder);
+    }
+
     public static GameState TestStateStreamerRun() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);

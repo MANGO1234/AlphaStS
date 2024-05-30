@@ -1,5 +1,7 @@
 package com.alphaStS.utils;
 
+import java.util.Arrays;
+
 public class DrawOrder extends DrawOrderReadOnly {
     public DrawOrder(int startLen) {
         super(startLen);
@@ -10,6 +12,9 @@ public class DrawOrder extends DrawOrderReadOnly {
     }
 
     public void pushOnTop(int cardIdx) {
+        if (order.length <= len) {
+            order = Arrays.copyOf(order, order.length + (order.length + 2) / 2);
+        }
         order[len++] = cardIdx;
     }
 

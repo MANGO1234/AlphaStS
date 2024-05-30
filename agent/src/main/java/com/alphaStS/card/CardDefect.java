@@ -984,8 +984,32 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
+        private static int getCardCount(GameState state, int idx) {
+            int count = 0;
+            count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.getNumCardsInHand(), idx);
+            if (idx < state.properties.realCardsLen) {
+                count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), idx);
+                count += GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), idx);
+            }
+            return count;
+        }
+
         public void gamePropertiesSetup(GameState state) {
-            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + n, 10);
+            var copies = 1; // todo: how to get max number of copies
+            var copiesDup = 0;
+            var idxes = new int[20];
+            state.properties.findCardIndex(idxes, "Echo Form", "Echo Form (Tmp 0)", "Echo Form (Tmp 1)", "Echo Form (Perm 0)", "Echo Form (Perm 1)", "Echo Form (Perm 2)", "Echo Form+", "Echo Form+ (Tmp 0)", "Echo Form+ (Tmp 1)", "Echo Form+ (Perm 0)", "Echo Form+ (Perm 1)", "Echo Form+ (Perm 2)");
+            for (int i = 0; i < 12; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    copiesDup += 1;
+                }
+            }
+            for (int i = 0; i < state.properties.potions.size(); i++) {
+                if (state.properties.potions.get(i) instanceof Potion.DuplicationPotion) {
+                    copiesDup += 1;
+                }
+            }
+            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + n * (1 + copiesDup) + copies, 10);
         }
     }
 

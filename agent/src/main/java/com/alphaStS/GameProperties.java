@@ -317,6 +317,7 @@ public class GameProperties implements Cloneable {
     }
 
     public Map<String, List<CounterRegistrant>> counterRegistrants = new HashMap<>();
+    public Map<String, Boolean> persistAcrossBattleCounterRegistrants = new HashMap<>();
     Map<String, Integer> counterIdx = new HashMap<>();
     Map<String, Integer> counterLens = new HashMap<>();
     Map<String, NetworkInputHandler> counterHandlerMap = new HashMap<>();
@@ -328,17 +329,28 @@ public class GameProperties implements Cloneable {
         nnInputHandlerMap.putIfAbsent(name, handler);
     }
 
-    public void registerCounter(String name, CounterRegistrant registrant, int counterLen, NetworkInputHandler handler) {
+    public void registerCounter(String name, CounterRegistrant registrant, int counterLen, NetworkInputHandler handler, boolean persistAcrossBattle) {
         var registrants = counterRegistrants.computeIfAbsent(name, k -> new ArrayList<>());
         registrants.add(registrant);
         counterLens.putIfAbsent(name, counterLen);
         if (handler != null) {
             counterHandlerMap.putIfAbsent(name, handler);
         }
+        if (persistAcrossBattle) {
+            persistAcrossBattleCounterRegistrants.putIfAbsent(name, true);
+        }
+    }
+
+    public void registerCounter(String name, CounterRegistrant registrant, int counterLen, NetworkInputHandler handler) {
+        registerCounter(name, registrant, counterLen, handler, false);
+    }
+
+    public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler, boolean persistAcrossBattle) {
+        registerCounter(name, registrant, 1, handler, persistAcrossBattle);
     }
 
     public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
-        registerCounter(name, registrant, 1, handler);
+        registerCounter(name, registrant, 1, handler, false);
     }
 
     public boolean hasCounter(String name) {
@@ -349,32 +361,40 @@ public class GameProperties implements Cloneable {
         return counterIdx.get(name);
     }
 
-    String[] counterNames;
-    NetworkInputHandler[] counterHandlers;
-    int[] counterLenInArr;
-    NetworkInputHandler[] counterHandlersNonNull;
+    public static final class CounterInfo {
+        public String name;
+        public int idx;
+        public int length;
+        public NetworkInputHandler handler;
+        public boolean persistAcrossBattle;
+    }
+
+    public CounterInfo[] counterInfos;
+    public boolean atLeastOneCounterHasNNHandler;
     int counterLength;
 
     public void compileCounterInfo() {
         var names = counterRegistrants.keySet().stream().sorted().toList();
-        counterNames = names.toArray(new String[] {});
-        counterHandlers = new NetworkInputHandler[counterNames.length];
-        counterLenInArr = new int[counterNames.length];
+        counterInfos = new CounterInfo[names.size()];
         counterLength = 0;
-        for (int i = 0; i < counterNames.length; i++) {
-            counterHandlers[i] = counterHandlerMap.get(counterNames[i]);
-            counterLenInArr[i] = counterLens.get(counterNames[i]);
-            for (CounterRegistrant registrant : counterRegistrants.get(counterNames[i])) {
-                registrant.setCounterIdx(this, counterLength);
+        for (int i = 0; i < names.size(); i++) {
+            var name = names.get(i);
+            counterInfos[i] = new CounterInfo();
+            counterInfos[i].name = name;
+            counterInfos[i].idx = counterLength;
+            counterInfos[i].length = counterLens.get(name);
+            counterInfos[i].handler = counterHandlerMap.get(name);
+            counterInfos[i].persistAcrossBattle = persistAcrossBattleCounterRegistrants.getOrDefault(name, false);
+            for (CounterRegistrant registrant : counterRegistrants.get(name)) {
+                registrant.setCounterIdx(this, counterInfos[i].idx);
             }
-            counterIdx.put(counterNames[i], counterLength);
-            if (counterHandlers[i] != null) {
-                counterHandlers[i].onRegister(counterLength);
+            counterIdx.put(name, counterInfos[i].idx);
+            if (counterInfos[i].handler != null) {
+                atLeastOneCounterHasNNHandler = true;
+                counterInfos[i].handler.onRegister(counterLength);
             }
-            counterLength += counterLenInArr[i];
+            counterLength += counterInfos[i].length;
         }
-        counterHandlersNonNull = Arrays.stream(counterHandlers).filter(Objects::nonNull).toList()
-                .toArray(new NetworkInputHandler[0]);
 
         nnInputHandlers = new NetworkInputHandler[nnInputHandlerMap.size()];
         names = nnInputHandlerMap.keySet().stream().sorted().toList();

@@ -470,7 +470,9 @@ public class EnemyEncounter {
                 }
             }
             var newState = state.properties.originalGameState.clone(false);
-            newState.doAction(0);
+            if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                newState.doAction(0);
+            }
             if (newState.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                 newState.doAction(state.preBattleScenariosChosenIdx);
             }
@@ -479,8 +481,17 @@ public class EnemyEncounter {
             newState.reviveEnemy(2, false, -1);
             ((EnemyEnding.CorruptHeart) newState.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
             newState.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth());
-            for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
-                newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];
+            if (state.properties.potions.size() > 0) {
+                for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
+                    newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];
+                }
+            }
+            for (int i = 0; i < state.properties.counterInfos.length; i++) {
+                if (state.properties.counterInfos[i].persistAcrossBattle) {
+                    for (int j = 0; j < state.properties.counterInfos[i].length; j++) {
+                        newState.getCounterForWrite()[state.properties.counterInfos[i].idx + j] = state.getCounterForRead()[state.properties.counterInfos[i].idx + j];
+                    }
+                }
             }
             newState.properties = state.properties;
             newState.preBattleRandomizationIdxChosen = state.preBattleRandomizationIdxChosen;

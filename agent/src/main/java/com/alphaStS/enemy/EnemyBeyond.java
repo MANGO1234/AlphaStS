@@ -475,7 +475,12 @@ public class EnemyBeyond {
                     if (c[state.properties.timeEaterCounterIdx] == 12) {
                         Integer.parseInt(null);
                     }
-                    c[state.properties.timeEaterCounterIdx]++;
+                    for (var enemy : state.getEnemiesForRead()) {
+                        if (enemy instanceof TimeEater && enemy.isAlive()) {
+                            c[state.properties.timeEaterCounterIdx]++;
+                            break;
+                        }
+                    }
                 }
             });
         }

@@ -439,16 +439,18 @@ public interface GameStateRandomization {
                     enemy.properties.origHealth = enemy.getHealth();
                 }
             } else {
-                state.properties.difficultyChosen = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
-                var difficultyChosen = state.properties.difficultyChosen;
+                var difficultyChosen = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
+                if (state.properties.makingRealMove) {
+                    state.properties.difficultyChosen = difficultyChosen;
+                }
                 if (state.properties.isHeartGauntlet) {
-                    if (state.properties.difficultyChosen < 40) { // after beating shield and spear fight, hear fight
+                    if (difficultyChosen <= 40) { // after beating shield and spear fight, heart fight
                         state.killEnemy(0, false);
                         state.killEnemy(1, false);
                         state.reviveEnemy(2, false, -1);
                         ((EnemyEnding.CorruptHeart) state.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            enemy.randomize(state.getSearchRandomGen(), true, state.properties.difficultyChosen + 1);
+                            enemy.randomize(state.getSearchRandomGen(), true, difficultyChosen);
                             if (enemy.hasBurningHealthBuff()) {
                                 enemy.setHealth((int) (enemy.getHealth() * 1.25));
                             }

@@ -1648,7 +1648,13 @@ public final class GameState implements State {
     }
 
     private boolean isDiscardingCardEndOfTurn() {
-        return !properties.hasRunicPyramid && (properties.equilibriumCounterIdx < 0 || getCounterForRead()[properties.equilibriumCounterIdx] == 0);
+        if (properties.hasRunicPyramid && properties.getRelic(Relic.RunicPyramid.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            return false;
+        }
+        if (properties.equilibriumCounterIdx >= 0 && getCounterForRead()[properties.equilibriumCounterIdx] > 0) {
+            return false;
+        }
+        return true;
     }
 
     private void endTurn() {
@@ -2530,13 +2536,13 @@ public final class GameState implements State {
                 str.append(", ").append(properties.potions.get(i));
             }
         }
-        if (properties.counterHandlersNonNull.length > 0) {
+        if (properties.atLeastOneCounterHasNNHandler) {
             StringBuilder tmp = new StringBuilder();
             first = true;
-            for (int i = 0; i < properties.counterHandlers.length; i++) {
-                if (properties.counterHandlers[i] != null && getCounterForRead()[i] != 0) {
-                    String s = properties.counterHandlers[i].getDisplayString(this);
-                    tmp.append(first ? "" : ", ").append(properties.counterNames[i]).append('=').append(s != null ? s : getCounterForRead()[i]);
+            for (int i = 0; i < properties.counterInfos.length; i++) {
+                if (properties.counterInfos[i].handler != null && getCounterForRead()[properties.counterInfos[i].idx] != 0) {
+                    String s = properties.counterInfos[i].handler.getDisplayString(this);
+                    tmp.append(first ? "" : ", ").append(properties.counterInfos[i].name).append('=').append(s != null ? s : getCounterForRead()[properties.counterInfos[i].idx]);
                     first = false;
                 }
             }
@@ -2679,17 +2685,17 @@ public final class GameState implements State {
                                     continue;
                                 }
                             }
-                            // how to stall genetic algo for echo form more effectively
-//                            if (properties.echoFormCounterIdx >= 0 && properties.cardDict[handArr[i]].cardName.startsWith("Genetic Algorithm+ (19)")) {
+//                             how to stall genetic algo for echo form more effectively
+//                            if (properties.echoFormCounterIdx >= 0 && properties.cardDict[handArr[i]].cardName.startsWith("Genetic Algorithm+")) {
 //                                if (getCounterForRead()[properties.echoFormCounterIdx] == 0) {
 //                                    continue;
 //                                }
-//                                int cardsPlayThisTurn = (getCounterForRead()[properties.echoFormCounterIdx] & ((1 << 16) - 1));
 //                                int limit = getCounterForRead()[properties.echoFormCounterIdx] >> 16;
-////                                if (cardsPlayThisTurn >= limit) {
-////                                    continue;
-////                                }
 //                                if (limit == 0) {
+//                                    continue;
+//                                }
+//                                int cardsPlayThisTurn = (getCounterForRead()[properties.echoFormCounterIdx] & ((1 << 16) - 1));
+//                                if (cardsPlayThisTurn >= limit) {
 //                                    continue;
 //                                }
 //                            }
@@ -2897,8 +2903,8 @@ public final class GameState implements State {
                 inputLen += 1; // barricade in deck
             }
         }
-        for (var handler : properties.counterHandlersNonNull) {
-            inputLen += handler.getInputLenDelta();
+        for (var counterInfo : properties.counterInfos) {
+            inputLen += counterInfo.handler == null ? 0 : counterInfo.handler.getInputLenDelta();
         }
         for (var handler : properties.nnInputHandlers) {
             inputLen += handler.getInputLenDelta();
@@ -3099,9 +3105,9 @@ public final class GameState implements State {
                 str += "    1 input to keep track of buff " + buff.name() + "\n";
             }
         }
-        for (int i = 0; i < properties.counterHandlers.length; i++) {
-            if (properties.counterHandlers[i] != null) {
-                str += "    " + properties.counterHandlers[i].getInputLenDelta() + " input to keep track of counter for " + properties.counterNames[i] + "\n";
+        for (int i = 0; i < properties.counterInfos.length; i++) {
+            if (properties.counterInfos[i].handler != null) {
+                str += "    " + properties.counterInfos[i].handler.getInputLenDelta() + " input to keep track of counter for " + properties.counterInfos[i].name + "\n";
             }
         }
         for (int i = 0; i < properties.nnInputHandlersName.length; i++) {
@@ -3351,7 +3357,7 @@ public final class GameState implements State {
                 idx += 5;
             }
         }
-        for (int i = orbs == null ? 0 : orbs.length; i < properties.maxNumOfOrbs; i += 2) {
+        for (int i = orbs == null ? 0 : orbs.length / 2; i < properties.maxNumOfOrbs; i++) {
             x[idx] = 0.5f;
             idx += 5;
         }
@@ -3399,8 +3405,10 @@ public final class GameState implements State {
                 x[idx++] = (buffs & buff.mask()) != 0 ? 0.5f : -0.5f;
             }
         }
-        for (var handler : properties.counterHandlersNonNull) {
-            idx = handler.addToInput(this, x, idx);
+        for (var counterInfo : properties.counterInfos) {
+            if (counterInfo.handler != null) {
+                idx = counterInfo.handler.addToInput(this, x, idx);
+            }
         }
         for (var handler : properties.nnInputHandlers) {
             idx = handler.addToInput(this, x, idx);
@@ -4158,10 +4166,10 @@ public final class GameState implements State {
         if (properties.intangibleCounterIdx >= 0 && getCounterForRead()[properties.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;
         }
+        var damageDealt = getPlayerForWrite().nonAttackDamage(this, dmg, blockable);
         if (dmg > 0 && properties.hasTungstenRod) {
             dmg -= 1;
         }
-        var damageDealt = getPlayerForWrite().nonAttackDamage(this, dmg, blockable);
         if (dmg > 0) {
             for (OnDamageHandler handler : properties.onDamageHandlers) {
                 handler.handle(this, source, false, damageDealt);
@@ -4650,5 +4658,15 @@ public final class GameState implements State {
 
     public short getFocus() {
         return focus;
+    }
+
+    public boolean isFirstEncounter() {
+        if (!properties.isHeartGauntlet) {
+            return true;
+        }
+        if (!enemies.get(2).isAlive()) {
+            return true;
+        }
+        return false;
     }
 }
