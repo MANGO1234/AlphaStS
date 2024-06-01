@@ -1516,8 +1516,8 @@ public class EnemyBeyond {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
-                    state.properties.writhingMassVIdx = idx;
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                    properties.writhingMassVIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {

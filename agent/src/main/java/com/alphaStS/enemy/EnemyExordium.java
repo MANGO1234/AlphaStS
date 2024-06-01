@@ -1916,8 +1916,8 @@ public class EnemyExordium {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("Looter", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
-                    state.properties.looterVArrayIdx = idx;
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                    properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
@@ -2034,8 +2034,8 @@ public class EnemyExordium {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("Mugger", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
-                    state.properties.looterVArrayIdx = idx;
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                    properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {

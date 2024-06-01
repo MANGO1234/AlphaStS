@@ -600,6 +600,7 @@ public final class GameState implements State {
         properties.enemyCanGetWeakened = cards.stream().anyMatch((x) -> x.weakEnemy);
         properties.enemyCanGetWeakened |= relics.stream().anyMatch((x) -> x.weakEnemy);
         properties.enemyCanGetWeakened |= potions.stream().anyMatch((x) -> x.weakEnemy);
+        properties.enemyCanGetChoked = cards.stream().anyMatch((x) -> x.chokeEnemy);
         properties.enemyCanGetPoisoned = cards.stream().anyMatch((x) -> x.poisonEnemy);
         properties.enemyCanGetPoisoned |= potions.stream().anyMatch((x) -> x.poisonEnemy);
         properties.enemyCanGetCorpseExplosion = cards.stream().anyMatch((x) -> x.corpseExplosionEnemy);
@@ -629,7 +630,7 @@ public final class GameState implements State {
         }
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             properties.addExtraTrainingTarget("FightProgress", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
                     properties.fightProgressVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -646,7 +647,7 @@ public final class GameState implements State {
         }
         if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
             properties.addExtraTrainingTarget("ZAWin", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
                     properties.qwinVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -667,7 +668,7 @@ public final class GameState implements State {
             // note: we translate turns left to estimated ending turn so there's no need to change anything in the searching
             // code. Having the network predict ending turn directly seem to work for a training target too.
             properties.addExtraTrainingTarget("TurnsLeft", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(int idx) {
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
                     properties.turnsLeftVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -708,7 +709,7 @@ public final class GameState implements State {
             if (properties.potions.get(i) instanceof Potion.FairyInABottle || (properties.hasToyOrniphopter && !properties.isHeartFight)) {
                 int _i = i;
                 properties.addExtraTrainingTarget((properties.potions.get(i) + "" + i).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
-                    @Override public void setVArrayIdx(int idx) {
+                    @Override public void setVArrayIdx(GameProperties properties, int idx) {
                         properties.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
                     }
                 }, new TrainingTarget() {
@@ -796,6 +797,13 @@ public final class GameState implements State {
             if (cards.get(i).exhaustSkill) {
                 for (int j = 0; j < cards.size(); j++) {
                     if (cards.get(j).cardType == Card.SKILL) {
+                        l.add(j);
+                    }
+                }
+            }
+            if (cards.get(i).discardNonAttack) {
+                for (int j = 0; j < cards.size(); j++) {
+                    if (cards.get(j).cardType != Card.ATTACK) {
                         l.add(j);
                     }
                 }
@@ -2178,7 +2186,7 @@ public final class GameState implements State {
                         maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.EntropicBrew pot) {
-                        maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * pot.maxPotionSlot;
+                        maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
                     }
                 }
             }
@@ -2318,6 +2326,13 @@ public final class GameState implements State {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
+        }
+        if (properties.alchemizeVIdx >= 0) {
+            var alchemizeMult = 0.0;
+            for (int i = 0; i < 5; i++) {
+                alchemizeMult += Math.pow(properties.alchemizeMult, i) * v[GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i];
+            }
+            base *= alchemizeMult;
         }
         return base;
     }
@@ -2958,6 +2973,9 @@ public final class GameState implements State {
             if (properties.enemyCanGetWeakened) {
                 inputLen += 1; // enemy weak
             }
+            if (properties.enemyCanGetChoked) {
+                inputLen += 1; // enemy choke
+            }
             if (properties.enemyCanGetPoisoned) {
                 inputLen += 1; // enemy poison
             }
@@ -3172,6 +3190,9 @@ public final class GameState implements State {
             }
             if (properties.enemyCanGetWeakened) {
                 str += "        1 input to keep track of weak\n";
+            }
+            if (properties.enemyCanGetChoked) {
+                str += "        1 input to keep track of choke\n";
             }
             if (properties.enemyCanGetPoisoned) {
                 str += "        1 input to keep track of poison\n";
@@ -3473,6 +3494,9 @@ public final class GameState implements State {
                 if (properties.enemyCanGetWeakened) {
                     x[idx++] = enemy.getWeak() / (float) 10.0;
                 }
+                if (properties.enemyCanGetChoked) {
+                    x[idx++] = enemy.getChoke() / (float) 10.0;
+                }
                 if (properties.enemyCanGetPoisoned) {
                     x[idx++] = enemy.getPoison() / (float) 30.0;
                 }
@@ -3565,6 +3589,9 @@ public final class GameState implements State {
                     x[idx++] = -0.1f;
                 }
                 if (properties.enemyCanGetWeakened) {
+                    x[idx++] = -0.1f;
+                }
+                if (properties.enemyCanGetChoked) {
                     x[idx++] = -0.1f;
                 }
                 if (properties.enemyCanGetPoisoned) {
@@ -3968,6 +3995,15 @@ public final class GameState implements State {
         }
     }
 
+    public void discardCardFromHandByPosition(int idx, boolean updateImmediately) {
+        addCardToDiscard(idx);
+        triggerDiscardEffect(idx);
+        getHandArrForWrite()[idx] = -1;
+        if (updateImmediately) {
+            updateHandArr();
+        }
+    }
+
     public void addCardToDeck(int idx) {
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen)[deckArrLen - 1] = (short) idx;
@@ -4037,13 +4073,16 @@ public final class GameState implements State {
         }
     }
 
-    public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
+    public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt, boolean isShiv) {
         var player = getPlayeForRead();
         double dmg = dmgInt;
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
         }
         dmg += player.getStrength();
+        if (properties.accuracyCounterIdx >= 0 && isShiv) {
+            dmg += getCounterForRead()[properties.accuracyCounterIdx];
+        }
         if (properties.penNibCounterIdx >= 0 && counter[properties.penNibCounterIdx] == 9) {
             dmg *= 2;
         }
@@ -4074,6 +4113,10 @@ public final class GameState implements State {
             }
         }
         return false;
+    }
+
+    public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
+        return playerDoDamageToEnemy(enemy, dmgInt, false);
     }
 
     public void adjustEnemiesAlive(int count) {

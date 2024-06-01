@@ -38,6 +38,7 @@ public class GameProperties implements Cloneable {
     public boolean playerCanGetEntangled;
     public boolean enemyCanGetVuln;
     public boolean enemyCanGetWeakened;
+    public boolean enemyCanGetChoked;
     public boolean enemyStrengthCanChange;
     public boolean enemyStrengthEotCanChange;
     public boolean enemyCanGetPoisoned;
@@ -52,6 +53,7 @@ public class GameProperties implements Cloneable {
     public boolean stateDescOn;
     public Card[] cardDict;
     public List<Potion> potions;
+    public int numOfPotionSlots = 2;
     public int nonGeneratedPotionsLength;
     public int[] potionsVArrayIdx;
     public int[] potionsScenarios;
@@ -139,6 +141,7 @@ public class GameProperties implements Cloneable {
     public int eviscerateCounterIdx = -1;
     public int wellLaidPlansCounterIdx = -1;
     public int blurCounterIdx = -1;
+    public int accuracyCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
     public int reboundCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
@@ -154,6 +157,7 @@ public class GameProperties implements Cloneable {
     public int biasedCognitionLimitCounterIdx = -1;
     public int looterVArrayIdx = -1;
     public int writhingMassVIdx = -1;
+    public int alchemizeVIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -217,6 +221,7 @@ public class GameProperties implements Cloneable {
     public boolean isHeartGauntlet;
     public int enemiesEncounterChosen;
     public int[] astrolabeCardsTransformed;
+    public double alchemizeMult = 1.25;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
     public Map<String, Object> gameEventHandlers = new HashMap<>();
@@ -306,7 +311,7 @@ public class GameProperties implements Cloneable {
     }
 
     public interface TrainingTargetRegistrant {
-        void setVArrayIdx(int idx);
+        void setVArrayIdx(GameProperties properties, int idx);
     }
 
     public interface NetworkInputHandler {
@@ -418,7 +423,7 @@ public class GameProperties implements Cloneable {
     public void compileExtraTrainingTarget() {
         var registrants = trainingTargetsRegistrantMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         for (int i = 0; i < registrants.size(); i++) {
-            registrants.get(i).getValue().setVArrayIdx(extraOutputLen);
+            registrants.get(i).getValue().setVArrayIdx(this, extraOutputLen);
             extraOutputLen += trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets();
             extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));
             extraTrainingTargetsLabel.add(registrants.get(i).getKey());

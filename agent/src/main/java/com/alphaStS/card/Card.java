@@ -38,6 +38,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean selectFromHandLater;
     public boolean exhaustSkill;
     public boolean canExhaustAnyCard;
+    public boolean discardNonAttack;
     public boolean canDiscardAnyCard;
     public boolean changePlayerStrength;
     public boolean changePlayerStrengthEot;
@@ -46,6 +47,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean changePlayerArtifact;
     public boolean vulnEnemy;
     public boolean weakEnemy;
+    public boolean chokeEnemy;
     public boolean poisonEnemy;
     public boolean corpseExplosionEnemy;
     public boolean affectEnemyStrength;
@@ -63,7 +65,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return counterIdx;
     }
 
-    public void setVArrayIdx(int idx) {
+    public void setVArrayIdx(GameProperties gameProperties, int idx) {
         vArrayIdx = idx;
     }
 
@@ -143,6 +145,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerArtifact = card.changePlayerArtifact;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
+            chokeEnemy = card.chokeEnemy;
             affectEnemyStrength = card.affectEnemyStrength;
             affectEnemyStrengthEot = card.affectEnemyStrengthEot;
             putCardOnTopDeck = card.putCardOnTopDeck;
@@ -206,6 +209,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerArtifact = card.changePlayerArtifact;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
+            chokeEnemy = card.chokeEnemy;
             affectEnemyStrength = card.affectEnemyStrength;
             affectEnemyStrengthEot = card.affectEnemyStrengthEot;
             putCardOnTopDeck = card.putCardOnTopDeck;

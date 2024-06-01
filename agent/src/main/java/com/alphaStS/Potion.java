@@ -15,6 +15,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean selectCard1OutOf3;
     boolean vulnEnemy;
     boolean weakEnemy;
+    boolean chokeEnemy;
     boolean changePlayerStrength;
     boolean changePlayerStrengthEot;
     boolean changePlayerFocus;
@@ -1181,23 +1182,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EntropicBrew extends Potion {
-        public int maxPotionSlot = 2;
-
-        public EntropicBrew(int maxPotionSlot) {
-            this.maxPotionSlot = maxPotionSlot;
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
-            int numPotions = 0;
-            for (int i = 0; i < state.properties.potions.size(); i++) {
-                if (state.properties.potions.get(i).isGenerated) {
-                    break;
-                }
-                if (state.potionUsable(i)) {
-                    numPotions++;
-                }
-            }
-            for (int i = numPotions; i < maxPotionSlot; i++) {
+            int numPotions = state.getPotionCount();
+            for (int i = numPotions; i < state.properties.numOfPotionSlots; i++) {
                 state.setIsStochastic();
                 int r = state.getSearchRandomGen().nextInt(100, RandomGenCtx.EntropicBrew, new Tuple<>(this, -1));
                 Potion potion;
@@ -1387,10 +1374,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             ));
             var entropicBrewIdx = rarePotions.size();
             rarePotions.add(List.of(
-                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new EntropicBrew(maxPotionSlot).setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                    new EntropicBrew().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             rarePotions.add(List.of(
                     new FairyInABottle(maxHealth).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),

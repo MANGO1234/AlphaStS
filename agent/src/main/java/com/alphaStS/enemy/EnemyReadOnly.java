@@ -75,6 +75,7 @@ public abstract class EnemyReadOnly {
     protected int platedArmor;
     protected int loseStrengthEot;
     protected int corpseExplosion;
+    protected int choke;
     protected int lockOn;
     protected int move = -1;
     protected int lastMove = -1;
@@ -124,6 +125,7 @@ public abstract class EnemyReadOnly {
         metallicize = other.metallicize;
         platedArmor = other.platedArmor;
         corpseExplosion = other.corpseExplosion;
+        choke = other.choke;
         lockOn = other.lockOn;
         move = other.move;
         lastMove = other.lastMove;
@@ -175,6 +177,10 @@ public abstract class EnemyReadOnly {
 
     public int getCorpseExplosion() {
         return corpseExplosion;
+    }
+
+    public int getChoke() {
+        return choke;
     }
 
     public int getLockOn() {
@@ -248,6 +254,9 @@ public abstract class EnemyReadOnly {
         if (corpseExplosion > 0) {
             str += ", corpseExplosion=" + corpseExplosion;
         }
+        if (choke > 0) {
+            str += ", choke=" + choke;
+        }
         if (lockOn > 0) {
             str += ", lockOn=" + lockOn;
         }
@@ -292,6 +301,9 @@ public abstract class EnemyReadOnly {
         if (corpseExplosion > 0) {
             str += ", corpseExplosion=" + corpseExplosion;
         }
+        if (choke > 0) {
+            str += ", choke=" + choke;
+        }
         if (lockOn > 0) {
             str += ", lockOn=" + lockOn;
         }
@@ -309,7 +321,8 @@ public abstract class EnemyReadOnly {
         }
         return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
-                poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion && lockOn == enemy.lockOn;
+                poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
+                choke == enemy.choke && lockOn == enemy.lockOn;
     }
 
     @Override public int hashCode() {

@@ -191,6 +191,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         case POISON -> this.poison += n + (state.properties.hasSneckoSkull ? 1 : 0);
         case CORPSE_EXPLOSION -> this.corpseExplosion += n;
+        case CHOKE -> this.choke += n;
         case LOCK_ON -> this.lockOn += n;
         }
         return true;

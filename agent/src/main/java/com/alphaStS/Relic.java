@@ -54,7 +54,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     int vArrayIdx = -1;
 
-    @Override public void setVArrayIdx(int idx) {
+    @Override public void setVArrayIdx(GameProperties properties, int idx) {
         vArrayIdx = idx;
     }
 
@@ -415,7 +415,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // Potion Belt: No need to implement
+    public static class PotionBelt extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.numOfPotionSlots = 4;
+        }
+    }
 
     public static class PreservedInsect extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1114,26 +1118,40 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 5.0;
+                            for (int i = 0; i < 6; i++) {
+                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
+                            }
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
                         } else if (isTerminal == 0) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                            for (int i = 0; i < 6; i++) {
+                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
+                            }
                         }
                     }
 
                     @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += 10 * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
+                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
+                    }
+
+                    @Override public int getNumberOfTargets() {
+                        return 6;
                     }
                 });
             } else if (rewardType == SHIELD_AND_SPEAR_REWARD) {
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
-                            for (int i = 0; i < 7; i++) {
+                            for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }
                             v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
                         } else if (isTerminal == 0) {
-                            for (int i = 0; i < 7; i++) {
+                            for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
                             }
                         }
@@ -1149,19 +1167,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public int getNumberOfTargets() {
-                        return 7;
+                        return 6;
                     }
                 });
             } else if (rewardType == HEART_REWARD) {
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal > 0) {
-                            for (int i = 0; i < 7; i++) {
+                            for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }
                             v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
                         } else if (isTerminal == 0) {
-                            for (int i = 0; i < 7; i++) {
+                            for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
                             }
                         }
@@ -1177,7 +1195,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public int getNumberOfTargets() {
-                        return 7;
+                        return 6;
                     }
                 });
             } else if (rewardType == NO_REWARD) {

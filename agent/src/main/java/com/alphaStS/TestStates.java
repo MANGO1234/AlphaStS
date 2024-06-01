@@ -1946,11 +1946,12 @@ public class TestStates {
         builder.addRelic(new Relic.BloodyIdol());
         builder.addRelic(new Relic.BloodVial());
         builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.PotionBelt());
         builder.addRelic(new Relic.PenNib(0, 0));
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.ExplosivePotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FairyInABottle(71).setBasePenaltyRatio(100));
-        builder.addPotion(new Potion.EntropicBrew(4).setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.EntropicBrew().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(7);
         builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(

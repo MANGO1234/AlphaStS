@@ -21,4 +21,5 @@ public enum DebuffType {
     SNECKO,
     LOCK_ON,
     NO_BLOCK_FROM_CARDS,
+    CHOKE,
 }
