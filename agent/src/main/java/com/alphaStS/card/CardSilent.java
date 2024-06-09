@@ -1449,6 +1449,13 @@ public class CardSilent {
                     return 1;
                 }
             });
+           state.properties.addEndOfTurnHandler(new GameEventHandler() {
+               @Override public void handle(GameState state) {
+                   if (state.getCounterForRead()[counterIdx] > 0) {
+                       state.getCounterForWrite()[counterIdx] = 0;
+                   }
+               }
+           });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
@@ -1576,6 +1583,16 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("InfiniteBlade", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
@@ -1671,6 +1688,10 @@ public class CardSilent {
                 }
             });
         }
+
+        @Override public Card getUpgrade() {
+            return new CardSilent.MasterfulStab(energyCost, maxEnergyCost);
+        }
     }
 
     public static class MasterfulStabP extends Card {
@@ -1714,6 +1735,10 @@ public class CardSilent {
                     state.exhaustArrTransform(state.properties.masterfulStabPTransformIndexes);
                 }
             });
+        }
+
+        @Override public Card getUpgrade() {
+            return new CardSilent.MasterfulStabP(energyCost, maxEnergyCost);
         }
     }
 
@@ -1931,10 +1956,10 @@ public class CardSilent {
         }
     }
 
-    private static abstract class TRacticianT extends Card {
+    private static abstract class _TacticianT extends Card {
         private final int n;
 
-        public TRacticianT(String cardName, int cardType, int energyCost, int n) {
+        public _TacticianT(String cardName, int cardType, int energyCost, int n) {
             super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
         }
@@ -1948,13 +1973,13 @@ public class CardSilent {
         }
     }
 
-    public static class Tactician extends TRacticianT {
+    public static class Tactician extends _TacticianT {
         public Tactician() {
             super("Tactician", Card.SKILL, -1, 1);
         }
     }
 
-    public static class TacticianP extends TRacticianT {
+    public static class TacticianP extends _TacticianT {
         public TacticianP() {
             super("Tactician+", Card.SKILL, -1, 2);
         }
@@ -2248,13 +2273,13 @@ public class CardSilent {
         }
     }
 
-    public static class BulletTime extends CardSilent._BulletTimeT {
+    public static class BulletTime extends _BulletTimeT {
         public BulletTime() {
             super("Bullet Time", Card.SKILL, 3);
         }
     }
 
-    public static class BulletTimeP extends CardSilent._BulletTimeT {
+    public static class BulletTimeP extends _BulletTimeT {
         public BulletTimeP() {
             super("Bullet Time+", Card.SKILL, 2);
         }
@@ -2323,13 +2348,13 @@ public class CardSilent {
         }
     }
 
-    public static class Burst extends CardSilent._BurstT {
+    public static class Burst extends _BurstT {
         public Burst() {
             super("Burst", Card.SKILL, 1, 1);
         }
     }
 
-    public static class BurstP extends CardSilent._BurstT {
+    public static class BurstP extends _BurstT {
         public BurstP() {
             super("Burst+", Card.SKILL, 1, 2);
         }
@@ -2370,13 +2395,13 @@ public class CardSilent {
         }
     }
 
-    public static class CorpseExplosion extends CardSilent._CorpseExplosionT {
+    public static class CorpseExplosion extends _CorpseExplosionT {
         public CorpseExplosion() {
             super("Corpse Explosion", Card.SKILL, 2, 6);
         }
     }
 
-    public static class CorpseExplosionP extends CardSilent._CorpseExplosionT {
+    public static class CorpseExplosionP extends _CorpseExplosionT {
         public CorpseExplosionP() {
             super("Corpse Explosion+", Card.SKILL, 2, 9);
         }
@@ -2784,6 +2809,7 @@ public class CardSilent {
         public _StormOfSteelT(String cardName, int cardType, int energyCost, boolean upgraded) {
             super(cardName, cardType, energyCost, Card.RARE);
             this.upgraded = upgraded;
+            this.canDiscardAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

@@ -632,7 +632,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.removeCardFromDeck(idx);
+            state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -662,7 +662,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.removeCardFromDeck(idx);
+            state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -761,7 +761,7 @@ public class CardColorless {
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
                 state.removeCardFromHand(idx);
-                state.putCardOnTopOfDeck(idx);
+                state.addCardOnTopOfDeck(idx);
                 return GameActionCtx.PLAY_CARD;
             }
         }

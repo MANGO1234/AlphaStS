@@ -1,5 +1,9 @@
 package com.alphaStS.utils;
 
+import com.alphaStS.GameState;
+import com.alphaStS.RandomGen;
+import com.alphaStS.RandomGenCtx;
+
 public class Utils {
     public static int max(int[] arr) {
         int m = Integer.MIN_VALUE;
@@ -61,5 +65,23 @@ public class Utils {
             result[i] = arr[i];
         }
         return result;
+    }
+
+    public static boolean equals(short[] arr1, short[] arr2, int len) {
+        for (int i = 0; i < len; i++) {
+            if (arr1[i] != arr2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void shuffle(GameState state, short[] arr, int len, RandomGen rand) {
+        for (int i = len - 1; i >= 0; i--) {
+            int j = rand.nextInt(i + 1, RandomGenCtx.CardDraw, state);
+            short temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
     }
 }

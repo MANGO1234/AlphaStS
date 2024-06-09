@@ -165,6 +165,7 @@ public class GameProperties implements Cloneable {
     public boolean hasCaliper;
     public boolean hasGinger;
     public boolean hasIceCream;
+    public boolean hasFrozenEye;
     public boolean hasMedicalKit;
     public boolean hasOddMushroom;
     public boolean hasRunicDome;

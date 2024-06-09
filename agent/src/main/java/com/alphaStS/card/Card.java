@@ -95,6 +95,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public void onDiscard(GameState state) {}
     public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {}
     public Card getUpgrade() { return CardUpgrade.map.get(this); }
+    public Card getTemporaryCostIfPossible(int temporaryCost) {
+        if (energyCost < 0 || energyCost == temporaryCost || isXCost) {
+            return this;
+        }
+        return new Card.CardTmpChangeCost(this, temporaryCost);
+    }
 
     @Override public String toString() {
         return "Card{" +

@@ -22,6 +22,7 @@ import static com.alphaStS.utils.Utils.formatFloat;
 public final class GameState implements State {
     public static final int HAND_LIMIT = 10;
     private static final int MAX_AGENT_DECK_ORDER_MEMORY = 1;
+    private static final int MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS = 1;
     public static final int V_COMB_IDX = 0;
     public static final int V_WIN_IDX = 1;
     public static final int V_HEALTH_IDX = 2;
@@ -30,7 +31,6 @@ public final class GameState implements State {
     public static final int DISCARD = 1;
     public static final int DECK = 2;
     public static final int EXHAUST = 3;
-    public static final int ON_TOP_OF_DECK = 4;
 
     public boolean isStochastic;
     StringBuilder stateDesc;
@@ -44,6 +44,7 @@ public final class GameState implements State {
     public int discardArrLen;
     public short[] deckArr;
     public int deckArrLen;
+    public int deckArrFixedDrawLen;
     public short[] exhaustArr;
     public int exhaustArrLen;
     public short[] chosenCardsArr; // well laid plans, todo: gambler's potion? to know about any potential discard effect
@@ -231,6 +232,8 @@ public final class GameState implements State {
         if (!cardIdxArrEqual(handArr, handArrLen, gameState.handArr, gameState.handArrLen)) return false;
         if (!cardIdxArrEqual(discardArr, discardArrLen, gameState.discardArr, gameState.discardArrLen)) return false;
         if (!cardIdxArrEqual(deckArr, deckArrLen, gameState.deckArr, gameState.deckArrLen)) return false;
+        if (deckArrFixedDrawLen != gameState.deckArrFixedDrawLen) return false;
+        if (!Utils.equals(deckArr, gameState.deckArr, deckArrFixedDrawLen)) return false;
         if (!cardIdxArrEqual(exhaustArr, exhaustArrLen, gameState.exhaustArr, gameState.exhaustArrLen)) return false;
         if (false && properties.discard0CardOrderMatters) {
             if (!cardArray0CostCardOrderEquals(handArr, gameState.handArr, handArrLen)) return false;
@@ -286,6 +289,13 @@ public final class GameState implements State {
         int result = Objects.hash(actionCtx, energy, energyRefill, currentAction, drawOrder, buffs);
         for (var enemy : enemies) {
             result = 31 * result + enemy.getHealth();
+        }
+        if (deckArrFixedDrawLen > 0) { // e.g. need for frozen eye or hash is not distributed evenly
+            int[] tmp = new int[deckArrFixedDrawLen];
+            for (int i = 0; i < deckArrFixedDrawLen; i++) {
+                tmp[i] = deckArr[deckArrLen - 1 - i];
+            }
+            result = 31 * result + Arrays.hashCode(tmp);
         }
         result = 31 * result + player.getHealth();
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(handArr, handArrLen, properties.cardDict.length));
@@ -611,7 +621,7 @@ public final class GameState implements State {
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.ArtOfWar) ? PlayerBuff.ART_OF_WAR.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
-        properties.needDeckOrderMemory = cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
+        properties.needDeckOrderMemory |= cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
         properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
         properties.battleTranceExist = cards.stream().anyMatch((x) -> x.cardName.contains("Battle Trance"));
         properties.energyRefillCanChange = cards.stream().anyMatch((x) -> x.cardName.contains("Berserk"));
@@ -939,6 +949,7 @@ public final class GameState implements State {
         discardArrLen = other.discardArrLen;
         deckArr = other.deckArr;
         deckArrLen = other.deckArrLen;
+        deckArrFixedDrawLen = other.deckArrFixedDrawLen;
         exhaustArr = other.exhaustArr;
         exhaustArrLen = other.exhaustArrLen;
         if (other.chosenCardsArr != null) {
@@ -1034,7 +1045,13 @@ public final class GameState implements State {
                     getDrawOrderForWrite().drawTop();
                 }
                 cardIdx = i;
-                drawnIdx = i;
+                drawnIdx = cardIdx;
+            } else if (deckArrFixedDrawLen > 0) {
+                cardIdx = deckArr[deckArrLen - 1];
+                drawnIdx = cardIdx;
+                addCardToHand(cardIdx);
+                deckArrLen--;
+                deckArrFixedDrawLen--;
             } else {
                 i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
                 setIsStochastic();
@@ -1084,9 +1101,9 @@ public final class GameState implements State {
             return -1;
         }
         int i;
-        if (drawOrder.size() > 0) {
-            i = getDrawOrderForWrite().drawTop();
-            drawCardByIdx(i, true);
+        if (deckArrFixedDrawLen > 0) {
+            i = deckArr[deckArrLen - 1];
+            deckArrFixedDrawLen--;
         } else {
             var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
             i = deckArr[idx];
@@ -1341,8 +1358,8 @@ public final class GameState implements State {
                             getCounterForWrite()[properties.reboundCounterIdx]++;
                             getCounterForWrite()[properties.reboundCounterIdx] ^= 1 << 8;
                         } else {
-                            putCardOnTopOfDeck(cardIdx);
-                            cloneParentLocation = GameState.ON_TOP_OF_DECK;
+                            addCardOnTopOfDeck(cardIdx);
+                            cloneParentLocation = GameState.DECK;
                         }
                     } else {
                         addCardToDiscard(cardIdx);
@@ -1359,9 +1376,6 @@ public final class GameState implements State {
                     transformTopMostCard(getExhaustArrForWrite(), exhaustArrLen, prevCardIdx, cardIdx);
                 } else if (cloneParentLocation == GameState.DECK) {
                     transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
-                } else if (cloneParentLocation == GameState.ON_TOP_OF_DECK) {
-                    transformTopMostCard(getDeckArrForWrite(), deckArrLen, prevCardIdx, cardIdx);
-                    getDrawOrderForWrite().transformTopMost(prevCardIdx, cardIdx);
                 }
             }
             if (cardPlayedSuccessfully) {
@@ -1494,6 +1508,27 @@ public final class GameState implements State {
     }
 
     void beginTurn() {
+        if (turnNum == 0) { // start of turn 1
+            List<Integer> order = new ArrayList<>();
+            for (int i = 0; i < deckArrLen; i++) { // todo: edge case more innate cards than first turn draw
+                if (properties.cardDict[deckArr[i]].innate) {
+                    order.add((int) deckArr[i]);
+                }
+            }
+            for (int i = 0; i < properties.relics.size(); i++) {
+                if (properties.relics.get(i) instanceof Relic._BottledRelic relic) {
+                    order.add(properties.findCardIndex(relic.card));
+                }
+            }
+            for (int i = 0; i < order.size(); i++) {
+                putCardOnTopOfDeck(order.get(i));
+            }
+            if (properties.hasFrozenEye && properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                setIsStochastic();
+                Utils.shuffle(this, getDeckArrForWrite(), deckArrLen - deckArrFixedDrawLen, getSearchRandomGen());
+                deckArrFixedDrawLen = deckArrLen;
+            }
+        }
         runActionsInQueueIfNonEmpty();
         playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
         playerTurnStartPotionCount = getPotionCount();
@@ -1810,21 +1845,6 @@ public final class GameState implements State {
             for (GameEventHandler handler : properties.startOfBattleHandlers) {
                 handler.handle(this);
             }
-            List<Integer> order = new ArrayList<>();
-            for (int i = 0; i < deckArrLen; i++) { // todo: edge case more innate than first turn draw
-                if (properties.cardDict[deckArr[i]].innate) {
-                    order.add((int) deckArr[i]);
-                }
-            }
-            if (properties.innateOrder != null) {
-                if (!order.containsAll(properties.innateOrder) || !properties.innateOrder.containsAll(order)) {
-                    throw new RuntimeException("Innate order does not match innate cards " + properties.innateOrder + " | " + order);
-                }
-                order = properties.innateOrder;
-            }
-            for (int i = order.size() - 1; i >= 0; i--) {
-                getDrawOrderForWrite().pushOnTop(order.get(i));
-            }
             if (properties.biasedCognitionLimitCounterIdx >= 0) {
                 setActionCtx(GameActionCtx.AFTER_RANDOMIZATION, null, false);
                 selectBiasedCognitionLimit();
@@ -1869,7 +1889,7 @@ public final class GameState implements State {
             }
         } else if (action.type() == GameActionType.USE_POTION) {
             if (properties.potions.get(action.idx()).isGenerated) {
-                for (int i = 3; i >= 0; i--) {
+                for (int i = properties.numOfPotionSlots - 1; i >= 0; i--) {
                     if (potionUsable(action.idx() + i)) {
                         getPotionsStateForWrite()[(action.idx() + i) * 3] = 0;
                     }
@@ -1920,7 +1940,6 @@ public final class GameState implements State {
             }
             var nextAction = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             playCard(nextAction, -1, true, false, false, false, -1, -1);
-            int i = 0;
             while (actionCtx == GameActionCtx.SELECT_ENEMY && isTerminal() == 0) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
                 if (properties.makingRealMove || properties.stateDescOn) {
@@ -2185,7 +2204,7 @@ public final class GameState implements State {
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion) {
                         maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
                     }
-                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.EntropicBrew pot) {
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.EntropicBrew) {
                         maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
                     }
                 }
@@ -2411,6 +2430,14 @@ public final class GameState implements State {
         str.append(", deck=[");
         first = true;
         var deck = GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.realCardsLen);
+        if (deckArrFixedDrawLen > 0) {
+            first = false;
+            str.append("fixedDrawLen=").append(deckArrFixedDrawLen);
+            for (int i = 0; i < deckArrFixedDrawLen; i++) {
+                str.append(", ").append("(").append(i + 1).append(") ").append(properties.cardDict[deckArr[deckArrLen - 1 - i]].cardName);
+                deck[deckArr[i]]--;
+            }
+        }
         for (int i = 0; i < deck.length; i++) {
             if (deck[i] > 0) {
                 if (!first) {
@@ -2421,17 +2448,6 @@ public final class GameState implements State {
             }
         }
         str.append("]");
-        if (getDrawOrderForRead().size() > 0) {
-            str.append(", topOfDeck=[");
-            first = true;
-            for (int i = 0; i < getDrawOrderForRead().size(); i++) {
-                if (!first) {
-                    str.append(", ");
-                }
-                str.append(properties.cardDict[getDrawOrderForRead().ithCardFromTop(i)].cardName);
-            }
-            str.append("]");
-        }
         str.append(", discard=[");
         first = true;
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
@@ -2657,15 +2673,15 @@ public final class GameState implements State {
                 int count = 1;
                 if (!(properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12)) {
                     for (int i = 0; i < properties.potions.size(); i++) {
+                        if (properties.potions.get(i).isGenerated && properties.potions.get(i).generatedIdx > 0) {
+                            continue;
+                        }
                         if (potionUsable(i) && properties.potions.get(i) instanceof Potion.SmokeBomb) {
-                            if (!properties.isHeartFight) {
+                            if (!properties.isHeartFight && !Relic.isBossFight(this)) {
                                 legal[properties.cardDict.length + i] = true;
                                 count++;
                             }
                         } else if (potionUsable(i) && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
-                            if (properties.potions.get(i).isGenerated && properties.potions.get(i).generatedIdx > 0) {
-                                continue;
-                            }
                             legal[properties.cardDict.length + i] = true;
                             count++;
                         }
@@ -2859,7 +2875,7 @@ public final class GameState implements State {
             inputLen += properties.realCardsLen;
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && properties.needDeckOrderMemory) {
-            inputLen += properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY;
+            inputLen += properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
         }
         if (false && properties.discard0CardOrderMatters) {
             inputLen += properties.discardOrder0CostNumber * properties.discardOrder0CardMaxCopies;
@@ -3061,7 +3077,7 @@ public final class GameState implements State {
             str += "    " + properties.realCardsLen + " inputs for cards that was targeted by nightmare\n";
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && properties.needDeckOrderMemory) {
-            str += "    " + properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY + " inputs to keep track of known card at top of deck\n";
+            str += "    " + properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS + " inputs to keep track of known card draw order\n";
         }
         if (false && properties.discard0CardOrderMatters) {
             str += "    " + properties.discardOrder0CostNumber * properties.discardOrder0CardMaxCopies + " inputs to keep track of discard 0 cost cards order in hand\n";
@@ -3304,20 +3320,22 @@ public final class GameState implements State {
             idx += properties.realCardsLen;
         }
         if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && properties.needDeckOrderMemory) {
-            for (int i = 0; i < Math.min(MAX_AGENT_DECK_ORDER_MEMORY, drawOrder.size()); i++) {
-                for (int j = 0; j < properties.realCardsLen; j++) {
-                    if (j == drawOrder.ithCardFromTop(i)) {
-                        x[idx++] = 1f;
-                    } else {
-                        x[idx++] = 0f;
-                    }
+            var tmpIdx = idx;
+            for (int i = 0; i < Math.min(5 * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS, deckArrFixedDrawLen); i += 5) {
+                for (int j = i; j < Math.min(i + 5, deckArrFixedDrawLen); j++) {
+                    int cardIdx = deckArr[deckArrLen - 1 - j];
+                    x[tmpIdx + cardIdx] += 0.1f;
+//                    for (int k = 0; k < MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS; k++) {
+//                        if (x[tmpIdx + k * properties.realCardsLen + cardIdx] == 0) {
+//                            x[tmpIdx + k * properties.realCardsLen + cardIdx] = (float) (1.0 - 0.2 * (j - i));
+//                            break;
+//                        }
+//                    }
                 }
+//                tmpIdx += properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
+                tmpIdx += properties.realCardsLen;
             }
-            for (int i = 0; i < MAX_AGENT_DECK_ORDER_MEMORY - drawOrder.size(); i++) {
-                for (int j = 0; j < properties.realCardsLen; j++) {
-                    x[idx++] = 0f;
-                }
-            }
+            idx += properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
         }
         if (false && properties.discard0CardOrderMatters) {
             int k = 10;
@@ -3671,6 +3689,9 @@ public final class GameState implements State {
                 }
             }
         }
+        if (idx != properties.inputLen) {
+            throw new IllegalStateException();
+        }
         return x;
     }
 
@@ -3734,24 +3755,19 @@ public final class GameState implements State {
     }
 
     public boolean drawCardByIdx(int cardIdx, boolean addToHand) {
-        if (removeCardFromDeck(cardIdx)) {
+        if (removeCardFromDeck(cardIdx, false)) {
             if (addToHand) addCardToHand(cardIdx);
             return true;
         }
         return false;
     }
 
-    public void undrawCardByIdx(int cardIdx) {
-        if (removeCardFromHand(cardIdx)) {
-            getDeckArrForWrite(deckArrLen + 1)[deckArrLen] = (short) cardIdx;
-            deckArrLen += 1;
-        }
-    }
-
     public int discardHand(boolean triggerDiscard) {
         for (int i = handArrLen - 1; i >= 0; i--) {
             addCardToDiscard(handArr[i]);
-            triggerDiscardEffect(handArr[i]);
+            if (triggerDiscard) {
+                triggerDiscardEffect(handArr[i]);
+            }
         }
         int l = handArrLen;
         handArrLen = 0;
@@ -3766,7 +3782,7 @@ public final class GameState implements State {
                 gainEnergy(2);
             }
         }
-        // todo: change logic to use discard directly as deck once logic is stable
+        // generate a new deck arr with fixed order instead of reusing discard, will help with consistency
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
         getDeckArrForWrite(discardArrLen);
         deckArrLen = 0;
@@ -3774,6 +3790,11 @@ public final class GameState implements State {
             for (int j = 0; j < discard[i]; j++) {
                 getDeckArrForWrite(discardArrLen)[deckArrLen++] = i;
             }
+        }
+        if (properties.hasFrozenEye && properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            setIsStochastic();
+            Utils.shuffle(this, getDeckArrForWrite(), deckArrLen, getSearchRandomGen());
+            deckArrFixedDrawLen = deckArrLen;
         }
         discardArrLen = 0;
     }
@@ -3818,7 +3839,7 @@ public final class GameState implements State {
     }
 
     public String getActionString(int i) {
-        return getActionString(getAction(i));
+        return i < 0 ? "None" : getActionString(getAction(i));
     }
 
     public GameAction getAction(int i) {
@@ -4006,20 +4027,51 @@ public final class GameState implements State {
 
     public void addCardToDeck(int idx) {
         deckArrLen += 1;
-        getDeckArrForWrite(deckArrLen)[deckArrLen - 1] = (short) idx;
+        getDeckArrForWrite(deckArrLen);
+        if (properties.hasFrozenEye && properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            var idxToInsert = 0;
+            if (deckArrLen > 0) {
+                setIsStochastic();
+                idxToInsert = getSearchRandomGen().nextInt(deckArrLen, RandomGenCtx.CardDraw);
+            }
+            for (int i = deckArrLen - 1; i > idxToInsert; i--) {
+                deckArr[i] = deckArr[i - 1];
+            }
+            deckArr[idxToInsert] = (short) idx;
+        } else {
+            // todo: this means that the card is always added below cards put on top of deck like headbutt etc., don't think this is how the game works?
+            for (int i = deckArrLen - 1; i > deckArrLen - deckArrFixedDrawLen - 1; i++) {
+                deckArr[i] = deckArr[i - 1];
+            }
+            deckArr[deckArrLen - deckArrFixedDrawLen - 1] = (short) idx;
+        }
     }
 
-    public boolean removeCardFromDeck(int cardIndex) {
+    public boolean removeCardFromDeck(int cardIndex, boolean random) {
         var count = GameStateUtils.getCardCount(deckArr, deckArrLen, cardIndex);
         if (count > 0) {
-            if (count == 1) {
-                if (getDrawOrderForRead().contains(cardIndex)) {
-                    getDrawOrderForWrite().remove(cardIndex);
+            int r = 0;
+            if (random && deckArrFixedDrawLen > 0) {
+                for (int i = 0; i < deckArrFixedDrawLen; i++) {
+                    if (deckArr[deckArrLen - 1 - i] == cardIndex) {
+                        setIsStochastic();
+                        r = getSearchRandomGen().nextInt(count, RandomGenCtx.CardDraw);
+                    }
                 }
             }
+            // todo: always removed from end of deck if multiple copies (seek can choose which to remove), need to add ability for deck to choose
+            int k = 0;
             for (int i = 0; i < deckArrLen; i++) {
-                if (deckArr[i] == cardIndex) {
-                    getDeckArrForWrite()[i] = deckArr[deckArrLen - 1];
+                if (deckArr[i] == cardIndex && (k++) == r) {
+                    getDeckArrForWrite();
+                    if (i > deckArrLen - 1 - deckArrFixedDrawLen) {
+                        deckArrFixedDrawLen--;
+                        for (int j = i; j < deckArrLen - 1; j++) {
+                            deckArr[j] = deckArr[j + 1];
+                        }
+                    } else {
+                        deckArr[i] = deckArr[deckArrLen - 1 - deckArrFixedDrawLen];
+                    }
                     deckArrLen -= 1;
                     break;
                 }
@@ -4032,13 +4084,8 @@ public final class GameState implements State {
     public void setCardCountInDeck(int cardIndex, int count) {
         var currentCount = GameStateUtils.getCardCount(deckArr, deckArrLen, cardIndex);
         if (currentCount > count) {
-            getDeckArrForWrite();
-            for (int i = 0; i < deckArrLen; i++) {
-                if (deckArr[i] == cardIndex) {
-                    getDeckArrForWrite()[i] = deckArr[deckArrLen - 1];
-                    deckArrLen -= 1;
-                    i--;
-                }
+            for (int i = currentCount - 1; i >= count; i--) {
+                removeCardFromDeck(cardIndex, false);
             }
         } else if (currentCount < count) {
             for (int i = currentCount; i < count; i++) {
@@ -4047,13 +4094,25 @@ public final class GameState implements State {
         }
     }
 
-    public void putCardOnTopOfDeck(int idx) {
+    public void addCardOnTopOfDeck(int idx) {
         if (idx >= properties.realCardsLen) {
             idx = properties.tmp0CostCardReverseTransformIdxes[idx];
         }
         deckArrLen += 1;
-        getDeckArrForWrite(deckArrLen)[deckArrLen - 1] = (short) idx;
-        getDrawOrderForWrite().pushOnTop(idx);
+        getDeckArrForWrite(deckArrLen);
+        deckArr[deckArrLen - 1] = (short) idx;
+        deckArrFixedDrawLen++;
+    }
+
+    private void putCardOnTopOfDeck(int idx) {
+        getDeckArrForWrite();
+        for (int i = deckArrLen - deckArrFixedDrawLen - 1; i >= 0; i--) {
+            if (deckArr[i] == idx) {
+                deckArr[i] = deckArr[deckArrLen - deckArrFixedDrawLen - 1];
+                deckArr[deckArrLen - deckArrFixedDrawLen - 1] = (short) idx;
+            }
+        }
+        deckArrFixedDrawLen++;
     }
 
     public void addCardToExhaust(int cardIndex) {
@@ -4233,7 +4292,7 @@ public final class GameState implements State {
         return deckArr;
     }
 
-    public short[] getDeckArrForWrite() {
+    private short[] getDeckArrForWrite() {
         if (!deckCloned) {
             deckArr = Arrays.copyOf(deckArr, Math.min(deckArr.length, deckArrLen + 2));
             deckCloned = true;
@@ -4241,7 +4300,7 @@ public final class GameState implements State {
         return deckArr;
     }
 
-    public short[] getDeckArrForWrite(int newArrLen) {
+    private short[] getDeckArrForWrite(int newArrLen) {
         if (newArrLen >= deckArr.length) {
             deckArr = Arrays.copyOf(deckArr, newArrLen);
             if (!deckCloned) {

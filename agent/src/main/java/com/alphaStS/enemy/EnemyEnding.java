@@ -130,10 +130,8 @@ public class EnemyEnding {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BURN_STRIKE) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
-                state.addCardToDeck(state.properties.burnCardIdx);
-                state.addCardToDeck(state.properties.burnCardIdx);
-                state.getDrawOrderForWrite().pushOnTop(state.properties.burnCardIdx);
-                state.getDrawOrderForWrite().pushOnTop(state.properties.burnCardIdx);
+                state.addCardOnTopOfDeck(state.properties.burnCardIdx);
+                state.addCardOnTopOfDeck(state.properties.burnCardIdx);
             } else if (move == PIERCER) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     enemy.gainStrength(2);

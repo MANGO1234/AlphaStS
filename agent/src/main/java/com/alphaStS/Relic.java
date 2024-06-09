@@ -58,7 +58,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         vArrayIdx = idx;
     }
 
-    private static boolean isEliteFight(GameState state) {
+    public static boolean isEliteFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
             if (enemy.properties.isElite) {
                 return true;
@@ -67,7 +67,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         return false;
     }
 
-    private static boolean isBossFight(GameState state) {
+    public static boolean isBossFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
             if (enemy.properties.isBoss) {
                 return true;
@@ -457,7 +457,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Vajira extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.getPlayerForWrite().gainStrength(1);
+            state.properties.addStartOfTurnHandler("OddlySmoothStone", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().gainStrength(1);
+                    }
+                }
+            });
         }
     }
 
@@ -474,19 +480,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    private static class _BottledRelic extends Relic {
-        private final Card card;
+    public static class _BottledRelic extends Relic {
+        public final Card card;
 
         public _BottledRelic(Card card) {
             this.card = card;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfBattleHandler(new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex(card));
-                }
-            });
         }
     }
 
@@ -1296,7 +1294,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // Dollys Mirror: No need to implement
-    // todo: Frozen Eye
+
+    public static class FrozenEye extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasFrozenEye = true;
+//            state.properties.needDeckOrderMemory = true;
+        }
+    }
+
     // todo: Hand Drill
     // Lee's Waffle: No need to implement
 

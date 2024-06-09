@@ -15,7 +15,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean selectCard1OutOf3;
     boolean vulnEnemy;
     boolean weakEnemy;
-    boolean chokeEnemy;
     boolean changePlayerStrength;
     boolean changePlayerStrengthEot;
     boolean changePlayerFocus;
@@ -647,31 +646,61 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            if (gameProperties.character == CharacterEnum.DEFECT) {
+            if (gameProperties.character == CharacterEnum.IRONCLAD) {
+            } else if (gameProperties.character == CharacterEnum.SILENT) {
                 return List.of(
-                        new Card.CardTmpChangeCost(new CardDefect.BallLightning(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Barrage(), 0),
-                        new CardDefect.BeamCell(),
-                        new CardDefect.Claw(),
-                        new Card.CardTmpChangeCost(new CardDefect.ColdSnap(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.CompiledDriver(), 0),
-                        new CardDefect.GoForTheEye(),
-                        new Card.CardTmpChangeCost(new CardDefect.Rebound(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Streamline(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.SweepingBeam(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Blizzard(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.BullsEye(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.DoomAndGloom(), 0),
-                        new CardDefect.FTL(),
-                        new Card.CardTmpChangeCost(new CardDefect.Melter(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.RipAndTear(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Scrape(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Sunder(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.AllForOne(0, 0), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.CoreSurge(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.HyperBeam(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.MeteorStrike(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.ThunderStrike(), 0)
+                        new CardSilent.Bane().getTemporaryCostIfPossible(0),
+                        new CardSilent.DaggerSpray().getTemporaryCostIfPossible(0),
+                        new CardSilent.DaggerThrow().getTemporaryCostIfPossible(0),
+                        new CardSilent.FlyingKnee().getTemporaryCostIfPossible(0),
+                        new CardSilent.PoisonedStab().getTemporaryCostIfPossible(0),
+                        new CardSilent.QuickSlash().getTemporaryCostIfPossible(0),
+                        new CardSilent.Slice().getTemporaryCostIfPossible(0),
+                        new CardSilent.SneakyStrike().getTemporaryCostIfPossible(0),
+                        new CardSilent.SuckerPunch().getTemporaryCostIfPossible(0),
+                        new CardSilent.AllOutAttack().getTemporaryCostIfPossible(0),
+                        new CardSilent.Backstab().getTemporaryCostIfPossible(0),
+                        new CardSilent.Choke().getTemporaryCostIfPossible(0),
+                        new CardSilent.Dash().getTemporaryCostIfPossible(0),
+                        new CardSilent.EndlessAgony().getTemporaryCostIfPossible(0),
+                        new CardSilent.Eviscerate().getTemporaryCostIfPossible(0),
+                        new CardSilent.Finisher().getTemporaryCostIfPossible(0),
+                        new CardSilent.Flechette().getTemporaryCostIfPossible(0),
+                        new CardSilent.HeelHook().getTemporaryCostIfPossible(0),
+                        new CardSilent.MasterfulStab(6).getTemporaryCostIfPossible(0),
+                        new CardSilent.Predator().getTemporaryCostIfPossible(0),
+                        new CardSilent.RiddleWithHoles().getTemporaryCostIfPossible(0),
+                        new CardSilent.Skewer().getTemporaryCostIfPossible(0),
+                        new CardSilent.DieDieDie().getTemporaryCostIfPossible(0),
+                        new CardSilent.GlassKnife().getTemporaryCostIfPossible(0),
+                        new CardSilent.GrandFinale().getTemporaryCostIfPossible(0),
+                        new CardSilent.Unload().getTemporaryCostIfPossible(0)
+                );
+            } else if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new CardDefect.BallLightning().getTemporaryCostIfPossible(0),
+                        new CardDefect.Barrage().getTemporaryCostIfPossible(0),
+                        new CardDefect.BeamCell().getTemporaryCostIfPossible(0),
+                        new CardDefect.Claw().getTemporaryCostIfPossible(0),
+                        new CardDefect.ColdSnap().getTemporaryCostIfPossible(0),
+                        new CardDefect.CompiledDriver().getTemporaryCostIfPossible(0),
+                        new CardDefect.GoForTheEye().getTemporaryCostIfPossible(0),
+                        new CardDefect.Rebound().getTemporaryCostIfPossible(0),
+                        new CardDefect.Streamline().getTemporaryCostIfPossible(0),
+                        new CardDefect.SweepingBeam().getTemporaryCostIfPossible(0),
+                        new CardDefect.Blizzard().getTemporaryCostIfPossible(0),
+                        new CardDefect.BullsEye().getTemporaryCostIfPossible(0),
+                        new CardDefect.DoomAndGloom().getTemporaryCostIfPossible(0),
+                        new CardDefect.FTL().getTemporaryCostIfPossible(0),
+                        new CardDefect.Melter().getTemporaryCostIfPossible(0),
+                        new CardDefect.RipAndTear().getTemporaryCostIfPossible(0),
+                        new CardDefect.Scrape().getTemporaryCostIfPossible(0),
+                        new CardDefect.Sunder().getTemporaryCostIfPossible(0),
+                        new CardDefect.AllForOne(0, 0).getTemporaryCostIfPossible(0),
+                        new CardDefect.CoreSurge().getTemporaryCostIfPossible(0),
+                        new CardDefect.HyperBeam().getTemporaryCostIfPossible(0),
+                        new CardDefect.MeteorStrike().getTemporaryCostIfPossible(0),
+                        new CardDefect.ThunderStrike().getTemporaryCostIfPossible(0)
                 );
             }
             throw new IllegalStateException();
@@ -738,107 +767,108 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
             if (gameProperties.character == CharacterEnum.IRONCLAD) {
                 return List.of(
-                        new Card.CardTmpChangeCost(new CardIronclad.Armanent(), 0),
-                        new CardIronclad.Flex(),
-                        new Card.CardTmpChangeCost(new CardIronclad.Havoc(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.ShrugItOff(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.TrueGrit(), 0),
-                        new CardIronclad.Warcry(),
-                        new CardIronclad.BattleTrance(),
-                        new CardIronclad.Bloodletting(),
-                        new Card.CardTmpChangeCost(new CardIronclad.BurningPact(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.Disarm(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.DualWield(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.Entrench(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.FlameBarrier(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.GhostlyArmor(), 0),
-                        new Card.CardTmpChangeCost(new CardOther.FakeInfernalBlade(), 0),
-                        new CardIronclad.Intimidate(),
-                        new Card.CardTmpChangeCost(new CardIronclad.PowerThrough(), 0),
-                        new CardIronclad.Rage(),
-                        new Card.CardTmpChangeCost(new CardIronclad.SecondWind(), 0),
-                        new CardIronclad.SeeingRed(),
-                        new Card.CardTmpChangeCost(new CardIronclad.Sentinel(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.Shockwave(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.SpotWeakness(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.DoubleTap(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.Exhume(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.Impervious(), 0),
-                        new Card.CardTmpChangeCost(new CardIronclad.LimitBreak(), 0),
-                        new CardIronclad.Offering()
+                        new CardIronclad.Armanent().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Flex().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Havoc().getTemporaryCostIfPossible(0),
+                        new CardIronclad.ShrugItOff().getTemporaryCostIfPossible(0),
+                        new CardIronclad.TrueGrit().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Warcry().getTemporaryCostIfPossible(0),
+                        new CardIronclad.BattleTrance().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Bloodletting().getTemporaryCostIfPossible(0),
+                        new CardIronclad.BurningPact().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Disarm().getTemporaryCostIfPossible(0),
+                        new CardIronclad.DualWield().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Entrench().getTemporaryCostIfPossible(0),
+                        new CardIronclad.FlameBarrier().getTemporaryCostIfPossible(0),
+                        new CardIronclad.GhostlyArmor().getTemporaryCostIfPossible(0),
+                        new CardIronclad.InfernalBlade().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Intimidate().getTemporaryCostIfPossible(0),
+                        new CardIronclad.PowerThrough().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Rage().getTemporaryCostIfPossible(0),
+                        new CardIronclad.SecondWind().getTemporaryCostIfPossible(0),
+                        new CardIronclad.SeeingRed().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Sentinel().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Shockwave().getTemporaryCostIfPossible(0),
+                        new CardIronclad.SpotWeakness().getTemporaryCostIfPossible(0),
+                        new CardIronclad.DoubleTap().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Exhume().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Impervious().getTemporaryCostIfPossible(0),
+                        new CardIronclad.LimitBreak().getTemporaryCostIfPossible(0),
+                        new CardIronclad.Offering().getTemporaryCostIfPossible(0)
                 );
             } else if (gameProperties.character == CharacterEnum.SILENT) {
                 return List.of(
-                        new Card.CardTmpChangeCost(new CardSilent.Acrobatics(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.Backflip(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.BladeDance(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.CloakAndDagger(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.DeadlyPoison(), 0),
-                        new CardSilent.Deflect(),
-                        new Card.CardTmpChangeCost(new CardSilent.DodgeAndRoll(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.Outmaneuver(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.PiercingWail(), 0),
-                        new CardSilent.Prepared(),
-                        new Card.CardTmpChangeCost(new CardSilent.Blur(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.BouncingFlask(), 0),
-                        new CardSilent.CalculatedGamble(),
-                        new Card.CardTmpChangeCost(new CardSilent.Catalyst(), 0),
-                        new CardSilent.Concentrate(),
-                        new Card.CardTmpChangeCost(new CardSilent.CripplingCloud(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.Distraction(), 0),
-                        new CardSilent.EscapePlan(),
-                        new Card.CardTmpChangeCost(new CardSilent.Expertise(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.LegSweep(), 0),
-                        new CardSilent.Reflex(),
-                        new Card.CardTmpChangeCost(new CardSilent.Setup(), 0),
-                        new CardSilent.Tactician(),
-                        new Card.CardTmpChangeCost(new CardSilent.Terror(), 0),
-                        new CardSilent.Adrenaline(),
-                        new Card.CardTmpChangeCost(new CardSilent.BulletTime(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.Burst(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.CorpseExplosion(), 0),
-                        new CardSilent.Doppelganger(),
-                        new CardSilent.Malaise(),
-                        new Card.CardTmpChangeCost(new CardSilent.Nightmare(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.PhantasmalKiller(), 0),
-                        new Card.CardTmpChangeCost(new CardSilent.StormOfSteel(), 0)
+                        new CardSilent.Acrobatics().getTemporaryCostIfPossible(0),
+                        new CardSilent.Backflip().getTemporaryCostIfPossible(0),
+                        new CardSilent.BladeDance().getTemporaryCostIfPossible(0),
+                        new CardSilent.CloakAndDagger().getTemporaryCostIfPossible(0),
+                        new CardSilent.DeadlyPoison().getTemporaryCostIfPossible(0),
+                        new CardSilent.Deflect().getTemporaryCostIfPossible(0),
+                        new CardSilent.DodgeAndRoll().getTemporaryCostIfPossible(0),
+                        new CardSilent.Outmaneuver().getTemporaryCostIfPossible(0),
+                        new CardSilent.PiercingWail().getTemporaryCostIfPossible(0),
+                        new CardSilent.Prepared().getTemporaryCostIfPossible(0),
+                        new CardSilent.Blur().getTemporaryCostIfPossible(0),
+                        new CardSilent.BouncingFlask().getTemporaryCostIfPossible(0),
+                        new CardSilent.CalculatedGamble().getTemporaryCostIfPossible(0),
+                        new CardSilent.Catalyst().getTemporaryCostIfPossible(0),
+                        new CardSilent.Concentrate().getTemporaryCostIfPossible(0),
+                        new CardSilent.CripplingCloud().getTemporaryCostIfPossible(0),
+                        new CardSilent.Distraction().getTemporaryCostIfPossible(0),
+                        new CardSilent.EscapePlan().getTemporaryCostIfPossible(0),
+                        new CardSilent.Expertise().getTemporaryCostIfPossible(0),
+                        new CardSilent.LegSweep().getTemporaryCostIfPossible(0),
+                        new CardSilent.Reflex().getTemporaryCostIfPossible(0),
+                        new CardSilent.Setup().getTemporaryCostIfPossible(0),
+                        new CardSilent.Tactician().getTemporaryCostIfPossible(0),
+                        new CardSilent.Terror().getTemporaryCostIfPossible(0),
+                        new CardSilent.Adrenaline().getTemporaryCostIfPossible(0),
+                        new CardSilent.Alchemize().getTemporaryCostIfPossible(0),
+                        new CardSilent.BulletTime().getTemporaryCostIfPossible(0),
+                        new CardSilent.Burst().getTemporaryCostIfPossible(0),
+                        new CardSilent.CorpseExplosion().getTemporaryCostIfPossible(0),
+                        new CardSilent.Doppelganger().getTemporaryCostIfPossible(0),
+                        new CardSilent.Malaise().getTemporaryCostIfPossible(0),
+                        new CardSilent.Nightmare().getTemporaryCostIfPossible(0),
+                        new CardSilent.PhantasmalKiller().getTemporaryCostIfPossible(0),
+                        new CardSilent.StormOfSteel().getTemporaryCostIfPossible(0)
                 );
             } else if (gameProperties.character == CharacterEnum.DEFECT) {
                 return List.of(
-                        new Card.CardTmpChangeCost(new CardDefect.ChargeBattery(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Coolheaded(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Hologram(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Leap(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Recursion(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Stack(), 0),
-                        new CardDefect.SteamBarrier(),
-                        new CardDefect.Turbo(),
-                        new Card.CardTmpChangeCost(new CardDefect.Aggregate(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.AutoShields(), 0),
-                        new CardDefect.BootSequence(),
-                        new Card.CardTmpChangeCost(new CardDefect.Chaos(), 0),
-                        new CardDefect.Chill(),
-                        new Card.CardTmpChangeCost(new CardDefect.Consume(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Darkness(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.DoubleEnergy(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Equilibrium(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.ForceField(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Fusion(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.GeneticAlgorithm(1, 0), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Glacier(), 0),
-                        new CardDefect.Overclock(),
-                        new Card.CardTmpChangeCost(new CardDefect.Recycle(), 0),
-                        new CardDefect.ReinforcedBody(),
-                        new Card.CardTmpChangeCost(new CardDefect.Reprogram(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Skim(), 0),
-                        new CardDefect.Tempest(),
-                        new Card.CardTmpChangeCost(new CardDefect.WhiteNoise(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Amplify(), 0),
-                        new CardDefect.Fission(),
-                        new CardDefect.MultiCast(),
-                        new Card.CardTmpChangeCost(new CardDefect.Rainbow(), 0),
-                        new CardDefect.Reboot(),
-                        new CardDefect.Seek()
+                        new CardDefect.ChargeBattery().getTemporaryCostIfPossible(0),
+                        new CardDefect.Coolheaded().getTemporaryCostIfPossible(0),
+                        new CardDefect.Hologram().getTemporaryCostIfPossible(0),
+                        new CardDefect.Leap().getTemporaryCostIfPossible(0),
+                        new CardDefect.Recursion().getTemporaryCostIfPossible(0),
+                        new CardDefect.Stack().getTemporaryCostIfPossible(0),
+                        new CardDefect.SteamBarrier().getTemporaryCostIfPossible(0),
+                        new CardDefect.Turbo().getTemporaryCostIfPossible(0),
+                        new CardDefect.Aggregate().getTemporaryCostIfPossible(0),
+                        new CardDefect.AutoShields().getTemporaryCostIfPossible(0),
+                        new CardDefect.BootSequence().getTemporaryCostIfPossible(0),
+                        new CardDefect.Chaos().getTemporaryCostIfPossible(0),
+                        new CardDefect.Chill().getTemporaryCostIfPossible(0),
+                        new CardDefect.Consume().getTemporaryCostIfPossible(0),
+                        new CardDefect.Darkness().getTemporaryCostIfPossible(0),
+                        new CardDefect.DoubleEnergy().getTemporaryCostIfPossible(0),
+                        new CardDefect.Equilibrium().getTemporaryCostIfPossible(0),
+                        new CardDefect.ForceField().getTemporaryCostIfPossible(0),
+                        new CardDefect.Fusion().getTemporaryCostIfPossible(0),
+                        new CardDefect.GeneticAlgorithm(1, 0).getTemporaryCostIfPossible(0),
+                        new CardDefect.Glacier().getTemporaryCostIfPossible(0),
+                        new CardDefect.Overclock().getTemporaryCostIfPossible(0),
+                        new CardDefect.Recycle().getTemporaryCostIfPossible(0),
+                        new CardDefect.ReinforcedBody().getTemporaryCostIfPossible(0),
+                        new CardDefect.Reprogram().getTemporaryCostIfPossible(0),
+                        new CardDefect.Skim().getTemporaryCostIfPossible(0),
+                        new CardDefect.Tempest().getTemporaryCostIfPossible(0),
+                        new CardDefect.WhiteNoise().getTemporaryCostIfPossible(0),
+                        new CardDefect.Amplify().getTemporaryCostIfPossible(0),
+                        new CardDefect.Fission().getTemporaryCostIfPossible(0),
+                        new CardDefect.MultiCast().getTemporaryCostIfPossible(0),
+                        new CardDefect.Rainbow().getTemporaryCostIfPossible(0),
+                        new CardDefect.Reboot().getTemporaryCostIfPossible(0),
+                        new CardDefect.Seek().getTemporaryCostIfPossible(0)
                 );
             } else {
                 throw new IllegalArgumentException();
@@ -897,21 +927,36 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            if (gameProperties.character == CharacterEnum.DEFECT) {
+            if (gameProperties.character == CharacterEnum.IRONCLAD) {
+            } else if (gameProperties.character == CharacterEnum.SILENT) {
                 return List.of(
-                        new Card.CardTmpChangeCost(new CardDefect.Capacitor(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Defragment(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Heatsinks(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.HelloWorld(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Loop(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.StaticDischarge(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Storm(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.BiasedCognition(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Buffer(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.CreativeAI(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.EchoForm(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Electrodynamics(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.MachineLearning(), 0)
+                        new CardSilent.Accuracy().getTemporaryCostIfPossible(0),
+                        new CardSilent.Caltrops().getTemporaryCostIfPossible(0),
+                        new CardSilent.Footwork().getTemporaryCostIfPossible(0),
+                        new CardSilent.InfiniteBlade().getTemporaryCostIfPossible(0),
+                        new CardSilent.NoxiousFume().getTemporaryCostIfPossible(0),
+                        new CardSilent.WellLaidPlans().getTemporaryCostIfPossible(0),
+                        new CardSilent.AThousandCuts().getTemporaryCostIfPossible(0),
+                        new CardSilent.AfterImage().getTemporaryCostIfPossible(0),
+                        new CardSilent.Envenom().getTemporaryCostIfPossible(0),
+                        new CardSilent.ToolsOfTheTrade().getTemporaryCostIfPossible(0),
+                        new CardSilent.WraithForm().getTemporaryCostIfPossible(0)
+                );
+            } else if (gameProperties.character == CharacterEnum.DEFECT) {
+                return List.of(
+                        new CardDefect.Capacitor().getTemporaryCostIfPossible(0),
+                        new CardDefect.Defragment().getTemporaryCostIfPossible(0),
+                        new CardDefect.Heatsinks().getTemporaryCostIfPossible(0),
+                        new CardDefect.HelloWorld().getTemporaryCostIfPossible(0),
+                        new CardDefect.Loop().getTemporaryCostIfPossible(0),
+                        new CardDefect.StaticDischarge().getTemporaryCostIfPossible(0),
+                        new CardDefect.Storm().getTemporaryCostIfPossible(0),
+                        new CardDefect.BiasedCognition().getTemporaryCostIfPossible(0),
+                        new CardDefect.Buffer().getTemporaryCostIfPossible(0),
+                        new CardDefect.CreativeAI().getTemporaryCostIfPossible(0),
+                        new CardDefect.EchoForm().getTemporaryCostIfPossible(0),
+                        new CardDefect.Electrodynamics().getTemporaryCostIfPossible(0),
+                        new CardDefect.MachineLearning().getTemporaryCostIfPossible(0)
                 );
             }
             throw new IllegalArgumentException();
@@ -1182,6 +1227,16 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EntropicBrew extends Potion {
+        public static final int UPRGADE_POTIONS = 1;
+        public static final int CARD_GENERATION_POTIONS = 1 << 1;
+        public static final int COLORLESS_POTION = 1 << 2;
+        public static final int SNECKO_OIL = 1 << 3;
+        public static final int POWER_POTION = 1 << 4;
+        public static final int ATTACK_POTION = 1 << 5;
+        public static final int SKILL_POTION = 1 << 6;
+
+        int possibleGeneratedPotions = UPRGADE_POTIONS;
+
         @Override public GameActionCtx use(GameState state, int idx) {
             int numPotions = state.getPotionCount();
             for (int i = numPotions; i < state.properties.numOfPotionSlots; i++) {
@@ -1215,37 +1270,70 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return "Entropic Brew";
         }
 
+        public EntropicBrew(int possibleGeneratedPotions) {
+            this.possibleGeneratedPotions = possibleGeneratedPotions;
+        }
+
+        public EntropicBrew() {
+            this(UPRGADE_POTIONS);
+        }
+
         public List<List<Potion>> commonPotions = new ArrayList<>();
         public List<List<Potion>> uncommonPotions = new ArrayList<>();
         public List<List<Potion>> rarePotions = new ArrayList<>();
 
         public void initPossibleGeneratedPotions(CharacterEnum character, int maxHealth, boolean firstCall) {
-            commonPotions.add(List.of(
-                    new AttackPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new AttackPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new AttackPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new AttackPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
-            ));
-            // neural network would be too large
-            commonPotions.add(List.of(
-                    new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
-            ));
+            if ((possibleGeneratedPotions & CARD_GENERATION_POTIONS) != 0 || (possibleGeneratedPotions & ATTACK_POTION) != 0) {
+                commonPotions.add(List.of(
+                        new AttackPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new AttackPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new AttackPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new AttackPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else {
+                commonPotions.add(List.of(
+                        new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            }
+            if ((possibleGeneratedPotions & UPRGADE_POTIONS) != 0) {
+                commonPotions.add(List.of(
+                        new BlessingOfTheForge().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new BlessingOfTheForge().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new BlessingOfTheForge().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new BlessingOfTheForge().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else {
+                commonPotions.add(List.of(
+                        new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            }
             commonPotions.add(List.of(
                     new BlockPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
                     new BlockPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
                     new BlockPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                     new BlockPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
-            // neural network would be too large
-            commonPotions.add(List.of(
-                    new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
-            ));
+            if ((possibleGeneratedPotions & COLORLESS_POTION) != 0) {
+                commonPotions.add(List.of(
+                        new ColorlessPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new ColorlessPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new ColorlessPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new ColorlessPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else {
+                commonPotions.add(List.of(
+                        new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            }
             commonPotions.add(List.of(
                     new DexterityPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
                     new DexterityPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
@@ -1282,18 +1370,36 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new FlexPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                     new FlexPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
-            commonPotions.add(List.of(
-                    new PowerPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new PowerPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new PowerPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new PowerPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
-            ));
-            commonPotions.add(List.of(
-                    new SkillPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new SkillPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new SkillPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new SkillPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
-            ));
+            if ((possibleGeneratedPotions & CARD_GENERATION_POTIONS) != 0 || (possibleGeneratedPotions & POWER_POTION) != 0) {
+                commonPotions.add(List.of(
+                        new PowerPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new PowerPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new PowerPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new PowerPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else {
+                commonPotions.add(List.of(
+                        new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            }
+            if ((possibleGeneratedPotions & CARD_GENERATION_POTIONS) != 0 || (possibleGeneratedPotions & SKILL_POTION) != 0) {
+                commonPotions.add(List.of(
+                        new SkillPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new SkillPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new SkillPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new SkillPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else {
+                commonPotions.add(List.of(
+                        new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            }
             commonPotions.add(List.of(
                     new SpeedPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
                     new SpeedPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
@@ -1374,10 +1480,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             ));
             var entropicBrewIdx = rarePotions.size();
             rarePotions.add(List.of(
-                    new EntropicBrew().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new EntropicBrew().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new EntropicBrew().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new EntropicBrew().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                    new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             rarePotions.add(List.of(
                     new FairyInABottle(maxHealth).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
@@ -1391,13 +1497,21 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new SmokeBomb().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                     new SmokeBomb().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
-            // crashing + neural network would be too large
-            rarePotions.add(List.of(
-                    new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
-            ));
+            if ((possibleGeneratedPotions & SNECKO_OIL) != 0) {
+                rarePotions.add(List.of(
+                        new SneckoOil().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new SneckoOil().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new SneckoOil().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new SneckoOil().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            } else {
+                commonPotions.add(List.of(
+                        new EmptyPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new EmptyPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+            }
             if (character == CharacterEnum.IRONCLAD) {
                 commonPotions.add(List.of(
                         new Potion.BloodPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),

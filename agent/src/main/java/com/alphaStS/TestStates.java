@@ -2123,16 +2123,16 @@ public class TestStates {
         builder.addPotion(new Potion.SpeedPotion().setBasePenaltyRatio(95));
         builder.setPotionsScenarios(1);
         builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
-        builder.setStartOfGameSetup(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.properties.innateOrder = new ArrayList<>();
-                state.properties.innateOrder.add(state.properties.findCardIndex("Boot Sequence"));
-                state.properties.innateOrder.add(state.properties.findCardIndex("Dramatic Entrance+"));
-                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Defend"));
-                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Defend"));
-                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Stack+"));
-            }
-        });
+//        builder.setStartOfGameSetup(new GameEventHandler() {
+//            @Override public void handle(GameState state) {
+//                state.properties.innateOrder = new ArrayList<>();
+//                state.properties.innateOrder.add(state.properties.findCardIndex("Boot Sequence"));
+//                state.properties.innateOrder.add(state.properties.findCardIndex("Dramatic Entrance+"));
+//                state.putCardOnTopOfDeck(state.properties.findCardIndex("Defend"));
+//                state.putCardOnTopOfDeck(state.properties.findCardIndex("Defend"));
+//                state.putCardOnTopOfDeck(state.properties.findCardIndex("Stack+"));
+//            }
+//        });
         builder.setPlayer(new Player(63, 63));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.PreservedInsect());
@@ -2183,22 +2183,22 @@ public class TestStates {
         builder.addCard(new CardDefect.RecycleP(), 1);
         builder.addCard(new CardDefect.ChargeBatteryP(), 1);
         EnemyEncounter.addAwakenedOneFight(builder);
-        builder.setStartOfGameSetup(new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.properties.innateOrder = new ArrayList<>();
-                state.properties.innateOrder.add(state.properties.findCardIndex("Boot Sequence"));
-                state.properties.innateOrder.add(state.properties.findCardIndex("Dramatic Entrance+"));
-                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Ascender's Bane"));
-                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Rebound"));
-                state.getDrawOrderForWrite().pushOnTop(state.properties.findCardIndex("Reboot+"));
-                for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
-                    if (state.getEnemiesForWrite().get(i) instanceof EnemyExordium.Cultist) {
-                        state.getEnemiesForWrite().getForWrite(i).setHealth(56);
-                        state.getEnemiesForWrite().getForWrite(i).properties.origHealth = 56;
-                    }
-                }
-            }
-        });
+//        builder.setStartOfGameSetup(new GameEventHandler() {
+//            @Override public void handle(GameState state) {
+//                state.properties.innateOrder = new ArrayList<>();
+//                state.properties.innateOrder.add(state.properties.findCardIndex("Boot Sequence"));
+//                state.properties.innateOrder.add(state.properties.findCardIndex("Dramatic Entrance+"));
+//                state.putCardOnTopOfDeck(state.properties.findCardIndex("Ascender's Bane"));
+//                state.putCardOnTopOfDeck(state.properties.findCardIndex("Rebound"));
+//                state.putCardOnTopOfDeck(state.properties.findCardIndex("Reboot+"));
+//                for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
+//                    if (state.getEnemiesForWrite().get(i) instanceof EnemyExordium.Cultist) {
+//                        state.getEnemiesForWrite().getForWrite(i).setHealth(56);
+//                        state.getEnemiesForWrite().getForWrite(i).properties.origHealth = 56;
+//                    }
+//                }
+//            }
+//        });
         builder.setPlayer(new Player(1, 1));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.PreservedInsect());

@@ -322,7 +322,7 @@ public class EnemyCity {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == STASIS) {
-                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscardArrForWrite() : state.getDeckArrForWrite();
+                var cards = state.getNumCardsInDeck() == 0 ? state.getDiscardArrForRead() : state.getDeckArrForRead();
                 var cardsLen = state.getNumCardsInDeck() == 0 ? state.getNumCardsInDiscard() : state.getNumCardsInDeck();
                 var cardRarityCounts = new int[Card.RARE + 1];
                 var cardRarityDiffCount = new int[Card.RARE + 1];
@@ -357,7 +357,7 @@ public class EnemyCity {
                             if (acc == r) {
                                 stasisCardIdx = cards[i];
                                 if (state.getNumCardsInDeck() > 0) {
-                                    state.removeCardFromDeck(cards[i]);
+                                    state.removeCardFromDeck(cards[i], true);
                                 } else {
                                     state.removeCardFromDiscardByPosition(i);
                                 }
@@ -2129,6 +2129,10 @@ public class EnemyCity {
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = extraBlockPerAttack / 10.0f;
+            return 1;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
             return 1;
         }
 

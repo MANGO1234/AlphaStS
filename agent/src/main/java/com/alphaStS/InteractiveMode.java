@@ -854,6 +854,16 @@ public class InteractiveMode {
             }
             out.println("]");
         }
+        if (state.deckArrFixedDrawLen > 0) {
+            out.print("Deck Order: [");
+            for (int i = 0; i < state.deckArrFixedDrawLen; i++) {
+                if (i > 0) {
+                    out.print(", ");
+                }
+                out.print("(" + (i + 1) + ") " + state.properties.cardDict[state.deckArr[state.deckArrLen - 1 - i]].cardName);
+            }
+            out.println("]");
+        }
         out.println("Hand (" + state.handArrLen + ")");
         var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.getNumCardsInHand(), state.properties.cardDict.length);
         for (int i = 0; i < hand.length; i++) {
@@ -1459,6 +1469,41 @@ public class InteractiveMode {
             int r = parseInt(line, -1);
             if (0 <= r && r < 2) {
                 return r;
+            }
+            out.println("Unknown Move");
+        }
+    }
+
+    private int selectedDeckDrawOrder(BufferedReader reader, GameState state, int len, List<String> history) {
+        for (int i = 0; i < len; i++) {
+            out.println(i + ". " + state.properties.cardDict[state.deckArr[i]].cardName);
+        }
+        while (true) {
+            out.print("> ");
+            String line;
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (0 <= r && r < len) {
+                return r;
+            } else {
+                int[] deckArr = new int[state.deckArr.length];
+                for (int i = 0; i < deckArr.length; i++) {
+                    deckArr[i] = state.deckArr[i];
+                }
+                var allCards = Arrays.stream(deckArr).limit(len).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).toList();
+                var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
+                if (card != null) {
+                    for (int i = 0; i < len; i++) {
+                        if (state.properties.cardDict[state.deckArr[i]].cardName.toLowerCase().equals(card)) {
+                            return i;
+                        }
+                    }
+                }
             }
             out.println("Unknown Move");
         }
@@ -2313,6 +2358,9 @@ public class InteractiveMode {
             }
             case ShieldAndSpear -> {
                 return interactiveMode.selectShieldAndSpear(reader, history);
+            }
+            case CardDraw -> {
+                return interactiveMode.selectedDeckDrawOrder(reader, (GameState) arg, bound, history);
             }
             case RandomEnemyHealth -> {
                 return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);

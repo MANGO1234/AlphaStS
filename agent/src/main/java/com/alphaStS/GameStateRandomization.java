@@ -686,7 +686,7 @@ public interface GameStateRandomization {
                         throw new RuntimeException("Not enough cards in deck");
                     }
                     for (int i = 0; i < cardCount.count(); i++) {
-                        state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()));
+                        state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()), false);
                         state.addCardToDeck(state.properties.findCardIndex(cardCount.card().getUpgrade()));
                     }
                 } else if (type == REMOVE_FROM_DECK) {
@@ -694,7 +694,7 @@ public interface GameStateRandomization {
                         throw new RuntimeException("Not enough cards in deck");
                     }
                     for (int i = 0; i < cardCount.count(); i++) {
-                        state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()));
+                        state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()), false);
                     }
                 } else {
                     state.setCardCountInDeck(state.properties.findCardIndex(cardCount.card()), cardCount.count());

@@ -1498,7 +1498,9 @@ public class CardDefect {
             } else {
                 state.getPlayerForWrite().gainBlock(block);
             }
-            state.getCounterForWrite()[counterIdx] += blockInc;
+            if (healthRewardRatio > 0) {
+                state.getCounterForWrite()[counterIdx] += blockInc;
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -3065,9 +3067,6 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.discardHand(false);
-            if (!state.properties.isInteractive) {
-                state.getDrawOrderForWrite().clear();
-            }
             state.reshuffle();
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
@@ -3094,7 +3093,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.removeCardFromDeck(idx);
+            state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -3108,7 +3107,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.removeCardFromDeck(idx);
+            state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForWrite()[counterIdx] == 2) {

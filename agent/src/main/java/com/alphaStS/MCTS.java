@@ -1125,7 +1125,7 @@ public class MCTS {
         }
         if (state.searchFrontier == null) {
             state.searchFrontier = new SearchFrontier();
-            state.searchFrontier.addLine(new LineOfPlay(state, 1, null, 0));
+            state.searchFrontier.addLine(new LineOfPlay(state, 1, 1, null, 0));
         }
         terminal_v_win = -100;
 
@@ -1179,6 +1179,9 @@ public class MCTS {
             double q = line.n > 0 ? line.q_comb / line.n : parentLine != null && parentLine.n > 0 ? parentLine.q_comb / parentLine.n : 0;
 //            double u = state.searchFrontier.total_n > 0 ? q + (0.125 + Math.log((state.searchFrontier.total_n + 10000f + 1) / 10000) / 10) * line.p_cur * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
             double p_prime = line.p_cur * (1 - ratio) + p_uniform * ratio;
+//            if (state.properties.testNewFeature) {
+//                p_prime = Math.pow(line.p_cur, 1.0 / line.depth) * (1 - ratio) + p_uniform * ratio;
+//            }
             double cpuct = state.properties.cpuct;
             // if (state.getCounterForRead()[state.properties.biasedCognitionLimitCounterIdx] > 0) {
             //     cpuct = state.getCounterForRead()[state.properties.biasedCognitionLimitCounterIdx] / 100.0;
@@ -1201,7 +1204,7 @@ public class MCTS {
                 maxLine = line;
             }
         }
-        searchLine_r(state, maxLine, training, isRoot);
+        searchLine_r(state, maxLine, training, 1);
         searchLinePropagate(state, maxLine);
         terminal_v_win = -100;
     }
@@ -1238,7 +1241,7 @@ public class MCTS {
         }
     }
 
-    private void searchLine_r(GameState parentState, LineOfPlay curLine, boolean training, boolean isRoot) {
+    private void searchLine_r(GameState parentState, LineOfPlay curLine, boolean training, int depth) {
         if (curLine.state instanceof ChanceState cState) {
             var nextState = cState.getNextState(true, -1);
             searchLine(nextState, training, false, -1);
@@ -1340,10 +1343,10 @@ public class MCTS {
             var transposedLine = parentState.searchFrontier.getLine(cState);
             if (transposedLine == null) {
                 cState.addToQueue(nextState);
-                var newLine = new LineOfPlay(cState, curLine.p_total * policy[action], curLine, action);
+                var newLine = new LineOfPlay(cState, curLine.p_total * policy[action], depth, curLine, action);
                 curLine.p_cur -= curLine.p_total * policy[action];
                 parentState.searchFrontier.addLine(newLine);
-                searchLine_r(parentState, newLine, training, false);
+                searchLine_r(parentState, newLine, training, 1);
                 if (state.n[action] == 0) {
                     state.ns[action] = newLine.state;
                 }
@@ -1354,15 +1357,15 @@ public class MCTS {
                     state.ns[action] = transposedLine.state;
                     transposedLine.parentLines.add(new LineOfPlay.Edge(curLine, action));
                 }
-                searchLine_r(parentState, transposedLine, training, false);
+                searchLine_r(parentState, transposedLine, training, 1);
             }
         } else {
             var transposedLine = parentState.searchFrontier.getLine(nextState);
             if (transposedLine == null) {
-                var newLine = new LineOfPlay(nextState, curLine.p_total * policy[action], curLine, action);
+                var newLine = new LineOfPlay(nextState, curLine.p_total * policy[action], depth, curLine, action);
                 curLine.p_cur -= curLine.p_total * policy[action];
                 parentState.searchFrontier.addLine(newLine);
-                searchLine_r(parentState, newLine, training, false);
+                searchLine_r(parentState, newLine, training, depth + 1);
                 if (state.n[action] == 0) {
                     state.ns[action] = newLine.state;
                 }
@@ -1373,7 +1376,7 @@ public class MCTS {
                     state.ns[action] = transposedLine.state;
                     transposedLine.parentLines.add(new LineOfPlay.Edge(curLine, action));
                 }
-                searchLine_r(parentState, transposedLine, training, false);
+                searchLine_r(parentState, transposedLine, training, depth + 1);
             }
         }
         state.n[action] += 1;

@@ -329,7 +329,7 @@ public class CardIronclad {
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
                 state.removeCardFromDiscard(idx);
-                state.putCardOnTopOfDeck(idx);
+                state.addCardOnTopOfDeck(idx);
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -349,7 +349,7 @@ public class CardIronclad {
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
                 state.removeCardFromDiscard(idx);
-                state.putCardOnTopOfDeck(idx);
+                state.addCardOnTopOfDeck(idx);
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -665,7 +665,7 @@ public class CardIronclad {
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
                 state.removeCardFromHand(idx);
-                state.putCardOnTopOfDeck(idx);
+                state.addCardOnTopOfDeck(idx);
                 return GameActionCtx.PLAY_CARD;
             }
         }

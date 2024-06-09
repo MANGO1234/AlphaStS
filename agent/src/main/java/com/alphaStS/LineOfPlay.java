@@ -9,6 +9,7 @@ import static com.alphaStS.utils.Utils.formatFloat;
 public class LineOfPlay {
     State state;
     int n;
+    int depth;
     double p_total;
     double p_cur;
     double q_win;
@@ -18,10 +19,11 @@ public class LineOfPlay {
     int numberOfActions;
     List<Edge> parentLines;
 
-    public LineOfPlay(State state, double p, LineOfPlay parentLine, int action) {
+    public LineOfPlay(State state, double p, int depth, LineOfPlay parentLine, int action) {
         this.state = state;
         this.p_cur = p;
         this.p_total = p;
+        this.depth = depth;
         if (state instanceof GameState s) {
             numberOfActions = s.getLegalActions().length;
         } else {
