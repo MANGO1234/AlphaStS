@@ -1047,7 +1047,7 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnPreCardPlayedHandler("Choke", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).getChoke() > 0) {
@@ -1456,7 +1456,7 @@ public class CardSilent {
                    }
                }
            });
-            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("Finisher", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.getCounterForWrite()[counterIdx]++;

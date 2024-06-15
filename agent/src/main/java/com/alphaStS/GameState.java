@@ -297,6 +297,9 @@ public final class GameState implements State {
             }
             result = 31 * result + Arrays.hashCode(tmp);
         }
+        if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+            result = 31 * result + select1OutOf3CardsIdxes;
+        }
         result = 31 * result + player.getHealth();
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(handArr, handArrLen, properties.cardDict.length));
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.cardDict.length));
@@ -1814,7 +1817,7 @@ public final class GameState implements State {
                     }
                     isStochastic = oldIsStochastic | isStochastic;
                 }
-                if (enemy2.isAlive()) {
+                if (enemy2.isAlive() || enemy2.properties.canSelfRevive) {
                     enemy2.doMove(this, enemy2);
                 }
                 if (i != livingEnemiesCount - 1) {
@@ -1903,7 +1906,7 @@ public final class GameState implements State {
                 preBattleRandomizationIdxChosen = properties.preBattleRandomization.randomize(this);
             }
             setActionCtx(properties.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
-            if (properties.endOfPreBattleHandler != null) {
+            if (properties.endOfPreBattleHandler != null && realTurnNum == 0) {
                 properties.endOfPreBattleHandler.handle(this);
             }
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
@@ -1922,8 +1925,7 @@ public final class GameState implements State {
             }
         }
         if (actionCtx == GameActionCtx.PLAY_CARD && properties.hasUnceasingTop) {
-            while (handArrLen == 0) {
-                draw(1);
+            while (handArrLen == 0 && draw(1) >= 0) {
                 runActionsInQueueIfNonEmpty();
             }
         }
@@ -3401,7 +3403,7 @@ public final class GameState implements State {
             idx += 5;
         }
         if (properties.playerFocusCanChange) {
-            x[idx] = focus / 15.0f;
+            x[idx++] = focus / 15.0f;
         }
         if (properties.playerArtifactCanChange) {
             x[idx++] = player.getArtifact() / (float) 3.0;
@@ -3784,8 +3786,15 @@ public final class GameState implements State {
         }
         // generate a new deck arr with fixed order instead of reusing discard, will help with consistency
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
+        if (deckArrLen > 0) {
+            var deck = GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.realCardsLen);
+            for (int i = 0; i < discard.length; i++) {
+                discard[i] += deck[i];
+            }
+            discardArrLen += deckArrLen;
+            deckArrLen = 0;
+        }
         getDeckArrForWrite(discardArrLen);
-        deckArrLen = 0;
         for (short i = 0; i < discard.length; i++) {
             for (int j = 0; j < discard[i]; j++) {
                 getDeckArrForWrite(discardArrLen)[deckArrLen++] = i;
@@ -4026,18 +4035,23 @@ public final class GameState implements State {
     }
 
     public void addCardToDeck(int idx) {
+        addCardToDeck(idx, true);
+    }
+
+    public void addCardToDeck(int idx, boolean random) {
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen);
-        if (properties.hasFrozenEye && properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.hasFrozenEye && properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx) && random) {
             var idxToInsert = 0;
             if (deckArrLen > 0) {
                 setIsStochastic();
-                idxToInsert = getSearchRandomGen().nextInt(deckArrLen, RandomGenCtx.CardDraw);
+                idxToInsert = getSearchRandomGen().nextInt(deckArrLen, RandomGenCtx.CardDraw, new Tuple3<GameState, Integer, Integer>(this, 1, idx));
             }
             for (int i = deckArrLen - 1; i > idxToInsert; i--) {
                 deckArr[i] = deckArr[i - 1];
             }
             deckArr[idxToInsert] = (short) idx;
+            deckArrFixedDrawLen++;
         } else {
             // todo: this means that the card is always added below cards put on top of deck like headbutt etc., don't think this is how the game works?
             for (int i = deckArrLen - 1; i > deckArrLen - deckArrFixedDrawLen - 1; i++) {
@@ -4240,7 +4254,8 @@ public final class GameState implements State {
         return totalDmgDealt;
     }
 
-    public int enemyCalcDamageToPlayer(Enemy enemy, int dmg) {
+    public int enemyCalcDamageToPlayer(Enemy enemy, int dmgInt) {
+        double dmg = dmgInt;
         dmg += enemy.getStrength();
         if (dmg < 0) {
             dmg = 0;
@@ -4261,7 +4276,7 @@ public final class GameState implements State {
         if (properties.intangibleCounterIdx >= 0 && getCounterForRead()[properties.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;
         }
-        return dmg;
+        return (int) dmg;
     }
 
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable, Object source) {

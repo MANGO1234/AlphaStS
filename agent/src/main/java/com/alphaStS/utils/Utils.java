@@ -78,7 +78,16 @@ public class Utils {
 
     public static void shuffle(GameState state, short[] arr, int len, RandomGen rand) {
         for (int i = len - 1; i >= 0; i--) {
-            int j = rand.nextInt(i + 1, RandomGenCtx.CardDraw, state);
+            int j = rand.nextInt(i + 1, RandomGenCtx.CardDraw, new Tuple3<>(state, 0, 0));
+            short temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+    }
+
+    public static void shuffle(GameState state, short[] arr, int len, int start, RandomGen rand) {
+        for (int i = len - 1; i >= start; i--) {
+            int j = rand.nextInt(i + 1, RandomGenCtx.CardDraw, new Tuple3<>(state, 0, 0));
             short temp = arr[i];
             arr[i] = arr[j];
             arr[j] = temp;

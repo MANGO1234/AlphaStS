@@ -168,16 +168,28 @@ public class MCTS {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2 = state2.doAction(0);
-                        var cState = new ChanceState(state2, parentState, 0);
-                        state.ns[action] = cState;
-                        state.transpositions.put(parentState, cState);
-                        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
-                            var parents = new ArrayList<Tuple<GameState, Integer>>();
-                            state.transpositionsParent.put(parentState, parents);
-                            parents.add(new Tuple<>(state, action));
+                        if (!state2.properties.hasFrozenEye || state2.isStochastic) {
+                            var cState = new ChanceState(state2, parentState, 0);
+                            state.ns[action] = cState;
+                            state.transpositions.put(parentState, cState);
+                            if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
+                                var parents = new ArrayList<Tuple<GameState, Integer>>();
+                                state.transpositionsParent.put(parentState, parents);
+                                parents.add(new Tuple<>(state, action));
+                            }
+                            this.search2_r(state2, training, remainingCalls, false, level + 1, null);
+                            cState.correctV(state2, v, realV);
+                        } else {
+                            state.ns[action] = state2;
+                            state.transpositions.put(state2, state2);
+                            if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
+                                var parents = new ArrayList<Tuple<GameState, Integer>>();
+                                state.transpositionsParent.put(state2, parents);
+                                parents.add(new Tuple<>(state, action));
+                            }
+                            this.search2_r(state2, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action));
+                            deterministicPathPop(deterministicPath);
                         }
-                        this.search2_r(state2, training, remainingCalls, false, level + 1, null);
-                        cState.correctV(state2, v, realV);
                     } else {
                         state.ns[action] = state2;
                         state.transpositions.put(state2, state2);
@@ -229,7 +241,7 @@ public class MCTS {
                 if (state.n[action] < cState.total_n) {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
                         state2 = cState.getNextState(true, level);
-                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, deterministicPath)) {
+                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, null)) {
                             Integer.parseInt(null); // fail for now
                         }
                         cState.correctV(state2, v, realV);
@@ -244,7 +256,7 @@ public class MCTS {
                     }
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         state2 = cState.getNextState(true, level);
-                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, deterministicPath)) {
+                        if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, null)) {
                             Integer.parseInt(null); // fail for now
                         }
                         cState.correctV(state2, v, realV);
@@ -254,7 +266,7 @@ public class MCTS {
                     }
                 } else {
                     state2 = cState.getNextState(true, level);
-                    if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, deterministicPath)) {
+                    if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, null)) {
                         Integer.parseInt(null); // fail for now
                     }
                     cState.correctV(state2, v, realV);
@@ -321,14 +333,26 @@ public class MCTS {
         var rand = state.getSearchRandomGen().getCopy();
         var seen = new HashSet<GameState>();
         for (int i = 0; i < 100; i++) {
-            var newRand = new RandomGen.RandomGenByCtx(rand.nextLong(RandomGenCtx.Other));
-            var newState = state.clone(false);
-            newState.setSearchRandomGen(newRand.getCopy());
-            newState = newState.doAction(action);
-            if (seen.contains(newState)) {
+            var startingRand = new RandomGen.RandomGenByCtx(rand.nextLong(RandomGenCtx.Other));
+            var finalState = state.clone(false);
+            finalState.setSearchRandomGen(startingRand.getCopy());
+            finalState = finalState.doAction(action);
+            if (seen.contains(finalState)) {
                 continue;
             }
-            seen.add(newState);
+            seen.add(finalState);
+
+            GameAction stochasticFollowUpAction = null; // e.g. acrobatics, choose 1 out of 3 potions
+            if (finalState.getActionCtx() == GameActionCtx.SELECT_ENEMY ||
+                    finalState.getActionCtx() == GameActionCtx.SELECT_CARD_HAND ||
+                    finalState.getActionCtx() == GameActionCtx.SELECT_CARD_EXHAUST ||
+                    finalState.getActionCtx() == GameActionCtx.SELECT_CARD_DECK ||
+                    finalState.getActionCtx() == GameActionCtx.SELECT_CARD_DISCARD ||
+                    finalState.getActionCtx() == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+                int tmp = rand.nextInt(finalState.getLegalActions().length, RandomGenCtx.Other);
+                stochasticFollowUpAction = finalState.getAction(tmp);
+                finalState = finalState.doAction(tmp);
+            }
 
             int causalAction = deterministicPath.size();
             if (state.getAction(action).type() == GameActionType.SELECT_ENEMY ||
@@ -346,7 +370,7 @@ public class MCTS {
             }
             boolean success = false;
             for (int dIdx = causalAction - 1; dIdx >= 0; dIdx--) {
-                if (!cannotPlayStochasticActionEarlier(deterministicPath, dIdx, causalAction, state, action, newState, newRand, debug)) {
+                if (!cannotPlayStochasticActionEarlier(deterministicPath, dIdx, causalAction, state, action, stochasticFollowUpAction, finalState, startingRand, debug)) {
                     success = true;
                     break;
                 }
@@ -361,9 +385,9 @@ public class MCTS {
         return true;
     }
 
-    private static boolean cannotPlayStochasticActionEarlier(List<Tuple<GameState, Integer>> deterministicPath, int dIdx, int causalActionIdx, GameState state, int action, GameState newState, RandomGen.RandomGenByCtx newRand, boolean debug) {
+    private static boolean cannotPlayStochasticActionEarlier(List<Tuple<GameState, Integer>> deterministicPath, int dIdx, int causalActionIdx, GameState state, int action, GameAction stochasticFollowUpAction, GameState finalState, RandomGen.RandomGenByCtx startingRand, boolean debug) {
         var replayState = deterministicPath.get(dIdx).v1().clone(false);
-        replayState.setSearchRandomGen(newRand.getCopy());
+        replayState.setSearchRandomGen(startingRand.getCopy());
         var len = replayState.getLegalActions().length;
         var found = false;
         for (int j = causalActionIdx; j < deterministicPath.size(); j++) {
@@ -386,13 +410,48 @@ public class MCTS {
                 return true;
             }
         }
+        len = replayState.getLegalActions().length;
         found = false;
         for (int k = 0; k < len; k++) {
-            if (replayState.getAction(k).equals(state.getAction(action))) {
-                replayState = replayState.doAction(k);
-                replayState.clearAllSearchInfo();
-                found = true;
-                break;
+            try {
+                if (replayState.getAction(k).equals(state.getAction(action))) {
+                    replayState = replayState.doAction(k);
+                    if (stochasticFollowUpAction != null) {
+                        len = replayState.getLegalActions().length;
+                        found = false;
+                        for (int l = 0; l < len; l++) {
+                            if (replayState.getAction(l).equals(stochasticFollowUpAction)) {
+                                replayState = replayState.doAction(l);
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            if (debug) {
+                                System.out.println("failed 5");
+                            }
+                            return true;
+                        }
+                    }
+                    replayState.clearAllSearchInfo();
+                    found = true;
+                    break;
+                }
+            } catch (Exception e) {
+                System.out.println(replayState + ", " + k + ", " + state + ", " + action);
+                if (k < replayState.getLegalActions().length) {
+                    System.out.println("replay: " + replayState.getActionString(k));
+                }
+                if (action < state.getLegalActions().length) {
+                    System.out.println("state: " + state.getActionString(action));
+                }
+                System.out.println(finalState);
+                for (int i = 0; i < deterministicPath.size(); i++) {
+                    System.out.println(i + ", " + deterministicPath.get(i) + ", " + deterministicPath.get(i).v1().getActionString(deterministicPath.get(i).v2()));
+                }
+                System.out.println(dIdx);
+                System.out.println(causalActionIdx);
+                throw e;
             }
         }
         if (!found || !replayState.isStochastic) {
@@ -404,7 +463,7 @@ public class MCTS {
         for (int j = dIdx; j < causalActionIdx; j++) {
             var isTerminal = replayState.isTerminal();
             if (isTerminal != 0) {
-                return isTerminal == newState.isTerminal() && replayState.equals(newState);
+                return isTerminal == finalState.isTerminal() && replayState.equals(finalState);
             }
             var originalAction = deterministicPath.get(j).v1().getAction(deterministicPath.get(j).v2());
             len = replayState.getLegalActions().length;
@@ -425,9 +484,9 @@ public class MCTS {
                 return true;
             }
         }
-        if (!replayState.equals(newState)) {
+        if (!replayState.equals(finalState)) {
             if (debug) {
-                System.out.println("failed 3 " + replayState + " " + newState + " xx " + state);
+                System.out.println("failed 3 " + replayState + " " + finalState + " xx " + state);
             }
             return true;
         }
@@ -612,14 +671,27 @@ public class MCTS {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2 = state2.doAction(0);
-                        var cState = new ChanceState(state2, parentState, 0);
-                        var node = cState.addGeneratedStateParallel(state2);
-                        state.transpositions.put(parentState, cState);
-                        state.transpositionsLock.unlock();
-                        state.ns[action] = cState;
-                        state.writeUnlock();
-                        this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false, null);
-                        cState.correctVParallel(node, false, v, realV);
+                        if (!state2.properties.hasFrozenEye || state2.isStochastic) {
+                            var cState = new ChanceState(state2, parentState, 0);
+                            var node = cState.addGeneratedStateParallel(state2);
+                            state.transpositions.put(parentState, cState);
+                            state.transpositionsLock.unlock();
+                            state.ns[action] = cState;
+                            state.writeUnlock();
+                            this.search2parallel_r(node.state, training, remainingCalls, false, level + 1, false, null);
+                            cState.correctVParallel(node, false, v, realV);
+                        } else {
+                            state.transpositions.put(parentState, state2);
+                            state.transpositionsLock.unlock();
+                            state.ns[action] = state2;
+                            state.writeUnlock();
+                            if (handleFailedSearch2Parallel(state, action, state2, training, remainingCalls, false, level, true, deterministicPathPush(deterministicPath, state, action))) {
+                                if (addVirtualLoss) {
+                                    state.virtualLoss.decrementAndGet();
+                                }
+                                return SEARCH_RETRY;
+                            }
+                        }
                     } else {
                         state.transpositions.put(state2, state2);
                         state.transpositionsLock.unlock();
@@ -633,7 +705,7 @@ public class MCTS {
                         }
                     }
                 } else if (s instanceof GameState ns) {
-                    if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
+                    if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot && !(state.actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3)) {
                         addBannedAction(state, action);
                         state.transpositionsLock.unlock();
                         state.writeUnlock();
@@ -968,14 +1040,20 @@ public class MCTS {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
-                        var parentState = state2;
-                        state2 = parentState.clone(false);
-                        state2 = state2.doAction(0);
-                        var cState = new ChanceState(state2, parentState, 0);
-                        state.ns[action] = cState;
-                        state.transpositions.put(parentState, cState);
-                        this.search3_r(state2, training, remainingCalls, false);
-                        cState.correctV(state2, v, realV);
+                        if (!state2.properties.hasFrozenEye || state2.isStochastic) {
+                            var parentState = state2;
+                            state2 = parentState.clone(false);
+                            state2 = state2.doAction(0);
+                            var cState = new ChanceState(state2, parentState, 0);
+                            state.ns[action] = cState;
+                            state.transpositions.put(parentState, cState);
+                            this.search3_r(state2, training, remainingCalls, false);
+                            cState.correctV(state2, v, realV);
+                        } else {
+                            state.ns[action] = state2;
+                            state.transpositions.put(state2, state2);
+                            this.search3_r(state2, training, remainingCalls, false);
+                        }
                     } else {
                         state.ns[action] = state2;
                         state.transpositions.put(state2, state2);
@@ -1191,14 +1269,6 @@ public class MCTS {
             }
             double u = state.searchFrontier.total_n > 0 ? q + cpuct * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
 //            double u = state.searchFrontier.total_n > 0 ? q + 0.125 * p_prime * sqrt(state.searchFrontier.total_n) / (1 + line.n) : line.p_cur;
-//            if (training && isRoot) {
-//                var force_n = (int) Math.sqrt(0.5 * line.p_cur * state.searchFrontier.total_n);
-//                if (line.n < force_n) {
-//                    maxU = Integer.MAX_VALUE;
-//                    maxLine = line;
-//                    continue;
-//                }
-//            }
             if (u > maxU) {
                 maxU = u;
                 maxLine = line;

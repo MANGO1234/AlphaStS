@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.utils.Utils;
 
 import java.util.List;
 import java.util.Objects;
@@ -310,6 +311,7 @@ public class CardColorless {
         public _PanicButtonT(String cardName, int cardType, int energyCost, int n) {
             super(cardName, cardType, energyCost, Card.UNCOMMON);
             this.n = n;
+            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -780,7 +782,50 @@ public class CardColorless {
     }
 
     // Transmutation
-    // Violence
+    private static abstract class _ViolenceT extends Card {
+        private final int n;
+
+        public _ViolenceT(String cardName, int cardType, int energyCost, int n) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.n = n;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var possibleIndexes = new short[state.deckArrLen];
+            var len = 0;
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.properties.cardDict[state.deckArr[i]].cardType == Card.ATTACK) {
+                    possibleIndexes[len++] = state.deckArr[i];
+                }
+            }
+            if (len < n) {
+                for (int i = 0; i < len; i++) {
+                    state.removeCardFromDeck(possibleIndexes[len - 1 - i], false);
+                    state.addCardToHand(possibleIndexes[len - 1 - i]);
+                }
+            } else {
+                Utils.shuffle(state, possibleIndexes, len, len - 3, state.getSearchRandomGen());
+                for (int i = 0; i < n; i++) {
+                    state.removeCardFromDeck(possibleIndexes[len - 1 - i], true);
+                    state.addCardToHand(possibleIndexes[len - 1 - i]);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Violence extends _ViolenceT {
+        public Violence() {
+            super("Violence", Card.SKILL, 0, 3);
+        }
+    }
+
+    public static class ViolenceP extends _ViolenceT {
+        public ViolenceP() {
+            super("Violence+", Card.SKILL, 0, 5);
+        }
+    }
 
     private static abstract class _BiteT extends Card {
         private final int n;

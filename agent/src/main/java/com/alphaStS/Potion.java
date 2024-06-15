@@ -1048,7 +1048,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("12"), 0),
                     new CardColorless.ThinkingAhead(),
                     new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("13"), 0),
-                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("14"), 0)
+                    new Card.CardTmpChangeCost(new CardColorless.Violence(), 0)
             );
         }
 

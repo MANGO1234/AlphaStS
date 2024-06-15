@@ -79,8 +79,10 @@ public class EnemyBeyond {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var enemy = state.getEnemiesForRead().get(idx);
-                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER && !((AwakenedOne) enemy).awakened && enemy.getMove() != REBIRTH) {
-                        state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
+                        if (!((AwakenedOne) enemy).awakened && enemy.isAlive()) {
+                            state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
+                        }
                     }
                 }
             });
@@ -112,6 +114,9 @@ public class EnemyBeyond {
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove;
             if (health == 0) {
+                if (move < 0) {
+                    return;
+                }
                 newMove = REBIRTH;
             } else if (move == -1) {
                 newMove = SLASH;
@@ -1832,16 +1837,16 @@ public class EnemyBeyond {
                         r = 40 + random.nextInt(60, RandomGenCtx.EnemyChooseMove);
                     }
                 }
-                if (r >= 40 && r < 70) {
-                    if (!(move == NIP && lastMove == NIP)) {
+                if (r >= 40) {
+                    if (r >= 70 && !(move == NIP && lastMove == NIP)) {
                         newMove = NIP;
                     } else {
-                        newMove = HARDEN;
+                        if (move != HARDEN) {
+                            newMove = HARDEN;
+                        } else {
+                            newMove = NIP;
+                        }
                     }
-                } else if (r >= 70 && !(move == HARDEN && lastMove == HARDEN)) {
-                    newMove = HARDEN;
-                } else if (r >= 70) {
-                    newMove = NIP;
                 }
             }
             lastMove = move;

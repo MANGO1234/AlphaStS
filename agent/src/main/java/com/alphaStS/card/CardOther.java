@@ -58,7 +58,7 @@ public class CardOther {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addOnCardDrawnHandler(new GameEventCardHandler() {
+            state.properties.addOnCardDrawnHandler("Void", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx] instanceof CardOther.Void) {
                         state.gainEnergy(-1);
@@ -172,7 +172,7 @@ public class CardOther {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var _this = this;
-            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("Pain", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     for (int i = 0; i < state.handArrLen; i++) {
                         if (state.properties.cardDict[state.getHandArrForRead()[i]] instanceof CardOther.Pain) {

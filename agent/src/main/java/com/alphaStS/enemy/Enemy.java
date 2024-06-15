@@ -132,6 +132,9 @@ public abstract class Enemy extends EnemyReadOnly {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
         }
+        if (choke != 0) {
+            choke = 0;
+        }
         if (!properties.isElite || (turnNum > 0 && metallicize > 0)) { // todo: burning elite
             gainBlock(metallicize);
         }

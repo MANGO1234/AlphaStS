@@ -679,7 +679,7 @@ public interface GameStateRandomization {
             for (CardCount cardCount : s) {
                 if (type == ADD_TO_DECK) {
                     for (int i = 0; i < cardCount.count(); i++) {
-                        state.addCardToDeck(state.properties.findCardIndex(cardCount.card()));
+                        state.addCardToDeck(state.properties.findCardIndex(cardCount.card()), false);
                     }
                 } else if (type == UPGRADE) {
                     if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cardCount.card())) < cardCount.count()) {
@@ -687,7 +687,7 @@ public interface GameStateRandomization {
                     }
                     for (int i = 0; i < cardCount.count(); i++) {
                         state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()), false);
-                        state.addCardToDeck(state.properties.findCardIndex(cardCount.card().getUpgrade()));
+                        state.addCardToDeck(state.properties.findCardIndex(cardCount.card().getUpgrade()), false);
                     }
                 } else if (type == REMOVE_FROM_DECK) {
                     if (GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.findCardIndex(cardCount.card())) < cardCount.count()) {

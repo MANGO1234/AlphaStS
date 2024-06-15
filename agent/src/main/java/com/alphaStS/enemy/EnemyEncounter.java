@@ -470,6 +470,7 @@ public class EnemyEncounter {
                 }
             }
             var newState = state.properties.originalGameState.clone(false);
+            newState.realTurnNum = state.realTurnNum;
             if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                 newState.doAction(0);
             }
@@ -496,7 +497,6 @@ public class EnemyEncounter {
             newState.properties = state.properties;
             newState.preBattleRandomizationIdxChosen = state.preBattleRandomizationIdxChosen;
             newState.battleRandomizationIdxChosen = state.battleRandomizationIdxChosen;
-            newState.realTurnNum = state.realTurnNum;
             return newState;
         });
     }

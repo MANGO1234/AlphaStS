@@ -324,7 +324,7 @@ public class InteractiveMode {
             } else if (line.startsWith("nnn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
-//                runNNPV2(state, line);
+                runNNPV2(state, line);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.equals("config")) {
@@ -425,6 +425,16 @@ public class InteractiveMode {
                     state = state.doAction(action);
                     state.properties.isInteractive = false;
                     state.properties.makingRealMove = false;
+                    for (int i = 0; i < state.getLegalActions().length; i++) {
+                        if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
+                            state.properties.makingRealMove = true;
+                            state = state.doAction(i);
+                            state.properties.makingRealMove = false;
+                            history.add("# Start of Turn");
+                            history.add("# " + state);
+                            break;
+                        }
+                    }
                 } else {
                     out.println("Unknown Command.");
                 }
@@ -670,7 +680,7 @@ public class InteractiveMode {
         out.println("Enemies Alive: " + state.enemiesAlive);
         for (var enemy : state.getEnemiesForRead()) {
             enemyArrayIdx++;
-            if (!(enemy.isAlive() || enemy.properties.canSelfRevive)) {
+            if (!(enemy.isAlive() || (enemy.properties.canSelfRevive && enemy.getMove() >= 0))) {
                 continue;
             }
             out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
@@ -695,6 +705,9 @@ public class InteractiveMode {
             }
             if (enemy.getCorpseExplosion() > 0) {
                 out.println("  Corpse Explosion: " + enemy.getCorpseExplosion());
+            }
+            if (enemy.getChoke() > 0) {
+                out.println("  Choke: " + enemy.getChoke());
             }
             if (enemy.getRegeneration() > 0) {
                 out.println("  Regeneration: " + enemy.getRegeneration());
@@ -1387,7 +1400,7 @@ public class InteractiveMode {
         return sneckoMapping.get(readIntCommand(reader, history, snecko[0])).v3();
     }
 
-    int selectEnemeyRandomInteractive(BufferedReader reader, GameState state, List<String> history, RandomGenCtx ctx) throws IOException {
+    int selectEnemyRandomInteractive(BufferedReader reader, GameState state, List<String> history, RandomGenCtx ctx) throws IOException {
         out.println("Select enemy for " + ctx);
         int idx = 0;
         for (int i = 0; i < state.getEnemiesForRead().size(); i ++) {
@@ -1504,6 +1517,29 @@ public class InteractiveMode {
                         }
                     }
                 }
+            }
+            out.println("Unknown Move");
+        }
+    }
+
+    private int selectedAddCardToDeckPosition(BufferedReader reader, GameState state, int len, int cardIdx, List<String> history) {
+        out.println("Add " + state.properties.cardDict[cardIdx].cardName + " to deck position");
+        out.println(0 + ". Beginning of Deck");
+        for (int i = 0; i < len - 1; i++) {
+            out.println((i + 1) + ". After " + state.properties.cardDict[state.deckArr[state.deckArrLen - 1 - 1 - i]].cardName);
+        }
+        while (true) {
+            out.print("> ");
+            String line;
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (0 <= r && r < len) {
+                return len - 1 - r;
             }
             out.println("Unknown Move");
         }
@@ -2195,40 +2231,91 @@ public class InteractiveMode {
         return false;
     }
 
-//    private void runNNPV2(GameState state, String line) {
-//        int count = parseInt(line.substring(4), 1);
-//        if (state.searchFrontier != null && state.searchFrontier.total_n != state.total_n + 1) {
-//            state.clearAllSearchInfo();
-//        }
-//        for (int i = state.total_n; i < count; i++) {
-//            mcts.searchLine(state, false, true, -1);
-//        }
-//        state.searchFrontier.lines.values().stream().filter((x) -> {
-//            return x.state instanceof ChanceState || x.numberOfActions == ((GameState) x.state).getLegalActions().length;
-//        }).sorted((a, b) -> {
-//            if (a.internal == b.internal) {
-//                return -Integer.compare(a.n, b.n);
-//            } else if (a.internal) {
-//                return 1;
-//            } else {
-//                return -1;
-//            }
-//        }).limit(10).map((x) -> {
-//            var tmpS = state.clone(false);
-//            var actions = x.getActions(tmpS);
-//            var strings = new ArrayList<String>();
-//            for (var action : actions) {
-//                if (tmpS.getActionString(action).equals("Begin Turn")) {
-//                    continue;
-//                }
-//                strings.add(tmpS.getActionString(action));
-//                tmpS.doAction(action);
-//            }
-//            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
-//                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
-//                    " (" + formatFloat(x.q_health / x.n * state.getPlayeForRead().getMaxHealth()) + ")";
-//        }).forEach(out::println);
-//    }
+    private void runNNPV2(GameState state, String line) {
+        int count = parseInt(line.substring(4), 1);
+        if (state.searchFrontier != null && state.searchFrontier.total_n != state.total_n + 1) {
+            state.clearAllSearchInfo();
+        }
+
+        var curStart = System.currentTimeMillis();
+        GameState s = state;
+        var startNodeCount = s.total_n;
+        AtomicLong nodeCount = new AtomicLong(s.total_n);
+        AtomicLong nodeDoneCount = new AtomicLong(s.total_n);
+        modelExecutor.start(1, 1);
+        var numberOfProducers = ModelExecutor.getNumberOfProducers(1, 1);
+        allocateThreadMCTS(modelExecutor, numberOfProducers);
+        AtomicLong producersCount = new AtomicLong(numberOfProducers);
+        var _s = s;
+        for (int i = 0; i < numberOfProducers; i++) {
+            final int _i = i;
+            modelExecutor.addAndStartProducerThread(() -> {
+                long c = nodeCount.addAndGet(1);
+                int consecutiveOneMoveRemaining = 0;
+                while (c <= count) {
+                    threadMCTS.get(_i).searchLine(_s, false, true, (int) (count - c + 1));
+                    nodeDoneCount.addAndGet(1);
+                    if (threadMCTS.get(_i).numberOfPossibleActions == 1) {
+                        consecutiveOneMoveRemaining++;
+                        if (consecutiveOneMoveRemaining > 20) {
+                            break;
+                        }
+                    } else {
+                        consecutiveOneMoveRemaining = 0;
+                    }
+                    c = nodeCount.addAndGet(1);
+                }
+                producersCount.decrementAndGet();
+                while (!modelExecutor.producerWaitForClose(_i));
+            });
+        }
+        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, producersCount, curStart, "nodes", () -> {
+            StringBuilder o = new StringBuilder();
+            GameState curS = _s;
+            while (curS.isTerminal() == 0) {
+                int[] actions = MCTS.getActionWithMaxNodesOrTerminal2(curS);
+                if (actions.length == 1) {
+                    o.append(o.length() == 0 ? "" : ", ").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%)");
+                    if (curS.ns[actions[0]] == null || !(curS.ns[actions[0]] instanceof GameState)) {
+                        break;
+                    }
+                    curS = (GameState) curS.ns[actions[0]];
+                } else {
+                    o.append(o.length() == 0 ? "[" : ", [").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%) | ");
+                    o.append(curS.getActionString(actions[1])).append(" (").append(Utils.formatFloat(curS.n[actions[1]] / (double) curS.total_n * 100)).append("%)]");
+                    break;
+                }
+            }
+            return o.toString();
+        });
+        modelExecutor.stop();
+
+        state.searchFrontier.lines.values().stream().filter((x) -> {
+            return x.state instanceof ChanceState || x.numberOfActions == ((GameState) x.state).getLegalActions().length;
+        }).sorted((a, b) -> {
+            if (a.internal == b.internal) {
+                return -Integer.compare(a.n, b.n);
+            } else if (a.internal) {
+                return 1;
+            } else {
+                return -1;
+            }
+        }).limit(10).map((x) -> {
+            var tmpS = state.clone(false);
+            var actions = x.getActions(tmpS);
+            var strings = new ArrayList<String>();
+            for (var action : actions) {
+                if (tmpS.getActionString(action).equals("Begin Turn")) {
+                    continue;
+                }
+                strings.add(tmpS.getActionString(action));
+                tmpS.doAction(action);
+            }
+            return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
+                    ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
+                    " (" + formatFloat(x.q_health / x.n * state.getPlayeForRead().getMaxHealth()) + ")";
+        }).forEach(out::println);
+    }
 
     private static int parseInt(String s, int default_v) {
         try {
@@ -2360,14 +2447,19 @@ public class InteractiveMode {
                 return interactiveMode.selectShieldAndSpear(reader, history);
             }
             case CardDraw -> {
-                return interactiveMode.selectedDeckDrawOrder(reader, (GameState) arg, bound, history);
+                var t = (Tuple3<GameState, Integer, Integer>) arg;
+                if (t.v2() == 0) {
+                    return interactiveMode.selectedDeckDrawOrder(reader, t.v1(), bound, history);
+                } else {
+                    return interactiveMode.selectedAddCardToDeckPosition(reader, t.v1(), bound, t.v3(), history);
+                }
             }
             case RandomEnemyHealth -> {
                 return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);
             }
             case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb -> {
                 try {
-                    return interactiveMode.selectEnemeyRandomInteractive(reader, (GameState) arg, history, ctx);
+                    return interactiveMode.selectEnemyRandomInteractive(reader, (GameState) arg, history, ctx);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

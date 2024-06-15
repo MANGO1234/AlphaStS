@@ -1486,7 +1486,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.getStateDesc().append("Astrolabe -> ");
                     for (int i = 0; i < 3; i++) {
                         var idx = state.getSearchRandomGen().nextInt(state.properties.astrolabeCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.astrolabeCardsIdxes));
-                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx]);
+                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx], false);
                         if (i > 0) state.stateDesc.append(" + ");
                         state.getStateDesc().append(state.properties.cardDict[state.properties.astrolabeCardsIdxes[idx]].cardName);
                         if (state.properties.makingRealMove) {
@@ -1647,7 +1647,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.getStateDesc().append("Pandora's Box -> ");
                     for (int i = 0; i < n; i++) {
                         var idx = state.getSearchRandomGen().nextInt(state.properties.astrolabeCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.astrolabeCardsIdxes));
-                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx]);
+                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx], false);
                         if (i > 0)
                             state.stateDesc.append(" + ");
                         state.getStateDesc().append(state.properties.cardDict[state.properties.astrolabeCardsIdxes[idx]].cardName);
