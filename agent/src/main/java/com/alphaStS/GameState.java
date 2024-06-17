@@ -1038,7 +1038,13 @@ public final class GameState implements State {
                 return -1;
             }
             int i, cardIdx;
-            if (drawOrder.size() > 0) {
+            if (deckArrFixedDrawLen > 0) {
+                cardIdx = deckArr[deckArrLen - 1];
+                drawnIdx = cardIdx;
+                addCardToHand(cardIdx);
+                deckArrLen--;
+                deckArrFixedDrawLen--;
+            } else if (drawOrder.size() > 0) {
                 i = getDrawOrderForWrite().peekTop();
                 int prevLen = drawOrder.size();
                 if (!drawCardByIdx(i, true)) {
@@ -1049,14 +1055,8 @@ public final class GameState implements State {
                 }
                 cardIdx = i;
                 drawnIdx = cardIdx;
-            } else if (deckArrFixedDrawLen > 0) {
-                cardIdx = deckArr[deckArrLen - 1];
-                drawnIdx = cardIdx;
-                addCardToHand(cardIdx);
-                deckArrLen--;
-                deckArrFixedDrawLen--;
             } else {
-                i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
+                i = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw);
                 setIsStochastic();
                 if (properties.makingRealMove || properties.doingComparison) {
                     Arrays.sort(getDeckArrForWrite(), 0, this.deckArrLen);
@@ -4054,10 +4054,10 @@ public final class GameState implements State {
             deckArrFixedDrawLen++;
         } else {
             // todo: this means that the card is always added below cards put on top of deck like headbutt etc., don't think this is how the game works?
-            for (int i = deckArrLen - 1; i > deckArrLen - deckArrFixedDrawLen - 1; i++) {
-                deckArr[i] = deckArr[i - 1];
+            for (int i = deckArrLen - 2; i > deckArrLen - 2 - deckArrFixedDrawLen; i++) {
+                deckArr[i] = deckArr[i + 1];
             }
-            deckArr[deckArrLen - deckArrFixedDrawLen - 1] = (short) idx;
+            deckArr[deckArrLen - 1] = (short) idx;
         }
     }
 
@@ -4080,11 +4080,9 @@ public final class GameState implements State {
                     getDeckArrForWrite();
                     if (i > deckArrLen - 1 - deckArrFixedDrawLen) {
                         deckArrFixedDrawLen--;
-                        for (int j = i; j < deckArrLen - 1; j++) {
-                            deckArr[j] = deckArr[j + 1];
-                        }
-                    } else {
-                        deckArr[i] = deckArr[deckArrLen - 1 - deckArrFixedDrawLen];
+                    }
+                    for (int j = i; j < deckArrLen - 1; j++) {
+                        deckArr[j] = deckArr[j + 1];
                     }
                     deckArrLen -= 1;
                     break;

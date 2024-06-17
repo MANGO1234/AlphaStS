@@ -218,14 +218,10 @@ public class EnemyEncounter {
 
     public static void addGremlinGangFight(GameStateBuilder builder) {
         // todo: in some situations, order matter, create a variant where order matters (would require 20 enemies instead of 8)
-        builder.addEnemyEncounter(new EnemyExordium.MadGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.MadGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.SneakyGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.SneakyGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.FatGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.FatGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.ShieldGremlin());
-        builder.addEnemyEncounter(new EnemyExordium.GremlinWizard());
+        builder.addEnemyEncounter(new EnemyExordium.MadGremlin(), new EnemyExordium.MadGremlin(),
+                new EnemyExordium.SneakyGremlin(), new EnemyExordium.SneakyGremlin(),
+                new EnemyExordium.FatGremlin(), new EnemyExordium.FatGremlin(),
+                new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
     }
 
     public static void addGremlinLeaderFight2(GameStateBuilder builder) {
