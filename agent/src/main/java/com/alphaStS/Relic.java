@@ -94,7 +94,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Anchor extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.getPlayerForWrite().gainBlockNotFromCardPlay(10);
+            state.properties.addStartOfTurnHandler("Anchor", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(10);
+                    }
+                }
+            });
         }
     }
 
@@ -1018,11 +1024,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DuVuDoll extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            for (int i : state.getDeckArrForRead()) {
-                if (state.properties.cardDict[i].cardType == Card.CURSE) {
-                    state.getPlayerForWrite().gainStrength(1);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i : state.getDeckArrForRead()) {
+                        if (state.properties.cardDict[i].cardType == Card.CURSE) {
+                            state.getPlayerForWrite().gainStrength(1);
+                        }
+                    }
                 }
-            }
+            });
         }
     }
 
@@ -1115,7 +1125,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             if (rewardType == DEFAULT_REWARD) {
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                        if (isTerminal > 0) {
+                        if (isTerminal != 0) {
                             for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }
@@ -1143,7 +1153,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             } else if (rewardType == SHIELD_AND_SPEAR_REWARD) {
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                        if (isTerminal > 0) {
+                        if (isTerminal != 0) {
                             for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }
@@ -1171,7 +1181,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             } else if (rewardType == HEART_REWARD) {
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                        if (isTerminal > 0) {
+                        if (isTerminal != 0) {
                             for (int i = 0; i < 6; i++) {
                                 v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                             }

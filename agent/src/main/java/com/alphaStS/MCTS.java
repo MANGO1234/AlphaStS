@@ -365,11 +365,18 @@ public class MCTS {
                     var actionOb = deterministicPath.get(dIdx).v1().getAction(deterministicPath.get(dIdx).v2());
                     if (actionOb.type() == GameActionType.PLAY_CARD || actionOb.type() == GameActionType.USE_POTION){
                         causalAction = dIdx;
+                        break;
                     }
                 }
             }
             boolean success = false;
             for (int dIdx = causalAction - 1; dIdx >= 0; dIdx--) {
+                if (deterministicPath.get(dIdx).v1().actionCtx == GameActionCtx.SELECT_ENEMY ||
+                        deterministicPath.get(dIdx).v1().actionCtx == GameActionCtx.SELECT_CARD_DECK ||
+                        deterministicPath.get(dIdx).v1().actionCtx == GameActionCtx.SELECT_CARD_HAND ||
+                        deterministicPath.get(dIdx).v1().actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
+                    continue;
+                }
                 if (!cannotPlayStochasticActionEarlier(deterministicPath, dIdx, causalAction, state, action, stochasticFollowUpAction, finalState, startingRand, debug)) {
                     success = true;
                     break;
@@ -405,7 +412,7 @@ public class MCTS {
             }
             if (!found || replayState.isStochastic) {
                 if (debug) {
-                    System.out.println("failed 4");
+                    System.out.println("failed 4 " + !found + ", " + replayState.isStochastic + ", " + j);
                 }
                 return true;
             }
@@ -479,7 +486,7 @@ public class MCTS {
             }
             if (!found || replayState.isStochastic) {
                 if (debug) {
-                    System.out.println("failed 2 " + found + " " + replayState.isStochastic + state.getActionString(action));
+                    System.out.println("failed 2 " + found + " " + replayState.isStochastic + " " + deterministicPath.get(j).v1().getActionString(deterministicPath.get(j).v2()));
                 }
                 return true;
             }

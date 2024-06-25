@@ -326,6 +326,7 @@ public final class GameState implements State {
         properties.preBattleRandomization = preBattleRandomization;
         properties.enemyHealthRandomization = new GameStateRandomization.EnemyHealthRandomization(false, null);
         properties.potions = potions;
+        properties.potionsGenerator = builder.getPotionsGenerator();
         properties.nonGeneratedPotionsLength = potions.size();
         for (int i = 0; i < potions.size(); i++) {
             if (potions.get(i).isGenerated) {
@@ -358,9 +359,6 @@ public final class GameState implements State {
         if (builder.getCharacter() == CharacterEnum.DEFECT) {
             properties.maxNumOfOrbs = 3;
             orbs = new short[3 * 2];
-        }
-        if (builder.getStartOfGameSetup() != null) {
-            properties.addStartOfBattleHandler(builder.getStartOfGameSetup());
         }
         if (builder.getEndOfPreBattleSetupHandler() != null) {
             properties.endOfPreBattleHandler = builder.getEndOfPreBattleSetupHandler();
@@ -2013,14 +2011,14 @@ public final class GameState implements State {
         if (player.getHealth() <= 0 || turnNum > 50) {
             Arrays.fill(out, 0);
             if (properties.extraOutputLen > 0) {
-                int cur = 0;
-                for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
-                    int n = properties.extraTrainingTargets.get(i).getNumberOfTargets();
-                    if (n > 1 && !properties.extraTrainingTargetsLabel.get(i).equals("DmgDistribution")) {
-                        out[V_OTHER_IDX_START + cur + n - 1] = 1;
-                    }
-                    cur += n;
-                }
+//                int cur = 0;
+//                for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
+//                    int n = properties.extraTrainingTargets.get(i).getNumberOfTargets();
+//                    if (n > 1 && !properties.extraTrainingTargetsLabel.get(i).equals("DmgDistribution")) {
+//                        out[V_OTHER_IDX_START + cur + n - 1] = 1;
+//                    }
+//                    cur += n;
+//                }
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
                     out[properties.fightProgressVIdx] = calcFightProgress();
                 }
@@ -2076,7 +2074,7 @@ public final class GameState implements State {
         return idx;
     }
 
-    private double calcFightProgress() {
+    public double calcFightProgress() {
         int totalMaxHp = 0;
         int totalCurHp = 0;
         boolean isSlimeBossAlive = false;
@@ -2206,8 +2204,22 @@ public final class GameState implements State {
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion) {
                         maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
                     }
+                }
+            }
+            if (properties.potionsGenerator != null) {
+                boolean canGeneratePotion = false;
+                for (int i = 0; i < properties.potions.size(); i++) {
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.EntropicBrew) {
-                        maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
+                        canGeneratePotion = true;
+                    }
+                }
+                if (CardSilent._AlchemizeT.getPossibleAlchemize(this) > 0) {
+                    canGeneratePotion = true;
+                }
+                if (canGeneratePotion) {
+                    maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
+                    if (properties.hasToyOrniphopter) {
+                        v += 5 * properties.numOfPotionSlots;
                     }
                 }
             }
@@ -2324,7 +2336,7 @@ public final class GameState implements State {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !properties.isHeartFight) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !properties.isHeartFight) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
@@ -2348,7 +2360,7 @@ public final class GameState implements State {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
-        if (properties.alchemizeVIdx >= 0) {
+        if (properties.alchemizeVIdx >= 0 && properties.alchemizeMult > 0) {
             var alchemizeMult = 0.0;
             for (int i = 0; i < 5; i++) {
                 alchemizeMult += Math.pow(properties.alchemizeMult, i) * v[GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i];
@@ -2372,7 +2384,9 @@ public final class GameState implements State {
         byte ret = 0;
         if (potionsState != null) {
             for (int i = 0; i < potionsState.length; i += 3) {
-                ret += potionsState[i];
+                if (!(properties.potions.get(i / 3) instanceof Potion.LizardTail)) {
+                    ret += potionsState[i];
+                }
             }
         }
         return ret;
@@ -4521,7 +4535,7 @@ public final class GameState implements State {
     }
 
     public boolean potionUsable(int i) {
-        return potionsState[i * 3] == 1;
+        return potionsState[i * 3] == 1 && potionPenalty(i) > 0;
     }
 
     public int potionPenalty(int i) {
@@ -4529,14 +4543,14 @@ public final class GameState implements State {
     }
 
     public void setPotionUsable(int i) {
-        potionsState[i * 3] = 1;
-        potionsState[i * 3 + 2] = 1;
+        getPotionsStateForWrite()[i * 3] = 1;
+        getPotionsStateForWrite()[i * 3 + 2] = 1;
     }
 
     public void setPotionUnusable(int i, short penalty) {
-        potionsState[i * 3] = 0;
-        potionsState[i * 3 + 1] = penalty;
-        potionsState[i * 3 + 2] = 0;
+        getPotionsStateForWrite()[i * 3] = 0;
+        getPotionsStateForWrite()[i * 3 + 1] = penalty;
+        getPotionsStateForWrite()[i * 3 + 2] = 0;
     }
 
     public void setSelect1OutOf3Idxes(int idx1, int idx2, int idx3) {

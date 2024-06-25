@@ -224,7 +224,7 @@ public class EnemyEncounter {
                 new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
     }
 
-    public static void addGremlinLeaderFight2(GameStateBuilder builder) {
+    public static void addGremlinLeaderFight(GameStateBuilder builder) {
         // todo: in some situations, order matter
         var start = builder.getEnemies().size();
         var gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(), new EnemyExordium.GremlinWizard(),
@@ -411,6 +411,34 @@ public class EnemyEncounter {
     public static void addTripleJawWormsFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
         builder.addEnemyEncounter(new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true));
+        builder.addEnemyReordering((state, order) -> {
+            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
+                if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start;
+                    order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
+                    order[start + 2] = start + 3 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start;
+                    order[start + 2] = start + 1;
+                }
+            } else {
+                if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
+                    order[start] = start + 1;
+                    order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
+                    order[start + 2] = start + 2 - (order[start + 1] - start);
+                } else {
+                    order[start] = start + 2;
+                    order[start + 1] = start + 1;
+                    order[start + 2] = start;
+                }
+            }
+        });
+    }
+
+    public static void addTripleCultistsFight(GameStateBuilder builder) {
+        var start = builder.getEnemies().size();
+        builder.addEnemyEncounter(new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
         builder.addEnemyReordering((state, order) -> {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
                 if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {

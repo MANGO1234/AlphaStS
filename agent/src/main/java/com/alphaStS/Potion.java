@@ -823,7 +823,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new CardSilent.Tactician().getTemporaryCostIfPossible(0),
                         new CardSilent.Terror().getTemporaryCostIfPossible(0),
                         new CardSilent.Adrenaline().getTemporaryCostIfPossible(0),
-                        new CardSilent.Alchemize().getTemporaryCostIfPossible(0),
+                        new CardSilent.Alchemize(0, 0).getTemporaryCostIfPossible(0),
                         new CardSilent.BulletTime().getTemporaryCostIfPossible(0),
                         new CardSilent.Burst().getTemporaryCostIfPossible(0),
                         new CardSilent.CorpseExplosion().getTemporaryCostIfPossible(0),
@@ -1227,6 +1227,29 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EntropicBrew extends Potion {
+        int possibleGeneratedPotions;
+
+        public EntropicBrew() {
+        }
+
+        public EntropicBrew(int possibleGeneratedPotions) {
+            this.possibleGeneratedPotions = possibleGeneratedPotions;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int numPotions = state.getPotionCount();
+            for (int i = numPotions; i < state.properties.numOfPotionSlots; i++) {
+                state.properties.potionsGenerator.generatePotion(state);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Entropic Brew";
+        }
+    }
+
+    public static class PotionGenerator {
         public static final int UPRGADE_POTIONS = 1;
         public static final int CARD_GENERATION_POTIONS = 1 << 1;
         public static final int COLORLESS_POTION = 1 << 2;
@@ -1235,54 +1258,42 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         public static final int ATTACK_POTION = 1 << 5;
         public static final int SKILL_POTION = 1 << 6;
 
-        int possibleGeneratedPotions = UPRGADE_POTIONS;
-
-        @Override public GameActionCtx use(GameState state, int idx) {
-            int numPotions = state.getPotionCount();
-            for (int i = numPotions; i < state.properties.numOfPotionSlots; i++) {
-                state.setIsStochastic();
-                int r = state.getSearchRandomGen().nextInt(100, RandomGenCtx.EntropicBrew, new Tuple<>(this, -1));
-                Potion potion;
-                if (r < 65) {
-                    int r2 = state.getSearchRandomGen().nextInt(commonPotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
-                    potion = commonPotions.get(r2).get(state.getSearchRandomGen().nextInt(commonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
-                } else if (r < 90) {
-                    int r2 = state.getSearchRandomGen().nextInt(uncommonPotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
-                    potion = uncommonPotions.get(r2).get(state.getSearchRandomGen().nextInt(uncommonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
-                } else {
-                    int r2 = state.getSearchRandomGen().nextInt(rarePotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
-                    potion = rarePotions.get(r2).get(state.getSearchRandomGen().nextInt(rarePotions.get(r2).size(), RandomGenCtx.EntropicBrew));
-                }
-                for (int j = 0; j < state.properties.potions.size(); j++) {
-                    if (!state.properties.potions.get(j).isGenerated) {
-                        continue;
-                    }
-                    if (state.properties.potions.get(j).getClass().equals(potion.getClass()) && !state.potionUsable(j)) {
-                        state.setPotionUsable(j);
-                        break;
-                    }
-                }
-            }
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Entropic Brew";
-        }
-
-        public EntropicBrew(int possibleGeneratedPotions) {
-            this.possibleGeneratedPotions = possibleGeneratedPotions;
-        }
-
-        public EntropicBrew() {
-            this(UPRGADE_POTIONS);
-        }
+        int possibleGeneratedPotions;
 
         public List<List<Potion>> commonPotions = new ArrayList<>();
         public List<List<Potion>> uncommonPotions = new ArrayList<>();
         public List<List<Potion>> rarePotions = new ArrayList<>();
 
-        public void initPossibleGeneratedPotions(CharacterEnum character, int maxHealth, boolean firstCall) {
+        public PotionGenerator(int possibleGeneratedPotions) {
+            this.possibleGeneratedPotions = possibleGeneratedPotions;
+        }
+
+        public void generatePotion(GameState state) {
+            state.setIsStochastic();
+            int r = state.getSearchRandomGen().nextInt(100, RandomGenCtx.EntropicBrew, new Tuple<>(this, -1));
+            Potion potion;
+            if (r < 65) {
+                int r2 = state.getSearchRandomGen().nextInt(commonPotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
+                potion = commonPotions.get(r2).get(state.getSearchRandomGen().nextInt(commonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
+            } else if (r < 90) {
+                int r2 = state.getSearchRandomGen().nextInt(uncommonPotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
+                potion = uncommonPotions.get(r2).get(state.getSearchRandomGen().nextInt(uncommonPotions.get(r2).size(), RandomGenCtx.EntropicBrew));
+            } else {
+                int r2 = state.getSearchRandomGen().nextInt(rarePotions.size(), RandomGenCtx.EntropicBrew, new Tuple<>(this, r));
+                potion = rarePotions.get(r2).get(state.getSearchRandomGen().nextInt(rarePotions.get(r2).size(), RandomGenCtx.EntropicBrew));
+            }
+            for (int j = 0; j < state.properties.potions.size(); j++) {
+                if (!state.properties.potions.get(j).isGenerated) {
+                    continue;
+                }
+                if (state.properties.potions.get(j).getClass().equals(potion.getClass()) && !state.potionUsable(j)) {
+                    state.setPotionUsable(j);
+                    break;
+                }
+            }
+        }
+
+        public void initPossibleGeneratedPotions(CharacterEnum character, int maxHealth, int basePenaltyRatio) {
             if ((possibleGeneratedPotions & CARD_GENERATION_POTIONS) != 0 || (possibleGeneratedPotions & ATTACK_POTION) != 0) {
                 commonPotions.add(List.of(
                         new AttackPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
@@ -1478,7 +1489,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new CultistPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                     new CultistPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
-            var entropicBrewIdx = rarePotions.size();
             rarePotions.add(List.of(
                     new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
                     new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
@@ -1534,7 +1544,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new CunningPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                         new CunningPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
                 ));
-                // GhostInAJar
+                rarePotions.add(List.of(
+                        new GhostInAJar().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new GhostInAJar().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new GhostInAJar().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new GhostInAJar().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
             } else if (character == CharacterEnum.DEFECT) {
                 commonPotions.add(List.of(
                         new Potion.FocusPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
@@ -1559,11 +1574,21 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 // StancePotion
                 // Ambrosia
             }
-            if (firstCall) {
-                for (int i = 0; i < rarePotions.get(entropicBrewIdx).size(); i++) {
-                    ((EntropicBrew) rarePotions.get(entropicBrewIdx).get(i)).initPossibleGeneratedPotions(character, maxHealth, false);
-                }
-            }
+        }
+    }
+
+    public static class GhostInAJar extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.getCounterForRead()[state.properties.intangibleCounterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerIntangibleCounter();
+        }
+
+        @Override public String toString() {
+            return "Ghost In A jar";
         }
     }
 

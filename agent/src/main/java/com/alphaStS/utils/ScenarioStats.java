@@ -22,6 +22,7 @@ public class ScenarioStats {
     public Map<Integer, Integer> damageCount;
     public Map<Integer, Integer> damageCountNoDeath;
     public double finalQComb;
+    public double finalFightProgress;
     public long modelCalls;
     public long totalTurns;
     public long totalTurnsInWins;
@@ -133,6 +134,7 @@ public class ScenarioStats {
             predictionError.computeIfPresent(turnEntry.getKey(), (k, v) -> new Tuple<>(v.v1() + turnEntry.getValue().v1(), v.v2() + turnEntry.getValue().v2()));
         }
         finalQComb += stat.finalQComb;
+        finalFightProgress += stat.finalFightProgress;
         modelCalls += stat.modelCalls;
         totalTurns += stat.totalTurns;
         totalTurnsInWins += stat.totalTurnsInWins;
@@ -210,6 +212,7 @@ public class ScenarioStats {
             predictionError.computeIfAbsent(state.turnNum - curState.turnNum, (k) -> new Tuple<>(0.0, 0));
             predictionError.computeIfPresent(state.turnNum - curState.turnNum, (k, v) -> new Tuple<>(v.v1() + curState.get_q_TreeSearch(GameState.V_COMB_IDX) - finalQ, v.v2() + 1));
         }
+        finalFightProgress += state.calcFightProgress();
         if (state.isTerminal() > 0) {
             finalQComb += state.get_q();
             int idx = 0;
@@ -406,6 +409,7 @@ public class ScenarioStats {
             counterStat.printStat(indent, numOfGames - deathCount);
         }
         System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb / (numOfGames - deathCount)));
+        System.out.println(indent + "Average Final Final Progress: " + String.format("%.5f", finalFightProgress / numOfGames));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
         System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
 

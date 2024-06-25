@@ -80,7 +80,7 @@ public class EnemyBeyond {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     var enemy = state.getEnemiesForRead().get(idx);
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
-                        if (!((AwakenedOne) enemy).awakened && enemy.isAlive()) {
+                        if (!((AwakenedOne) enemy).awakened && enemy.isAlive() && enemy.move != REBIRTH) {
                             state.getEnemiesForWrite().getForWrite(idx).gainStrength(2);
                         }
                     }

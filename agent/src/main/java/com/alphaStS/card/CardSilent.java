@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.utils.CounterStat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1787,7 +1788,7 @@ public class CardSilent {
 
     public static class NoxiousFumeP extends _NoxiousFumeT {
         public NoxiousFumeP() {
-            super("Noxious FumeP+", Card.POWER, 1, 3);
+            super("Noxious Fume+", Card.POWER, 1, 3);
         }
     }
 
@@ -2101,8 +2102,12 @@ public class CardSilent {
             state.properties.addOnCardPlayedHandler("AThousandCuts", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
+                        var dmg = state.getCounterForRead()[counterIdx];
+                        if (state.properties.cardDict[cardIdx].cardName.startsWith("A Thousand")) {
+                            dmg -= 2;
+                        }
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                            state.playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                         }
                     }
                 }
@@ -2193,9 +2198,15 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _AlchemizeT extends Card {
-        public _AlchemizeT(String cardName, int cardType, int energyCost) {
+    public static abstract class _AlchemizeT extends Card {
+        public final int basePenaltyRatio;
+        public final int possibleGeneratedPotions;
+
+        public _AlchemizeT(String cardName, int cardType, int energyCost, int basePenaltyRatio, int possibleGeneratedPotions) {
             super(cardName, cardType, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = true;
+            this.basePenaltyRatio = basePenaltyRatio;
+            this.possibleGeneratedPotions = possibleGeneratedPotions;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2203,6 +2214,9 @@ public class CardSilent {
             if (state.getPotionCount() < state.properties.numOfPotionSlots) {
                 if (state.getCounterForRead()[counterIdx] < 4) { // 4 empty potion slot at most
                     state.getCounterForWrite()[counterIdx]++;
+                    if (state.properties.potionsGenerator != null) {
+                        state.properties.potionsGenerator.generatePotion(state);
+                    }
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2227,7 +2241,7 @@ public class CardSilent {
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                    if (isTerminal > 0) {
+                    if (isTerminal != 0) {
                         for (int i = 0; i < 5; i++) {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
                         }
@@ -2241,19 +2255,61 @@ public class CardSilent {
 
                 @Override public void updateQValues(GameState state, double[] v) {
                 }
+
+                @Override public int getNumberOfTargets() {
+                    return 5;
+                }
             });
+
+            if (basePenaltyRatio > 0 && state.properties.alchemizeCardIdxes == null) {
+                state.properties.alchemizeCardIdxes = new ArrayList<>();
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    if (state.properties.cardDict[i].cardName.startsWith("Alchemize")) {
+                        state.properties.alchemizeCardIdxes.add(i);
+                    }
+                }
+            }
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, 5, "Alchemize");
+        }
+
+        private static int getCardCount(GameState state, int idx) {
+            int count = 0;
+            count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.handArrLen, idx);
+            if (idx < state.properties.realCardsLen) {
+                count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.discardArrLen, idx);
+                count += GameStateUtils.getCardCount(state.getDeckArrForRead(), state.deckArrLen, idx);
+            }
+            return count;
+        }
+
+        public static int getPossibleAlchemize(GameState state) {
+            if (state.properties.alchemizeCardIdxes == null) {
+                return 0;
+            }
+            int total = 0;
+            for (int i = 0; i < state.properties.alchemizeCardIdxes.size(); i++) {
+                total += getCardCount(state, state.properties.alchemizeCardIdxes.get(i));
+            }
+            return total;
         }
     }
 
     public static class Alchemize extends CardSilent._AlchemizeT {
-        public Alchemize() {
-            super("Alchemize", Card.SKILL, 1);
+        public Alchemize(int basePenaltyRatio, int possibleGeneratedPotions) {
+            super("Alchemize", Card.SKILL, 1, basePenaltyRatio, possibleGeneratedPotions);
+        }
+
+        @Override public Card getUpgrade() {
+            return new CardSilent.AlchemizeP(basePenaltyRatio, possibleGeneratedPotions);
         }
     }
 
     public static class AlchemizeP extends CardSilent._AlchemizeT {
-        public AlchemizeP() {
-            super("Alchemize+", Card.SKILL, 0);
+        public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions) {
+            super("Alchemize+", Card.SKILL, 0, basePenaltyRatio, possibleGeneratedPotions);
         }
     }
 

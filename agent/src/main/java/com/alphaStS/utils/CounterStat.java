@@ -15,12 +15,19 @@ public class CounterStat {
     int cmpWinAmt;
     int cmpLoss;
     int cmpLossAmt;
+    int counterLen = 1;
 
     public CounterStat() {} // for jackson
 
     public CounterStat(int idx, String name) {
         counterIdx = idx;
         counterName = name;
+    }
+
+    public CounterStat(int idx, int len, String name) {
+        counterIdx = idx;
+        counterName = name;
+        counterLen = len;
     }
 
     public CounterStat copy() {
@@ -38,6 +45,19 @@ public class CounterStat {
         cmpWinAmt += counterStat.cmpWinAmt;
         cmpLoss += counterStat.cmpLoss;
         cmpLossAmt += counterStat.cmpLossAmt;
+    }
+
+    private int getCounter(GameState state) {
+        if (counterLen == 1) {
+            return state.getCounterForRead()[counterIdx];
+        } else {
+            for (int i = 0; i < counterLen; i++) {
+                if (state.getCounterForRead()[i] > 0) {
+                    return i;
+                }
+            }
+            return 0;
+        }
     }
 
     public void add(GameState state) {

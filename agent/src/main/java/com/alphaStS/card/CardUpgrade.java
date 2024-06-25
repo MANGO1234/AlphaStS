@@ -140,8 +140,7 @@ public class CardUpgrade {
         map.put(new CardSilent.AThousandCuts(), new CardSilent.AThousandCutsP());
         map.put(new CardSilent.Adrenaline(), new CardSilent.AdrenalineP());
         map.put(new CardSilent.AfterImage(), new CardSilent.AfterImageP());
-        map.put(new CardSilent.Alchemize(), new CardSilent.AlchemizeP());
-        map.put(new CardSilent.Alchemize(), new CardSilent.AlchemizeP());
+//        map.put(new CardSilent.Alchemize(), new CardSilent.AlchemizeP());
         map.put(new CardSilent.BulletTime(), new CardSilent.BulletTimeP());
         map.put(new CardSilent.Burst(), new CardSilent.BurstP());
         map.put(new CardSilent.CorpseExplosion(), new CardSilent.CorpseExplosionP());

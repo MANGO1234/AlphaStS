@@ -630,7 +630,6 @@ public interface GameStateRandomization {
         private final Map<Integer, Info> infoMap;
         private final int type;
 
-        public final static int SET_NUMBER_OF_CARDS_IN_DECK = 0;
         public final static int ADD_TO_DECK = 1;
         public final static int UPGRADE = 2;
         public final static int REMOVE_FROM_DECK = 3;
@@ -664,10 +663,6 @@ public interface GameStateRandomization {
             this.type = type;
         }
 
-        public CardCountRandomization(List<List<CardCount>> scenarios) {
-            this(scenarios, SET_NUMBER_OF_CARDS_IN_DECK);
-        }
-
         @Override public int randomize(GameState state) {
             int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
             randomize(state, r);
@@ -697,7 +692,7 @@ public interface GameStateRandomization {
                         state.removeCardFromDeck(state.properties.findCardIndex(cardCount.card()), false);
                     }
                 } else {
-                    state.setCardCountInDeck(state.properties.findCardIndex(cardCount.card()), cardCount.count());
+                    throw new IllegalStateException(); // todo: switch to enum
                 }
             }
         }
@@ -712,6 +707,48 @@ public interface GameStateRandomization {
             } else {
                 return scenarios.stream().flatMap((s) -> s.stream().map(CardCount::card)).distinct().toList();
             }
+        }
+    }
+
+    class PlayerHealthRandomization implements GameStateRandomization {
+        private final Map<Integer, Info> infoMap;
+        private final int[] possibleHealths;
+
+        public PlayerHealthRandomization(int[] possibleHealths) {
+            this.possibleHealths = possibleHealths;
+            infoMap = new HashMap<>();
+            for (int i = 0; i < possibleHealths.length; i++) {
+                infoMap.put(i, new Info(1.0 / possibleHealths.length, "Health " + possibleHealths[i]));
+            }
+        }
+
+        public PlayerHealthRandomization(int start, int end) {
+            this.possibleHealths = new int[end - start + 1];
+            for (int i = 0; i < possibleHealths.length; i++) {
+                this.possibleHealths[i] = start + i;
+            }
+            infoMap = new HashMap<>();
+            for (int i = 0; i < possibleHealths.length; i++) {
+                infoMap.put(i, new Info(1.0 / possibleHealths.length, "Health " + possibleHealths[i]));
+            }
+        }
+
+        @Override public int randomize(GameState state) {
+            int r = state.getSearchRandomGen().nextInt(possibleHealths.length, RandomGenCtx.BeginningOfGameRandomization, this);
+            randomize(state, r);
+            return r;
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            state.getPlayerForWrite().setHealth(possibleHealths[r]);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return List.of();
         }
     }
 

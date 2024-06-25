@@ -1421,7 +1421,7 @@ public class InteractiveMode {
         return readIntCommand(reader, history, 4);
     }
 
-    int selectEntropicBrew(BufferedReader reader, Tuple<Potion.EntropicBrew, Integer> arg, List<String> history) throws IOException {
+    int selectEntropicBrew(BufferedReader reader, Tuple<Potion.PotionGenerator, Integer> arg, List<String> history) throws IOException {
         if (arg.v2() < 0) {
             out.println("Select potion rarity for Entropic Brew");
             out.println("0. Common");
@@ -2431,7 +2431,7 @@ public class InteractiveMode {
             }
             case EntropicBrew -> {
                 try {
-                    return interactiveMode.selectEntropicBrew(reader, (Tuple<Potion.EntropicBrew, Integer>) arg, history);
+                    return interactiveMode.selectEntropicBrew(reader, (Tuple<Potion.PotionGenerator, Integer>) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

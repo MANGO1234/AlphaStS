@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardCount;
+import com.alphaStS.card.CardSilent;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyEncounter;
@@ -28,11 +29,11 @@ public class GameStateBuilder {
     private List<Integer> gremlinGangFightIndexes = new ArrayList<>();
     private List<Relic> relics = new ArrayList<>();
     private List<Potion> potions = new ArrayList<>();
+    private Potion.PotionGenerator potionsGenerator;
     private List<BiConsumer<GameState, int[]>> enemyReorderings = new ArrayList<>();
     private GameStateRandomization randomization = null;
     private GameStateRandomization preBattleRandomization = null;
     private GameStateRandomization preBattleGameScenarios = null;
-    private GameEventHandler startOfGameSetupHandler = null;
     private GameEventHandler endOfPreBattleSetupHandler = null;
     private int[] potionsScenarios;
     private List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
@@ -161,28 +162,51 @@ public class GameStateBuilder {
 
     public List<Potion> getPotions() {
         int maxPotionSlot = relics.stream().anyMatch((x) -> x instanceof Relic.PotionBelt) ? 4 : 2;
+        boolean canGeneratePotion = false;
+        int basePenaltyRatio = 0;
+        int possibleGeneratedPotions = 0;
         for (int i = 0; i < potions.size(); i++) {
             if (potions.get(i) instanceof Potion.EntropicBrew pot) {
-                pot.initPossibleGeneratedPotions(character, getPlayer().getMaxHealth(), true);
-                for (int potionIdx = 0; potionIdx < pot.commonPotions.size(); potionIdx++) {
-                    for (int j = 0; j < maxPotionSlot; j++) {
-                        potions.add(pot.commonPotions.get(potionIdx).get(j));
-                    }
-                }
-                for (int potionIdx = 0; potionIdx < pot.uncommonPotions.size(); potionIdx++) {
-                    for (int j = 0; j < maxPotionSlot; j++) {
-                        potions.add(pot.uncommonPotions.get(potionIdx).get(j));
-                    }
-                }
-                for (int potionIdx = 0; potionIdx < pot.rarePotions.size(); potionIdx++) {
-                    for (int j = 0; j < maxPotionSlot; j++) {
-                        potions.add(pot.rarePotions.get(potionIdx).get(j));
-                    }
-                }
+                canGeneratePotion = true;
+                basePenaltyRatio = Math.max(basePenaltyRatio, pot.basePenaltyRatio);
+                possibleGeneratedPotions |= pot.possibleGeneratedPotions;
                 break;
             }
         }
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).card().cardName.startsWith("Alchemize") && cards.get(i).card() instanceof CardSilent._AlchemizeT alchemize) {
+                if (alchemize.basePenaltyRatio > 0) {
+                    canGeneratePotion = true;
+                    basePenaltyRatio = Math.max(basePenaltyRatio, alchemize.basePenaltyRatio);
+                    possibleGeneratedPotions |= alchemize.possibleGeneratedPotions;
+                    break;
+                }
+            }
+        }
+        if (canGeneratePotion) {
+            potionsGenerator = new Potion.PotionGenerator(possibleGeneratedPotions);
+            potionsGenerator.initPossibleGeneratedPotions(character, getPlayer().getMaxHealth(), basePenaltyRatio);
+            for (int potionIdx = 0; potionIdx < potionsGenerator.commonPotions.size(); potionIdx++) {
+                for (int j = 0; j < maxPotionSlot; j++) {
+                    potions.add(potionsGenerator.commonPotions.get(potionIdx).get(j));
+                }
+            }
+            for (int potionIdx = 0; potionIdx < potionsGenerator.uncommonPotions.size(); potionIdx++) {
+                for (int j = 0; j < maxPotionSlot; j++) {
+                    potions.add(potionsGenerator.uncommonPotions.get(potionIdx).get(j));
+                }
+            }
+            for (int potionIdx = 0; potionIdx < potionsGenerator.rarePotions.size(); potionIdx++) {
+                for (int j = 0; j < maxPotionSlot; j++) {
+                    potions.add(potionsGenerator.rarePotions.get(potionIdx).get(j));
+                }
+            }
+        }
         return potions;
+    }
+
+    public Potion.PotionGenerator getPotionsGenerator() {
+        return potionsGenerator;
     }
 
     public void setPotionsScenarios(int... scenarios) {
@@ -239,14 +263,6 @@ public class GameStateBuilder {
 
     public CharacterEnum getCharacter() {
         return character;
-    }
-
-    public void setStartOfGameSetup(GameEventHandler handler) {
-        startOfGameSetupHandler = handler;
-    }
-
-    public GameEventHandler getStartOfGameSetup() {
-        return startOfGameSetupHandler;
     }
 
     public GameEventHandler getEndOfPreBattleSetupHandler() {
