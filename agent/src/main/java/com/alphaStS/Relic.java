@@ -69,7 +69,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static boolean isBossFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
-            if (enemy.properties.isBoss) {
+            if (enemy.isAlive() && enemy.properties.isBoss) {
                 return true;
             }
         }

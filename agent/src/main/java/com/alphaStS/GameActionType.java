@@ -15,5 +15,6 @@ public enum GameActionType {
     SELECT_SCENARIO,
     BEGIN_TURN,
     END_SELECT_CARD_HAND,
+    END_SELECT_CARD_1_OUT_OF_3,
     AFTER_RANDOMIZATION,
 }

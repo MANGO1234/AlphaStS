@@ -435,10 +435,14 @@ public final class GameState implements State {
 
         // select from select 1 out of 3 cards action
         if (relics.stream().anyMatch((x) -> x.selectCard1OutOf3) || potions.stream().anyMatch((x) -> x.selectCard1OutOf3)) {
-            properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()] = new GameAction[cards.size()];
+            properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()] = new GameAction[l];
             for (int i = 0; i < cards.size(); i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_1_OUT_OF_3, i);
             }
+            for (int i = 0; i < potions.size(); i++) {
+                properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()][cards.size() + i] = new GameAction(GameActionType.USE_POTION, i);
+            }
+            properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()][l - 1] = new GameAction(GameActionType.END_SELECT_CARD_1_OUT_OF_3, 0);
         }
 
         // select pre battle scenario actions
@@ -565,6 +569,9 @@ public final class GameState implements State {
         }
         for (int i = 0; i < potions.size(); i++) { // need to use i because setup can modify other enemies
             potions.get(i).gamePropertiesSetup(this);
+        }
+        if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
+            EnemyEncounter.gamePropertiesSetup(this);
         }
         properties.compileCounterInfo();
         counter = new int[properties.counterLength];
@@ -847,6 +854,9 @@ public final class GameState implements State {
         List<Integer> idxes = new ArrayList<>();
         potions.forEach(potion -> potion.getPossibleSelect3OutOf1Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
         relics.forEach(relic -> relic.getPossibleSelect3OutOf1Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
+        if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
+            EnemyEncounter.getPossibleSelect1OutOf3CardsFromRewardScreen(properties).forEach((card) -> idxes.add(properties.findCardIndex(card)));
+        }
         return idxes.stream().mapToInt(Integer::intValue).sorted().toArray();
     }
 
@@ -872,6 +882,9 @@ public final class GameState implements State {
             }
             for (Enemy enemy : enemies) {
                 addPossibleGeneratedCardsFromListOfCard(enemy.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
+            }
+            if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
+                addPossibleGeneratedCardsFromListOfCard(EnemyEncounter.getPossibleSelect1OutOf3CardsFromRewardScreen(properties), newSet, discardSet);
             }
             if (set.size() == newSet.size()) {
                 break;
@@ -1839,8 +1852,12 @@ public final class GameState implements State {
         GameAction action = properties.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         if (action.type() == GameActionType.BEGIN_BATTLE) {
             if (properties.randomization != null) {
-                battleRandomizationIdxChosen = properties.randomization.randomize(this);
-                setIsStochastic();
+                if (properties.isHeartGauntlet && battleRandomizationIdxChosen >= 0) {
+                    properties.randomization.randomize(this, battleRandomizationIdxChosen);
+                } else {
+                    battleRandomizationIdxChosen = properties.randomization.randomize(this);
+                    setIsStochastic();
+                }
             }
             properties.enemyHealthRandomization.randomize(this);
             for (GameEventHandler handler : properties.startOfBattleHandlers) {
@@ -1881,12 +1898,21 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
             playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
-            if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
-                addCardToHandGeneration(action.idx());
-            }
-            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
             if (turnNum == 0) {
-                beginTurnPart2();
+                if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
+                    addCardToDeck(action.idx(), false);
+                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+                } else {
+                    if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
+                        addCardToHandGeneration(action.idx());
+                    }
+                    beginTurnPart2();
+                }
+            } else {
+                if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
+                    addCardToHandGeneration(action.idx());
+                }
+                setActionCtx(GameActionCtx.PLAY_CARD, null, false);
             }
         } else if (action.type() == GameActionType.USE_POTION) {
             if (properties.potions.get(action.idx()).isGenerated) {
@@ -1901,7 +1927,12 @@ public final class GameState implements State {
             usePotion(action, -1);
         } else if (action.type() == GameActionType.BEGIN_PRE_BATTLE) {
             if (properties.preBattleRandomization != null) {
-                preBattleRandomizationIdxChosen = properties.preBattleRandomization.randomize(this);
+                if (properties.isHeartGauntlet && preBattleRandomizationIdxChosen >= 0) {
+                    properties.preBattleRandomization.randomize(this, preBattleRandomizationIdxChosen);
+                } else {
+                    preBattleRandomizationIdxChosen = properties.preBattleRandomization.randomize(this);
+                    setIsStochastic();
+                }
             }
             setActionCtx(properties.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
             if (properties.endOfPreBattleHandler != null && realTurnNum == 0) {
@@ -1920,6 +1951,16 @@ public final class GameState implements State {
             } else if (currentAction.type() == GameActionType.PLAY_CARD) {
                 endTurn();
                 runActionsInQueueIfNonEmpty();
+            }
+        } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
+            if (turnNum == 0) {
+                if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
+                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+                } else {
+                    beginTurnPart2();
+                }
+            } else {
+                setActionCtx(GameActionCtx.PLAY_CARD, null, false);
             }
         }
         if (actionCtx == GameActionCtx.PLAY_CARD && properties.hasUnceasingTop) {
@@ -1982,6 +2023,9 @@ public final class GameState implements State {
             GameAction[] a = properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()];
             if (action < 0 || action >= a.length) {
                 return false;
+            }
+            if (a[action].type() != GameActionType.SELECT_CARD_1_OUT_OF_3) {
+                return a[action].type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3;
             }
             int idx = properties.select1OutOf3CardsReverseIdxes[a[action].idx()];
             return (select1OutOf3CardsIdxes & 255) == idx || ((select1OutOf3CardsIdxes >> 8) & 255) == idx || ((select1OutOf3CardsIdxes >> 16) & 255) == idx;
@@ -2693,7 +2737,7 @@ public final class GameState implements State {
                             continue;
                         }
                         if (potionUsable(i) && properties.potions.get(i) instanceof Potion.SmokeBomb) {
-                            if (!properties.isHeartFight && !Relic.isBossFight(this)) {
+                            if (!Relic.isBossFight(this) && !GameStateUtils.isSurrounded(this)) {
                                 legal[properties.cardDict.length + i] = true;
                                 count++;
                             }
@@ -3857,6 +3901,8 @@ public final class GameState implements State {
             return "Begin Turn";
         } else if (action.type() == GameActionType.END_SELECT_CARD_HAND) {
             return "End Selecting Card From Hand";
+        } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
+            return "End Selecting 1 Out Of 3";
         }
         return "Unknown";
     }
@@ -4551,6 +4597,10 @@ public final class GameState implements State {
         getPotionsStateForWrite()[i * 3] = 0;
         getPotionsStateForWrite()[i * 3 + 1] = penalty;
         getPotionsStateForWrite()[i * 3 + 2] = 0;
+    }
+
+    public void setPotionUsed(int i) {
+        getPotionsStateForWrite()[i * 3] = 0;
     }
 
     public void setSelect1OutOf3Idxes(int idx1, int idx2, int idx3) {

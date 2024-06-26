@@ -1205,17 +1205,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class SmokeBomb extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            boolean gameEnd = true;
-            for (EnemyReadOnly enemyReadOnly : state.getEnemiesForRead()) {
-                if (enemyReadOnly.isAlive() && !(enemyReadOnly instanceof EnemyEnding.CorruptHeart)) {
-                    gameEnd = false;
-                }
-            }
-            if (!gameEnd) {
-                for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
-                    if (state.getEnemiesForWrite().get(i).isAlive()) {
-                        state.killEnemy(i, false);
-                    }
+            for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
+                if (state.getEnemiesForWrite().get(i).isAlive()) {
+                    state.killEnemy(i, false);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1579,7 +1571,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class GhostInAJar extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForRead()[state.properties.intangibleCounterIdx]++;
+            state.getCounterForWrite()[state.properties.intangibleCounterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
 

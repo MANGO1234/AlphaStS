@@ -84,6 +84,9 @@ public class Configuration {
         return FLATTEN_POLICY_AS_NODES_INCREASE && (!TEST_FLATTEN_POLICY_AS_NODES_INCREASE || state.properties.testNewFeature);
     }
 
+    public static boolean HEART_GAUNTLET_POTION_REWARD = false;
+    public static boolean HEART_GAUNTLET_CARD_REWARD = false;
+
     // having this help network know when it's almost losing due to 50 turns losing rule
     // basic testing show it helps a bit in preventing losing to 50 turns
     // combine with USE_TURNS_LEFT_HEAD below for maximum effect

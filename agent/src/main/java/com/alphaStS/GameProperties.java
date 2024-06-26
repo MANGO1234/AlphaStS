@@ -78,6 +78,7 @@ public class GameProperties implements Cloneable {
     public int[] skillPotionIdxes;
     public int[] powerPotionIdxes;
     public int[] colorlessPotionIdxes;
+    public int[] cardRewardIdxes;
     public int[] astrolabeCardsIdxes;
     public int[] deadBranchCardsIdxes;
     public int[] toolboxIdxes;

@@ -2,6 +2,9 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 import com.alphaStS.card.Card;
+import com.alphaStS.card.CardSilent;
+import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 
@@ -511,6 +514,15 @@ public class EnemyEncounter {
                     newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];
                 }
             }
+            boolean usedSmokeBomb = usedSmokeBomb(newState);
+            if (Configuration.HEART_GAUNTLET_POTION_REWARD) {
+                if (newState.getPotionCount() < newState.properties.numOfPotionSlots && !usedSmokeBomb) {
+                    if (newState.getSearchRandomGen().nextInt(100, RandomGenCtx.Other) < 40) {
+                        newState.properties.potionsGenerator.generatePotion(newState);
+                    }
+                    newState.setIsStochastic();
+                }
+            }
             for (int i = 0; i < state.properties.counterInfos.length; i++) {
                 if (state.properties.counterInfos[i].persistAcrossBattle) {
                     for (int j = 0; j < state.properties.counterInfos[i].length; j++) {
@@ -521,7 +533,194 @@ public class EnemyEncounter {
             newState.properties = state.properties;
             newState.preBattleRandomizationIdxChosen = state.preBattleRandomizationIdxChosen;
             newState.battleRandomizationIdxChosen = state.battleRandomizationIdxChosen;
+            if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
+                if (!usedSmokeBomb) {
+                    goToCardRewardCtx(newState);
+                }
+            }
             return newState;
         });
+    }
+
+    private static void goToCardRewardCtx(GameState state) {
+        boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+        int idx1 = state.getSearchRandomGen().nextInt(state.properties.cardRewardIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.cardRewardIdxes) : null);
+        int idx2 = state.getSearchRandomGen().nextInt(state.properties.cardRewardIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.cardRewardIdxes) : null);
+        int idx3 = state.getSearchRandomGen().nextInt(state.properties.cardRewardIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.cardRewardIdxes) : null);
+        if (idx2 >= idx1) {
+            idx2++;
+        }
+        if (idx3 >= Math.min(idx1, idx2)) {
+            idx3++;
+        }
+        if (idx3 >= Math.max(idx1, idx2)) {
+            idx3++;
+        }
+        state.setSelect1OutOf3Idxes(state.properties.cardRewardIdxes[idx1], state.properties.cardRewardIdxes[idx2], state.properties.cardRewardIdxes[idx3]);
+        state.setIsStochastic();
+        state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, false);
+    }
+
+    private static boolean usedSmokeBomb(GameState state) {
+        for (int i = 0; i < state.properties.potions.size(); i++) {
+            if (state.properties.potions.get(i).getIsGenerated()) {
+                return false;
+            } else if (state.properties.potions.get(i) instanceof Potion.SmokeBomb) {
+                if (state.potionUsed(i)) {
+                    return true;
+                }
+                state.setPotionUsed(i);
+            }
+        }
+        return false;
+    }
+
+    public static List<Card> getPossibleSelect1OutOf3CardsFromRewardScreen(GameProperties gameProperties) {
+        if (gameProperties.character == CharacterEnum.IRONCLAD) {
+        } else if (gameProperties.character == CharacterEnum.SILENT) {
+            return List.of(
+                    new CardSilent.Bane(),
+                    new CardSilent.DaggerSpray(),
+                    new CardSilent.DaggerThrow(),
+                    new CardSilent.FlyingKnee(),
+                    new CardSilent.PoisonedStab(),
+                    new CardSilent.QuickSlash(),
+                    new CardSilent.Slice(),
+                    new CardSilent.SneakyStrike(),
+                    new CardSilent.SuckerPunch(),
+                    new CardSilent.AllOutAttack(),
+                    new CardSilent.Backstab(),
+                    new CardSilent.Choke(),
+                    new CardSilent.Dash(),
+                    new CardSilent.EndlessAgony(),
+                    new CardSilent.Eviscerate(),
+                    new CardSilent.Finisher(),
+                    new CardSilent.Flechette(),
+                    new CardSilent.HeelHook(),
+                    new CardSilent.MasterfulStab(6),
+                    new CardSilent.Predator(),
+                    new CardSilent.RiddleWithHoles(),
+                    new CardSilent.Skewer(),
+                    new CardSilent.DieDieDie(),
+                    new CardSilent.GlassKnife(),
+                    new CardSilent.GrandFinale(),
+                    new CardSilent.Unload(),
+
+                    new CardSilent.Acrobatics(),
+                    new CardSilent.Backflip(),
+                    new CardSilent.BladeDance(),
+                    new CardSilent.CloakAndDagger(),
+                    new CardSilent.DeadlyPoison(),
+                    new CardSilent.Deflect(),
+                    new CardSilent.DodgeAndRoll(),
+                    new CardSilent.Outmaneuver(),
+                    new CardSilent.PiercingWail(),
+                    new CardSilent.Prepared(),
+                    new CardSilent.Blur(),
+                    new CardSilent.BouncingFlask(),
+                    new CardSilent.CalculatedGamble(),
+                    new CardSilent.Catalyst(),
+                    new CardSilent.Concentrate(),
+                    new CardSilent.CripplingCloud(),
+                    new CardSilent.Distraction(),
+                    new CardSilent.EscapePlan(),
+                    new CardSilent.Expertise(),
+                    new CardSilent.LegSweep(),
+                    new CardSilent.Reflex(),
+                    new CardSilent.Setup(),
+                    new CardSilent.Tactician(),
+                    new CardSilent.Terror(),
+                    new CardSilent.Adrenaline(),
+                    new CardSilent.Alchemize(0, 0),
+                    new CardSilent.BulletTime(),
+                    new CardSilent.Burst(),
+                    new CardSilent.CorpseExplosion(),
+                    new CardSilent.Doppelganger(),
+                    new CardSilent.Malaise(),
+                    new CardSilent.Nightmare(),
+                    new CardSilent.PhantasmalKiller(),
+                    new CardSilent.StormOfSteel(),
+
+                    new CardSilent.Accuracy(),
+                    new CardSilent.Caltrops(),
+                    new CardSilent.Footwork(),
+                    new CardSilent.InfiniteBlade(),
+                    new CardSilent.NoxiousFume(),
+                    new CardSilent.WellLaidPlans(),
+                    new CardSilent.AThousandCuts(),
+                    new CardSilent.AfterImage(),
+                    new CardSilent.Envenom(),
+                    new CardSilent.ToolsOfTheTrade(),
+                    new CardSilent.WraithForm(),
+
+                    new CardSilent.Bane().getUpgrade(),
+                    new CardSilent.DaggerSpray().getUpgrade(),
+                    new CardSilent.DaggerThrow().getUpgrade(),
+                    new CardSilent.FlyingKnee().getUpgrade(),
+                    new CardSilent.PoisonedStab().getUpgrade(),
+                    new CardSilent.QuickSlash().getUpgrade(),
+                    new CardSilent.Slice().getUpgrade(),
+                    new CardSilent.SneakyStrike().getUpgrade(),
+                    new CardSilent.SuckerPunch().getUpgrade(),
+                    new CardSilent.AllOutAttack().getUpgrade(),
+                    new CardSilent.Backstab().getUpgrade(),
+                    new CardSilent.Choke().getUpgrade(),
+                    new CardSilent.Dash().getUpgrade(),
+                    new CardSilent.EndlessAgony().getUpgrade(),
+                    new CardSilent.Eviscerate().getUpgrade(),
+                    new CardSilent.Finisher().getUpgrade(),
+                    new CardSilent.Flechette().getUpgrade(),
+                    new CardSilent.HeelHook().getUpgrade(),
+                    new CardSilent.MasterfulStab(6).getUpgrade(),
+                    new CardSilent.Predator().getUpgrade(),
+                    new CardSilent.RiddleWithHoles().getUpgrade(),
+                    new CardSilent.Skewer().getUpgrade(),
+
+                    new CardSilent.Acrobatics().getUpgrade(),
+                    new CardSilent.Backflip().getUpgrade(),
+                    new CardSilent.BladeDance().getUpgrade(),
+                    new CardSilent.CloakAndDagger().getUpgrade(),
+                    new CardSilent.DeadlyPoison().getUpgrade(),
+                    new CardSilent.Deflect().getUpgrade(),
+                    new CardSilent.DodgeAndRoll().getUpgrade(),
+                    new CardSilent.Outmaneuver().getUpgrade(),
+                    new CardSilent.PiercingWail().getUpgrade(),
+                    new CardSilent.Prepared().getUpgrade(),
+                    new CardSilent.Blur().getUpgrade(),
+                    new CardSilent.BouncingFlask().getUpgrade(),
+                    new CardSilent.CalculatedGamble().getUpgrade(),
+                    new CardSilent.Catalyst().getUpgrade(),
+                    new CardSilent.Concentrate().getUpgrade(),
+                    new CardSilent.CripplingCloud().getUpgrade(),
+                    new CardSilent.Distraction().getUpgrade(),
+                    new CardSilent.EscapePlan().getUpgrade(),
+                    new CardSilent.Expertise().getUpgrade(),
+                    new CardSilent.LegSweep().getUpgrade(),
+                    new CardSilent.Reflex().getUpgrade(),
+                    new CardSilent.Setup().getUpgrade(),
+                    new CardSilent.Tactician().getUpgrade(),
+                    new CardSilent.Terror().getUpgrade(),
+
+                    new CardSilent.Accuracy().getUpgrade(),
+                    new CardSilent.Caltrops().getUpgrade(),
+                    new CardSilent.Footwork().getUpgrade(),
+                    new CardSilent.InfiniteBlade().getUpgrade(),
+                    new CardSilent.NoxiousFume().getUpgrade(),
+                    new CardSilent.WellLaidPlans().getUpgrade()
+            );
+        } else if (gameProperties.character == CharacterEnum.DEFECT) {
+        }
+        throw new IllegalArgumentException();
+    }
+
+    public static void gamePropertiesSetup(GameState state) {
+        var cards = getPossibleSelect1OutOf3CardsFromRewardScreen(state.properties);
+        state.properties.cardRewardIdxes = new int[cards.size()];
+        for (int i = 0; i < cards.size(); i++) {
+            state.properties.cardRewardIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
+        }
     }
 }

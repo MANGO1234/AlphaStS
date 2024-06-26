@@ -924,6 +924,7 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.BEGIN_BATTLE ||
                     state.getAction(i).type() == GameActionType.BEGIN_PRE_BATTLE ||
                     state.getAction(i).type() == GameActionType.END_SELECT_CARD_HAND ||
+                    state.getAction(i).type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3 ||
                     state.getAction(i).type() == GameActionType.AFTER_RANDOMIZATION) {
                 out.println(i + ". " + state.getActionString(i));
             } else if (state.getAction(i).type() == GameActionType.END_TURN) {

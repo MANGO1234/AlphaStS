@@ -1,6 +1,8 @@
 package com.alphaStS;
 
 import com.alphaStS.card.Card;
+import com.alphaStS.enemy.EnemyEnding;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.utils.Utils;
 
 import java.io.*;
@@ -108,6 +110,20 @@ public class GameStateUtils {
             writer.write("Enemy " + (i++) + ": " + enemy.toString(state) + "\n");
         }
         writer.flush();
+    }
+
+    public static boolean isSurrounded(GameState state) {
+        boolean spireShield = false;
+        for (EnemyReadOnly enemy : state.getEnemiesForRead()) {
+            if (enemy.isAlive() && enemy instanceof EnemyEnding.SpireShield) {
+                 spireShield = true;
+            } else if (enemy.isAlive() && enemy instanceof EnemyEnding.SpireSpear) {
+                if (spireShield) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static class CardChanges {

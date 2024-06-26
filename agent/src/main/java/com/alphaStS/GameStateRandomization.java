@@ -26,6 +26,10 @@ public interface GameStateRandomization {
         return new GameStateRandomization.Cartesian(prev, this);
     }
 
+    default GameStateRandomization ignore(GameStateRandomization prev) {
+        return this;
+    }
+
     default GameStateRandomization join(GameStateRandomization b) {
         return new GameStateRandomization.Join(this, b);
     }

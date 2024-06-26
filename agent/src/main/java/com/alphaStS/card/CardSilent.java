@@ -1606,13 +1606,13 @@ public class CardSilent {
 
     public static class InfiniteBlade extends _InfiniteBladeT {
         public InfiniteBlade() {
-            super("InfiniteBlade", Card.POWER, 1, false);
+            super("Infinite Blade", Card.POWER, 1, false);
         }
     }
 
     public static class InfiniteBladeP extends _InfiniteBladeT {
         public InfiniteBladeP() {
-            super("InfiniteBlade+", Card.POWER, 1, true);
+            super("Infinite Blade+", Card.POWER, 1, true);
         }
     }
 
@@ -2210,7 +2210,6 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // todo: add the option to use the generated potion
             if (state.getPotionCount() < state.properties.numOfPotionSlots) {
                 if (state.getCounterForRead()[counterIdx] < 4) { // 4 empty potion slot at most
                     state.getCounterForWrite()[counterIdx]++;
