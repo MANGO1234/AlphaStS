@@ -101,6 +101,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
         return new Card.CardTmpChangeCost(this, temporaryCost);
     }
+    public Card getTemporaryCostUntilPlayedIfPossible(int temporaryCost) {
+        var card = this;
+        if (this instanceof Card.CardTmpChangeCost c) {
+            card = c.card;
+        }
+        if (card.energyCost < 0 || card.energyCost == temporaryCost || card.isXCost) {
+            return this;
+        }
+        return new Card.CardTmpUntilPlayedCost(card, temporaryCost);
+    }
 
     @Override public String toString() {
         return "Card{" +
@@ -173,6 +183,77 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
+        public int realEnergyCost() {
+            return card.realEnergyCost();
+        }
+        public Card getUpgrade() {
+            var upgrade = card.getUpgrade();
+            if (upgrade == null) {
+                return null;
+            }
+            if (upgrade.energyCost == 0) {
+                return null;
+            }
+            // todo BloodForBlood + Tmp
+            return new CardTmpChangeCost(upgrade, 0);
+        }
+    }
+
+    public static class CardTmpUntilPlayedCost extends Card {
+        public final Card card;
+        private int cardIdx;
+
+        public CardTmpUntilPlayedCost(Card card, int energyCost) {
+            super(card.cardName + " (Tmp Until Played " + energyCost + ")", card.cardType, energyCost, card.rarity);
+            this.card = card;
+            ethereal = card.ethereal;
+            innate = card.innate;
+            exhaustWhenPlayed = card.exhaustWhenPlayed;
+            exhaustNonAttacks = card.exhaustNonAttacks;
+            selectEnemy = card.selectEnemy;
+            selectFromDiscard = card.selectFromDiscard;
+            selectFromExhaust = card.selectFromExhaust;
+            selectFromDeck = card.selectFromDeck;
+            selectFromHand = card.selectFromHand;
+            selectFromDiscardLater = card.selectFromDiscardLater;
+            selectFromHandLater = card.selectFromHandLater;
+            exhaustSkill = card.exhaustSkill;
+            canExhaustAnyCard = card.canExhaustAnyCard;
+            changePlayerStrength = card.changePlayerStrength;
+            changePlayerStrengthEot = card.changePlayerStrengthEot;
+            changePlayerDexterity = card.changePlayerDexterity;
+            changePlayerFocus = card.changePlayerFocus;
+            changePlayerArtifact = card.changePlayerArtifact;
+            vulnEnemy = card.vulnEnemy;
+            weakEnemy = card.weakEnemy;
+            chokeEnemy = card.chokeEnemy;
+            affectEnemyStrength = card.affectEnemyStrength;
+            affectEnemyStrengthEot = card.affectEnemyStrengthEot;
+            putCardOnTopDeck = card.putCardOnTopDeck;
+            healPlayer = card.healPlayer;
+        }
+
+        public void setCounterIdx(GameProperties gameProperties, int idx) {
+            card.setCounterIdx(gameProperties, idx);
+        }
+
+        public int getCounterIdx(GameProperties gameProperties) {
+            return card.getCounterIdx(gameProperties);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
+        public void onExhaust(GameState state) { card.onExhaust(state); }
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
+        public int onPlayTransformCardIdx(GameProperties prop) {
+            int idx = card.onPlayTransformCardIdx(prop);
+            return idx == -1 ? cardIdx : idx;
+        }
+        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
+        public void gamePropertiesSetup(GameState state) {
+            card.gamePropertiesSetup(state);
+            cardIdx = state.properties.findCardIndex(card);
+        }
         public int realEnergyCost() {
             return card.realEnergyCost();
         }

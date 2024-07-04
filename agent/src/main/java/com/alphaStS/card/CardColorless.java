@@ -859,7 +859,7 @@ public class CardColorless {
     }
 
     private static abstract class _RitualDaggerT extends Card {
-        private final int n;
+        protected final int n;
         private final int dmgInc;
 
         public _RitualDaggerT(String cardName, int cardType, int energyCost, int n, int dmgInc) {
@@ -888,6 +888,10 @@ public class CardColorless {
     public static class RitualDagger extends _RitualDaggerT {
         public RitualDagger(int dmg) {
             super("Ritual Dagger", Card.ATTACK, 1, dmg, 3);
+        }
+
+        @Override public Card getUpgrade() {
+            return new RitualDaggerP(this.n);
         }
     }
 

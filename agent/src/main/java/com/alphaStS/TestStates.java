@@ -1967,6 +1967,65 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateSilentRun4() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.SILENT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardSilent.Flechette(), 1);
+        builder.addCard(new CardSilent.CloakAndDagger(), 2);
+        builder.addCard(new CardSilent.DeadlyPoison(), 1);
+        builder.addCard(new CardSilent.Backstab(), 1);
+        builder.addCard(new CardSilent.Neutralize(), 1);
+        builder.addCard(new CardSilent.Survivor(), 1);
+        builder.addCard(new CardSilent.BladeDanceP(), 2);
+        builder.addCard(new CardSilent.PoisonedStabP(), 1);
+        builder.addCard(new CardSilent.AccuracyP(), 1);
+        builder.addCard(new CardSilent.ToolsOfTheTrade(), 2);
+        builder.addCard(new CardSilent.EnvenomP(), 1);
+        builder.addCard(new CardSilent.DieDieDie(), 1);
+        builder.addCard(new CardSilent.Doppelganger(), 1);
+        builder.addCard(new CardSilent.Tactician(), 1);
+        builder.addCard(new CardSilent.SneakyStrike(), 1);
+        builder.addCard(new CardSilent.Finisher(), 1);
+        builder.addCard(new CardSilent.PiercingWail(), 1);
+        builder.addCard(new CardSilent.Catalyst(), 1);
+        builder.addCard(new CardSilent.Malaise(), 1);
+        builder.addCard(new CardSilent.MalaiseP(), 1);
+        builder.addCard(new CardSilent.CalculatedGamble(), 1);
+        builder.addCard(new CardSilent.EscapePlanP(), 1);
+        builder.addCard(new CardSilent.LegSweep(), 1);
+        builder.addCard(new CardSilent.BackflipP(), 2);
+        builder.addCard(new CardSilent.FootworkP(), 1);
+        builder.addCard(new CardColorless.ApotheosisP(), 1);
+        builder.addCard(new CardColorless.Apparition(), 3);
+        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.NinjaScroll());
+        builder.addRelic(new Relic.BronzeScales());
+        builder.addRelic(new Relic.Sundial(1, 0));
+        builder.addRelic(new Relic.RunicPyramid());
+//        builder.addRelic(new Relic.BloodVial());
+        builder.addRelic(new Relic.SneckoSkull());
+        builder.addRelic(new Relic.HornCleat());
+        builder.addRelic(new Relic.CaptainsWheel());
+        builder.addRelic(new Relic.PenNib(8, 0));
+        builder.addRelic(new Relic.FrozenEye());
+        builder.addRelic(new Relic.MercuryHourglass());
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.LiquidBronze().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(5);
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardSilent.CloakAndDaggerP(), 1)),
+                List.of()
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK).join(new GameStateRandomization.PlayerHealthRandomization(new int[] {59, 61}));
+        builder.setPreBattleScenarios(randomization);
+        builder.setGameStateViaInteractiveMode(List.of("1", "", "rng off", "0", "blade+", "31", "5", "ascender", "malaise", "neutra", "blade+", "cataly", "piercing", "tactician", "calculated", "apparition", "finisher", "survivor", "dopple", "diedie", "backflip+", "envenom+", "cloa", "cloa", "esca", "deadly", "malaise+", "backflip+", "footwork+", "flet", "accura+", "apotheos+", "tool", "legswee", "apotheo+", "tool", "poi", "snea", "exit"));
+        builder.setPlayer(new Player(59, 61));
+        return new GameState(builder);
+    }
+
     public static GameState TestStateStreamerRun() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);

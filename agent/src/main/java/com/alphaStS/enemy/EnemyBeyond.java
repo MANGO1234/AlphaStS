@@ -831,6 +831,7 @@ public class EnemyBeyond {
                 state.enemyDoDamageToPlayer(this, 7, 3);
             } else if (move == SCYTHE) {
                 state.enemyDoDamageToPlayer(this, 45, 1);
+                scytheCooldown = 2;
             }
         }
 
@@ -942,7 +943,6 @@ public class EnemyBeyond {
         private int checkNextMove2(int r, boolean r2) {
             if (r < 30) {
                 if (move != SCYTHE && this.scytheCooldown <= 0) {
-                    scytheCooldown = 2;
                     return SCYTHE;
                 } else if (r2) {
                     if (!(move == ATTACK && lastMove == ATTACK)) {
@@ -962,7 +962,6 @@ public class EnemyBeyond {
                     if (scytheCooldown > 0) {
                         return DEBUFF;
                     } else {
-                        scytheCooldown = 2;
                         return SCYTHE;
                     }
                 } else {

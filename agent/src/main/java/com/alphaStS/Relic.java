@@ -2,10 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
-import com.alphaStS.card.Card;
-import com.alphaStS.card.CardColorless;
-import com.alphaStS.card.CardDefect;
-import com.alphaStS.card.CardOther;
+import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
@@ -431,7 +428,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isEliteFight(state)) {
+                    if (isEliteFight(state) && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             enemy.setHealth(enemy.getHealth() * 3 / 4);
                         }
@@ -1632,7 +1629,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class PandorasBox extends Relic {
         private final int n;
-        private boolean upgradeSkill = true;
+        private boolean upgradeSkill = false;
         private boolean upgradeAttack = false;
         private boolean upgradePower = false;
 
@@ -1670,15 +1667,84 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            if (properties.character == CharacterEnum.DEFECT) {
-                return getPossibleCards(properties);
-            }
-            return null;
+            return getPossibleCards(properties);
         }
 
         List<Card> getPossibleCards(GameProperties gameProperties) {
             List<Card> cards = new ArrayList<>();
-            if (gameProperties.character == CharacterEnum.DEFECT) {
+            if (gameProperties.character == CharacterEnum.SILENT) {
+                cards.add(new CardSilent.Bane());
+                cards.add(new CardSilent.DaggerSpray());
+                cards.add(new CardSilent.DaggerThrow());
+                cards.add(new CardSilent.FlyingKnee());
+                cards.add(new CardSilent.PoisonedStab());
+                cards.add(new CardSilent.QuickSlash());
+                cards.add(new CardSilent.Slice());
+                cards.add(new CardSilent.SneakyStrike());
+                cards.add(new CardSilent.SuckerPunch());
+                cards.add(new CardSilent.AllOutAttack());
+                cards.add(new CardSilent.Backstab());
+                cards.add(new CardSilent.Choke());
+                cards.add(new CardSilent.Dash());
+                cards.add(new CardSilent.EndlessAgony());
+                cards.add(new CardSilent.Eviscerate());
+                cards.add(new CardSilent.Finisher());
+                cards.add(new CardSilent.Flechette());
+                cards.add(new CardSilent.HeelHook());
+                cards.add(new CardSilent.MasterfulStab(6));
+                cards.add(new CardSilent.Predator());
+                cards.add(new CardSilent.RiddleWithHoles());
+                cards.add(new CardSilent.Skewer());
+                cards.add(new CardSilent.DieDieDie());
+                cards.add(new CardSilent.GlassKnife());
+                cards.add(new CardSilent.GrandFinale());
+                cards.add(new CardSilent.Unload());
+                cards.add(new CardSilent.Acrobatics());
+                cards.add(new CardSilent.Backflip());
+                cards.add(new CardSilent.BladeDance());
+                cards.add(new CardSilent.CloakAndDagger());
+                cards.add(new CardSilent.DeadlyPoison());
+                cards.add(new CardSilent.Deflect());
+                cards.add(new CardSilent.DodgeAndRoll());
+                cards.add(new CardSilent.Outmaneuver());
+                cards.add(new CardSilent.PiercingWail());
+                cards.add(new CardSilent.Prepared());
+                cards.add(new CardSilent.Blur());
+                cards.add(new CardSilent.BouncingFlask());
+                cards.add(new CardSilent.CalculatedGamble());
+                cards.add(new CardSilent.Catalyst());
+                cards.add(new CardSilent.Concentrate());
+                cards.add(new CardSilent.CripplingCloud());
+                cards.add(new CardSilent.Distraction());
+                cards.add(new CardSilent.EscapePlan());
+                cards.add(new CardSilent.Expertise());
+                cards.add(new CardSilent.LegSweep());
+                cards.add(new CardSilent.Reflex());
+                cards.add(new CardSilent.Setup(true));
+                cards.add(new CardSilent.Tactician());
+                cards.add(new CardSilent.Terror());
+                cards.add(new CardSilent.Adrenaline());
+                cards.add(new CardSilent.Alchemize(0, 0));
+                cards.add(new CardSilent.BulletTime());
+                cards.add(new CardSilent.Burst());
+                cards.add(new CardSilent.CorpseExplosion());
+                cards.add(new CardSilent.Doppelganger());
+                cards.add(new CardSilent.Malaise());
+                cards.add(new CardSilent.Nightmare());
+                cards.add(new CardSilent.PhantasmalKiller());
+                cards.add(new CardSilent.StormOfSteel());
+                cards.add(new CardSilent.Accuracy());
+                cards.add(new CardSilent.Caltrops());
+                cards.add(new CardSilent.Footwork());
+                cards.add(new CardSilent.InfiniteBlade());
+                cards.add(new CardSilent.NoxiousFume());
+                cards.add(new CardSilent.WellLaidPlans());
+                cards.add(new CardSilent.AThousandCuts());
+                cards.add(new CardSilent.AfterImage());
+                cards.add(new CardSilent.Envenom());
+                cards.add(new CardSilent.ToolsOfTheTrade());
+                cards.add(new CardSilent.WraithForm());
+            } else if (gameProperties.character == CharacterEnum.DEFECT) {
                 cards.add(new CardDefect.Aggregate());
                 cards.add(new CardDefect.AllForOne(0, 0));
                 cards.add(new CardDefect.Amplify());
@@ -2034,6 +2100,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     // ********************************************************** Snecko Specific Relics ************************************************************
     // **********************************************************************************************************************************************
+
+    public static class NinjaScroll extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("NinjaScroll", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.addCardToHand(state.properties.shivCardIdx);
+                        state.addCardToHand(state.properties.shivCardIdx);
+                        state.addCardToHand(state.properties.shivCardIdx);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Shiv());
+        }
+    }
 
     public static class PaperCrane extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {

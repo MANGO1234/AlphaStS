@@ -819,7 +819,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new CardSilent.Expertise().getTemporaryCostIfPossible(0),
                         new CardSilent.LegSweep().getTemporaryCostIfPossible(0),
                         new CardSilent.Reflex().getTemporaryCostIfPossible(0),
-                        new CardSilent.Setup().getTemporaryCostIfPossible(0),
+                        new CardSilent.Setup(true).getTemporaryCostIfPossible(0),
                         new CardSilent.Tactician().getTemporaryCostIfPossible(0),
                         new CardSilent.Terror().getTemporaryCostIfPossible(0),
                         new CardSilent.Adrenaline().getTemporaryCostIfPossible(0),

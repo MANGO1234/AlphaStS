@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardDefect;
+import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
@@ -107,6 +108,7 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodPTransformIndexes;
     public int[] masterfulStabTransformIndexes;
     public int[] masterfulStabPTransformIndexes;
+    public int[] setUpCardIdxes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] forceFieldTransformIndexes;
@@ -208,6 +210,17 @@ public class GameProperties implements Cloneable {
     public boolean battleTranceExist;
     public boolean energyRefillCanChange;
     public boolean isHeartFight;
+
+    public static boolean isHeartFight(GameState state) {
+        if (!state.properties.isHeartFight) return false;
+        for (EnemyReadOnly enemy : state.getEnemiesForRead()) {
+            if (enemy.isAlive() && enemy instanceof EnemyEnding.CorruptHeart) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean healEndOfAct;
     public int inputLen;
     public int extraOutputLen;

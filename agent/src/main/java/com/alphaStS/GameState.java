@@ -1211,6 +1211,11 @@ public final class GameState implements State {
             }
         }
 
+        boolean isCardPlayed = true;
+        if (actionCtx == GameActionCtx.SELECT_CARD_HAND && properties.toolsOfTheTradeCardIdx == currentAction.idx()) {
+            isCardPlayed = false;
+        }
+
         do {
             if (actionCtx == GameActionCtx.SELECT_ENEMY) {
                 int targetableEnemies = 0;
@@ -1351,7 +1356,7 @@ public final class GameState implements State {
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
-        if (actionCtx == GameActionCtx.PLAY_CARD) {
+        if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
             int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(properties);
             int prevCardIdx = cardIdx;
             if (transformCardIdx >= 0) {
@@ -2376,15 +2381,15 @@ public final class GameState implements State {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !properties.isHeartFight) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !properties.isHeartFight(this)) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !properties.isHeartFight) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !properties.isHeartFight(this)) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !properties.isHeartFight) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !properties.isHeartFight(this)) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }

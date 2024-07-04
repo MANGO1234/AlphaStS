@@ -751,6 +751,9 @@ public class EnemyCity {
                             break;
                         }
                     }
+                    if (j == 3) {
+                        continue;
+                    }
                     int r = state.getSearchRandomGen().nextInt(8, RandomGenCtx.GremlinLeader, null);
                     if (r < 2) { // Mad Gremlin
                         ((Enemy.MergedEnemy) enemies.get(startIdx + j)).setEnemy(0);
@@ -1947,6 +1950,7 @@ public class EnemyCity {
             } else if (move == ZAP) {
                 state.enemyDoDamageToPlayer(this, 21, 1);
             } else if (move == DEBILITATE) {
+                state.enemyDoDamageToPlayer(this, 12, 1);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == DRAIN) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 3);

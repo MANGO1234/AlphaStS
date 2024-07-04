@@ -926,7 +926,9 @@ public class CardSilent {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < n; i++) {
                 idx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
-                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, 3);
+                if (idx >= 0) {
+                    state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, 3);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1225,7 +1227,7 @@ public class CardSilent {
                     new Card.CardTmpChangeCost(new CardSilent.Expertise(), 0),
                     new Card.CardTmpChangeCost(new CardSilent.LegSweep(), 0),
                     new CardSilent.Reflex(),
-                    new Card.CardTmpChangeCost(new CardSilent.Setup(), 0),
+                    new Card.CardTmpChangeCost(new CardSilent.Setup(true), 0),
                     new CardSilent.Tactician(),
                     new Card.CardTmpChangeCost(new CardSilent.Terror(), 0),
                     new CardSilent.Adrenaline(),
@@ -1900,25 +1902,61 @@ public class CardSilent {
     }
 
     private static abstract class _SetupT extends Card {
+        public boolean doNothing = false;
+
+        public _SetupT(String cardName, int cardType, int energyCost, boolean doNothing) {
+            this(cardName, cardType, energyCost);
+            this.doNothing = doNothing;
+            this.selectFromHand = !doNothing;
+            this.putCardOnTopDeck = !doNothing;
+        }
+
         public _SetupT(String cardName, int cardType, int energyCost) {
             super(cardName, cardType, energyCost, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // todo: implement this when I have time
+            if (doNothing) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            state.removeCardFromHand(idx);
+            state.addCardOnTopOfDeck(state.properties.findCardIndex(state.properties.cardDict[idx].getTemporaryCostUntilPlayedIfPossible(0)));
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return doNothing ? List.of() : cards.stream().map(card -> card.getTemporaryCostUntilPlayedIfPossible(0)).toList();
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.setUpCardIdxes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                if (state.properties.cardDict[i] instanceof CardTmpUntilPlayedCost) {
+                    state.properties.setUpCardIdxes[i] = i;
+                } else {
+                    state.properties.setUpCardIdxes[i] = state.properties.findCardIndex(state.properties.cardDict[i].getTemporaryCostUntilPlayedIfPossible(0));
+                }
+            }
         }
     }
 
     public static class Setup extends _SetupT {
-        public Setup() {
-            super("Setup", Card.SKILL, 1);
+        public Setup(boolean doNothing) {
+            super("Setup", Card.SKILL, 1, doNothing);
         }
+
+       @Override public Card getUpgrade() {
+           return new CardSilent.Setup(doNothing);
+       }
     }
 
     public static class SetupP extends _SetupT {
-        public SetupP() {
-            super("Setup+", Card.SKILL, 0);
+        public SetupP(boolean doNothing) {
+            super("Setup+", Card.SKILL, 0, doNothing);
+        }
+
+        @Override public Card getUpgrade() {
+            return new CardSilent.SetupP(doNothing);
         }
     }
 

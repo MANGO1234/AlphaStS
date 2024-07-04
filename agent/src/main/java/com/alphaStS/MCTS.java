@@ -884,7 +884,7 @@ public class MCTS {
         if (state.playerTurnStartMaxPossibleHealth != state.getPlayeForRead().getHealth()) {
             return false;
         }
-        if (state.properties.isHeartFight) {
+        if (state.properties.isHeartFight(state)) {
             return true;
         }
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {

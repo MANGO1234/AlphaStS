@@ -132,7 +132,7 @@ public class CardUpgrade {
         map.put(new CardSilent.Predator(), new CardSilent.PredatorP());
         map.put(new CardSilent.Reflex(), new CardSilent.ReflexP());
         map.put(new CardSilent.RiddleWithHoles(), new CardSilent.RiddleWithHolesP());
-        map.put(new CardSilent.Setup(), new CardSilent.SetupP());
+//        map.put(new CardSilent.Setup(), new CardSilent.SetupP());
         map.put(new CardSilent.Skewer(), new CardSilent.SkewerP());
         map.put(new CardSilent.Tactician(), new CardSilent.TacticianP());
         map.put(new CardSilent.Terror(), new CardSilent.TerrorP());
@@ -231,11 +231,33 @@ public class CardUpgrade {
         map.put(new CardDefect.Seek(), new CardDefect.SeekP());
         map.put(new CardDefect.ThunderStrike(), new CardDefect.ThunderStrikeP());
 
+        map.put(new CardColorless.Apparition(), new CardColorless.ApparitionP());
+        map.put(new CardColorless.Blind(), new CardColorless.BlindP());
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
+        map.put(new CardColorless.DeepBreath(), new CardColorless.DeepBreathP());
         map.put(new CardColorless.DramaticEntrance(), new CardColorless.DramaticEntranceP());
+        map.put(new CardColorless.Finesse(), new CardColorless.FinesseP());
+        map.put(new CardColorless.FlashOfSteel(), new CardColorless.FlashOfSteelP());
+        map.put(new CardColorless.GoodInstincts(), new CardColorless.GoodInstinctsP());
+        map.put(new CardColorless.Impatience(), new CardColorless.ImpatienceP());
+        map.put(new CardColorless.MindBlast(), new CardColorless.MindBlastP());
+        map.put(new CardColorless.Panacea(), new CardColorless.PanaceaP());
+        map.put(new CardColorless.PanicButton(), new CardColorless.PanicButtonP());
+        map.put(new CardColorless.SwiftStrike(), new CardColorless.SwiftStrikeP());
+        map.put(new CardColorless.Trip(), new CardColorless.TripP());
         map.put(new CardColorless.Apotheosis(), new CardColorless.ApotheosisP());
+//        map.put(new CardColorless.HandOfGreed(), new CardColorless.HandOfGreedP());
+        map.put(new CardColorless.MasterOfStrategy(), new CardColorless.MasterOfStrategyP());
+        map.put(new CardColorless.Panache(), new CardColorless.PanacheP());
         map.put(new CardColorless.SecretTechnique(), new CardColorless.SecretTechniqueP());
         map.put(new CardColorless.SecretWeapon(), new CardColorless.SecretWeaponP());
+        map.put(new CardColorless.TheBomb(), new CardColorless.TheBombP());
+        map.put(new CardColorless.ThinkingAhead(), new CardColorless.ThinkingAheadP());
+        map.put(new CardColorless.Violence(), new CardColorless.ViolenceP());
+        map.put(new CardColorless.Bite(), new CardColorless.BiteP());
+//        map.put(new CardColorless.RitualDagger(), new CardColorless.RitualDaggerP());
+        map.put(new CardColorless.Shiv(), new CardColorless.ShivP());
+        map.put(new CardColorless.Apparition(), new CardColorless.ApparitionP());
 
         map = Collections.unmodifiableMap(map);
     }

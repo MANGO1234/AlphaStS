@@ -630,7 +630,7 @@ public class EnemyEncounter {
                     new CardSilent.Expertise(),
                     new CardSilent.LegSweep(),
                     new CardSilent.Reflex(),
-                    new CardSilent.Setup(),
+                    new CardSilent.Setup(true),
                     new CardSilent.Tactician(),
                     new CardSilent.Terror(),
                     new CardSilent.Adrenaline(),
@@ -700,7 +700,7 @@ public class EnemyEncounter {
                     new CardSilent.Expertise().getUpgrade(),
                     new CardSilent.LegSweep().getUpgrade(),
                     new CardSilent.Reflex().getUpgrade(),
-                    new CardSilent.Setup().getUpgrade(),
+                    new CardSilent.Setup(true).getUpgrade(),
                     new CardSilent.Tactician().getUpgrade(),
                     new CardSilent.Terror().getUpgrade(),
 
