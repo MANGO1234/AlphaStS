@@ -250,7 +250,59 @@ public class CardColorless {
     }
 
     // Jack Of All Trades
-    // Madness
+    private static abstract class _MadnessT extends Card {
+        public _MadnessT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int _idx, int energyUsed) {
+            int possibleCards = 0, diff = 0, idx = -1;
+            var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
+            for (int i = 0; i < state.properties.realCardsLen; i++) {
+                if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
+                    possibleCards += hand[i];
+                    diff += 1;
+                    idx = i;
+                }
+            }
+            if (possibleCards == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            if (diff > 1) {
+                state.setIsStochastic();
+                var r = state.getSearchRandomGen().nextInt(possibleCards, RandomGenCtx.RandomCardHandMummifiedHand, state);
+                var acc = 0;
+                for (int i = 0; i < state.properties.realCardsLen; i++) {
+                    if (hand[i] > 0 && !state.properties.cardDict[i].isXCost && state.properties.cardDict[i].energyCost > 0) {
+                        acc += hand[i];
+                        if (acc > r) {
+                            idx = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            state.removeCardFromHand(idx);
+            state.addCardToHand(state.properties.findCardIndex(state.properties.cardDict[idx].getPermCostIfPossible(0))); // todo
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return cards.stream().map((card) -> card.getPermCostIfPossible(0)).toList();
+        }
+    }
+
+    public static class Madness extends _MadnessT {
+        public Madness() {
+            super("Madness", Card.SKILL, 1);
+        }
+    }
+
+    public static class MadnessP extends _MadnessT {
+        public MadnessP() {
+            super("Madness+", Card.SKILL, 0);
+        }
+    }
 
     private static abstract class _MindBlastT extends Card {
         public _MindBlastT(String cardName, int cardType, int energyCost) {

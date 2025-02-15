@@ -1752,7 +1752,7 @@ public class EnemyBeyond {
         }
 
         public Darkling(int health, boolean middle) {
-            super(health, 6, true);
+            super(health, 5, true);
             this.middle = middle;
             properties.canGainStrength = true;
             properties.canGainBlock = true;

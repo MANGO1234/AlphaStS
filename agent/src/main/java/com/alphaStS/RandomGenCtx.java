@@ -3,7 +3,6 @@ package com.alphaStS;
 public enum RandomGenCtx {
     CardDraw,
     EnemyChooseMove,
-    CardGeneration,
     RandomEnemySwordBoomerang,
     RandomEnemyJuggernaut,
     RandomEnemyGeneral,

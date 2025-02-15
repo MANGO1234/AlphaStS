@@ -2097,14 +2097,7 @@ public class CardDefect {
             });
             state.properties.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    var isHeartFight = false;
-                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
-                        if (state.getEnemiesForRead().get(i) instanceof EnemyEnding.CorruptHeart heart && heart.getInvincible() >= 0) {
-                            isHeartFight = true;
-                            break;
-                        }
-                    }
-                    if (!isHeartFight) {
+                    if (!state.properties.isHeartFight(state)) {
                         state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
                     }
                 }

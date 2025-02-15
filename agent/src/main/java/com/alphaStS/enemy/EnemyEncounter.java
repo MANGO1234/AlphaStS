@@ -4,11 +4,26 @@ import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardSilent;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 
 public class EnemyEncounter {
+    public static enum EncounterEnum {
+        UNKNOWN,
+        CORRUPT_HEART,
+        SPEAR_AND_SHIELD,
+    }
+
+    public EncounterEnum encounterEnum;
+    public List<Tuple<Integer, Integer>> idxes;
+
+    public EnemyEncounter(EncounterEnum encounterEnum, ArrayList<Tuple<Integer, Integer>> indexes) {
+        this.encounterEnum = encounterEnum;
+        this.idxes = indexes;
+    }
+
     public static class GremlinGangRandomization implements GameStateRandomization {
         Map<Integer, Integer> rMap = new HashMap<>();
         Map<Integer, List<Integer>> enemiesMap = new HashMap<>();
@@ -482,12 +497,96 @@ public class EnemyEncounter {
 //        });
     }
 
+    public enum ACT3_BOSS {
+        TIME_EATER_BOSS, AWAKENED_ONE_BOSS, DONU_AND_DECA_BOSS
+    } ;
+
+    public static void addAct3BossConsecutiveFight(GameStateBuilder builder, ACT3_BOSS startingBoss) {
+        if (startingBoss == ACT3_BOSS.TIME_EATER_BOSS) {
+            builder.addEnemyEncounter(new EnemyBeyond.TimeEater(), new EnemyBeyond.Deca(), new EnemyBeyond.Donu(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
+        } else if (startingBoss == ACT3_BOSS.AWAKENED_ONE_BOSS) {
+            builder.addEnemyEncounter(new EnemyBeyond.TimeEater(), new EnemyBeyond.Deca(), new EnemyBeyond.Donu(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
+        } else {
+            builder.addEnemyEncounter(new EnemyBeyond.TimeEater(), new EnemyBeyond.Deca(), new EnemyBeyond.Donu(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
+        }
+        builder.setSwitchBattleHandler((state) -> {
+//            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+//                if (state.getEnemiesForRead().get(i) instanceof EnemyEnding.CorruptHeart heart) {
+//                    if (heart.getInvincible() >= 0) {
+//                        return state;
+//                    }
+//                }
+//            }
+            var newState = state.properties.originalGameState.clone(false);
+            newState.realTurnNum = state.realTurnNum;
+            if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+                newState.doAction(0);
+            }
+            if (newState.actionCtx == GameActionCtx.SELECT_SCENARIO) {
+                newState.doAction(state.preBattleScenariosChosenIdx);
+            }
+            var nextBoss = state.getSearchRandomGen().nextBoolean(RandomGenCtx.Other);
+            if (startingBoss == ACT3_BOSS.TIME_EATER_BOSS) {
+                newState.killEnemy(0, false);
+                if (nextBoss) {
+                    newState.reviveEnemy(1, false, -1);
+                    newState.reviveEnemy(2, false, -1);
+                } else {
+                    newState.reviveEnemy(3, false, -1);
+                    newState.reviveEnemy(4, false, -1);
+                    newState.reviveEnemy(5, false, -1);
+                }
+            } else if (startingBoss == ACT3_BOSS.AWAKENED_ONE_BOSS) {
+                newState.killEnemy(3, false);
+                newState.killEnemy(4, false);
+                newState.killEnemy(5, false);
+                if (nextBoss) {
+                    newState.reviveEnemy(0, false, -1);
+                } else {
+                    newState.reviveEnemy(1, false, -1);
+                    newState.reviveEnemy(2, false, -1);
+                }
+            } else {
+                newState.killEnemy(1, false);
+                newState.killEnemy(2, false);
+                if (nextBoss) {
+                    newState.reviveEnemy(0, false, -1);
+                } else {
+                    newState.reviveEnemy(3, false, -1);
+                    newState.reviveEnemy(4, false, -1);
+                    newState.reviveEnemy(5, false, -1);
+                }
+            }
+            newState.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth());
+            if (state.properties.potions.size() > 0) {
+                for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
+                    newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];
+                }
+            }
+            for (int i = 0; i < state.properties.counterInfos.length; i++) {
+                if (state.properties.counterInfos[i].persistAcrossBattle) {
+                    for (int j = 0; j < state.properties.counterInfos[i].length; j++) {
+                        newState.getCounterForWrite()[state.properties.counterInfos[i].idx + j] = state.getCounterForRead()[state.properties.counterInfos[i].idx + j];
+                    }
+                }
+            }
+            newState.properties = state.properties;
+            newState.preBattleRandomizationIdxChosen = state.preBattleRandomizationIdxChosen;
+            newState.battleRandomizationIdxChosen = state.battleRandomizationIdxChosen;
+            return newState;
+        });
+    }
+
     public static void addShieldAndSpearFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear());
+        builder.addEnemyEncounter(EncounterEnum.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear());
+    }
+
+    public static void addCorruptHeartFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(EncounterEnum.CORRUPT_HEART, new EnemyEnding.CorruptHeart());
     }
 
     public static void addShieldAndSpearFollowByHeartFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear(), new EnemyEnding.CorruptHeart(800, true));
+        builder.addEnemyEncounter(EncounterEnum.SPEAR_AND_SHIELD, new EnemyEnding.SpireShield(), new EnemyEnding.SpireSpear(), new EnemyEnding.CorruptHeart(800, true));
         builder.setSwitchBattleHandler((state) -> {
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 if (state.getEnemiesForRead().get(i) instanceof EnemyEnding.CorruptHeart heart) {
@@ -498,6 +597,7 @@ public class EnemyEncounter {
             }
             var newState = state.properties.originalGameState.clone(false);
             newState.realTurnNum = state.realTurnNum;
+            newState.currentEncounter = EncounterEnum.CORRUPT_HEART;
             if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                 newState.doAction(0);
             }

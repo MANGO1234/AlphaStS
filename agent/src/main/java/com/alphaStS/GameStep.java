@@ -11,10 +11,10 @@ public final class GameStep {
     public double[] v;
     public List<String> lines;
     public boolean isExplorationMove;
-    public boolean resultContaminatedByTemp;
     public RandomGen searchRandomGenMCTS;
     public StringBuilder actionDesc;
     public String stateStr;
+    public int[] nWhenSearchHalfDone;
 
     GameStep(GameState state, int action) {
         this.state = state;

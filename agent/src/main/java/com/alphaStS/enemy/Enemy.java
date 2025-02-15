@@ -27,7 +27,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return 0;
         }
         int dmg = ((int) n) - block;
-        if (state.properties.hasBoot && dmg > 0 && dmg < 5) {
+        if (state.properties.hasBoot && dmg > 0 && dmg < 5 && state.properties.getRelic(Relic.TheBoot.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
             dmg = 5;
         }
         int dmgDone = Math.max(0, dmg);

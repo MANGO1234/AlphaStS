@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.utils.Tuple;
 
 import java.util.Arrays;
 import java.util.List;
@@ -1410,7 +1411,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var r = state.getSearchRandomGen().nextInt(state.properties.infernalBladeIndexes.length, RandomGenCtx.CardGeneration);
+            var r = state.getSearchRandomGen().nextInt(state.properties.infernalBladeIndexes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.infernalBladeIndexes));
             state.addCardToHand(state.properties.infernalBladeIndexes[r]);
             state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;

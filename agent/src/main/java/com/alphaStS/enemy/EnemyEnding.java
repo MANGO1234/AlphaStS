@@ -423,7 +423,6 @@ public class EnemyEnding {
                     }
                 }
             });
-            state.properties.isHeartFight = true;
             state.properties.isHeartGauntlet = state.properties.switchBattleHandler != null;
         }
 

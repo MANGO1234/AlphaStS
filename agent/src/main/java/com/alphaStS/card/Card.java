@@ -112,6 +112,13 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return new Card.CardTmpUntilPlayedCost(card, temporaryCost);
     }
 
+    public Card getPermCostIfPossible(int permCost) {
+        if (energyCost < 0 || energyCost == permCost || isXCost) {
+            return this;
+        }
+        return new Card.CardPermChangeCost(this, permCost);
+    }
+
     @Override public String toString() {
         return "Card{" +
                 "cardName='" + cardName + '\'' +

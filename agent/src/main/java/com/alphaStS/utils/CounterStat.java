@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CounterStat {
@@ -87,7 +88,17 @@ public class CounterStat {
         for (int i = 0; i < counterFrequency.size(); i++) {
             totalCounterAmt += counterFrequency.get(i) * i;
         }
-        System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n));
+        if (counterLen > 1) {
+            StringJoiner sj = new StringJoiner(", ");
+            for (int i = 0; i < counterFrequency.size(); i++) {
+                if (counterFrequency.get(i) > 0) {
+                    sj.add(i + ": " + counterFrequency.get(i));
+                }
+            }
+            System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n) + " (" + sj.toString() + ")");
+        } else {
+            System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n));
+        }
     }
 
     public void printCmpStat(String indent) {

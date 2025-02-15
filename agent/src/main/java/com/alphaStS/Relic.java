@@ -4,12 +4,14 @@ import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
+import one.util.streamex.IntStreamEx;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +80,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Akabeko extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.buffs |= PlayerBuff.AKABEKO.mask();
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.buffs |= PlayerBuff.AKABEKO.mask();
+                    }
+                }
+            });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
@@ -161,7 +169,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.hasBloodVial = true;
             state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
-                    state.healPlayer(2);
+                    if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        state.healPlayer(2);
+                    }
                 }
             });
         }
@@ -470,8 +480,73 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // War Paint: No need to implement
-    // Whetstone: No need to implement
+    public static class WarPaint extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
+                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.SKILL).toList();
+                    if (cards.size() == 1) {
+                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        state.removeCardFromDeck(cards.get(r1).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.getStateDesc().append("War Paint: ").append(cards.get(r1).v2().cardName);
+                    } else if (cards.size() > 1) {
+                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
+                        if (r2 >= r1) {
+                            r2 += 1;
+                        }
+                        state.removeCardFromDeck(cards.get(r1).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.removeCardFromDeck(cards.get(r2).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r2).v2()), false);
+                        state.getStateDesc().append("War Paint: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
+        }
+    }
+
+    public static class WhetStone extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
+                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).filter((t) -> t.v2().cardType == Card.ATTACK).toList();
+                    if (cards.size() == 1) {
+                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        state.removeCardFromDeck(cards.get(r1).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.getStateDesc().append("Whet Stone: ").append(cards.get(r1).v2().cardName);
+                    } else if (cards.size() > 1) {
+                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
+                        if (r2 >= r1) {
+                            r2 += 1;
+                        }
+                        state.removeCardFromDeck(cards.get(r1).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.removeCardFromDeck(cards.get(r2).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r2).v2()), false);
+                        state.getStateDesc().append("Whet Stone: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).filter((card) -> card.cardType == Card.ATTACK).distinct().toList();
+        }
+    }
 
     // **********************************************************************************************************************************************
     // ************************************************************ Uncommon Relics *****************************************************************
@@ -1076,9 +1151,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class IncenseBurner extends Relic {
         public static int DEFAULT_REWARD = 0;
-        public static int SHIELD_AND_SPEAR_REWARD = 1;
-        public static int HEART_REWARD = 2;
-        public static int NO_REWARD = 3;
+        public static int NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD = 0;
+        public static int NO_REWARD = 1;
 
         int n;
         int rewardType = DEFAULT_REWARD;
@@ -1102,7 +1176,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public int getInputLenDelta() {
                     return 6;
                 }
-            });
+            }, true);
             state.properties.registerIntangibleCounter();
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -1113,13 +1187,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
+            if (state.properties.enemiesEncounters.size() == 1 && state.properties.enemiesEncounters.get(0).encounterEnum == EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                rewardType = NO_REWARD;
+            }
             state.properties.incenseBurnerRewardType = rewardType;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = n;
+                    if (!state.properties.isHeartGauntlet || !state.properties.isHeartFight(state)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
                 }
             });
-            if (rewardType == DEFAULT_REWARD) {
+            if (rewardType != NO_REWARD) {
                 state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                         if (isTerminal != 0) {
@@ -1135,83 +1214,49 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
-                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
-                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
-                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
-                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
-                        v[GameState.V_HEALTH_IDX] += 1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
-                    }
-
-                    @Override public int getNumberOfTargets() {
-                        return 6;
-                    }
-                });
-            } else if (rewardType == SHIELD_AND_SPEAR_REWARD) {
-                state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                        if (isTerminal != 0) {
-                            for (int i = 0; i < 6; i++) {
-                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
-                            }
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
-                        } else if (isTerminal == 0) {
-                            for (int i = 0; i < 6; i++) {
-                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
-                            }
+                        if (state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                            // final fight, no reward
+                        } else if (state.currentEncounter == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
+                            // next fight is heart: reward ending on 4 or 5
+                            v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                            v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                            v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
+                            v[GameState.V_HEALTH_IDX] += 0.2 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                            v[GameState.V_HEALTH_IDX] += 0.3 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                            v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
+                        } else if (rewardType == NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD) {
+                            // next fight is spear and shield: end at 4 with minor reward for 3
+                            v[GameState.V_HEALTH_IDX] += 0.02 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                            v[GameState.V_HEALTH_IDX] += 0.02 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                            v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
+                            v[GameState.V_HEALTH_IDX] += 0.2 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                            v[GameState.V_HEALTH_IDX] += v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                            v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
+                        } else {
+                            // higher is better
+                            v[GameState.V_HEALTH_IDX] += 0.05 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                            v[GameState.V_HEALTH_IDX] += 0.05 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
+                            v[GameState.V_HEALTH_IDX] += 0.1 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
+                            v[GameState.V_HEALTH_IDX] += 0.2 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
+                            v[GameState.V_HEALTH_IDX] += 0.3 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
+                            v[GameState.V_HEALTH_IDX] += 0.3 / 6.0 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
                         }
                     }
 
-                    @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
-                        v[GameState.V_HEALTH_IDX] += 0.05 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
-                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
-                        v[GameState.V_HEALTH_IDX] += 0.2 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
-                        v[GameState.V_HEALTH_IDX] += 0.3 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
-                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
-                    }
-
                     @Override public int getNumberOfTargets() {
                         return 6;
                     }
                 });
-            } else if (rewardType == HEART_REWARD) {
-                state.properties.addExtraTrainingTarget("IncenseBurner", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                        if (isTerminal != 0) {
-                            for (int i = 0; i < 6; i++) {
-                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
-                            }
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
-                        } else if (isTerminal == 0) {
-                            for (int i = 0; i < 6; i++) {
-                                v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
-                            }
-                        }
-                    }
-
-                    @Override public void updateQValues(GameState state, double[] v) {
-                        v[GameState.V_HEALTH_IDX] += 0.02 * v[GameState.V_OTHER_IDX_START + vArrayIdx];
-                        v[GameState.V_HEALTH_IDX] += 0.02 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 1];
-                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 2];
-                        v[GameState.V_HEALTH_IDX] += 0.2 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 3];
-                        v[GameState.V_HEALTH_IDX] += v[GameState.V_OTHER_IDX_START + vArrayIdx + 4];
-                        v[GameState.V_HEALTH_IDX] += 0.01 * v[GameState.V_OTHER_IDX_START + vArrayIdx + 5];
-                    }
-
-                    @Override public int getNumberOfTargets() {
-                        return 6;
-                    }
-                });
-            } else if (rewardType == NO_REWARD) {
-            } else {
-                throw new IllegalStateException();
             }
         }
 
         @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
             super.setCounterIdx(properties, counterIdx);
             properties.incenseBurnerCounterIdx = counterIdx;
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, 6, "Incense Burner");
         }
     }
 
@@ -1890,7 +1935,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Sozu extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energyRefill += 1;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
         }
     }
 
@@ -2250,15 +2301,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = n;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
                 }
             });
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx]++;
-                    if (state.getCounterForWrite()[counterIdx] == 2) {
-                        state.getCounterForWrite()[counterIdx] = 0;
-                        state.gainOrbSlot(1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx]++;
+                        if (state.getCounterForWrite()[counterIdx] == 2) {
+                            state.getCounterForWrite()[counterIdx] = 0;
+                            state.gainOrbSlot(1);
+                        }
                     }
                 }
             });
@@ -2299,6 +2354,40 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     state.properties.biasedCognitionLimitCounterIdx = counterIdx;
                 }
             });
+        }
+    }
+
+    public static class ShiningLight extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
+                    var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).toList();
+                    if (cards.size() == 1) {
+                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        state.removeCardFromDeck(cards.get(r1).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.getStateDesc().append("Shining Light Event: ").append(cards.get(r1).v2().cardName);
+                    } else if (cards.size() > 1) {
+                        var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);
+                        var r2 = state.getSearchRandomGen().nextInt(cards.size() - 1, RandomGenCtx.Misc);
+                        if (r2 >= r1) {
+                            r2 += 1;
+                        }
+                        state.removeCardFromDeck(cards.get(r1).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r1).v2()), false);
+                        state.removeCardFromDeck(cards.get(r2).v1(), false);
+                        state.addCardToDeck(state.properties.findCardIndex(cards.get(r2).v2()), false);
+                        state.getStateDesc().append("Shining Light Event: ").append(cards.get(r1).v2().cardName).append(", ").append(cards.get(r2).v2().cardName);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
         }
     }
 }

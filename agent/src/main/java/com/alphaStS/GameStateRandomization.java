@@ -4,6 +4,7 @@ import com.alphaStS.card.Card;
 import com.alphaStS.card.CardCount;
 import com.alphaStS.card.CardIronclad;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
@@ -757,31 +758,21 @@ public interface GameStateRandomization {
     }
 
     class EnemyEncounterRandomization implements GameStateRandomization {
-        private final List<List<Tuple<Integer, Integer>>> scenarios;
+        private final List<EnemyEncounter> scenarios;
         private final Map<Integer, Info> infoMap;
 
-        public EnemyEncounterRandomization(List<Enemy> enemies, int[]... enemiesIdx) {
+        public EnemyEncounterRandomization(List<Enemy> enemies, List<EnemyEncounter> enemyEncounters) {
             this.scenarios = new ArrayList<>();
             infoMap = new HashMap<>();
-            for (int i = 0; i < enemiesIdx.length; i++) {
-                scenarios.add(Arrays.stream(enemiesIdx[i]).mapToObj((x) -> new Tuple<>(x, -1)).toList());
-                var names = Arrays.stream(enemiesIdx[i]).mapToObj((idx) -> enemies.get(idx).getName()).toList();
-                infoMap.put(i, new Info(1.0 / enemiesIdx.length, String.join(", ", names)));
-            }
-        }
-
-        public EnemyEncounterRandomization(List<Enemy> enemies, List<List<Tuple<Integer, Integer>>> enemiesIdx) {
-            this.scenarios = new ArrayList<>();
-            infoMap = new HashMap<>();
-            for (int i = 0; i < enemiesIdx.size(); i++) {
-                scenarios.add(enemiesIdx.get(i));
-                var names = enemiesIdx.get(i).stream().map((t) -> {
+            for (int i = 0; i < enemyEncounters.size(); i++) {
+                scenarios.add(enemyEncounters.get(i));
+                var names = enemyEncounters.get(i).idxes.stream().map((t) -> {
                     if (t.v2() >= 0) {
                         return ((Enemy.MergedEnemy) enemies.get(t.v1())).getDescName();
                     }
                     return enemies.get(t.v1()).getName();
                 }).toList();
-                infoMap.put(i, new Info(1.0 / enemiesIdx.size(), String.join(", ", names)));
+                infoMap.put(i, new Info(1.0 / enemyEncounters.size(), String.join(", ", names)));
             }
         }
 
@@ -797,8 +788,8 @@ public interface GameStateRandomization {
             for (int i = 0; i < enemies.size(); i++) {
                 enemies.getForWrite(i).setHealth(0);
             }
-            var enemiesIdx = scenarios.get(r);
-            for (var t : enemiesIdx) {
+            var encounter = scenarios.get(r);
+            for (var t : encounter.idxes) {
                 var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
                 if (t.v2() >= 0) {
                     var e = (Enemy.MergedEnemy) enemy;
@@ -808,7 +799,8 @@ public interface GameStateRandomization {
                     enemy.setHealth(enemy.properties.maxHealth);
                 }
             }
-            state.enemiesAlive = enemiesIdx.size();
+            state.currentEncounter = encounter.encounterEnum;
+            state.enemiesAlive = encounter.idxes.size();
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

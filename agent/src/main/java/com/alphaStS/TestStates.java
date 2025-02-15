@@ -814,7 +814,7 @@ public class TestStates {
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.InkBottle());
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
 //        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
@@ -971,7 +971,7 @@ public class TestStates {
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.RunicCapacitor());
         builder.addRelic(new Relic.PhilosophersStone());
-        builder.addRelic(new Relic.IncenseBurner(5, Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD));
+        builder.addRelic(new Relic.IncenseBurner(5, Relic.IncenseBurner.NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD));
         builder.addRelic(new Relic.TheBoot());
         builder.addRelic(new Relic.Shuriken());
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(90));
@@ -1022,7 +1022,7 @@ public class TestStates {
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.RunicCapacitor());
         builder.addRelic(new Relic.PhilosophersStone());
-        builder.addRelic(new Relic.IncenseBurner(4, Relic.IncenseBurner.HEART_REWARD));
+        builder.addRelic(new Relic.IncenseBurner(4));
         builder.addRelic(new Relic.TheBoot());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.DataDisk());
@@ -1066,7 +1066,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Blizzard(), 1);
         builder.addCard(new CardColorless.Impatience(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.BagOfMarbles());
@@ -1246,7 +1246,7 @@ public class TestStates {
         builder.addCard(new CardColorless.MasterOfStrategy(), 1);
         builder.addCard(new CardColorless.ThinkingAhead(), 1);
         builder.addCard(new CardColorless.SecretTechnique(), 1);
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         builder.setPotionsScenarios(1);
         builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
@@ -1394,7 +1394,7 @@ public class TestStates {
         builder.addCard(new CardDefect.StackP(), 1);
         builder.addCard(new CardOther.Decay(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
-//        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+//        EnemyEncounter.addCorruptHeartFight(builder);
         builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "em", "1", "0", "em", "0", "1", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.FairyInABottle(98).setBasePenaltyRatio(90));
@@ -1445,7 +1445,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Loop(), 1);
         builder.addCard(new CardDefect.StackP(), 1);
         builder.addCard(new CardOther.Decay(), 1);
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
 //        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "em", "1", "0", "em", "0", "1", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FairyInABottle(98).setBasePenaltyRatio(100));
@@ -1626,7 +1626,7 @@ public class TestStates {
         builder.addCard(new CardDefect.TurboP(), 1);
         builder.addCard(new CardDefect.GlacierP(), 1);
         builder.addCard(new CardOther.Writhe(), 1);
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
@@ -1705,7 +1705,7 @@ public class TestStates {
         builder.addRelic(new Relic.PenNib(9, 0));
         builder.setGameStateViaInteractiveMode(List.of("", "do", "bias+", "think", "dua", "sel", "def", "e", "exit"));
 //        builder.addRelic(new Relic.BiasedCognitionLimit());
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         builder.addPotion(new Potion.AttackPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.DexterityPotion().setBasePenaltyRatio(100));
@@ -1770,7 +1770,7 @@ public class TestStates {
         builder.addPotion(new Potion.FairyInABottle(71).setBasePenaltyRatio(100));
         builder.addPotion(new Potion.EntropicBrew().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(7);
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardDefect.StormP(), 1)),
                 List.of(new CardCount(new CardDefect.BeamCellP(), 1)),
@@ -1836,7 +1836,7 @@ public class TestStates {
         builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
 //        builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
 //        EnemyEncounter.addShieldAndSpearFollowByHeartFight(builder);
         GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardDefect.Capacitor(), 1)),
@@ -1847,6 +1847,64 @@ public class TestStates {
         builder.setPreBattleScenarios(randomization);
         builder.setPlayer(new Player(83, 83));
         builder.setGameStateViaInteractiveMode(List.of("", "1", "do", "bea", "co", "co", "p", "p", "cold", "col+", "char", "e", "0", "exit"));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateDefectRun8() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.Zap(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new Card.Strike(), 1);
+        builder.addCard(new Card.StrikeP(), 1);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.Rebound(), 1);
+        builder.addCard(new CardDefect.Sunder(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 2);
+        builder.addCard(new CardDefect.FTL(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addCard(new CardDefect.SeekP(), 2);
+        builder.addCard(new CardDefect.CoreSurge(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 1);
+        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.ConsumeP(), 1);
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+        builder.addCard(new CardDefect.BiasedCognitionP(), 1);
+        builder.addCard(new CardDefect.MeteorStrike(), 1);
+        builder.addCard(new CardDefect.Fission(), 1);
+        builder.addCard(new CardDefect.Overclock(), 1);
+        builder.addCard(new CardDefect.StaticDischarge(), 1);
+        builder.addCard(new CardDefect.ReinforcedBody(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 1);
+        builder.addCard(new CardDefect.Capacitor(), 1);
+        builder.addCard(new CardColorless.ApotheosisP(), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.IceCream());
+        builder.addRelic(new Relic.Akabeko());
+        builder.addRelic(new Relic.LetterOpener());
+        builder.addRelic(new Relic.UnceasingTop());
+        builder.addRelic(new Relic.MummifiedHand());
+        builder.addRelic(new Relic.Ectoplasm());
+        builder.addRelic(new Relic.RunicPyramid());
+        builder.addRelic(new Relic.EmotionChip());
+        builder.addRelic(new Relic.TheBoot());
+        builder.addRelic(new Relic.BloodVial());
+        builder.addRelic(new Relic.IncenseBurner(4));
+        builder.addRelic(new Relic.Shuriken());
+        builder.addRelic(new Relic.ArtOfWar());
+//        builder.addRelic(new Relic.BiasedCognitionLimit());
+        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.FocusPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.RegenerationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(15);
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "core", "apo", "see", "ec", "bea", "e", "0", "exit"));
+        builder.setPlayer(new Player(67, 67));
         return new GameState(builder);
     }
 
@@ -1895,7 +1953,7 @@ public class TestStates {
         builder.addRelic(new Relic.UnceasingTop());
         builder.addRelic(new Relic.PenNib(6, 2));
         builder.addRelic(new Relic.PaperCrane());
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
 //        EnemyEncounter.addShieldAndSpearFollowByHeartFight(builder);
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.ColorlessPotion().setBasePenaltyRatio(100));
@@ -1951,7 +2009,7 @@ public class TestStates {
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.Orichalcum());
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         builder.addPotion(new Potion.PoisonPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.EntropicBrew(Potion.PotionGenerator.UPRGADE_POTIONS | Potion.PotionGenerator.POWER_POTION).setBasePenaltyRatio(100));
         builder.addPotion(new Potion.LizardTail(78).setBasePenaltyRatio(100));
@@ -2011,7 +2069,7 @@ public class TestStates {
         builder.addRelic(new Relic.PenNib(8, 0));
         builder.addRelic(new Relic.FrozenEye());
         builder.addRelic(new Relic.MercuryHourglass());
-        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        EnemyEncounter.addCorruptHeartFight(builder);
         builder.addPotion(new Potion.DrawPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.LiquidBronze().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(100));
@@ -2023,6 +2081,41 @@ public class TestStates {
         builder.setPreBattleScenarios(randomization);
         builder.setGameStateViaInteractiveMode(List.of("1", "", "rng off", "0", "blade+", "31", "5", "ascender", "malaise", "neutra", "blade+", "cataly", "piercing", "tactician", "calculated", "apparition", "finisher", "survivor", "dopple", "diedie", "backflip+", "envenom+", "cloa", "cloa", "esca", "deadly", "malaise+", "backflip+", "footwork+", "flet", "accura+", "apotheos+", "tool", "legswee", "apotheo+", "tool", "poi", "snea", "exit"));
         builder.setPlayer(new Player(59, 61));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateSilentRun5() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.SILENT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardSilent.Neutralize(), 1);
+        builder.addCard(new CardSilent.Survivor(), 1);
+        builder.addCard(new CardSilent.SkewerP(), 1);
+        builder.addCard(new CardSilent.QuickSlash(), 1);
+        builder.addCard(new CardSilent.DaggerSpray(), 1);
+        builder.addCard(new CardSilent.EndlessAgony(), 1);
+        builder.addCard(new CardSilent.Dash(), 1);
+        builder.addCard(new CardSilent.DaggerThrowP(), 1);
+        builder.addCard(new CardSilent.PoisonedStabP(), 1);
+        builder.addCard(new CardSilent.DodgeAndRoll(), 1);
+        builder.addCard(new Card.Strike(), 5);
+        builder.addCard(new Card.Defend(), 5);
+        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.StoneCalendar());
+        builder.addRelic(new Relic.Sundial(0, 0));
+        builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
+        builder.addPotion(new Potion.SpeedPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.AttackPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new Card.Strike(), 1)),
+                List.of(new CardCount(new Card.Defend(), 1))
+        ), GameStateRandomization.CardCountRandomization.REMOVE_FROM_DECK).doAfter(new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardSilent.BouncingFlask(), 1)),
+                List.of()
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK));
+        builder.setPreBattleScenarios(randomization);
+        builder.setPlayer(new Player(36, 36));
         return new GameState(builder);
     }
 

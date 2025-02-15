@@ -5,6 +5,7 @@ import java.util.*;
 import cc.mallet.types.Dirichlet;
 import com.alphaStS.card.CardColorless;
 import com.alphaStS.card.CardDefect;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.Tuple;
@@ -918,8 +919,8 @@ public class MCTS {
                 if (state.getCounterForRead()[state.properties.incenseBurnerCounterIdx] < 5) {
                     return false;
                 }
-            } else if (state.properties.incenseBurnerRewardType == Relic.IncenseBurner.SHIELD_AND_SPEAR_REWARD ||
-                    state.properties.incenseBurnerRewardType == Relic.IncenseBurner.HEART_REWARD) {
+            } else if (state.properties.incenseBurnerRewardType == Relic.IncenseBurner.NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD ||
+                    state.currentEncounter == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
                 if (state.getCounterForRead()[state.properties.incenseBurnerCounterIdx] != 4) {
                     return false;
                 }
@@ -1505,36 +1506,6 @@ public class MCTS {
         return state.policyMod;
     }
 
-    private GameState simulateMCTSOnStaticValues(GameState state, float[] policy, int nodeCount) {
-        var cloneState = state.clone(false);
-        cloneState.borrowSearchInfoFrom(state);
-        cloneState.bannedActions = state.bannedActions == null ? new boolean[cloneState.n.length] : Arrays.copyOf(state.bannedActions, state.bannedActions.length);
-        cloneState.n = Arrays.copyOf(state.n, state.n.length);
-        cloneState.q = Arrays.copyOf(state.q, state.q.length);
-        for (int i = 0; i < cloneState.n.length; i++) {
-            if (cloneState.n[i] == 0) {
-                cloneState.bannedActions[i] = true;
-            }
-        }
-        for (int i = 0; i < cloneState.n.length; i++) {
-            cloneState.n[i] *= cloneState.n[i];
-        }
-        return cloneState;
-//        for (int i = cloneState.total_n + 1; i < nodeCount; i++) {
-//            selectAction(cloneState, policy, false, true, false);
-//            if (ret[1] == 1) {
-//                return state;
-//            }
-//            cloneState.n[ret[0]] += 1;
-//            cloneState.total_n += 1;
-//            for (int j = 0; j < cloneState.properties.v_total_len; j++) {
-//                cloneState.q[(ret[0] + 1) * cloneState.properties.v_total_len + j] = (cloneState.q[(ret[0] + 1) * cloneState.properties.v_total_len + j] / (cloneState.n[ret[0]] - 1)) * cloneState.n[ret[0]];
-//                cloneState.q[j] += (cloneState.q[(ret[0] + 1) * cloneState.properties.v_total_len + j] / (cloneState.n[ret[0]] - 1));
-//            }
-//        }
-//        return cloneState;
-    }
-
     private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot, boolean firstCall) {
         // MCTS caller force root action to be taken
         if (isRoot && forceRootAction >= 0) {
@@ -1856,7 +1827,6 @@ public class MCTS {
         if (state.terminalAction >= 0) {
             return state.terminalAction;
         }
-        // state = simulateMCTSOnStaticValues(state, state.policyMod, 200);
         var total_n = 0;
         for (int i = 0; i < state.policy.length; i++) {
             if (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0)) {

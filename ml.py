@@ -16,6 +16,7 @@ import lz4.frame
 from tensorflow import keras
 from tensorflow.keras import layers
 from misc import getFlag, getFlagValue
+from keras import backend as K
 
 print(f'GUP Devices: {tf.config.list_physical_devices("GPU")}')
 
@@ -39,6 +40,7 @@ TRAINING_NODE_COUNT = int(getFlagValue('-training-n', 100))
 DYNAMIC_BATCH_SIZE_FACTOR = int(getFlagValue('-dynamic_batch', 0))
 SAVES_DIR = getFlagValue('-dir', './saves')
 SKIP_FIRST = getFlag('-skip_first')
+USE_CYCLIC_LR = getFlag('-cyclic')
 USE_KAGGLE = getFlagValue('-kaggle')
 KAGGLE_USER_NAME = getFlagValue('-kaggle_user', None)
 KAGGLE_DATASET_NAME = 'dataset'
@@ -71,7 +73,7 @@ sep = ':'
 if platform.system() == 'Windows':
     sep = ';'
 
-CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/{onnx_jar}{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar'
+CLASS_PATH = f'./agent/target/classes{sep}{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/{onnx_jar}{sep}./agent/src/resources/mallet.jar{sep}./agent/src/resources/mallet-deps.jar{sep}{os.getenv("M2_HOME")}/repository/org/jdom/jdom/1.1/jdom-1.1.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-databind/2.12.4/jackson-databind-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-annotations/2.12.4/jackson-annotations-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/com/fasterxml/jackson/core/jackson-core/2.12.4/jackson-core-2.12.4.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-compress/1.21/commons-compress-1.21.jar{sep}{os.getenv("M2_HOME")}/repository/org/apache/commons/commons-math3/3.6.1/commons-math3-3.6.1.jar{sep}{os.getenv("M2_HOME")}/repository/one/util/streamex/0.8.3/streamex-0.8.3.jar'
 
 
 def snake_case(s):
@@ -99,6 +101,7 @@ def softmax_cross_entropy_with_logits(y_true, y_pred):
     p = tf.where(where, negatives, p)
     pi = tf.where(where, zero, pi)
     loss = tf.nn.softmax_cross_entropy_with_logits(labels=pi, logits=p)
+    # loss = tf.keras.losses.KLDivergence()(pi, tf.nn.softmax(p))
     return loss
 
 
@@ -498,6 +501,14 @@ if DO_TRAINING:
         if training_info["iteration"] > 10 and (training_info["iteration"] - 21) % 15 == 0:
             print("Model layers reset!!!")
             reset_model(model)
+        # need a bit more testing, but a few different fihgt shows cyclic lr seems to training a bit faster and lead to better network
+        if USE_CYCLIC_LR and training_info["iteration"] > 20:
+            t = (training_info["iteration"] - 21) % 15
+            if t <= 7:
+                lr = 0.05 + (0.5 - 0.05) / 7 * t
+            else:
+                lr = 0.05 + (0.5 - 0.05) / 7 * (14 - t)
+            K.set_value(model.optimizer.learning_rate, lr)
 
         iteration_info['agent_time'] = round(time.time() - iter_start, 2)
         iteration_info['num_of_samples'] = len(training_pool)

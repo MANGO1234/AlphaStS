@@ -409,7 +409,7 @@ public class ScenarioStats {
             counterStat.printStat(indent, numOfGames - deathCount);
         }
         System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb / (numOfGames - deathCount)));
-        System.out.println(indent + "Average Final Final Progress: " + String.format("%.5f", finalFightProgress / numOfGames));
+        System.out.println(indent + "Average Final Progress: " + String.format("%.5f", finalFightProgress / numOfGames));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
         System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
 
@@ -480,8 +480,10 @@ public class ScenarioStats {
             System.out.printf("%sQ Diff: %6.5f [%6.5f - %6.5f]\n", indent, vQ, vQL, vQU);
         }
         if (printDmg) {
+            double acc = 0;
             for (var dmgEntry : damageCount.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList()) {
-                System.out.println(indent + dmgEntry.getKey() + ": " + dmgEntry.getValue() + " (" + Utils.formatFloat(dmgEntry.getValue() / (float) numOfGames * 100) + "%)");
+                acc += dmgEntry.getValue();
+                System.out.println(indent + dmgEntry.getKey() + ": " + dmgEntry.getValue() + " (" + Utils.formatFloat(dmgEntry.getValue() / (float) numOfGames * 100) + "%/" + Utils.formatFloat(acc / (float) numOfGames * 100) + "%)");
             }
         }
         if (Configuration.STATS_PRINT_CARD_USAGE_COUNT) {

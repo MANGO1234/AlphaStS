@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardDefect;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
@@ -209,16 +210,9 @@ public class GameProperties implements Cloneable {
     public int shieldAndSpireFacingIdx = -1;
     public boolean battleTranceExist;
     public boolean energyRefillCanChange;
-    public boolean isHeartFight;
 
     public static boolean isHeartFight(GameState state) {
-        if (!state.properties.isHeartFight) return false;
-        for (EnemyReadOnly enemy : state.getEnemiesForRead()) {
-            if (enemy.isAlive() && enemy instanceof EnemyEnding.CorruptHeart) {
-                return true;
-            }
-        }
-        return false;
+        return state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART;
     }
 
     public boolean healEndOfAct;
@@ -231,8 +225,7 @@ public class GameProperties implements Cloneable {
     public int discardOrder0CardMaxCopies;
     public int discardOrder0CostNumber;
     public int[] discardOrder0CardReverseIdx;
-    public List<Integer> innateOrder;
-    public List<List<Tuple<Integer, Integer>>> enemiesEncountersIdx;
+    public List<EnemyEncounter> enemiesEncounters;
     public Function<GameState, GameState> switchBattleHandler;
     public GameState originalGameState;
     public boolean isHeartGauntlet;

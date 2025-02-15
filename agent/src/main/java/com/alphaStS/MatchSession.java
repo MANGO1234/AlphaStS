@@ -1,11 +1,12 @@
 package com.alphaStS;
 
-import com.alphaStS.enemy.EnemyListReadOnly;
+import com.alphaStS.card.CardIronclad;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelExecutor;
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 import com.alphaStS.utils.Utils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -30,6 +31,12 @@ import static java.lang.Math.sqrt;
 
 public class MatchSession {
     private final static boolean LOG_GAME_USING_LINES_FORMAT = true;
+
+    public enum PrintDamageLevel { NONE, ALL_SCENARIOS_COMBINED, GROUPED_SCENARIOS, INDIVIDUAL_SCENARIO }
+    private PrintDamageLevel printDamageLevel = PrintDamageLevel.NONE;
+    public void setPrintDamageLevel(PrintDamageLevel printDamageLevel) {
+        this.printDamageLevel = printDamageLevel;
+    }
 
     public HashMap<Integer, Integer> difficultyReachedByScenario = new HashMap<>();
     Writer matchLogWriter;
@@ -209,7 +216,7 @@ public class MatchSession {
                 steps.get(i - 1).actionDesc = steps.get(i).state().stateDesc;
             }
         }
-        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, null, 0, 0);
+        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, null, 0, 0, null);
     }
 
     // when comparing game searchRandomGen can get out of sync, make sure it's synced as much as possible
@@ -257,14 +264,14 @@ public class MatchSession {
         return null;
     }
 
-    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty) {}
+    public static record Game(List<GameStep> steps, int preBattle_r, int battle_r, List<GameStep> augmentedSteps, int noTemperatureTurn, int difficulty, Tuple3<Long, Long, Long> aa) {}
     public static record GameResult(Game game, int modelCalls, Game game2, int modelCalls2, long seed, List<GameResult> reruns, String remoteServer, int remoteR, ScenarioStats remoteStats, String remoteGameRecord) {}
     public static record TrainingGameResult(Game game, String remoteServer, String remoteTrainingGameRecord, byte[] remoteTrainingData) {}
 
     private boolean playGamesPause;
     private boolean playGamesStop;
 
-    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount, boolean printProgress, boolean printDmg, boolean returnGames) throws IOException {
+    public List<Game> playGames(GameState origState, int numOfGames, int nodeCount, int numOfThreads, int batchCount, boolean printProgress, boolean returnGames) throws IOException {
         var seeds = new ArrayList<Long>(numOfGames);
         for (int i = 0; i < numOfGames; i++) {
             seeds.add(origState.properties.random.nextLong(RandomGenCtx.Other));
@@ -416,23 +423,23 @@ public class MatchSession {
                         var i = info.getKey();
                         if (scenarioStats.get(i) != null) {
                             System.out.println("Scenario " + info.getKey() + ": " + info.getValue().desc());
-                            scenarioStats.get(i).printStats(origState, false , 4);
+                            scenarioStats.get(i).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.INDIVIDUAL_SCENARIO) >= 0 && game_i.get() == numOfGames , 4);
                         }
                     }
                 } else if (startingAction >= 0 && chanceNodeStats.size() > 1 && chanceNodeStats.size() < 10) {
                     for (var stats : chanceNodeStats.entrySet()) {
                         System.out.println("Random Event: " + stats.getKey().getStateDesc());
-                        stats.getValue().printStats(origState, false , 4);
+                        stats.getValue().printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.INDIVIDUAL_SCENARIO) >= 0 && game_i.get() == numOfGames , 4);
                     }
                 }
                 if (scenariosGroup != null) {
                     for (int i = 0; i < scenariosGroup.length; i++) {
                         System.out.println("Scenario " + IntStream.of(scenariosGroup[i]).mapToObj(String::valueOf).collect(Collectors.joining(", ")) + ": " + ScenarioStats.getCommonString(combinedInfoMap, scenariosGroup[i]));
                         var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
-                        ScenarioStats.combine(origState.properties, group).printStats(origState, false , 4);
+                        ScenarioStats.combine(origState.properties, group).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.GROUPED_SCENARIOS) >= 0 && game_i.get() == numOfGames , 4);
                     }
                 }
-                ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDmg && game_i.get() == numOfGames, 0);
+                ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.ALL_SCENARIOS_COMBINED) >= 0 && game_i.get() == numOfGames, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
                 var modelsPrint = modelExecutor.getExecutorModels();
                 for (int i = 0; i < modelsPrint.size(); i++) {
@@ -773,17 +780,49 @@ public class MatchSession {
 
     private double[] calcExpectedValue2(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
+//        var varM = 0.0;
+//        var varS = 0.0;
+//        var varK = 0;
+//        boolean first = true;
+//        for (ChanceState.Node node : cState.cache.values()) {
+//            if (node.state.policy == null) {
+//                node.state.doEval(mcts.model);
+//            }
+//            var v = node.state != stateActual ? node.state.get_v_cached() : vCur;
+//            for (int i = 0; i < node.n; i++) {
+//                varK++;
+//                if (first) {
+//                    varM = v[GameState.V_COMB_IDX];
+//                    first = false;
+//                } else {
+//                    var tmp = varM + (v[GameState.V_COMB_IDX] - varM) / varK;
+//                    varS = varS + (v[GameState.V_COMB_IDX] - varM) * (v[GameState.V_COMB_IDX] - tmp);
+//                    varM = tmp;
+//                }
+//            }
+//        }
         while (cState.total_n < 10000 && cState.cache.size() < 200) {
-            cState.getNextState(false, -1);
+//        while (cState.total_n < 10000 && (cState.total_n < 50 || varS / (varK - 1) / cState.total_n * Utils.getChiSquareInverseProb((int) cState.total_n - 1) > 0.000004)) {
+            var s = cState.getNextState(false, -1);
+//            var v = s != stateActual ? s.get_v_cached() : vCur;
+//            varK++;
+//            if (first) {
+//                varM = v[GameState.V_COMB_IDX];
+//                first = false;
+//            } else {
+//                var tmp = varM + (v[GameState.V_COMB_IDX] - varM) / varK;
+//                varS = varS + (v[GameState.V_COMB_IDX] - varM) * (v[GameState.V_COMB_IDX] - tmp);
+//                varM = tmp;
+//            }
         }
+
         double[] est = new double[vCur.length];
-        double[] out = new double[vCur.length];
         for (ChanceState.Node node : cState.cache.values()) {
             if (node.state != stateActual) {
                 if (node.state.policy == null) {
                     node.state.doEval(mcts.model);
                 }
-                node.state.get_v(out);
+                var out = node.state.get_v_cached();
                 for (int i = 0; i < est.length; i++) {
                     est[i] += out[i] * node.n;
                 }
@@ -864,8 +903,10 @@ public class MatchSession {
             turnsToSkip = state.getSearchRandomGen(true).nextInt(Configuration.TRAINING_SKIP_OPENING_TURNS_UPTO + 1, RandomGenCtx.Other);
         }
         int prevTurnNum = 1;
+        var trainingGameStart = System.currentTimeMillis();
         while (state.isTerminal() == 0) {
-            int todo = (quickPass ? nodeCount / 4 : nodeCount) - state.total_n;
+            int turnNodeCount = quickPass ? nodeCount / 4 : nodeCount;
+            int todo = turnNodeCount - state.total_n;
             if (!doNotExplore && state.realTurnNum <= turnsToSkip) {
                 todo = 1;
             }
@@ -875,6 +916,7 @@ public class MatchSession {
             }
             RandomGen randomGenClone = state.getSearchRandomGen().getCopy();
             prevTurnNum = state.realTurnNum;
+            int[] nWhenSearchHalfDone = null;
             for (int i = 0; i < todo; i++) {
                 mcts.search(state, !quickPass, todo - i);
                 if (mcts.numberOfPossibleActions == 1 && state.total_n >= 1) {
@@ -883,6 +925,12 @@ public class MatchSession {
 //                    }
                     break;
                 }
+//                if (state.total_n == turnNodeCount / 2 && state.n != null) {
+//                    nWhenSearchHalfDone = Arrays.copyOf(state.n, state.n.length);
+//                    if (Utils.calcKLDivergence(Utils.nArrayToPolicy(nWhenSearchHalfDone), state.policy) < 0.04) {
+//                        break;
+//                    }
+//                }
             }
 
             int action;
@@ -913,6 +961,7 @@ public class MatchSession {
             step.trainingWriteCount = !quickPass ? 1 : 0;
             step.isExplorationMove = greedyAction != action;
             step.searchRandomGenMCTS = randomGenClone;
+            step.nWhenSearchHalfDone = nWhenSearchHalfDone;
             if (!doNotExplore && state.realTurnNum <= turnsToSkip) {
                 step.trainingWriteCount = 0;
                 step.trainingSkipOpening = true;
@@ -938,6 +987,7 @@ public class MatchSession {
             }
         }
         steps.add(new GameStep(state, -1));
+        var trainingGameEnd = System.currentTimeMillis();
 
         // do scoring here before clearing states to reuse nn eval if possible
         var vLen = state.get_v_len();
@@ -951,7 +1001,6 @@ public class MatchSession {
             vPro = Arrays.copyOf(vCur, vCur.length);
         }
         ChanceState lastChanceState = null;
-        boolean contaminatedByTemp = false;
         for (int i = steps.size() - 2; i >= 0; i--) {
             int isBetter = 0;
             if (!USE_Z_TRAINING && steps.get(i).isExplorationMove) {
@@ -960,7 +1009,6 @@ public class MatchSession {
                 // taking the max of 2 random variable inflates eval slightly, so we try to make calcExpectedValue have a large sample
                 // to reduce this effect, seems ok so far, also check if we are transposing and skip for transposing
                 if (cState != null && !cState.equals(lastChanceState)) {
-                    contaminatedByTemp = true;
                     double[] ret = calcExpectedValue(cState, null, mcts, new double[vLen]);
                     if (lastChanceState != null || ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
                         if (ret[GameState.V_COMB_IDX] > vCur[GameState.V_COMB_IDX]) {
@@ -992,7 +1040,6 @@ public class MatchSession {
 //                    augmentedSteps.addAll(extraSteps);
                 }
             }
-            steps.get(i).resultContaminatedByTemp = contaminatedByTemp;
             steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
             if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
                 if (!USE_Z_TRAINING && steps.get(i).isExplorationMove && steps.get(i + 1).v != null) {
@@ -1027,29 +1074,17 @@ public class MatchSession {
         if (steps.get(0).state().actionCtx == GameActionCtx.BEGIN_BATTLE || steps.get(0).state().actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
             steps.get(0).trainingWriteCount = 0;
         }
+        var postProcessingEnd = System.currentTimeMillis();
 
         state = steps.get(steps.size() - 1).state();
-        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, augmentedSteps, noTemperatureTurn, state.properties.difficultyChosen);
+        return new Game(steps, state.preBattleRandomizationIdxChosen, state.battleRandomizationIdxChosen, augmentedSteps, noTemperatureTurn, state.properties.difficultyChosen, new Tuple3<>(trainingGameStart, trainingGameEnd, postProcessingEnd));
     }
 
     private double calcKld(GameState state) {
         if (state.n == null || state.policy == null) {
             throw new IllegalArgumentException();
         }
-        if (state.terminalAction >= 0) {
-            return 0;
-        }
-        var snapShot = new double[state.n.length];
-        for (int j = 0; j < state.n.length; j++) {
-            snapShot[j] = state.n[j] / (double) state.total_n;
-        }
-        var kld = 0.0;
-        for (int j = 0; j < state.policy.length; j++) {
-            if (snapShot[j] > 0) {
-                kld += snapShot[j] * Math.log(snapShot[j] / state.policy[j]);
-            }
-        }
-        return Math.abs(kld);
+        return state.terminalAction >= 0 ? 0 : Math.abs(Utils.calcKLDivergence(Utils.nArrayToPolicy(state.n), state.policy));
     }
 
     private ChanceState findBestLineChanceState(GameState state, int nodeCount, MCTS mcts, List<GameStep> augmentedSteps) {
@@ -1148,6 +1183,8 @@ public class MatchSession {
 
         var trainingGame_i = 0;
         var positionsCount = 0;
+        var trainingGameTime = 0;
+        var postProcessingTime = 0;
         while (trainingGame_i < numOfGames) {
             TrainingGameResult result;
             try {
@@ -1174,6 +1211,8 @@ public class MatchSession {
                 changeWritingCountBasedOnPolicySurprise(steps);
                 positionsCount += writeTrainingData(stream, steps);
                 positionsCount += writeTrainingData(stream, game.augmentedSteps);
+                trainingGameTime += game.aa.v2() - game.aa.v1();
+                postProcessingTime += game.aa.v3() - game.aa.v2();
             } else {
                 if (trainingDataWriter != null && trainingGame_i <= 100) {
                     trainingDataWriter.write("*** Match " + trainingGame_i + " (Remote) ***\n");
@@ -1186,6 +1225,7 @@ public class MatchSession {
                 System.out.println(trainingGame_i + " games finished...");
             }
         }
+        System.out.println("Training Time: " + trainingGameTime + "/" + postProcessingTime);
         System.out.println(positionsCount + " training positions generated.");
         modelExecutor.stop();
         stream.flush();
@@ -1426,11 +1466,7 @@ public class MatchSession {
                     stream.writeFloat(x[j]);
                 }
                 for (int j = 1; j < GameState.V_OTHER_IDX_START; j++) {
-                    if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
-                        stream.writeFloat((float) -100);
-                    } else {
-                        stream.writeFloat((float) ((step.v[j] * 2) - 1));
-                    }
+                    stream.writeFloat((float) ((step.v[j] * 2) - 1));
                 }
                 int v_idx = GameState.V_OTHER_IDX_START;
                 int k = 0;
@@ -1440,17 +1476,9 @@ public class MatchSession {
                         if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z") && false) {
                             stream.writeFloat((float) (step.v[v_idx]));
                          } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
-                            if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
-                                stream.writeFloat((float) -100);
-                            } else {
-                                stream.writeFloat((float) ((((step.v[v_idx] - step.state().realTurnNum / 50.0) * 2) - 1)));
-                            }
+                            stream.writeFloat((float) ((((step.v[v_idx] - step.state().realTurnNum / 50.0) * 2) - 1)));
                         } else {
-                            if (Configuration.TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES && step.resultContaminatedByTemp) {
-                                stream.writeFloat((float) -100);
-                            } else {
-                                stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
-                            }
+                            stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
                         }
                     } else {
                         for (int j = 0; j < n; j++) {

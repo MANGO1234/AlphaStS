@@ -522,7 +522,7 @@ public class InteractiveMode {
                     curGames = new ArrayList<>(curGames.stream().filter(g -> g.steps().get(0).state().equals(step.state())).toList());
                     out.println("****************** " + i + "/" + game.size() + " (" + (numberOfGames - curGames.size()) + ")");
                     step.state().properties.makingRealMove = false;
-                    curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, false, true));
+                    curGames.addAll(session.playGames(step.state(), numberOfGames - curGames.size(), nodeCount, numberOfThreads, batchSize, true, true));
                     var stats = new ScenarioStats(state.properties);
                     for (MatchSession.Game g : curGames) {
                         stats.add(g.steps(), 0);
@@ -844,6 +844,9 @@ public class InteractiveMode {
                     }
                 }
             }
+            if (state.currentEncounter != EnemyEncounter.EncounterEnum.UNKNOWN) {
+                out.println("  - " + state.currentEncounter.name());
+            }
             if (state.getPlayeForRead().isEntangled()) {
                 out.println("  - Entangled");
             }
@@ -1092,8 +1095,8 @@ public class InteractiveMode {
         if (state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.RedLouse ||
                 state.getEnemiesForRead().get(curEnemyIdx) instanceof EnemyExordium.GreenLouse) {
             while (true) {
-                out.print("0. Curl-Up");
-                out.print("1. Damage");
+                out.println("0. Curl-Up");
+                out.println("1. Damage");
                 String line = reader.readLine();
                 history.add(line);
                 if (line.equals("b")) {
@@ -1594,6 +1597,7 @@ public class InteractiveMode {
         }
         MatchSession session = new MatchSession(modelDir);
         session.startingAction = startingAction;
+        session.setPrintDamageLevel(printDamageDistribution ? MatchSession.PrintDamageLevel.ALL_SCENARIOS_COMBINED : MatchSession.PrintDamageLevel.NONE);
         if (writeFile) {
             session.setMatchLogFile("matches_interactive.txt.gz");
         }
@@ -1602,7 +1606,7 @@ public class InteractiveMode {
             state.properties.randomization = state.properties.randomization.fixR(randomizationScenario);
         }
         try {
-            session.playGames(state, numberOfGames, nodeCount, numberOfThreads, batchSize, true, printDamageDistribution, false);
+            session.playGames(state, numberOfGames, nodeCount, numberOfThreads, batchSize, true, false);
             session.flushAndCloseFileWriters();
         } catch (IOException e) {
             e.printStackTrace();
@@ -1674,7 +1678,7 @@ public class InteractiveMode {
         if (!reader.readLine().equals("y")) {
             return;
         }
-        session.playGames(state1, numberOfGames, nodeCount, numberOfThreads, batchSize, true, false, false);
+        session.playGames(state1, numberOfGames, nodeCount, numberOfThreads, batchSize, true, false);
         state1.properties.randomization = prevRandomization;
     }
 

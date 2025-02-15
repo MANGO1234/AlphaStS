@@ -2,6 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.Tuple3;
+import com.alphaStS.utils.Utils;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -60,7 +61,7 @@ public class Main {
     private static int NUMBER_OF_THREADS = 1;
     private static int BATCH_SIZE = 1;
     private static boolean WRITE_MATCHES = false;
-    private static boolean PRINT_DMG = false;
+    private static MatchSession.PrintDamageLevel PRINT_DAMAGE_LEVEL = MatchSession.PrintDamageLevel.NONE;
     private static boolean MAKE_PRE_BATTLE_SCENARIOS_RANDOM = false;
     private static boolean TEST_TRAINING_AGENT_ONLY = false;
     private static String COMPARE_DIR = null;
@@ -112,15 +113,16 @@ public class Main {
 
         if (SAVES_DIR.startsWith("../")) {
             SAVES_DIR = "../saves";
+            PRINT_DAMAGE_LEVEL = MatchSession.PrintDamageLevel.NONE;
             WRITE_MATCHES = true;
             PRINT_DMG = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             NUMBER_OF_NODES_PER_TURN = 100;
-            SCENARIO_GROUPS_PARAM = new int[] { 4, 1 };
 //            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";
-            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
+           MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
         }
+        SCENARIO_GROUPS_PARAM = state.properties.randomization == null ? null : new int[] { state.properties.randomization.listRandomizations().size(), 1 };
 
         ObjectMapper mapper = new ObjectMapper();
         CUR_ITER_DIRECTORY = SAVES_DIR + "/iteration0";
@@ -152,6 +154,7 @@ public class Main {
         parseCommonArgs(state, args);
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         session.setModelComparison(COMPARE_DIR, state, -1);
+        session.setPrintDamageLevel(PRINT_DAMAGE_LEVEL);
         if (NUMBER_OF_GAMES_TO_PLAY <= 100 || WRITE_MATCHES) {
             session.setMatchLogFile("matches.txt.gz");
         }
@@ -163,7 +166,7 @@ public class Main {
         if (state.properties.randomization != null && SCENARIO_GROUPS_PARAM != null) {
             session.scenariosGroup = GameStateUtils.getScenarioGroups(state, SCENARIO_GROUPS_PARAM[0], SCENARIO_GROUPS_PARAM[1]);
         }
-        session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, true, PRINT_DMG, false);
+        session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, true, false);
         if (MAKE_PRE_BATTLE_SCENARIOS_RANDOM) {
             unmakePreBattleScenariosRandom(state, preBattleScenarios, randomization);
         }
@@ -172,10 +175,9 @@ public class Main {
 
     private static void playGameAndViewGame(GameState state, String[] args) throws IOException {
         parseCommonArgs(state, args);
-//        state.properties.randomization = state.properties.randomization.fixR(0, 2, 4);
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
         var writer = new OutputStreamWriter(System.out);
-        var game = session.playGames(state, 1, NUMBER_OF_NODES_PER_TURN, 1, 1, false, false, true).get(0).steps();
+        var game = session.playGames(state, 1, NUMBER_OF_NODES_PER_TURN, 1, 1, false, true).get(0).steps();
         MatchSession.printGame(writer, game);
         writer.flush();
         new InteractiveMode().interactiveStart(game, CUR_ITER_DIRECTORY);
@@ -199,6 +201,7 @@ public class Main {
         }
 
         MatchSession session = new MatchSession(CUR_ITER_DIRECTORY);
+        session.setPrintDamageLevel(PRINT_DAMAGE_LEVEL);
         if (NUMBER_OF_GAMES_TO_PLAY <= 100) {
             session.setMatchLogFile("training_matches.txt.gz");
         }
@@ -208,7 +211,7 @@ public class Main {
         if (state.properties.randomization != null && SCENARIO_GROUPS_PARAM != null) {
             session.scenariosGroup = GameStateUtils.getScenarioGroups(state, SCENARIO_GROUPS_PARAM[0], SCENARIO_GROUPS_PARAM[1]);
         }
-        session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, false, PRINT_DMG, false);
+        session.playGames(state, NUMBER_OF_GAMES_TO_PLAY, NUMBER_OF_NODES_PER_TURN, NUMBER_OF_THREADS, BATCH_SIZE, false, false);
         unmakePreBattleScenariosRandom(state, preBattleScenarios, randomization);
 
         if (TEST_TRAINING_AGENT_ONLY) {

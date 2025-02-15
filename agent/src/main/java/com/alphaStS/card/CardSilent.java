@@ -5,6 +5,7 @@ import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.utils.CounterStat;
+import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1188,7 +1189,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var r = state.getSearchRandomGen().nextInt(state.properties.distractionIndexes.length, RandomGenCtx.CardGeneration);
+            var r = state.getSearchRandomGen().nextInt(state.properties.distractionIndexes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.distractionIndexes));
             state.addCardToHand(state.properties.distractionIndexes[r]);
             state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;

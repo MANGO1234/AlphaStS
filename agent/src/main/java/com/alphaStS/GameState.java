@@ -81,6 +81,7 @@ public final class GameState implements State {
     public int preBattleRandomizationIdxChosen = -1;
     public int preBattleScenariosChosenIdx = -1;
     public int battleRandomizationIdxChosen = -1;
+    public EnemyEncounter.EncounterEnum currentEncounter = EnemyEncounter.EncounterEnum.UNKNOWN;
 
     // various other buffs/debuffs
     public long buffs;
@@ -309,7 +310,7 @@ public final class GameState implements State {
     }
 
     public GameState(GameStateBuilder builder) {
-        builder.build();
+        builder.build(this);
         List<Enemy> enemiesArg = builder.getEnemies();
         Player player = builder.getPlayer();
         List<CardCount> cardCounts = builder.getCards();
@@ -338,14 +339,7 @@ public final class GameState implements State {
         properties.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         properties.character = builder.getCharacter();
         properties.relics = builder.getRelics();
-        properties.enemiesEncountersIdx = builder.getEnemiesEncountersIdx();
-        if (properties.enemiesEncountersIdx != null) {
-            if (properties.randomization != null) {
-                properties.randomization = properties.randomization.doAfter(new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), properties.enemiesEncountersIdx));
-            } else {
-                properties.randomization = new GameStateRandomization.EnemyEncounterRandomization(builder.getEnemies(), properties.enemiesEncountersIdx);
-            }
-        }
+        properties.enemiesEncounters = builder.getEnemiesEncounters();
         if (properties.potions.size() > 0) {
             GameStateRandomization p = new GameStateRandomization.PotionsUtilityRandomization(properties.potions);
             if (properties.potionsScenarios != null) {
@@ -724,7 +718,7 @@ public final class GameState implements State {
 
     private void registerPotionTrainingTargets() {
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (properties.potions.get(i) instanceof Potion.FairyInABottle || (properties.hasToyOrniphopter && !properties.isHeartFight)) {
+            if (properties.potions.get(i) instanceof Potion.FairyInABottle || properties.hasToyOrniphopter) {
                 int _i = i;
                 properties.addExtraTrainingTarget((properties.potions.get(i) + "" + i).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
                     @Override public void setVArrayIdx(GameProperties properties, int idx) {
@@ -752,7 +746,7 @@ public final class GameState implements State {
                     @Override public void updateQValues(GameState state, double[] v) {
                         if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
                             v[V_HEALTH_IDX] += pot.getHealAmount(state) * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
-                        } else {
+                        } else if (!properties.isHeartFight(state)) {
                             v[V_HEALTH_IDX] += 5 * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
                         }
                     }
@@ -991,6 +985,7 @@ public final class GameState implements State {
             gameActionDeque = new CircularArray<>(other.gameActionDeque);
         }
         potionsState = other.potionsState;
+        currentEncounter = other.currentEncounter;
         other.enemiesCloned = false;
         other.counterCloned = false;
         other.playerCloned = false;
@@ -1173,7 +1168,7 @@ public final class GameState implements State {
         boolean cardPlayedSuccessfully = true;
         boolean targetHalfAlive = false;
         int energyCost = overrideEnergyCost >= 0 ? overrideEnergyCost : getCardEnergyCost(cardIdx);
-        if (properties.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIndexIdx] >= 6) {
+        if (properties.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIndexIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
             return false;
         } else if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12 && cardIdx != properties.wellLaidPlansCardIdx) {
             return false;
@@ -2097,6 +2092,15 @@ public final class GameState implements State {
         out[V_COMB_IDX] = calc_q(out);
     }
 
+    double[] cached_v;
+    double[] get_v_cached() {
+        if (cached_v == null) {
+            cached_v = new double[get_v_len()];
+            get_v(cached_v);
+        }
+        return cached_v;
+    }
+
     public int getScenarioIdxChosen() {
         int idx = 0;
         if (properties.preBattleRandomization != null) {
@@ -2136,10 +2140,8 @@ public final class GameState implements State {
                 break;
             }
         }
-        int upto = properties.enemiesEncountersIdx == null ? getEnemiesForRead().size() : properties.enemiesEncountersIdx.get(properties.enemiesEncounterChosen).size();
-        for (int i = 0; i < upto; i++) {
-            int enemyIdx = properties.enemiesEncountersIdx == null ? i : properties.enemiesEncountersIdx.get(properties.enemiesEncounterChosen).get(i).v1();
-            EnemyReadOnly enemy = getEnemiesForRead().get(enemyIdx);
+        for (int i = 0; i < getEnemiesForRead().size(); i++) {
+            EnemyReadOnly enemy = getEnemiesForRead().get(i);
             boolean addedMod = false;
             if (enemy instanceof EnemyExordium.SlimeBoss boss) {
                 isSlimeBossAlive = boss.getHealth() > 0;
@@ -2174,7 +2176,7 @@ public final class GameState implements State {
                 totalMaxHp += enemy.properties.maxHealth * 2;
                 addedMod = true;
             } else if (enemy instanceof EnemyCity.BronzeAutomaton ba) {
-                if (ba.getMove() <= ba.SPAWN_ORBS) {
+                if (ba.getMove() <= EnemyCity.BronzeAutomaton.SPAWN_ORBS) {
                     totalCurHp += 60 * 2; // the orbs
                 }
             } else if (enemy instanceof EnemyCity.TorchHead) {
@@ -2293,8 +2295,7 @@ public final class GameState implements State {
                     if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Bite")) {
                         v = getPlayeForRead().getMaxHealth();
                     }
-                    if (properties.cardDict[properties.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ||
-                            properties.cardDict[properties.healCardsIdxes[i]] instanceof CardDefect.SelfRepairP) {
+                    if (!properties.isHeartFight(this) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
                         int m = getNonExhaustCount(properties.healCardsIdxes[i]);
                         if (m > 0) {
                             if (properties.echoFormCardIdx >= 0 || properties.echoFormPCardIdx >= 0) {
@@ -2315,7 +2316,7 @@ public final class GameState implements State {
                 }
             }
 
-            if (properties.selfRepairCounterIdx >= 0) {
+            if (!properties.isHeartFight(this) && properties.selfRepairCounterIdx >= 0) {
                 v += getCounterForRead()[properties.selfRepairCounterIdx];
             }
             if (properties.hasBurningBlood) {
@@ -2345,7 +2346,7 @@ public final class GameState implements State {
             if (properties.hasBloodyIdol) {
                 hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 5);
             }
-            if (properties.hasBloodVial) {
+            if (!properties.isHeartFight(this) && properties.hasBloodVial) {
                 hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 2);
             }
             if (properties.healEndOfAct) {
@@ -3964,23 +3965,6 @@ public final class GameState implements State {
         bannedActions = null;
     }
 
-    public void borrowSearchInfoFrom(GameState state) {
-        policy = state.policy;
-        v_health = state.v_health;
-        v_win = state.v_win;
-        v_other = state.v_other;
-        q = state.q;
-        n = state.n;
-        ns = state.ns;
-        total_n = state.total_n;
-        transpositions = state.transpositions;
-        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = state.transpositionsParent;
-        legalActions = state.legalActions;
-        terminalAction = state.terminalAction;
-        searchFrontier = state.searchFrontier;
-        bannedActions = state.bannedActions;
-    }
-
     public void gainEnergy(int n) {
         energy = Math.max(energy + n, 0);
     }
@@ -4119,7 +4103,7 @@ public final class GameState implements State {
             deckArrFixedDrawLen++;
         } else {
             // todo: this means that the card is always added below cards put on top of deck like headbutt etc., don't think this is how the game works?
-            for (int i = deckArrLen - 2; i > deckArrLen - 2 - deckArrFixedDrawLen; i++) {
+            for (int i = deckArrLen - 2; i > deckArrLen - 2 - deckArrFixedDrawLen; i--) {
                 deckArr[i] = deckArr[i + 1];
             }
             deckArr[deckArrLen - 1] = (short) idx;
