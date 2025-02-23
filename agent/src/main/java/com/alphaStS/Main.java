@@ -117,6 +117,10 @@ public class Main {
             WRITE_MATCHES = true;
             PRINT_DMG = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
+            int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
+            n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
+            n *= state.properties.preBattleScenarios == null ? 1 : state.properties.preBattleScenarios.listRandomizations().size();
+            NUMBER_OF_GAMES_TO_PLAY = n * 1000;
             NUMBER_OF_NODES_PER_TURN = 100;
 //            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";

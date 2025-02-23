@@ -113,7 +113,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     }
 
     public Card getPermCostIfPossible(int permCost) {
-        if (energyCost < 0 || energyCost == permCost || isXCost) {
+        if (energyCost < 0 || energyCost <= permCost || isXCost) {
             return this;
         }
         return new Card.CardPermChangeCost(this, permCost);

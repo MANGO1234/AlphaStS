@@ -722,6 +722,13 @@ public class CardDefect {
         @Override public int onPlayTransformCardIdx(GameProperties prop) {
             return energyCost > 0 ? prop.streamlineIndexes[energyCost - 1] : -1;
         }
+
+        public Card getPermCostIfPossible(int permCost) {
+            if (permCost <= 2) {
+                return new Streamline(permCost);
+            }
+            return new Card.CardPermChangeCost(this, permCost);
+        }
     }
 
     public static class StreamlineP extends Card {
@@ -752,6 +759,13 @@ public class CardDefect {
 
         @Override public int onPlayTransformCardIdx(GameProperties prop) {
             return energyCost > 0 ? prop.streamlinePIndexes[energyCost - 1] : -1;
+        }
+
+        public Card getPermCostIfPossible(int permCost) {
+            if (permCost <= 2) {
+                return new StreamlineP(permCost);
+            }
+            return new Card.CardPermChangeCost(this, permCost);
         }
     }
 
@@ -3002,7 +3016,9 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.evokeOrb(energyUsed + n);
+            if (energyUsed + n > 0) {
+                state.evokeOrb(energyUsed + n);
+            }
             return GameActionCtx.PLAY_CARD;
         }
 

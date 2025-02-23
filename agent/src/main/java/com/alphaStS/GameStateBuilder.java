@@ -273,12 +273,27 @@ public class GameStateBuilder {
         this.endOfPreBattleSetupHandler = endOfPreBattleSetupHandler;
     }
 
-    public void setGameStateViaInteractiveMode(List<String> commands) {
+    public void setGameStateViaInteractiveMode(List<String> commands, boolean trainWholeBattle) {
         setEndOfPreBattleSetupHandler(new GameEventHandler() {
             @Override public void handle(GameState state) {
+//                if (state.properties.isTraining && state.skipInteractiveModeSetup) {
+                if (state.skipInteractiveModeSetup) {
+                    return;
+                }
                 state.clearAllSearchInfo();
                 new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, commands);
             }
         });
+        if (trainWholeBattle) {
+            preBattleRandomization = new GameStateRandomization.SimpleCustomRandomization(List.of(
+                    (state) -> state.skipInteractiveModeSetup = true
+            )).union(0.2, new GameStateRandomization.SimpleCustomRandomization(List.of(
+                    (state) -> {}
+            ))).setDescriptions("Skip interactive mode setup", "Interactive mode setup").doAfter(preBattleRandomization);
+        }
+    }
+
+    public void setGameStateViaInteractiveMode(List<String> commands) {
+        setGameStateViaInteractiveMode(commands, false);
     }
 }

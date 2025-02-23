@@ -133,7 +133,48 @@ public class CardColorless {
         }
     }
 
-    // Enlightenment
+    private static abstract class _EnlightenmentT extends Card {
+        private final boolean upgraded;
+
+        public _EnlightenmentT(String cardName, int cardType, int energyCost, boolean upgraded) {
+            super(cardName, cardType, energyCost, Card.UNCOMMON);
+            this.upgraded = upgraded;
+        }
+
+        public GameActionCtx play(GameState state, int _idx, int energyUsed) {
+            for (int i = 0; i < state.getNumCardsInHand(); i++) {
+                int cardIdx = state.getHandArrForRead()[i];
+                if (!state.properties.cardDict[cardIdx].isXCost && state.properties.cardDict[cardIdx].energyCost > 1) {
+                    if (upgraded) {
+                        state.modifyCardInHandByPosition(i, state.properties.findCardIndex(state.properties.cardDict[cardIdx].getPermCostIfPossible(1))); // todo
+                    } else {
+                        state.modifyCardInHandByPosition(i, state.properties.findCardIndex(state.properties.cardDict[cardIdx].getTemporaryCostIfPossible(1))); // todo
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            if (upgraded) {
+                return cards.stream().map((card) -> card.getPermCostIfPossible(1)).toList();
+            } else {
+                return cards.stream().map((card) -> card.getTemporaryCostIfPossible(1)).toList();
+            }
+        }
+    }
+
+    public static class Enlightenment extends _EnlightenmentT {
+        public Enlightenment() {
+            super("Enlightenment", Card.SKILL, 0, false);
+        }
+    }
+
+    public static class EnlightenmentP extends _EnlightenmentT {
+        public EnlightenmentP() {
+            super("Enlightenment+", Card.SKILL, 0, true);
+        }
+    }
 
     private static abstract class _FinesseT extends Card {
         private final int n;

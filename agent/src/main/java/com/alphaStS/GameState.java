@@ -81,6 +81,7 @@ public final class GameState implements State {
     public int preBattleRandomizationIdxChosen = -1;
     public int preBattleScenariosChosenIdx = -1;
     public int battleRandomizationIdxChosen = -1;
+    public boolean skipInteractiveModeSetup;
     public EnemyEncounter.EncounterEnum currentEncounter = EnemyEncounter.EncounterEnum.UNKNOWN;
 
     // various other buffs/debuffs
@@ -974,6 +975,7 @@ public final class GameState implements State {
         preBattleRandomizationIdxChosen = other.preBattleRandomizationIdxChosen;
         preBattleScenariosChosenIdx = other.preBattleScenariosChosenIdx;
         battleRandomizationIdxChosen = other.battleRandomizationIdxChosen;
+        skipInteractiveModeSetup = other.skipInteractiveModeSetup;
         energyRefill = other.energyRefill;
         player = other.player;
         enemies = other.enemies;
@@ -4014,6 +4016,10 @@ public final class GameState implements State {
             getHandArrForWrite()[idx] = getHandArrForRead()[idx + 1];
         }
         handArrLen--;
+    }
+
+    public void modifyCardInHandByPosition(int idx, int newCardIdx) {
+        getHandArrForWrite()[idx] = (short) newCardIdx;
     }
 
     public void addCardToDiscard(int cardIndex) {

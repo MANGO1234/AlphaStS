@@ -236,6 +236,7 @@ public class CardUpgrade {
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
         map.put(new CardColorless.DeepBreath(), new CardColorless.DeepBreathP());
         map.put(new CardColorless.DramaticEntrance(), new CardColorless.DramaticEntranceP());
+        map.put(new CardColorless.Enlightenment(), new CardColorless.EnlightenmentP());
         map.put(new CardColorless.Finesse(), new CardColorless.FinesseP());
         map.put(new CardColorless.FlashOfSteel(), new CardColorless.FlashOfSteelP());
         map.put(new CardColorless.GoodInstincts(), new CardColorless.GoodInstinctsP());

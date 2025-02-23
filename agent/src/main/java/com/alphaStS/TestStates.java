@@ -813,7 +813,7 @@ public class TestStates {
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.ToyOrnithopter());
-        builder.addRelic(new Relic.InkBottle());
+        builder.addRelic(new Relic.InkBottle(9, 0));
         EnemyEncounter.addCorruptHeartFight(builder);
 //        builder.addPotion(new Potion.SneckoPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.LiquidMemory().setBasePenaltyRatio(100));
@@ -2357,6 +2357,61 @@ public class TestStates {
         builder.addRelic(new Relic.PenNib(9, 2));
         builder.addRelic(new Relic.LetterOpener());
         builder.addRelic(new Relic.OrangePellets());
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateXecnar2() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 3);
+        builder.addCard(new CardDefect.GeneticAlgorithm(57, 0), 1);
+        builder.addCard(new CardDefect.Tempest(), 1);
+        builder.addCard(new CardDefect.LoopP(), 1);
+        builder.addCard(new CardDefect.BallLightning(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.CompiledDriver(), 1);
+        builder.addCard(new CardDefect.ConsumeP(), 1);
+        builder.addCard(new CardDefect.MeteorStrike(), 1);
+        builder.addCard(new CardDefect.Blizzard(), 1);
+        builder.addCard(new CardDefect.MultiCast(), 1);
+        builder.addCard(new CardDefect.Aggregate(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardDefect.Sunder(), 1);
+        builder.addCard(new CardDefect.Glacier(), 1);
+        builder.addCard(new CardDefect.DefragmentP(), 1);
+        builder.addCard(new CardDefect.Buffer(), 1);
+        builder.addCard(new CardDefect.FissionP(), 1);
+        builder.addCard(new CardDefect.Equilibrium(), 2);
+        builder.addCard(new CardDefect.Heatsinks(), 1);
+        builder.addCard(new CardDefect.CoolheadedP(), 1);
+        builder.addCard(new CardDefect.Capacitor(), 1);
+        builder.addCard(new CardDefect.Skim(), 1);
+        builder.addCard(new CardDefect.Loop(), 1);
+        builder.addCard(new CardColorless.EnlightenmentP(), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.EmotionChip());
+        builder.addRelic(new Relic.MeatOnTheBone());
+        builder.addRelic(new Relic.Akabeko());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.RedMask());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.addRelic(new Relic.Shuriken());
+        builder.addRelic(new Relic.MummifiedHand());
+        builder.addRelic(new Relic.InkBottle(9, 0));
+        builder.addRelic(new Relic.CoffeeDripper());
+        builder.addRelic(new Relic.GoldPlatedCable());
+        builder.addRelic(new Relic.DataDisk());
+        builder.addRelic(new Relic.IceCream());
+        builder.addRelic(new Relic.BloodVial());
+        builder.addRelic(new Relic.TungstenRod());
+        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.setPlayer(new Player(71, 71));
+        builder.addPotion(new Potion.GamblersBrew().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "cold", "asc", "defra+", "blizz", "compi", "ba", "p", "ball", "cold", "e", "0", "exit"), true);
         return new GameState(builder);
     }
 }

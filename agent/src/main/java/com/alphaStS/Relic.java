@@ -304,7 +304,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
-            });
+            }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
@@ -621,6 +621,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class InkBottle extends Relic {
+        int n;
+        int healthReward;
+
+        public InkBottle(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("InkBottle", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -630,6 +638,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
                 @Override public int getInputLenDelta() {
                     return 1;
+                }
+            }, true);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = n;
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
@@ -642,6 +655,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("InkBottle", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 9.0;
+                        } else if (isTerminal == 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getVOther(vArrayIdx);
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        v[GameState.V_HEALTH_IDX] += healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Ink Bottle");
         }
     }
 
@@ -2212,7 +2244,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.gainFocus(1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.gainFocus(1);
+                    }
                 }
             });
         }
@@ -2269,7 +2303,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + 3, 10);
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.gainOrbSlot(3);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.gainOrbSlot(3);
+                    }
                 }
             });
         }
