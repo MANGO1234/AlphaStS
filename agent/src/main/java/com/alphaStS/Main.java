@@ -115,7 +115,6 @@ public class Main {
             SAVES_DIR = "../saves";
             PRINT_DAMAGE_LEVEL = MatchSession.PrintDamageLevel.NONE;
             WRITE_MATCHES = true;
-            PRINT_DMG = true;
             NUMBER_OF_GAMES_TO_PLAY = 1000;
             int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
             n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
