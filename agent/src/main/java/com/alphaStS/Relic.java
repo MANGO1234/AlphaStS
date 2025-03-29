@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 public abstract class Relic implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
     public boolean changePlayerStrength;
@@ -88,7 +89,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.AKABEKO.mask();
                     }
@@ -122,7 +123,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class ArtOfWar extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.ART_OF_WAR.mask();
                     }
@@ -306,7 +307,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -384,7 +385,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -646,7 +647,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
                     if (counter[counterIdx] == 10) {
@@ -675,6 +676,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public CounterStat getCounterStat() {
             return new CounterStat(counterIdx, "Ink Bottle");
         }
+
+        @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
+            super.setCounterIdx(properties, counterIdx);
+            properties.inkBottleCounterIdx = counterIdx;
+        }
     }
 
     public static class Kunai extends Relic {
@@ -691,7 +697,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -723,7 +729,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -776,7 +782,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class MummifiedHand extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         int possibleCards = 0, diff = 0, idx = -1;
                         var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
@@ -832,7 +838,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -869,7 +875,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler("Shuriken", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -969,7 +975,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.healPlayer(2);
                     }
@@ -1028,6 +1034,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                         @Override public void doAction(GameState state) {
+                            if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                                return;
+                            }
                             var idx = state.getSearchRandomGen().nextInt(state.properties.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.deadBranchCardsIdxes));
                             idx = state.addCardToHandGeneration(state.properties.deadBranchCardsIdxes[idx]);
                             state.setIsStochastic();
@@ -1092,7 +1101,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         new CardDefect.HyperBeam(),
                         new CardDefect.Leap(),
                         new CardDefect.Loop(),
-                        new CardDefect.MachineLearningP(),
+                        new CardDefect.MachineLearning(),
                         new CardDefect.Melter(),
                         new CardDefect.MeteorStrike(),
                         new CardDefect.MultiCast(),
@@ -1412,7 +1421,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler("OrangePellets", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0b111) {
                         return;
                     }
@@ -1487,7 +1496,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }
             state.setSelect1OutOf3Idxes(state.properties.toolboxIdxes[idx1], state.properties.toolboxIdxes[idx2], state.properties.toolboxIdxes[idx3]);
             state.setIsStochastic();
-            state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, false);
+            state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
@@ -1998,7 +2007,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 }
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 6 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -2033,7 +2042,78 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // Cultist Mask: No need to implement
-    // todo: Enchiridion
+
+    public static class Enchiridion extends Relic {
+        public Enchiridion() {}
+
+        public Enchiridion(Card filter) {
+            this.filter = filter;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var c = getPossibleGeneratedCards(state.properties);
+            cardsIdx = new int[tmpCardsLen];
+            for (int i = 0; i < tmpCardsLen; i++) {
+                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
+            }
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.setIsStochastic();
+                    var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
+                    state.addCardToHand(cardsIdx[r]);
+                }
+            });
+        }
+
+        private static List<Card> cards;
+        private static int tmpCardsLen;
+        private static Card filter;
+        private static int[] cardsIdx;
+
+        private static List<Card> getPossibleGeneratedCards(GameProperties properties) {
+            if (cards == null) {
+                if (properties.character == CharacterEnum.DEFECT) {
+                    cards = Stream.of(
+                            new CardDefect.BiasedCognition().getTemporaryCostIfPossible(0),
+                            new CardDefect.Buffer().getTemporaryCostIfPossible(0),
+                            new CardDefect.Capacitor().getTemporaryCostIfPossible(0),
+                            new CardDefect.CreativeAI().getTemporaryCostIfPossible(0),
+                            new CardDefect.Defragment().getTemporaryCostIfPossible(0),
+                            new CardDefect.EchoForm().getTemporaryCostIfPossible(0),
+                            new CardDefect.Electrodynamics().getTemporaryCostIfPossible(0),
+                            new CardDefect.Heatsinks().getTemporaryCostIfPossible(0),
+                            new CardDefect.HelloWorld().getTemporaryCostIfPossible(0),
+                            new CardDefect.Loop().getTemporaryCostIfPossible(0),
+                            new CardDefect.MachineLearning().getTemporaryCostIfPossible(0),
+                            new CardDefect.StaticDischarge().getTemporaryCostIfPossible(0),
+                            new CardDefect.Storm().getTemporaryCostIfPossible(0),
+                            new CardDefect.BiasedCognition(),
+                            new CardDefect.Buffer(),
+                            new CardDefect.Capacitor(),
+                            new CardDefect.CreativeAI(),
+                            new CardDefect.Defragment(),
+                            new CardDefect.EchoForm(),
+                            new CardDefect.Electrodynamics(),
+                            new CardDefect.Heatsinks(),
+                            new CardDefect.HelloWorld(),
+                            new CardDefect.Loop(),
+                            new CardDefect.MachineLearning(),
+                            new CardDefect.StaticDischarge(),
+                            new CardDefect.Storm()
+                    ).filter((x) -> filter == null || filter.getTemporaryCostIfPossible(0).equals(x) || filter.equals(x)).toList();
+                    tmpCardsLen = cards.size() / 2;
+                } else {
+                    throw new IllegalArgumentException("Unsupported character: " + properties.character);
+                }
+            }
+            return cards;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return getPossibleGeneratedCards(properties);
+        }
+    }
+
     // Face Of Cleric: No need to implement
     // Golden Idol: No need to implement
 

@@ -36,7 +36,7 @@ public final class GameState implements State {
     StringBuilder stateDesc;
     public GameProperties properties;
     public GameActionCtx actionCtx;
-    boolean actionCardIsCloned;
+    Class actionCardCloneSource;
 
     public short[] handArr;
     public int handArrLen;
@@ -230,7 +230,7 @@ public final class GameState implements State {
         if (select1OutOf3CardsIdxes != gameState.select1OutOf3CardsIdxes) return false;
         if (!Arrays.equals(counter, gameState.counter)) return false;
         if (actionCtx != gameState.actionCtx) return false;
-        if (actionCardIsCloned != gameState.actionCardIsCloned) return false;
+        if (actionCardCloneSource != gameState.actionCardCloneSource) return false;
         if (!cardIdxArrEqual(handArr, handArrLen, gameState.handArr, gameState.handArrLen)) return false;
         if (!cardIdxArrEqual(discardArr, discardArrLen, gameState.discardArr, gameState.discardArrLen)) return false;
         if (!cardIdxArrEqual(deckArr, deckArrLen, gameState.deckArr, gameState.deckArrLen)) return false;
@@ -357,6 +357,12 @@ public final class GameState implements State {
         }
         if (builder.getEndOfPreBattleSetupHandler() != null) {
             properties.endOfPreBattleHandler = builder.getEndOfPreBattleSetupHandler();
+        }
+        for (var encounter : properties.enemiesEncounters) {
+            if (encounter.idxes.size() == 3 && encounter.encounterEnum == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
+                properties.maxPossibleRealTurnsLeft = 100.0;
+                break;
+            }
         }
 
         properties.preBattleScenarios = properties.preBattleScenariosBackup = preBattleScenarios;
@@ -687,9 +693,9 @@ public final class GameState implements State {
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                     if (isTerminal != 0) {
-                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / 50.0;
+                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / state.properties.maxPossibleRealTurnsLeft;
                     } else if (isTerminal == 0) {
-                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / 50.0 + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START);
+                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / state.properties.maxPossibleRealTurnsLeft + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START);
                         v[state.properties.turnsLeftVIdx] = Math.min(v[state.properties.turnsLeftVIdx], 1.0);
                     }
                 }
@@ -721,7 +727,7 @@ public final class GameState implements State {
         for (int i = 0; i < properties.potions.size(); i++) {
             if (properties.potions.get(i) instanceof Potion.FairyInABottle || properties.hasToyOrniphopter) {
                 int _i = i;
-                properties.addExtraTrainingTarget((properties.potions.get(i) + "" + i).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
+                properties.addExtraTrainingTarget((properties.potions.get(i) + String.valueOf(i)).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
                     @Override public void setVArrayIdx(GameProperties properties, int idx) {
                         properties.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
                     }
@@ -951,7 +957,7 @@ public final class GameState implements State {
         properties = other.properties;
 
         actionCtx = other.actionCtx;
-        actionCardIsCloned = other.actionCardIsCloned;
+        actionCardCloneSource = other.actionCardCloneSource;
         handArr = other.handArr;
         handArrLen = other.handArrLen;
         discardArr = other.discardArr;
@@ -1097,7 +1103,7 @@ public final class GameState implements State {
                 }
             }
             for (var handler : properties.onCardDrawnHandlers) {
-                handler.handle(this, cardIdx, -1, -1, false, -1);
+                handler.handle(this, cardIdx, -1, -1, null, -1);
             }
         }
         return drawnIdx;
@@ -1136,18 +1142,18 @@ public final class GameState implements State {
         return properties.cardDict[cardIdx].energyCost(this);
     }
 
-    public void setActionCtx(GameActionCtx ctx, GameAction action, boolean actionCardIsCloned) {
+    public void setActionCtx(GameActionCtx ctx, GameAction action, Class cloneSource) {
         switch (ctx) {
         case PLAY_CARD -> {
             currentAction = null;
             select1OutOf3CardsIdxes = 0;
             actionCtx = ctx;
-            this.actionCardIsCloned = false;
+            this.actionCardCloneSource = null;
         }
         case SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_DECK, SELECT_CARD_1_OUT_OF_3 -> {
             currentAction = action;
             actionCtx = ctx;
-            this.actionCardIsCloned = actionCardIsCloned;
+            this.actionCardCloneSource = cloneSource;
         }
         case BEGIN_PRE_BATTLE, BEGIN_BATTLE, SELECT_SCENARIO, BEGIN_TURN, AFTER_RANDOMIZATION -> actionCtx = ctx;
         }
@@ -1159,7 +1165,7 @@ public final class GameState implements State {
 
     public boolean playCard(GameAction action, int selectIdx,
                             boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
-                            boolean cloned, // flag to know current card is a cloned card
+                            Class cloneSource, // cloned card source
                             boolean useEnergy, // when cloning/havoc/etc., do not use energy
                             boolean exhaustWhenPlayed, // havoc only flag
                             int overrideEnergyCost, // when cloning, need to know cost of X card to use
@@ -1176,7 +1182,7 @@ public final class GameState implements State {
             return false;
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
-            if (!cloned) {
+            if (cloneSource == null) {
                 removeCardFromHand(cardIdx);
             }
             if (energyCost < 0) {
@@ -1193,18 +1199,18 @@ public final class GameState implements State {
                 action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             }
             for (var handler : properties.onPreCardPlayedHandlers) {
-                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned, -1);
+                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, -1);
             }
             if (properties.cardDict[cardIdx].selectEnemy) {
-                setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloned);
+                setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloneSource);
             } else if (properties.cardDict[cardIdx].selectFromHand && !properties.cardDict[cardIdx].selectFromHandLater) {
-                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, cloned);
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, cloneSource);
             } else if (properties.cardDict[cardIdx].selectFromDiscard && !properties.cardDict[cardIdx].selectFromDiscardLater) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, cloned);
+                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, cloneSource);
             } else if (properties.cardDict[cardIdx].selectFromExhaust) {
-                setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action, cloned);
+                setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action, cloneSource);
             } else if (properties.cardDict[cardIdx].selectFromDeck) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, cloned);
+                setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, cloneSource);
             }
         }
 
@@ -1228,17 +1234,17 @@ public final class GameState implements State {
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
                         onSelectEnemy(selectIdx);
-                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                         selectIdx = -1;
                     } else {
                         cardPlayedSuccessfully = false;
                         targetHalfAlive = e.properties.canSelfRevive;
-                        setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
+                        setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                     }
                 } else if (targetableEnemies == 1) {
                     lastSelectedIdx = idx;
                     onSelectEnemy(idx);
-                    setActionCtx(properties.cardDict[cardIdx].play(this, idx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, idx, energyCost), action, cloneSource);
                 } else {
                     cardPlayedSuccessfully = false;
                     break;
@@ -1254,12 +1260,12 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1275,7 +1281,7 @@ public final class GameState implements State {
                 }
                 if (cardIdx == properties.wellLaidPlansCardIdx) {
                     if (selectIdx >= 0) {
-                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                         if (getCounterForRead()[properties.wellLaidPlansCounterIdx] >> 5 == (getCounterForRead()[properties.wellLaidPlansCounterIdx] & 31)) {
                             endTurn();
                             runActionsInQueueIfNonEmpty();
@@ -1291,7 +1297,7 @@ public final class GameState implements State {
                     return true;
                 } else if (cardIdx == properties.gamblingChipsCardIdx) {
                     if (selectIdx >= 0) {
-                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                        setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     } else if (possibleChoicesCount == 0) {
                         endTurn();
                         runActionsInQueueIfNonEmpty();
@@ -1299,12 +1305,12 @@ public final class GameState implements State {
                     return true;
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1319,12 +1325,12 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
@@ -1339,17 +1345,17 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloned);
+                    setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloned);
+                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloned);
+                setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
 
@@ -1359,7 +1365,7 @@ public final class GameState implements State {
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
             }
-            if (!cloned && !exhaustWhenPlayed) {
+            if (cloneSource == null && !exhaustWhenPlayed) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
                     cloneParentLocation = GameState.EXHAUST;
@@ -1385,7 +1391,7 @@ public final class GameState implements State {
                 if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
                     getCounterForWrite()[properties.reboundCounterIdx]--;
                 }
-            } else if (cloned && prevCardIdx != cardIdx) {
+            } else if (cloneSource != null && prevCardIdx != cardIdx) {
                 if (cloneParentLocation == GameState.DISCARD) {
                     transformTopMostCard(getDiscardArrForWrite(), discardArrLen, prevCardIdx, cardIdx);
                 } else if (cloneParentLocation == GameState.EXHAUST) {
@@ -1400,7 +1406,7 @@ public final class GameState implements State {
                 }
 //                runActionsInQueueIfNonEmpty(); // this is bugged?
                 for (var handler : properties.onCardPlayedHandlers) {
-                    handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloned, cloneParentLocation);
+                    handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
                 }
                 runActionsInQueueIfNonEmpty();
             }
@@ -1434,11 +1440,11 @@ public final class GameState implements State {
                 getPlayerForWrite().heal(5);
             }
             if (properties.potions.get(potionIdx).selectEnemy) {
-                setActionCtx(GameActionCtx.SELECT_ENEMY, action, false);
+                setActionCtx(GameActionCtx.SELECT_ENEMY, action, null);
             } else if (properties.potions.get(potionIdx).selectFromHand) {
-                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+                setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             } else if (properties.potions.get(potionIdx).selectFromDiscard) {
-                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, false);
+                setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, null);
             }
         }
 
@@ -1454,11 +1460,11 @@ public final class GameState implements State {
                 }
                 if (selectIdx >= 0) {
                     onSelectEnemy(selectIdx);
-                    setActionCtx(properties.potions.get(potionIdx).use(this, selectIdx), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, selectIdx), action, null);
                     selectIdx = -1;
                 } else if (targetableEnemies == 1) {
                     onSelectEnemy(idx);
-                    setActionCtx(properties.potions.get(potionIdx).use(this, idx), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, idx), action, null);
                 } else {
                     break;
                 }
@@ -1473,12 +1479,12 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.potions.get(potionIdx).use(this, selectIdx), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, selectIdx), action, null);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(properties.potions.get(potionIdx).use(this, -1), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, -1), action, null);
                 } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.potions.get(potionIdx).use(this, lastIdx), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, lastIdx), action, null);
                 } else {
                     break;
                 }
@@ -1492,17 +1498,17 @@ public final class GameState implements State {
                     }
                 }
                 if (selectIdx >= 0) {
-                    setActionCtx(properties.potions.get(potionIdx).use(this, selectIdx), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, selectIdx), action, null);
                     selectIdx = -1;
                 } else if (possibleChoicesCount == 0) {
-                    setActionCtx(properties.potions.get(potionIdx).use(this, -1), action, false);
+                    setActionCtx(properties.potions.get(potionIdx).use(this, -1), action, null);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
                 break;
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
-                setActionCtx(properties.potions.get(potionIdx).use(this, -1), action, false);
+                setActionCtx(properties.potions.get(potionIdx).use(this, -1), action, null);
             }
         } while (actionCtx != GameActionCtx.PLAY_CARD);
         runActionsInQueueIfNonEmpty();
@@ -1598,7 +1604,7 @@ public final class GameState implements State {
         if (properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] > 0) {
             getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] += getCounterForRead()[properties.toolsOfTheTradeCounterIdx] << 16;
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
-            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             return;
         }
         for (GameEventHandler handler : properties.startOfTurnHandlers) {
@@ -1606,9 +1612,9 @@ public final class GameState implements State {
         }
         if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
-            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
         } else {
-            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+            setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             runActionsInQueueIfNonEmpty();
         }
     }
@@ -1720,15 +1726,15 @@ public final class GameState implements State {
         if (properties.wellLaidPlansCardIdx >= 0 && actionCtx != GameActionCtx.SELECT_CARD_HAND && getCounterForRead()[properties.wellLaidPlansCounterIdx] > 0 &&
                 isDiscardingCardEndOfTurn() && getNumCardsInHand() > 0) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.wellLaidPlansCardIdx];
-            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, false);
+            setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             return;
         }
         if (properties.gamblingChipsCardIdx >= 0 && actionCtx == GameActionCtx.SELECT_CARD_HAND) {
-            setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+            setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             properties.cardDict[properties.gamblingChipsCardIdx].play(this, -1, 0);
             return;
         }
-        setActionCtx(GameActionCtx.BEGIN_TURN, null, false);
+        setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
         for (GameEventHandler handler : properties.preEndTurnHandlers) {
             handler.handle(this);
         }
@@ -1866,7 +1872,7 @@ public final class GameState implements State {
                 handler.handle(this);
             }
             if (properties.biasedCognitionLimitCounterIdx >= 0) {
-                setActionCtx(GameActionCtx.AFTER_RANDOMIZATION, null, false);
+                setActionCtx(GameActionCtx.AFTER_RANDOMIZATION, null, null);
                 selectBiasedCognitionLimit();
             } else {
                 beginTurn();
@@ -1876,34 +1882,34 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.END_TURN) {
             endTurn();
         } else if (action.type() == GameActionType.PLAY_CARD) {
-            playCard(action, -1, true, false, true, false, -1, -1);
+            playCard(action, -1, true, null, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_ENEMY) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_DISCARD) {
             if (currentAction.type() == GameActionType.PLAY_CARD) {
-                playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
             } else if (currentAction.type() == GameActionType.USE_POTION) {
                 usePotion(currentAction, action.idx());
             }
         } else if (action.type() == GameActionType.SELECT_CARD_EXHAUST) {
-            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
+            playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
-            playCard(currentAction, action.idx(), true, actionCardIsCloned, true, false, -1, -1);
+            playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     addCardToDeck(action.idx(), false);
-                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
                     if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
                         addCardToHandGeneration(action.idx());
@@ -1914,7 +1920,7 @@ public final class GameState implements State {
                 if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
                     addCardToHandGeneration(action.idx());
                 }
-                setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+                setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             }
         } else if (action.type() == GameActionType.USE_POTION) {
             if (properties.potions.get(action.idx()).isGenerated) {
@@ -1936,20 +1942,20 @@ public final class GameState implements State {
                     setIsStochastic();
                 }
             }
-            setActionCtx(properties.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, false);
+            setActionCtx(properties.preBattleScenarios == null ? GameActionCtx.BEGIN_BATTLE : GameActionCtx.SELECT_SCENARIO, null, null);
             if (properties.endOfPreBattleHandler != null && realTurnNum == 0) {
                 properties.endOfPreBattleHandler.handle(this);
             }
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             properties.preBattleScenarios.randomize(this, properties.preBattleGameScenariosList.get(action.idx()).getKey());
-            setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+            setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             if (isTerminal() == 0) {
                 beginTurn();
             }
         } else if (action.type() == GameActionType.END_SELECT_CARD_HAND) {
             if (currentAction.type() == GameActionType.USE_POTION) {
-                setActionCtx(properties.potions.get(currentAction.idx()).use(this, properties.cardDict.length), action, false);
+                setActionCtx(properties.potions.get(currentAction.idx()).use(this, properties.cardDict.length), action, null);
             } else if (currentAction.type() == GameActionType.PLAY_CARD) {
                 endTurn();
                 runActionsInQueueIfNonEmpty();
@@ -1957,12 +1963,12 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
             if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
-                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
                     beginTurnPart2();
                 }
             } else {
-                setActionCtx(GameActionCtx.PLAY_CARD, null, false);
+                setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             }
         }
         if (actionCtx == GameActionCtx.PLAY_CARD && properties.hasUnceasingTop) {
@@ -1982,14 +1988,14 @@ public final class GameState implements State {
                 getStateDesc().append(properties.cardDict[cardIdx].cardName);
             }
             var nextAction = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-            playCard(nextAction, -1, true, false, false, false, -1, -1);
+            playCard(nextAction, -1, true, null, false, false, -1, -1);
             while (actionCtx == GameActionCtx.SELECT_ENEMY && isTerminal() == 0) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyGeneral);
                 if (properties.makingRealMove || properties.stateDescOn) {
                     getStateDesc().append(" -> ").append(enemyIdx < 0 ? "None" : getEnemiesForRead().get(enemyIdx).getName())
                             .append(" (").append(enemyIdx).append(")");
                 }
-                playCard(nextAction, enemyIdx, true, false, false, false, -1, -1);
+                playCard(nextAction, enemyIdx, true, null, false, false, -1, -1);
             }
         }
         legalActions = null;
@@ -2264,6 +2270,7 @@ public final class GameState implements State {
                 for (int i = 0; i < properties.potions.size(); i++) {
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.EntropicBrew) {
                         canGeneratePotion = true;
+                        break;
                     }
                 }
                 if (CardSilent._AlchemizeT.getPossibleAlchemize(this) > 0) {

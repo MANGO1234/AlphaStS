@@ -405,7 +405,7 @@ public class EnemyEnding {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler(GameEventCardHandler.HEARTBEAT_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i) instanceof CorruptHeart heart) {
                             state.doNonAttackDamageToPlayer(heart.beatOfDeath, true, heart);

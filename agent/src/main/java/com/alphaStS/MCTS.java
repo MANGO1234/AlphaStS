@@ -897,6 +897,9 @@ public class MCTS {
         if (state.properties.penNibCounterIdx >= 0 && state.getCounterForRead()[state.properties.penNibCounterIdx] < 9) {
             return false;
         }
+        if (state.properties.inkBottleCounterIdx >= 0 && state.getCounterForRead()[state.properties.inkBottleCounterIdx] < 9) {
+            return false;
+        }
         if (state.properties.happyFlowerCounterIdx >= 0 && state.getCounterForRead()[state.properties.happyFlowerCounterIdx] < 2) {
             return false;
         }
@@ -1686,7 +1689,7 @@ public class MCTS {
                         if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                             continue;
                         }
-                        double turns2 = state.q[(i + 1) * state.properties.v_total_len + state.properties.turnsLeftVIdx] / state.n[i];
+                        double turns2 = state.q[(i + 1) * state.properties.v_total_len + state.properties.turnsLeftVIdx]  * state.properties.maxPossibleRealTurnsLeft / 50.0 / state.n[i];
                         if (qValues[i] >= 0.999 * maxQ) {
                             uValues[i] += (1 - turns2) * 1;
                         }

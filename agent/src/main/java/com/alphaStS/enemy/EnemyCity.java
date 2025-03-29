@@ -2012,7 +2012,7 @@ public class EnemyCity {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
                         state.addCardToDeck(state.properties.dazedCardIdx);
                     }

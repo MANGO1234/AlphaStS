@@ -59,7 +59,7 @@ public class CardOther {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardDrawnHandler("Void", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx] instanceof CardOther.Void) {
                         state.gainEnergy(-1);
                     }
@@ -147,7 +147,7 @@ public class CardOther {
             });
             // todo: wrong if multiple normality in hand
             state.properties.addOnCardPlayedHandler("Normality", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     state.getCounterForWrite()[counterIdx] += 1;
                 }
             });
@@ -173,7 +173,7 @@ public class CardOther {
         @Override public void gamePropertiesSetup(GameState state) {
             var _this = this;
             state.properties.addOnCardPlayedHandler("Pain", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     for (int i = 0; i < state.handArrLen; i++) {
                         if (state.properties.cardDict[state.getHandArrForRead()[i]] instanceof CardOther.Pain) {
                             state.doNonAttackDamageToPlayer(1, false, _this);

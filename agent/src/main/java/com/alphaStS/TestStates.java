@@ -1908,6 +1908,58 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectRun9() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 2);
+        builder.addCard(new CardDefect.RipAndTearP(), 1);
+        builder.addCard(new CardDefect.ReprogramP(), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.DoomAndGloom(), 1);
+        builder.addCard(new CardDefect.BufferP(), 1);
+        builder.addCard(new CardDefect.Equilibrium(), 1);
+        builder.addCard(new CardDefect.Fission(), 1);
+        builder.addCard(new CardDefect.FTL(), 1);
+        builder.addCard(new CardDefect.Leap(), 1);
+        builder.addCard(new CardDefect.Overclock(), 2);
+        builder.addCard(new CardDefect.Barrage(), 1);
+        builder.addCard(new CardDefect.Heatsinks(), 1);
+        builder.addCard(new CardDefect.HyperBeam(), 1);
+        builder.addCard(new CardDefect.HologramP(), 1);
+        builder.addCard(new CardDefect.Skim(), 1);
+        builder.addCard(new CardDefect.SeekP(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.TurboP(), 1);
+        builder.addCard(new CardDefect.ScrapeP(), 1);
+        builder.addCard(new CardDefect.EquilibriumP(), 1);
+        builder.addCard(new CardDefect.ForceField(), 2);
+        builder.addCard(new CardDefect.EchoForm(), 2);
+        builder.addCard(new CardDefect.Reprogram(), 1);
+        builder.addCard(new CardDefect.StackP(), 2);
+        builder.addCard(new CardColorless.MasterOfStrategy(), 1);
+        builder.addCard(new CardDefect.AllForOne(0, 0), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.BagOfMarbles());
+        builder.addRelic(new Relic.InkBottle(9, 2));
+        builder.addRelic(new Relic.Enchiridion(new CardDefect.Electrodynamics()));
+        builder.addRelic(new Relic.HappyFlower(0, 2));
+        builder.addRelic(new Relic.DeadBranch());
+        builder.addRelic(new Relic.Kunai());
+        builder.addRelic(new Relic.OrnamentalFan());
+        builder.addRelic(new Relic.SlaversCollar());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.IncenseBurner(4));
+        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.CultistPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.FairyInABottle(88).setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        builder.setPlayer(new Player(67, 67));
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "rip", "eq", "p", "eq+", "repr", "sta+", "tur", "asc", "ec", "e", "0", "exit"), true);
+        return new GameState(builder);
+    }
+
     public static GameState TestStateSilentRun2() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);

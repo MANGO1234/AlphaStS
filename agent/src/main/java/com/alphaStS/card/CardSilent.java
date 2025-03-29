@@ -1052,7 +1052,7 @@ public class CardSilent {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnPreCardPlayedHandler("Choke", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).getChoke() > 0) {
                             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), state.getEnemiesForRead().get(i).getChoke(), false);
@@ -1280,7 +1280,7 @@ public class CardSilent {
                 }
             }
             state.properties.addOnCardDrawnHandler("EndlessAgony", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     state.addGameActionToStartOfDeque(new GameEnvironmentAction() {
                         @Override public void doAction(GameState state) {
                             if (isEndlessAgony[cardIdx]) {
@@ -1461,7 +1461,7 @@ public class CardSilent {
                }
            });
             state.properties.addOnCardPlayedHandler("Finisher", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -2139,7 +2139,7 @@ public class CardSilent {
                 }
             });
             state.properties.addOnCardPlayedHandler("AThousandCuts", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         var dmg = state.getCounterForRead()[counterIdx];
                         if (state.properties.cardDict[cardIdx].cardName.startsWith("A Thousand")) {
@@ -2216,7 +2216,7 @@ public class CardSilent {
                 }
             });
             state.properties.addOnCardPlayedHandler("AfterImage", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                     }
@@ -2414,7 +2414,7 @@ public class CardSilent {
                 }
             });
             state.properties.addOnCardPlayedHandler("Burst", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     var card = state.properties.cardDict[cardIdx];
                     if (card.cardType != Card.SKILL || state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -2423,7 +2423,7 @@ public class CardSilent {
                         state.getCounterForWrite()[counterIdx] ^= 1 << 9;
                         return;
                     }
-                    if (cloned && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                    if (cloneSource != null && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
                         state.getCounterForWrite()[counterIdx] ^= 1 << 8;
                     } else {
                         var counters = state.getCounterForWrite();
@@ -2431,7 +2431,7 @@ public class CardSilent {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
+                            if (curState.playCard(action, lastIdx, true, Burst.class, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }

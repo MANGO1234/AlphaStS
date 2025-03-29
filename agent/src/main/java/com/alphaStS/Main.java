@@ -70,6 +70,7 @@ public class Main {
     private static String CUR_ITER_DIRECTORY;
     private static String PREV_ITER_DIRECTORY;
     private static int ITERATION = -1;
+    private static int WAIT_FOR_ITERATION = -1;
 
     private static void parseCommonArgs(GameState state, String[] args) {
         for (int i = 0; i < args.length; i++) {
@@ -124,6 +125,7 @@ public class Main {
 //            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";
            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
+//            WAIT_FOR_ITERATION = 66;
         }
         SCENARIO_GROUPS_PARAM = state.properties.randomization == null ? null : new int[] { state.properties.randomization.listRandomizations().size(), 1 };
 
@@ -131,8 +133,18 @@ public class Main {
         CUR_ITER_DIRECTORY = SAVES_DIR + "/iteration0";
         PREV_ITER_DIRECTORY = SAVES_DIR + "/iteration0";
         try {
-            JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
-            ITERATION = ITERATION < 0 ? root.get("iteration").asInt() : ITERATION;
+            if (WAIT_FOR_ITERATION < 0) {
+                JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
+                ITERATION = ITERATION < 0 ? root.get("iteration").asInt() : ITERATION;
+            } else {
+                while (ITERATION < WAIT_FOR_ITERATION) {
+                    JsonNode root = mapper.readTree(new File(SAVES_DIR + "/training.json"));
+                    if (root.get("iteration") != null) {
+                        ITERATION = root.get("iteration").asInt();
+                    }
+                    Thread.sleep(60 * 1000);
+                }
+            }
             CUR_ITER_DIRECTORY = SAVES_DIR + "/iteration" + (ITERATION - 1);
             PREV_ITER_DIRECTORY = SAVES_DIR + "/iteration" + (ITERATION - 2);
             File f = new File(SAVES_DIR + "/desc.txt");
@@ -141,6 +153,8 @@ public class Main {
             }
         } catch (IOException e) {
             System.out.println("Unable to find neural network.");
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -290,7 +304,7 @@ public class Main {
             state.properties.preBattleScenarios = preBattleScenarios;
             state.properties.randomization = randomization;
             if (state.properties.preBattleRandomization == null) {
-                state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, false);
+                state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, null);
             }
         }
     }
@@ -304,7 +318,7 @@ public class Main {
                 state.properties.randomization = state.properties.randomization.doAfter(preBattleScenarios);
             }
             if (state.properties.preBattleRandomization == null) {
-                state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, false);
+                state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
             }
         }
     }

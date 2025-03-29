@@ -1909,7 +1909,7 @@ public class InteractiveMode {
             out.println("Q-Win: " + state.q[state.properties.qwinVIdx] / (state.total_n + 1));
         }
         if (state.properties.turnsLeftVIdx >= 0) {
-            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * 50 - state.realTurnNum));
+            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * state.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
         }
         System.gc(); System.gc(); System.gc();
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
@@ -2016,7 +2016,7 @@ public class InteractiveMode {
                 o.append(", q_progress").append(formatFloat(s.q[baseIdx + s.properties.fightProgressVIdx] / max_n));
             }
             if (s.properties.turnsLeftVIdx >= 0) {
-                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * 50 - state.realTurnNum));
+                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
             }
             out.println(o);
             finalOuput.append("\n").append(o);
@@ -2462,7 +2462,7 @@ public class InteractiveMode {
             case RandomEnemyHealth -> {
                 return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);
             }
-            case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb -> {
+            case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb, RandomEnemyRipAndTear -> {
                 try {
                     return interactiveMode.selectEnemyRandomInteractive(reader, (GameState) arg, history, ctx);
                 } catch (IOException e) {

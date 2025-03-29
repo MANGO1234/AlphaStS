@@ -2,8 +2,6 @@ package com.alphaStS;
 
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyEnding;
-import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
@@ -281,11 +279,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             });
             state.properties.addOnCardPlayedHandler("DuplicationPotion", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
                     }
-                    if (cloned) {
+                    if (cloneSource != null) {
                         if ((state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
                             state.getCounterForWrite()[counterIdx] ^= 1 << 8;
                         }
@@ -295,7 +293,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
+                            if (curState.playCard(action, lastIdx, true, DuplicationPotion.class, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }

@@ -290,13 +290,13 @@ public class CardIronclad {
             });
             state.addGameActionToStartOfDeque(curState -> {
                 var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                curState.playCard(action, -1, true, false, false, true, -1, -1);
+                curState.playCard(action, -1, true, null, false, true, -1, -1);
                 while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
                     int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
                     if (curState.properties.makingRealMove || curState.properties.stateDescOn) {
                         curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
                     }
-                    curState.playCard(action, enemyIdx, true, false, false, true, -1, -1);
+                    curState.playCard(action, enemyIdx, true, null, false, true, -1, -1);
                 }
             });
             return GameActionCtx.PLAY_CARD;
@@ -1156,7 +1156,7 @@ public class CardIronclad {
                 }
             });
             state.properties.addOnCardDrawnHandler("Evolve", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.STATUS) {
                         state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
@@ -1257,7 +1257,7 @@ public class CardIronclad {
                 }
             });
             state.properties.addOnCardDrawnHandler("FireBreathing", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     var card = state.properties.cardDict[cardIdx];
                     if (card.cardType == Card.STATUS || card.cardType == Card.CURSE) {
                         int dmg = state.getCounterForRead()[counterIdx];
@@ -1689,7 +1689,7 @@ public class CardIronclad {
                 }
             });
             state.properties.addOnCardPlayedHandler("Rage", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
                     }
@@ -2313,9 +2313,9 @@ public class CardIronclad {
                 }
             });
             state.properties.addOnCardPlayedHandler("DoubleTap", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     var card = state.properties.cardDict[cardIdx];
-                    if (cloned || card.cardType != Card.ATTACK) {
+                    if (cloneSource != null || card.cardType != Card.ATTACK) {
                         return;
                     } else if (state.getCounterForRead()[counterIdx] == 0) {
                         return;
@@ -2324,7 +2324,7 @@ public class CardIronclad {
                     counters[counterIdx] -= 1;
                     state.addGameActionToEndOfDeque(curState -> {
                         var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                        curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation);
+                        curState.playCard(action, lastIdx, true, DoubleTap.class, false, false, energyUsed, cloneParentLocation);
                     });
                 }
             });

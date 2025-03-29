@@ -4,7 +4,6 @@ import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
@@ -1324,7 +1323,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnCardPlayedHandler("FTL", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] <= 3) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
@@ -1382,7 +1381,7 @@ public class CardDefect {
                 }
             }
             state.properties.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.handArrTransform(state.properties.forceFieldTransformIndexes);
                         state.discardArrTransform(state.properties.forceFieldTransformIndexes);
@@ -1444,7 +1443,7 @@ public class CardDefect {
                 }
             }
             state.properties.addOnCardPlayedHandler("ForceField+", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.handArrTransform(state.properties.forceFieldPTransformIndexes);
                         state.discardArrTransform(state.properties.forceFieldPTransformIndexes);
@@ -1707,7 +1706,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnPreCardPlayedHandler("Heatsinks", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
@@ -2030,7 +2029,7 @@ public class CardDefect {
             if (i >= 0) {
                 state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
                 if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
-                    state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
+                    state.getStateDesc().append(", ").append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2241,7 +2240,7 @@ public class CardDefect {
                 }
             });
             state.properties.addOnPreCardPlayedHandler("Storm", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         var _n = state.getCounterForRead()[counterIdx];
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
@@ -2346,13 +2345,14 @@ public class CardDefect {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var c = getPossibleGeneratedCards();
-            cardsIdx = new int[c.size()];
-            for (int i = 0; i < c.size(); i++) {
+            cardsIdx = new int[tmpCardsLen];
+            for (int i = 0; i < tmpCardsLen; i++) {
                 cardsIdx[i] = state.properties.findCardIndex(c.get(i));
             }
         }
 
         private static List<Card> cards;
+        private static int tmpCardsLen;
         private static int[] cardsIdx;
 
         private static List<Card> getPossibleGeneratedCards() {
@@ -2385,6 +2385,7 @@ public class CardDefect {
                         new CardDefect.StaticDischarge(),
                         new CardDefect.Storm()
                 );
+                tmpCardsLen = cards.size() / 2;
             }
             return cards;
         }
@@ -2433,9 +2434,9 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.discard0CardOrderMatters = true;
             state.properties.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
             state.properties.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
+            state.properties.discard0CardOrderMatters = discardOrderMaxKeepTrackIn10s * discardOrder0CardMaxCopies > 0;
             state.properties.discardOrder0CardReverseIdx = new int[state.properties.realCardsLen];
             int k = 0;
             for (int i = 0; i < state.properties.realCardsLen; i++) {
@@ -2494,12 +2495,12 @@ public class CardDefect {
                 }
             });
             state.properties.addOnCardPlayedHandler("Amplify", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     var card = state.properties.cardDict[cardIdx];
                     if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
                         return;
                     }
-                    if (cloned && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                    if (cloneSource != null && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
                         state.getCounterForWrite()[counterIdx] ^= 1 << 8;
                     } else {
                         var counters = state.getCounterForWrite();
@@ -2507,7 +2508,7 @@ public class CardDefect {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, true, false, false, energyUsed, cloneParentLocation)) {
+                            if (curState.playCard(action, lastIdx, true, Amplify.class, false, false, energyUsed, cloneParentLocation)) {
                             } else {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
@@ -2768,23 +2769,26 @@ public class CardDefect {
                 }
             });
             state.properties.addOnCardPlayedHandler("EchoForm", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, boolean cloned, int cloneParentLocation) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] < 0) {
                         state.getCounterForWrite()[counterIdx] = -state.getCounterForWrite()[counterIdx];
                     }
-                    if (cloned) { // todo: think only echo formed card doesn't count toward card played
+                    if (cloneSource == EchoForm.class) {
                         return;
                     }
                     boolean isEcho = state.properties.cardDict[cardIdx].cardName.startsWith("Echo Form");
                     if (isEcho) {
                         state.getCounterForWrite()[counterIdx]++;
                     }
+                    if (cloneSource != null) { // echo formed "echo form" doesn't count as card played, while amplified/duplicated does
+                        return;
+                    }
                     int cardsPlayThisTurn = (state.getCounterForRead()[counterIdx] & ((1 << 16) - 1));
                     if (cardsPlayThisTurn < state.getCounterForRead()[counterIdx] >> 16) {
                         state.addGameActionToStartOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
                             curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];
-                            if (curState.playCard(action, lastIdx, false,true, false, false, energyUsed, cloneParentLocation)) {
+                            if (curState.playCard(action, lastIdx, false, EchoForm.class, false, false, energyUsed, cloneParentLocation)) {
                                 curState.runActionsInQueueIfNonEmpty();
                             } else {
                                 curState.getCounterForWrite()[counterIdx] = -curState.getCounterForWrite()[counterIdx];

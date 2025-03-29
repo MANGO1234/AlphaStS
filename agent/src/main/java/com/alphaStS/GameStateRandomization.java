@@ -444,6 +444,12 @@ public interface GameStateRandomization {
                     enemy.properties.origHealth = enemy.getHealth();
                 }
             } else {
+                if (minDifficulty == 0) {
+                    minDifficulty = 1;
+                }
+                if (maxDifficulty == 0) {
+                    maxDifficulty = 1;
+                }
                 var difficultyChosen = minDifficulty + state.getSearchRandomGen().nextInt(maxDifficulty - minDifficulty + 1, RandomGenCtx.Other);
                 if (state.properties.makingRealMove) {
                     state.properties.difficultyChosen = difficultyChosen;

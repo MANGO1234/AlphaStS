@@ -24,6 +24,10 @@ public class EnemyEncounter {
         this.idxes = indexes;
     }
 
+    public static void addDualFungiBeastFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(new EnemyExordium.FungiBeast(), new EnemyExordium.FungiBeast());
+    }
+
     public static class GremlinGangRandomization implements GameStateRandomization {
         Map<Integer, Integer> rMap = new HashMap<>();
         Map<Integer, List<Integer>> enemiesMap = new HashMap<>();
@@ -661,7 +665,7 @@ public class EnemyEncounter {
         }
         state.setSelect1OutOf3Idxes(state.properties.cardRewardIdxes[idx1], state.properties.cardRewardIdxes[idx2], state.properties.cardRewardIdxes[idx3]);
         state.setIsStochastic();
-        state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, false);
+        state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
     }
 
     private static boolean usedSmokeBomb(GameState state) {

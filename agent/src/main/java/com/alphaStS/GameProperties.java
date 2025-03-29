@@ -133,6 +133,8 @@ public class GameProperties implements Cloneable {
     public int handOfGreedCounterIdx = -1;
     public int regenerationCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
+    public int penNibCounterIdx = -1;
+    public int inkBottleCounterIdx = -1;
     public int happyFlowerCounterIdx = -1;
     public int velvetChokerCounterIndexIdx = -1;
     public int incenseBurnerCounterIdx = -1;
@@ -203,7 +205,6 @@ public class GameProperties implements Cloneable {
     public int drawReductionCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
     public int normalityCounterIdx = -1;
-    public int penNibCounterIdx = -1;
     public int distilledChaosCounterIdx = -1;
 
     // cached game properties for generating NN input
@@ -264,6 +265,7 @@ public class GameProperties implements Cloneable {
     public double cpuct = 0.1;
     public int fightProgressVIdx;
     public int turnsLeftVIdx = -1;
+    public double maxPossibleRealTurnsLeft = 50.0;
     public int qwinVIdx = -1;
 
     public int difficultyChosen;
