@@ -1476,7 +1476,7 @@ public class MatchSession {
                         if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z") && false) {
                             stream.writeFloat((float) (step.v[v_idx]));
                          } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
-                            stream.writeFloat((float) ((((step.v[v_idx] - step.state().realTurnNum / 50.0) * 2) - 1)));
+                            stream.writeFloat((float) ((((step.v[v_idx] - step.state().realTurnNum / state.properties.maxPossibleRealTurnsLeft) * 2) - 1)));
                         } else {
                             stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
                         }

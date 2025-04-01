@@ -360,7 +360,7 @@ public final class GameState implements State {
         }
         for (var encounter : properties.enemiesEncounters) {
             if (encounter.idxes.size() == 3 && encounter.encounterEnum == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
-                properties.maxPossibleRealTurnsLeft = 100.0;
+                properties.maxPossibleRealTurnsLeft = 100.0f;
                 break;
             }
         }
@@ -2924,6 +2924,9 @@ public final class GameState implements State {
         int inputLen = 0;
         if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
             inputLen++;
+            if (properties.isHeartGauntlet) {
+                inputLen++;
+            }
         }
         if (properties.preBattleScenariosBackup != null) {
             inputLen += properties.preBattleScenariosBackup.listRandomizations().size();
@@ -3126,6 +3129,9 @@ public final class GameState implements State {
         str += "Neural Network Input Breakdown (" + properties.inputLen + " inputs):\n";
         if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
             str += "    1 input to keep track of current turn number\n";
+            if (properties.isHeartGauntlet) {
+                str += "    1 input to keep track of real current turn number\n";
+            }
         }
         if (properties.preBattleScenariosBackup != null) {
             str += "    " + properties.preBattleScenariosBackup.listRandomizations().size() + " inputs to keep track of scenario chosen\n";
@@ -3348,6 +3354,9 @@ public final class GameState implements State {
         var x = new float[properties.inputLen];
         if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
             x[idx++] = turnNum / 50.0f;
+            if (properties.isHeartGauntlet) {
+                x[idx++] = realTurnNum / properties.maxPossibleRealTurnsLeft;
+            }
         }
         if (properties.preBattleScenariosBackup != null) {
             if (preBattleScenariosChosenIdx >= 0) {

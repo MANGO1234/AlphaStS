@@ -1689,9 +1689,9 @@ public class MCTS {
                         if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                             continue;
                         }
-                        double turns2 = state.q[(i + 1) * state.properties.v_total_len + state.properties.turnsLeftVIdx]  * state.properties.maxPossibleRealTurnsLeft / 50.0 / state.n[i];
+                        double turns2 = state.q[(i + 1) * state.properties.v_total_len + state.properties.turnsLeftVIdx] / state.n[i];
                         if (qValues[i] >= 0.999 * maxQ) {
-                            uValues[i] += (1 - turns2) * 1;
+                            uValues[i] += (1 - turns2) * state.properties.maxPossibleRealTurnsLeft / 50.0 ;
                         }
                     }
                     for (int i = 0; i < state.getLegalActions().length; i++) {

@@ -265,7 +265,7 @@ public class GameProperties implements Cloneable {
     public double cpuct = 0.1;
     public int fightProgressVIdx;
     public int turnsLeftVIdx = -1;
-    public double maxPossibleRealTurnsLeft = 50.0;
+    public float maxPossibleRealTurnsLeft = 50.0f;
     public int qwinVIdx = -1;
 
     public int difficultyChosen;
