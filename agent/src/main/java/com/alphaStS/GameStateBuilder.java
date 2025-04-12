@@ -62,6 +62,16 @@ public class GameStateBuilder {
         cards.add(new CardCount(card, count));
     }
 
+    public List<Card> getStartingCards() {
+        return this.cards.stream().map(CardCount::card).toList();
+    }
+
+    public List<Card> getStartingCards(Card... extraCards) {
+        var cards = new ArrayList<>(List.of(extraCards));
+        cards.addAll(this.cards.stream().map(CardCount::card).toList());
+        return cards;
+    }
+
     public List<CardCount> getCards() {
         return cards;
     }
@@ -295,5 +305,15 @@ public class GameStateBuilder {
 
     public void setGameStateViaInteractiveMode(List<String> commands) {
         setGameStateViaInteractiveMode(commands, false);
+    }
+
+
+    public List<List<String>> perScenarioCommands;
+    public void setPerScenarioCommands(List<List<String>> perScenarioCommands) {
+        this.perScenarioCommands = perScenarioCommands;
+    }
+
+    public List<List<String>> getPerScenarioCommands() {
+        return perScenarioCommands;
     }
 }

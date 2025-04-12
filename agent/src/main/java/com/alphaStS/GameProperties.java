@@ -3,7 +3,6 @@ package com.alphaStS;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardDefect;
 import com.alphaStS.enemy.EnemyEncounter;
-import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyList;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
@@ -65,6 +64,8 @@ public class GameProperties implements Cloneable {
     public int maxNumOfActions;
     public int totalNumOfActions;
     public GameAction[][] actionsByCtx;
+    public List<Relic> startOfBattleActions;
+    public List<List<String>> perScenarioCommands;
     public CharacterEnum character;
 
     // cached card indexes
@@ -82,6 +83,7 @@ public class GameProperties implements Cloneable {
     public int[] colorlessPotionIdxes;
     public int[] cardRewardIdxes;
     public int[] astrolabeCardsIdxes;
+    public int[] pandorasBoxCardsIdxes;
     public int[] deadBranchCardsIdxes;
     public int[] toolboxIdxes;
     public int[][] sneckoIdxes;
@@ -188,6 +190,7 @@ public class GameProperties implements Cloneable {
     public boolean hasChampionBelt;
     public boolean hasPaperPhrog;
     public boolean hasMeatOnBone;
+    public boolean hasBirdFacedUrn;
     public boolean hasBurningBlood;
     public boolean hasBloodyIdol;
     public boolean hasBloodVial;
@@ -232,6 +235,7 @@ public class GameProperties implements Cloneable {
     public boolean isHeartGauntlet;
     public int enemiesEncounterChosen;
     public int[] astrolabeCardsTransformed;
+    public int[] pandorasBoxCardsTransformed;
     public double alchemizeMult = 1.25;
 
     // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn

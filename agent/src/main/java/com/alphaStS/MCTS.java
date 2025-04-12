@@ -891,6 +891,14 @@ public class MCTS {
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {
             return false;
         }
+        if (state.properties.handOfGreedCounterIdx >= 0 && state.playerTurnStartMaxHandOfGreed != state.getCounterForRead()[state.properties.handOfGreedCounterIdx]) {
+            return false;
+        }
+        if (state.properties.handOfGreedCounterIdx >= 0) {
+            if (CardColorless.HandOfGreed.getMaxPossibleHandOfGreedRemaining(state, false) > 0) {
+                return false;
+            }
+        }
         if (state.properties.nunchakuCounterIdx >= 0 && state.getCounterForRead()[state.properties.nunchakuCounterIdx] < 9) {
             return false;
         }
@@ -911,11 +919,6 @@ public class MCTS {
         }
         if (state.properties.inserterCounterIdx >= 0 && state.getCounterForRead()[state.properties.inserterCounterIdx] < 1) {
             return false;
-        }
-        if (state.properties.handOfGreedCounterIdx >= 0) {
-            if (CardColorless.HandOfGreed.getMaxPossibleHandOfGreenRemaining(state, false) > 0) {
-                return false;
-            }
         }
         if (state.properties.incenseBurnerCounterIdx >= 0) {
             if (state.properties.incenseBurnerRewardType == Relic.IncenseBurner.DEFAULT_REWARD) {

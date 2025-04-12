@@ -2,17 +2,19 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardCount;
-import com.alphaStS.card.CardIronclad;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.player.Player;
-import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
 
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public interface GameStateRandomization {
     int randomize(GameState state);
@@ -846,6 +848,14 @@ public interface GameStateRandomization {
 
         @Override public List<Card> getPossibleGeneratedCards() {
             return List.of();
+        }
+    }
+
+    class InteractiveModeRandomization extends SimpleCustomRandomization {
+        public InteractiveModeRandomization(List<String> ...commandList) {
+            super(List.of((state) -> {
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(state, commandList[state.preBattleScenariosChosenIdx]);
+            }));
         }
     }
 

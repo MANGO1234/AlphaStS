@@ -407,4 +407,14 @@ public class GameStateUtils {
         }
         return count;
     }
+
+    public static int getCardCount(GameProperties properties, short[] cards, int len, String prefix) {
+        int count = 0;
+        for (int i = 0; i < len; i++) {
+            if (properties.cardDict[cards[i]].cardName.startsWith(prefix)) {
+                count++;
+            }
+        }
+        return count;
+    }
 }

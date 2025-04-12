@@ -296,4 +296,149 @@ public class CardOther {
             });
         }
     }
+
+    public static class UpgradeCardBeforeBattleStarts extends Card {
+        public final int count;
+        public final List<Card> cards;
+
+        public UpgradeCardBeforeBattleStarts(List<Card> cards, int count) {
+            super("Upgrade Card " + count, Card.STATUS, -1, Card.COMMON);
+            if (count <= 0) {
+                throw new IllegalArgumentException();
+            }
+            selectFromDeck = true;
+            this.count = count;
+            this.cards = cards;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                return GameActionCtx.SELECT_CARD_DECK;
+            }
+            state.getCounterForWrite()[counterIdx]++;
+            state.removeCardFromDeck(idx, false);
+            state.addCardToDeck(state.properties.findCardIndex(state.properties.cardDict[idx].getUpgrade()), false);
+            if (state.getCounterForRead()[counterIdx] >= count) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            return GameActionCtx.SELECT_CARD_DECK;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return cards.stream().anyMatch((c) -> card.cardName.equals(c.cardName));
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Upgrade Card Before Battle", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class RemoveCardBeforeBattleStarts extends Card {
+        public final int count;
+        public final List<Card> cards;
+
+        public RemoveCardBeforeBattleStarts(List<Card> cards, int count) {
+            super("Remove Card " + count, Card.STATUS, -1, Card.COMMON);
+            if (count <= 0) {
+                throw new IllegalArgumentException();
+            }
+            selectFromDeck = true;
+            this.count = count;
+            this.cards = cards;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                return GameActionCtx.SELECT_CARD_DECK;
+            }
+            state.getCounterForWrite()[counterIdx]++;
+            state.removeCardFromDeck(idx, false);
+            if (state.getCounterForRead()[counterIdx] >= count) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            return GameActionCtx.SELECT_CARD_DECK;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return cards.stream().anyMatch((c) -> card.cardName.equals(c.cardName));
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Remove Card Before Battle", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class AddCardBeforeBattleStarts extends Card {
+        public final List<List<Card>> cards;
+
+        public AddCardBeforeBattleStarts(List<List<Card>> cards) {
+            super("Add Card " + cards.size(), Card.STATUS, -1, Card.COMMON);
+            if (cards.isEmpty()) {
+                throw new IllegalArgumentException();
+            }
+            this.cards = cards;
+            this.selectFromExhaust = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.START_OF_BATTLE) {
+                var cards = this.cards.get(state.getCounterForWrite()[counterIdx]);
+                for (Card card : cards) {
+                    state.addCardToExhaust(state.properties.findCardIndex(card));
+                }
+                state.addCardToExhaust(state.properties.findCardIndex(this));
+                return GameActionCtx.SELECT_CARD_EXHAUST;
+            }
+            var cards = this.cards.get(state.getCounterForWrite()[counterIdx]);
+            for (Card card : cards) {
+                state.removeCardFromExhaust(state.properties.findCardIndex(card));
+            }
+            state.removeCardFromExhaust(state.properties.findCardIndex(this));
+            if (!(state.properties.cardDict[idx] instanceof AddCardBeforeBattleStarts)) {
+                state.addCardToDeck(idx);
+            }
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForRead()[counterIdx] >= this.cards.size()) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.START_OF_BATTLE;
+            }
+            cards = this.cards.get(state.getCounterForWrite()[counterIdx]);
+            for (Card card : cards) {
+                state.addCardToExhaust(state.properties.findCardIndex(card));
+            }
+            state.addCardToExhaust(state.properties.findCardIndex(this));
+            return GameActionCtx.SELECT_CARD_EXHAUST;
+        }
+
+        public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Add Card Before Battle", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
 }

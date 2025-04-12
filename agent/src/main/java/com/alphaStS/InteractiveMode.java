@@ -109,6 +109,11 @@ public class InteractiveMode {
         if (history.size() == 0) {
             interactiveRecordSeed(state, history);
         }
+        try {
+            modelExecutor.start(1, 1);
+            state.properties.currentMCTS = new MCTS(modelExecutor.getModelForProducer(0));
+        } catch (Exception ignored) {
+        }
 
         boolean printState = true;
         boolean printAction = true;
@@ -2013,7 +2018,7 @@ public class InteractiveMode {
             o.append(", q_win=").append(formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n));
             o.append(", q_health=").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n)).append(" (").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth())).append(")");
             if (s.properties.fightProgressVIdx >= 0 && s.q[baseIdx + GameState.V_COMB_IDX] / max_n < 0.001) {
-                o.append(", q_progress").append(formatFloat(s.q[baseIdx + s.properties.fightProgressVIdx] / max_n));
+                o.append(", q_progress=").append(formatFloat(s.q[baseIdx + s.properties.fightProgressVIdx] / max_n));
             }
             if (s.properties.turnsLeftVIdx >= 0) {
                 o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));

@@ -13,10 +13,7 @@ import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
 import one.util.streamex.IntStreamEx;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 public abstract class Relic implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
@@ -27,6 +24,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean healPlayer;
     public boolean selectCard1OutOf3;
     public int[] preBattleScenariosEnabled;
+    public Card startOfBattleAction;
 
     public void gamePropertiesSetup(GameState state) {}
     List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
@@ -191,7 +189,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class CentennialPuzzle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.buffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
+                    }
+                }
+            });
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
@@ -234,6 +238,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
                     if (counter[counterIdx] == 3) {
@@ -974,6 +981,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasBirdFacedUrn = true;
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
@@ -1571,6 +1579,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }
             state.properties.addStartOfBattleHandler("Astrolabe", new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.makingRealMove) {
                         state.properties.astrolabeCardsTransformed = new int[3];
                     }
@@ -1725,27 +1736,30 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             var cards = getPossibleCards(state.properties);
-            state.properties.astrolabeCardsIdxes = new int[cards.size()];
+            state.properties.pandorasBoxCardsIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
-                state.properties.astrolabeCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
+                state.properties.pandorasBoxCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
             }
             state.properties.addStartOfBattleHandler("PandorasBox", new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.makingRealMove) {
-                        state.properties.astrolabeCardsTransformed = new int[n];
+                        state.properties.pandorasBoxCardsTransformed = new int[n];
                     }
                     state.setIsStochastic();
                     if (state.getStateDesc().length() > 0)
                         state.stateDesc.append(", ");
                     state.getStateDesc().append("Pandora's Box -> ");
                     for (int i = 0; i < n; i++) {
-                        var idx = state.getSearchRandomGen().nextInt(state.properties.astrolabeCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.astrolabeCardsIdxes));
-                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx], false);
+                        var idx = state.getSearchRandomGen().nextInt(state.properties.pandorasBoxCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.pandorasBoxCardsIdxes));
+                        state.addCardToDeck(state.properties.pandorasBoxCardsIdxes[idx], false);
                         if (i > 0)
                             state.stateDesc.append(" + ");
-                        state.getStateDesc().append(state.properties.cardDict[state.properties.astrolabeCardsIdxes[idx]].cardName);
+                        state.getStateDesc().append(state.properties.cardDict[state.properties.pandorasBoxCardsIdxes[idx]].cardName);
                         if (state.properties.makingRealMove) {
-                            state.properties.astrolabeCardsTransformed[i] = idx;
+                            state.properties.pandorasBoxCardsTransformed[i] = idx;
                         }
                     }
                 }
@@ -2159,8 +2173,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class WarpedTongs extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addStartOfTurnHandler(new GameEventHandler(100) {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     int possibleCards = 0, diff = 0;
                     var seen = new boolean[state.properties.cardDict.length];
                     for (int i = 0; i < state.handArrLen; i++) {
@@ -2183,6 +2200,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     for (int i = 0; i < state.handArrLen; i++) {
                         if (state.properties.upgradeIdxes[state.getHandArrForRead()[i]] >= 0) {
                             if (r == 0) {
+                                state.getStateDesc().append(state.getStateDescStr().length() > 0 ? "; " : "").append("Warped Tongs: ").append(state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
                                 state.getHandArrForWrite()[i] = (short) state.properties.upgradeIdxes[state.getHandArrForRead()[i]];
                                 break;
                             }
@@ -2504,6 +2522,63 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
+        }
+    }
+
+    // todo: not working well with MAKE_PRE_BATTLE_SCENARIOS_RANDOM yet
+    public static class UpgradeCardBeforeBattleStarts extends Relic {
+        private final List<Card> cards;
+
+        public UpgradeCardBeforeBattleStarts(int count, List<Card> cards) {
+            cards = cards.stream().filter((card) -> card.getUpgrade() != null).toList();
+            startOfBattleAction = new CardOther.UpgradeCardBeforeBattleStarts(cards, count);
+            this.cards = cards;
+        }
+
+        public UpgradeCardBeforeBattleStarts(List<Card> cards) {
+            this(1, cards);
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(this.cards.stream().map((c) -> c.getUpgrade()).toList());
+            return cards;
+        }
+    }
+
+    public static class RemoveCardBeforeBattleStarts extends Relic {
+        private final List<Card> cards;
+
+        public RemoveCardBeforeBattleStarts(int count, List<Card> cards) {
+            cards = cards.stream().filter((card) -> card.getClass() != CardOther.AscendersBane.class).toList();
+            startOfBattleAction = new CardOther.RemoveCardBeforeBattleStarts(cards, count);
+            this.cards = cards;
+        }
+
+        public RemoveCardBeforeBattleStarts(List<Card> cards) {
+            this(1, cards);
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return List.of(new CardOther.RemoveCardBeforeBattleStarts(this.cards, ((CardOther.RemoveCardBeforeBattleStarts) startOfBattleAction).count));
+        }
+    }
+
+    public static class AddCardBeforeBattleStarts extends Relic {
+        private final List<List<Card>> cards;
+
+        public AddCardBeforeBattleStarts(List<List<Card>> cards) {
+            startOfBattleAction = new CardOther.AddCardBeforeBattleStarts(cards);
+            this.cards = cards;
+            this.selectCard1OutOf3 = true;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            cards = new ArrayList<>();
+            cards.add(startOfBattleAction);
+            cards.addAll(this.cards.stream().flatMap(Collection::stream).toList());
+            return cards;
         }
     }
 }

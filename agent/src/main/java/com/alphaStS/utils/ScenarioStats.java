@@ -30,6 +30,7 @@ public class ScenarioStats {
     public int[] cardsUsedCount;
     public int[] select1OutOf3Count;
     public int[][] astrolabeCount;
+    public int[][] pandorasBoxCount;
     public long biasedCognitionLimit;
     public int[] biasedCognitionLimitUsedCount;
     public double[] biasedCognitionLimitDist;
@@ -72,6 +73,9 @@ public class ScenarioStats {
         select1OutOf3Count = new int[properties.cardDict.length];
         if (properties.astrolabeCardsIdxes != null) {
             astrolabeCount = new int[properties.astrolabeCardsIdxes.length][2];
+        }
+        if (properties.pandorasBoxCardsIdxes != null) {
+            pandorasBoxCount = new int[properties.pandorasBoxCardsIdxes.length][2];
         }
         biasedCognitionLimitUsedCount = new int[100];
         biasedCognitionLimitDist = new double[100];
@@ -122,6 +126,12 @@ public class ScenarioStats {
             for (int i = 0; i < properties.astrolabeCardsIdxes.length; i++) {
                 astrolabeCount[i][0] += stat.astrolabeCount[i][0];
                 astrolabeCount[i][1] += stat.astrolabeCount[i][1];
+            }
+        }
+        if (properties.pandorasBoxCardsIdxes != null) {
+            for (int i = 0; i < properties.pandorasBoxCardsIdxes.length; i++) {
+                pandorasBoxCount[i][0] += stat.pandorasBoxCount[i][0];
+                pandorasBoxCount[i][1] += stat.pandorasBoxCount[i][1];
             }
         }
         biasedCognitionLimit += stat.biasedCognitionLimit;
@@ -188,12 +198,20 @@ public class ScenarioStats {
                 select1OutOf3Count[steps.get(i).state().getAction(steps.get(i).action()).idx()] += 1;
             }
         }
-        if (properties.astrolabeCardsIdxes != null) {
+        if (properties.astrolabeCardsIdxes != null && state.properties.astrolabeCardsTransformed != null) {
             for (int i = 0; i < state.properties.astrolabeCardsTransformed.length; i++) {
                 if (state.isTerminal() > 0) {
                     astrolabeCount[state.properties.astrolabeCardsTransformed[i]][0] += 1;
                 }
                 astrolabeCount[state.properties.astrolabeCardsTransformed[i]][1] += 1;
+            }
+        }
+        if (properties.pandorasBoxCardsIdxes != null && properties.pandorasBoxCardsTransformed != null) {
+            for (int i = 0; i < state.properties.pandorasBoxCardsTransformed.length; i++) {
+                if (state.isTerminal() > 0) {
+                    pandorasBoxCount[state.properties.pandorasBoxCardsTransformed[i]][0] += 1;
+                }
+                pandorasBoxCount[state.properties.pandorasBoxCardsTransformed[i]][1] += 1;
             }
         }
         biasedCognitionLimit += state.properties.biasedCognitionLimitUsed;
@@ -212,7 +230,7 @@ public class ScenarioStats {
             predictionError.computeIfAbsent(state.turnNum - curState.turnNum, (k) -> new Tuple<>(0.0, 0));
             predictionError.computeIfPresent(state.turnNum - curState.turnNum, (k, v) -> new Tuple<>(v.v1() + curState.get_q_TreeSearch(GameState.V_COMB_IDX) - finalQ, v.v2() + 1));
         }
-        finalFightProgress += state.calcFightProgress();
+        finalFightProgress += state.calcFightProgress(false);
         if (state.isTerminal() > 0) {
             finalQComb += state.get_q();
             int idx = 0;
@@ -512,6 +530,18 @@ public class ScenarioStats {
                 var transformedCountList = IntStream.range(0, properties.astrolabeCardsIdxes.length)
                         .filter(x -> astrolabeCount[x][1] > 0)
                         .mapToObj(x -> new Tuple3<>(properties.cardDict[properties.astrolabeCardsIdxes[x]], astrolabeCount[x], 100 * astrolabeCount[x][0] / (double) astrolabeCount[x][1]))
+                        .sorted(Comparator.comparing(x -> -x.v3()))
+                        .toList();
+                for (int i = 0; i < transformedCountList.size(); i++) {
+                    System.out.print(i == 0 ? indent + "Astrolabe Card Count: [" : ", ");
+                    System.out.print(transformedCountList.get(i).v1().cardName + ": " + Utils.formatFloat(transformedCountList.get(i).v3()) + "% (" + transformedCountList.get(i).v2()[0] + "/" + transformedCountList.get(i).v2()[1] + ")");
+                }
+                System.out.println("]");
+            }
+            if (properties.pandorasBoxCardsIdxes != null) {
+                var transformedCountList = IntStream.range(0, properties.pandorasBoxCardsIdxes.length)
+                        .filter(x -> pandorasBoxCount[x][1] > 0)
+                        .mapToObj(x -> new Tuple3<>(properties.cardDict[properties.pandorasBoxCardsIdxes[x]], pandorasBoxCount[x], 100 * pandorasBoxCount[x][0] / (double) pandorasBoxCount[x][1]))
                         .sorted(Comparator.comparing(x -> -x.v3()))
                         .toList();
                 for (int i = 0; i < transformedCountList.size(); i++) {

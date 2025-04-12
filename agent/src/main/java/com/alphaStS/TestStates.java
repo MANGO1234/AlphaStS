@@ -1960,6 +1960,115 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectRun10D() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardColorless.HandOfGreedP(2), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.Skim(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.BullsEye(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.BiasedCognitionP(), 1);
+        builder.addCard(new CardDefect.CreativeAI(), 1);
+        builder.addCard(new CardDefect.Scrape(), 1);
+        builder.addCard(new CardDefect.RipAndTear(), 1);
+        builder.addCard(new CardDefect.BeamCell(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardDefect.CoreSurge(), 1);
+        builder.addCard(new CardDefect.DoomAndGloomP(), 1);
+        builder.addCard(new CardDefect.Chill(), 1);
+        builder.addCard(new CardDefect.Defragment(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.BirdFacedUrn());
+        builder.addRelic(new Relic.EmotionChip());
+        builder.addRelic(new Relic.DataDisk());
+        builder.addRelic(new Relic.MeatOnTheBone());
+        builder.addRelic(new Relic.PenNib(9, 2));
+        builder.addRelic(new Relic.WarpedTongs());
+        builder.addRelic(new Relic.CoffeeDripper());
+        builder.addRelic(new Relic.ArtOfWar());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.BiasedCognitionLimit());
+        builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
+//        EnemyEncounter.addShieldAndSpearFight(builder);
+//        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "do", "go", "tur", "bull", "self+", "p", "self", "bea", "e", "0", "0", "3", "em", "0", "exit"));
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardDefect.Coolheaded(), 1)),
+                List.of(new CardCount(new CardDefect.AllForOne(0, 0), 1)),
+                List.of()
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK);
+//        builder.setPreBattleScenarios(randomization);
+        builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(90));
+        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(90));
+        builder.setPotionsScenarios(3);
+        builder.setPlayer(new Player(73, 73));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateDefectRun10() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardDefect.ZapP(), 1);
+        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardColorless.HandOfGreedP(0), 1);
+        builder.addCard(new CardDefect.ChargeBattery(), 1);
+        builder.addCard(new CardDefect.Skim(), 1);
+        builder.addCard(new CardDefect.SelfRepair(), 1);
+        builder.addCard(new CardDefect.BullsEye(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.BeamCellP(), 1);
+        builder.addCard(new CardDefect.BiasedCognitionP(), 1);
+        builder.addCard(new CardDefect.CreativeAI(), 1);
+        builder.addCard(new CardDefect.Scrape(), 1);
+        builder.addCard(new CardDefect.RipAndTear(), 1);
+        builder.addCard(new CardDefect.BeamCell(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.ColdSnap(), 1);
+        builder.addCard(new CardDefect.EchoForm(), 1);
+        builder.addCard(new CardDefect.Turbo(), 1);
+        builder.addCard(new CardDefect.SkimP(), 1);
+        builder.addCard(new CardDefect.CoreSurge(), 1);
+        builder.addCard(new CardDefect.Chill(), 1);
+        builder.addCard(new CardDefect.DefragmentP(), 1);
+        builder.addCard(new CardDefect.Coolheaded(), 1);
+        builder.addCard(new CardColorless.Apotheosis(), 1);
+        builder.addCard(new CardDefect.Equilibrium(), 1);
+        builder.addCard(new CardDefect.TurboP(), 1);
+        builder.addCard(new CardDefect.Storm(), 1);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.BirdFacedUrn());
+        builder.addRelic(new Relic.EmotionChip());
+        builder.addRelic(new Relic.DataDisk());
+        builder.addRelic(new Relic.MeatOnTheBone());
+        builder.addRelic(new Relic.PenNib(9, 2));
+        builder.addRelic(new Relic.WarpedTongs());
+        builder.addRelic(new Relic.CoffeeDripper());
+        builder.addRelic(new Relic.ArtOfWar());
+        builder.addRelic(new Relic.Anchor());
+        builder.addRelic(new Relic.UnceasingTop());
+        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "echo", "cool", "bull", "apo", "sto+", "p", "sto", "e", "rng off", "0", "4", "exit"), true);
+        builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.PowerPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        builder.setPlayer(new Player(81, 81));
+        return new GameState(builder);
+    }
+
     public static GameState TestStateSilentRun2() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);

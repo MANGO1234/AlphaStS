@@ -13,4 +13,5 @@ public enum GameActionCtx {
     SELECT_SCENARIO,
     BEGIN_TURN,
     AFTER_RANDOMIZATION,
+    START_OF_BATTLE,
 }

@@ -558,7 +558,7 @@ public class CardColorless {
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 100.0;
                         } else if (isTerminal == 0) {
                             int minFeed = state.getCounterForRead()[counterIdx];
-                            int maxFeedRemaining = getMaxPossibleHandOfGreenRemaining(state, true);
+                            int maxFeedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
                             double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, state.getVOther(vArrayIdx)));
                             v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
                         }
@@ -566,7 +566,7 @@ public class CardColorless {
 
                     @Override public void updateQValues(GameState state, double[] v) {
                         int minFeed = state.getCounterForRead()[counterIdx];
-                        int maxFeedRemaining = getMaxPossibleHandOfGreenRemaining(state, true);
+                        int maxFeedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
                         double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
                         v[GameState.V_HEALTH_IDX] += 100 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
                     }
@@ -590,20 +590,32 @@ public class CardColorless {
             return count;
         }
 
-        public static int getMaxPossibleHandOfGreenRemaining(GameState state, boolean checkEndOfGame) {
+        public static int getMaxPossibleHandOfGreedRemaining(GameState state, boolean checkEndOfGame) {
+            if (state.properties.handOfGreedCounterIdx < 0) {
+                return 0;
+            }
             if (checkEndOfGame && state.isTerminal() != 0) {
                 return 0;
             }
-            // todo: very very hacky, temp
-            var idxes = new int[5];
-            state.properties.findCardIndex(idxes, "Hand Of Greed");
-            boolean canUpgrade = false;
-            for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+            int nonUpgrade = state.getNonExhaustCount("Hand Of Greed");
+            boolean canUpgrade = false; // todo
+            if (!canUpgrade) {
+                int upgrade = state.getNonExhaustCount("Hand Of Greed+");
+                if (upgrade > 0) {
                     canUpgrade = true;
                 }
             }
-            return canUpgrade ? 20 * state.enemiesAlive : 0;
+            if (nonUpgrade == 0) {
+                return 0;
+            }
+            return canUpgrade ? 25 * state.enemiesAlive : 20 * state.enemiesAlive;
+        }
+
+        public static int getMaxPossibleHandOfGreed(GameState state) {
+            if (state.properties.handOfGreedCounterIdx < 0) {
+                return 0;
+            }
+            return state.getCounterForRead()[state.properties.handOfGreedCounterIdx] + getMaxPossibleHandOfGreedRemaining(state, false);
         }
     }
 

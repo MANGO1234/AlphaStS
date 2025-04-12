@@ -11,6 +11,9 @@ import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.*;
 
+import java.io.DataOutputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -78,9 +81,11 @@ public final class GameState implements State {
     public short realTurnNum;
     int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
+    byte playerTurnStartMaxHandOfGreed;
     public int preBattleRandomizationIdxChosen = -1;
     public int preBattleScenariosChosenIdx = -1;
     public int battleRandomizationIdxChosen = -1;
+    public int startOfBattleActionIdx = 0;
     public boolean skipInteractiveModeSetup;
     public EnemyEncounter.EncounterEnum currentEncounter = EnemyEncounter.EncounterEnum.UNKNOWN;
 
@@ -252,6 +257,7 @@ public final class GameState implements State {
         if (preBattleRandomizationIdxChosen != gameState.preBattleRandomizationIdxChosen) return false;
         if (preBattleScenariosChosenIdx != gameState.preBattleScenariosChosenIdx) return false;
         if (battleRandomizationIdxChosen != gameState.battleRandomizationIdxChosen) return false;
+        if (startOfBattleActionIdx != gameState.startOfBattleActionIdx) return false;
         boolean dequeIsNull = gameActionDeque == null || gameActionDeque.size() == 0;
         boolean oDequeIsNull = gameState.gameActionDeque == null || gameState.gameActionDeque.size() == 0;
         if (dequeIsNull != oDequeIsNull) {
@@ -364,6 +370,8 @@ public final class GameState implements State {
                 break;
             }
         }
+        properties.startOfBattleActions = relics.stream().filter((relic) -> relic.startOfBattleAction != null).toList();
+        properties.perScenarioCommands = builder.getPerScenarioCommands();
 
         properties.preBattleScenarios = properties.preBattleScenariosBackup = preBattleScenarios;
         if (properties.preBattleScenarios != null) {
@@ -978,9 +986,11 @@ public final class GameState implements State {
         realTurnNum = other.realTurnNum;
         playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
+        playerTurnStartMaxHandOfGreed = other.playerTurnStartMaxHandOfGreed;
         preBattleRandomizationIdxChosen = other.preBattleRandomizationIdxChosen;
         preBattleScenariosChosenIdx = other.preBattleScenariosChosenIdx;
         battleRandomizationIdxChosen = other.battleRandomizationIdxChosen;
+        startOfBattleActionIdx = other.startOfBattleActionIdx;
         skipInteractiveModeSetup = other.skipInteractiveModeSetup;
         energyRefill = other.energyRefill;
         player = other.player;
@@ -1155,7 +1165,7 @@ public final class GameState implements State {
             actionCtx = ctx;
             this.actionCardCloneSource = cloneSource;
         }
-        case BEGIN_PRE_BATTLE, BEGIN_BATTLE, SELECT_SCENARIO, BEGIN_TURN, AFTER_RANDOMIZATION -> actionCtx = ctx;
+        default -> actionCtx = ctx;
         }
     }
 
@@ -1357,7 +1367,7 @@ public final class GameState implements State {
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
                 setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
             }
-        } while (actionCtx != GameActionCtx.PLAY_CARD);
+        } while (actionCtx != GameActionCtx.PLAY_CARD && actionCtx != GameActionCtx.START_OF_BATTLE);
 
         if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
             int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(properties);
@@ -1418,10 +1428,36 @@ public final class GameState implements State {
                     runActionsInQueueIfNonEmpty();
                 }
             }
+        } else if (actionCtx == GameActionCtx.START_OF_BATTLE) {
+            startOfBattleActionIdx++;
+            if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
+                setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
+                legalActions = null;
+                doAction(0);
+            } else {
+                runStartOfBattleActionLoop();
+            }
         } else {
             runActionsInQueueDuringCardPlayIfNonEmpty();
         }
         return cardPlayedSuccessfully || targetHalfAlive;
+    }
+
+    private void runStartOfBattleActionLoop() {
+        while (actionCtx == GameActionCtx.START_OF_BATTLE && startOfBattleActionIdx < properties.startOfBattleActions.size()) {
+            if (properties.startOfBattleActions.get(startOfBattleActionIdx).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                var card = properties.startOfBattleActions.get(startOfBattleActionIdx).startOfBattleAction;
+                setActionCtx(card.play(this, properties.findCardIndex(card), 0), findPlayCardAction(card), null);
+            }
+            if (actionCtx == GameActionCtx.START_OF_BATTLE) {
+                startOfBattleActionIdx++;
+                if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
+                    setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
+                    legalActions = null;
+                    doAction(0);
+                }
+            }
+        }
     }
 
     private void transformTopMostCard(short[] cardArrForWrite, int cardArrLen, int cardIdx, int newCardIdx) {
@@ -1554,6 +1590,7 @@ public final class GameState implements State {
         runActionsInQueueIfNonEmpty();
         playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
         playerTurnStartPotionCount = getPotionCount();
+        playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
         gainEnergy(energyRefill);
         triggerOrbsPassiveStartOfTurn();
         var enemies = getEnemiesForWrite();
@@ -1859,23 +1896,34 @@ public final class GameState implements State {
     public GameState doAction(int actionIdx) {
         GameAction action = properties.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         if (action.type() == GameActionType.BEGIN_BATTLE) {
-            if (properties.randomization != null) {
-                if (properties.isHeartGauntlet && battleRandomizationIdxChosen >= 0) {
-                    properties.randomization.randomize(this, battleRandomizationIdxChosen);
+            boolean start = startOfBattleActionIdx < properties.startOfBattleActions.size();
+            setActionCtx(GameActionCtx.START_OF_BATTLE, null, null);
+            runStartOfBattleActionLoop();
+            if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
+                if (properties.randomization != null) {
+                    if (properties.isHeartGauntlet && battleRandomizationIdxChosen >= 0) {
+                        properties.randomization.randomize(this, battleRandomizationIdxChosen);
+                    } else {
+                        battleRandomizationIdxChosen = properties.randomization.randomize(this);
+                        setIsStochastic();
+                    }
+                }
+                properties.enemyHealthRandomization.randomize(this);
+                for (GameEventHandler handler : properties.startOfBattleHandlers) {
+                    handler.handle(this);
+                }
+                if (properties.biasedCognitionLimitCounterIdx >= 0) {
+                    setActionCtx(GameActionCtx.AFTER_RANDOMIZATION, null, null);
+                    selectBiasedCognitionLimit();
                 } else {
-                    battleRandomizationIdxChosen = properties.randomization.randomize(this);
-                    setIsStochastic();
+                    beginTurn();
                 }
             }
-            properties.enemyHealthRandomization.randomize(this);
-            for (GameEventHandler handler : properties.startOfBattleHandlers) {
-                handler.handle(this);
-            }
-            if (properties.biasedCognitionLimitCounterIdx >= 0) {
-                setActionCtx(GameActionCtx.AFTER_RANDOMIZATION, null, null);
-                selectBiasedCognitionLimit();
-            } else {
-                beginTurn();
+            if (start) {
+                if (properties.perScenarioCommands != null) {
+                    legalActions = null;
+                    new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(this, properties.perScenarioCommands.get(preBattleScenariosChosenIdx));
+                }
             }
         } else if (action.type() == GameActionType.AFTER_RANDOMIZATION) {
             beginTurn();
@@ -2014,6 +2062,10 @@ public final class GameState implements State {
         return this;
     }
 
+    public GameAction findPlayCardAction(Card card) {
+        return properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.findCardIndex(card)];
+    }
+
     boolean isActionLegal(int action) {
         return Arrays.binarySearch(getLegalActions(), action) >= 0;
     }
@@ -2072,7 +2124,7 @@ public final class GameState implements State {
 //                    cur += n;
 //                }
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                    out[properties.fightProgressVIdx] = calcFightProgress();
+                    out[properties.fightProgressVIdx] = calcFightProgress(false);
                 }
             }
             for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
@@ -2135,7 +2187,7 @@ public final class GameState implements State {
         return idx;
     }
 
-    public double calcFightProgress() {
+    public double calcFightProgress(boolean onlyHeart) {
         int totalMaxHp = 0;
         int totalCurHp = 0;
         boolean isSlimeBossAlive = false;
@@ -2193,9 +2245,17 @@ public final class GameState implements State {
                 addedMod = true;
             } else if (properties.isHeartGauntlet && enemy instanceof EnemyEnding.CorruptHeart) {
                 if (getEnemiesForRead().get(0).getHealth() > 0 || getEnemiesForRead().get(1).getHealth() > 0) {
-                    totalCurHp += enemy.properties.maxHealth;
-                    totalMaxHp += enemy.properties.maxHealth;
-                    addedMod = true;
+                    if (onlyHeart) {
+                        totalCurHp = 0;
+                        totalMaxHp = enemy.properties.maxHealth;
+                    } else {
+                        totalCurHp += enemy.properties.maxHealth;
+                        totalMaxHp += enemy.properties.maxHealth;
+                        addedMod = true;
+                    }
+                } else if (onlyHeart) {
+                    totalCurHp = enemy.getHealth();
+                    totalMaxHp = enemy.properties.maxHealth;
                 }
             }
             if (!addedMod) {
@@ -2218,6 +2278,9 @@ public final class GameState implements State {
             return true;
         }
         if (properties.selfRepairCounterIdx >= 0) {
+            return true;
+        }
+        if (properties.hasBirdFacedUrn) {
             return true;
         }
         if (properties.hasMeatOnBone) {
@@ -2252,6 +2315,7 @@ public final class GameState implements State {
         if (checkIfCanHeal()) {
             int v = 0;
             int maxPossibleRegen = 0;
+            int maxPossiblePowers = 0;
             if (properties.potions.size() > 0) {
                 for (int i = 0; i < properties.potions.size(); i++) {
                     if (potionUsable(i) && properties.hasToyOrniphopter && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
@@ -2262,6 +2326,12 @@ public final class GameState implements State {
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion) {
                         maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
+                    }
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.PowerPotion) {
+                        maxPossiblePowers += 1000;
+                    }
+                    if (potionUsable(i) && properties.potions.get(i) instanceof Potion.ColorlessPotion) {
+                        maxPossiblePowers += 1000;
                     }
                 }
             }
@@ -2280,6 +2350,9 @@ public final class GameState implements State {
                     maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
                     if (properties.hasToyOrniphopter) {
                         v += 5 * properties.numOfPotionSlots;
+                    }
+                    if (properties.hasBirdFacedUrn) {
+                        maxPossiblePowers += 1000;
                     }
                 }
             }
@@ -2304,6 +2377,13 @@ public final class GameState implements State {
                     if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Bite")) {
                         v = getPlayeForRead().getMaxHealth();
                     }
+                    if (properties.hasBirdFacedUrn && properties.cardDict[properties.healCardsIdxes[i]].cardType == Card.POWER) {
+                        if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Creative AI")) {
+                            maxPossiblePowers += 1000;
+                        } else {
+                            maxPossiblePowers++;
+                        }
+                    }
                     if (!properties.isHeartFight(this) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
                         int m = getNonExhaustCount(properties.healCardsIdxes[i]);
                         if (m > 0) {
@@ -2323,6 +2403,13 @@ public final class GameState implements State {
                         v += h * m;
                     }
                 }
+            }
+            if (properties.deadBranchCardsIdxes != null && properties.getRelic(Relic.DeadBranch.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                maxPossiblePowers += 10000;
+            }
+            if (properties.hasBirdFacedUrn && maxPossiblePowers > 0) {
+                boolean canDup = getNonExhaustCount("Amplify") > 0 || getNonExhaustCount("Echo Form") > 0;
+                v += (canDup ? 4 : 2) * maxPossiblePowers;
             }
 
             if (!properties.isHeartFight(this) && properties.selfRepairCounterIdx >= 0) {
@@ -2367,11 +2454,18 @@ public final class GameState implements State {
         }
     }
 
-    private int getNonExhaustCount(int cardIdx) {
+    public int getNonExhaustCount(int cardIdx) {
         int count = 0;
         count += GameStateUtils.getCardCount(handArr, handArrLen, cardIdx);
         count += GameStateUtils.getCardCount(discardArr, discardArrLen, cardIdx);
         return count + GameStateUtils.getCardCount(deckArr, deckArrLen, cardIdx);
+    }
+
+    public int getNonExhaustCount(String prefix) {
+        int count = 0;
+        count += GameStateUtils.getCardCount(properties, handArr, handArrLen, prefix);
+        count += GameStateUtils.getCardCount(properties, discardArr, discardArrLen, prefix);
+        return count + GameStateUtils.getCardCount(properties, deckArr, deckArrLen, prefix);
     }
 
     public int isTerminal() {
@@ -2391,15 +2485,15 @@ public final class GameState implements State {
         var health = v[V_HEALTH_IDX];
         var win = v[V_WIN_IDX];
         for (int i = 0; i < properties.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !properties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !GameProperties.isHeartFight(this)) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !properties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !GameProperties.isHeartFight(this)) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !properties.isHeartFight(this)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !GameProperties.isHeartFight(this)) {
                 v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
                 v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
             }
@@ -2415,11 +2509,11 @@ public final class GameState implements State {
                 base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[properties.potionsVArrayIdx[i]];
                 continue;
             }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion)) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !GameProperties.isHeartFight(this)) {
                 base *= potionsState[i * 3 + 1] / 100.0;
             }
         }
-        if (properties.alchemizeVIdx >= 0 && properties.alchemizeMult > 0) {
+        if (properties.alchemizeVIdx >= 0 && properties.alchemizeMult > 0 && !GameProperties.isHeartFight(this)) {
             var alchemizeMult = 0.0;
             for (int i = 0; i < 5; i++) {
                 alchemizeMult += Math.pow(properties.alchemizeMult, i) * v[GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i];
@@ -2787,7 +2881,7 @@ public final class GameState implements State {
                             }
 
                             if (properties.biasedCognitionLimitCounterIdx >= 0) {
-                                if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress() < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
+                                if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
                                     continue;
                                 }
                             }
@@ -2863,11 +2957,11 @@ public final class GameState implements State {
                     Arrays.sort(legalActions);
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
-                getLegalActionsSelectCardFromArr(discardArr, discardArrLen);
+                getLegalActionsSelectCardFromArr(discardArr, discardArrLen, properties.cardDict[currentAction.idx()]);
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
-                getLegalActionsSelectCardFromArr(deckArr, deckArrLen);
+                getLegalActionsSelectCardFromArr(deckArr, deckArrLen, properties.cardDict[currentAction.idx()]);
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
-                getLegalActionsSelectCardFromArr(exhaustArr, exhaustArrLen);
+                getLegalActionsSelectCardFromArr(exhaustArr, exhaustArrLen, properties.cardDict[currentAction.idx()]);
             } else {
                 int count = 0;
                 for (int i = 0; i < properties.maxNumOfActions; i++) {
@@ -2887,11 +2981,11 @@ public final class GameState implements State {
         return legalActions;
     }
 
-    private void getLegalActionsSelectCardFromArr(short[] cardArr, int cardArrLen) {
+    private void getLegalActionsSelectCardFromArr(short[] cardArr, int cardArrLen, Card card) {
         int count = 0;
         var seen = new boolean[properties.realCardsLen];
         for (int i = 0; i < cardArrLen; i++) {
-            if (!seen[cardArr[i]]) {
+            if (!seen[cardArr[i]] && (card == null || card.canSelectCard(properties.cardDict[cardArr[i]]))) {
                 count++;
                 seen[cardArr[i]] = true;
             }
@@ -2931,6 +3025,7 @@ public final class GameState implements State {
         if (properties.preBattleScenariosBackup != null) {
             inputLen += properties.preBattleScenariosBackup.listRandomizations().size();
         }
+        inputLen += properties.startOfBattleActions.size();
         inputLen += properties.realCardsLen;
         inputLen += properties.cardDict.length;
         if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
@@ -3364,6 +3459,10 @@ public final class GameState implements State {
             }
             idx += properties.preBattleScenariosBackup.listRandomizations().size();
         }
+        if (startOfBattleActionIdx < properties.startOfBattleActions.size()) {
+            x[idx + startOfBattleActionIdx] = 0.5f;
+        }
+        idx += properties.startOfBattleActions.size();
         for (int i = 0; i < deckArrLen; i++) {
             x[idx + deckArr[i]] += (float) 0.1;
         }
