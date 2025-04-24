@@ -82,6 +82,7 @@ public final class GameState implements State {
     int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
     byte playerTurnStartMaxHandOfGreed;
+    byte playerTurnStartMaxRitualDagger;
     public int preBattleRandomizationIdxChosen = -1;
     public int preBattleScenariosChosenIdx = -1;
     public int battleRandomizationIdxChosen = -1;
@@ -987,6 +988,7 @@ public final class GameState implements State {
         playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
         playerTurnStartMaxHandOfGreed = other.playerTurnStartMaxHandOfGreed;
+        playerTurnStartMaxRitualDagger = other.playerTurnStartMaxRitualDagger;
         preBattleRandomizationIdxChosen = other.preBattleRandomizationIdxChosen;
         preBattleScenariosChosenIdx = other.preBattleScenariosChosenIdx;
         battleRandomizationIdxChosen = other.battleRandomizationIdxChosen;
@@ -1591,6 +1593,7 @@ public final class GameState implements State {
         playerTurnStartMaxPossibleHealth = getMaxPossibleHealth();
         playerTurnStartPotionCount = getPotionCount();
         playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
+        playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
         gainEnergy(energyRefill);
         triggerOrbsPassiveStartOfTurn();
         var enemies = getEnemiesForWrite();
@@ -1616,7 +1619,7 @@ public final class GameState implements State {
                 }
             }
         }
-        if (properties.hasToolbox && turnNum == 0) {
+        if (properties.hasToolbox && turnNum == 0 && properties.getRelic(Relic.Toolbox.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
             Relic.Toolbox.changeToSelectionCtx(this);
         } else {
             beginTurnPart2();
@@ -1888,7 +1891,7 @@ public final class GameState implements State {
             getCounterForWrite()[properties.timeEaterCounterIdx] = 0;
         }
         getPlayerForWrite().endTurn(this);
-        if (!properties.hasIceCream) {
+        if (!properties.hasIceCream || !properties.getRelic(Relic.IceCream.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
             energy = 0;
         }
     }
@@ -2312,7 +2315,7 @@ public final class GameState implements State {
 
     // todo: yeah domain knowledge is really really hard
     public int getMaxPossibleHealth() {
-        if (checkIfCanHeal()) {
+//        if (checkIfCanHeal()) {
             int v = 0;
             int maxPossibleRegen = 0;
             int maxPossiblePowers = 0;
@@ -2449,9 +2452,9 @@ public final class GameState implements State {
                 hp += (getPlayeForRead().getMaxHealth() - hp) - (getPlayeForRead().getMaxHealth() - hp) / 4;
             }
             return hp;
-        } else {
-            return getPlayeForRead().getHealth();
-        }
+//        } else {
+//            return getPlayeForRead().getHealth();
+//        }
     }
 
     public int getNonExhaustCount(int cardIdx) {

@@ -1906,7 +1906,7 @@ public class CardSilent {
         public boolean doNothing = false;
 
         public _SetupT(String cardName, int cardType, int energyCost, boolean doNothing) {
-            this(cardName, cardType, energyCost);
+            this(cardName + (doNothing ? "(N/A)" : ""), cardType, energyCost);
             this.doNothing = doNothing;
             this.selectFromHand = !doNothing;
             this.putCardOnTopDeck = !doNothing;

@@ -1162,6 +1162,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.registerBufferCounter(state, this);
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     state.getCounterForWrite()[state.properties.bufferCounterIdx]++;
                 }
             });
@@ -1535,7 +1538,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     new CardColorless.ToBeImplemented("4"),
                     new CardColorless.MindBlast(),
                     new CardColorless.Panacea(),
-                    new CardColorless.ToBeImplemented("5"),
+                    new CardColorless.PanicButton(),
                     new CardColorless.ToBeImplemented("6"),
                     new CardColorless.SwiftStrike(),
                     new CardColorless.Trip(),
@@ -1550,7 +1553,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     new CardColorless.ToBeImplemented("11"),
                     new CardColorless.SecretTechnique(),
                     new CardColorless.SecretWeapon(),
-                    new CardColorless.ToBeImplemented("12"),
+                    new CardColorless.TheBomb(),
                     new CardColorless.ThinkingAhead(),
                     new CardColorless.ToBeImplemented("13"),
                     new CardColorless.ToBeImplemented("14")
@@ -1692,7 +1695,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BustedCrown extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energyRefill += 1;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
         }
     }
 
@@ -1700,19 +1709,37 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class CoffeeDripper extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energyRefill += 1;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
         }
     }
 
     public static class CursedKey extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energyRefill += 1;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
         }
     }
 
     public static class Ectoplasm extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.energyRefill += 1;
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energyRefill += 1;
+                    }
+                }
+            });
         }
     }
 

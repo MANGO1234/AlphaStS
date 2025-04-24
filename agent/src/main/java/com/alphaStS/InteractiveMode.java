@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.alphaStS.utils.Utils.formatFloat;
+import static com.alphaStS.utils.Utils.max;
 
 public class InteractiveMode {
     private PrintStream out = System.out;

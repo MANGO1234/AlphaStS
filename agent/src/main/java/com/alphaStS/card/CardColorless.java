@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.utils.Utils;
 
 import java.util.List;
@@ -534,7 +535,7 @@ public class CardColorless {
                     if (state.isTerminal() > 0) {
                         state.getCounterForWrite()[counterIdx] += n;
                     }
-                } else {
+                } else if (!(state.getEnemiesForRead().get(idx) instanceof EnemyEnding.CorruptHeart)) {
                     state.getCounterForWrite()[counterIdx] += n;
                 }
             }
@@ -578,16 +579,6 @@ public class CardColorless {
             counterIdx = idx;
             gameProperties.feedCounterIdx = idx; // todo: tmp for stats
             gameProperties.handOfGreedCounterIdx = idx;
-        }
-
-        private static int getCardCount(GameState state, int idx) {
-            int count = 0;
-            count += GameStateUtils.getCardCount(state.getHandArrForRead(), state.handArrLen, idx);
-            if (idx < state.properties.realCardsLen) {
-                count += GameStateUtils.getCardCount(state.getDiscardArrForRead(), state.discardArrLen, idx);
-                count += GameStateUtils.getCardCount(state.getDeckArrForRead(), state.deckArrLen, idx);
-            }
-            return count;
         }
 
         public static int getMaxPossibleHandOfGreedRemaining(GameState state, boolean checkEndOfGame) {
@@ -966,43 +957,112 @@ public class CardColorless {
     private static abstract class _RitualDaggerT extends Card {
         protected final int n;
         private final int dmgInc;
+        protected final int healthRewardRatio;
 
-        public _RitualDaggerT(String cardName, int cardType, int energyCost, int n, int dmgInc) {
+        public _RitualDaggerT(String cardName, int cardType, int energyCost, int n, int dmgInc, int healthRewardRatio) {
             super(cardName, cardType, energyCost, Card.COMMON);
             this.n = n;
             this.dmgInc = dmgInc;
             this.selectEnemy = true;
             this.exhaustWhenPlayed = true;
+            this.healthRewardRatio = healthRewardRatio;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] = state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n) ? 1 : -1;
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+                if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
+                        state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
+                    if (state.isTerminal() > 0) {
+                        state.getCounterForWrite()[counterIdx] += dmgInc;
+                    }
+                } else if (!(state.getEnemiesForRead().get(idx) instanceof EnemyEnding.CorruptHeart)) {
+                    state.getCounterForWrite()[counterIdx] += dmgInc;
+                }
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter(cardName, this, null);
+            state.properties.registerCounter("RitualDagger", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("RitualDagger", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 10.0;
+                        } else if (isTerminal == 0) {
+                            int minValue = state.getCounterForRead()[counterIdx];
+                            int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
+                            double vFeed = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, state.getVOther(vArrayIdx)));
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        int minValue = state.getCounterForRead()[counterIdx];
+                        int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
+                        double vFeed = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                        v[GameState.V_HEALTH_IDX] += 10 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
         }
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             counterIdx = idx;
             gameProperties.ritualDaggerCounterIdx = counterIdx;
         }
+
+        public static int getMaxPossibleRitualDaggerRemaining(GameState state, boolean checkEndOfGame) {
+            if (state.properties.ritualDaggerCounterIdx < 0) {
+                return 0;
+            }
+            if (checkEndOfGame && state.isTerminal() != 0) {
+                return 0;
+            }
+            int nonUpgrade = state.getNonExhaustCount("Ritual Dagger");
+            boolean canUpgrade = false; // todo
+            if (!canUpgrade) {
+                int upgrade = state.getNonExhaustCount("Ritual Dagger+");
+                if (upgrade > 0) {
+                    canUpgrade = true;
+                }
+            }
+            if (nonUpgrade == 0) {
+                return 0;
+            }
+            return canUpgrade ? 5 : 3;
+        }
+
+        public static int getMaxPossibleRitualDagger(GameState state) {
+            if (state.properties.ritualDaggerCounterIdx < 0) {
+                return 0;
+            }
+            return state.getCounterForRead()[state.properties.ritualDaggerCounterIdx] + getMaxPossibleRitualDaggerRemaining(state, false);
+        }
     }
 
     public static class RitualDagger extends _RitualDaggerT {
-        public RitualDagger(int dmg) {
-            super("Ritual Dagger", Card.ATTACK, 1, dmg, 3);
+        public RitualDagger(int dmg, int healthReward) {
+            super("Ritual Dagger", Card.ATTACK, 1, dmg, 3, healthReward);
         }
 
         @Override public Card getUpgrade() {
-            return new RitualDaggerP(this.n);
+            return new RitualDaggerP(this.n, healthRewardRatio);
         }
     }
 
     public static class RitualDaggerP extends _RitualDaggerT {
-        public RitualDaggerP(int dmg) {
-            super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5);
+        public RitualDaggerP(int dmg, int healthReward) {
+            super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5, healthReward);
         }
     }
 

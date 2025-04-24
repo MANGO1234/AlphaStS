@@ -894,10 +894,8 @@ public class MCTS {
         if (state.properties.handOfGreedCounterIdx >= 0 && state.playerTurnStartMaxHandOfGreed != state.getCounterForRead()[state.properties.handOfGreedCounterIdx]) {
             return false;
         }
-        if (state.properties.handOfGreedCounterIdx >= 0) {
-            if (CardColorless.HandOfGreed.getMaxPossibleHandOfGreedRemaining(state, false) > 0) {
-                return false;
-            }
+        if (state.properties.ritualDaggerCounterIdx >= 0 && state.playerTurnStartMaxRitualDagger != state.getCounterForRead()[state.properties.ritualDaggerCounterIdx]) {
+            return false;
         }
         if (state.properties.nunchakuCounterIdx >= 0 && state.getCounterForRead()[state.properties.nunchakuCounterIdx] < 9) {
             return false;

@@ -393,7 +393,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Impervious(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
-        builder.addCard(new CardColorless.RitualDaggerP(15), 1);
+        builder.addCard(new CardColorless.RitualDaggerP(15, 2), 1);
         builder.addRelic(new Relic.BagOfPreparation());
         builder.addRelic(new Relic.PhilosophersStone());
         builder.addRelic(new Relic.RedMask());
@@ -458,7 +458,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Disarm(), 1);
         builder.addCard(new CardIronclad.Impervious(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
-        builder.addCard(new CardColorless.RitualDaggerP(30), 1);
+        builder.addCard(new CardColorless.RitualDaggerP(30, 2), 1);
         builder.addCard(new CardIronclad.BrutalityP(), 1);
         builder.addCard(new CardIronclad.ArmanentP(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
@@ -2277,6 +2277,62 @@ public class TestStates {
         ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK));
         builder.setPreBattleScenarios(randomization);
         builder.setPlayer(new Player(36, 36));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateSilentRun6() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.SILENT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new Card.Strike(), 4);
+        builder.addCard(new Card.Defend(), 5);
+        builder.addCard(new CardSilent.Survivor(), 1);
+        builder.addCard(new CardSilent.TerrorP(), 1);
+        builder.addCard(new CardSilent.Choke(), 1);
+        builder.addCard(new CardSilent.DaggerSpray(), 2);
+        builder.addCard(new CardSilent.PhantasmalKillerP(), 1);
+        builder.addCard(new CardSilent.Expertise(), 1);
+        builder.addCard(new CardSilent.QuickSlash(), 1);
+        builder.addCard(new CardSilent.Slice(), 1);
+        builder.addCard(new CardSilent.CorpseExplosionP(), 1);
+        builder.addCard(new CardSilent.DoppelgangerP(), 1);
+        builder.addCard(new CardSilent.PreparedP(), 1);
+        builder.addCard(new CardSilent.FootworkP(), 3);
+        builder.addCard(new CardSilent.AcrobaticsP(), 1);
+        builder.addCard(new CardSilent.LegSweep(), 2);
+        builder.addCard(new CardSilent.PiercingWail(), 1);
+        builder.addCard(new CardSilent.Deflect(), 3);
+        builder.addCard(new CardSilent.AfterImageP(), 1);
+        builder.addCard(new CardSilent.DeflectP(), 1);
+        builder.addCard(new CardSilent.DodgeAndRollP(), 1);
+        builder.addCard(new CardSilent.CaltropsP(), 1);
+        builder.addCard(new CardSilent.Malaise(), 1);
+        builder.addCard(new CardSilent.Backflip(), 1);
+        builder.addCard(new CardSilent.NoxiousFumeP(), 1);
+        builder.addCard(new CardSilent.OutmaneuverP(), 1);
+        builder.addCard(new CardSilent.QuickSlashP(), 1);
+        builder.addCard(new CardColorless.RitualDagger(54, 0), 1);
+        builder.addCard(new CardColorless.GoodInstincts(), 1);
+        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.IceCream());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.addRelic(new Relic.ArtOfWar());
+        builder.addRelic(new Relic.RunicPyramid());
+        builder.addRelic(new Relic.FossilizedHelix());
+        builder.addRelic(new Relic.Vajira());
+        builder.addRelic(new Relic.CursedKey());
+        builder.addRelic(new Relic.HornCleat());
+        builder.addEnemyEncounter(new EnemyEnding.CorruptHeart());
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardSilent.BladeDance(), 1)),
+                List.of(new CardCount(new CardSilent.DodgeAndRoll(), 1)),
+                List.of(new CardCount(new CardSilent.PiercingWail(), 1)),
+                List.of()
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK).join(new GameStateRandomization.PlayerHealthRandomization(new int[] { 31, 31, 31, 33 }));
+        builder.setPreBattleScenarios(randomization);
+        builder.addPotion(new Potion.FairyInABottle(70).setBasePenaltyRatio(100));
+        builder.setPlayer(new Player(31, 33));
+        builder.setGameStateViaInteractiveMode(List.of("", "3", "do", "def", "def", "def", "quick", "str", "exp", "e", "0", "exit"));
         return new GameState(builder);
     }
 
