@@ -639,6 +639,7 @@ public final class GameState implements State {
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.ArtOfWar) ? PlayerBuff.ART_OF_WAR.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
+        properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Necronomicon) ? PlayerBuff.NECRONOMICON.mask() : 0;
         properties.needDeckOrderMemory |= cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
         properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
         properties.battleTranceExist = cards.stream().anyMatch((x) -> x.cardName.contains("Battle Trance"));
@@ -1630,6 +1631,9 @@ public final class GameState implements State {
         turnNum++;
         realTurnNum++;
         var drawCount = 5;
+        for (GameEventHandler handler : properties.preStartOfTurnHandlers) {
+            handler.handle(this);
+        }
         if (properties.drawReductionCounterIdx >= 0 && getCounterForRead()[properties.drawReductionCounterIdx] > 0) {
             drawCount--;
             getCounterForWrite()[properties.drawReductionCounterIdx]--;
@@ -2960,7 +2964,11 @@ public final class GameState implements State {
                     Arrays.sort(legalActions);
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
-                getLegalActionsSelectCardFromArr(discardArr, discardArrLen, properties.cardDict[currentAction.idx()]);
+                if (currentAction.type() == GameActionType.PLAY_CARD) {
+                    getLegalActionsSelectCardFromArr(discardArr, discardArrLen, properties.cardDict[currentAction.idx()]);
+                } else {
+                    getLegalActionsSelectCardFromArr(discardArr, discardArrLen, null);
+                }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
                 getLegalActionsSelectCardFromArr(deckArr, deckArrLen, properties.cardDict[currentAction.idx()]);
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {

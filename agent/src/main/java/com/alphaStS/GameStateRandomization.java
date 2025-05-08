@@ -37,6 +37,10 @@ public interface GameStateRandomization {
         return new GameStateRandomization.Join(this, b);
     }
 
+    default GameStateRandomization union(GameStateRandomization b) {
+        return new GameStateRandomization.Union(this, this.listRandomizations().size() / (double) (this.listRandomizations().size() + b.listRandomizations().size()) , b);
+    }
+
     default GameStateRandomization union(double aChance, GameStateRandomization b) {
         return new GameStateRandomization.Union(this, aChance, b);
     }

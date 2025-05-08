@@ -2336,6 +2336,58 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateSilentRun7() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.SILENT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new Card.StrikeP(), 3);
+        builder.addCard(new Card.DefendP(), 3);
+        builder.addCard(new CardSilent.Survivor(), 1);
+        builder.addCard(new CardSilent.NeutralizeP(), 1);
+        builder.addCard(new CardSilent.SneakyStrike(), 1);
+        builder.addCard(new CardSilent.QuickSlash(), 1);
+        builder.addCard(new CardSilent.NoxiousFumeP(), 1);
+        builder.addCard(new CardSilent.BouncingFlaskP(), 1);
+        builder.addCard(new CardSilent.Backstab(), 1);
+        builder.addCard(new CardSilent.PiercingWailP(), 2);
+        builder.addCard(new CardSilent.AcrobaticsP(), 2);
+        builder.addCard(new CardSilent.DeflectP(), 3);
+        builder.addCard(new CardSilent.NightmareP(), 1);
+        builder.addCard(new CardSilent.EndlessAgony(), 1);
+        builder.addCard(new CardSilent.ReflexP(), 1);
+        builder.addCard(new CardSilent.BackflipP(), 1);
+        builder.addCard(new CardSilent.BladeDanceP(), 2);
+        builder.addCard(new CardSilent.AlchemizeP(100, 0), 1);
+        builder.addCard(new CardSilent.EscapePlanP(), 2);
+        builder.addCard(new CardSilent.GrandFinale(), 1);
+        builder.addCard(new CardSilent.PreparedP(), 2);
+        builder.addCard(new CardColorless.TripP(), 1);
+        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.Kunai());
+        builder.addRelic(new Relic.Ectoplasm());
+        builder.addRelic(new Relic.Enchiridion());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.InkBottle(9, 2));
+        builder.addRelic(new Relic.BronzeScales());
+        builder.addRelic(new Relic.RunicPyramid());
+        builder.addRelic(new Relic.BottledTornado(new CardSilent.NoxiousFumeP()));
+        EnemyEncounter.addCorruptHeartFight(builder);
+        GameStateRandomization randomization = new GameStateRandomization.CardCountRandomization(List.of(
+                List.of(new CardCount(new CardSilent.CloakAndDaggerP(), 1)),
+                List.of(new CardCount(new CardSilent.DeadlyPoisonP(), 1)),
+                List.of(new CardCount(new CardSilent.BulletTimeP(), 1)),
+                List.of()
+        ), GameStateRandomization.CardCountRandomization.ADD_TO_DECK).join(
+                 new GameStateRandomization.PlayerHealthRandomization(new int[] { 67, 67, 67, 69 }));
+        builder.setGameStateViaInteractiveMode(List.of("", "3", "do", "acro", "gran", "pre", "pre", "ne", "e", "rng off", "0", "6", "exit"));
+        builder.setPreBattleScenarios(randomization);
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.GhostInAJar().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(3);
+        builder.setPlayer(new Player(67, 69));
+        return new GameState(builder);
+    }
+
     public static GameState TestStateStreamerRun() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);

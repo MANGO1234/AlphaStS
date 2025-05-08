@@ -2115,7 +2115,7 @@ public class CardSilent {
     }
 
     private static abstract class _AThousandCutsT extends Card {
-        private final int n;
+        protected final int n;
 
         public _AThousandCutsT(String cardName, int cardType, int energyCost, int n) {
             super(cardName, cardType, energyCost, Card.RARE);
@@ -2143,10 +2143,12 @@ public class CardSilent {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         var dmg = state.getCounterForRead()[counterIdx];
                         if (state.properties.cardDict[cardIdx].cardName.startsWith("A Thousand")) {
-                            dmg -= 2;
+                            dmg -= ((_AThousandCutsT) state.properties.cardDict[cardIdx]).n;
                         }
-                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            state.playerDoNonAttackDamageToEnemy(enemy, dmg, true);
+                        if (dmg > 0) {
+                            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                                state.playerDoNonAttackDamageToEnemy(enemy, dmg, true);
+                            }
                         }
                     }
                 }
@@ -2812,7 +2814,7 @@ public class CardSilent {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.nightmareCards = new short[1];
-            state.properties.addStartOfTurnHandler(new GameEventHandler() {
+            state.properties.addPreStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.nightmareCardsLen; i++) {
                         state.addCardToHand(state.nightmareCards[i]);

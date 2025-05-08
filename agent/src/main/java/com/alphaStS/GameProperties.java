@@ -244,6 +244,7 @@ public class GameProperties implements Cloneable {
     GameEventHandler endOfPreBattleHandler;
     public List<GameEventHandler> startOfBattleHandlers = new ArrayList<>();
     public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
+    public List<GameEventHandler> preStartOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> endOfTurnHandlers = new ArrayList<>();
@@ -476,6 +477,17 @@ public class GameProperties implements Cloneable {
         if (gameEventHandlers.get(handlerName + "StartOfTurn") == null) {
             gameEventHandlers.put(handlerName + "StartOfTurn", handler);
             startOfTurnHandlers.add(handler);
+        }
+    }
+
+    public void addPreStartOfTurnHandler(GameEventHandler handler) {
+        preStartOfTurnHandlers.add(handler);
+    }
+
+    public void addPreStartOfTurnHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "PreStartOfTurn") == null) {
+            gameEventHandlers.put(handlerName + "PreStartOfTurn", handler);
+            preStartOfTurnHandlers.add(handler);
         }
     }
 

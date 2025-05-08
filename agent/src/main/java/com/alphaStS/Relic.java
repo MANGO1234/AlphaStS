@@ -58,7 +58,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static boolean isEliteFight(GameState state) {
         for (var enemy : state.getEnemiesForRead()) {
-            if (enemy.properties.isElite) {
+            if (enemy.isAlive() && enemy.properties.isElite) {
                 return true;
             }
         }
@@ -586,8 +586,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class BottledStorm extends _BottledRelic {
-        public BottledStorm(Card card) {
+    public static class BottledTornado extends _BottledRelic {
+        public BottledTornado(Card card) {
             super(card);
         }
     }
@@ -1992,9 +1992,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class SlaversCollar extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            if (isEliteFight(state) || isBossFight(state)) {
-                state.energyRefill += 1;
-            }
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        if (isEliteFight(state) || isBossFight(state)) {
+                            state.energyRefill += 1;
+                        }
+                    }
+                }
+            });
         }
     }
 
@@ -2099,6 +2105,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     state.setIsStochastic();
                     var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
                     state.addCardToHand(cardsIdx[r]);
@@ -2143,8 +2152,34 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             new CardDefect.Storm()
                     ).filter((x) -> filter == null || filter.getTemporaryCostIfPossible(0).equals(x) || filter.equals(x)).toList();
                     tmpCardsLen = cards.size() / 2;
+                } else if (properties.character == CharacterEnum.SILENT) {
+                    cards = Stream.of(
+                            new CardSilent.Accuracy().getTemporaryCostIfPossible(0),
+                            new CardSilent.Caltrops().getTemporaryCostIfPossible(0),
+                            new CardSilent.Footwork().getTemporaryCostIfPossible(0),
+                            new CardSilent.InfiniteBlade().getTemporaryCostIfPossible(0),
+                            new CardSilent.NoxiousFume().getTemporaryCostIfPossible(0),
+                            new CardSilent.WellLaidPlans().getTemporaryCostIfPossible(0),
+                            new CardSilent.AThousandCuts().getTemporaryCostIfPossible(0),
+                            new CardSilent.AfterImage().getTemporaryCostIfPossible(0),
+                            new CardSilent.Envenom().getTemporaryCostIfPossible(0),
+                            new CardSilent.ToolsOfTheTrade().getTemporaryCostIfPossible(0),
+                            new CardSilent.WraithForm().getTemporaryCostIfPossible(0),
+                            new CardSilent.Accuracy(),
+                            new CardSilent.Caltrops(),
+                            new CardSilent.Footwork(),
+                            new CardSilent.InfiniteBlade(),
+                            new CardSilent.NoxiousFume(),
+                            new CardSilent.WellLaidPlans(),
+                            new CardSilent.AThousandCuts(),
+                            new CardSilent.AfterImage(),
+                            new CardSilent.Envenom(),
+                            new CardSilent.ToolsOfTheTrade(),
+                            new CardSilent.WraithForm()
+                    ).filter((x) -> filter == null || filter.getTemporaryCostIfPossible(0).equals(x) || filter.equals(x)).toList();
+                    tmpCardsLen = cards.size() / 2;
                 } else {
-                    throw new IllegalArgumentException("Unsupported character: " + properties.character);
+                        throw new IllegalArgumentException("Unsupported character: " + properties.character);
                 }
             }
             return cards;
@@ -2172,7 +2207,45 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // todo: Mutagenic Strength
     // Nloth's Gift: No need to implement
     // Nloth's Mask: No need to implement
-    // todo: Necronomicon
+
+    public static class Necronomicon extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.addCardToDeck(state.properties.findCardIndex(new CardOther.Necronomicurse()), false);
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.buffs |= PlayerBuff.NECRONOMICON.mask();
+                    }
+                }
+            });
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
+                        return;
+                    }
+                    if (energyUsed >= 2 && (state.buffs & PlayerBuff.NECRONOMICON.mask()) != 0) {
+                        state.buffs &= ~PlayerBuff.NECRONOMICON.mask();
+                        state.addGameActionToEndOfDeque(curState -> {
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            curState.playCard(action, lastIdx, true, Relic.Necronomicon.class, false, false, energyUsed, cloneParentLocation);
+                        });
+
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.Necronomicurse());
+        }
+    }
+
     // Neows Blessing: No need to implement
     // todo: Nilrys Codex
 
