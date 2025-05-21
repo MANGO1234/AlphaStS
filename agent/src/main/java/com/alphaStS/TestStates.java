@@ -2142,7 +2142,7 @@ public class TestStates {
         builder.addCard(new CardSilent.EscapePlan(), 1);
         builder.addCard(new CardSilent.FlyingKnee(), 1);
         builder.addCard(new CardSilent.Backstab(), 1);
-        builder.addCard(new CardSilent.Alchemize(100, 0), 1);
+        builder.addCard(new CardSilent.Alchemize(100, 0, 0), 1);
         builder.addCard(new CardSilent.FlyingKneeP(), 1);
         builder.addCard(new CardSilent.BladeDance(), 3);
         builder.addCard(new CardSilent.FootworkP(), 1);
@@ -2357,7 +2357,7 @@ public class TestStates {
         builder.addCard(new CardSilent.ReflexP(), 1);
         builder.addCard(new CardSilent.BackflipP(), 1);
         builder.addCard(new CardSilent.BladeDanceP(), 2);
-        builder.addCard(new CardSilent.AlchemizeP(100, 0), 1);
+        builder.addCard(new CardSilent.AlchemizeP(100, 0, 0), 1);
         builder.addCard(new CardSilent.EscapePlanP(), 2);
         builder.addCard(new CardSilent.GrandFinale(), 1);
         builder.addCard(new CardSilent.PreparedP(), 2);
@@ -2385,6 +2385,68 @@ public class TestStates {
         builder.addPotion(new Potion.GhostInAJar().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(3);
         builder.setPlayer(new Player(67, 69));
+        return new GameState(builder);
+    }
+
+    public static GameState TestStateSilentRun8() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.SILENT);
+        builder.addCard(new CardOther.AscendersBane(), 1);
+        builder.addCard(new CardSilent.NoxiousFumeP(), 1);
+        builder.addCard(new CardSilent.Predator(), 1);
+        builder.addCard(new CardSilent.Survivor(), 1);
+        builder.addCard(new CardSilent.Neutralize(), 1);
+        builder.addCard(new CardSilent.EndlessAgony(), 1);
+        builder.addCard(new CardSilent.Finisher(), 1);
+        builder.addCard(new CardSilent.SuckerPunchP(), 1);
+        builder.addCard(new CardSilent.Backstab(), 1);
+        builder.addCard(new CardSilent.BladeDance(), 2);
+        builder.addCard(new CardSilent.Acrobatics(), 1);
+        builder.addCard(new CardSilent.GlassKnife(), 1);
+        builder.addCard(new CardSilent.DaggerThrow(), 1);
+        builder.addCard(new CardSilent.AfterImageP(), 1);
+        builder.addCard(new CardSilent.DodgeAndRoll(), 1);
+        builder.addCard(new CardSilent.MasterfulStab(5), 1);
+        builder.addCard(new CardSilent.Alchemize(100, 0, 0), 1);
+        builder.addCard(new CardSilent.DaggerSpray(), 1);
+        builder.addCard(new CardSilent.Reflex(), 1);
+        builder.addCard(new CardSilent.CloakAndDagger(), 1);
+        builder.addCard(new CardSilent.WellLaidPlansP(), 1);
+        builder.addCard(new CardSilent.LegSweepP(), 1);
+        builder.addCard(new CardSilent.ToolsOfTheTrade(), 1);
+        builder.addCard(new CardSilent.TerrorP(), 1);
+        builder.addCard(new CardSilent.PiercingWail(), 1);
+        builder.addCard(new CardSilent.Burst(), 1);
+        builder.addCard(new CardSilent.Accuracy(), 1);
+        builder.addCard(new CardSilent.WraithFormP(), 2);
+        builder.addCard(new CardSilent.Caltrops(), 1);
+        builder.addCard(new CardSilent.BladeDanceP(), 1);
+        builder.addCard(new CardColorless.SecretTechnique(), 0); // via Toolbox
+        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.Shuriken());
+        builder.addRelic(new Relic.ToyOrnithopter());
+        builder.addRelic(new Relic.Orichalcum());
+        builder.addRelic(new Relic.Torii());
+        builder.addRelic(new Relic.MummifiedHand());
+        builder.addRelic(new Relic.PreservedInsect());
+        builder.addRelic(new Relic.Calipers());
+        builder.addRelic(new Relic.HoveringKite());
+        builder.addRelic(new Relic.BagOfPreparation());
+        builder.addRelic(new Relic.InkBottle(9, 2));
+        builder.addRelic(new Relic.MeatOnTheBone());
+        builder.addRelic(new Relic.StrikeDummy());
+        builder.addRelic(new Relic.HornCleat());
+        builder.addRelic(new Relic.FossilizedHelix());
+        builder.addRelic(new Relic.Vajira());
+//        builder.addRelic(new Relic.Toolbox());
+        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.setGameStateViaInteractiveMode(List.of("", "do", "leg", "refl", "bla", "bla+", "asc", "mas", "gla", "e", "0", "ach", "35", "exit"));
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));
+        builder.addPotion(new Potion.FairyInABottle(72).setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(7);
+        builder.setPlayer(new Player(71, 72));
         return new GameState(builder);
     }
 

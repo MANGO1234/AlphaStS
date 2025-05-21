@@ -2242,16 +2242,22 @@ public class CardSilent {
     public static abstract class _AlchemizeT extends Card {
         public final int basePenaltyRatio;
         public final int possibleGeneratedPotions;
+        public final int healthReward;
 
-        public _AlchemizeT(String cardName, int cardType, int energyCost, int basePenaltyRatio, int possibleGeneratedPotions) {
+        public _AlchemizeT(String cardName, int cardType, int energyCost, int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
             super(cardName, cardType, energyCost, Card.RARE);
             this.exhaustWhenPlayed = true;
             this.basePenaltyRatio = basePenaltyRatio;
             this.possibleGeneratedPotions = possibleGeneratedPotions;
+            this.healthReward = healthReward;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.getPotionCount() < state.properties.numOfPotionSlots) {
+            int potions = state.getPotionCount();
+            if (basePenaltyRatio == 0) {
+                potions += state.getCounterForRead()[counterIdx];
+            }
+            if (potions < state.properties.numOfPotionSlots) {
                 if (state.getCounterForRead()[counterIdx] < 4) { // 4 empty potion slot at most
                     state.getCounterForWrite()[counterIdx]++;
                     if (state.properties.potionsGenerator != null) {
@@ -2294,6 +2300,9 @@ public class CardSilent {
                 }
 
                 @Override public void updateQValues(GameState state, double[] v) {
+                    for (int i = 0; i < 5; i++) {
+                        v[GameState.V_HEALTH_IDX] += i * healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                    }
                 }
 
                 @Override public int getNumberOfTargets() {
@@ -2338,18 +2347,18 @@ public class CardSilent {
     }
 
     public static class Alchemize extends CardSilent._AlchemizeT {
-        public Alchemize(int basePenaltyRatio, int possibleGeneratedPotions) {
-            super("Alchemize", Card.SKILL, 1, basePenaltyRatio, possibleGeneratedPotions);
+        public Alchemize(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
+            super("Alchemize", Card.SKILL, 1, basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
 
         @Override public Card getUpgrade() {
-            return new CardSilent.AlchemizeP(basePenaltyRatio, possibleGeneratedPotions);
+            return new CardSilent.AlchemizeP(basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
     }
 
     public static class AlchemizeP extends CardSilent._AlchemizeT {
-        public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions) {
-            super("Alchemize+", Card.SKILL, 0, basePenaltyRatio, possibleGeneratedPotions);
+        public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
+            super("Alchemize+", Card.SKILL, 0, basePenaltyRatio, possibleGeneratedPotions, healthReward);
         }
     }
 

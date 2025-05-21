@@ -37,7 +37,7 @@ public class Main {
         } else if (args.length > 0 && (args[0].equals("--play-1-game") || args[0].equals("-pg"))) {
             System.out.println("Seed: " + state.properties.random.getSeed(null));
             playGameAndViewGame(state, args);
-        } else if (args.length > 0 && (args[0].equals("--training") || args[0].equals("-t"))) {
+        } else if (args.length > 0 && (args[0].equals("--training"))) {
             System.out.println("Seed: " + state.properties.random.getSeed(null));
             playTrainingGames(state, args);
         } else if (args.length > 0 && (args[0].equals("--interactive") || args[0].equals("-i"))) {
@@ -119,8 +119,8 @@ public class Main {
             int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
             n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
             n *= state.properties.preBattleScenarios == null ? 1 : state.properties.preBattleScenarios.listRandomizations().size();
-            NUMBER_OF_GAMES_TO_PLAY = n * 1000;
-            NUMBER_OF_NODES_PER_TURN = 100;
+            NUMBER_OF_GAMES_TO_PLAY = args[0].equals("--training") ? 1 : n * 2000;
+            NUMBER_OF_NODES_PER_TURN = args[0].equals("--training") ? 1 : 200;
 //            ITERATION = 56;
 //            COMPARE_DIR = "../saves/iteration60";
            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
@@ -175,7 +175,7 @@ public class Main {
             session.setMatchLogFile("matches.txt.gz");
         }
         var preBattleScenarios = state.properties.preBattleScenarios;
-        var randomization = state.properties.randomization;
+        var randomization = state.properties.preBattleRandomization;
         if (MAKE_PRE_BATTLE_SCENARIOS_RANDOM) {
             makePreBattleScenariosRandom(state, preBattleScenarios);
         }
@@ -222,7 +222,7 @@ public class Main {
             session.setMatchLogFile("training_matches.txt.gz");
         }
         var preBattleScenarios = state.properties.preBattleScenarios;
-        var randomization = state.properties.randomization;
+        var randomization = state.properties.preBattleRandomization;
         makePreBattleScenariosRandom(state, preBattleScenarios);
         if (state.properties.randomization != null && SCENARIO_GROUPS_PARAM != null) {
             session.scenariosGroup = GameStateUtils.getScenarioGroups(state, SCENARIO_GROUPS_PARAM[0], SCENARIO_GROUPS_PARAM[1]);
@@ -298,11 +298,11 @@ public class Main {
         session.flushAndCloseFileWriters();
     }
 
-    private static void unmakePreBattleScenariosRandom(GameState state, GameStateRandomization preBattleScenarios, GameStateRandomization randomization) {
+    private static void unmakePreBattleScenariosRandom(GameState state, GameStateRandomization preBattleScenarios, GameStateRandomization preBattleRandomization) {
         if (preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
             state.properties.preBattleScenarios = preBattleScenarios;
-            state.properties.randomization = randomization;
-            if (state.properties.preBattleRandomization == null) {
+            state.properties.preBattleRandomization = preBattleRandomization;
+            if (preBattleRandomization == null) {
                 state.setActionCtx(GameActionCtx.SELECT_SCENARIO, null, null);
             }
         }
@@ -310,15 +310,11 @@ public class Main {
 
     private static void makePreBattleScenariosRandom(GameState state, GameStateRandomization preBattleScenarios) {
         if (state.properties.preBattleScenarios != null && state.properties.endOfPreBattleHandler == null) {
-            state.properties.preBattleScenarios = null;
-            if (state.properties.randomization == null) {
-                state.properties.randomization = preBattleScenarios;
-            } else {
-                state.properties.randomization = state.properties.randomization.doAfter(preBattleScenarios);
-            }
             if (state.properties.preBattleRandomization == null) {
-                state.setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
+                state.setActionCtx(GameActionCtx.BEGIN_PRE_BATTLE, null, null);
             }
+            state.properties.preBattleScenarios = null;
+            state.properties.preBattleRandomization = preBattleScenarios.doAfter(state.properties.preBattleRandomization);
         }
     }
 

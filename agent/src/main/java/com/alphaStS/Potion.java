@@ -537,23 +537,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DistilledChaos extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 6 : 3;
+            state.getCounterForWrite()[state.properties.playCardOnTopOfDeckCounterIdx] += state.properties.hasSacredBark ? 6 : 3;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("DistilledChaos", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-                @Override public void onRegister(int counterIdx) {
-                    state.properties.distilledChaosCounterIdx = counterIdx;
-                }
-            });
+            state.properties.registerPlayCardOnTopOfDeckCounter();
         }
         @Override public String toString() {
             return "Distilled Chaos";
@@ -821,7 +810,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new CardSilent.Tactician().getTemporaryCostIfPossible(0),
                         new CardSilent.Terror().getTemporaryCostIfPossible(0),
                         new CardSilent.Adrenaline().getTemporaryCostIfPossible(0),
-                        new CardSilent.Alchemize(0, 0).getTemporaryCostIfPossible(0),
+                        new CardSilent.Alchemize(0, 0, 0).getTemporaryCostIfPossible(0),
                         new CardSilent.BulletTime().getTemporaryCostIfPossible(0),
                         new CardSilent.Burst().getTemporaryCostIfPossible(0),
                         new CardSilent.CorpseExplosion().getTemporaryCostIfPossible(0),
@@ -1002,7 +991,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             var c = getPossibleSelect3OutOf1Cards(gameProperties);
-            var l = new ArrayList<Card>(c);
+            var l = new ArrayList<>(c);
             for (Card card : c) {
                 if (card instanceof Card.CardTmpChangeCost t) {
                     l.add(t.card);
@@ -1037,7 +1026,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new Card.CardTmpChangeCost(new CardColorless.HandOfGreed(0.1), 0),
                     new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("8"), 0),
                     new CardColorless.MasterOfStrategy(),
-                    new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("9"), 0),
+                    new Card.CardTmpChangeCost(new CardColorless.Mayhem(), 0),
                     new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("10"), 0),
                     new CardColorless.Panacea(),
                     new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("11"), 0),

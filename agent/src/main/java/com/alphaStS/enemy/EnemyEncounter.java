@@ -28,6 +28,10 @@ public class EnemyEncounter {
         builder.addEnemyEncounter(new EnemyExordium.FungiBeast(), new EnemyExordium.FungiBeast());
     }
 
+    public static void addLargeSpikeSlimeFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36, true), new EnemyExordium.MediumSpikeSlime(36, true));
+    }
+
     public static class GremlinGangRandomization implements GameStateRandomization {
         Map<Integer, Integer> rMap = new HashMap<>();
         Map<Integer, List<Integer>> enemiesMap = new HashMap<>();
@@ -738,7 +742,7 @@ public class EnemyEncounter {
                     new CardSilent.Tactician(),
                     new CardSilent.Terror(),
                     new CardSilent.Adrenaline(),
-                    new CardSilent.Alchemize(0, 0),
+                    new CardSilent.Alchemize(0, 0, 0),
                     new CardSilent.BulletTime(),
                     new CardSilent.Burst(),
                     new CardSilent.CorpseExplosion(),

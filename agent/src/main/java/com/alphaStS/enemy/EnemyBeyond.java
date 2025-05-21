@@ -42,7 +42,7 @@ public class EnemyBeyond {
             int dmg = super.damage(n, state);
             if (health <= 0) {
                 if (!awakened) {
-                    if (!state.properties.hasRunicDome) {
+                    if (!state.properties.isRunicDomeEnabled(state)) {
                         move = REBIRTH;
                     }
                 } else {
@@ -58,7 +58,7 @@ public class EnemyBeyond {
             super.nonAttackDamage(n, blockable, state);
             if (health <= 0) {
                 if (!awakened) {
-                    if (!state.properties.hasRunicDome) {
+                    if (!state.properties.isRunicDomeEnabled(state)) {
                         move = REBIRTH;
                     }
                 } else {
@@ -513,7 +513,7 @@ public class EnemyBeyond {
 
         @Override public void nextMove(GameState state, RandomGen random) {
             int newMove = -1;
-            if ((state.properties.hasRunicDome ? startTurnLessHalfHealth : (health < properties.maxHealth / 2)) && !hasted) {
+            if ((state.properties.isRunicDomeEnabled(state) ? startTurnLessHalfHealth : (health < properties.maxHealth / 2)) && !hasted) {
                 hasted = true;
                 newMove = HASTE;
             } else {

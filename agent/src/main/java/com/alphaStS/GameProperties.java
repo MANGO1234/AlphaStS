@@ -150,6 +150,7 @@ public class GameProperties implements Cloneable {
     public int sneakyStrikeCounterIdx = -1;
     public int eviscerateCounterIdx = -1;
     public int wellLaidPlansCounterIdx = -1;
+    public int hoveringKiteCounterIdx = -1;
     public int blurCounterIdx = -1;
     public int accuracyCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
@@ -179,6 +180,9 @@ public class GameProperties implements Cloneable {
     public boolean hasMedicalKit;
     public boolean hasOddMushroom;
     public boolean hasRunicDome;
+    public boolean isRunicDomeEnabled(GameState state) {
+        return hasRunicDome && getRelic(Relic.RunicDome.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx);
+    }
     public boolean hasRunicPyramid;
     public boolean hasSacredBark;
     public boolean hasStrangeSpoon;
@@ -208,7 +212,7 @@ public class GameProperties implements Cloneable {
     public int drawReductionCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
     public int normalityCounterIdx = -1;
-    public int distilledChaosCounterIdx = -1;
+    public int playCardOnTopOfDeckCounterIdx = -1;
 
     // cached game properties for generating NN input
     public int shieldAndSpireFacingIdx = -1;
@@ -219,7 +223,6 @@ public class GameProperties implements Cloneable {
         return state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART;
     }
 
-    public boolean healEndOfAct;
     public int inputLen;
     public int extraOutputLen;
     public int v_total_len;
@@ -611,6 +614,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant PlayCardOnTopOfDeckCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.playCardOnTopOfDeckCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.playCardOnTopOfDeckCounterIdx;
+        }
+    };
+
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -641,6 +653,18 @@ public class GameProperties implements Cloneable {
                 if (state.getCounterForRead()[state.properties.intangibleCounterIdx] > 0) {
                     state.getCounterForWrite()[state.properties.intangibleCounterIdx]--;
                 }
+            }
+        });
+    }
+
+    public void registerPlayCardOnTopOfDeckCounter() {
+        registerCounter("PlayCardOnTopOfDeck", PlayCardOnTopOfDeckCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.playCardOnTopOfDeckCounterIdx] / 6.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
             }
         });
     }

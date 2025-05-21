@@ -255,6 +255,9 @@ public class InteractiveMode {
             } else if (line.equals("ach")) { // add card to hand
                 addCardToHandSelectScreen(reader, state, history);
                 state.clearAllSearchInfo();
+            } else if (line.equals("dchIf")) { // discard from hand if it exists
+                discardCardFromHandSelectScreen(reader, state, history);
+                state.clearAllSearchInfo();
             } else if (line.equals("acd")) { // add card to deck
                 addCardToDeckSelectScreen(reader, state, history);
                 state.clearAllSearchInfo();
@@ -768,7 +771,7 @@ public class InteractiveMode {
             }
             if (states.size() > 0) {
                 GameState prevState = states.get(states.size() - 1);
-                if (state.properties.hasRunicDome) {
+                if (state.properties.isRunicDomeEnabled(state)) {
                     String prevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getMove());
                     String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
                     out.println("  Last Move: " + prevMove);
@@ -1293,6 +1296,19 @@ public class InteractiveMode {
             out.println(i + ". " + state.properties.cardDict[state.getHandArrForRead()[i]].cardName);
         }
         state.removeCardFromHandByPosition(readIntCommand(reader, history, state.handArrLen));
+    }
+
+    private void discardCardFromHandSelectScreen(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        for (int i = 0; i < state.properties.realCardsLen; i++) {
+            out.println(i + ". " + state.properties.cardDict[i].cardName);
+        }
+        var idx = readIntCommand(reader, history, state.properties.realCardsLen);
+        for (int i = 0; i < state.handArrLen; i++) {
+            if (state.getHandArrForRead()[i] == idx) {
+                state.discardCardFromHandByPosition2(i);
+                break;
+            }
+        }
     }
 
     int selectCardFromHand(BufferedReader reader, GameState state, List<String> history) throws IOException {

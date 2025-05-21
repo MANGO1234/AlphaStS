@@ -1,6 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.enemy.EnemyBeyond;
 
 import java.util.List;
 

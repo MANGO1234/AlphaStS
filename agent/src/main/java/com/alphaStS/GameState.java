@@ -11,7 +11,6 @@ import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
 import com.alphaStS.utils.*;
 
-import java.io.DataOutputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
@@ -354,6 +353,19 @@ public final class GameState implements State {
                 p = p.fixR(properties.potionsScenarios, 0);
             }
             properties.preBattleRandomization = properties.preBattleRandomization == null ? p : properties.preBattleRandomization.doAfter(p);
+            properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        for (int i = 0; i < properties.potions.size(); i++) {
+                            if (properties.potions.get(i).isGenerated) {
+                                continue;
+                            }
+                            state.setPotionUsable(i);
+                            state.setPotionPenalty(i, (short) 100);
+                        }
+                    }
+                }
+            });
         }
         properties.potionsVArrayIdx = new int[properties.potions.size()];
         Arrays.fill(properties.potionsVArrayIdx, -1);
@@ -644,15 +656,8 @@ public final class GameState implements State {
         properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
         properties.battleTranceExist = cards.stream().anyMatch((x) -> x.cardName.contains("Battle Trance"));
         properties.energyRefillCanChange = cards.stream().anyMatch((x) -> x.cardName.contains("Berserk"));
+//        heal end of act makes learning harder due to loss of damage taken
 //        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
-        if (properties.healEndOfAct) {
-            properties.addEndOfBattleHandler(new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    var d = state.getPlayeForRead().getMaxHealth() - state.getPlayeForRead().getHealth();
-                    state.getPlayerForWrite().heal(d - d / 4);
-                }
-            });
-        }
         properties.originalEnemies = new EnemyList(enemies);
         for (int i = 0; i < properties.originalEnemies.size(); i++) {
             properties.originalEnemies.getForWrite(i);
@@ -1267,6 +1272,9 @@ public final class GameState implements State {
                 boolean[] seen = new boolean[properties.realCardsLen];
                 for (int j = 0; j < discardArrLen; j++) {
                     if (!seen[discardArr[j]]) {
+                        if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[discardArr[j]])) {
+                            continue;
+                        }
                         possibleChoicesCount++;
                         lastIdx = discardArr[j];
                         seen[discardArr[j]] = true;
@@ -1287,6 +1295,9 @@ public final class GameState implements State {
                 boolean[] seen = new boolean[properties.cardDict.length];
                 for (int j = 0; j < handArrLen; j++) {
                     if (!seen[handArr[j]]) {
+                        if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[handArr[j]])) {
+                            continue;
+                        }
                         possibleChoicesCount++;
                         lastIdx = handArr[j];
                         seen[handArr[j]] = true;
@@ -1331,6 +1342,9 @@ public final class GameState implements State {
                 int possibleChoicesCount = 0, lastIdx = 0;
                 boolean[] seen = new boolean[properties.realCardsLen];
                 for (int j = 0; j < exhaustArrLen; j++) {
+                    if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[exhaustArr[j]])) {
+                        continue;
+                    }
                     if (!seen[exhaustArr[j]]) {
                         possibleChoicesCount++;
                         lastIdx = exhaustArr[j];
@@ -1352,6 +1366,9 @@ public final class GameState implements State {
                 boolean[] seen = new boolean[properties.realCardsLen];
                 for (int j = 0; j < deckArrLen; j++) {
                     if (!seen[deckArr[j]]) {
+                        if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[deckArr[j]])) {
+                            continue;
+                        }
                         possibleChoicesCount++;
                         lastIdx = deckArr[j];
                         seen[deckArr[j]] = true;
@@ -1373,6 +1390,10 @@ public final class GameState implements State {
         } while (actionCtx != GameActionCtx.PLAY_CARD && actionCtx != GameActionCtx.START_OF_BATTLE);
 
         if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
+//            runActionsInQueueIfNonEmpty(); // this is bugged?
+            for (var handler : properties.onCardPlayedHandlers) {
+                handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
+            }
             int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(properties);
             int prevCardIdx = cardIdx;
             if (transformCardIdx >= 0) {
@@ -1417,10 +1438,6 @@ public final class GameState implements State {
                 if (properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= energyCost;
                 }
-//                runActionsInQueueIfNonEmpty(); // this is bugged?
-                for (var handler : properties.onCardPlayedHandlers) {
-                    handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
-                }
                 runActionsInQueueIfNonEmpty();
             }
             for (Enemy enemy : enemies.iterateOverAlive()) {
@@ -1456,8 +1473,7 @@ public final class GameState implements State {
                 startOfBattleActionIdx++;
                 if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
-                    legalActions = null;
-                    doAction(0);
+                    break;
                 }
             }
         }
@@ -1603,7 +1619,7 @@ public final class GameState implements State {
             if (enemy.isAlive() || enemy.properties.canSelfRevive) {
                 var enemy2 = enemies.getForWrite(i);
                 enemy2.endTurn(turnNum);
-                if (!properties.hasRunicDome) {
+                if (!properties.isRunicDomeEnabled(this)) {
                     var oldIsStochastic = isStochastic;
                     isStochastic = false;
                     enemy2.nextMove(this, getSearchRandomGen());
@@ -1645,14 +1661,14 @@ public final class GameState implements State {
             drawCount += 2;
         }
         draw(drawCount);
+        for (GameEventHandler handler : properties.startOfTurnHandlers) {
+            handler.handle(this);
+        }
         if (properties.toolsOfTheTradeCounterIdx >= 0 && getCounterForRead()[properties.toolsOfTheTradeCounterIdx] > 0) {
             getCounterForWrite()[properties.toolsOfTheTradeCounterIdx] += getCounterForRead()[properties.toolsOfTheTradeCounterIdx] << 16;
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
             setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             return;
-        }
-        for (GameEventHandler handler : properties.startOfTurnHandlers) {
-            handler.handle(this);
         }
         if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
@@ -1838,6 +1854,9 @@ public final class GameState implements State {
             }
         }
         chosenCardsArrLen = 0;
+        if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
+            getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
+        }
         runActionsInQueueIfNonEmpty();
 
         if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
@@ -1868,7 +1887,7 @@ public final class GameState implements State {
             }
             for (int i = 0; i < livingEnemiesCount; i++) {
                 var enemy2 = enemies.getForWrite(livingEnemies[i]);
-                if (properties.hasRunicDome) {
+                if (properties.isRunicDomeEnabled(this)) {
                     var oldIsStochastic = isStochastic;
                     isStochastic = false;
                     enemy2.nextMove(this, getSearchRandomGen());
@@ -1903,10 +1922,11 @@ public final class GameState implements State {
     public GameState doAction(int actionIdx) {
         GameAction action = properties.actionsByCtx[actionCtx.ordinal()][getLegalActions()[actionIdx]];
         if (action.type() == GameActionType.BEGIN_BATTLE) {
-            boolean start = startOfBattleActionIdx < properties.startOfBattleActions.size();
-            setActionCtx(GameActionCtx.START_OF_BATTLE, null, null);
-            runStartOfBattleActionLoop();
-            if (startOfBattleActionIdx >= properties.startOfBattleActions.size()) {
+            if (startOfBattleActionIdx < properties.startOfBattleActions.size()) {
+                setActionCtx(GameActionCtx.START_OF_BATTLE, null, null);
+                runStartOfBattleActionLoop();
+            }
+            if (actionCtx == GameActionCtx.BEGIN_BATTLE) {
                 if (properties.randomization != null) {
                     if (properties.isHeartGauntlet && battleRandomizationIdxChosen >= 0) {
                         properties.randomization.randomize(this, battleRandomizationIdxChosen);
@@ -1924,12 +1944,6 @@ public final class GameState implements State {
                     selectBiasedCognitionLimit();
                 } else {
                     beginTurn();
-                }
-            }
-            if (start) {
-                if (properties.perScenarioCommands != null) {
-                    legalActions = null;
-                    new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(this, properties.perScenarioCommands.get(preBattleScenariosChosenIdx));
                 }
             }
         } else if (action.type() == GameActionType.AFTER_RANDOMIZATION) {
@@ -2004,6 +2018,10 @@ public final class GameState implements State {
         } else if (action.type() == GameActionType.SELECT_SCENARIO) {
             properties.preBattleScenarios.randomize(this, properties.preBattleGameScenariosList.get(action.idx()).getKey());
             setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
+            if (properties.perScenarioCommands != null) {
+                legalActions = null;
+                new InteractiveMode(new PrintStream(OutputStream.nullOutputStream())).interactiveApplyHistory(this, properties.perScenarioCommands.get(preBattleScenariosChosenIdx));
+            }
         } else if (action.type() == GameActionType.BEGIN_TURN) {
             if (isTerminal() == 0) {
                 beginTurn();
@@ -2031,15 +2049,16 @@ public final class GameState implements State {
                 runActionsInQueueIfNonEmpty();
             }
         }
-        while (actionCtx == GameActionCtx.PLAY_CARD && properties.distilledChaosCounterIdx >= 0 && getCounterForRead()[properties.distilledChaosCounterIdx] > 0 && isTerminal() == 0) {
-            getCounterForWrite()[properties.distilledChaosCounterIdx]--;
+        runActionsInQueueIfNonEmpty();
+        while (actionCtx == GameActionCtx.PLAY_CARD && properties.playCardOnTopOfDeckCounterIdx >= 0 && getCounterForRead()[properties.playCardOnTopOfDeckCounterIdx] > 0 && isTerminal() == 0) {
+            getCounterForWrite()[properties.playCardOnTopOfDeckCounterIdx]--;
             int cardIdx = drawOneCardSpecial();
             if (cardIdx < 0) {
                 continue;
             }
             if (properties.makingRealMove || properties.stateDescOn) {
                 if (getStateDesc().length() > 0)
-                    stateDesc.append(", ");
+                    stateDesc.append(", (Play Card) ");
                 getStateDesc().append(properties.cardDict[cardIdx].cardName);
             }
             var nextAction = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
@@ -2275,7 +2294,7 @@ public final class GameState implements State {
     }
 
     private boolean checkIfCanHeal() {
-        if (properties.hasBurningBlood || properties.hasBloodyIdol || properties.hasBloodVial || properties.healEndOfAct) {
+        if (properties.hasBurningBlood || properties.hasBloodyIdol || properties.hasBloodVial) {
             return true;
         }
         if (properties.hasToyOrniphopter && properties.potions.size() > 0) {
@@ -2451,9 +2470,6 @@ public final class GameState implements State {
             }
             if (!properties.isHeartFight(this) && properties.hasBloodVial) {
                 hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 2);
-            }
-            if (properties.healEndOfAct) {
-                hp += (getPlayeForRead().getMaxHealth() - hp) - (getPlayeForRead().getMaxHealth() - hp) / 4;
             }
             return hp;
 //        } else {
@@ -4177,6 +4193,12 @@ public final class GameState implements State {
 
     private void triggerDiscardEffect(int cardIndex) {
         properties.cardDict[cardIndex].onDiscard(this);
+        if (properties.hoveringKiteCounterIdx >= 0 && properties.getRelic(Relic.HoveringKite.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (getCounterForRead()[properties.hoveringKiteCounterIdx] == 0) {
+                gainEnergy(1);
+                getCounterForWrite()[properties.hoveringKiteCounterIdx] = 1;
+            }
+        }
         if (properties.sneakyStrikeCounterIdx >= 0) {
             getCounterForWrite()[properties.sneakyStrikeCounterIdx] = 1;
         }
@@ -4207,12 +4229,20 @@ public final class GameState implements State {
     }
 
     public void discardCardFromHandByPosition(int idx, boolean updateImmediately) {
-        addCardToDiscard(idx);
-        triggerDiscardEffect(idx);
+        var cardIdx = getHandArrForRead()[idx];
+        addCardToDiscard(cardIdx);
+        triggerDiscardEffect(cardIdx);
         getHandArrForWrite()[idx] = -1;
         if (updateImmediately) {
             updateHandArr();
         }
+    }
+
+    public void discardCardFromHandByPosition2(int idx) {
+        var cardIdx = getHandArrForRead()[idx];
+        addCardToDiscard(cardIdx);
+        getHandArrForWrite()[idx] = -1;
+        updateHandArr();
     }
 
     public void addCardToDeck(int idx) {
@@ -4678,7 +4708,7 @@ public final class GameState implements State {
             }
             enemy.properties = enemy.properties.clone();
             enemy.properties.origHealth = enemy.getHealth();
-            if (getNextMove && !properties.hasRunicDome) {
+            if (getNextMove && !properties.isRunicDomeEnabled(this)) {
                 var oldIsStochastic = isStochastic;
                 isStochastic = false;
                 enemy.nextMove(this, getSearchRandomGen());
@@ -4712,6 +4742,10 @@ public final class GameState implements State {
     public void setPotionUsable(int i) {
         getPotionsStateForWrite()[i * 3] = 1;
         getPotionsStateForWrite()[i * 3 + 2] = 1;
+    }
+
+    public void setPotionPenalty(int i, short penalty) {
+        getPotionsStateForWrite()[i * 3 + 1] = penalty;
     }
 
     public void setPotionUnusable(int i, short penalty) {

@@ -216,7 +216,7 @@ public abstract class EnemyReadOnly {
             str += ", gainStrEot=" + -loseStrengthEot;
         }
         if (move >= 0) {
-            if (state.properties.hasRunicDome) {
+            if (state.properties.isRunicDomeEnabled(state)) {
                 str += ", lastMove=" + getMoveString(state);
             } else {
                 str += ", move=" + getMoveString(state);

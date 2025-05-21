@@ -13,8 +13,6 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public interface GameStateRandomization {
     int randomize(GameState state);

@@ -655,7 +655,50 @@ public class CardColorless {
         }
     }
 
-    // Mayhem
+    private static abstract class _MayhemT extends Card {
+        public _MayhemT(String cardName, int cardType, int energyCost) {
+            super(cardName, cardType, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlayCardOnTopOfDeckCounter();
+            state.properties.registerCounter("Mayhem", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Mayhem", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    state.getCounterForWrite()[state.properties.playCardOnTopOfDeckCounterIdx] += state.getCounterForRead()[counterIdx];
+                }
+            });
+        }
+    }
+
+    public static class Mayhem extends CardColorless._MayhemT {
+        public Mayhem() {
+            super("Mayhem", Card.POWER, 2);
+        }
+    }
+
+    public static class MayhemP extends CardColorless._MayhemT {
+        public MayhemP() {
+            super("Mayhem+", Card.POWER, 1);
+        }
+    }
+
     // Metamorphosis
 
     private static abstract class _PanacheT extends Card {
