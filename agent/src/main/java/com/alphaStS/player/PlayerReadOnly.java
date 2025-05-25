@@ -20,6 +20,7 @@ public class PlayerReadOnly {
     protected int loseDexterityEot;
     protected int platedArmor;
     protected short noMoreBlockFromCards;
+    protected int accumulatedDamage;
 
     public PlayerReadOnly(int health, int maxHealth) {
         this.maxHealth = maxHealth;
@@ -45,6 +46,7 @@ public class PlayerReadOnly {
         loseDexterityEot = other.loseDexterityEot;
         platedArmor = other.platedArmor;
         noMoreBlockFromCards = other.noMoreBlockFromCards;
+        accumulatedDamage = other.accumulatedDamage;
     }
 
     public int getMaxHealth() {
@@ -111,6 +113,10 @@ public class PlayerReadOnly {
         return hexed;
     }
 
+    public int getAccumulatedDamage() {
+        return accumulatedDamage;
+    }
+
     @Override public String toString() {
         String str = "Player{health=" + health;
         if (block > 0) {
@@ -161,7 +167,7 @@ public class PlayerReadOnly {
         if (o == null || getClass() != o.getClass())
             return false;
         PlayerReadOnly that = (PlayerReadOnly) o;
-        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && noMoreBlockFromCards == that.noMoreBlockFromCards;
+        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && noMoreBlockFromCards == that.noMoreBlockFromCards && accumulatedDamage == that.accumulatedDamage;
     }
 
     @Override public int hashCode() {

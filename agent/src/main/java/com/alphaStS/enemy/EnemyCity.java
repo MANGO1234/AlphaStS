@@ -412,6 +412,7 @@ public class EnemyCity {
         }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            health = 0;
 //            int b = random.nextInt(6, RandomGenCtx.Other) + 1;
 //            if (training && b < 6) {
 //                health = (int) Math.round(((double) (properties.maxHealth * b)) / 6);

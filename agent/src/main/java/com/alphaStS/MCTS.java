@@ -19,8 +19,8 @@ public class MCTS {
     public double[] exploredV;
     Model model;
     int numberOfPossibleActions;
-    private final double[] v = new double[100];
-    private final double[] realV = new double[100];
+    private double[] v;
+    private double[] realV;
     private final int[] ret = new int[2];
     private double terminal_v_win;
     public int forceRootAction = -1;
@@ -39,6 +39,10 @@ public class MCTS {
 
     void search(GameState state, boolean training, int remainingCalls) {
         exploredV = null;
+        if (v == null) {
+            v = new double[state.properties.v_total_len];
+            realV = new double[state.properties.v_total_len];
+        }
         search2(state, training, remainingCalls);
     }
 
@@ -246,7 +250,6 @@ public class MCTS {
                             Integer.parseInt(null); // fail for now
                         }
                         cState.correctV(state2, v, realV);
-//                        if (state.getAction(action).type() == GameActionType.END_TURN) {
                         if (true) {
                             var newS = state.clone(true);
                             newS = newS.doAction(action);
@@ -1651,7 +1654,16 @@ public class MCTS {
                     }
                 }
             }
-            if (!useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0) {
+            boolean useTurnLeftHead = !useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0;
+            if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
+                if (state.getPlayeForRead().getAccumulatedDamage() >= state.getPlayeForRead().getMaxHealth() * 3) {
+                    throw new IllegalStateException();
+                }
+                if (state.q[state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage()] / (state.total_n + 1) < 0.99) {
+                    useTurnLeftHead = false;
+                }
+            }
+            if (useTurnLeftHead) {
                 double maxQ = -100000;
                 int maxAction = -1;
                 for (int i = 0; i < state.getLegalActions().length; i++) {
@@ -1663,24 +1675,6 @@ public class MCTS {
                         maxAction = i;
                     }
                 }
-
-                // always select move with least amount of turns: seem to reduce
-                // game length a bit more (but also very rare deaths)
-                // reduce exploration so probably not sound
-                // double minTurns = state.q[(action + 1) * state.prop.v_total_len + state.prop.finalTurnNumVIdx] / state.n[action];
-                // double currentQ = qValues[action];
-                // if (currentQ >= 0.999 * maxQ) {
-                //     for (int i = 0; i < state.getLegalActions().length; i++) {
-                //         if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
-                //             continue;
-                //         }
-                //         double turns = state.q[(i + 1) * state.prop.v_total_len + state.prop.finalTurnNumVIdx] / state.n[i];
-                //         if (qValues[i] >= 0.999 * maxQ && turns < minTurns) {
-                //             action = i;
-                //             minTurns = turns;
-                //         }
-                //     }
-                // }
 
                 // increase u more the lower the number of turns left and reselect action
                 // the constants 0.999 and 1 is arbitrary right now

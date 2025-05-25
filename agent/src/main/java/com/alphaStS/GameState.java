@@ -709,7 +709,7 @@ public final class GameState implements State {
                 @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
                     if (isTerminal != 0) {
                         v[state.properties.turnsLeftVIdx] = state.realTurnNum / state.properties.maxPossibleRealTurnsLeft;
-                    } else if (isTerminal == 0) {
+                    } else {
                         v[state.properties.turnsLeftVIdx] = state.realTurnNum / state.properties.maxPossibleRealTurnsLeft + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START);
                         v[state.properties.turnsLeftVIdx] = Math.min(v[state.properties.turnsLeftVIdx], 1.0);
                     }
@@ -723,11 +723,41 @@ public final class GameState implements State {
                 }
             });
         }
+        if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
+            properties.addExtraTrainingTarget("ZeroDmgProb", new GameProperties.TrainingTargetRegistrant() {
+                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                    properties.zeroDmgProbVIdx = V_OTHER_IDX_START + idx;
+                }
+            }, new TrainingTarget() {
+                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    v[state.properties.zeroDmgProbVIdx] = 0;
+                    for (int i = state.properties.v_real_len; i < state.properties.v_total_len; i++) {
+                        v[i] = 0;
+                    }
+                    if (isTerminal != 0) {
+                        v[state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage()] = (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0;
+                    } else {
+                        v[state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage()] = state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START);
+                        if (state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START) < -0.05) {
+                            throw new IllegalStateException("???");
+                        }
+                    }
+                }
+                @Override public void updateQValues(GameState state, double[] v) {}
+                @Override public int getNumberOfTargets() {
+                    return 1;
+                }
+            });
+        }
         properties.compileExtraTrainingTarget();
         properties.inputLen = getNNInputLen();
         properties.v_total_len = 3;
         for (var target : properties.extraTrainingTargets) {
             properties.v_total_len += target.getNumberOfTargets();
+        }
+        properties.v_real_len = properties.v_total_len;
+        if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
+            properties.v_total_len += getPlayeForRead().getMaxHealth() * 3;
         }
 
         // mcts related fields
@@ -2133,7 +2163,7 @@ public final class GameState implements State {
     }
 
     int get_v_len() {
-        return 3 + properties.extraOutputLen;
+        return properties.v_total_len;
     }
 
     void get_v(double[] out) {
@@ -2502,6 +2532,10 @@ public final class GameState implements State {
             }
             return 1;
         }
+    }
+
+    public boolean isLossFrom50() {
+        return getPlayeForRead().getHealth() > 0 && turnNum > 50;
     }
 
     public double calc_q(double[] v) {
@@ -4088,8 +4122,6 @@ public final class GameState implements State {
         }
         n = new int[policy.length];
         ns = new State[policy.length];
-//        transpositions = new HashMap<>();
-//        if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH) transpositionsParent = new HashMap<>();
     }
 
     public void clearAllSearchInfo() {
@@ -4264,11 +4296,10 @@ public final class GameState implements State {
             deckArr[idxToInsert] = (short) idx;
             deckArrFixedDrawLen++;
         } else {
-            // todo: this means that the card is always added below cards put on top of deck like headbutt etc., don't think this is how the game works?
-            for (int i = deckArrLen - 2; i > deckArrLen - 2 - deckArrFixedDrawLen; i--) {
-                deckArr[i] = deckArr[i + 1];
+            for (int i = deckArrLen - 1; i >= deckArrLen - deckArrFixedDrawLen; i--) {
+                deckArr[i] = deckArr[i - 1];
             }
-            deckArr[deckArrLen - 1] = (short) idx;
+            deckArr[deckArrLen - 1 - deckArrFixedDrawLen] = (short) idx;
         }
     }
 
@@ -4719,7 +4750,7 @@ public final class GameState implements State {
             }
             adjustEnemiesAlive(1);
         } else {
-            Integer.parseInt(null);
+            throw new IllegalArgumentException();
         }
     }
 

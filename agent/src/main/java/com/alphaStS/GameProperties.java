@@ -226,6 +226,7 @@ public class GameProperties implements Cloneable {
     public int inputLen;
     public int extraOutputLen;
     public int v_total_len;
+    public int v_real_len;
     public boolean cardInDiscardInNNInput;
     public boolean discard0CardOrderMatters;
     public int discardOrderMaxKeepTrackIn10s; // currently, those are sent manually in all or one
@@ -273,6 +274,7 @@ public class GameProperties implements Cloneable {
     public double cpuct = 0.1;
     public int fightProgressVIdx;
     public int turnsLeftVIdx = -1;
+    public int zeroDmgProbVIdx = -1;
     public float maxPossibleRealTurnsLeft = 50.0f;
     public int qwinVIdx = -1;
 
@@ -432,6 +434,7 @@ public class GameProperties implements Cloneable {
 
     Map<String, TrainingTarget> trainingTargetsMap = new HashMap<>();
     Map<String, TrainingTargetRegistrant> trainingTargetsRegistrantMap = new HashMap<>();
+    Map<Integer, Tuple<String, Integer>> trainingTargetsRegistrantVIdxMap = new HashMap<>();
 
     public void addExtraTrainingTarget(String targetId, TrainingTargetRegistrant registrant, TrainingTarget target) {
         if (trainingTargetsMap.get(targetId) == null) {
@@ -444,6 +447,7 @@ public class GameProperties implements Cloneable {
         var registrants = trainingTargetsRegistrantMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         for (int i = 0; i < registrants.size(); i++) {
             registrants.get(i).getValue().setVArrayIdx(this, extraOutputLen);
+            trainingTargetsRegistrantVIdxMap.put(extraOutputLen, new Tuple<>(registrants.get(i).getKey(), trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets()));
             extraOutputLen += trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets();
             extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));
             extraTrainingTargetsLabel.add(registrants.get(i).getKey());

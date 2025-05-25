@@ -8,7 +8,6 @@ public class Configuration {
     // During training, enable KataGo's forced playout
     public static boolean TRAINING_USE_FORCED_PLAYOUT = true;
     public static boolean TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION = false;
-    public static boolean TRAIN_ONLY_ON_NON_TEMP_CONTAMINATED_VALUES = false;
     public static boolean CARD_IN_HAND_IN_NN_INPUT = true;
     public static boolean CARD_IN_DECK_IN_NN_INPUT = true;
 
@@ -98,7 +97,11 @@ public class Configuration {
     // (usually in defect battles with lots of focus where the network stop progressing due to every move being the same eval)
     // disable unless needed for now, some testing shows it will cause the network to lose fights it wouldn't have lost by picking
     // more "aggressive" moves to do damage
-    public static boolean USE_TURNS_LEFT_HEAD = false;
+    public static boolean USE_TURNS_LEFT_HEAD = true;
+    // Experimental feature to test the problem mentioned above (Worked on the single instance I tested it on)
+    // Since the main problem is when defensive output far exceeds enemy damage, add an addition head for probablity
+    // of taking any more damage from current position and only use turns left head when it exeeds a threshold 
+    public static boolean USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG = true;
 
     // print model prediction error compare to actual result
     public static boolean STATS_PRINT_PREDICTION_ERRORS = false;

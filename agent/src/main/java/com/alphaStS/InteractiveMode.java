@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.alphaStS.utils.Utils.formatFloat;
-import static com.alphaStS.utils.Utils.max;
 
 public class InteractiveMode {
     private PrintStream out = System.out;
@@ -210,6 +209,14 @@ public class InteractiveMode {
             } else if (line.equals("states")) {
                 int m = 0;
                 for (int i = 0; i < states.size(); i++) {
+                    if (i > 0 &&
+                            states.get(i - 1).state().currentAction != null &&
+                            states.get(i - 1).state().currentAction.type() == GameActionType.PLAY_CARD &&
+                            state.properties.cardDict[states.get(i - 1).state().currentAction.idx()].cardName.startsWith("Well-Laid Plans") &&
+                            states.get(i).state().actionCtx != GameActionCtx.SELECT_CARD_HAND) {
+                        out.println("\n" + states.get(i));
+                        m = 0;
+                    }
                     out.println((++m) + ". " + states.get(i).state().getActionString(states.get(i).action()));
                     var tmp = states.get(i).state().clone(false);
                     tmp.getDrawOrderForWrite().clear(); // todo: need to do parallel actions so e.g. rebound works
@@ -2039,6 +2046,9 @@ public class InteractiveMode {
             }
             if (s.properties.turnsLeftVIdx >= 0) {
                 o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
+            }
+            if (s.properties.zeroDmgProbVIdx >= 0) {
+                o.append(", zero_dmg_take_prob=").append(formatFloat(s.q[baseIdx + s.properties.v_real_len + s.getPlayeForRead().getAccumulatedDamage()] / max_n)).append("%");
             }
             out.println(o);
             finalOuput.append("\n").append(o);

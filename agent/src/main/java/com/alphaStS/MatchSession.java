@@ -1208,7 +1208,6 @@ public class MatchSession {
                 if (Configuration.TRAINING_USE_FORCED_PLAYOUT) {
                     pruneForcedPlayouts(steps);
                 }
-                changeWritingCountBasedOnPolicySurprise(steps);
                 positionsCount += writeTrainingData(stream, steps);
                 positionsCount += writeTrainingData(stream, game.augmentedSteps);
                 trainingGameTime += game.aa.v2() - game.aa.v1();
@@ -1391,7 +1390,6 @@ public class MatchSession {
             pruneForcedPlayouts(steps);
         }
         var byteStream = new ByteArrayOutputStream();
-        changeWritingCountBasedOnPolicySurprise(steps);
         writeTrainingData(new DataOutputStream(byteStream), steps);
         writeTrainingData(new DataOutputStream(byteStream), game.augmentedSteps);
         return new TrainingGameResult(null, null, gameRecordWriter.toString(), byteStream.toByteArray());
@@ -1475,8 +1473,10 @@ public class MatchSession {
                     if (n == 1) {
                         if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z") && false) {
                             stream.writeFloat((float) (step.v[v_idx]));
-                         } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
+                        } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
                             stream.writeFloat((float) ((((step.v[v_idx] - step.state().realTurnNum / state.properties.maxPossibleRealTurnsLeft) * 2) - 1)));
+                        } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("ZeroDmgProb")) {
+                            stream.writeFloat((float) (step.v[step.state().properties.v_real_len + step.state().getPlayeForRead().getAccumulatedDamage()]));
                         } else {
                             stream.writeFloat((float) ((step.v[v_idx] * 2) - 1));
                         }
@@ -1774,7 +1774,26 @@ public class MatchSession {
             if (step.state().actionCtx == GameActionCtx.BEGIN_TURN && !step.state().isStochastic && step.state().isTerminal() == 0) continue;
             writer.write(step.state() + "\n");
             if (step.v != null && !step.trainingSkipOpening) {
-                writer.write(Arrays.toString(step.v) + ", " + step.trainingWriteCount + "\n");
+                int bracketEnd = -1;
+                for (int j = 0; j < step.state().properties.v_real_len; j++) {
+                    var r = step.state().properties.trainingTargetsRegistrantVIdxMap.get(j - GameState.V_OTHER_IDX_START);
+                    if (r != null) {
+                        writer.write(r.v1() + ": ");
+                        if (r.v2() > 1) {
+                            bracketEnd = j + r.v2() - 1;
+                        }
+                    }
+                    if (j == step.state().properties.zeroDmgProbVIdx) {
+                        writer.write(String.valueOf(step.v[step.state().properties.v_real_len + step.state().getPlayeForRead().getAccumulatedDamage()]));
+                    } else {
+                        writer.write(String.valueOf(step.v[j]));
+                    }
+                    if (j == bracketEnd) {
+                        writer.write(")");
+                    }
+                    writer.write(j == step.v.length - 1 ? " | " : ", ");
+                }
+                writer.write("writeCount=" + step.trainingWriteCount + "\n");
             }
             if (step.action() >= 0) {
                 var nextStep = steps.get(i + 1);

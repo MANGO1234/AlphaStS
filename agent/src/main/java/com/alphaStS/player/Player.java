@@ -36,6 +36,9 @@ public class Player extends PlayerReadOnly {
         if (health == 0) {
             tryReviveWithFairyInABottle(state);
         }
+        if (dmgDealt > 0) {
+            accumulatedDamage += dmgDealt;
+        }
         return dmgDealt;
     }
 
@@ -69,6 +72,9 @@ public class Player extends PlayerReadOnly {
         int dmgDealt = startHealth - health;
         if (health == 0) {
             tryReviveWithFairyInABottle(state);
+        }
+        if (dmgDealt > 0) {
+            accumulatedDamage += dmgDealt;
         }
         return dmgDealt;
     }

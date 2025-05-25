@@ -1165,7 +1165,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            state.getPlayerForWrite().gainBlock(13);
+            state.getPlayerForWrite().gainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
