@@ -363,7 +363,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addPreEndOfTurnHandler(new GameEventHandler(0) {
                 @Override public void handle(GameState state) {
-                    if (state.getPlayeForRead().getBlock() == 0) {
+                    if (state.getPlayeForRead().getBlock() == 0 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
                     }
                 }
@@ -2283,8 +2283,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             weakEnemy = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(state, DebuffType.WEAK, 1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.applyDebuff(state, DebuffType.WEAK, 1);
+                        }
                     }
                 }
             });
@@ -2633,12 +2635,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class ShiningLight extends Relic {
+        private final int dmg;
+
+        public ShiningLight(int dmg) {
+            this.dmg = dmg;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         return;
                     }
+                    state.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth() - dmg);
                     var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).toList();
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);

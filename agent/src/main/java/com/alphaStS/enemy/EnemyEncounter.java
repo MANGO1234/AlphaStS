@@ -14,12 +14,15 @@ public class EnemyEncounter {
         UNKNOWN,
         CORRUPT_HEART,
         SPEAR_AND_SHIELD,
+        SLIME_BOSS,
     }
 
+    public int startingHealth;
     public EncounterEnum encounterEnum;
     public List<Tuple<Integer, Integer>> idxes;
 
-    public EnemyEncounter(EncounterEnum encounterEnum, ArrayList<Tuple<Integer, Integer>> indexes) {
+    public EnemyEncounter(int startingHealth, EncounterEnum encounterEnum, ArrayList<Tuple<Integer, Integer>> indexes) {
+        this.startingHealth = startingHealth;
         this.encounterEnum = encounterEnum;
         this.idxes = indexes;
     }
@@ -330,13 +333,17 @@ public class EnemyEncounter {
     }
 
     public static void addSlimeBossFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyExordium.SlimeBoss(),
+        builder.addEnemyEncounter(EncounterEnum.SLIME_BOSS, new EnemyExordium.SlimeBoss(),
                 new EnemyExordium.LargeSpikeSlime(75, true),
                 new EnemyExordium.MediumSpikeSlime(37, true),
                 new EnemyExordium.MediumSpikeSlime(37, true),
                 new EnemyExordium.LargeAcidSlime(75, true),
                 new EnemyExordium.MediumAcidSlime(37, true),
                 new EnemyExordium.MediumAcidSlime(37, true));
+    }
+
+    public static void addAcidSlimeFight(GameStateBuilder builder) {
+        builder.addEnemyEncounter(new EnemyExordium.LargeAcidSlime(), new EnemyExordium.MediumAcidSlime(36, true), new EnemyExordium.MediumAcidSlime(36, true));
     }
 
     public static void addByrdsFight(GameStateBuilder builder) {

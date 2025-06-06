@@ -1597,7 +1597,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.properties.addStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
+            state.properties.addPreStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.addCardToHand(state.properties.shivCardIdx);

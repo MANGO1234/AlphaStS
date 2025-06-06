@@ -757,7 +757,7 @@ public final class GameState implements State {
         }
         properties.v_real_len = properties.v_total_len;
         if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
-            properties.v_total_len += getPlayeForRead().getMaxHealth() * 3;
+            properties.v_total_len += (int) (getPlayeForRead().getMaxHealth() * 2);
         }
 
         // mcts related fields
@@ -2936,10 +2936,15 @@ public final class GameState implements State {
                                     continue;
                                 }
                             }
-
                             if (properties.biasedCognitionLimitCounterIdx >= 0) {
-                                if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
-                                    continue;
+                                if (properties.character == CharacterEnum.DEFECT) {
+                                    if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
+                                        continue;
+                                    }
+                                } else if (properties.character == CharacterEnum.SILENT) {
+                                    if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Wraith Form") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
+                                        continue;
+                                    }
                                 }
                             }
 //                             how to stall genetic algo for echo form more effectively

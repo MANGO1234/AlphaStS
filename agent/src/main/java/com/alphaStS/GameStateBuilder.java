@@ -81,6 +81,10 @@ public class GameStateBuilder {
     }
 
     public void addEnemyEncounter(EnemyEncounter.EncounterEnum encounterEnum, Enemy... enemies) {
+        addEnemyEncounter(-1, encounterEnum, enemies);
+    }
+
+    public void addEnemyEncounter(int startingHealth, EnemyEncounter.EncounterEnum encounterEnum, Enemy... enemies) {
         var indexes = new ArrayList<Tuple<Integer, Integer>>();
         boolean isGremlinLeaderFight = false;
         boolean isGremlinGangFight = false;
@@ -110,12 +114,16 @@ public class GameStateBuilder {
                 indexes.add(new Tuple<>(this.enemies.size() + i, -1));
             }
         }
-        enemiesEncounters.add(new EnemyEncounter(encounterEnum, indexes));
+        enemiesEncounters.add(new EnemyEncounter(startingHealth, encounterEnum, indexes));
         this.enemies.addAll(List.of(enemies));
     }
 
     public void addEnemyEncounter(Enemy... enemies) {
         addEnemyEncounter(EnemyEncounter.EncounterEnum.UNKNOWN, enemies);
+    }
+
+    public void addEnemyEncounter(int startingHealth, Enemy... enemies) {
+        addEnemyEncounter(startingHealth, EnemyEncounter.EncounterEnum.UNKNOWN, enemies);
     }
 
     public List<EnemyEncounter> getEnemiesEncounters() {

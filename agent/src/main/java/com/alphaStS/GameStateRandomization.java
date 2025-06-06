@@ -2,10 +2,7 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardCount;
-import com.alphaStS.enemy.Enemy;
-import com.alphaStS.enemy.EnemyEncounter;
-import com.alphaStS.enemy.EnemyEnding;
-import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enemy.*;
 import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple3;
 
@@ -799,17 +796,29 @@ public interface GameStateRandomization {
                 enemies.getForWrite(i).setHealth(0);
             }
             var encounter = scenarios.get(r);
-            for (var t : encounter.idxes) {
-                var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
-                if (t.v2() >= 0) {
-                    var e = (Enemy.MergedEnemy) enemy;
-                    e.setEnemy(t.v2());
-                    enemy.setHealth(e.getEnemyProperty(t.v2()).maxHealth);
-                } else {
-                    enemy.setHealth(enemy.properties.maxHealth);
+            if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.SLIME_BOSS) {
+                for (var t : encounter.idxes) {
+                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
+                    if (enemy instanceof EnemyExordium.SlimeBoss) {
+                        enemy.setHealth(enemy.properties.maxHealth);
+                    }
+                }
+            } else {
+                for (var t : encounter.idxes) {
+                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
+                    if (t.v2() >= 0) {
+                        var e = (Enemy.MergedEnemy) enemy;
+                        e.setEnemy(t.v2());
+                        enemy.setHealth(e.getEnemyProperty(t.v2()).maxHealth);
+                    } else {
+                        enemy.setHealth(enemy.properties.maxHealth);
+                    }
                 }
             }
             state.currentEncounter = encounter.encounterEnum;
+            if (encounter.startingHealth >= 1) {
+                state.getPlayerForWrite().setHealth(encounter.startingHealth);
+            }
             state.enemiesAlive = encounter.idxes.size();
         }
 
