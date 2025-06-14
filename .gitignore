@@ -16,3 +16,5 @@ agent/tests/
 .claude/
 .interactive_server.pid
 .interactive_server.log
+.serena/
+.mcp.json
