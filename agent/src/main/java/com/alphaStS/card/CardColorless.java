@@ -1165,4 +1165,63 @@ public class CardColorless {
             super("Apparition+", Card.SKILL, 1, false);
         }
     }
+
+    // Smite - Attack card added by Battle Hymn and Carve Reality
+    private static abstract class _SmiteT extends Card {
+        private final int damage;
+
+        public _SmiteT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+            this.retain = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Smite extends _SmiteT {
+        public Smite() {
+            super("Smite", 12);
+        }
+    }
+
+    public static class SmiteP extends _SmiteT {
+        public SmiteP() {
+            super("Smite+", 16);
+        }
+    }
+
+    // Insight - Skill card added by Evaluate and Study
+    private static abstract class _InsightT extends Card {
+        private final int drawCount;
+
+        public _InsightT(String cardName, int drawCount) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.drawCount = drawCount;
+            this.retain = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(drawCount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Insight extends _InsightT {
+        public Insight() {
+            super("Insight", 2);
+        }
+    }
+
+    public static class InsightP extends _InsightT {
+        public InsightP() {
+            super("Insight+", 3);
+        }
+    }
 }

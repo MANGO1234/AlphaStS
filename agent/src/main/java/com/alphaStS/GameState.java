@@ -579,6 +579,10 @@ public final class GameState implements State {
                 properties.shivCardIdx = i;
             } else if (cards.get(i).cardName.equals("Shiv+")) {
                 properties.shivPCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Smite")) {
+                properties.smiteCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Insight")) {
+                properties.insightCardIdx = i;
             } else if (cards.get(i).cardName.contains("Strike")) {
                 strikeIdxes.add(i);
             } else if (cards.get(i).cardName.equals("Echo Form")) {
@@ -5256,25 +5260,17 @@ public final class GameState implements State {
         if (properties.character != CharacterEnum.WATCHER) {
             return;
         }
-        
         // Only trigger handlers and effects if stance actually changes
         if (stance == newStance) {
             return;
         }
-        
-        // Handle exiting current stance
         if (stance == Stance.CALM && newStance != Stance.CALM) {
             gainEnergy(2);
         }
-        
-        // Handle entering Divinity
         if (newStance == Stance.DIVINITY && stance != Stance.DIVINITY) {
             gainEnergy(3);
         }
-        
         stance = newStance;
-        
-        // Call stance change handlers
         for (var handler : properties.onStanceChangeHandlers) {
             handler.handle(this);
         }
