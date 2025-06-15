@@ -166,6 +166,7 @@ public class GameProperties implements Cloneable {
     public int toolsOfTheTradeCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
     public int biasedCognitionLimitCounterIdx = -1;
+    public int mantraCounterIdx = -1;
     public int looterVArrayIdx = -1;
     public int writhingMassVIdx = -1;
     public int alchemizeVIdx = -1;
@@ -627,6 +628,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant MantraCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.mantraCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.mantraCounterIdx;
+        }
+    };
+
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -665,6 +675,18 @@ public class GameProperties implements Cloneable {
         registerCounter("PlayCardOnTopOfDeck", PlayCardOnTopOfDeckCounterRegistrant, new NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
                 input[idx] = state.getCounterForRead()[state.properties.playCardOnTopOfDeckCounterIdx] / 6.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+    }
+
+    public void registerMantraCounter() {
+        registerCounter("Mantra", MantraCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.mantraCounterIdx] / 10.0f;
                 return idx + 1;
             }
             @Override public int getInputLenDelta() {

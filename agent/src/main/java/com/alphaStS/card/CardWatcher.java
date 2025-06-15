@@ -1,6 +1,8 @@
 package com.alphaStS.card;
 
 import com.alphaStS.GameActionCtx;
+import com.alphaStS.GameEventHandler;
+import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.enums.Stance;
 
@@ -281,6 +283,147 @@ public class CardWatcher {
     public static class ProtectP extends _ProtectT {
         public ProtectP() {
             super("Protect+", 16);
+        }
+    }
+
+    // Prostrate
+    public static abstract class _ProstrateT extends Card {
+        private final int mantra;
+        private final int block;
+
+        public _ProstrateT(String cardName, int mantra, int block) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.mantra = mantra;
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.gainMantra(mantra);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+        }
+    }
+
+    public static class Prostrate extends _ProstrateT {
+        public Prostrate() {
+            super("Prostrate", 2, 3);
+        }
+    }
+
+    public static class ProstrateP extends _ProstrateT {
+        public ProstrateP() {
+            super("Prostrate+", 3, 4);
+        }
+    }
+
+    // Pray
+    public static abstract class _PrayT extends Card {
+        private final int mantra;
+
+        public _PrayT(String cardName, int mantra) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.mantra = mantra;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainMantra(mantra);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+        }
+    }
+
+    public static class Pray extends _PrayT {
+        public Pray() {
+            super("Pray", 3);
+        }
+    }
+
+    public static class PrayP extends _PrayT {
+        public PrayP() {
+            super("Pray+", 4);
+        }
+    }
+
+    // Worship
+    public static abstract class _WorshipT extends Card {
+        public _WorshipT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.retain = retain;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainMantra(5);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+        }
+    }
+
+    public static class Worship extends _WorshipT {
+        public Worship() {
+            super("Worship", false);
+        }
+    }
+
+    public static class WorshipP extends _WorshipT {
+        public WorshipP() {
+            super("Worship+", true);
+        }
+    }
+
+    // Devotion
+    public static abstract class _DevotionT extends Card {
+        private final int mantraPerTurn;
+
+        public _DevotionT(String cardName, int mantraPerTurn) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.mantraPerTurn = mantraPerTurn;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += mantraPerTurn;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+            state.properties.registerCounter("Devotion", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Devotion", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainMantra(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Devotion extends _DevotionT {
+        public Devotion() {
+            super("Devotion", 2);
+        }
+    }
+
+    public static class DevotionP extends _DevotionT {
+        public DevotionP() {
+            super("Devotion+", 3);
         }
     }
 
