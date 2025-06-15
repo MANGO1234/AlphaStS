@@ -7,6 +7,8 @@ import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.enums.Stance;
 
+import java.util.List;
+
 public class CardWatcher {
     private static abstract class _EruptionT extends Card {
         public _EruptionT(String cardName, int energyCost) {
@@ -526,7 +528,37 @@ public class CardWatcher {
         }
     }
     // todo: Cut Through Fate
-    // todo: Evaluate
+    private static abstract class _EvaluateT extends Card {
+        private final int block;
+
+        public _EvaluateT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.addCardToDeck(state.properties.insightCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Insight());
+        }
+    }
+
+    public static class Evaluate extends _EvaluateT {
+        public Evaluate() {
+            super("Evaluate", 6);
+        }
+    }
+
+    public static class EvaluateP extends _EvaluateT {
+        public EvaluateP() {
+            super("Evaluate+", 10);
+        }
+    }
+
     // todo: Flurry of Blows
     // todo: Flying Sleeves
     private static abstract class _FollowUpT extends Card {
@@ -567,8 +599,87 @@ public class CardWatcher {
     // todo: Sash Whip
     // todo: Third Eye
     // todo: Tranquility
-    // todo: Battle Hymn
-    // todo: Carve Reality
+    private static abstract class _BattleHymnT extends Card {
+        public _BattleHymnT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BattleHymn", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("BattleHymn", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
+                        for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                            state.addCardToHand(state.properties.smiteCardIdx);
+                        }
+                    }
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Smite());
+        }
+    }
+
+    public static class BattleHymn extends _BattleHymnT {
+        public BattleHymn() {
+            super("Battle Hymn", false);
+        }
+    }
+
+    public static class BattleHymnP extends _BattleHymnT {
+        public BattleHymnP() {
+            super("Battle Hymn+", true);
+        }
+    }
+
+    private static abstract class _CarveRealityT extends Card {
+        private final int damage;
+
+        public _CarveRealityT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            state.addCardToHand(state.properties.smiteCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Smite());
+        }
+    }
+
+    public static class CarveReality extends _CarveRealityT {
+        public CarveReality() {
+            super("Carve Reality", 6);
+        }
+    }
+
+    public static class CarveRealityP extends _CarveRealityT {
+        public CarveRealityP() {
+            super("Carve Reality+", 10);
+        }
+    }
+
     // todo: Collect
     // todo: Conclude
     // todo: Deceive Reality
@@ -590,13 +701,26 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += block;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MentalFortress", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addOnStanceChangeHandler("MentalFortress", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().gainBlock(block);
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                    }
                 }
             });
         }
@@ -626,14 +750,25 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 2;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Rushdown", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
             state.properties.addOnStanceChangeHandler("Rushdown", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.getStance() == Stance.WRATH) {
-                        state.draw(2);
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.getStance() == Stance.WRATH) {
+                        state.draw(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -683,7 +818,54 @@ public class CardWatcher {
     // todo: Sands of Time
     // todo: Signature Move
     // todo: Simmering Fury
-    // todo: Study
+    private static abstract class _StudyT extends Card {
+        public _StudyT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Study", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addEndOfTurnHandler("Study", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
+                        for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                            state.addCardToDeck(state.properties.insightCardIdx);
+                        }
+                    }
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Insight());
+        }
+    }
+
+    public static class Study extends _StudyT {
+        public Study() {
+            super("Study", 2);
+        }
+    }
+
+    public static class StudyP extends _StudyT {
+        public StudyP() {
+            super("Study+", 1);
+        }
+    }
+
     // todo: Swivel
     // todo: Talk to the Hand
     // todo: Tantrum
