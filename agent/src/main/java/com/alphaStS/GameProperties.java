@@ -37,6 +37,7 @@ public class GameProperties implements Cloneable {
     public boolean playerCanGetWeakened;
     public boolean playerCanGetFrailed;
     public boolean playerCanGetEntangled;
+    public boolean previousCardPlayTracking;
     public boolean enemyCanGetVuln;
     public boolean enemyCanGetWeakened;
     public boolean enemyCanGetChoked;
