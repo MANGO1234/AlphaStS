@@ -635,7 +635,7 @@ public final class GameState implements State {
         Collections.sort(properties.endOfTurnHandlers);
         Collections.sort(properties.onBlockHandlers);
         Collections.sort(properties.onExhaustHandlers);
-        Collections.sort(properties.onBlockHandlers);
+        Collections.sort(properties.onStanceChangeHandlers);
         Collections.sort(properties.onCardPlayedHandlers);
         Collections.sort(properties.onPreCardPlayedHandlers);
         Collections.sort(properties.onCardDrawnHandlers);
@@ -5257,6 +5257,11 @@ public final class GameState implements State {
             return;
         }
         
+        // Only trigger handlers and effects if stance actually changes
+        if (stance == newStance) {
+            return;
+        }
+        
         // Handle exiting current stance
         if (stance == Stance.CALM && newStance != Stance.CALM) {
             gainEnergy(2);
@@ -5268,6 +5273,11 @@ public final class GameState implements State {
         }
         
         stance = newStance;
+        
+        // Call stance change handlers
+        for (var handler : properties.onStanceChangeHandlers) {
+            handler.handle(this);
+        }
     }
 
     public void exitDivinityAtStartOfTurn() {

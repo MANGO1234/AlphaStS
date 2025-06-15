@@ -256,6 +256,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> endOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
     public List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
+    public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
@@ -541,6 +542,17 @@ public class GameProperties implements Cloneable {
         if (gameEventHandlers.get(handlerName + "OnBlock") == null) {
             gameEventHandlers.put(handlerName + "OnBlock", handler);
             onBlockHandlers.add(handler);
+        }
+    }
+
+    public void addOnStanceChangeHandler(GameEventHandler handler) {
+        onStanceChangeHandlers.add(handler);
+    }
+
+    public void addOnStanceChangeHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnStanceChange") == null) {
+            gameEventHandlers.put(handlerName + "OnStanceChange", handler);
+            onStanceChangeHandlers.add(handler);
         }
     }
 
