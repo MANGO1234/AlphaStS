@@ -101,6 +101,7 @@ public final class GameState implements State {
     private Stance stance = Stance.NEUTRAL;
     public boolean[] scryCardIsKept;
     public int scryCurrentCount;
+    private int lastCardPlayedType = -1; // -1 means no card played yet, otherwise Card.ATTACK, Card.SKILL, etc.
 
     // search related fields
     private int[] legalActions;
@@ -262,6 +263,14 @@ public final class GameState implements State {
         if (stance != gameState.stance) return false;
         if (scryCurrentCount != gameState.scryCurrentCount) return false;
         if (!Utils.equals(scryCardIsKept, gameState.scryCardIsKept, scryCurrentCount)) return false;
+        if (properties.previousCardPlayTracking) {
+            for (int i = 0; i < handArrLen; i++) {
+                if (properties.cardDict[handArr[i]].needsLastCardType) {
+                    if (lastCardPlayedType != gameState.lastCardPlayedType) return false;
+                    break;
+                }
+            }
+        }
         if (!Arrays.equals(orbs, gameState.orbs)) return false;
         if (!cardIdxArrEqual(nightmareCards, nightmareCardsLen, gameState.nightmareCards, gameState.nightmareCardsLen)) return false;
         if (preBattleRandomizationIdxChosen != gameState.preBattleRandomizationIdxChosen) return false;
@@ -656,6 +665,7 @@ public final class GameState implements State {
         properties.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.properties.canWeaken);
         properties.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.properties.canFrail);
         properties.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.properties.canEntangle);
+        properties.previousCardPlayTracking = cards.stream().anyMatch((x) -> x.needsLastCardType);
         properties.enemyCanGetVuln = cards.stream().anyMatch((x) -> x.vulnEnemy);
         properties.enemyCanGetVuln |= relics.stream().anyMatch((x) -> x.vulnEnemy);
         properties.enemyCanGetVuln |= potions.stream().anyMatch((x) -> x.vulnEnemy);
@@ -1084,6 +1094,7 @@ public final class GameState implements State {
         stance = other.stance;
         scryCardIsKept = other.scryCardIsKept;
         scryCurrentCount = other.scryCurrentCount;
+        lastCardPlayedType = other.lastCardPlayedType;
 
         legalActions = other.legalActions;
         terminalAction = -100;
@@ -1450,6 +1461,9 @@ public final class GameState implements State {
 
         if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
 //            runActionsInQueueIfNonEmpty(); // this is bugged?
+            if (cardPlayedSuccessfully && properties.previousCardPlayTracking) {
+                lastCardPlayedType = properties.cardDict[cardIdx].cardType;
+            }
             for (var handler : properties.onCardPlayedHandlers) {
                 handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
             }
@@ -3201,6 +3215,9 @@ public final class GameState implements State {
         if (properties.character == CharacterEnum.WATCHER) {
             inputLen += 4; // Watcher stances (one-hot encoding: neutral, wrath, calm, divinity)
         }
+        if (properties.previousCardPlayTracking) {
+            inputLen += 3; // Last played card type (one-hot encoding: none, attack, skill)
+        }
         if (properties.playerArtifactCanChange) {
             inputLen += 1; // player artifact
         }
@@ -3418,6 +3435,9 @@ public final class GameState implements State {
         }
         if (properties.character == CharacterEnum.WATCHER) {
             str += "    4 inputs to keep track of Watcher stance (one-hot: neutral, wrath, calm, divinity)\n";
+        }
+        if (properties.previousCardPlayTracking) {
+            str += "    3 inputs to keep track of last played card type (one-hot: none, attack, skill)\n";
         }
         if (properties.playerArtifactCanChange) {
             str += "    1 input to keep track of player artifact\n";
@@ -3744,6 +3764,12 @@ public final class GameState implements State {
             x[idx++] = stance == Stance.WRATH ? 1.0f : 0.0f;
             x[idx++] = stance == Stance.CALM ? 1.0f : 0.0f;
             x[idx++] = stance == Stance.DIVINITY ? 1.0f : 0.0f;
+        }
+        if (properties.previousCardPlayTracking) {
+            // One-hot encoding for last played card type
+            x[idx++] = (lastCardPlayedType != Card.ATTACK && lastCardPlayedType != Card.SKILL) ? 1.0f : 0.0f; // none
+            x[idx++] = lastCardPlayedType == Card.ATTACK ? 1.0f : 0.0f; // attack
+            x[idx++] = lastCardPlayedType == Card.SKILL ? 1.0f : 0.0f; // skill
         }
         if (properties.playerArtifactCanChange) {
             x[idx++] = player.getArtifact() / (float) 3.0;
@@ -5220,6 +5246,10 @@ public final class GameState implements State {
 
     public Stance getStance() {
         return stance;
+    }
+
+    public int getLastCardPlayedType() {
+        return lastCardPlayedType;
     }
 
     public void changeStance(Stance newStance) {

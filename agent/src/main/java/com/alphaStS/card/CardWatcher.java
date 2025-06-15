@@ -1,5 +1,6 @@
 package com.alphaStS.card;
 
+import com.alphaStS.DebuffType;
 import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameEventHandler;
 import com.alphaStS.GameProperties;
@@ -492,12 +493,72 @@ public class CardWatcher {
         }
     }
 
-    // todo: Crush Joints
+    private static abstract class _CrushJointsT extends Card {
+        private final int damage;
+        private final int vulnerable;
+
+        public _CrushJointsT(String cardName, int damage, int vulnerable) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.vulnerable = vulnerable;
+            this.selectEnemy = true;
+            this.needsLastCardType = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            if (state.getLastCardPlayedType() == Card.SKILL) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CrushJoints extends _CrushJointsT {
+        public CrushJoints() {
+            super("Crush Joints", 8, 1);
+        }
+    }
+
+    public static class CrushJointsP extends _CrushJointsT {
+        public CrushJointsP() {
+            super("Crush Joints+", 10, 2);
+        }
+    }
     // todo: Cut Through Fate
     // todo: Evaluate
     // todo: Flurry of Blows
     // todo: Flying Sleeves
-    // todo: Follow-Up
+    private static abstract class _FollowUpT extends Card {
+        private final int damage;
+
+        public _FollowUpT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+            this.needsLastCardType = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            if (state.getLastCardPlayedType() == Card.ATTACK) {
+                state.gainEnergy(1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FollowUp extends _FollowUpT {
+        public FollowUp() {
+            super("Follow-Up", 7);
+        }
+    }
+
+    public static class FollowUpP extends _FollowUpT {
+        public FollowUpP() {
+            super("Follow-Up+", 11);
+        }
+    }
     // todo: Halt
     // todo: Just Lucky
     // todo: Pressure Points
@@ -526,7 +587,35 @@ public class CardWatcher {
     // todo: Pray
     // todo: Reach Heaven
     // todo: Rushdown
-    // todo: Sanctity
+    private static abstract class _SanctityT extends Card {
+        private final int block;
+
+        public _SanctityT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            this.needsLastCardType = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            if (state.getLastCardPlayedType() == Card.SKILL) {
+                state.draw(2);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Sanctity extends _SanctityT {
+        public Sanctity() {
+            super("Sanctity", 6);
+        }
+    }
+
+    public static class SanctityP extends _SanctityT {
+        public SanctityP() {
+            super("Sanctity+", 9);
+        }
+    }
     // todo: Sands of Time
     // todo: Signature Move
     // todo: Simmering Fury

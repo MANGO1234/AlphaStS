@@ -54,6 +54,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean corpseExplosionEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
+    public boolean needsLastCardType;
     public boolean putCardOnTopDeck;
     public boolean healPlayer;
     public boolean scry;
@@ -175,6 +176,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             chokeEnemy = card.chokeEnemy;
             affectEnemyStrength = card.affectEnemyStrength;
             affectEnemyStrengthEot = card.affectEnemyStrengthEot;
+            needsLastCardType = card.needsLastCardType;
             putCardOnTopDeck = card.putCardOnTopDeck;
             healPlayer = card.healPlayer;
         }
