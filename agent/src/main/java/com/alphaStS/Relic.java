@@ -112,7 +112,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.energy += 2;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energy += 2;
+                    }
                 }
             });
         }
@@ -122,6 +124,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         state.buffs &= ~PlayerBuff.ART_OF_WAR.mask();
                     }
@@ -129,6 +134,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.turnNum > 1 && (state.buffs & PlayerBuff.ART_OF_WAR.mask()) != 0) {
                         state.gainEnergy(1);
                     }
@@ -143,8 +151,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             vulnEnemy = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
+                        }
                     }
                 }
             });
@@ -168,7 +178,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.hasBloodVial = true;
             state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
-                    if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
                         state.healPlayer(2);
                     }
                 }
@@ -181,7 +191,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.registerThornCounter(state, this);
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] += 3;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] += 3;
+                    }
                 }
             });
         }
@@ -233,7 +245,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = n;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
                 }
             });
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
@@ -315,6 +329,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -327,7 +344,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = n;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
                 }
             });
             if (healthReward > 0) {
@@ -393,6 +412,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }, true);
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -404,7 +426,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.isFirstEncounter()) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.isFirstEncounter()) {
                         state.getCounterForWrite()[counterIdx] = n;
                     }
                 }
@@ -467,7 +489,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // Tiny Chest: No need to implement
-
 
     public static class ToyOrnithopter extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -600,8 +621,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnEnemyDeathHandler("GremlinHorn", new GameEventEnemyHandler() {
                 @Override public void handle(GameState state, EnemyReadOnly enemy) {
-                    state.gainEnergy(1);
-                    state.draw(1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.gainEnergy(1);
+                        state.draw(1);
+                    }
                 }
             });
         }
@@ -711,6 +734,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -723,7 +749,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = 0;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
                 }
             });
         }
@@ -743,6 +771,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -757,7 +788,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = 0;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
                 }
             });
         }
@@ -770,7 +803,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.hasMeatOnBone = true;
             state.properties.addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
                         state.getPlayerForWrite().heal(12);
                     }
                 }
@@ -782,8 +815,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                        state.playerDoNonAttackDamageToEnemy(enemy, 3, true);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, 3, true);
+                        }
                     }
                 }
             });
@@ -855,6 +890,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -867,7 +905,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addPreEndOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = 0;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
                 }
             });
         }
@@ -892,6 +932,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addOnCardPlayedHandler("Shuriken", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
                         var counter = state.getCounterForWrite();
                         counter[counterIdx]++;
@@ -904,7 +947,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addPreEndOfTurnHandler("Shuriken", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = 0;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
                 }
             });
         }
@@ -951,7 +996,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = n;
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
                 }
             });
             if (healthReward > 0) {
@@ -993,6 +1040,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.hasBirdFacedUrn = true;
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
                         state.healPlayer(2);
                     }
@@ -1032,7 +1082,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addStartOfTurnHandler("CaptainsWheel", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 3) {
+                    if (state.turnNum == 3 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.getPlayerForWrite().gainBlockNotFromCardPlay(18);
                     }
                 }
@@ -1156,9 +1206,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    for (int i : state.getDeckArrForRead()) {
-                        if (state.properties.cardDict[i].cardType == Card.CURSE) {
-                            state.getPlayerForWrite().gainStrength(1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        for (int i : state.getDeckArrForRead()) {
+                            if (state.properties.cardDict[i].cardType == Card.CURSE) {
+                                state.getPlayerForWrite().gainStrength(1);
+                            }
                         }
                     }
                 }
@@ -1241,6 +1293,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.registerIntangibleCounter();
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     state.getCounterForWrite()[counterIdx]++;
                     if (state.getCounterForWrite()[counterIdx] == 6) {
                         state.getCounterForWrite()[counterIdx] = 0;
@@ -1254,7 +1309,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.incenseBurnerRewardType = rewardType;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (!state.properties.isHeartGauntlet || !state.properties.isHeartFight(state)) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && (!state.properties.isHeartGauntlet || !state.properties.isHeartFight(state))) {
                         state.getCounterForWrite()[counterIdx] = n;
                     }
                 }
@@ -1342,7 +1397,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addPreEndOfTurnHandler("StoneCalendar", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.turnNum == 7) {
+                    if (state.turnNum == 7 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                             state.playerDoNonAttackDamageToEnemy(enemy, 52, true);
                         }
@@ -1357,7 +1412,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.playerPlatedArmorCanChange = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().gainPlatedArmor(4);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().gainPlatedArmor(4);
+                    }
                 }
             });
         }
@@ -1442,6 +1499,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addOnCardPlayedHandler("OrangePellets", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.getCounterForRead()[counterIdx] == 0b111) {
                         return;
                     }
@@ -1459,7 +1519,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addEndOfTurnHandler("OrangePellets", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.getCounterForRead()[counterIdx] > 0) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                     }
                 }
@@ -2038,7 +2098,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.hasSneckoEye = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().applyDebuff(state, DebuffType.SNECKO, 1);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.SNECKO, 1);
+                    }
                 }
             });
         }
@@ -2475,7 +2537,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.channelOrb(OrbType.LIGHTNING);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.channelOrb(OrbType.LIGHTNING);
+                    }
                 }
             });
         }
@@ -2507,13 +2571,16 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (damageDealt > 0) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && damageDealt > 0) {
                         state.getCounterForWrite()[counterIdx] = 1;
                     }
                 }
             });
             state.properties.addStartOfTurnHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        return;
+                    }
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         state.getCounterForWrite()[counterIdx] = 0;
                         state.triggerAllOrbsPassive();
@@ -2533,7 +2600,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.channelOrb(OrbType.PLASMA);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.channelOrb(OrbType.PLASMA);
+                    }
                 }
             });
         }
