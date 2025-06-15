@@ -421,7 +421,7 @@ public class CardIronclad {
             count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
             count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
             count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), strikes);
-            int dmg = 6 + 2 * count + (state.properties.hasStrikeDummy ? 3 : 0);
+            int dmg = 6 + 2 * count + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
         }
@@ -442,7 +442,7 @@ public class CardIronclad {
             count += GameStateUtils.getCardsCount(state.getHandArrForRead(), state.getNumCardsInHand(), strikes);
             count += GameStateUtils.getCardsCount(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), strikes);
             count += GameStateUtils.getCardsCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), strikes);
-            int dmg = 6 + 3 * count + (state.properties.hasStrikeDummy ? 3 : 0);
+            int dmg = 6 + 3 * count + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0);
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
         }
@@ -455,7 +455,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -468,7 +468,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 10 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             state.draw(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -628,8 +628,8 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 5 + (state.properties.hasStrikeDummy ? 3 : 0));
-            state.playerDoDamageToEnemy(enemy, 5 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(enemy, 5 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            state.playerDoDamageToEnemy(enemy, 5 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -642,8 +642,8 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 7 + (state.properties.hasStrikeDummy ? 3 : 0));
-            state.playerDoDamageToEnemy(enemy, 7 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(enemy, 7 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            state.playerDoDamageToEnemy(enemy, 7 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -691,7 +691,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             state.addCardToDeck(state.properties.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -708,7 +708,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 17 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 17 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             state.addCardToDeck(state.properties.woundCardIdx);
             return GameActionCtx.PLAY_CARD;
         }

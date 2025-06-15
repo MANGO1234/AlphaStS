@@ -17,7 +17,7 @@ public class Player extends PlayerReadOnly {
         if (dmg <= 5 && dmg >= 2 && state.properties.hasTorri && state.properties.getRelic(Relic.Torii.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
             dmg = 1;
         }
-        if (dmg > 0 && state.properties.hasTungstenRod) {
+        if (dmg > 0 && state.properties.hasTungstenRod && state.properties.getRelic(Relic.TungstenRod.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
             dmg -= 1;
         }
         if (n > block && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
@@ -46,7 +46,7 @@ public class Player extends PlayerReadOnly {
         int startHealth = health;
         if (blockable) {
             int dmg = Math.max(0, n - block);
-            if (dmg > 0 && state.properties.hasTungstenRod) {
+            if (dmg > 0 && state.properties.hasTungstenRod && state.properties.getRelic(Relic.TungstenRod.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                 dmg -= 1;
             }
             if (n > block && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
@@ -57,7 +57,7 @@ public class Player extends PlayerReadOnly {
             block = Math.max(0, block - n);
         } else {
             int dmg = n;
-            if (dmg > 0 && state.properties.hasTungstenRod) {
+            if (dmg > 0 && state.properties.hasTungstenRod && state.properties.getRelic(Relic.TungstenRod.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                 dmg -= 1;
             }
             if (dmg >= 0 && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
@@ -132,9 +132,9 @@ public class Player extends PlayerReadOnly {
         if (n == 0) {
             return;
         }
-        if (state.properties.hasGinger && type == DebuffType.WEAK) {
+        if (state.properties.hasGinger && state.properties.getRelic(Relic.Ginger.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && type == DebuffType.WEAK) {
             return;
-        } else if (state.properties.hasTurnip && type == DebuffType.FRAIL) {
+        } else if (state.properties.hasTurnip && state.properties.getRelic(Relic.Turnip.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && type == DebuffType.FRAIL) {
             return;
         }
         if (artifact > 0) {
@@ -197,7 +197,7 @@ public class Player extends PlayerReadOnly {
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
         } else if (state.properties.blurCounterIdx >= 0 && state.getCounterForRead()[state.properties.blurCounterIdx] > 0) {
             state.getCounterForWrite()[state.properties.blurCounterIdx]--;
-        } else if (state.properties.hasCaliper) {
+        } else if (state.properties.hasCaliper && state.properties.getRelic(Relic.Calipers.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
             block = Math.max(block - 15, 0);
         } else {
             block = 0;

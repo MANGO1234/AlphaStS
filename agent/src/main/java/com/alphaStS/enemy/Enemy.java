@@ -182,7 +182,7 @@ public abstract class Enemy extends EnemyReadOnly {
         switch (type) {
         case VULNERABLE -> {
             this.vulnerable += n;
-            if (state.properties.hasChampionBelt) {
+            if (state.properties.hasChampionBelt && state.properties.getRelic(Relic.ChampionBelt.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                 this.weak += 1;
             }
         }
@@ -192,7 +192,7 @@ public abstract class Enemy extends EnemyReadOnly {
             this.loseStrengthEot += n;
             this.gainStrength(-n);
         }
-        case POISON -> this.poison += n + (state.properties.hasSneckoSkull ? 1 : 0);
+        case POISON -> this.poison += n + (state.properties.hasSneckoSkull && state.properties.getRelic(Relic.SneckoSkull.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 1 : 0);
         case CORPSE_EXPLOSION -> this.corpseExplosion += n;
         case CHOKE -> this.choke += n;
         case LOCK_ON -> this.lockOn += n;

@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.Relic;
 
 import java.util.List;
 import java.util.Objects;
@@ -341,7 +342,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -353,7 +354,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9 + (state.properties.hasStrikeDummy ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
             return GameActionCtx.PLAY_CARD;
         }
     }

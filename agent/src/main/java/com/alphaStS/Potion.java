@@ -79,7 +79,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -96,7 +96,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -112,7 +112,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 40 : 20;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 40 : 20;
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
             return GameActionCtx.PLAY_CARD;
         }
@@ -124,7 +124,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class ExplosivePotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 20 : 10;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 20 : 10;
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 state.playerDoDamageToEnemy(enemy, n);
             }
@@ -138,7 +138,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class CunningPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             for (int i = 0; i < n; i++) {
                 state.addCardToHand(state.properties.shivPCardIdx);
             }
@@ -161,7 +161,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 12 : 6;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 12 : 6;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -177,7 +177,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
             state.getPlayerForWrite().gainStrength(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -193,7 +193,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -210,7 +210,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 10 : 5;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 10 : 5;
             state.getPlayerForWrite().gainStrength(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
@@ -228,7 +228,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 10 : 5;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 10 : 5;
             state.getPlayerForWrite().gainDexterity(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, n);
             return GameActionCtx.PLAY_CARD;
@@ -241,7 +241,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class BlockPotion extends Potion {
         public int getBlockAmount(GameState state) {
-            return state.properties.hasSacredBark ? 24 : 12;
+            return state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 24 : 12;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -256,7 +256,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DuplicationPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 2 : 1;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 2 : 1;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -321,7 +321,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class PotionOfCapacity extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.gainOrbSlot(state.properties.hasSacredBark ? 4 : 2);
+            state.gainOrbSlot(state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -330,7 +330,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + (state.properties.hasSacredBark ? 4 : 2), 10);
+            state.properties.maxNumOfOrbs = Math.min(state.properties.maxNumOfOrbs + (state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2), 10);
         }
     }
 
@@ -363,7 +363,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public int getHealAmount(GameState state) {
-            int n = state.properties.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
             return heal == 0 ? state.getPlayeForRead().getMaxHealth() * n / 10 : heal;
         }
 
@@ -383,16 +383,16 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public static int getRegenerationAmount(GameState state) {
-            return state.properties.hasSacredBark ? 10 : 5;
+            return state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 10 : 5;
         }
 
         public int getHealAmount(GameState state) {
-            int n = state.properties.hasSacredBark ? 10 : 5;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 10 : 5;
             return n * (n + 1) / 2;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 10 : 5;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 10 : 5;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -431,7 +431,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 2 : 1;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 2 : 1;
             state.getPlayerForWrite().gainArtifact(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -443,7 +443,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class EnergyPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 4 : 2;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
             state.gainEnergy(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -458,7 +458,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            int n = state.properties.hasSacredBark ? 6 : 3;
+            int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
@@ -501,7 +501,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             } else {
                 state.addCardToHand(idx);
             }
-            if (state.properties.hasSacredBark) {
+            if (state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                 state.getCounterForWrite()[counterIdx]++;
                 if (state.getCounterForWrite()[counterIdx] == 2) {
                     state.getCounterForWrite()[counterIdx] = 0;
@@ -537,7 +537,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DistilledChaos extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[state.properties.playCardOnTopOfDeckCounterIdx] += state.properties.hasSacredBark ? 6 : 3;
+            state.getCounterForWrite()[state.properties.playCardOnTopOfDeckCounterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -566,7 +566,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class EssenceOfSteel extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 8 : 4;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 8 : 4;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1079,7 +1079,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark ? 2 : 1;
+            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 2 : 1;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1148,7 +1148,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         public int getHealAmount(GameState state) {
-            return (int) ((state.properties.hasSacredBark ? 0.6 : 0.3) * this.playerMaxHp);
+            return (int) ((state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 0.6 : 0.3) * this.playerMaxHp);
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -1181,7 +1181,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.gainFocus(state.properties.hasSacredBark ? 4 : 2);
+            state.gainFocus(state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2);
             return GameActionCtx.PLAY_CARD;
         }
 
