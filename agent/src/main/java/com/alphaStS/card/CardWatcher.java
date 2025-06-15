@@ -492,71 +492,70 @@ public class CardWatcher {
         }
     }
 
-    // Crush Joints
-    // Crush Joints
-    // Cut Through Fate
-    // Evaluate
-    // Flurry of Blows
-    // Flying Sleeves
-    // Follow-Up
-    // Halt
-    // Just Lucky
-    // Pressure Points
-    // Prostrate
-    // Protect
-    // Sash Whip
-    // Third Eye
-    // Tranquility
-    // Battle Hymn
-    // Carve Reality
-    // Collect
-    // Conclude
-    // Deceive Reality
-    // Empty Mind
-    // Fasting
-    // Fear No Evil
-    // Foreign Influence
-    // Foresight
-    // Indignation
-    // Inner Peace
-    // Like Water
-    // Meditate
-    // Mental Fortress
-    // Nirvana
-    // Perseverance
-    // Pray
-    // Reach Heaven
-    // Rushdown
-    // Sanctity
-    // Sands of Time
-    // Signature Move
-    // Simmering Fury
-    // Study
-    // Swivel
-    // Talk to the Hand
-    // Tantrum
-    // Wallop
-    // Wave of the Hand
-    // Weave
-    // Wheel Kick
-    // Windmill Strike
-    // Worship
-    // Wreath of Flame
-    // Alpha
-    // Blasphemy
-    // Brilliance
-    // Conjure Blade
-    // Deus Ex Machina
-    // Deva Form
-    // Devotion
-    // Establishment
-    // Judgment
-    // Lesson Learned
-    // Master Reality
-    // Omniscience
-    // Ragnarok
-    // Scrawl
-    // Spirit Shield
-    // Vault
-    // Wish
+    // todo: Crush Joints
+    // todo: Cut Through Fate
+    // todo: Evaluate
+    // todo: Flurry of Blows
+    // todo: Flying Sleeves
+    // todo: Follow-Up
+    // todo: Halt
+    // todo: Just Lucky
+    // todo: Pressure Points
+    // todo: Prostrate
+    // todo: Protect
+    // todo: Sash Whip
+    // todo: Third Eye
+    // todo: Tranquility
+    // todo: Battle Hymn
+    // todo: Carve Reality
+    // todo: Collect
+    // todo: Conclude
+    // todo: Deceive Reality
+    // todo: Empty Mind
+    // todo: Fasting
+    // todo: Fear No Evil
+    // todo: Foreign Influence
+    // todo: Foresight
+    // todo: Indignation
+    // todo: Inner Peace
+    // todo: Like Water
+    // todo: Meditate
+    // todo: Mental Fortress
+    // todo: Nirvana
+    // todo: Perseverance
+    // todo: Pray
+    // todo: Reach Heaven
+    // todo: Rushdown
+    // todo: Sanctity
+    // todo: Sands of Time
+    // todo: Signature Move
+    // todo: Simmering Fury
+    // todo: Study
+    // todo: Swivel
+    // todo: Talk to the Hand
+    // todo: Tantrum
+    // todo: Wallop
+    // todo: Wave of the Hand
+    // todo: Weave
+    // todo: Wheel Kick
+    // todo: Windmill Strike
+    // todo: Worship
+    // todo: Wreath of Flame
+    // todo: Alpha
+    // todo: Blasphemy
+    // todo: Brilliance
+    // todo: Conjure Blade
+    // todo: Deus Ex Machina
+    // todo: Deva Form
+    // todo: Devotion
+    // todo: Establishment
+    // todo: Judgment
+    // todo: Lesson Learned
+    // todo: Master Reality
+    // todo: Omniscience
+    // todo: Ragnarok
+    // todo: Scrawl
+    // todo: Spirit Shield
+    // todo: Vault
+    // todo: Wish
 }
