@@ -217,9 +217,9 @@ public class GameStateUtils {
                 writer.write(indent + "Chance Node (" + node.n + "/" + cState.total_node_n + "): " + diffGameState(parentState, node.state) + "\n");
                 var state = node.state;
                 var n = node.state.total_n + 1;
-                var q_comb = node.state.q[GameState.V_COMB_IDX];
-                var q_win = node.state.q[GameState.V_WIN_IDX];
-                var q_health = node.state.q[GameState.V_HEALTH_IDX];
+                var q_comb = node.state.getTotalQ(GameState.V_COMB_IDX);
+                var q_win = node.state.getTotalQ(GameState.V_WIN_IDX);
+                var q_health = node.state.getTotalQ(GameState.V_HEALTH_IDX);
                 writer.write(indent + "n=" + n + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
                 printTreeH(parentState, parentAction, node.state, depth, writer, indent);
             }
@@ -234,9 +234,9 @@ public class GameStateUtils {
                 if (state.ns[i] != null && depth > 0) {
                     writer.write(indent + "  - action=" + state.getActionString(i) + " (" + i + ")");
                     var n = state.n[i];
-                    var q_comb = state.q[(i + 1) * state.properties.v_total_len + GameState.V_COMB_IDX];
-                    var q_win = state.q[(i + 1) * state.properties.v_total_len + GameState.V_WIN_IDX];
-                    var q_health = state.q[(i + 1) * state.properties.v_total_len + GameState.V_HEALTH_IDX];
+                    var q_comb = state.getChildQ(i, GameState.V_COMB_IDX);
+                    var q_win = state.getChildQ(i, GameState.V_WIN_IDX);
+                    var q_health = state.getChildQ(i, GameState.V_HEALTH_IDX);
                     int l = (state.getActionString(i) + " (" + i + ")").length();
                     for (int j = 0; j < 24 - l; j++) {
                         writer.write(' ');
@@ -312,9 +312,9 @@ public class GameStateUtils {
         if (s instanceof ChanceState cState) {
             for (ChanceState.Node node : cState.cache.values().stream().sorted((a, b) -> Long.compare(b.n, a.n)).toList()) {
                 var n = node.state.total_n + 1;
-                var q_comb = node.state.q[GameState.V_COMB_IDX];
-                var q_win = node.state.q[GameState.V_WIN_IDX];
-                var q_health = node.state.q[GameState.V_HEALTH_IDX];
+                var q_comb = node.state.getTotalQ(GameState.V_COMB_IDX);
+                var q_win = node.state.getTotalQ(GameState.V_WIN_IDX);
+                var q_health = node.state.getTotalQ(GameState.V_HEALTH_IDX);
                 var chanceStr = node.state.getStateDescStr();
                 var label = "n=%d/%d, q=%s/%s/%s".formatted(n, node.n, Utils.formatFloat(q_comb / n), Utils.formatFloat(q_win / n), Utils.formatFloat(q_health / n));
                 if (chanceStr.length() > 0) {
@@ -333,9 +333,9 @@ public class GameStateUtils {
                 var i = x[1];
                 if (state.ns[i] != null && depth > 0) {
                     var n = state.n[i];
-                    var q_comb = state.q[(i + 1) * state.properties.v_total_len + GameState.V_COMB_IDX];
-                    var q_win = state.q[(i + 1) * state.properties.v_total_len + GameState.V_WIN_IDX];
-                    var q_health = state.q[(i + 1) * state.properties.v_total_len + GameState.V_HEALTH_IDX];
+                    var q_comb = state.getChildQ(i, GameState.V_COMB_IDX);
+                    var q_win = state.getChildQ(i, GameState.V_WIN_IDX);
+                    var q_health = state.getChildQ(i, GameState.V_HEALTH_IDX);
                     var label = "%s, n=%d, q=%s/%s/%s".formatted(state.getActionString(i), n, Utils.formatFloat(q_comb / n), Utils.formatFloat(q_win / n), Utils.formatFloat(q_health / n));
                     writer.write(String.format("    \"%s\" -> \"%s\" [label=\"%s\"]\n", System.identityHashCode(s) + ":" + s.hashCode(), System.identityHashCode(state.ns[i]) + ":" + state.ns[i].hashCode(), lineBreak(label, 40)));
                     printDagGraphvizH(state.ns[i], depth - 1, writer, writtenNodes, stopAtChanceNode);

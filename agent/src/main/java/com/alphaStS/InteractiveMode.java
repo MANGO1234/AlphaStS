@@ -1935,10 +1935,10 @@ public class InteractiveMode {
 
         out.println(state);
         if (state.properties.qwinVIdx >= 0) {
-            out.println("Q-Win: " + state.q[state.properties.qwinVIdx] / (state.total_n + 1));
+            out.println("Q-Win: " + state.getTotalQ(state.properties.qwinVIdx) / (state.total_n + 1));
         }
         if (state.properties.turnsLeftVIdx >= 0) {
-            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.q[state.properties.turnsLeftVIdx] / (state.total_n + 1) * state.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
+            out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.getTotalQ(state.properties.turnsLeftVIdx) / (state.total_n + 1) * state.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
         }
         System.gc(); System.gc(); System.gc();
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
@@ -2035,20 +2035,19 @@ public class InteractiveMode {
                 return null;
             }
             int max_n = s.n[action];
-            int baseIdx = (action + 1) * s.properties.v_total_len;
             var o = new StringBuilder();
             o.append("  ").append(++move_i).append(". ").append(s.getActionString(action)).append(": n=").append(max_n);
-            o.append(", q=").append(formatFloat(s.q[baseIdx + GameState.V_COMB_IDX] / max_n));
-            o.append(", q_win=").append(formatFloat(s.q[baseIdx + GameState.V_WIN_IDX] / max_n));
-            o.append(", q_health=").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n)).append(" (").append(formatFloat(s.q[baseIdx + GameState.V_HEALTH_IDX] / max_n * s.getPlayeForRead().getMaxHealth())).append(")");
-            if (s.properties.fightProgressVIdx >= 0 && s.q[baseIdx + GameState.V_COMB_IDX] / max_n < 0.001) {
-                o.append(", q_progress=").append(formatFloat(s.q[baseIdx + s.properties.fightProgressVIdx] / max_n));
+            o.append(", q=").append(formatFloat(s.getChildQ(action, GameState.V_COMB_IDX) / max_n));
+            o.append(", q_win=").append(formatFloat(s.getChildQ(action, GameState.V_WIN_IDX) / max_n));
+            o.append(", q_health=").append(formatFloat(s.getChildQ(action, GameState.V_HEALTH_IDX) / max_n)).append(" (").append(formatFloat(s.getChildQ(action, GameState.V_HEALTH_IDX) / max_n * s.getPlayeForRead().getMaxHealth())).append(")");
+            if (s.properties.fightProgressVIdx >= 0 && s.getChildQ(action, GameState.V_COMB_IDX) / max_n < 0.001) {
+                o.append(", q_progress=").append(formatFloat(s.getChildQ(action, s.properties.fightProgressVIdx) / max_n));
             }
             if (s.properties.turnsLeftVIdx >= 0) {
-                o.append(", turns_left=").append(formatFloat(s.q[baseIdx + s.properties.turnsLeftVIdx] / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
+                o.append(", turns_left=").append(formatFloat(s.getChildQ(action, s.properties.turnsLeftVIdx) / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
             }
             if (s.properties.zeroDmgProbVIdx >= 0) {
-                o.append(", zero_dmg_take_prob=").append(formatFloat(s.q[baseIdx + s.properties.v_real_len + s.getPlayeForRead().getAccumulatedDamage()] / max_n)).append("%");
+                o.append(", zero_dmg_take_prob=").append(formatFloat(s.getChildQ(action, s.properties.v_real_len + s.getPlayeForRead().getAccumulatedDamage()) / max_n)).append("%");
             }
             out.println(o);
             finalOuput.append("\n").append(o);

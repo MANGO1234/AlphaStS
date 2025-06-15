@@ -865,7 +865,7 @@ public class MatchSession {
 //                    }
 //                } else {
 //                    for (int i = 0; i < est.length; i++) {
-//                        est[i] += node.state.q[i] / (node.state.total_n + 1) * node.n;
+//                        est[i] += node.state.getTotalQ(i) / (node.state.total_n + 1) * node.n;
 //                    }
 //                }
 //            }
@@ -1419,7 +1419,7 @@ public class MatchSession {
                     max_i = i;
                 }
             }
-            double q = state.q[(max_i + 1) * state.properties.v_total_len + GameState.V_COMB_IDX] / state.n[max_i];
+            double q = state.getChildQ(max_i, GameState.V_COMB_IDX) / state.n[max_i];
             double u = 0.1 * state.policyMod[max_i] * sqrt(state.total_n) / (1 + state.n[max_i]);
             var max_puct = q + u;
             var del_n = 0;
@@ -1427,7 +1427,7 @@ public class MatchSession {
                 if (i == max_i) {
                     continue;
                 }
-                q = state.q[(i + 1) * state.properties.v_total_len + GameState.V_COMB_IDX] / state.n[i];
+                q = state.getChildQ(i, GameState.V_COMB_IDX) / state.n[i];
                 var new_n = (int) Math.ceil(0.1 * state.policyMod[i] * sqrt(state.total_n) / (max_puct - q) - 1);
                 if (new_n < 0 || state.n[i] == 1) {
                     continue;
@@ -1859,7 +1859,7 @@ public class MatchSession {
                 for (int i = 1; i < steps.size() - 1; i++) {
                     var step = steps.get(i);
                     var bidx = (int) ((step.state().v_win + (1.0 / 100 / 2)) * 100);
-                    bidx = (int) ((step.state().q[GameState.V_WIN_IDX] / (step.state().total_n + 1) + (1.0 / 100 / 2)) * 100);
+                    bidx = (int) ((step.state().getTotalQ(GameState.V_WIN_IDX) / (step.state().total_n + 1) + (1.0 / 100 / 2)) * 100);
                     if (state.isTerminal() > 0) {
                         var prev = winRateBucket.get(bidx);
                         winRateBucket.put(bidx, new Tuple<>(prev.v1() + 1, prev.v2() + 1));

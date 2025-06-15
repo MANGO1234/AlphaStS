@@ -123,7 +123,7 @@ public class ChanceState implements State {
 //            var nnn = 0;
 //            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
 //                for (int i = 0; i < node.state.prop.v_total_len; i++) {
-//                    new_total_q[i] += entry.getValue().state.q[i] / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+//                    new_total_q[i] += entry.getValue().state.getTotalQ(i) / (entry.getValue().state.total_n + 1) * entry.getValue().n;
 //                }
 //                nnn += entry.getValue().n;
 //            }
@@ -133,7 +133,7 @@ public class ChanceState implements State {
 //            }
 
             for (int i = 0; i < node.state.properties.v_total_len; i++) {
-                var node_cur_q = node.state.q[i] / (node.state.total_n + 1);
+                var node_cur_q = node.state.getTotalQ(i) / (node.state.total_n + 1);
                 var prev_q = total_n == 1 ? 0 : total_q[i] / (total_n - 1);
                 var new_q = (prev_q * (total_node_n - 1) - node.prev_q[i] * (node.n - 1)) / total_node_n + node_cur_q * node.n / total_node_n;
                 node.prev_q[i] = node_cur_q;
@@ -324,7 +324,7 @@ public class ChanceState implements State {
             //            var nnn = 0;
             //            for (Map.Entry<GameState, Node> entry : cache.entrySet()) {
             //                for (int i = 0; i < node.state.prop.v_total_len; i++) {
-            //                    new_total_q[i] += entry.getValue().state.q[i] / (entry.getValue().state.total_n + 1) * entry.getValue().n;
+            //                    new_total_q[i] += entry.getValue().state.getTotalQ(i) / (entry.getValue().state.total_n + 1) * entry.getValue().n;
             //                }
             //                nnn += entry.getValue().n;
             //            }
@@ -339,7 +339,7 @@ public class ChanceState implements State {
                 node.n += 1;
             }
             for (int i = 0; i < node.state.properties.v_total_len; i++) {
-                var node_cur_q = node.state.q[i] / (node.state.total_n + 1);
+                var node_cur_q = node.state.getTotalQ(i) / (node.state.total_n + 1);
                 v[i] = node_cur_q * node.n - node.prev_q[i] * prevNodeN;
                 node.prev_q[i] = node_cur_q;
             }

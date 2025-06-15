@@ -103,7 +103,7 @@ public final class GameState implements State {
     float[] v_other; // if terminal, player_health/player_max_health, else from NN
     double varianceM;
     double varianceS;
-    double[] q; // first prop.v_total_len are the sum of that q value, followed by # legal actions * prop.v_total_len q values
+    private double[] q; // first prop.v_total_len are the sum of that q value, followed by # legal actions * prop.v_total_len q values
     int[] n; // visit count for each child
     State[] ns; // the state object for each child (either GameState or ChanceState)
     int total_n; // sum of n array
@@ -2241,6 +2241,34 @@ public final class GameState implements State {
             }
         }
         return idx;
+    }
+
+    public boolean isQInitialized() {
+        return q != null;
+    }
+
+    public double getTotalQ(int i) {
+        return q[i];
+    }
+
+    public void setTotalQ(int i, double v) {
+        q[i] = v;
+    }
+
+    public double getChildQ(int childIdx, int i) {
+        return q[(childIdx + 1) * properties.v_total_len + i];
+    }
+
+    public void setChildQ(int childIdx, int i, double v) {
+        q[(childIdx + 1) * properties.v_total_len + i] = v;
+    }
+
+    public void addTotalQ(int i, double v) {
+        q[i] += v;
+    }
+
+    public void addChildQ(int childIdx, int i, double v) {
+        q[(childIdx + 1) * properties.v_total_len + i] += v;
     }
 
     public double calcFightProgress(boolean onlyHeart) {
