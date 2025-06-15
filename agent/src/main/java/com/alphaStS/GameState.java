@@ -103,7 +103,8 @@ public final class GameState implements State {
     float[] v_other; // if terminal, player_health/player_max_health, else from NN
     double varianceM;
     double varianceS;
-    private double[] q; // first prop.v_total_len are the sum of that q value, followed by # legal actions * prop.v_total_len q values
+    private VArray q_total; // sum of q values
+    private VArray[] q_child; // q values for each legal action
     int[] n; // visit count for each child
     State[] ns; // the state object for each child (either GameState or ChanceState)
     int total_n; // sum of n array
@@ -2244,31 +2245,52 @@ public final class GameState implements State {
     }
 
     public boolean isQInitialized() {
-        return q != null;
+        return q_total != null;
     }
 
     public double getTotalQ(int i) {
-        return q[i];
+        return q_total != null ? q_total.get(i) : 0;
     }
 
     public void setTotalQ(int i, double v) {
-        q[i] = v;
+        if (q_total == null) {
+            q_total = new VArray(properties.v_total_len);
+        }
+        q_total.set(i, v);
     }
 
     public double getChildQ(int childIdx, int i) {
-        return q[(childIdx + 1) * properties.v_total_len + i];
+        if (q_child == null || q_child[childIdx] == null) {
+            return 0;
+        }
+        return q_child[childIdx].get(i);
     }
 
     public void setChildQ(int childIdx, int i, double v) {
-        q[(childIdx + 1) * properties.v_total_len + i] = v;
+        if (q_child == null) {
+            q_child = new VArray[policy.length];
+        }
+        if (q_child[childIdx] == null) {
+            q_child[childIdx] = new VArray(properties.v_total_len);
+        }
+        q_child[childIdx].set(i, v);
     }
 
     public void addTotalQ(int i, double v) {
-        q[i] += v;
+        if (q_total == null) {
+            q_total = new VArray(properties.v_total_len);
+        }
+        q_total.add(i, v);
     }
 
     public void addChildQ(int childIdx, int i, double v) {
-        q[(childIdx + 1) * properties.v_total_len + i] += v;
+        if (q_child == null) {
+            q_child = new VArray[policy.length];
+        }
+        if (q_child[childIdx] == null) {
+            q_child[childIdx] = new VArray(properties.v_total_len);
+        }
+        q_child[childIdx].add(i, v);
     }
 
     public double calcFightProgress(boolean onlyHeart) {
@@ -2615,7 +2637,7 @@ public final class GameState implements State {
     }
 
     public double get_q_TreeSearch(int idx) {
-        return q[idx] / (total_n + 1);
+        return getTotalQ(idx) / (total_n + 1);
     }
 
     public byte getPotionCount() {
@@ -2874,21 +2896,20 @@ public final class GameState implements State {
             for (int i = 0; i < getLegalActions().length; i++) {
                 var p_str = policy != null ? formatFloat(policy[i]) : "0";
                 var p_str2 = policyMod != null && policyMod != policy ? formatFloat(policyMod[i]) : null;
-                var base_idx = (i + 1) * properties.v_total_len;
-                var q_win_str = formatFloat(n[i] == 0 ? 0 : q[base_idx + GameState.V_WIN_IDX] / n[i]);
-                var q_health_str = formatFloat(n[i] == 0 ? 0 : q[base_idx + GameState.V_HEALTH_IDX] / n[i]);
-                var q_str = formatFloat(n[i] == 0 ? 0 : q[base_idx + GameState.V_COMB_IDX] / n[i]);
+                var q_win_str = formatFloat(n[i] == 0 ? 0 : getChildQ(i, GameState.V_WIN_IDX) / n[i]);
+                var q_health_str = formatFloat(n[i] == 0 ? 0 : getChildQ(i, GameState.V_HEALTH_IDX) / n[i]);
+                var q_str = formatFloat(n[i] == 0 ? 0 : getChildQ(i, GameState.V_COMB_IDX) / n[i]);
                 if (!first) {
                     str.append(", ");
                 }
                 first = false;
                 str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/');
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                    var q_progress_str = properties.fightProgressVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : q[base_idx + properties.fightProgressVIdx] / n[i]) : null;
+                    var q_progress_str = properties.fightProgressVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : getChildQ(i, properties.fightProgressVIdx) / n[i]) : null;
                     str.append(q_progress_str).append('/');
                 }
                 if (Configuration.USE_TURNS_LEFT_HEAD) {
-                    var q_progress_str = properties.turnsLeftVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : q[base_idx + properties.turnsLeftVIdx] / n[i]) : null;
+                    var q_progress_str = properties.turnsLeftVIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : getChildQ(i, properties.turnsLeftVIdx) / n[i]) : null;
                     str.append(q_progress_str).append('/');
                 }
                 if (p_str2 != null) {
@@ -4144,14 +4165,15 @@ public final class GameState implements State {
     }
 
     public void initSearchInfo2() {
-        if (q == null) q = new double[properties.v_total_len];
+        if (q_total == null) q_total = new VArray(properties.v_total_len);
     }
 
     public void initSearchInfo() {
-        if (q == null) {
-            q = new double[(policy.length + 1) * properties.v_total_len];
-        } else {
-            q = Arrays.copyOf(q, (policy.length + 1) * properties.v_total_len);
+        if (q_total == null) {
+            q_total = new VArray(properties.v_total_len);
+        }
+        if (q_child == null) {
+            q_child = new VArray[policy.length];
         }
         n = new int[policy.length];
         ns = new State[policy.length];
@@ -4162,7 +4184,8 @@ public final class GameState implements State {
         v_health = 0;
         v_win = 0;
         v_other = null;
-        q = null;
+        q_total = null;
+        q_child = null;
         n = null;
         ns = null;
         total_n = 0;
