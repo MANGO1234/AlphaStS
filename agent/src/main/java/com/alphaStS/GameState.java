@@ -5,6 +5,7 @@ import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.enums.Stance;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.NNOutput;
 import com.alphaStS.player.Player;
@@ -95,6 +96,9 @@ public final class GameState implements State {
     // Defect specific
     private short[] orbs;
     private short focus;
+
+    // Watcher specific
+    private Stance stance = Stance.NEUTRAL;
 
     // search related fields
     private int[] legalActions;
@@ -253,6 +257,7 @@ public final class GameState implements State {
         if (!Objects.equals(drawOrder, gameState.drawOrder)) return false;
         if (!Arrays.equals(potionsState, gameState.potionsState)) return false;
         if (focus != gameState.focus) return false;
+        if (stance != gameState.stance) return false;
         if (!Arrays.equals(orbs, gameState.orbs)) return false;
         if (!cardIdxArrEqual(nightmareCards, nightmareCardsLen, gameState.nightmareCards, gameState.nightmareCardsLen)) return false;
         if (preBattleRandomizationIdxChosen != gameState.preBattleRandomizationIdxChosen) return false;
@@ -314,6 +319,9 @@ public final class GameState implements State {
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.cardDict.length));
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen));
         result = 31 * result + Arrays.hashCode(potionsState);
+        if (properties.character == CharacterEnum.WATCHER) {
+            result = 31 * result + stance.ordinal();
+        }
         return result;
     }
 
@@ -1060,6 +1068,7 @@ public final class GameState implements State {
             orbs = Arrays.copyOf(other.orbs, other.orbs.length); // todo: make it copy on write
         }
         focus = other.focus;
+        stance = other.stance;
 
         legalActions = other.legalActions;
         terminalAction = -100;
@@ -1643,6 +1652,10 @@ public final class GameState implements State {
         playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
         playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
         gainEnergy(energyRefill);
+        // Watcher stance start of turn effects
+        if (properties.character == CharacterEnum.WATCHER) {
+            exitDivinityAtStartOfTurn();
+        }
         triggerOrbsPassiveStartOfTurn();
         var enemies = getEnemiesForWrite();
         for (int i = 0; i < enemies.size(); i++) {
@@ -2802,6 +2815,9 @@ public final class GameState implements State {
         if (focus > 0) {
             str.append(", focus=").append(focus);
         }
+        if (stance != Stance.NEUTRAL) {
+            str.append(", stance=").append(stance.toString());
+        }
         str.append(", energy=").append(energy);
         if (actionCtx != GameActionCtx.PLAY_CARD) {
             str.append(", ctx=").append(actionCtx);
@@ -3181,6 +3197,9 @@ public final class GameState implements State {
         if (properties.playerFocusCanChange) {
             inputLen += 1; // focus
         }
+        if (properties.character == CharacterEnum.WATCHER) {
+            inputLen += 4; // Watcher stances (one-hot encoding: neutral, wrath, calm, divinity)
+        }
         if (properties.playerArtifactCanChange) {
             inputLen += 1; // player artifact
         }
@@ -3388,6 +3407,9 @@ public final class GameState implements State {
         }
         if (properties.playerFocusCanChange) {
             str += "    1 input to keep track of player focus\n";
+        }
+        if (properties.character == CharacterEnum.WATCHER) {
+            str += "    4 inputs to keep track of Watcher stance (one-hot: neutral, wrath, calm, divinity)\n";
         }
         if (properties.playerArtifactCanChange) {
             str += "    1 input to keep track of player artifact\n";
@@ -3700,6 +3722,13 @@ public final class GameState implements State {
         }
         if (properties.playerFocusCanChange) {
             x[idx++] = focus / 15.0f;
+        }
+        if (properties.character == CharacterEnum.WATCHER) {
+            // One-hot encoding for Watcher stances
+            x[idx++] = stance == Stance.NEUTRAL ? 1.0f : 0.0f;
+            x[idx++] = stance == Stance.WRATH ? 1.0f : 0.0f;
+            x[idx++] = stance == Stance.CALM ? 1.0f : 0.0f;
+            x[idx++] = stance == Stance.DIVINITY ? 1.0f : 0.0f;
         }
         if (properties.playerArtifactCanChange) {
             x[idx++] = player.getArtifact() / (float) 3.0;
@@ -4464,6 +4493,14 @@ public final class GameState implements State {
         if (player.getWeak() > 0) {
             dmg = dmg * 0.75;
         }
+        // Watcher stance damage modifiers
+        if (properties.character == CharacterEnum.WATCHER) {
+            if (stance == Stance.WRATH) {
+                dmg *= 2;
+            } else if (stance == Stance.DIVINITY) {
+                dmg *= 3;
+            }
+        }
         if (enemy.isAlive() && enemy.getHealth() > 0) {
             int dmgDone = enemy.damage(dmg, this);
             if (enemy.getHealth() == 0) {
@@ -5079,6 +5116,34 @@ public final class GameState implements State {
 
     public short getFocus() {
         return focus;
+    }
+
+    public Stance getStance() {
+        return stance;
+    }
+
+    public void changeStance(Stance newStance) {
+        if (properties.character != CharacterEnum.WATCHER) {
+            return;
+        }
+        
+        // Handle exiting current stance
+        if (stance == Stance.CALM && newStance != Stance.CALM) {
+            gainEnergy(2);
+        }
+        
+        // Handle entering Divinity
+        if (newStance == Stance.DIVINITY && stance != Stance.DIVINITY) {
+            gainEnergy(3);
+        }
+        
+        stance = newStance;
+    }
+
+    public void exitDivinityAtStartOfTurn() {
+        if (stance == Stance.DIVINITY) {
+            changeStance(Stance.NEUTRAL);
+        }
     }
 
     public boolean isFirstEncounter() {
