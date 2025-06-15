@@ -1624,7 +1624,7 @@ public final class GameState implements State {
                 }
             }
             for (int i = 0; i < properties.relics.size(); i++) {
-                if (properties.relics.get(i) instanceof Relic._BottledRelic relic) {
+                if (properties.relics.get(i) instanceof Relic._BottledRelic relic && relic.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
                     order.add(properties.findCardIndex(relic.card));
                 }
             }
