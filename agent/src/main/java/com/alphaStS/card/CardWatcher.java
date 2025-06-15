@@ -581,12 +581,76 @@ public class CardWatcher {
     // todo: Inner Peace
     // todo: Like Water
     // todo: Meditate
-    // todo: Mental Fortress
+    private static abstract class _MentalFortressT extends Card {
+        private final int block;
+
+        public _MentalFortressT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnStanceChangeHandler("MentalFortress", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getPlayerForWrite().gainBlock(block);
+                }
+            });
+        }
+    }
+
+    public static class MentalFortress extends _MentalFortressT {
+        public MentalFortress() {
+            super("Mental Fortress", 4);
+        }
+    }
+
+    public static class MentalFortressP extends _MentalFortressT {
+        public MentalFortressP() {
+            super("Mental Fortress+", 6);
+        }
+    }
     // todo: Nirvana
     // todo: Perseverance
     // todo: Pray
     // todo: Reach Heaven
-    // todo: Rushdown
+    private static abstract class _RushdownT extends Card {
+        private final int energyCost;
+
+        public _RushdownT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+            this.energyCost = energyCost;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnStanceChangeHandler("Rushdown", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getStance() == Stance.WRATH) {
+                        state.draw(2);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Rushdown extends _RushdownT {
+        public Rushdown() {
+            super("Rushdown", 1);
+        }
+    }
+
+    public static class RushdownP extends _RushdownT {
+        public RushdownP() {
+            super("Rushdown+", 0);
+        }
+    }
     private static abstract class _SanctityT extends Card {
         private final int block;
 
