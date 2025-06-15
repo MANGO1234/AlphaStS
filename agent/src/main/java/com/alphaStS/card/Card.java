@@ -28,6 +28,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean exhaustWhenPlayed = false;
     public boolean exhaustNonAttacks = false;
     public boolean alwaysDiscard = false;
+    public boolean retain = false;
     public boolean selectEnemy;
     public boolean delayUseEnergy;
     public boolean selectFromDiscard;
@@ -153,6 +154,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             innate = card.innate;
             exhaustWhenPlayed = card.exhaustWhenPlayed;
             exhaustNonAttacks = card.exhaustNonAttacks;
+            retain = card.retain;
             selectEnemy = card.selectEnemy;
             selectFromDiscard = card.selectFromDiscard;
             selectFromExhaust = card.selectFromExhaust;
@@ -218,6 +220,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             innate = card.innate;
             exhaustWhenPlayed = card.exhaustWhenPlayed;
             exhaustNonAttacks = card.exhaustNonAttacks;
+            retain = card.retain;
             selectEnemy = card.selectEnemy;
             selectFromDiscard = card.selectFromDiscard;
             selectFromExhaust = card.selectFromExhaust;
@@ -288,6 +291,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             innate = card.innate;
             exhaustWhenPlayed = card.exhaustWhenPlayed;
             exhaustNonAttacks = card.exhaustNonAttacks;
+            retain = card.retain;
             selectEnemy = card.selectEnemy;
             selectFromDiscard = card.selectFromDiscard;
             selectFromExhaust = card.selectFromExhaust;

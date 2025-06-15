@@ -1880,7 +1880,12 @@ public final class GameState implements State {
             if (properties.cardDict[handArr[i]].ethereal) {
                 exhaustedCardHandle(handArr[i], false);
                 getHandArrForWrite()[i] = -1;
-            } else if (properties.cardDict[handArr[i]].alwaysDiscard || isDiscardingCardEndOfTurn()) {
+            } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
+                addCardToDiscard(handArr[i]);
+                getHandArrForWrite()[i] = -1;
+            } else if (properties.cardDict[handArr[i]].retain) {
+                // Retain cards stay in hand, do nothing
+            } else if (isDiscardingCardEndOfTurn()) {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = -1;
             }
