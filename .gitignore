@@ -11,3 +11,4 @@ kaggle/
 target
 agent/hs_err_p*
 *.java~
+.claude/
