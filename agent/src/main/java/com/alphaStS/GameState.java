@@ -1671,7 +1671,6 @@ public final class GameState implements State {
         playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
         playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
         gainEnergy(energyRefill);
-        // Watcher stance start of turn effects
         if (properties.character == CharacterEnum.WATCHER) {
             exitDivinityAtStartOfTurn();
         }
@@ -5203,6 +5202,20 @@ public final class GameState implements State {
 
     public short getFocus() {
         return focus;
+    }
+
+    public void gainMantra(int amount) {
+        if (properties.mantraCounterIdx < 0) {
+            return;
+        }
+        int currentMantra = getCounterForRead()[properties.mantraCounterIdx];
+        int newMantra = (currentMantra + amount) % 10;
+        if (currentMantra + amount >= 10) {
+            changeStance(Stance.DIVINITY);
+            getCounterForWrite()[properties.mantraCounterIdx] = newMantra;
+        } else {
+            getCounterForWrite()[properties.mantraCounterIdx] = newMantra;
+        }
     }
 
     public Stance getStance() {
