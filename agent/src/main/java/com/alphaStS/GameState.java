@@ -658,6 +658,7 @@ public final class GameState implements State {
         Collections.sort(properties.onCardPlayedHandlers);
         Collections.sort(properties.onPreCardPlayedHandlers);
         Collections.sort(properties.onCardDrawnHandlers);
+        Collections.sort(properties.onRetainHandlers);
 
         if (properties.biasedCognitionLimitCounterIdx >= 0) {
             properties.actionsByCtx[GameActionCtx.AFTER_RANDOMIZATION.ordinal()] = new GameAction[] { new GameAction(GameActionType.AFTER_RANDOMIZATION, 0) };
@@ -1939,7 +1940,10 @@ public final class GameState implements State {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = -1;
             } else if (properties.cardDict[handArr[i]].retain) {
-                // Retain cards stay in hand, do nothing
+                // Retain cards stay in hand, call onRetain handlers
+                for (var handler : properties.onRetainHandlers) {
+                    handler.handle(this, i, -1, -1, null, -1);
+                }
             } else if (isDiscardingCardEndOfTurn()) {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = -1;
@@ -4609,7 +4613,7 @@ public final class GameState implements State {
         return false;
     }
 
-    public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt, boolean isShiv) {
+    public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, boolean isShiv) {
         var player = getPlayeForRead();
         double dmg = dmgInt;
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
@@ -4653,13 +4657,13 @@ public final class GameState implements State {
             }
             if (!enemy.isAlive()) {
                 adjustEnemiesAlive(-1);
-                return true;
             }
+            return dmgDone;
         }
-        return false;
+        return 0;
     }
 
-    public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
+    public int playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
         return playerDoDamageToEnemy(enemy, dmgInt, false);
     }
 
@@ -4885,6 +4889,16 @@ public final class GameState implements State {
             playerCloned = true;
         }
         return player;
+    }
+
+    public int playerGainBlock(int n) {
+        int blockGained = getPlayerForWrite().gainBlock(n);
+        if (blockGained > 0) {
+            for (var handler : properties.onBlockHandlers) {
+                handler.handle(this);
+            }
+        }
+        return blockGained;
     }
 
     public DrawOrderReadOnly getDrawOrderForRead() {

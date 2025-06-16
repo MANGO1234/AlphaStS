@@ -119,6 +119,8 @@ public class GameProperties implements Cloneable {
     public int foresightCardIdx = -1;
     public int[] bloodForBloodTransformIndexes;
     public int[] bloodForBloodPTransformIndexes;
+    public int[] sandsOfTimeTransformIndexes;
+    public int[] sandsOfTimePTransformIndexes;
     public int[] masterfulStabTransformIndexes;
     public int[] masterfulStabPTransformIndexes;
     public int[] setUpCardIdxes;
@@ -276,6 +278,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventCardHandler> onPreCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
+    public List<GameEventCardHandler> onRetainHandlers = new ArrayList<>();
     public GameStateRandomization randomization;
     public GameStateRandomization preBattleRandomization;
     public GameStateRandomization preBattleScenarios;
@@ -644,6 +647,17 @@ public class GameProperties implements Cloneable {
         if (gameEventHandlers.get(handlerName + "OnCardDrawn") == null) {
             gameEventHandlers.put(handlerName + "OnCardDrawn", handler);
             onCardDrawnHandlers.add(handler);
+        }
+    }
+
+    public void addOnRetainHandler(GameEventCardHandler handler) {
+        onRetainHandlers.add(handler);
+    }
+
+    public void addOnRetainHandler(String handlerName, GameEventCardHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnRetain") == null) {
+            gameEventHandlers.put(handlerName + "OnRetain", handler);
+            onRetainHandlers.add(handler);
         }
     }
 
