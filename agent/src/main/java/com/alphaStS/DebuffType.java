@@ -22,4 +22,5 @@ public enum DebuffType {
     LOCK_ON,
     NO_BLOCK_FROM_CARDS,
     CHOKE,
+    LOSE_ENERGY_PER_TURN,
 }

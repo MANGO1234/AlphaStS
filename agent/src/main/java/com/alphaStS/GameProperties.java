@@ -116,6 +116,7 @@ public class GameProperties implements Cloneable {
     public int wellLaidPlansCardIdx = -1;
     public int gamblingChipsCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
+    public int foresightCardIdx = -1;
     public int[] bloodForBloodTransformIndexes;
     public int[] bloodForBloodPTransformIndexes;
     public int[] masterfulStabTransformIndexes;
@@ -173,6 +174,7 @@ public class GameProperties implements Cloneable {
     public int loopCounterIdx = -1;
     public int forceFieldCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
+    public int foresightCounterIdx = -1;
     public int electrodynamicsCounterIdx = -1;
     public int biasedCognitionLimitCounterIdx = -1;
     public int mantraCounterIdx = -1;
@@ -219,6 +221,7 @@ public class GameProperties implements Cloneable {
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
+    public int loseEnergyPerTurnCounterIdx = -1;
     public int constrictedCounterIdx = -1;
     public int drawReductionCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
@@ -266,6 +269,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
     public List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
     public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
+    public List<GameEventHandler> onScryHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
@@ -562,6 +566,17 @@ public class GameProperties implements Cloneable {
         if (gameEventHandlers.get(handlerName + "OnStanceChange") == null) {
             gameEventHandlers.put(handlerName + "OnStanceChange", handler);
             onStanceChangeHandlers.add(handler);
+        }
+    }
+
+    public void addOnScryHandler(GameEventHandler handler) {
+        onScryHandlers.add(handler);
+    }
+
+    public void addOnScryHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnScry") == null) {
+            gameEventHandlers.put(handlerName + "OnScry", handler);
+            onScryHandlers.add(handler);
         }
     }
 

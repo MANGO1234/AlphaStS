@@ -609,6 +609,8 @@ public final class GameState implements State {
                 properties.wellLaidPlansCardIdx = i;
             } else if (cards.get(i).cardName.equals("Tools Of The Trade") || cards.get(i).cardName.equals("Tools Of The Trade+")) {
                 properties.toolsOfTheTradeCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Foresight") || cards.get(i).cardName.equals("Foresight+")) {
+                properties.foresightCardIdx = i;
             } else if (cards.get(i).cardName.equals("Gambling Chips")) {
                 properties.gamblingChipsCardIdx = i;
             }
@@ -652,6 +654,7 @@ public final class GameState implements State {
         Collections.sort(properties.onBlockHandlers);
         Collections.sort(properties.onExhaustHandlers);
         Collections.sort(properties.onStanceChangeHandlers);
+        Collections.sort(properties.onScryHandlers);
         Collections.sort(properties.onCardPlayedHandlers);
         Collections.sort(properties.onPreCardPlayedHandlers);
         Collections.sort(properties.onCardDrawnHandlers);
@@ -1761,6 +1764,10 @@ public final class GameState implements State {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.toolsOfTheTradeCardIdx];
             setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
             return;
+        } else if (properties.foresightCounterIdx >= 0 && getCounterForRead()[properties.foresightCounterIdx] > 0) {
+            var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.foresightCardIdx];
+            setActionCtx(startScry(getCounterForRead()[properties.foresightCounterIdx]), action, null);
+            return;
         }
         if (properties.gamblingChipsCardIdx >= 0 && turnNum == 1) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.gamblingChipsCardIdx];
@@ -2073,6 +2080,9 @@ public final class GameState implements State {
             playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
         } else if (action.type() == GameActionType.SCRY_KEEP_CARD) {
             if (handleScryCardDecision(action.idx())) { // finished scrying
+                for (var handler : properties.onScryHandlers) {
+                    handler.handle(this);
+                }
                 playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
             }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
