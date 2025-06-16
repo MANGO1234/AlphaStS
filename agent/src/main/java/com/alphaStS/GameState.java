@@ -99,6 +99,8 @@ public final class GameState implements State {
 
     // Watcher specific
     private Stance stance = Stance.NEUTRAL;
+    public boolean[] scryCardIsKept;
+    public int scryCurrentCount;
 
     // search related fields
     private int[] legalActions;
@@ -258,6 +260,8 @@ public final class GameState implements State {
         if (!Arrays.equals(potionsState, gameState.potionsState)) return false;
         if (focus != gameState.focus) return false;
         if (stance != gameState.stance) return false;
+        if (scryCurrentCount != gameState.scryCurrentCount) return false;
+        if (!Utils.equals(scryCardIsKept, gameState.scryCardIsKept, scryCurrentCount)) return false;
         if (!Arrays.equals(orbs, gameState.orbs)) return false;
         if (!cardIdxArrEqual(nightmareCards, nightmareCardsLen, gameState.nightmareCards, gameState.nightmareCardsLen)) return false;
         if (preBattleRandomizationIdxChosen != gameState.preBattleRandomizationIdxChosen) return false;
@@ -462,6 +466,15 @@ public final class GameState implements State {
             for (int i = 0; i < properties.realCardsLen; i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_DECK, i);
             }
+        }
+
+        // scry actions
+        if (cards.stream().anyMatch((x) -> x.scry)) {
+            properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()] = new GameAction[properties.realCardsLen + 1];
+            for (int i = 0; i < properties.realCardsLen; i++) {
+                properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()][i] = new GameAction(GameActionType.SCRY_KEEP_CARD, i);
+            }
+            properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()][l - 1] = new GameAction(GameActionType.SCRY_KEEP_CARD, properties.realCardsLen);
         }
 
         // select from select 1 out of 3 cards action
@@ -1069,6 +1082,8 @@ public final class GameState implements State {
         }
         focus = other.focus;
         stance = other.stance;
+        scryCardIsKept = other.scryCardIsKept;
+        scryCurrentCount = other.scryCurrentCount;
 
         legalActions = other.legalActions;
         terminalAction = -100;
@@ -1096,9 +1111,6 @@ public final class GameState implements State {
         if (count == 0 || getPlayeForRead().cannotDrawCard()) {
             return -1;
         }
-//        if (!prop.testNewFeature || deckArrLen != count) { // todo: add discard count too, enemy nextMove should also set isStochastic
-//            setIsStochastic();
-//        }
         count = Math.min(GameState.HAND_LIMIT - handArrLen, count);
         boolean firstRandomDraw = true;
         int drawnIdx = -1;
@@ -1175,18 +1187,18 @@ public final class GameState implements State {
         if (deckArrLen == 0) {
             return -1;
         }
-        int i;
+        int cardIdx;
         if (deckArrFixedDrawLen > 0) {
-            i = deckArr[deckArrLen - 1];
+            cardIdx = deckArr[deckArrLen - 1];
             deckArrFixedDrawLen--;
         } else {
             var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
-            i = deckArr[idx];
+            cardIdx = deckArr[idx];
             addCardToHand(deckArr[idx]);
             getDeckArrForWrite()[idx] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
         }
-        return i;
+        return cardIdx;
     }
 
     private int getCardEnergyCost(int cardIdx) {
@@ -1208,7 +1220,7 @@ public final class GameState implements State {
             actionCtx = ctx;
             this.actionCardCloneSource = null;
         }
-        case SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_DECK, SELECT_CARD_1_OUT_OF_3 -> {
+        case SELECT_ENEMY, SELECT_CARD_HAND, SELECT_CARD_DISCARD, SELECT_CARD_EXHAUST, SELECT_CARD_DECK, SCRYING, SELECT_CARD_1_OUT_OF_3 -> {
             currentAction = action;
             actionCtx = ctx;
             this.actionCardCloneSource = cloneSource;
@@ -1424,6 +1436,13 @@ public final class GameState implements State {
                 } else {
                     break;
                 }
+            } else if (actionCtx == GameActionCtx.SCRYING) {
+                if (scryCardIsKept != null) {
+                    setActionCtx(GameActionCtx.SCRYING, action, cloneSource);
+                } else {
+                    setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
+                }
+                break;
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
                 setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
             }
@@ -2023,6 +2042,10 @@ public final class GameState implements State {
             playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
             playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+        } else if (action.type() == GameActionType.SCRY_KEEP_CARD) {
+            if (handleScryCardDecision(action.idx())) { // finished scrying
+                playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
+            }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
@@ -2828,7 +2851,7 @@ public final class GameState implements State {
             str.append(", ctx=").append(actionCtx);
             if (actionCtx == GameActionCtx.SELECT_ENEMY || actionCtx == GameActionCtx.SELECT_CARD_HAND ||
                     actionCtx == GameActionCtx.SELECT_CARD_EXHAUST || actionCtx == GameActionCtx.SELECT_CARD_DISCARD ||
-                    actionCtx == GameActionCtx.SELECT_CARD_DECK) {
+                    actionCtx == GameActionCtx.SELECT_CARD_DECK || actionCtx == GameActionCtx.SCRYING) {
                 if (currentAction.type() == GameActionType.PLAY_CARD) {
                     str.append("[").append(properties.cardDict[currentAction.idx()].cardName).append("]");
                 } else if (currentAction.type() == GameActionType.USE_POTION) {
@@ -3045,59 +3068,28 @@ public final class GameState implements State {
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
                 if (currentAction.type() == GameActionType.PLAY_CARD) {
-                    int count = 0;
-                    var seen = new boolean[properties.cardDict.length];
-                    for (int i = 0; i < handArrLen; i++) {
-                        if (!seen[handArr[i]] && properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[handArr[i]])) {
-                            count++;
-                            seen[handArr[i]] = true;
-                        }
-                    }
                     if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
-                        count++;
+                        getLegalActionsSelectCardFromArr(handArr, handArrLen, properties.cardDict[currentAction.idx()], properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1);
+                    } else {
+                        getLegalActionsSelectCardFromArr(handArr, handArrLen, properties.cardDict[currentAction.idx()], -1);
                     }
-                    legalActions = new int[count];
-                    int j = 0;
-                    for (int i = 0; i < handArrLen; i++) {
-                        if (seen[handArr[i]]) {
-                            legalActions[j++] = handArr[i];
-                            seen[handArr[i]] = false;
-                        }
-                    }
-                    if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
-                        legalActions[j] = properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
-                    }
-                    Arrays.sort(legalActions);
                 } else if (currentAction.type() == GameActionType.USE_POTION) {
-                    int count = 0;
-                    var seen = new boolean[properties.cardDict.length];
-                    for (int i = 0; i < handArrLen; i++) {
-                        if (!seen[handArr[i]]) {
-                            count++;
-                            seen[handArr[i]] = true;
-                        }
-                    }
-                    legalActions = new int[count + 1];
-                    int j = 0;
-                    for (int i = 0; i < handArrLen; i++) {
-                        if (seen[handArr[i]]) {
-                            legalActions[j++] = handArr[i];
-                            seen[handArr[i]] = false;
-                        }
-                    }
-                    legalActions[j] = properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1;
-                    Arrays.sort(legalActions);
+                    getLegalActionsSelectCardFromArr(handArr, handArrLen, null, properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1);
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
                 if (currentAction.type() == GameActionType.PLAY_CARD) {
-                    getLegalActionsSelectCardFromArr(discardArr, discardArrLen, properties.cardDict[currentAction.idx()]);
+                    getLegalActionsSelectCardFromArr(discardArr, discardArrLen, properties.cardDict[currentAction.idx()], -1);
                 } else {
-                    getLegalActionsSelectCardFromArr(discardArr, discardArrLen, null);
+                    getLegalActionsSelectCardFromArr(discardArr, discardArrLen, null, -1);
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
-                getLegalActionsSelectCardFromArr(deckArr, deckArrLen, properties.cardDict[currentAction.idx()]);
+                getLegalActionsSelectCardFromArr(deckArr, deckArrLen, properties.cardDict[currentAction.idx()], -1);
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
-                getLegalActionsSelectCardFromArr(exhaustArr, exhaustArrLen, properties.cardDict[currentAction.idx()]);
+                getLegalActionsSelectCardFromArr(exhaustArr, exhaustArrLen, properties.cardDict[currentAction.idx()], -1);
+            } else if (actionCtx == GameActionCtx.SCRYING) {
+                legalActions = new int[2];
+                legalActions[0] = deckArr[deckArrLen - 1 - scryCurrentCount];
+                legalActions[1] = properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()].length - 1;
             } else {
                 int count = 0;
                 for (int i = 0; i < properties.maxNumOfActions; i++) {
@@ -3117,16 +3109,21 @@ public final class GameState implements State {
         return legalActions;
     }
 
-    private void getLegalActionsSelectCardFromArr(short[] cardArr, int cardArrLen, Card card) {
+    private void getLegalActionsSelectCardFromArr(short[] cardArr, int cardArrLen, Card card, int extraAction) {
         int count = 0;
-        var seen = new boolean[properties.realCardsLen];
+        var seen = new boolean[properties.cardDict.length];
         for (int i = 0; i < cardArrLen; i++) {
             if (!seen[cardArr[i]] && (card == null || card.canSelectCard(properties.cardDict[cardArr[i]]))) {
                 count++;
                 seen[cardArr[i]] = true;
             }
         }
-        legalActions = new int[count];
+        if (extraAction >= 0) {
+            legalActions = new int[count + 1];
+            legalActions[legalActions.length - 1] = extraAction;
+        } else {
+            legalActions = new int[count];
+        }
         int j = 0;
         for (int i = 0; i < cardArrLen; i++) {
             if (seen[cardArr[i]]) {
@@ -3288,6 +3285,13 @@ public final class GameState implements State {
         if (properties.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] != null) {
             for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                 if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromDeck && action.idx() < properties.realCardsLen) {
+                    inputLen += 1;
+                }
+            }
+        }
+        if (properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].scry && action.idx() < properties.realCardsLen) {
                     inputLen += 1;
                 }
             }
@@ -3506,6 +3510,13 @@ public final class GameState implements State {
             for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                 if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromDeck && action.idx() < properties.realCardsLen) {
                     str += "    1 input to keep track of currently played card " + properties.cardDict[action.idx()].cardName + " for selecting card from deck\n";
+                }
+            }
+        }
+        if (properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].scry && action.idx() < properties.realCardsLen) {
+                    str += "    1 input to keep track of currently played card " + properties.cardDict[action.idx()].cardName + " for scrying\n";
                 }
             }
         }
@@ -3823,6 +3834,13 @@ public final class GameState implements State {
         if (properties.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] != null) {
             for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
                 if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromDeck && action.idx() < properties.realCardsLen) {
+                    x[idx++] = currentAction == action ? 0.6f : -0.6f;
+                }
+            }
+        }
+        if (properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].scry && action.idx() < properties.realCardsLen) {
                     x[idx++] = currentAction == action ? 0.6f : -0.6f;
                 }
             }
@@ -4161,6 +4179,12 @@ public final class GameState implements State {
             return "Select " + properties.cardDict[action.idx()].cardName + " From Exhaust";
         } else if (action.type() == GameActionType.SELECT_CARD_DECK) {
             return "Select " + properties.cardDict[action.idx()].cardName + " From Deck";
+        } else if (action.type() == GameActionType.SCRY_KEEP_CARD) {
+            if (action.idx() >= properties.realCardsLen) {
+                return "Scry Discard Card";
+            } else {
+                return "Scry Keep " + properties.cardDict[action.idx()].cardName;
+            }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
             return "Select " + properties.cardDict[action.idx()].cardName + " Out Of 3";
         } else if (action.type() == GameActionType.USE_POTION) {
@@ -4474,6 +4498,64 @@ public final class GameState implements State {
                 break;
             }
         }
+    }
+
+    public GameActionCtx startScry(int count) {
+        var scryTotalCount = Math.min(count, deckArrLen);
+        if (scryTotalCount == 0) {
+            return GameActionCtx.PLAY_CARD;
+        }
+        scryCardIsKept = new boolean[scryTotalCount];
+        if (scryTotalCount > deckArrFixedDrawLen) {
+            if (properties.makingRealMove || properties.doingComparison) {
+                Arrays.sort(getDeckArrForWrite(), 0, this.deckArrLen - deckArrFixedDrawLen);
+            }
+            for (int i = deckArrFixedDrawLen; i < scryTotalCount; i++) {
+                setIsStochastic();
+                var idx = getSearchRandomGen().nextInt(this.deckArrLen - deckArrFixedDrawLen, RandomGenCtx.CardDraw, this);
+                var cardIdx = deckArr[idx];
+                deckArr[idx] = deckArr[deckArr.length - 1 - i];
+                deckArr[deckArr.length - 1 - i] = cardIdx;
+                deckArrFixedDrawLen++;
+            }
+        }
+        return GameActionCtx.SCRYING;
+    }
+
+    private boolean handleScryCardDecision(int cardIndex) {
+        if (cardIndex < properties.realCardsLen) {
+            scryCardIsKept = Arrays.copyOf(scryCardIsKept, scryCardIsKept.length);
+            scryCardIsKept[scryCurrentCount] = true;
+        }
+        scryCurrentCount++;
+        if (scryCurrentCount == scryCardIsKept.length) {
+            // move all the cards that's not kept out of fixed deck portion
+            int start = 0;
+            int end = scryCardIsKept.length;
+            while (true) {
+                while (start < scryCardIsKept.length && scryCardIsKept[start]) {
+                    start++;
+                }
+                while (end > start && !scryCardIsKept[end - 1]) {
+                    end--;
+                }
+                if (start >= end) {
+                    break;
+                }
+                var tmp = deckArr[deckArrLen - 1 - start];
+                deckArr[deckArrLen - 1 - start] = deckArr[deckArrLen - 1 - end];
+                deckArr[deckArrLen - 1 - end] = tmp;
+            }
+            for (int i = 0; i < scryCardIsKept.length; i++) {
+                if (!scryCardIsKept[i]) {
+                    deckArrFixedDrawLen--;
+                }
+            }
+            scryCardIsKept = null;
+            scryCurrentCount = 0;
+            return true;
+        }
+        return false;
     }
 
     public boolean playerDoDamageToEnemy(Enemy enemy, int dmgInt, boolean isShiv) {

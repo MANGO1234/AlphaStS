@@ -56,6 +56,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean affectEnemyStrengthEot;
     public boolean putCardOnTopDeck;
     public boolean healPlayer;
+    public boolean scry;
     int counterIdx = -1;
     int vArrayIdx = -1;
 

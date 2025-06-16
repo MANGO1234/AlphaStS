@@ -77,6 +77,15 @@ public class Utils {
         return true;
     }
 
+    public static boolean equals(boolean[] arr1, boolean[] arr2, int len) {
+        for (int i = 0; i < len; i++) {
+            if (arr1[i] != arr2[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static void shuffle(GameState state, short[] arr, int len, RandomGen rand) {
         for (int i = len - 1; i >= 0; i--) {
             int j = rand.nextInt(i + 1, RandomGenCtx.CardDraw, new Tuple3<>(state, 0, 0));
