@@ -2,6 +2,7 @@ package com.alphaStS.card;
 
 import com.alphaStS.DebuffType;
 import com.alphaStS.GameActionCtx;
+import com.alphaStS.GameEventCardHandler;
 import com.alphaStS.GameEventHandler;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
@@ -9,6 +10,7 @@ import com.alphaStS.GameStateUtils;
 import com.alphaStS.RandomGenCtx;
 import com.alphaStS.enums.Stance;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class CardWatcher {
@@ -1298,7 +1300,94 @@ public class CardWatcher {
         }
     }
 
-    // todo: Sands of Time
+    public static class SandsOfTime extends Card {
+        public SandsOfTime() {
+            this(4);
+        }
+
+        private SandsOfTime(int energyCost) {
+            super("Sands of Time (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            this.selectEnemy = true;
+            this.retain = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new SandsOfTime(3), new SandsOfTime(2), new SandsOfTime(1), new SandsOfTime(0));
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.sandsOfTimeTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.sandsOfTimeTransformIndexes, -1);
+            for (int i = 1; i <= 4; i++) {
+                int fromIdx = state.properties.findCardIndex(new SandsOfTime(i));
+                int toIdx = state.properties.findCardIndex(new SandsOfTime(i - 1));
+                if (fromIdx != -1 && toIdx != -1) {
+                    state.properties.sandsOfTimeTransformIndexes[fromIdx] = toIdx;
+                }
+            }
+            state.properties.addOnRetainHandler("SandsOfTime", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    if (state.properties.cardDict[cardIdx] instanceof SandsOfTime) {
+                        int newCardIdx = state.properties.sandsOfTimeTransformIndexes[cardIdx];
+                        if (newCardIdx != -1) {
+                            state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SandsOfTimeP extends Card {
+        public SandsOfTimeP() {
+            this(4);
+        }
+
+        private SandsOfTimeP(int energyCost) {
+            super("Sands of Time+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
+            this.selectEnemy = true;
+            this.retain = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 26);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new SandsOfTimeP(3), new SandsOfTimeP(2), new SandsOfTimeP(1), new SandsOfTimeP(0));
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.sandsOfTimePTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.sandsOfTimePTransformIndexes, -1);
+            for (int i = 1; i <= 4; i++) {
+                int fromIdx = state.properties.findCardIndex(new SandsOfTimeP(i));
+                int toIdx = state.properties.findCardIndex(new SandsOfTimeP(i - 1));
+                if (fromIdx != -1 && toIdx != -1) {
+                    state.properties.sandsOfTimePTransformIndexes[fromIdx] = toIdx;
+                }
+            }
+            state.properties.addOnRetainHandler("SandsOfTimeP", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    if (state.properties.cardDict[cardIdx] instanceof SandsOfTimeP) {
+                        int newCardIdx = state.properties.sandsOfTimePTransformIndexes[cardIdx];
+                        if (newCardIdx != -1) {
+                            state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     public static abstract class _SignatureMoveT extends Card {
         private final int damage;
 
@@ -1339,7 +1428,53 @@ public class CardWatcher {
             super("Signature Move+", 40);
         }
     }
-    // todo: Simmering Fury
+
+    public static abstract class _SimmeringFuryT extends Card {
+        private final int drawCount;
+
+        public _SimmeringFuryT(String cardName, int drawCount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.drawCount = drawCount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += drawCount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SimmeringFury", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("SimmeringFury", new GameEventHandler(Integer.MAX_VALUE) {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.changeStance(Stance.WRATH);
+                        state.draw(state.getCounterForRead()[counterIdx]);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SimmeringFury extends _SimmeringFuryT {
+        public SimmeringFury() {
+            super("Simmering Fury", 2);
+        }
+    }
+
+    public static class SimmeringFuryP extends _SimmeringFuryT {
+        public SimmeringFuryP() {
+            super("Simmering Fury+", 3);
+        }
+    }
 
     private static abstract class _StudyT extends Card {
         public _StudyT(String cardName, int energyCost) {
@@ -1393,8 +1528,90 @@ public class CardWatcher {
     // todo: Swivel
     // todo: Talk to the Hand
     // todo: Tantrum
-    // todo: Wallop
-    // todo: Wave of the Hand
+
+    public static abstract class _WallopT extends Card {
+        private final int damage;
+
+        public _WallopT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int dmgDone = state.playerDoDamageToEnemy(enemy, damage);
+            if (dmgDone > 0) {
+                state.getPlayerForWrite().gainBlock(dmgDone);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Wallop extends _WallopT {
+        public Wallop() {
+            super("Wallop", 9);
+        }
+    }
+
+    public static class WallopP extends _WallopT {
+        public WallopP() {
+            super("Wallop+", 12);
+        }
+    }
+
+    public static abstract class _WaveOfTheHandT extends Card {
+        private final int weakAmount;
+
+        public _WaveOfTheHandT(String cardName, int weakAmount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.weakAmount = weakAmount;
+            this.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = weakAmount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("WaveOfTheHand", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnBlockHandler("WaveOfTheHand", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.applyDebuff(state, DebuffType.WEAK, state.getCounterForRead()[counterIdx]);
+                        }
+                    }
+                }
+            });
+            state.properties.addEndOfTurnHandler("WaveOfTheHand", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class WaveOfTheHand extends _WaveOfTheHandT {
+        public WaveOfTheHand() {
+            super("Wave of the Hand", 1);
+        }
+    }
+
+    public static class WaveOfTheHandP extends _WaveOfTheHandT {
+        public WaveOfTheHandP() {
+            super("Wave of the Hand+", 2);
+        }
+    }
 
     public static abstract class _WeaveT extends Card {
         private final int damage;
@@ -1575,7 +1792,58 @@ public class CardWatcher {
     }
 
     // todo: Conjure Blade
-    // todo: Deus Ex Machina
+
+    public static abstract class _DeusExMachinaT extends Card {
+        private final int miracleCount;
+
+        public _DeusExMachinaT(String cardName, int miracleCount) {
+            super(cardName, Card.SKILL, -1, Card.RARE);
+            this.miracleCount = miracleCount;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // This should never be called since it's unplayable (cost -1)
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardDrawnHandler("DeusExMachina", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx] instanceof _DeusExMachinaT deusEx) {
+                        // Add Miracles to hand
+                        for (int i = 0; i < deusEx.miracleCount; i++) {
+                            state.addCardToHand(state.properties.miracleCardIdx);
+                        }
+                        // Exhaust this card - find and remove it from hand
+                        for (int i = 0; i < state.handArrLen; i++) {
+                            if (state.getHandArrForRead()[i] == cardIdx) {
+                                state.removeCardFromHandByPosition(i);
+                                break;
+                            }
+                        }
+                        state.addCardToExhaust(cardIdx);
+                    }
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Miracle());
+        }
+    }
+
+    public static class DeusExMachina extends _DeusExMachinaT {
+        public DeusExMachina() {
+            super("Deus Ex Machina", 2);
+        }
+    }
+
+    public static class DeusExMachinaP extends _DeusExMachinaT {
+        public DeusExMachinaP() {
+            super("Deus Ex Machina+", 3);
+        }
+    }
 
     public static abstract class _DevaFormT extends Card {
         public _DevaFormT(String cardName, boolean ethereal) {
