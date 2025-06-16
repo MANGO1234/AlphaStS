@@ -162,6 +162,7 @@ public class CardWatcher {
             this.vulnerable = vulnerable;
             this.selectEnemy = true;
             this.needsLastCardType = true;
+            this.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -506,6 +507,7 @@ public class CardWatcher {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             this.weak = weak;
+            this.weakEnemy = true;
             this.selectEnemy = true;
             this.needsLastCardType = true;
         }
@@ -673,6 +675,7 @@ public class CardWatcher {
 
     // todo: Collect
     // todo: Conclude
+
     public static abstract class _DeceiveRealityT extends Card {
         private final int block;
 
@@ -703,6 +706,7 @@ public class CardWatcher {
             super("Deceive Reality+", 7);
         }
     }
+
     public static abstract class _EmptyMindT extends Card {
         private final int drawCount;
 
@@ -729,13 +733,120 @@ public class CardWatcher {
             super("Empty Mind+", 3);
         }
     }
+
     // todo: Fasting
     // todo: Fear No Evil
     // todo: Foreign Influence
     // todo: Foresight
-    // todo: Indignation
-    // todo: Inner Peace
-    // todo: Like Water
+
+    public static abstract class _IndignationT extends Card {
+        private final int vulnerable;
+
+        public _IndignationT(String cardName, int vulnerable) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.vulnerable = vulnerable;
+            this.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getStance() == Stance.WRATH) {
+                for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    enemy.applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
+                }
+            } else {
+                state.changeStance(Stance.WRATH);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Indignation extends _IndignationT {
+        public Indignation() {
+            super("Indignation", 3);
+        }
+    }
+
+    public static class IndignationP extends _IndignationT {
+        public IndignationP() {
+            super("Indignation+", 5);
+        }
+    }
+
+    public static abstract class _InnerPeaceT extends Card {
+        private final int drawCount;
+
+        public _InnerPeaceT(String cardName, int drawCount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.drawCount = drawCount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getStance() == Stance.CALM) {
+                state.draw(drawCount);
+            } else {
+                state.changeStance(Stance.CALM);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class InnerPeace extends _InnerPeaceT {
+        public InnerPeace() {
+            super("Inner Peace", 3);
+        }
+    }
+
+    public static class InnerPeaceP extends _InnerPeaceT {
+        public InnerPeaceP() {
+            super("Inner Peace+", 4);
+        }
+    }
+
+    public static abstract class _LikeWaterT extends Card {
+        private final int block;
+
+        public _LikeWaterT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += block;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("LikeWater", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addEndOfTurnHandler("LikeWater", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0 && state.getStance() == Stance.CALM) {
+                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class LikeWater extends _LikeWaterT {
+        public LikeWater() {
+            super("Like Water", 5);
+        }
+    }
+
+    public static class LikeWaterP extends _LikeWaterT {
+        public LikeWaterP() {
+            super("Like Water+", 7);
+        }
+    }
     // todo: Meditate
 
     private static abstract class _MentalFortressT extends Card {
@@ -822,7 +933,37 @@ public class CardWatcher {
         }
     }
 
-    // todo: Reach Heaven
+    public static abstract class _ReachHeavenT extends Card {
+        private final int damage;
+
+        public _ReachHeavenT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            state.addCardToDeck(state.properties.throughViolenceCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.ThroughViolence());
+        }
+    }
+
+    public static class ReachHeaven extends _ReachHeavenT {
+        public ReachHeaven() {
+            super("Reach Heaven", 10);
+        }
+    }
+
+    public static class ReachHeavenP extends _ReachHeavenT {
+        public ReachHeavenP() {
+            super("Reach Heaven+", 15);
+        }
+    }
 
     private static abstract class _RushdownT extends Card {
         private final int energyCost;
@@ -901,7 +1042,46 @@ public class CardWatcher {
     }
 
     // todo: Sands of Time
-    // todo: Signature Move
+    public static abstract class _SignatureMoveT extends Card {
+        private final int damage;
+
+        public _SignatureMoveT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            int attackCount = 0;
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType == Card.ATTACK) {
+                    attackCount++;
+                }
+            }
+            if (attackCount == 1) {
+                return energyCost;
+            } else {
+                return -1;
+            }
+        }
+    }
+
+    public static class SignatureMove extends _SignatureMoveT {
+        public SignatureMove() {
+            super("Signature Move", 30);
+        }
+    }
+
+    public static class SignatureMoveP extends _SignatureMoveT {
+        public SignatureMoveP() {
+            super("Signature Move+", 40);
+        }
+    }
     // todo: Simmering Fury
 
     private static abstract class _StudyT extends Card {

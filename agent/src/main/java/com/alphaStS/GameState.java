@@ -585,6 +585,8 @@ public final class GameState implements State {
                 properties.insightCardIdx = i;
             } else if (cards.get(i).cardName.equals("Safety")) {
                 properties.safetyCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Through Violence")) {
+                properties.throughViolenceCardIdx = i;
             } else if (cards.get(i).cardName.contains("Strike")) {
                 strikeIdxes.add(i);
             } else if (cards.get(i).cardName.equals("Echo Form")) {
