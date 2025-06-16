@@ -316,6 +316,39 @@ public class CardWatcher {
         }
     }
 
+    public static abstract class _ThirdEyeT extends Card {
+        private final int scryAmount;
+        private final int block;
+
+        public _ThirdEyeT(String cardName, int scryAmount, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.scryAmount = scryAmount;
+            this.block = block;
+            this.scry = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getPlayerForWrite().gainBlock(block);
+                return state.startScry(scryAmount);
+            } else {
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class ThirdEye extends _ThirdEyeT {
+        public ThirdEye() {
+            super("Third Eye", 3, 7);
+        }
+    }
+
+    public static class ThirdEyeP extends _ThirdEyeT {
+        public ThirdEyeP() {
+            super("Third Eye+", 5, 9);
+        }
+    }
+
     // Crush Joints
     // Crush Joints
     // Cut Through Fate

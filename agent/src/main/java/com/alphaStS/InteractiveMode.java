@@ -936,6 +936,7 @@ public class InteractiveMode {
                     state.getAction(i).type() == GameActionType.SELECT_CARD_DISCARD ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_EXHAUST ||
                     state.getAction(i).type() == GameActionType.SELECT_CARD_DECK ||
+                    state.getAction(i).type() == GameActionType.SCRY_KEEP_CARD ||
                     state.getAction(i).type() == GameActionType.BEGIN_TURN ||
                     state.getAction(i).type() == GameActionType.USE_POTION ||
                     state.getAction(i).type() == GameActionType.SELECT_SCENARIO ||
