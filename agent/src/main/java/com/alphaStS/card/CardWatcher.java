@@ -12,7 +12,7 @@ import java.util.List;
 public class CardWatcher {
     private static abstract class _EruptionT extends Card {
         public _EruptionT(String cardName, int energyCost) {
-            super(cardName, Card.ATTACK, energyCost, Card.UNCOMMON);
+            super(cardName, Card.ATTACK, energyCost, Card.COMMON);
             this.selectEnemy = true;
         }
 
@@ -35,12 +35,11 @@ public class CardWatcher {
         }
     }
 
-    // Vigilance
     private static abstract class _VigilanceT extends Card {
         private final int block;
 
         public _VigilanceT(String cardName, int block) {
-            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            super(cardName, Card.SKILL, 2, Card.COMMON);
             this.block = block;
         }
 
@@ -128,6 +127,66 @@ public class CardWatcher {
         }
     }
 
+    public static abstract class _CrescendoT extends Card {
+        public _CrescendoT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.COMMON);
+            this.retain = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.changeStance(Stance.WRATH);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Crescendo extends _CrescendoT {
+        public Crescendo() {
+            super("Crescendo", 1);
+        }
+    }
+
+    public static class CrescendoP extends _CrescendoT {
+        public CrescendoP() {
+            super("Crescendo+", 0);
+        }
+    }
+
+    private static abstract class _CrushJointsT extends Card {
+        private final int damage;
+        private final int vulnerable;
+
+        public _CrushJointsT(String cardName, int damage, int vulnerable) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.vulnerable = vulnerable;
+            this.selectEnemy = true;
+            this.needsLastCardType = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            if (state.getLastCardPlayedType() == Card.SKILL) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CrushJoints extends _CrushJointsT {
+        public CrushJoints() {
+            super("Crush Joints", 8, 1);
+        }
+    }
+
+    public static class CrushJointsP extends _CrushJointsT {
+        public CrushJointsP() {
+            super("Crush Joints+", 10, 2);
+        }
+    }
+
+    // todo: Cut Through Fate
+
     private static abstract class _EmptyBodyT extends Card {
         private final int block;
 
@@ -183,55 +242,38 @@ public class CardWatcher {
         }
     }
 
-    public static abstract class _CrescendoT extends Card {
-        public _CrescendoT(String cardName, int energyCost) {
-            super(cardName, Card.SKILL, energyCost, Card.COMMON);
-            this.retain = true;
-            this.exhaustWhenPlayed = true;
+    private static abstract class _EvaluateT extends Card {
+        private final int block;
+
+        public _EvaluateT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.changeStance(Stance.WRATH);
+            state.getPlayerForWrite().gainBlock(block);
+            state.addCardToDeck(state.properties.insightCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
-    }
 
-    public static class Crescendo extends _CrescendoT {
-        public Crescendo() {
-            super("Crescendo", 1);
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Insight());
         }
     }
 
-    public static class CrescendoP extends _CrescendoT {
-        public CrescendoP() {
-            super("Crescendo+", 0);
+    public static class Evaluate extends _EvaluateT {
+        public Evaluate() {
+            super("Evaluate", 6);
         }
     }
 
-    public static abstract class _TranquilityT extends Card {
-        public _TranquilityT(String cardName, int energyCost) {
-            super(cardName, Card.SKILL, energyCost, Card.COMMON);
-            this.retain = true;
-            this.exhaustWhenPlayed = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.changeStance(Stance.CALM);
-            return GameActionCtx.PLAY_CARD;
+    public static class EvaluateP extends _EvaluateT {
+        public EvaluateP() {
+            super("Evaluate+", 10);
         }
     }
 
-    public static class Tranquility extends _TranquilityT {
-        public Tranquility() {
-            super("Tranquility", 1);
-        }
-    }
-
-    public static class TranquilityP extends _TranquilityT {
-        public TranquilityP() {
-            super("Tranquility+", 0);
-        }
-    }
+    // todo: Flurry of Blows
 
     public static abstract class _FlyingSleevesT extends Card {
         private final int damage;
@@ -262,171 +304,34 @@ public class CardWatcher {
         }
     }
 
-    public static abstract class _ProtectT extends Card {
-        private final int block;
+    private static abstract class _FollowUpT extends Card {
+        private final int damage;
 
-        public _ProtectT(String cardName, int block) {
-            super(cardName, Card.SKILL, 2, Card.COMMON);
-            this.block = block;
-            this.retain = true;
+        public _FollowUpT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+            this.needsLastCardType = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            if (state.getLastCardPlayedType() == Card.ATTACK) {
+                state.gainEnergy(1);
+            }
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class Protect extends _ProtectT {
-        public Protect() {
-            super("Protect", 12);
+    public static class FollowUp extends _FollowUpT {
+        public FollowUp() {
+            super("Follow-Up", 7);
         }
     }
 
-    public static class ProtectP extends _ProtectT {
-        public ProtectP() {
-            super("Protect+", 16);
-        }
-    }
-
-    // Prostrate
-    public static abstract class _ProstrateT extends Card {
-        private final int mantra;
-        private final int block;
-
-        public _ProstrateT(String cardName, int mantra, int block) {
-            super(cardName, Card.SKILL, 0, Card.COMMON);
-            this.mantra = mantra;
-            this.block = block;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
-            state.gainMantra(mantra);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerMantraCounter();
-        }
-    }
-
-    public static class Prostrate extends _ProstrateT {
-        public Prostrate() {
-            super("Prostrate", 2, 3);
-        }
-    }
-
-    public static class ProstrateP extends _ProstrateT {
-        public ProstrateP() {
-            super("Prostrate+", 3, 4);
-        }
-    }
-
-    // Pray
-    public static abstract class _PrayT extends Card {
-        private final int mantra;
-
-        public _PrayT(String cardName, int mantra) {
-            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
-            this.mantra = mantra;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.gainMantra(mantra);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerMantraCounter();
-        }
-    }
-
-    public static class Pray extends _PrayT {
-        public Pray() {
-            super("Pray", 3);
-        }
-    }
-
-    public static class PrayP extends _PrayT {
-        public PrayP() {
-            super("Pray+", 4);
-        }
-    }
-
-    // Worship
-    public static abstract class _WorshipT extends Card {
-        public _WorshipT(String cardName, boolean retain) {
-            super(cardName, Card.SKILL, 2, Card.RARE);
-            this.retain = retain;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.gainMantra(5);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerMantraCounter();
-        }
-    }
-
-    public static class Worship extends _WorshipT {
-        public Worship() {
-            super("Worship", false);
-        }
-    }
-
-    public static class WorshipP extends _WorshipT {
-        public WorshipP() {
-            super("Worship+", true);
-        }
-    }
-
-    // Devotion
-    public static abstract class _DevotionT extends Card {
-        private final int mantraPerTurn;
-
-        public _DevotionT(String cardName, int mantraPerTurn) {
-            super(cardName, Card.POWER, 1, Card.RARE);
-            this.mantraPerTurn = mantraPerTurn;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += mantraPerTurn;
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerMantraCounter();
-            state.properties.registerCounter("Devotion", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addStartOfTurnHandler("Devotion", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
-                        state.gainMantra(state.getCounterForRead()[counterIdx]);
-                    }
-                }
-            });
-        }
-    }
-
-    public static class Devotion extends _DevotionT {
-        public Devotion() {
-            super("Devotion", 2);
-        }
-    }
-
-    public static class DevotionP extends _DevotionT {
-        public DevotionP() {
-            super("Devotion+", 3);
+    public static class FollowUpP extends _FollowUpT {
+        public FollowUpP() {
+            super("Follow-Up+", 11);
         }
     }
 
@@ -462,6 +367,71 @@ public class CardWatcher {
         }
     }
 
+    // todo: Just Lucky
+    // todo: Pressure Points
+
+    public static abstract class _ProstrateT extends Card {
+        private final int mantra;
+        private final int block;
+
+        public _ProstrateT(String cardName, int mantra, int block) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.mantra = mantra;
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.gainMantra(mantra);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+        }
+    }
+
+    public static class Prostrate extends _ProstrateT {
+        public Prostrate() {
+            super("Prostrate", 2, 3);
+        }
+    }
+
+    public static class ProstrateP extends _ProstrateT {
+        public ProstrateP() {
+            super("Prostrate+", 3, 4);
+        }
+    }
+
+    public static abstract class _ProtectT extends Card {
+        private final int block;
+
+        public _ProtectT(String cardName, int block) {
+            super(cardName, Card.SKILL, 2, Card.COMMON);
+            this.block = block;
+            this.retain = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Protect extends _ProtectT {
+        public Protect() {
+            super("Protect", 12);
+        }
+    }
+
+    public static class ProtectP extends _ProtectT {
+        public ProtectP() {
+            super("Protect+", 16);
+        }
+    }
+
+    // todo: Sash Whip
+
     public static abstract class _ThirdEyeT extends Card {
         private final int scryAmount;
         private final int block;
@@ -495,110 +465,31 @@ public class CardWatcher {
         }
     }
 
-    private static abstract class _CrushJointsT extends Card {
-        private final int damage;
-        private final int vulnerable;
-
-        public _CrushJointsT(String cardName, int damage, int vulnerable) {
-            super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.damage = damage;
-            this.vulnerable = vulnerable;
-            this.selectEnemy = true;
-            this.needsLastCardType = true;
+    public static abstract class _TranquilityT extends Card {
+        public _TranquilityT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.COMMON);
+            this.retain = true;
+            this.exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
-            if (state.getLastCardPlayedType() == Card.SKILL) {
-                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
-            }
+            state.changeStance(Stance.CALM);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class CrushJoints extends _CrushJointsT {
-        public CrushJoints() {
-            super("Crush Joints", 8, 1);
+    public static class Tranquility extends _TranquilityT {
+        public Tranquility() {
+            super("Tranquility", 1);
         }
     }
 
-    public static class CrushJointsP extends _CrushJointsT {
-        public CrushJointsP() {
-            super("Crush Joints+", 10, 2);
-        }
-    }
-    // todo: Cut Through Fate
-    private static abstract class _EvaluateT extends Card {
-        private final int block;
-
-        public _EvaluateT(String cardName, int block) {
-            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
-            this.block = block;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
-            state.addCardToDeck(state.properties.insightCardIdx);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
-            return List.of(new CardColorless.Insight());
+    public static class TranquilityP extends _TranquilityT {
+        public TranquilityP() {
+            super("Tranquility+", 0);
         }
     }
 
-    public static class Evaluate extends _EvaluateT {
-        public Evaluate() {
-            super("Evaluate", 6);
-        }
-    }
-
-    public static class EvaluateP extends _EvaluateT {
-        public EvaluateP() {
-            super("Evaluate+", 10);
-        }
-    }
-
-    // todo: Flurry of Blows
-    // todo: Flying Sleeves
-    private static abstract class _FollowUpT extends Card {
-        private final int damage;
-
-        public _FollowUpT(String cardName, int damage) {
-            super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.damage = damage;
-            this.selectEnemy = true;
-            this.needsLastCardType = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
-            if (state.getLastCardPlayedType() == Card.ATTACK) {
-                state.gainEnergy(1);
-            }
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
-    public static class FollowUp extends _FollowUpT {
-        public FollowUp() {
-            super("Follow-Up", 7);
-        }
-    }
-
-    public static class FollowUpP extends _FollowUpT {
-        public FollowUpP() {
-            super("Follow-Up+", 11);
-        }
-    }
-    // todo: Halt
-    // todo: Just Lucky
-    // todo: Pressure Points
-    // todo: Prostrate
-    // todo: Protect
-    // todo: Sash Whip
-    // todo: Third Eye
-    // todo: Tranquility
     private static abstract class _BattleHymnT extends Card {
         public _BattleHymnT(String cardName, boolean innate) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
@@ -616,6 +507,7 @@ public class CardWatcher {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
                     return idx + 1;
                 }
+
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
@@ -692,6 +584,7 @@ public class CardWatcher {
     // todo: Inner Peace
     // todo: Like Water
     // todo: Meditate
+
     private static abstract class _MentalFortressT extends Card {
         private final int block;
 
@@ -737,10 +630,42 @@ public class CardWatcher {
             super("Mental Fortress+", 6);
         }
     }
+
     // todo: Nirvana
     // todo: Perseverance
-    // todo: Pray
+
+    public static abstract class _PrayT extends Card {
+        private final int mantra;
+
+        public _PrayT(String cardName, int mantra) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.mantra = mantra;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainMantra(mantra);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+        }
+    }
+
+    public static class Pray extends _PrayT {
+        public Pray() {
+            super("Pray", 3);
+        }
+    }
+
+    public static class PrayP extends _PrayT {
+        public PrayP() {
+            super("Pray+", 4);
+        }
+    }
+
     // todo: Reach Heaven
+
     private static abstract class _RushdownT extends Card {
         private final int energyCost;
 
@@ -786,6 +711,7 @@ public class CardWatcher {
             super("Rushdown+", 0);
         }
     }
+
     private static abstract class _SanctityT extends Card {
         private final int block;
 
@@ -815,9 +741,11 @@ public class CardWatcher {
             super("Sanctity+", 9);
         }
     }
+
     // todo: Sands of Time
     // todo: Signature Move
     // todo: Simmering Fury
+
     private static abstract class _StudyT extends Card {
         public _StudyT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
@@ -834,6 +762,7 @@ public class CardWatcher {
                     input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
                     return idx + 1;
                 }
+
                 @Override public int getInputLenDelta() {
                     return 1;
                 }
@@ -874,15 +803,91 @@ public class CardWatcher {
     // todo: Weave
     // todo: Wheel Kick
     // todo: Windmill Strike
-    // todo: Worship
+
+    public static abstract class _WorshipT extends Card {
+        public _WorshipT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.retain = retain;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainMantra(5);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+        }
+    }
+
+    public static class Worship extends _WorshipT {
+        public Worship() {
+            super("Worship", false);
+        }
+    }
+
+    public static class WorshipP extends _WorshipT {
+        public WorshipP() {
+            super("Worship+", true);
+        }
+    }
+
     // todo: Wreath of Flame
+
     // todo: Alpha
     // todo: Blasphemy
     // todo: Brilliance
     // todo: Conjure Blade
     // todo: Deus Ex Machina
     // todo: Deva Form
-    // todo: Devotion
+
+    public static abstract class _DevotionT extends Card {
+        private final int mantraPerTurn;
+
+        public _DevotionT(String cardName, int mantraPerTurn) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.mantraPerTurn = mantraPerTurn;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += mantraPerTurn;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
+            state.properties.registerCounter("Devotion", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Devotion", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainMantra(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Devotion extends _DevotionT {
+        public Devotion() {
+            super("Devotion", 2);
+        }
+    }
+
+    public static class DevotionP extends _DevotionT {
+        public DevotionP() {
+            super("Devotion+", 3);
+        }
+    }
+
     // todo: Establishment
     // todo: Judgment
     // todo: Lesson Learned
