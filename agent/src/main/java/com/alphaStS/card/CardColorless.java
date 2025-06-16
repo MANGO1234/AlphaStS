@@ -1252,4 +1252,33 @@ public class CardColorless {
             super("Safety+", 16);
         }
     }
+
+    private static abstract class _ThroughViolenceT extends Card {
+        private final int damage;
+
+        public _ThroughViolenceT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+            this.retain = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ThroughViolence extends _ThroughViolenceT {
+        public ThroughViolence() {
+            super("Through Violence", 20);
+        }
+    }
+
+    public static class ThroughViolenceP extends _ThroughViolenceT {
+        public ThroughViolenceP() {
+            super("Through Violence+", 30);
+        }
+    }
 }
