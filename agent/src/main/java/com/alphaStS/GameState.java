@@ -5242,6 +5242,9 @@ public final class GameState implements State {
         if (properties.mantraCounterIdx < 0) {
             return;
         }
+        if (properties.brillianceCounterIdx >= 0) {
+            getCounterForWrite()[properties.brillianceCounterIdx] += amount;
+        }
         int currentMantra = getCounterForRead()[properties.mantraCounterIdx];
         int newMantra = (currentMantra + amount) % 10;
         if (currentMantra + amount >= 10) {

@@ -5,6 +5,8 @@ import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameEventHandler;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.GameStateUtils;
+import com.alphaStS.RandomGenCtx;
 import com.alphaStS.enums.Stance;
 
 import java.util.List;
@@ -307,7 +309,48 @@ public class CardWatcher {
         }
     }
 
-    // todo: Flurry of Blows
+    public static abstract class _FlurryOfBlowsT extends Card {
+        private final int damage;
+
+        public _FlurryOfBlowsT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnStanceChangeHandler("FlurryOfBlows", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    // Move all Flurry of Blows cards from discard to hand
+                    for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
+                        int cardIdx = state.getDiscardArrForRead()[i];
+                        if (state.properties.cardDict[cardIdx].cardName.startsWith("Flurry of Blows")) {
+                            state.removeCardFromDiscardByPosition(i);
+                            i--;
+                            state.addCardToHand(cardIdx);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class FlurryOfBlows extends _FlurryOfBlowsT {
+        public FlurryOfBlows() {
+            super("Flurry of Blows", 4);
+        }
+    }
+
+    public static class FlurryOfBlowsP extends _FlurryOfBlowsT {
+        public FlurryOfBlowsP() {
+            super("Flurry of Blows+", 6);
+        }
+    }
 
     public static abstract class _FlyingSleevesT extends Card {
         private final int damage;
@@ -735,7 +778,35 @@ public class CardWatcher {
     }
 
     // todo: Fasting
-    // todo: Fear No Evil
+    public static abstract class _FearNoEvilT extends Card {
+        private final int damage;
+
+        public _FearNoEvilT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            if (state.getEnemiesForWrite().get(idx).getMoveString(state).contains("Attack")) {
+                state.changeStance(Stance.CALM);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FearNoEvil extends _FearNoEvilT {
+        public FearNoEvil() {
+            super("Fear No Evil", 8);
+        }
+    }
+
+    public static class FearNoEvilP extends _FearNoEvilT {
+        public FearNoEvilP() {
+            super("Fear No Evil+", 11);
+        }
+    }
     // todo: Foreign Influence
     // todo: Foresight
 
@@ -1174,7 +1245,56 @@ public class CardWatcher {
 
     // todo: Alpha
     // todo: Blasphemy
-    // todo: Brilliance
+
+    public static abstract class _BrillianceT extends Card {
+        private final int damage;
+
+        public _BrillianceT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int totalDamage = damage;
+            if (counterIdx >= 0) {
+                totalDamage += state.getCounterForRead()[counterIdx];
+            }
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), totalDamage, true);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Brilliance", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 50.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.brillianceCounterIdx = idx;
+        }
+    }
+
+    public static class Brilliance extends _BrillianceT {
+        public Brilliance() {
+            super("Brilliance", 12);
+        }
+    }
+
+    public static class BrillianceP extends _BrillianceT {
+        public BrillianceP() {
+            super("Brilliance+", 16);
+        }
+    }
+
     // todo: Conjure Blade
     // todo: Deus Ex Machina
     // todo: Deva Form
@@ -1231,8 +1351,62 @@ public class CardWatcher {
     // todo: Lesson Learned
     // todo: Master Reality
     // todo: Omniscience
-    // todo: Ragnarok
-    // todo: Scrawl
+    public static abstract class _RagnarokT extends Card {
+        private final int damage;
+        private final int hits;
+
+        public _RagnarokT(String cardName, int damage, int hits) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.damage = damage;
+            this.hits = hits;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < hits; i++) {
+                var enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                if (enemyIdx >= 0) {
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Ragnarok extends _RagnarokT {
+        public Ragnarok() {
+            super("Ragnarok", 5, 5);
+        }
+    }
+
+    public static class RagnarokP extends _RagnarokT {
+        public RagnarokP() {
+            super("Ragnarok+", 6, 6);
+        }
+    }
+
+    public static abstract class _ScrawlT extends Card {
+        public _ScrawlT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(GameState.HAND_LIMIT - state.handArrLen);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Scrawl extends _ScrawlT {
+        public Scrawl() {
+            super("Scrawl", 1);
+        }
+    }
+
+    public static class ScrawlP extends _ScrawlT {
+        public ScrawlP() {
+            super("Scrawl+", 0);
+        }
+    }
     // todo: Spirit Shield
     // todo: Vault
     // todo: Wish
