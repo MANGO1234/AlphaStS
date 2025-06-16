@@ -185,7 +185,40 @@ public class CardWatcher {
         }
     }
 
-    // todo: Cut Through Fate
+    public static abstract class _CutThroughFateT extends Card {
+        private final int damage;
+        private final int scryAmount;
+
+        public _CutThroughFateT(String cardName, int damage, int scryAmount) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.scryAmount = scryAmount;
+            this.selectEnemy = true;
+            this.scry = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+                return state.startScry(scryAmount);
+            } else {
+                state.draw(1);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class CutThroughFate extends _CutThroughFateT {
+        public CutThroughFate() {
+            super("Cut Through Fate", 7, 2);
+        }
+    }
+
+    public static class CutThroughFateP extends _CutThroughFateT {
+        public CutThroughFateP() {
+            super("Cut Through Fate+", 9, 3);
+        }
+    }
 
     private static abstract class _EmptyBodyT extends Card {
         private final int block;
@@ -367,7 +400,42 @@ public class CardWatcher {
         }
     }
 
-    // todo: Just Lucky
+    public static abstract class _JustLuckyT extends Card {
+        private final int scryAmount;
+        private final int block;
+        private final int damage;
+
+        public _JustLuckyT(String cardName, int scryAmount, int block, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.scryAmount = scryAmount;
+            this.block = block;
+            this.damage = damage;
+            this.selectEnemy = true;
+            this.scry = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                state.getPlayerForWrite().gainBlock(block);
+                state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+                return state.startScry(scryAmount);
+            } else {
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class JustLucky extends _JustLuckyT {
+        public JustLucky() {
+            super("Just Lucky", 1, 2, 3);
+        }
+    }
+
+    public static class JustLuckyP extends _JustLuckyT {
+        public JustLuckyP() {
+            super("Just Lucky+", 2, 3, 4);
+        }
+    }
     // todo: Pressure Points
 
     public static abstract class _ProstrateT extends Card {
@@ -430,7 +498,38 @@ public class CardWatcher {
         }
     }
 
-    // todo: Sash Whip
+    public static abstract class _SashWhipT extends Card {
+        private final int damage;
+        private final int weak;
+
+        public _SashWhipT(String cardName, int damage, int weak) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.weak = weak;
+            this.selectEnemy = true;
+            this.needsLastCardType = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            if (state.getLastCardPlayedType() == Card.ATTACK) {
+                state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, weak);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SashWhip extends _SashWhipT {
+        public SashWhip() {
+            super("Sash Whip", 8, 1);
+        }
+    }
+
+    public static class SashWhipP extends _SashWhipT {
+        public SashWhipP() {
+            super("Sash Whip+", 10, 2);
+        }
+    }
 
     public static abstract class _ThirdEyeT extends Card {
         private final int scryAmount;
@@ -574,8 +673,62 @@ public class CardWatcher {
 
     // todo: Collect
     // todo: Conclude
-    // todo: Deceive Reality
-    // todo: Empty Mind
+    public static abstract class _DeceiveRealityT extends Card {
+        private final int block;
+
+        public _DeceiveRealityT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.addCardToHand(state.properties.safetyCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Safety());
+        }
+    }
+
+    public static class DeceiveReality extends _DeceiveRealityT {
+        public DeceiveReality() {
+            super("Deceive Reality", 4);
+        }
+    }
+
+    public static class DeceiveRealityP extends _DeceiveRealityT {
+        public DeceiveRealityP() {
+            super("Deceive Reality+", 7);
+        }
+    }
+    public static abstract class _EmptyMindT extends Card {
+        private final int drawCount;
+
+        public _EmptyMindT(String cardName, int drawCount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.drawCount = drawCount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.changeStance(Stance.NEUTRAL);
+            state.draw(drawCount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class EmptyMind extends _EmptyMindT {
+        public EmptyMind() {
+            super("Empty Mind", 2);
+        }
+    }
+
+    public static class EmptyMindP extends _EmptyMindT {
+        public EmptyMindP() {
+            super("Empty Mind+", 3);
+        }
+    }
     // todo: Fasting
     // todo: Fear No Evil
     // todo: Foreign Influence
@@ -644,7 +797,12 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainMantra(mantra);
+            state.addCardToDeck(state.properties.insightCardIdx);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            return List.of(new CardColorless.Insight());
         }
 
         @Override public void gamePropertiesSetup(GameState state) {

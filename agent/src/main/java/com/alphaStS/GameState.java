@@ -583,6 +583,8 @@ public final class GameState implements State {
                 properties.smiteCardIdx = i;
             } else if (cards.get(i).cardName.equals("Insight")) {
                 properties.insightCardIdx = i;
+            } else if (cards.get(i).cardName.equals("Safety")) {
+                properties.safetyCardIdx = i;
             } else if (cards.get(i).cardName.contains("Strike")) {
                 strikeIdxes.add(i);
             } else if (cards.get(i).cardName.equals("Echo Form")) {
