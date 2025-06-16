@@ -716,7 +716,53 @@ public class CardWatcher {
         }
     }
 
-    // todo: Collect
+    public static abstract class _CollectT extends Card {
+        private final int bonus;
+
+        public _CollectT(String cardName, int bonus) {
+            super(cardName, Card.SKILL, -1, Card.UNCOMMON);
+            this.bonus = bonus;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = energyUsed + bonus;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Collect", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Collect", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.addCardToHand(state.properties.miraclePCardIdx);
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Collect extends _CollectT {
+        public Collect() {
+            super("Collect", 0);
+        }
+    }
+
+    public static class CollectP extends _CollectT {
+        public CollectP() {
+            super("Collect+", 1);
+        }
+    }
+
     // todo: Conclude
 
     public static abstract class _DeceiveRealityT extends Card {
@@ -1243,7 +1289,31 @@ public class CardWatcher {
 
     // todo: Wreath of Flame
 
-    // todo: Alpha
+    private static abstract class _AlphaT extends Card {
+        public _AlphaT(String cardName, boolean innate) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.exhaustWhenPlayed = true;
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.addCardToDeck(state.properties.betaCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Alpha extends _AlphaT {
+        public Alpha() {
+            super("Alpha", false);
+        }
+    }
+
+    public static class AlphaP extends _AlphaT {
+        public AlphaP() {
+            super("Alpha+", true);
+        }
+    }
+
     // todo: Blasphemy
 
     public static abstract class _BrillianceT extends Card {
@@ -1297,7 +1367,53 @@ public class CardWatcher {
 
     // todo: Conjure Blade
     // todo: Deus Ex Machina
-    // todo: Deva Form
+
+    public static abstract class _DevaFormT extends Card {
+        public _DevaFormT(String cardName, boolean ethereal) {
+            super(cardName, Card.POWER, 3, Card.RARE);
+            this.ethereal = ethereal;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DevaForm", this, 2, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f; // Deva Forms played
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 20.0f; // Current energy gain
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.properties.addStartOfTurnHandler("DevaForm", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
+                        int devaFormsPlayed = state.getCounterForRead()[counterIdx];
+                        state.getCounterForWrite()[counterIdx + 1] += devaFormsPlayed;
+                        state.gainEnergy(state.getCounterForRead()[counterIdx + 1]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class DevaForm extends _DevaFormT {
+        public DevaForm() {
+            super("Deva Form", true);
+        }
+    }
+
+    public static class DevaFormP extends _DevaFormT {
+        public DevaFormP() {
+            super("Deva Form+", false);
+        }
+    }
 
     public static abstract class _DevotionT extends Card {
         private final int mantraPerTurn;
@@ -1347,10 +1463,40 @@ public class CardWatcher {
     }
 
     // todo: Establishment
-    // todo: Judgment
+
+    public static abstract class _JudgmentT extends Card {
+        private final int hpThreshold;
+
+        public _JudgmentT(String cardName, int hpThreshold) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.hpThreshold = hpThreshold;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getEnemiesForRead().get(idx).getHealth() <= hpThreshold) {
+                state.killEnemy(idx, true);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Judgment extends _JudgmentT {
+        public Judgment() {
+            super("Judgment", 30);
+        }
+    }
+
+    public static class JudgmentP extends _JudgmentT {
+        public JudgmentP() {
+            super("Judgment+", 40);
+        }
+    }
+
     // todo: Lesson Learned
     // todo: Master Reality
     // todo: Omniscience
+
     public static abstract class _RagnarokT extends Card {
         private final int damage;
         private final int hits;
@@ -1407,7 +1553,33 @@ public class CardWatcher {
             super("Scrawl+", 0);
         }
     }
-    // todo: Spirit Shield
+
+    public static abstract class _SpiritShieldT extends Card {
+        private final int blockPerCard;
+
+        public _SpiritShieldT(String cardName, int blockPerCard) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.blockPerCard = blockPerCard;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(state.handArrLen * blockPerCard);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SpiritShield extends _SpiritShieldT {
+        public SpiritShield() {
+            super("Spirit Shield", 3);
+        }
+    }
+
+    public static class SpiritShieldP extends _SpiritShieldT {
+        public SpiritShieldP() {
+            super("Spirit Shield+", 4);
+        }
+    }
+
     // todo: Vault
     // todo: Wish
 }

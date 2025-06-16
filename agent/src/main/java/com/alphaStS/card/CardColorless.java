@@ -1281,4 +1281,103 @@ public class CardColorless {
             super("Through Violence+", 30);
         }
     }
+
+    private static abstract class _MiracleT extends Card {
+        private final int energyGain;
+
+        public _MiracleT(String cardName, int energyGain) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.energyGain = energyGain;
+            this.exhaustWhenPlayed = true;
+            this.retain = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(energyGain);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Miracle extends _MiracleT {
+        public Miracle() {
+            super("Miracle", 1);
+        }
+    }
+
+    public static class MiracleP extends _MiracleT {
+        public MiracleP() {
+            super("Miracle+", 2);
+        }
+    }
+
+    private static abstract class _BetaT extends Card {
+        public _BetaT(String cardName, int cost) {
+            super(cardName, Card.SKILL, cost, Card.COMMON);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.addCardToDeck(state.properties.omegaCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Beta extends _BetaT {
+        public Beta() {
+            super("Beta", 2);
+        }
+    }
+
+    public static class BetaP extends _BetaT {
+        public BetaP() {
+            super("Beta+", 1);
+        }
+    }
+
+    private static abstract class _OmegaT extends Card {
+        private final int damage;
+
+        public _OmegaT(String cardName, int damage) {
+            super(cardName, Card.POWER, 3, Card.COMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += damage;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Omega", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addEndOfTurnHandler("Omega", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Omega extends _OmegaT {
+        public Omega() {
+            super("Omega", 50);
+        }
+    }
+
+    public static class OmegaP extends _OmegaT {
+        public OmegaP() {
+            super("Omega+", 60);
+        }
+    }
 }
