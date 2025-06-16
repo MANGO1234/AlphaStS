@@ -1224,4 +1224,32 @@ public class CardColorless {
             super("Insight+", 3);
         }
     }
+
+    private static abstract class _SafetyT extends Card {
+        private final int block;
+
+        public _SafetyT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+            this.retain = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Safety extends _SafetyT {
+        public Safety() {
+            super("Safety", 12);
+        }
+    }
+
+    public static class SafetyP extends _SafetyT {
+        public SafetyP() {
+            super("Safety+", 16);
+        }
+    }
 }

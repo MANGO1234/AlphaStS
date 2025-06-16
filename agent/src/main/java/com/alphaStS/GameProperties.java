@@ -103,6 +103,7 @@ public class GameProperties implements Cloneable {
     public int shivPCardIdx = -1;
     public int smiteCardIdx = -1;
     public int insightCardIdx = -1;
+    public int safetyCardIdx = -1;
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
     public int apotheosisCardIdx = -1;
