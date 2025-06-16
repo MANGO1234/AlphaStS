@@ -162,6 +162,7 @@ public class Player extends PlayerReadOnly {
         case HEX -> this.hexed = true;
         case LOSE_FOCUS -> state.gainFocus(-n);
         case LOSE_FOCUS_PER_TURN -> state.getCounterForWrite()[state.properties.loseFocusPerTurnCounterIdx] += n;
+        case LOSE_ENERGY_PER_TURN -> state.getCounterForWrite()[state.properties.loseEnergyPerTurnCounterIdx] += n;
         case CONSTRICTED -> state.getCounterForWrite()[state.properties.constrictedCounterIdx] += n;
         case DRAW_REDUCTION -> state.getCounterForWrite()[state.properties.drawReductionCounterIdx] += n;
         case NO_BLOCK_FROM_CARDS -> this.noMoreBlockFromCards += n;

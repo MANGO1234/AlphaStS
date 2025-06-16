@@ -823,7 +823,60 @@ public class CardWatcher {
         }
     }
 
-    // todo: Fasting
+    public static abstract class _FastingT extends Card {
+        private final int statBonus;
+
+        public _FastingT(String cardName, int statBonus) {
+            super(cardName, Card.POWER, 2, Card.UNCOMMON);
+            this.statBonus = statBonus;
+            this.changePlayerStrength = true;
+            this.changePlayerDexterity = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainStrength(statBonus);
+            state.getPlayerForWrite().gainDexterity(statBonus);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_ENERGY_PER_TURN, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("FastingLoseEnergy", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Fasting", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainEnergy(-state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.loseEnergyPerTurnCounterIdx = idx;
+        }
+    }
+
+    public static class Fasting extends _FastingT {
+        public Fasting() {
+            super("Fasting", 3);
+        }
+    }
+
+    public static class FastingP extends _FastingT {
+        public FastingP() {
+            super("Fasting+", 4);
+        }
+    }
+
     public static abstract class _FearNoEvilT extends Card {
         private final int damage;
 
@@ -853,8 +906,51 @@ public class CardWatcher {
             super("Fear No Evil+", 11);
         }
     }
+
     // todo: Foreign Influence
-    // todo: Foresight
+
+    public static abstract class _ForesightT extends Card {
+        private final int scryAmount;
+
+        public _ForesightT(String cardName, int scryAmount) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.scryAmount = scryAmount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.getCounterForWrite()[counterIdx] += scryAmount;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Foresight", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.foresightCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Foresight extends _ForesightT {
+        public Foresight() {
+            super("Foresight", 3);
+        }
+    }
+
+    public static class ForesightP extends _ForesightT {
+        public ForesightP() {
+            super("Foresight+", 4);
+        }
+    }
 
     public static abstract class _IndignationT extends Card {
         private final int vulnerable;
@@ -1012,7 +1108,51 @@ public class CardWatcher {
         }
     }
 
-    // todo: Nirvana
+    public static abstract class _NirvanaT extends Card {
+        private final int block;
+
+        public _NirvanaT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += block;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Nirvana", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnScryHandler("Nirvana", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Nirvana extends _NirvanaT {
+        public Nirvana() {
+            super("Nirvana", 3);
+        }
+    }
+
+    public static class NirvanaP extends _NirvanaT {
+        public NirvanaP() {
+            super("Nirvana+", 4);
+        }
+    }
+
     // todo: Perseverance
 
     public static abstract class _PrayT extends Card {
@@ -1255,8 +1395,77 @@ public class CardWatcher {
     // todo: Tantrum
     // todo: Wallop
     // todo: Wave of the Hand
-    // todo: Weave
-    // todo: Wheel Kick
+
+    public static abstract class _WeaveT extends Card {
+        private final int damage;
+
+        public _WeaveT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnScryHandler("Weave", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
+                        int cardIdx = state.getDiscardArrForRead()[i];
+                        if (state.properties.cardDict[cardIdx].cardName.startsWith("Weave")) {
+                            state.removeCardFromDiscardByPosition(i);
+                            i--;
+                            state.addCardToHand(cardIdx);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Weave extends _WeaveT {
+        public Weave() {
+            super("Weave", 4);
+        }
+    }
+
+    public static class WeaveP extends _WeaveT {
+        public WeaveP() {
+            super("Weave+", 6);
+        }
+    }
+
+    public static abstract class _WheelKickT extends Card {
+        private final int damage;
+
+        public _WheelKickT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.draw(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class WheelKick extends _WheelKickT {
+        public WheelKick() {
+            super("Wheel Kick", 15);
+        }
+    }
+
+    public static class WheelKickP extends _WheelKickT {
+        public WheelKickP() {
+            super("Wheel Kick+", 20);
+        }
+    }
+
     // todo: Windmill Strike
 
     public static abstract class _WorshipT extends Card {
