@@ -172,6 +172,7 @@ public class GameProperties implements Cloneable {
     public int electrodynamicsCounterIdx = -1;
     public int biasedCognitionLimitCounterIdx = -1;
     public int mantraCounterIdx = -1;
+    public int brillianceCounterIdx = -1;
     public int looterVArrayIdx = -1;
     public int writhingMassVIdx = -1;
     public int alchemizeVIdx = -1;
