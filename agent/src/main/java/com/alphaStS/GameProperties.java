@@ -279,7 +279,8 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> endOfTurnHandlers = new ArrayList<>();
     public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
-    public List<GameEventHandler> onBlockHandlers = new ArrayList<>(); // todo: need to call handler
+    public List<GameEventHandler> onBlockHandlers = new ArrayList<>();
+    public List<GameEventHandler> onShuffleHandlers = new ArrayList<>();
     public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
     public List<GameEventHandler> onScryHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
@@ -668,6 +669,17 @@ public class GameProperties implements Cloneable {
         if (gameEventHandlers.get(handlerName + "OnRetain") == null) {
             gameEventHandlers.put(handlerName + "OnRetain", handler);
             onRetainHandlers.add(handler);
+        }
+    }
+
+    public void addOnShuffleHandler(GameEventHandler handler) {
+        onShuffleHandlers.add(handler);
+    }
+
+    public void addOnShuffleHandler(String handlerName, GameEventHandler handler) {
+        if (gameEventHandlers.get(handlerName + "OnShuffle") == null) {
+            gameEventHandlers.put(handlerName + "OnShuffle", handler);
+            onShuffleHandlers.add(handler);
         }
     }
 
