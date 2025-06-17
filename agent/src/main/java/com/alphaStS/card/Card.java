@@ -53,6 +53,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean chokeEnemy;
     public boolean poisonEnemy;
     public boolean corpseExplosionEnemy;
+    public boolean lockOnEnemy;
+    public boolean talkToTheHandEnemy;
+    public boolean markEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean needsLastCardType;
@@ -176,6 +179,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             chokeEnemy = card.chokeEnemy;
+            poisonEnemy = card.poisonEnemy;
+            corpseExplosionEnemy = card.corpseExplosionEnemy;
+            lockOnEnemy = card.lockOnEnemy;
+            talkToTheHandEnemy = card.talkToTheHandEnemy;
+            markEnemy = card.markEnemy;
             affectEnemyStrength = card.affectEnemyStrength;
             affectEnemyStrengthEot = card.affectEnemyStrengthEot;
             needsLastCardType = card.needsLastCardType;

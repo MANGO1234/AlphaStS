@@ -492,6 +492,7 @@ public class CardWatcher {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.mark = mark;
             this.selectEnemy = true;
+            this.markEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1775,6 +1776,7 @@ public class CardWatcher {
             this.blockReturn = blockReturn;
             this.selectEnemy = true;
             this.exhaustWhenPlayed = true;
+            this.talkToTheHandEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

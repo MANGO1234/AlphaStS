@@ -693,6 +693,9 @@ public final class GameState implements State {
         properties.enemyCanGetWeakened |= relics.stream().anyMatch((x) -> x.weakEnemy);
         properties.enemyCanGetWeakened |= potions.stream().anyMatch((x) -> x.weakEnemy);
         properties.enemyCanGetChoked = cards.stream().anyMatch((x) -> x.chokeEnemy);
+        properties.enemyCanGetLockOn = cards.stream().anyMatch((x) -> x.lockOnEnemy);
+        properties.enemyCanGetTalkToTheHand = cards.stream().anyMatch((x) -> x.talkToTheHandEnemy);
+        properties.enemyCanGetMark = cards.stream().anyMatch((x) -> x.markEnemy);
         properties.enemyCanGetPoisoned = cards.stream().anyMatch((x) -> x.poisonEnemy);
         properties.enemyCanGetPoisoned |= potions.stream().anyMatch((x) -> x.poisonEnemy);
         properties.enemyCanGetCorpseExplosion = cards.stream().anyMatch((x) -> x.corpseExplosionEnemy);
@@ -700,6 +703,7 @@ public final class GameState implements State {
         properties.enemyStrengthCanChange = cards.stream().anyMatch((x) -> x.affectEnemyStrength);
         properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
         properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
+        properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Blasphemy")) ? PlayerBuff.BLASPHEMY.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Akabeko) ? PlayerBuff.AKABEKO.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.ArtOfWar) ? PlayerBuff.ART_OF_WAR.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
@@ -1486,6 +1490,26 @@ public final class GameState implements State {
             if (cardPlayedSuccessfully && properties.previousCardPlayTracking) {
                 lastCardPlayedType = properties.cardDict[cardIdx].cardType;
             }
+            // Determine cloneParentLocation before calling handlers
+            if (cloneSource == null && !exhaustWhenPlayed) {
+                if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
+                    cloneParentLocation = GameState.EXHAUST;
+                } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                    cloneParentLocation = GameState.EXHAUST;
+                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
+                    cloneParentLocation = GameState.DECK;
+                } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
+                    if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
+                        if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
+                            cloneParentLocation = GameState.DISCARD;
+                        } else {
+                            cloneParentLocation = GameState.DECK;
+                        }
+                    } else {
+                        cloneParentLocation = GameState.DISCARD;
+                    }
+                }
+            }
             for (var handler : properties.onCardPlayedHandlers) {
                 handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
             }
@@ -1497,27 +1521,21 @@ public final class GameState implements State {
             if (cloneSource == null && !exhaustWhenPlayed) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
-                    cloneParentLocation = GameState.EXHAUST;
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     exhaustedCardHandle(cardIdx, true);
-                    cloneParentLocation = GameState.EXHAUST;
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
                     addCardToDeck(cardIdx);
-                    cloneParentLocation = GameState.DECK;
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                     if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
                         if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
                             addCardToDiscard(cardIdx);
-                            cloneParentLocation = GameState.DISCARD;
                             getCounterForWrite()[properties.reboundCounterIdx]++;
                             getCounterForWrite()[properties.reboundCounterIdx] ^= 1 << 8;
                         } else {
                             addCardOnTopOfDeck(cardIdx);
-                            cloneParentLocation = GameState.DECK;
                         }
                     } else {
                         addCardToDiscard(cardIdx);
-                        cloneParentLocation = GameState.DISCARD;
                     }
                 }
                 if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
@@ -3362,6 +3380,15 @@ public final class GameState implements State {
             if (properties.enemyCanGetChoked) {
                 inputLen += 1; // enemy choke
             }
+            if (properties.enemyCanGetLockOn) {
+                inputLen += 1; // enemy lockOn
+            }
+            if (properties.enemyCanGetTalkToTheHand) {
+                inputLen += 1; // enemy talkToTheHand
+            }
+            if (properties.enemyCanGetMark) {
+                inputLen += 1; // enemy mark
+            }
             if (properties.enemyCanGetPoisoned) {
                 inputLen += 1; // enemy poison
             }
@@ -3595,6 +3622,15 @@ public final class GameState implements State {
             }
             if (properties.enemyCanGetChoked) {
                 str += "        1 input to keep track of choke\n";
+            }
+            if (properties.enemyCanGetLockOn) {
+                str += "        1 input to keep track of lockOn\n";
+            }
+            if (properties.enemyCanGetTalkToTheHand) {
+                str += "        1 input to keep track of talkToTheHand\n";
+            }
+            if (properties.enemyCanGetMark) {
+                str += "        1 input to keep track of mark\n";
             }
             if (properties.enemyCanGetPoisoned) {
                 str += "        1 input to keep track of poison\n";
@@ -3928,6 +3964,15 @@ public final class GameState implements State {
                 if (properties.enemyCanGetChoked) {
                     x[idx++] = enemy.getChoke() / (float) 10.0;
                 }
+                if (properties.enemyCanGetLockOn) {
+                    x[idx++] = enemy.getLockOn() / (float) 10.0;
+                }
+                if (properties.enemyCanGetTalkToTheHand) {
+                    x[idx++] = enemy.getTalkToTheHand() / (float) 10.0;
+                }
+                if (properties.enemyCanGetMark) {
+                    x[idx++] = enemy.getMark() / (float) 10.0;
+                }
                 if (properties.enemyCanGetPoisoned) {
                     x[idx++] = enemy.getPoison() / (float) 30.0;
                 }
@@ -4023,6 +4068,15 @@ public final class GameState implements State {
                     x[idx++] = -0.1f;
                 }
                 if (properties.enemyCanGetChoked) {
+                    x[idx++] = -0.1f;
+                }
+                if (properties.enemyCanGetLockOn) {
+                    x[idx++] = -0.1f;
+                }
+                if (properties.enemyCanGetTalkToTheHand) {
+                    x[idx++] = -0.1f;
+                }
+                if (properties.enemyCanGetMark) {
                     x[idx++] = -0.1f;
                 }
                 if (properties.enemyCanGetPoisoned) {
