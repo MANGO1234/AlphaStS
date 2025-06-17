@@ -1001,6 +1001,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
+            state.properties.addOnShuffleHandler("Sundial", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx] += 1;
+                        if (state.getCounterForRead()[counterIdx] == 3) {
+                            state.getCounterForWrite()[counterIdx] = 0;
+                            state.gainEnergy(2);
+                        }
+                    }
+                }
+            });
+
             if (healthReward > 0) {
                 state.properties.addExtraTrainingTarget("Sundial", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
@@ -1380,7 +1392,49 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Mango: No need to implement
     // Old Coin: No need to implement
     // Peace Pipe: No need to implement
-    // todo: Pocketwatch
+
+    public static class Pocketwatch extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Pocketwatch", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = counter[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+
+            state.properties.addOnCardPlayedHandler("Pocketwatch", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+
+            state.properties.addStartOfTurnHandler("Pocketwatch", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        // Check if previous turn had 3 or fewer cards played
+                        if (state.getCounterForRead()[counterIdx] <= 3 && state.getCounterForRead()[counterIdx] > 0) {
+                            state.draw(3);
+                        }
+                        // Reset counter for this turn only if it's not zero
+                        if (state.getCounterForRead()[counterIdx] != 0) {
+                            state.getCounterForWrite()[counterIdx] = 0;
+                        }
+                    }
+                }
+            });
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Pocketwatch");
+        }
+    }
+
     // Prayer Wheel: No need to implement
     // Shovel: No need to implement
 
@@ -1550,7 +1604,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: The Abacus
+    public static class TheAbacus extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnShuffleHandler("TheAbacus", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
+                    }
+                }
+            });
+        }
+    }
 
     public static class Toolbox extends Relic {
         public Toolbox() {
@@ -2289,7 +2353,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // todo: Mark of The Bloom
-    // todo: Mutagenic Strength
+
+    public static class MutagenicStrength extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        var player = state.getPlayerForWrite();
+                        player.gainStrength(3);
+                        player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 3);
+                    }
+                }
+            });
+        }
+    }
+
     // Nloth's Gift: No need to implement
     // Nloth's Mask: No need to implement
 

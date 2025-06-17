@@ -652,6 +652,7 @@ public final class GameState implements State {
         Collections.sort(properties.preEndTurnHandlers);
         Collections.sort(properties.endOfTurnHandlers);
         Collections.sort(properties.onBlockHandlers);
+        Collections.sort(properties.onShuffleHandlers);
         Collections.sort(properties.onExhaustHandlers);
         Collections.sort(properties.onStanceChangeHandlers);
         Collections.sort(properties.onScryHandlers);
@@ -4242,12 +4243,8 @@ public final class GameState implements State {
     }
 
     public void reshuffle() {
-        if (properties.sundialCounterIdx >= 0) {
-            getCounterForWrite()[properties.sundialCounterIdx] += 1;
-            if (getCounterForWrite()[properties.sundialCounterIdx] == 3) {
-                getCounterForWrite()[properties.sundialCounterIdx] = 0;
-                gainEnergy(2);
-            }
+        for (GameEventHandler handler : properties.onShuffleHandlers) {
+            handler.handle(this);
         }
         // generate a new deck arr with fixed order instead of reusing discard, will help with consistency
         var discard = GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen);
