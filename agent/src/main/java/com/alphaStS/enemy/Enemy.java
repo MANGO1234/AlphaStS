@@ -104,6 +104,7 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         poison = 0;
         lockOn = 0;
+        mark = 0;
     }
 
     public void setMove(int move) {
@@ -197,6 +198,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case CHOKE -> this.choke += n;
         case LOCK_ON -> this.lockOn += n;
         case TALK_TO_THE_HAND -> this.talkToTheHand += n;
+        case MARK -> this.mark += n;
         }
         return true;
     }

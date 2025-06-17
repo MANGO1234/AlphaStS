@@ -125,6 +125,7 @@ public class GameProperties implements Cloneable {
     public int[] windmillStrikePTransformIndexes;
     public int[] perseveranceTransformIndexes;
     public int[] perseverancePTransformIndexes;
+    public int[] conjureBladeIndexes;
     public int[] masterfulStabTransformIndexes;
     public int[] masterfulStabPTransformIndexes;
     public int[] setUpCardIdxes;
@@ -185,6 +186,8 @@ public class GameProperties implements Cloneable {
     public int biasedCognitionLimitCounterIdx = -1;
     public int mantraCounterIdx = -1;
     public int brillianceCounterIdx = -1;
+    public int wreathOfFlameCounterIdx = -1;
+    public int swivelCounterIdx = -1;
     public int looterVArrayIdx = -1;
     public int writhingMassVIdx = -1;
     public int alchemizeVIdx = -1;

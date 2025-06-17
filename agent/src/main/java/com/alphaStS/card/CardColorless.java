@@ -1380,4 +1380,35 @@ public class CardColorless {
             super("Omega+", 60);
         }
     }
+
+    private static abstract class _ExpungerT extends Card {
+        private final int damage;
+        private final int xValue;
+
+        public _ExpungerT(String cardName, int damage, int xValue) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.xValue = xValue;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < xValue; i++) {
+                state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Expunger extends _ExpungerT {
+        public Expunger(int xValue) {
+            super("Expunger (" + xValue + ")", 9, xValue);
+        }
+    }
+
+    public static class ExpungerP extends _ExpungerT {
+        public ExpungerP(int xValue) {
+            super("Expunger+ (" + xValue + ")", 15, xValue);
+        }
+    }
 }

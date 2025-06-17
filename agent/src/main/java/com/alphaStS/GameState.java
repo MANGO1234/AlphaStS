@@ -1239,6 +1239,8 @@ public final class GameState implements State {
             return 0;
         } else if (properties.hasMedicalKit && properties.getRelic(Relic.MedicalKit.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx) && properties.cardDict[cardIdx].cardType == Card.STATUS) {
             return 0;
+        } else if (properties.swivelCounterIdx >= 0 && counter[properties.swivelCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+            return 0;
         }
         return properties.cardDict[cardIdx].energyCost(this);
     }
@@ -1885,7 +1887,7 @@ public final class GameState implements State {
         return true;
     }
 
-    private void endTurn() {
+    public void endTurn() {
         if (properties.wellLaidPlansCardIdx >= 0 && actionCtx != GameActionCtx.SELECT_CARD_HAND && getCounterForRead()[properties.wellLaidPlansCounterIdx] > 0 &&
                 isDiscardingCardEndOfTurn() && getNumCardsInHand() > 0) {
             var action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][properties.wellLaidPlansCardIdx];
@@ -4631,6 +4633,9 @@ public final class GameState implements State {
         }
         if (properties.phantasmalKillerCounterIdx >= 0 && (counter[properties.phantasmalKillerCounterIdx] & ((1 << 8) - 1)) > 0) {
             dmg *= 2;
+        }
+        if (properties.wreathOfFlameCounterIdx >= 0 && counter[properties.wreathOfFlameCounterIdx] > 0) {
+            dmg += counter[properties.wreathOfFlameCounterIdx];
         }
         if (enemy.getVulnerable() > 0) {
             dmg = dmg * (properties.hasPaperPhrog && properties.getRelic(Relic.PaperPhrog.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx) ? 1.75 : 1.5);
