@@ -2170,6 +2170,9 @@ public final class GameState implements State {
             }
         }
         runActionsInQueueIfNonEmpty();
+        if (actionCtx == GameActionCtx.BEGIN_TURN && properties.playCardOnTopOfDeckCounterIdx >= 0 && getCounterForRead()[properties.playCardOnTopOfDeckCounterIdx] > 0) {
+            getCounterForWrite()[properties.playCardOnTopOfDeckCounterIdx] = 0;
+        }
         while (actionCtx == GameActionCtx.PLAY_CARD && properties.playCardOnTopOfDeckCounterIdx >= 0 && getCounterForRead()[properties.playCardOnTopOfDeckCounterIdx] > 0 && isTerminal() == 0) {
             getCounterForWrite()[properties.playCardOnTopOfDeckCounterIdx]--;
             int cardIdx = drawOneCardSpecial();
@@ -2177,7 +2180,7 @@ public final class GameState implements State {
                 continue;
             }
             if (properties.makingRealMove || properties.stateDescOn) {
-                if (getStateDesc().length() > 0)
+                if (!getStateDesc().isEmpty())
                     stateDesc.append(", (Play Card) ");
                 getStateDesc().append(properties.cardDict[cardIdx].cardName);
             }
