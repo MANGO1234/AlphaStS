@@ -8,6 +8,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff ART_OF_WAR = new PlayerBuff(1L << 33, "Art of War");
     public final static PlayerBuff CENTENNIAL_PUZZLE = new PlayerBuff(1L << 34, "Centennial Puzzle");
     public final static PlayerBuff NECRONOMICON = new PlayerBuff(1L << 35, "Necronomicon");
+    public final static PlayerBuff BLASPHEMY = new PlayerBuff(1L << 36, "Blasphemy");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,
@@ -16,5 +17,6 @@ public record PlayerBuff(long mask, String name) {
             ART_OF_WAR,
             CENTENNIAL_PUZZLE,
             NECRONOMICON,
+            BLASPHEMY,
     };
 }

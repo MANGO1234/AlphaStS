@@ -1499,6 +1499,9 @@ public final class GameState implements State {
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     exhaustedCardHandle(cardIdx, true);
                     cloneParentLocation = GameState.EXHAUST;
+                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
+                    addCardToDeck(cardIdx);
+                    cloneParentLocation = GameState.DECK;
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                     if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
                         if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
@@ -4651,6 +4654,9 @@ public final class GameState implements State {
                 }
             } else if (dmgDone > 0 && properties.envenomCounterIdx >= 0 && getCounterForRead()[properties.envenomCounterIdx] > 0) {
                 enemy.applyDebuff(this, DebuffType.POISON, getCounterForRead()[properties.envenomCounterIdx]);
+            }
+            if (enemy.getTalkToTheHand() > 0) {
+                getPlayerForWrite().gainBlockNotFromCardPlay(enemy.getTalkToTheHand());
             }
             if (enemy instanceof EnemyBeyond.Spiker spiker) {
                 doNonAttackDamageToPlayer(spiker.getThorn(), true, spiker);

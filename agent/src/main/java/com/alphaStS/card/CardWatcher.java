@@ -7,9 +7,11 @@ import com.alphaStS.GameEventHandler;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
+import com.alphaStS.PlayerBuff;
 import com.alphaStS.RandomGenCtx;
 import com.alphaStS.enums.Stance;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -1155,7 +1157,131 @@ public class CardWatcher {
         }
     }
 
-    // todo: Perseverance
+    public static class Perseverance extends Card {
+        public int limit;
+        private int block;
+
+        public Perseverance() {
+            this(5);
+        }
+
+        public Perseverance(int block, int limit) {
+            super("Perseverance (" + block + ")", Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            this.limit = limit;
+            this.retain = true;
+        }
+
+        public Perseverance(int block) {
+            this(block, 25);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = block; i <= limit; i += 2) {
+                c.add(new Perseverance(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.perseveranceTransformIndexes != null && state.properties.perseveranceTransformIndexes.length > (limit - block) / 2 + 1) {
+                return;
+            }
+            state.properties.perseveranceTransformIndexes = new int[(limit - block) / 2 + 1];
+            for (int i = block; i <= limit; i += 2) {
+                state.properties.perseveranceTransformIndexes[(i - block) / 2] = state.properties.findCardIndex(new Perseverance(i, limit));
+            }
+            state.properties.addOnRetainHandler("Perseverance", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    if (state.properties.cardDict[cardIdx] instanceof Perseverance p) {
+                        int newBlock = Math.min(p.block + 2, p.limit);
+                        int newCardIdx = -1;
+                        for (int i = 0; i < state.properties.perseveranceTransformIndexes.length; i++) {
+                            if (state.properties.cardDict[state.properties.perseveranceTransformIndexes[i]] instanceof Perseverance candidate && candidate.block == newBlock) {
+                                newCardIdx = state.properties.perseveranceTransformIndexes[i];
+                                break;
+                            }
+                        }
+                        if (newCardIdx != -1) {
+                            state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
+                        }
+                    }
+                }
+            });
+        }
+
+        public Card getUpgrade() {
+            return new PerseveranceP(block + 2, limit + 12);
+        }
+    }
+
+    public static class PerseveranceP extends Card {
+        public int limit;
+        private int block;
+
+        public PerseveranceP() {
+            this(7);
+        }
+
+        public PerseveranceP(int block, int limit) {
+            super("Perseverance+ (" + block + ")", Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            this.limit = limit;
+            this.retain = true;
+        }
+
+        public PerseveranceP(int block) {
+            this(block, 37);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = block; i <= limit; i += 3) {
+                c.add(new PerseveranceP(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.perseverancePTransformIndexes != null && state.properties.perseverancePTransformIndexes.length > (limit - block) / 3 + 1) {
+                return;
+            }
+            state.properties.perseverancePTransformIndexes = new int[(limit - block) / 3 + 1];
+            for (int i = block; i <= limit; i += 3) {
+                state.properties.perseverancePTransformIndexes[(i - block) / 3] = state.properties.findCardIndex(new PerseveranceP(i, limit));
+            }
+            state.properties.addOnRetainHandler("PerseveranceP", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    if (state.properties.cardDict[cardIdx] instanceof PerseveranceP p) {
+                        int newBlock = Math.min(p.block + 3, p.limit);
+                        int newCardIdx = -1;
+                        for (int i = 0; i < state.properties.perseverancePTransformIndexes.length; i++) {
+                            if (state.properties.cardDict[state.properties.perseverancePTransformIndexes[i]] instanceof PerseveranceP candidate && candidate.block == newBlock) {
+                                newCardIdx = state.properties.perseverancePTransformIndexes[i];
+                                break;
+                            }
+                        }
+                        if (newCardIdx != -1) {
+                            state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static abstract class _PrayT extends Card {
         private final int mantra;
@@ -1526,8 +1652,68 @@ public class CardWatcher {
     }
 
     // todo: Swivel
-    // todo: Talk to the Hand
-    // todo: Tantrum
+
+    public static abstract class _TalkToTheHandT extends Card {
+        private final int damage;
+        private final int blockReturn;
+
+        public _TalkToTheHandT(String cardName, int damage, int blockReturn) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.blockReturn = blockReturn;
+            this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.TALK_TO_THE_HAND, blockReturn);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TalkToTheHand extends _TalkToTheHandT {
+        public TalkToTheHand() {
+            super("Talk to the Hand", 5, 2);
+        }
+    }
+
+    public static class TalkToTheHandP extends _TalkToTheHandT {
+        public TalkToTheHandP() {
+            super("Talk to the Hand+", 7, 3);
+        }
+    }
+
+    public static abstract class _TantrumT extends Card {
+        private final int hits;
+
+        public _TantrumT(String cardName, int hits) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.hits = hits;
+            this.selectEnemy = true;
+            this.returnToDeckWhenPlay = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < hits; i++) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3);
+            }
+            state.changeStance(Stance.WRATH);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Tantrum extends _TantrumT {
+        public Tantrum() {
+            super("Tantrum", 3);
+        }
+    }
+
+    public static class TantrumP extends _TantrumT {
+        public TantrumP() {
+            super("Tantrum+", 4);
+        }
+    }
 
     public static abstract class _WallopT extends Card {
         private final int damage;
@@ -1683,7 +1869,133 @@ public class CardWatcher {
         }
     }
 
-    // todo: Windmill Strike
+    public static class WindmillStrike extends Card {
+        public int limit;
+        private int damage;
+
+        public WindmillStrike() {
+            this(7);
+        }
+
+        public WindmillStrike(int damage, int limit) {
+            super("Windmill Strike (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.limit = limit;
+            this.selectEnemy = true;
+            this.retain = true;
+        }
+
+        public WindmillStrike(int damage) {
+            this(damage, 47);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = damage; i <= limit; i += 4) {
+                c.add(new WindmillStrike(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.windmillStrikeTransformIndexes != null && state.properties.windmillStrikeTransformIndexes.length > (limit - damage) / 4 + 1) {
+                return;
+            }
+            state.properties.windmillStrikeTransformIndexes = new int[(limit - damage) / 4 + 1];
+            for (int i = damage; i <= limit; i += 4) {
+                state.properties.windmillStrikeTransformIndexes[(i - damage) / 4] = state.properties.findCardIndex(new WindmillStrike(i, limit));
+            }
+            state.properties.addOnRetainHandler("WindmillStrike", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    if (state.properties.cardDict[cardIdx] instanceof WindmillStrike ws) {
+                        int newDamage = Math.min(ws.damage + 4, ws.limit);
+                        int newCardIdx = -1;
+                        for (int i = 0; i < state.properties.windmillStrikeTransformIndexes.length; i++) {
+                            if (state.properties.cardDict[state.properties.windmillStrikeTransformIndexes[i]] instanceof WindmillStrike candidate && candidate.damage == newDamage) {
+                                newCardIdx = state.properties.windmillStrikeTransformIndexes[i];
+                                break;
+                            }
+                        }
+                        if (newCardIdx != -1) {
+                            state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
+                        }
+                    }
+                }
+            });
+        }
+
+        public Card getUpgrade() {
+            return new WindmillStrikeP(damage + 3, limit + 13);
+        }
+    }
+
+    public static class WindmillStrikeP extends Card {
+        public int limit;
+        private int damage;
+
+        public WindmillStrikeP() {
+            this(10);
+        }
+
+        public WindmillStrikeP(int damage, int limit) {
+            super("Windmill Strike+ (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.limit = limit;
+            this.selectEnemy = true;
+            this.retain = true;
+        }
+
+        public WindmillStrikeP(int damage) {
+            this(damage, 60);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = damage; i <= limit; i += 5) {
+                c.add(new WindmillStrikeP(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.windmillStrikePTransformIndexes != null && state.properties.windmillStrikePTransformIndexes.length > (limit - damage) / 5 + 1) {
+                return;
+            }
+            state.properties.windmillStrikePTransformIndexes = new int[(limit - damage) / 5 + 1];
+            for (int i = damage; i <= limit; i += 5) {
+                state.properties.windmillStrikePTransformIndexes[(i - damage) / 5] = state.properties.findCardIndex(new WindmillStrikeP(i, limit));
+            }
+            state.properties.addOnRetainHandler("WindmillStrikeP", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int cardIdx = state.getHandArrForRead()[handIdx];
+                    if (state.properties.cardDict[cardIdx] instanceof WindmillStrikeP ws) {
+                        int newDamage = Math.min(ws.damage + 5, ws.limit);
+                        int newCardIdx = -1;
+                        for (int i = 0; i < state.properties.windmillStrikePTransformIndexes.length; i++) {
+                            if (state.properties.cardDict[state.properties.windmillStrikePTransformIndexes[i]] instanceof WindmillStrikeP candidate && candidate.damage == newDamage) {
+                                newCardIdx = state.properties.windmillStrikePTransformIndexes[i];
+                                break;
+                            }
+                        }
+                        if (newCardIdx != -1) {
+                            state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static abstract class _WorshipT extends Card {
         public _WorshipT(String cardName, boolean retain) {
@@ -1740,7 +2052,42 @@ public class CardWatcher {
         }
     }
 
-    // todo: Blasphemy
+    public static abstract class _BlasphemyT extends Card {
+        public _BlasphemyT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.exhaustWhenPlayed = true;
+            this.retain = retain;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.changeStance(Stance.DIVINITY);
+            state.buffs |= PlayerBuff.BLASPHEMY.mask();
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Blasphemy", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if ((state.buffs & PlayerBuff.BLASPHEMY.mask()) != 0) {
+                        state.doNonAttackDamageToPlayer(99999, false, null);
+                        state.buffs &= ~PlayerBuff.BLASPHEMY.mask();
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Blasphemy extends _BlasphemyT {
+        public Blasphemy() {
+            super("Blasphemy", false);
+        }
+    }
+
+    public static class BlasphemyP extends _BlasphemyT {
+        public BlasphemyP() {
+            super("Blasphemy+", true);
+        }
+    }
 
     public static abstract class _BrillianceT extends Card {
         private final int damage;
