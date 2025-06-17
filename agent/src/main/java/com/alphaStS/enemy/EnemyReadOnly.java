@@ -78,6 +78,7 @@ public abstract class EnemyReadOnly {
     protected int choke;
     protected int lockOn;
     protected int talkToTheHand;
+    protected int mark;
     protected int move = -1;
     protected int lastMove = -1;
 
@@ -129,6 +130,7 @@ public abstract class EnemyReadOnly {
         choke = other.choke;
         lockOn = other.lockOn;
         talkToTheHand = other.talkToTheHand;
+        mark = other.mark;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -191,6 +193,10 @@ public abstract class EnemyReadOnly {
 
     public int getTalkToTheHand() {
         return talkToTheHand;
+    }
+
+    public int getMark() {
+        return mark;
     }
 
     public boolean hasBurningHealthBuff() {
@@ -269,6 +275,9 @@ public abstract class EnemyReadOnly {
         if (talkToTheHand > 0) {
             str += ", talkToTheHand=" + talkToTheHand;
         }
+        if (mark > 0) {
+            str += ", mark=" + mark;
+        }
         return str + '}';
     }
 
@@ -319,6 +328,9 @@ public abstract class EnemyReadOnly {
         if (talkToTheHand > 0) {
             str += ", talkToTheHand=" + talkToTheHand;
         }
+        if (mark > 0) {
+            str += ", mark=" + mark;
+        }
         return str + '}';
     }
 
@@ -334,7 +346,7 @@ public abstract class EnemyReadOnly {
         return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
-                choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand;
+                choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark;
     }
 
     @Override public int hashCode() {

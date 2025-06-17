@@ -484,7 +484,40 @@ public class CardWatcher {
             super("Just Lucky+", 2, 3, 4);
         }
     }
-    // todo: Pressure Points
+
+    private static abstract class _PressurePointsT extends Card {
+        private final int mark;
+
+        public _PressurePointsT(String cardName, int mark) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.mark = mark;
+            this.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.MARK, mark);
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                var enemy = state.getEnemiesForRead().get(i);
+                if (enemy.isAlive() && enemy.getMark() > 0) {
+                    // Apply mark damage as non-attack damage (bypasses block)
+                    state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), enemy.getMark(), false);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class PressurePoints extends _PressurePointsT {
+        public PressurePoints() {
+            super("Pressure Points", 8);
+        }
+    }
+
+    public static class PressurePointsP extends _PressurePointsT {
+        public PressurePointsP() {
+            super("Pressure Points+", 11);
+        }
+    }
 
     public static abstract class _ProstrateT extends Card {
         private final int mantra;
@@ -767,7 +800,36 @@ public class CardWatcher {
         }
     }
 
-    // todo: Conclude
+    private static abstract class _ConcludeT extends Card {
+        private final int damage;
+
+        public _ConcludeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                if (state.getEnemiesForRead().get(i).isAlive()) {
+                    state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), damage, true);
+                }
+            }
+            state.addGameActionToEndOfDeque(state1 -> state1.endTurn());
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Conclude extends _ConcludeT {
+        public Conclude() {
+            super("Conclude", 12);
+        }
+    }
+
+    public static class ConcludeP extends _ConcludeT {
+        public ConcludeP() {
+            super("Conclude+", 16);
+        }
+    }
 
     public static abstract class _DeceiveRealityT extends Card {
         private final int block;
@@ -1064,6 +1126,7 @@ public class CardWatcher {
             super("Like Water+", 7);
         }
     }
+
     // todo: Meditate
 
     private static abstract class _MentalFortressT extends Card {
@@ -1651,7 +1714,56 @@ public class CardWatcher {
         }
     }
 
-    // todo: Swivel
+    private static abstract class _SwivelT extends Card {
+        private final int block;
+
+        public _SwivelT(String cardName, int block) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Swivel", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Swivel", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.swivelCounterIdx = idx;
+        }
+    }
+
+    public static class Swivel extends _SwivelT {
+        public Swivel() {
+            super("Swivel", 8);
+        }
+    }
+
+    public static class SwivelP extends _SwivelT {
+        public SwivelP() {
+            super("Swivel+", 11);
+        }
+    }
 
     public static abstract class _TalkToTheHandT extends Card {
         private final int damage;
@@ -2025,7 +2137,56 @@ public class CardWatcher {
         }
     }
 
-    // todo: Wreath of Flame
+    private static abstract class _WreathOfFlameT extends Card {
+        private final int vigor;
+
+        public _WreathOfFlameT(String cardName, int vigor) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.vigor = vigor;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += vigor;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("WreathOfFlame", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("WreathOfFlame", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        // Attack played - consume vigor
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.wreathOfFlameCounterIdx = idx;
+        }
+    }
+
+    public static class WreathOfFlame extends _WreathOfFlameT {
+        public WreathOfFlame() {
+            super("Wreath of Flame", 5);
+        }
+    }
+
+    public static class WreathOfFlameP extends _WreathOfFlameT {
+        public WreathOfFlameP() {
+            super("Wreath of Flame+", 8);
+        }
+    }
 
     private static abstract class _AlphaT extends Card {
         public _AlphaT(String cardName, boolean innate) {
@@ -2138,7 +2299,54 @@ public class CardWatcher {
         }
     }
 
-    // todo: Conjure Blade
+    private static abstract class _ConjureBladeT extends Card {
+        private final boolean addExtraHit;
+        private final int limit;
+
+        public _ConjureBladeT(String cardName, boolean addExtraHit, int limit) {
+            super(cardName, Card.SKILL, -1, Card.RARE);
+            this.addExtraHit = addExtraHit;
+            this.limit = limit;
+            this.exhaustWhenPlayed = true;
+            this.isXCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int xValue = addExtraHit ? energyUsed + 1 : energyUsed;
+            int indexToUse = Math.min(xValue, limit);
+            state.addCardToDeck(state.properties.conjureBladeIndexes[indexToUse]);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.conjureBladeIndexes == null || state.properties.conjureBladeIndexes.length - 1 < limit) {
+                state.properties.conjureBladeIndexes = new int[limit + 1]; // 0-limit for different X values
+                for (int i = 0; i <= limit; i++) {
+                    state.properties.conjureBladeIndexes[i] = state.properties.findCardIndex(new CardColorless.Expunger(i));
+                }
+            }
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var result = new ArrayList<Card>();
+            for (int i = 0; i <= limit; i++) {
+                result.add(new CardColorless.Expunger(i));
+            }
+            return result;
+        }
+    }
+
+    public static class ConjureBlade extends _ConjureBladeT {
+        public ConjureBlade(int limit) {
+            super("Conjure Blade", false, limit);
+        }
+    }
+
+    public static class ConjureBladeP extends _ConjureBladeT {
+        public ConjureBladeP(int limit) {
+            super("Conjure Blade+", true, limit);
+        }
+    }
 
     public static abstract class _DeusExMachinaT extends Card {
         private final int miracleCount;
