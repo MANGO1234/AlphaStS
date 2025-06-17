@@ -963,6 +963,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
+            lockOnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
