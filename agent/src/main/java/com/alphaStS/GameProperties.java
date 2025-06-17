@@ -121,6 +121,10 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodPTransformIndexes;
     public int[] sandsOfTimeTransformIndexes;
     public int[] sandsOfTimePTransformIndexes;
+    public int[] windmillStrikeTransformIndexes;
+    public int[] windmillStrikePTransformIndexes;
+    public int[] perseveranceTransformIndexes;
+    public int[] perseverancePTransformIndexes;
     public int[] masterfulStabTransformIndexes;
     public int[] masterfulStabPTransformIndexes;
     public int[] setUpCardIdxes;

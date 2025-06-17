@@ -23,4 +23,5 @@ public enum DebuffType {
     NO_BLOCK_FROM_CARDS,
     CHOKE,
     LOSE_ENERGY_PER_TURN,
+    TALK_TO_THE_HAND,
 }
