@@ -2112,7 +2112,7 @@ public class CardDefect {
             state.properties.addEndOfBattleHandler("SelfRepair", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!state.properties.isHeartFight(state)) {
-                        state.getPlayerForWrite().heal(state.getCounterForRead()[counterIdx]);
+                        state.healPlayer(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });

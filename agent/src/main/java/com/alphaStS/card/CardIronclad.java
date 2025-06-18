@@ -2393,11 +2393,11 @@ public class CardIronclad {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
-                        state.getPlayerForWrite().heal(hpInc);
+                        state.healPlayer(hpInc);
                         state.getCounterForWrite()[state.properties.feedCounterIdx] += hpInc;
                     }
                 } else {
-                    state.getPlayerForWrite().heal(hpInc);
+                    state.healPlayer(hpInc);
                     state.getCounterForWrite()[state.properties.feedCounterIdx] += hpInc;
                 }
             }

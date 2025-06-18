@@ -804,7 +804,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
-                        state.getPlayerForWrite().heal(12);
+                        state.healPlayer(12);
                     }
                 }
             });
@@ -1503,7 +1503,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     // Winged Greaves: No need to implement
     // Cauldron: No need to implement
-    // todo: Chemical X
+    public static class ChemicalX extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasChemicalX = true;
+        }
+    }
 
     public static class ClockworkSouvenir extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1526,7 +1530,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Hand Drill
+    public static class HandDrill extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasHandDrill = true;
+        }
+    }
+
     // Lee's Waffle: No need to implement
 
     public static class MedicalKit extends Relic {
@@ -2352,7 +2361,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Mark of The Bloom
+    public static class MarkOfTheBloom extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasMarkOfTheBloom = true;
+        }
+    }
 
     public static class MutagenicStrength extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {

@@ -418,7 +418,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.properties.addPreEndOfTurnHandler("Regeneration", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().heal(state.getCounterForWrite()[counterIdx]--);
+                        state.healPlayer(state.getCounterForWrite()[counterIdx]--);
                     }
                 }
             });
@@ -1152,7 +1152,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getPlayerForWrite().heal(getHealAmount(state));
+            state.healPlayer(getHealAmount(state));
             return GameActionCtx.PLAY_CARD;
         }
 

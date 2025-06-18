@@ -980,7 +980,7 @@ public class CardColorless {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            state.getPlayerForWrite().heal(heal);
+            state.healPlayer(heal);
             return GameActionCtx.PLAY_CARD;
         }
     }
