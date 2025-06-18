@@ -200,6 +200,12 @@ public abstract class Enemy extends EnemyReadOnly {
         case TALK_TO_THE_HAND -> this.talkToTheHand += n;
         case MARK -> this.mark += n;
         }
+
+        if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {
+            int damage = state.getCounterForRead()[state.properties.sadisticNatureCounterIdx];
+            state.playerDoNonAttackDamageToEnemy(this, damage, false);
+        }
+
         return true;
     }
 

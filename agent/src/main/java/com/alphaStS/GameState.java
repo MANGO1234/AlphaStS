@@ -3144,7 +3144,10 @@ public final class GameState implements State {
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
                 if (currentAction.type() == GameActionType.PLAY_CARD) {
-                    if (currentAction.idx() == properties.wellLaidPlansCardIdx || currentAction.idx() == properties.gamblingChipsCardIdx) {
+                    var canEndSelect = currentAction.idx() == properties.wellLaidPlansCardIdx;
+                    canEndSelect |= currentAction.idx() == properties.gamblingChipsCardIdx;
+                    canEndSelect |= properties.cardDict[currentAction.idx()].getBaseCard() instanceof CardColorless.Purity;
+                    if (canEndSelect) {
                         getLegalActionsSelectCardFromArr(handArr, handArrLen, properties.cardDict[currentAction.idx()], properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()].length - 1);
                     } else {
                         getLegalActionsSelectCardFromArr(handArr, handArrLen, properties.cardDict[currentAction.idx()], -1);

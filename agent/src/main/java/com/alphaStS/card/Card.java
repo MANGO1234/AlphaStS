@@ -150,6 +150,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return energyCost;
     }
 
+    public Card getBaseCard() {
+        return this;
+    }
+
     public static class CardTmpChangeCost extends Card {
         public final Card card;
 
@@ -208,6 +212,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
         public int realEnergyCost() {
             return card.realEnergyCost();
+        }
+        public Card getBaseCard() {
+            return card.getBaseCard();
         }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
@@ -282,6 +289,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int realEnergyCost() {
             return card.realEnergyCost();
         }
+        public Card getBaseCard() {
+            return card.getBaseCard();
+        }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
@@ -341,6 +351,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
+        public Card getBaseCard() {
+            return card.getBaseCard();
+        }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
