@@ -2,6 +2,7 @@ package com.alphaStS.card;
 
 import com.alphaStS.*;
 import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.enums.Stance;
 
 import java.util.List;
 
@@ -554,6 +555,28 @@ public class CardOther {
     public static class WishGoldP extends _WishGoldT {
         public WishGoldP(double healthRewardRatio) {
             super("I Wish For Gold+", 30, healthRewardRatio);
+        }
+    }
+
+    public static class EnterCalm extends Card {
+        public EnterCalm() {
+            super("Enter Calm", Card.SKILL, 0, Card.COMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.changeStance(Stance.CALM);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class EnterWrath extends Card {
+        public EnterWrath() {
+            super("Enter Wrath", Card.SKILL, 0, Card.COMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.changeStance(Stance.WRATH);
+            return GameActionCtx.PLAY_CARD;
         }
     }
 }

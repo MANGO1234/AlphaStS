@@ -1545,9 +1545,24 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new EssenceOfDarkness().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
                 ));
             } else if (character == CharacterEnum.WATCHER) {
-                // todo: BottledMiracle
-                // todo: StancePotion
-                // todo: Ambrosia
+                commonPotions.add(List.of(
+                        new BottledMiracle().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new BottledMiracle().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new BottledMiracle().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new BottledMiracle().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                uncommonPotions.add(List.of(
+                        new StancePotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new StancePotion().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new StancePotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new StancePotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                rarePotions.add(List.of(
+                        new Ambrosia().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new Ambrosia().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new Ambrosia().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new Ambrosia().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
             }
         }
     }
@@ -1608,6 +1623,46 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerMetallicizeCounter();
+        }
+    }
+
+    public static class BottledMiracle extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int miracleCount = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
+            for (int i = 0; i < miracleCount; i++) {
+                state.addCardToHand(state.properties.miracleCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Bottled Miracle";
+        }
+    }
+
+    public static class Ambrosia extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.changeStance(com.alphaStS.enums.Stance.DIVINITY);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Ambrosia";
+        }
+    }
+
+    public static class StancePotion extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.setSelect1OutOf3Idxes(
+                state.properties.findCardIndex(new com.alphaStS.card.CardOther.EnterCalm()),
+                state.properties.findCardIndex(new com.alphaStS.card.CardOther.EnterWrath()),
+                state.properties.cardDict.length
+            );
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public String toString() {
+            return "Stance Potion";
         }
     }
 }
