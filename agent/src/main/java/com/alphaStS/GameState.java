@@ -1284,6 +1284,12 @@ public final class GameState implements State {
         boolean cardPlayedSuccessfully = true;
         boolean targetHalfAlive = false;
         int energyCost = overrideEnergyCost >= 0 ? overrideEnergyCost : getCardEnergyCost(cardIdx);
+        int realEnergyCost = energyCost;
+        if (properties.cardDict[cardIdx].isXCost && properties.hasChemicalX && 
+            properties.getRelic(Relic.ChemicalX.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            energyCost += 2;
+        }
+
         if (properties.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIndexIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
             return false;
         } else if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12 && cardIdx != properties.wellLaidPlansCardIdx) {
@@ -1293,14 +1299,14 @@ public final class GameState implements State {
             if (cloneSource == null) {
                 removeCardFromHand(cardIdx);
             }
-            if (energyCost < 0) {
+            if (realEnergyCost < 0) {
                 if (runActionQueueOnEnd) {
                     runActionsInQueueIfNonEmpty();
                 }
                 return false;
             }
             if (!properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
-                energy -= energyCost;
+                energy -= realEnergyCost;
             }
             if (cardIdx >= properties.realCardsLen) {
                 cardIdx = properties.tmp0CostCardReverseTransformIdxes[cardIdx];
@@ -1553,7 +1559,7 @@ public final class GameState implements State {
             }
             if (cardPlayedSuccessfully) {
                 if (properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
-                    energy -= energyCost;
+                    energy -= realEnergyCost;
                 }
                 runActionsInQueueIfNonEmpty();
             }
@@ -1609,7 +1615,7 @@ public final class GameState implements State {
         int potionIdx = action.idx();
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (properties.hasToyOrniphopter) {
-                getPlayerForWrite().heal(5);
+                healPlayer(5);
             }
             if (properties.potions.get(potionIdx).selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, null);
@@ -4706,7 +4712,14 @@ public final class GameState implements State {
             }
         }
         if (enemy.isAlive() && enemy.getHealth() > 0) {
+            int enemyBlockBefore = enemy.getBlock();
             int dmgDone = enemy.damage(dmg, this);
+
+            if (dmgDone > 0 && enemyBlockBefore > 0 && enemy.getBlock() == 0 && properties.hasHandDrill && 
+                properties.getRelic(Relic.HandDrill.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                enemy.applyDebuff(this, DebuffType.VULNERABLE, 2);
+            }
+
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
                     handler.handle(this, enemy);
@@ -4835,6 +4848,10 @@ public final class GameState implements State {
     }
 
     public void healPlayer(int hp) {
+        if (properties.hasMarkOfTheBloom && 
+            properties.getRelic(Relic.MarkOfTheBloom.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            return;
+        }
         var healed = getPlayerForWrite().heal(hp);
         if (healed > 0) {
             for (var handler : properties.onHealHandlers) {

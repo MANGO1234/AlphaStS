@@ -230,6 +230,9 @@ public class GameProperties implements Cloneable {
     public boolean hasTingsha;
     public boolean hasToughBandages;
     public boolean hasGoldPlatedCable;
+    public boolean hasChemicalX;
+    public boolean hasHandDrill;
+    public boolean hasMarkOfTheBloom;
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
