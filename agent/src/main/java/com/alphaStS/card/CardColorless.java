@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class CardColorless {
-    // Bandage Up
+    // todo: Bandage Up
 
     public static class ToBeImplemented extends Card {
         public ToBeImplemented(String a) {
@@ -102,7 +102,7 @@ public class CardColorless {
         }
     }
 
-    // Discovery
+    // todo: Discovery
 
     private static abstract class _DramaticEntranceT extends Card {
         private final int n;
@@ -232,7 +232,7 @@ public class CardColorless {
         }
     }
 
-    // Forethought
+    // todo: Forethought
 
     private static abstract class _GoodInstinctsT extends Card {
         private final int n;
@@ -291,7 +291,8 @@ public class CardColorless {
         }
     }
 
-    // Jack Of All Trades
+    // todo: Jack Of All Trades
+
     private static abstract class _MadnessT extends Card {
         public _MadnessT(String cardName, int cardType, int energyCost) {
             super(cardName, cardType, energyCost, Card.UNCOMMON);
@@ -427,7 +428,7 @@ public class CardColorless {
         }
     }
 
-    // Purity
+    // todo: Purity
 
     private static abstract class _SwiftStrikeT extends Card {
         private final int n;
@@ -514,7 +515,7 @@ public class CardColorless {
         }
     }
 
-    // Chrysalis
+    // todo: Chrysalis
 
     private static abstract class _HandOfGreedT extends Card {
         private int n;
@@ -626,7 +627,7 @@ public class CardColorless {
         }
     }
 
-    // Magnetism
+    // todo: Magnetism
 
     private static abstract class _MasterOfStrategyT extends Card {
         private final int n;
@@ -699,7 +700,7 @@ public class CardColorless {
         }
     }
 
-    // Metamorphosis
+    // todo: Metamorphosis
 
     private static abstract class _PanacheT extends Card {
         private final int n;
@@ -763,7 +764,7 @@ public class CardColorless {
         }
     }
 
-    // Sadistic Nature
+    // todo: Sadistic Nature
 
     private static abstract class _SecretTechniqueT extends Card {
         public _SecretTechniqueT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
@@ -920,7 +921,8 @@ public class CardColorless {
         }
     }
 
-    // Transmutation
+    // todo: Transmutation
+
     private static abstract class _ViolenceT extends Card {
         private final int n;
 
@@ -1166,7 +1168,6 @@ public class CardColorless {
         }
     }
 
-    // Smite - Attack card added by Battle Hymn and Carve Reality
     private static abstract class _SmiteT extends Card {
         private final int damage;
 
@@ -1196,7 +1197,6 @@ public class CardColorless {
         }
     }
 
-    // Insight - Skill card added by Evaluate and Study
     private static abstract class _InsightT extends Card {
         private final int drawCount;
 

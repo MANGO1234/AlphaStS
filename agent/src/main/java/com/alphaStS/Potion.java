@@ -1508,8 +1508,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new Potion.BloodPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                         new Potion.BloodPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
                 ));
-                // Elixir
-                // HeartOfIron
+                // todo: Elixir
+                // todo: HeartOfIron
             } else if (character == CharacterEnum.SILENT) {
                 commonPotions.add(List.of(
                         new Potion.PoisonPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
@@ -1549,9 +1549,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new EssenceOfDarkness().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
                 ));
             } else if (character == CharacterEnum.WATCHER) {
-                // BottledMiracle
-                // StancePotion
-                // Ambrosia
+                // todo: BottledMiracle
+                // todo: StancePotion
+                // todo: Ambrosia
             }
         }
     }
