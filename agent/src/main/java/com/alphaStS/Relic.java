@@ -1388,7 +1388,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Lizard Tail
+    public static class LizardTail extends Relic {
+        private final int maxHp;
+
+        public LizardTail(int maxHp) {
+            this.maxHp = maxHp;
+        }
+
+        public int getMaxHp() {
+            return maxHp;
+        }
+    }
+
     // Mango: No need to implement
     // Old Coin: No need to implement
     // Peace Pipe: No need to implement
