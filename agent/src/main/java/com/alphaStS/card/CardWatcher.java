@@ -9,6 +9,7 @@ import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
 import com.alphaStS.PlayerBuff;
 import com.alphaStS.RandomGenCtx;
+import com.alphaStS.TrainingTarget;
 import com.alphaStS.enums.Stance;
 
 import java.util.ArrayList;
@@ -974,7 +975,29 @@ public class CardWatcher {
         }
     }
 
-    // todo: Foreign Influence
+    public static abstract class _ForeignInfluenceT extends Card {
+        public _ForeignInfluenceT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: Implement effect - Choose 1 of 3 Attacks of any color to add to hand, costs 0 this turn
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ForeignInfluence extends _ForeignInfluenceT {
+        public ForeignInfluence() {
+            super("Foreign Influence", 1);
+        }
+    }
+
+    public static class ForeignInfluenceP extends _ForeignInfluenceT {
+        public ForeignInfluenceP() {
+            super("Foreign Influence+", 0);
+        }
+    }
 
     public static abstract class _ForesightT extends Card {
         private final int scryAmount;
@@ -2527,9 +2550,149 @@ public class CardWatcher {
         }
     }
 
-    // todo: Lesson Learned
-    // todo: Master Reality
-    // todo: Omniscience
+    public static abstract class _LessonLearnedT extends Card {
+        private final int damage;
+        protected double healthRewardRatio = 0;
+
+        public _LessonLearnedT(String cardName, int damage, double healthRewardRatio) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.damage = damage;
+            this.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+            this.healthRewardRatio = healthRewardRatio;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+                if (state.getEnemiesForRead().get(idx) instanceof com.alphaStS.enemy.EnemyBeyond.Darkling ||
+                        state.getEnemiesForRead().get(idx) instanceof com.alphaStS.enemy.EnemyBeyond.AwakenedOne) {
+                    if (state.isTerminal() > 0) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                } else if (!(state.getEnemiesForRead().get(idx) instanceof com.alphaStS.enemy.EnemyEnding.CorruptHeart)) {
+                    state.getCounterForWrite()[counterIdx]++;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("LessonLearned", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("LessonLearned", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 10.0;
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        double vUpgrades = v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                        v[GameState.V_HEALTH_IDX] += 10 * vUpgrades * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+        }
+    }
+
+    public static class LessonLearned extends _LessonLearnedT {
+        public LessonLearned(double healthRewardRatio) {
+            super("Lesson Learned", 10, healthRewardRatio);
+        }
+
+        public Card getUpgrade() {
+            return new LessonLearnedP(healthRewardRatio);
+        }
+    }
+
+    public static class LessonLearnedP extends _LessonLearnedT {
+        public LessonLearnedP(double healthRewardRatio) {
+            super("Lesson Learned+", 13, healthRewardRatio);
+        }
+    }
+
+    public static abstract class _MasterRealityT extends Card {
+        public _MasterRealityT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: Implement effect - upgrade any cards created during combat
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MasterReality extends _MasterRealityT {
+        public MasterReality() {
+            super("Master Reality", 1);
+        }
+    }
+
+    public static class MasterRealityP extends _MasterRealityT {
+        public MasterRealityP() {
+            super("Master Reality+", 0);
+        }
+    }
+
+    public static abstract class _OmniscienceT extends Card {
+        public _OmniscienceT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            this.selectFromDeck = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int cardIdx = state.getDeckArrForRead()[idx];
+            state.removeCardFromDeck(idx, true);
+            
+            // Play the card twice
+            var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+            if (action != null) {
+                // First play
+                state.addGameActionToStartOfDeque(curState -> {
+                    curState.playCard(action, -1, true, null, false, true, -1, -1);
+                    while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
+                        curState.playCard(action, enemyIdx, true, null, false, true, -1, -1);
+                    }
+                });
+                // Second play
+                state.addGameActionToStartOfDeque(curState -> {
+                    curState.playCard(action, -1, true, null, false, true, -1, -1);
+                    while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
+                        curState.playCard(action, enemyIdx, true, null, false, true, -1, -1);
+                    }
+                });
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Omniscience extends _OmniscienceT {
+        public Omniscience() {
+            super("Omniscience", 4);
+        }
+    }
+
+    public static class OmniscienceP extends _OmniscienceT {
+        public OmniscienceP() {
+            super("Omniscience+", 3);
+        }
+    }
 
     public static abstract class _RagnarokT extends Card {
         private final int damage;
@@ -2614,6 +2777,36 @@ public class CardWatcher {
         }
     }
 
-    // todo: Vault
+    public static abstract class _VaultT extends Card {
+        public _VaultT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // End current turn and immediately start a new turn (skipping enemy turn)
+            state.addGameActionToEndOfDeque(curState -> {
+                curState.endTurn();
+                curState.runActionsInQueueIfNonEmpty();
+                if (curState.isTerminal() == 0) {
+                    curState.setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
+                }
+            });
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Vault extends _VaultT {
+        public Vault() {
+            super("Vault", 3);
+        }
+    }
+
+    public static class VaultP extends _VaultT {
+        public VaultP() {
+            super("Vault+", 2);
+        }
+    }
+
     // todo: Wish
 }
