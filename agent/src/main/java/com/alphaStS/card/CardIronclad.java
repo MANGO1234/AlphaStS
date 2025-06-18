@@ -1555,23 +1555,12 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 3;
+            state.getCounterForWrite()[state.properties.metallicizeCounterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-                @Override public void onRegister(int counterIdx) {
-                    state.properties.registerMetallicizeHandler(state, counterIdx);
-                }
-            });
+            state.properties.registerMetallicizeCounter();
         }
     }
 
@@ -1581,23 +1570,12 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 4;
+            state.getCounterForWrite()[state.properties.metallicizeCounterIdx] += 4;
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-                @Override public void onRegister(int counterIdx) {
-                    state.properties.registerMetallicizeHandler(state, counterIdx);
-                }
-            });
+            state.properties.registerMetallicizeCounter();
         }
     }
 

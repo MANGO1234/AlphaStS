@@ -566,27 +566,13 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class EssenceOfSteel extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
-            state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 8 : 4;
+            int platedArmorAmount = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 8 : 4;
+            state.getPlayerForWrite().gainPlatedArmor(platedArmorAmount);
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public String toString() {
             return "Essence Of Steel";
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Metallicize", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-                @Override public void onRegister(int counterIdx) {
-                    state.properties.registerMetallicizeHandler(state, counterIdx);
-                }
-            });
         }
     }
 
@@ -1508,8 +1494,18 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         new Potion.BloodPotion().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
                         new Potion.BloodPotion().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
                 ));
-                // todo: Elixir
-                // todo: HeartOfIron
+                uncommonPotions.add(List.of(
+                        new Elixir().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new Elixir().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new Elixir().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new Elixir().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
+                rarePotions.add(List.of(
+                        new HeartOfIron().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                        new HeartOfIron().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                        new HeartOfIron().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                        new HeartOfIron().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                ));
             } else if (character == CharacterEnum.SILENT) {
                 commonPotions.add(List.of(
                         new Potion.PoisonPotion().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
@@ -1578,6 +1574,40 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         @Override public String toString() {
             return "Empty Potion";
+        }
+    }
+
+    public static class Elixir extends Potion {
+        public Elixir() {
+            selectFromHand = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (idx >= 0 && idx < state.properties.cardDict.length) {
+                state.exhaustCardFromHandByPosition(idx, true);
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Elixir";
+        }
+    }
+
+    public static class HeartOfIron extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int metallicizeAmount = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 12 : 6;
+            state.getCounterForWrite()[state.properties.metallicizeCounterIdx] += metallicizeAmount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public String toString() {
+            return "Heart of Iron";
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMetallicizeCounter();
         }
     }
 }
