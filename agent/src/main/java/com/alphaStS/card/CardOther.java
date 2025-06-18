@@ -442,4 +442,118 @@ public class CardOther {
             });
         }
     }
+
+    // **********************************************************************************************************
+    // ********************************************* Wish Effects **********************************************
+    // **********************************************************************************************************
+
+    public static abstract class _WishPlatedArmorT extends Card {
+        private final int armor;
+
+        public _WishPlatedArmorT(String cardName, int armor) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.armor = armor;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(armor);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class WishPlatedArmor extends _WishPlatedArmorT {
+        public WishPlatedArmor() {
+            super("I Wish For Armor", 6);
+        }
+    }
+
+    public static class WishPlatedArmorP extends _WishPlatedArmorT {
+        public WishPlatedArmorP() {
+            super("I Wish For Armor+", 8);
+        }
+    }
+
+    public static abstract class _WishStrengthT extends Card {
+        private final int strength;
+
+        public _WishStrengthT(String cardName, int strength) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.strength = strength;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainStrength(strength);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class WishStrength extends _WishStrengthT {
+        public WishStrength() {
+            super("I Wish For Strength", 3);
+        }
+    }
+
+    public static class WishStrengthP extends _WishStrengthT {
+        public WishStrengthP() {
+            super("I Wish For Strength+", 4);
+        }
+    }
+
+    public static abstract class _WishGoldT extends Card {
+        private final int gold;
+        protected double healthRewardRatio = 0;
+
+        public _WishGoldT(String cardName, int gold, double healthRewardRatio) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.gold = gold;
+            this.healthRewardRatio = healthRewardRatio;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += gold;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("WishGold", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("WishGold", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 100.0;
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, double[] v) {
+                        double vGold = v[GameState.V_OTHER_IDX_START + vArrayIdx];
+                        v[GameState.V_HEALTH_IDX] += 100 * vGold * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    }
+                });
+            }
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+        }
+    }
+
+    public static class WishGold extends _WishGoldT {
+        public WishGold(double healthRewardRatio) {
+            super("I Wish For Gold", 25, healthRewardRatio);
+        }
+    }
+
+    public static class WishGoldP extends _WishGoldT {
+        public WishGoldP(double healthRewardRatio) {
+            super("I Wish For Gold+", 30, healthRewardRatio);
+        }
+    }
 }
