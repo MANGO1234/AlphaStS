@@ -1151,7 +1151,73 @@ public class CardWatcher {
         }
     }
 
-    // todo: Meditate
+    public static abstract class _MeditateT extends Card {
+        private final int cardCount;
+
+        public _MeditateT(String cardName, int energyCost, int cardCount) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
+            this.cardCount = cardCount;
+            this.selectFromDiscard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // Remove card from discard and add to hand with retain if there's room
+            state.removeCardFromDiscard(idx);
+            if (state.handArrLen < GameState.HAND_LIMIT) {
+                Card retainedCard = new Card.CardRetain(state.properties.cardDict[idx]);
+                int retainedCardIdx = state.properties.findCardIndex(retainedCard);
+                state.addCardToHand(retainedCardIdx);
+            } else {
+                // No room in hand, just add the original card
+                state.addCardToHand(idx);
+            }
+            
+            // Check if we need to select more cards
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForWrite()[counterIdx] < cardCount) {
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                // Reset counter, enter Calm, and end turn
+                state.getCounterForWrite()[counterIdx] = 0;
+                state.changeStance(Stance.CALM);
+                state.addGameActionToEndOfDeque(curState -> curState.endTurn());
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Meditate", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / (float) cardCount;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var generatedCards = new ArrayList<Card>();
+            // Meditate can potentially return any card from discard as retained
+            for (Card card : cards) {
+                generatedCards.add(card.getRetainIfPossible());
+            }
+            return generatedCards;
+        }
+    }
+
+    public static class Meditate extends _MeditateT {
+        public Meditate() {
+            super("Meditate", 1, 1);
+        }
+    }
+
+    public static class MeditateP extends _MeditateT {
+        public MeditateP() {
+            super("Meditate+", 1, 2);
+        }
+    }
 
     private static abstract class _MentalFortressT extends Card {
         private final int block;
@@ -2808,5 +2874,72 @@ public class CardWatcher {
         }
     }
 
-    // todo: Wish
+    public static abstract class _WishT extends Card {
+        protected boolean upgraded = false;
+        protected double healthRewardRatio = 0;
+
+        public _WishT(String cardName, int energyCost, double healthRewardRatio) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = true;
+            this.healthRewardRatio = healthRewardRatio;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // Set up the 3 wish choices
+            Card armorCard = upgraded ? new com.alphaStS.card.CardOther.WishPlatedArmorP() : new com.alphaStS.card.CardOther.WishPlatedArmor();
+            Card strengthCard = upgraded ? new com.alphaStS.card.CardOther.WishStrengthP() : new com.alphaStS.card.CardOther.WishStrength();
+            Card goldCard = upgraded ? new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio) : new com.alphaStS.card.CardOther.WishGold(healthRewardRatio);
+            
+            int armorIdx = state.properties.findCardIndex(armorCard);
+            int strengthIdx = state.properties.findCardIndex(strengthCard);
+            int goldIdx = state.properties.findCardIndex(goldCard);
+            
+            state.setSelect1OutOf3Idxes(armorIdx, strengthIdx, goldIdx);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+            var generatedCards = new ArrayList<Card>();
+            if (upgraded) {
+                generatedCards.add(new com.alphaStS.card.CardOther.WishPlatedArmorP());
+                generatedCards.add(new com.alphaStS.card.CardOther.WishStrengthP());
+                generatedCards.add(new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio));
+            } else {
+                generatedCards.add(new com.alphaStS.card.CardOther.WishPlatedArmor());
+                generatedCards.add(new com.alphaStS.card.CardOther.WishStrength());
+                generatedCards.add(new com.alphaStS.card.CardOther.WishGold(healthRewardRatio));
+            }
+            return generatedCards;
+        }
+
+        public List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+            if (upgraded) {
+                return List.of(
+                    new com.alphaStS.card.CardOther.WishPlatedArmorP(),
+                    new com.alphaStS.card.CardOther.WishStrengthP(),
+                    new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio)
+                );
+            } else {
+                return List.of(
+                    new com.alphaStS.card.CardOther.WishPlatedArmor(),
+                    new com.alphaStS.card.CardOther.WishStrength(),
+                    new com.alphaStS.card.CardOther.WishGold(healthRewardRatio)
+                );
+            }
+        }
+    }
+
+    public static class Wish extends _WishT {
+        public Wish(double healthRewardRatio) {
+            super("Wish", 3, healthRewardRatio);
+            this.upgraded = false;
+        }
+    }
+
+    public static class WishP extends _WishT {
+        public WishP(double healthRewardRatio) {
+            super("Wish+", 3, healthRewardRatio);
+            this.upgraded = true;
+        }
+    }
 }
