@@ -10,7 +10,32 @@ import java.util.List;
 import java.util.Objects;
 
 public class CardColorless {
-    // todo: Bandage Up
+    private static abstract class _BandageUpT extends Card {
+        private final int heal;
+
+        public _BandageUpT(String cardName, int heal) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.heal = heal;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.healPlayer(heal);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BandageUp extends _BandageUpT {
+        public BandageUp() {
+            super("Bandage Up", 4);
+        }
+    }
+
+    public static class BandageUpP extends _BandageUpT {
+        public BandageUpP() {
+            super("Bandage Up+", 6);
+        }
+    }
 
     public static class ToBeImplemented extends Card {
         public ToBeImplemented(String a) {
@@ -428,7 +453,67 @@ public class CardColorless {
         }
     }
 
-    // todo: Purity
+    private static abstract class _PurityT extends Card implements GameProperties.CounterRegistrant {
+        private final int maxExhaust;
+
+        public _PurityT(String cardName, int maxExhaust) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.maxExhaust = maxExhaust;
+            this.exhaustWhenPlayed = true;
+            this.selectFromHandLater = true;
+            this.canExhaustAnyCard = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Purity", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = counter[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                // Initial play - start selecting if hand has cards
+                state.getCounterForWrite()[counterIdx] = 0;
+                return state.getNumCardsInHand() > 0 ? GameActionCtx.SELECT_CARD_HAND : GameActionCtx.PLAY_CARD;
+            } else if (idx >= 0 && idx < state.properties.cardDict.length) {
+                // A card was selected - exhaust it
+                state.exhaustCardFromHand(idx);
+                state.getCounterForWrite()[counterIdx]++;
+
+                // If we've exhausted max cards, or no more cards in hand, finish
+                if (state.getCounterForRead()[counterIdx] >= maxExhaust || state.getNumCardsInHand() == 0) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                    return GameActionCtx.PLAY_CARD;
+                }
+
+                // Continue selecting more cards
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                // "End Selection" was chosen - finish the card
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Purity extends _PurityT {
+        public Purity() {
+            super("Purity", 3);
+        }
+    }
+
+    public static class PurityP extends _PurityT {
+        public PurityP() {
+            super("Purity+", 5);
+        }
+    }
 
     private static abstract class _SwiftStrikeT extends Card {
         private final int n;
@@ -764,7 +849,47 @@ public class CardColorless {
         }
     }
 
-    // todo: Sadistic Nature
+    private static abstract class _SadisticNatureT extends Card implements GameProperties.CounterRegistrant {
+        private final int damage;
+
+        public _SadisticNatureT(String cardName, int damage) {
+            super(cardName, Card.POWER, 0, Card.RARE);
+            this.damage = damage;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SadisticNature", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = counter[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.sadisticNatureCounterIdx = counterIdx;
+                }
+            });
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += damage;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SadisticNature extends _SadisticNatureT {
+        public SadisticNature() {
+            super("Sadistic Nature", 5);
+        }
+    }
+
+    public static class SadisticNatureP extends _SadisticNatureT {
+        public SadisticNatureP() {
+            super("Sadistic Nature+", 7);
+        }
+    }
 
     private static abstract class _SecretTechniqueT extends Card {
         public _SecretTechniqueT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
