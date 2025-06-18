@@ -167,6 +167,7 @@ public class GameProperties implements Cloneable {
     public int blizzardCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
     public int intangibleCounterIdx = -1;
+    public int metallicizeCounterIdx = -1;
     public int sneakyStrikeCounterIdx = -1;
     public int eviscerateCounterIdx = -1;
     public int wellLaidPlansCounterIdx = -1;
@@ -714,6 +715,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant MetallicizeCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.metallicizeCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.metallicizeCounterIdx;
+        }
+    };
+
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -789,6 +799,23 @@ public class GameProperties implements Cloneable {
         state.properties.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+            }
+        });
+    }
+
+    public void registerMetallicizeCounter() {
+        registerCounter("Metallicize", MetallicizeCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.metallicizeCounterIdx] / 10.0f;
+                return idx + 1;
+            }
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.metallicizeCounterIdx]);
             }
         });
     }
