@@ -483,6 +483,9 @@ public class EnemyBeyond {
                     for (var enemy : state.getEnemiesForRead()) {
                         if (enemy instanceof TimeEater && enemy.isAlive()) {
                             c[state.properties.timeEaterCounterIdx]++;
+                            if (c[state.properties.timeEaterCounterIdx] == 12) {
+                                state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+                            }
                             break;
                         }
                     }

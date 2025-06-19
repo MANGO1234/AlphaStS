@@ -423,6 +423,7 @@ public class CardManager {
             // Rare powers
             cards.add(new CardWatcher.DevaForm());
             cards.add(new CardWatcher.Devotion());
+            cards.add(new CardWatcher.Establishment());
             cards.add(new CardWatcher.MasterReality());
         }
 
