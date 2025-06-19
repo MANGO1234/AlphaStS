@@ -87,6 +87,8 @@ public class GameProperties implements Cloneable {
     public int[] skillPotionIdxes;
     public int[] powerPotionIdxes;
     public int[] colorlessPotionIdxes;
+    public int[] colorlessTmp0Idxes;
+    public int[] colorlessUpgradedTmp0Idxes;
     public int[] cardRewardIdxes;
     public int[] astrolabeCardsIdxes;
     public int[] pandorasBoxCardsIdxes;
@@ -96,6 +98,7 @@ public class GameProperties implements Cloneable {
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;
     public int[] strikeCardIdxes;
+    public int[] colorlessCardIdxes;
     // cached status indexes
     public int burnCardIdx = -1;
     public int burnPCardIdx = -1;
