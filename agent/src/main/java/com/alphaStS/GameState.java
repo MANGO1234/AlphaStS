@@ -1032,6 +1032,19 @@ public final class GameState implements State {
             }
         }
 
+        // Setup tmpRetain transformation indexes
+        properties.tmpRetainCardTransformIdxes = new int[cards.size()];
+        properties.tmpRetainCardReverseTransformIdxes = new int[cards.size()];
+        Arrays.fill(properties.tmpRetainCardTransformIdxes, -1);
+        Arrays.fill(properties.tmpRetainCardReverseTransformIdxes, -1);
+        for (int i = 0; i < cards.size(); i++) {
+            if (properties.cardDict[i] instanceof Card.CardTmpRetain) {
+                properties.tmpRetainCardReverseTransformIdxes[i] = properties.findCardIndex(((Card.CardTmpRetain) properties.cardDict[i]).card);
+            } else {
+                properties.tmpRetainCardTransformIdxes[i] = properties.findCardIndex(new Card.CardTmpRetain(properties.cardDict[i]));
+            }
+        }
+
         properties.upgradeIdxes = findUpgradeIdxes(cards, relics, potions);
         properties.discardIdxes = findDiscardToKeepTrackOf(discardSet, cards, potions);
         properties.discardReverseIdxes = new int[properties.realCardsLen];
@@ -1044,14 +1057,7 @@ public final class GameState implements State {
     private static void addPossibleGeneratedCardsFromListOfCard(List<Card> c, HashSet<Card> newSet, HashSet<Card> discardSet) {
         for (Card possibleCard : c) {
             newSet.add(possibleCard);
-            if (possibleCard instanceof Card.CardTmpChangeCost tmp) {
-                newSet.add(tmp.card);
-                if (discardSet != null) {
-                    discardSet.add(tmp.card);
-                }
-            } else if (discardSet != null) {
-                discardSet.add(possibleCard);
-            }
+            newSet.add(possibleCard.getBaseCard());
         }
     }
 
@@ -1981,6 +1987,9 @@ public final class GameState implements State {
         }
         updateHandArr();
 
+        // remove temporary retain from cards (after retain processing is complete)
+        handArrTransform(properties.tmpRetainCardReverseTransformIdxes);
+
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
             if (properties.cardDict[chosenCardsArr[i]].ethereal) {
@@ -2131,7 +2140,11 @@ public final class GameState implements State {
                     beginTurnPart2();
                 }
             } else {
-                if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
+                if (properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented) {
+
+                } else if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
+                    properties.cardDict[action.idx()].play(this, 0, 0);
+                } else {
                     addCardToHandGeneration(action.idx());
                 }
                 setActionCtx(GameActionCtx.PLAY_CARD, null, null);
