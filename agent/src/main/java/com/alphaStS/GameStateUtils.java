@@ -380,6 +380,17 @@ public class GameStateUtils {
         }
     }
 
+    public static int[] getCardIdxes(List<Card> cards, GameProperties properties) {
+        List<Integer> idxes = new ArrayList<>();
+        for (Card card : cards) {
+            int cardIdx = properties.findCardIndex(card);
+            if (cardIdx >= 0) {
+                idxes.add(cardIdx);
+            }
+        }
+        return idxes.stream().mapToInt(Integer::intValue).toArray();
+    }
+
     public static byte[] getCardArrCounts(short[] cards, int cardsLen, int len) {
         byte[] counts = new byte[len];
         for (int i = 0; i < cardsLen; i++) {

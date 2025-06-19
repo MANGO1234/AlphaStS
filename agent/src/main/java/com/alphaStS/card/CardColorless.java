@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyEnding;
+import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 
 import java.util.List;
@@ -257,7 +258,29 @@ public class CardColorless {
         }
     }
 
-    // todo: Forethought
+    public static class Forethought extends Card {
+        public Forethought() {
+            super("Forethought", Card.SKILL, 0, Card.UNCOMMON);
+            // Placeholder implementation - not fully implemented
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: Implement placing card from hand on bottom of draw pile with 0 cost
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ForethoughtP extends Card {
+        public ForethoughtP() {
+            super("Forethought+", Card.SKILL, 0, Card.UNCOMMON);
+            // Placeholder implementation - not fully implemented
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: Implement placing cards from hand on bottom of draw pile with 0 cost
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     private static abstract class _GoodInstinctsT extends Card {
         private final int n;
@@ -316,7 +339,37 @@ public class CardColorless {
         }
     }
 
-    // todo: Jack Of All Trades
+    private static abstract class _JackOfAllTradesT extends Card {
+        private final int numCards;
+
+        public _JackOfAllTradesT(String cardName, int numCards) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.numCards = numCards;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var colorlessCardIdxes = state.properties.colorlessCardIdxes;
+            for (int i = 0; i < numCards; i++) {
+                int randomIdx = state.getSearchRandomGen().nextInt(colorlessCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, colorlessCardIdxes));
+                int cardIdx = colorlessCardIdxes[randomIdx];
+                state.addCardToHand(cardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class JackOfAllTrades extends _JackOfAllTradesT {
+        public JackOfAllTrades() {
+            super("Jack Of All Trades", 1);
+        }
+    }
+
+    public static class JackOfAllTradesP extends _JackOfAllTradesT {
+        public JackOfAllTradesP() {
+            super("Jack Of All Trades+", 2);
+        }
+    }
 
     private static abstract class _MadnessT extends Card {
         public _MadnessT(String cardName, int cardType, int energyCost) {
@@ -712,7 +765,52 @@ public class CardColorless {
         }
     }
 
-    // todo: Magnetism
+    private static abstract class _MagnetismT extends Card {
+        public _MagnetismT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Magnetism", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+
+            state.properties.addStartOfTurnHandler("Magnetism", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    var colorlessCardIdxes = state.properties.colorlessCardIdxes;
+                    for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                        state.setIsStochastic();
+                        int randomIdx = state.getSearchRandomGen().nextInt(colorlessCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, colorlessCardIdxes));
+                        int cardIdx = colorlessCardIdxes[randomIdx];
+                        state.addCardToHand(cardIdx);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Magnetism extends _MagnetismT {
+        public Magnetism() {
+            super("Magnetism", 2);
+        }
+    }
+
+    public static class MagnetismP extends _MagnetismT {
+        public MagnetismP() {
+            super("Magnetism+", 1);
+        }
+    }
 
     private static abstract class _MasterOfStrategyT extends Card {
         private final int n;
@@ -1046,7 +1144,42 @@ public class CardColorless {
         }
     }
 
-    // todo: Transmutation
+    private static abstract class _TransmutationT extends Card {
+        private final boolean upgraded;
+
+        public _TransmutationT(String cardName, boolean upgraded) {
+            super(cardName, Card.SKILL, -1, Card.RARE);
+            this.upgraded = upgraded;
+            this.exhaustWhenPlayed = true;
+            this.isXCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var colorlessIdxes = upgraded ? state.properties.colorlessUpgradedTmp0Idxes : state.properties.colorlessTmp0Idxes;
+            for (int i = 0; i < energyUsed; i++) {
+                int randomIdx = state.getSearchRandomGen().nextInt(colorlessIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, colorlessIdxes));
+                int cardIdx = colorlessIdxes[randomIdx];
+                state.addCardToHand(cardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            return state.energy;
+        }
+    }
+
+    public static class Transmutation extends _TransmutationT {
+        public Transmutation() {
+            super("Transmutation", false);
+        }
+    }
+
+    public static class TransmutationP extends _TransmutationT {
+        public TransmutationP() {
+            super("Transmutation+", true);
+        }
+    }
 
     private static abstract class _ViolenceT extends Card {
         private final int n;

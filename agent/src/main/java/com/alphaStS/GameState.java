@@ -616,6 +616,21 @@ public final class GameState implements State {
             }
         }
         properties.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
+        properties.colorlessCardIdxes = GameStateUtils.getCardIdxes(CardManager.getColorlessCards(false), properties);
+        var colorlessCards = CardManager.getColorlessCards(false);
+        properties.colorlessTmp0Idxes = new int[colorlessCards.size()];
+        properties.colorlessUpgradedTmp0Idxes = new int[colorlessCards.size()];
+        for (int i = 0; i < colorlessCards.size(); i++) {
+            Card tmpCostCard = colorlessCards.get(i).getTemporaryCostIfPossible(0);
+            if (tmpCostCard != null) {
+                properties.colorlessTmp0Idxes[i] = properties.findCardIndex(tmpCostCard);
+            }
+            Card upgradedCard = colorlessCards.get(i).getUpgrade();
+            if (upgradedCard != null) {
+                Card upgradedTmpCostCard = upgradedCard.getTemporaryCostIfPossible(0);
+                properties.colorlessUpgradedTmp0Idxes[i] = properties.findCardIndex(upgradedTmpCostCard);
+            }
+        }
         properties.healCardsIdxes = findCardThatCanHealIdxes(cards, relics);
         if (properties.healCardsIdxes != null) {
             properties.healCardsBooleanArr = new boolean[properties.cardDict.length];
