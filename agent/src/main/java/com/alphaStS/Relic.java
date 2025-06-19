@@ -2914,4 +2914,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.numOfPotionSlots = n;
         }
     }
+
+    // **********************************************************************************************************************************************
+    // ********************************************************** Watcher Specific Relics ***********************************************************
+    // **********************************************************************************************************************************************
+
+    // todo: Pure Water
+    // todo: Damaru
+    // todo: Duality
+    // todo: Teardrop Locket
+    // todo: Cloak Clasp
+    // todo: Golden Eye
+    // todo: Melange
+    // todo: Holy Water
+    // todo: Violet Lotus
 }
