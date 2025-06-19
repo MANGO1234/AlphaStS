@@ -1668,7 +1668,7 @@ public class TestStates {
         builder.addCard(new CardDefect.ColdSnapP(), 1);
         builder.addCard(new CardDefect.HyperBeamP(), 1);
         builder.addCard(new CardDefect.DefragmentP().setInnate(true), 1);
-        builder.addCard(new CardDefect.SelfRepairHeart(), 2);
+        builder.addCard(new CardDefect.SelfRepair(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 2);
         builder.addCard(new CardDefect.Rebound(), 1);
         builder.addCard(new CardDefect.BiasedCognitionP(), 3);

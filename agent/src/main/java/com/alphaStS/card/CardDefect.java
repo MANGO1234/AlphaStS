@@ -2136,16 +2136,6 @@ public class CardDefect {
         }
     }
 
-    public static class SelfRepairHeart extends Card {
-        public SelfRepairHeart() {
-            super("Self Repair", Card.POWER, 1, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
     private static abstract class _SkimT extends Card {
         private final int n;
 
