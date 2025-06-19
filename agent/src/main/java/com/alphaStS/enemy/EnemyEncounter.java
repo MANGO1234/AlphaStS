@@ -658,24 +658,7 @@ public class EnemyEncounter {
     }
 
     private static void goToCardRewardCtx(GameState state) {
-        boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-        int idx1 = state.getSearchRandomGen().nextInt(state.properties.cardRewardIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.cardRewardIdxes) : null);
-        int idx2 = state.getSearchRandomGen().nextInt(state.properties.cardRewardIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.cardRewardIdxes) : null);
-        int idx3 = state.getSearchRandomGen().nextInt(state.properties.cardRewardIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.cardRewardIdxes) : null);
-        if (idx2 >= idx1) {
-            idx2++;
-        }
-        if (idx3 >= Math.min(idx1, idx2)) {
-            idx3++;
-        }
-        if (idx3 >= Math.max(idx1, idx2)) {
-            idx3++;
-        }
-        state.setSelect1OutOf3Idxes(state.properties.cardRewardIdxes[idx1], state.properties.cardRewardIdxes[idx2], state.properties.cardRewardIdxes[idx3]);
-        state.setIsStochastic();
+        state.setSelect1OutOf3Idxes(state.properties.cardRewardIdxes);
         state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
     }
 

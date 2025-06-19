@@ -5178,6 +5178,27 @@ public final class GameState implements State {
         }
     }
 
+    public void setSelect1OutOf3Idxes(int[] possibleCardIdxes) {
+        boolean interactive = getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+        int idx1 = getSearchRandomGen().nextInt(possibleCardIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                interactive ? new Tuple3<>(this, (255 << 8) + 255, possibleCardIdxes) : null);
+        int idx2 = getSearchRandomGen().nextInt(possibleCardIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                interactive ? new Tuple3<>(this, (255 << 8) + idx1, possibleCardIdxes) : null);
+        int idx3 = getSearchRandomGen().nextInt(possibleCardIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                interactive ? new Tuple3<>(this, (idx2 << 8) + idx1, possibleCardIdxes) : null);
+        if (idx2 >= idx1) {
+            idx2++;
+        }
+        if (idx3 >= Math.min(idx1, idx2)) {
+            idx3++;
+        }
+        if (idx3 >= Math.max(idx1, idx2)) {
+            idx3++;
+        }
+        setSelect1OutOf3Idxes(possibleCardIdxes[idx1], possibleCardIdxes[idx2], possibleCardIdxes[idx3]);
+        setIsStochastic();
+    }
+
     public double getVOther(int vArrayIdx) {
         return v_other == null ? 0 : v_other[vArrayIdx];
     }

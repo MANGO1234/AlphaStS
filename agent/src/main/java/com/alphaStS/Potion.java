@@ -582,24 +582,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.properties.attackPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.attackPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.properties.attackPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.attackPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.properties.attackPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.attackPotionIdxes) : null);
-            if (idx2 >= idx1) {
-                idx2++;
-            }
-            if (idx3 >= Math.min(idx1, idx2)) {
-                idx3++;
-            }
-            if (idx3 >= Math.max(idx1, idx2)) {
-                idx3++;
-            }
-            state.setSelect1OutOf3Idxes(state.properties.attackPotionIdxes[idx1], state.properties.attackPotionIdxes[idx2], state.properties.attackPotionIdxes[idx3]);
-            state.setIsStochastic();
+            state.setSelect1OutOf3Idxes(state.properties.attackPotionIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
@@ -637,24 +620,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.properties.skillPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.skillPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.properties.skillPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.skillPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.properties.skillPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.skillPotionIdxes) : null);
-            if (idx2 >= idx1) {
-                idx2++;
-            }
-            if (idx3 >= Math.min(idx1, idx2)) {
-                idx3++;
-            }
-            if (idx3 >= Math.max(idx1, idx2)) {
-                idx3++;
-            }
-            state.setSelect1OutOf3Idxes(state.properties.skillPotionIdxes[idx1], state.properties.skillPotionIdxes[idx2], state.properties.skillPotionIdxes[idx3]);
-            state.setIsStochastic();
+            state.setSelect1OutOf3Idxes(state.properties.skillPotionIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
@@ -700,24 +666,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.powerPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.powerPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.properties.powerPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.powerPotionIdxes) : null);
-            if (idx2 >= idx1) {
-                idx2++;
-            }
-            if (idx3 >= Math.min(idx1, idx2)) {
-                idx3++;
-            }
-            if (idx3 >= Math.max(idx1, idx2)) {
-                idx3++;
-            }
-            state.setSelect1OutOf3Idxes(state.properties.powerPotionIdxes[idx1], state.properties.powerPotionIdxes[idx2], state.properties.powerPotionIdxes[idx3]);
-            state.setIsStochastic();
+            state.setSelect1OutOf3Idxes(state.properties.powerPotionIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
@@ -755,24 +704,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
-            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.properties.colorlessPotionIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.colorlessPotionIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.properties.colorlessPotionIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.colorlessPotionIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.properties.colorlessPotionIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.colorlessPotionIdxes) : null);
-            if (idx2 >= idx1) {
-                idx2++;
-            }
-            if (idx3 >= Math.min(idx1, idx2)) {
-                idx3++;
-            }
-            if (idx3 >= Math.max(idx1, idx2)) {
-                idx3++;
-            }
-            state.setSelect1OutOf3Idxes(state.properties.colorlessPotionIdxes[idx1], state.properties.colorlessPotionIdxes[idx2], state.properties.colorlessPotionIdxes[idx3]);
-            state.setIsStochastic();
+            state.setSelect1OutOf3Idxes(state.properties.colorlessTmp0Idxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
@@ -795,13 +727,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return CardManager.getColorlessCards(false);
         }
 
-        public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect1OutOf3Cards(state.properties);
-            state.properties.colorlessPotionIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.colorlessPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
-            }
-        }
     }
 
     public static class SneckoOil extends Potion {
