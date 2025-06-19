@@ -816,7 +816,7 @@ public class CardWatcher {
                     state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), damage, true);
                 }
             }
-            state.addGameActionToEndOfDeque(state1 -> state1.endTurn());
+            state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1180,7 +1180,7 @@ public class CardWatcher {
                 // Reset counter, enter Calm, and end turn
                 state.getCounterForWrite()[counterIdx] = 0;
                 state.changeStance(Stance.CALM);
-                state.addGameActionToEndOfDeque(curState -> curState.endTurn());
+                state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
                 return GameActionCtx.PLAY_CARD;
             }
         }
@@ -2585,7 +2585,29 @@ public class CardWatcher {
         }
     }
 
-    // todo: Establishment
+    public static abstract class _EstablishmentT extends Card {
+        public _EstablishmentT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // TODO: Implement effect - Whenever a card is Retained, lower its cost by 1
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Establishment extends _EstablishmentT {
+        public Establishment() {
+            super("Establishment", 1);
+        }
+    }
+
+    public static class EstablishmentP extends _EstablishmentT {
+        public EstablishmentP() {
+            super("Establishment+", 1);
+            this.innate = true;
+        }
+    }
 
     public static abstract class _JudgmentT extends Card {
         private final int hpThreshold;
@@ -2850,14 +2872,8 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // End current turn and immediately start a new turn (skipping enemy turn)
-            state.addGameActionToEndOfDeque(curState -> {
-                curState.endTurn();
-                curState.runActionsInQueueIfNonEmpty();
-                if (curState.isTerminal() == 0) {
-                    curState.setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
-                }
-            });
+            state.buffs |= PlayerBuff.USED_VAULT.mask();
+            state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
             return GameActionCtx.PLAY_CARD;
         }
     }

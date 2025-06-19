@@ -709,6 +709,9 @@ public final class GameState implements State {
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.ArtOfWar) ? PlayerBuff.ART_OF_WAR.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.CentennialPuzzle) ? PlayerBuff.CENTENNIAL_PUZZLE.mask() : 0;
         properties.possibleBuffs |= relics.stream().anyMatch((x) -> x instanceof Relic.Necronomicon) ? PlayerBuff.NECRONOMICON.mask() : 0;
+        properties.possibleBuffs |= (enemiesArg.stream().anyMatch((x) -> x instanceof EnemyBeyond.TimeEater) || 
+                                   cards.stream().anyMatch((x) -> x.cardName.contains("Meditate") || x.cardName.contains("Conclude") || x.cardName.contains("Vault"))) ? PlayerBuff.END_TURN_IMMEDIATELY.mask() : 0;
+        properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Vault")) ? PlayerBuff.USED_VAULT.mask() : 0;
         properties.needDeckOrderMemory |= cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
         properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
         properties.battleTranceExist = cards.stream().anyMatch((x) -> x.cardName.contains("Battle Trance"));
@@ -1745,29 +1748,32 @@ public final class GameState implements State {
             exitDivinityAtStartOfTurn();
         }
         triggerOrbsPassiveStartOfTurn();
-        var enemies = getEnemiesForWrite();
-        for (int i = 0; i < enemies.size(); i++) {
-            var enemy = enemies.get(i);
-            if (enemy.isAlive() || enemy.properties.canSelfRevive) {
-                var enemy2 = enemies.getForWrite(i);
-                enemy2.endTurn(turnNum);
-                if (!properties.isRunicDomeEnabled(this)) {
-                    var oldIsStochastic = isStochastic;
-                    isStochastic = false;
-                    enemy2.nextMove(this, getSearchRandomGen());
-                    if (properties.makingRealMove && isStochastic) {
-                        getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
-                    }
-                    isStochastic = oldIsStochastic | isStochastic;
-                } else {
+        if ((buffs & PlayerBuff.USED_VAULT.mask()) == 0) {
+            var enemies = getEnemiesForWrite();
+            for (int i = 0; i < enemies.size(); i++) {
+                var enemy = enemies.get(i);
+                if (enemy.isAlive() || enemy.properties.canSelfRevive) {
+                    var enemy2 = enemies.getForWrite(i);
+                    enemy2.endTurn(turnNum);
+                    if (!properties.isRunicDomeEnabled(this)) {
+                        var oldIsStochastic = isStochastic;
+                        isStochastic = false;
+                        enemy2.nextMove(this, getSearchRandomGen());
+                        if (properties.makingRealMove && isStochastic) {
+                            getStateDesc().append(getStateDesc().length() > 0 ? "; " : "").append(enemy2.getName()).append(" (").append(i).append(") choose move ").append(enemy2.getMoveString(this));
+                        }
+                        isStochastic = oldIsStochastic | isStochastic;
+                    } else {
                     // for enemy like GremlinLeader, we need to choose move based on the beginning of turn
                     // currently doing it like this so instead of saving last 2 moves so that
                     // enemyChooseMove leading to multiple tree where the turn is the same (since nn is passed in the same info)
                     // we have one tree that has a chance event on beginning of turn
-                    enemy2.saveStateForNextMove(this);
+                        enemy2.saveStateForNextMove(this);
+                    }
                 }
             }
         }
+        buffs &= ~PlayerBuff.USED_VAULT.mask();
         if (properties.hasToolbox && turnNum == 0 && properties.getRelic(Relic.Toolbox.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
             Relic.Toolbox.changeToSelectionCtx(this);
         } else {
@@ -2026,7 +2032,7 @@ public final class GameState implements State {
                 }
             }
         }
-        if (atLeastOneAlive) {
+        if (atLeastOneAlive && (buffs & PlayerBuff.USED_VAULT.mask()) == 0) {
             for (int i = 0; i < livingEnemiesCount; i++) {
                 if (enemies.getForWrite(livingEnemies[i]).getHealth() > 0) {
                     enemies.getForWrite(livingEnemies[i]).startTurn(this);
@@ -2060,6 +2066,7 @@ public final class GameState implements State {
         if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12) {
             getCounterForWrite()[properties.timeEaterCounterIdx] = 0;
         }
+        buffs &= ~PlayerBuff.END_TURN_IMMEDIATELY.mask();
         getPlayerForWrite().endTurn(this);
         if (!properties.hasIceCream || !properties.getRelic(Relic.IceCream.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
             energy = 0;
@@ -3079,6 +3086,14 @@ public final class GameState implements State {
                 var legal = new boolean[properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length];
                 legal[legal.length - 1] = true; // End Turn
                 int count = 1;
+
+                if ((buffs & PlayerBuff.END_TURN_IMMEDIATELY.mask()) != 0) {
+                    // Only End Turn is legal when this buff is active
+                    legalActions = new int[1];
+                    legalActions[0] = legal.length - 1; // End Turn action index
+                    return legalActions;
+                }
+
                 if (!(properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12)) {
                     for (int i = 0; i < properties.potions.size(); i++) {
                         if (properties.potions.get(i).isGenerated && properties.potions.get(i).generatedIdx > 0) {
