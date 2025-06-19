@@ -144,23 +144,7 @@ public class CardColorless {
             if (!generateCard) {
                 return GameActionCtx.PLAY_CARD;
             }
-            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.properties.discoveryIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.discoveryIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.properties.discoveryIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.discoveryIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.properties.discoveryIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.discoveryIdxes) : null);
-            if (idx2 >= idx1) {
-                idx2++;
-            }
-            if (idx3 >= Math.min(idx1, idx2)) {
-                idx3++;
-            }
-            if (idx3 >= Math.max(idx1, idx2)) {
-                idx3++;
-            }
-            state.setSelect1OutOf3Idxes(state.properties.discoveryIdxes[idx1], state.properties.discoveryIdxes[idx2], state.properties.discoveryIdxes[idx3]);
+            state.setSelect1OutOf3Idxes(state.properties.discoveryIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
@@ -323,27 +307,29 @@ public class CardColorless {
         }
     }
 
-    public static class Forethought extends Card {
-        public Forethought() {
-            super("Forethought", Card.SKILL, 0, Card.UNCOMMON);
-            // Placeholder implementation - not fully implemented
+    private static abstract class _ForethoughtT extends Card {
+        private final int cardCount;
+
+        public _ForethoughtT(String cardName, int cardCount) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.cardCount = cardCount;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // TODO: Implement placing card from hand on bottom of draw pile with 0 cost
+            // TODO: Implement placing card(s) from hand on bottom of draw pile with 0 cost
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class ForethoughtP extends Card {
-        public ForethoughtP() {
-            super("Forethought+", Card.SKILL, 0, Card.UNCOMMON);
-            // Placeholder implementation - not fully implemented
+    public static class Forethought extends _ForethoughtT {
+        public Forethought() {
+            super("Forethought", 1);
         }
+    }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // TODO: Implement placing cards from hand on bottom of draw pile with 0 cost
-            return GameActionCtx.PLAY_CARD;
+    public static class ForethoughtP extends _ForethoughtT {
+        public ForethoughtP() {
+            super("Forethought+", 2);
         }
     }
 

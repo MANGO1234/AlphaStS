@@ -1642,24 +1642,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         public static void changeToSelectionCtx(GameState state) {
-            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
-            int idx1 = state.getSearchRandomGen().nextInt(state.properties.toolboxIdxes.length, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.toolboxIdxes) : null);
-            int idx2 = state.getSearchRandomGen().nextInt(state.properties.toolboxIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.toolboxIdxes) : null);
-            int idx3 = state.getSearchRandomGen().nextInt(state.properties.toolboxIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
-                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.toolboxIdxes) : null);
-            if (idx2 >= idx1) {
-                idx2++;
-            }
-            if (idx3 >= Math.min(idx1, idx2)) {
-                idx3++;
-            }
-            if (idx3 >= Math.max(idx1, idx2)) {
-                idx3++;
-            }
-            state.setSelect1OutOf3Idxes(state.properties.toolboxIdxes[idx1], state.properties.toolboxIdxes[idx2], state.properties.toolboxIdxes[idx3]);
-            state.setIsStochastic();
+            state.setSelect1OutOf3Idxes(state.properties.toolboxIdxes);
             state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
         }
 
