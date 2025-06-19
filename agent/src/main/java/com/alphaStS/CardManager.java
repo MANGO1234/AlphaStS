@@ -8,27 +8,27 @@ import java.util.List;
 
 public class CardManager {
 
-    public static List<Card> getPossibleGeneratedCards(CharacterEnum character, int cardType) {
+    public static List<Card> getPossibleGeneratedCards(CharacterEnum character, int cardType, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
         switch (character) {
             case IRONCLAD:
-                cards.addAll(getIroncladCards(cardType));
+                cards.addAll(getIroncladCards(cardType, generateHealingCard));
                 break;
             case SILENT:
-                cards.addAll(getSilentCards(cardType));
+                cards.addAll(getSilentCards(cardType, generateHealingCard));
                 break;
             case DEFECT:
-                cards.addAll(getDefectCards(cardType));
+                cards.addAll(getDefectCards(cardType, generateHealingCard));
                 break;
             case WATCHER:
-                cards.addAll(getWatcherCards(cardType));
+                cards.addAll(getWatcherCards(cardType, generateHealingCard));
                 break;
         }
         return cards;
     }
 
-    public static List<Card> getPossibleSelect3OutOf1Cards(CharacterEnum character, int cardType) {
-        List<Card> baseCards = getPossibleGeneratedCards(character, cardType);
+    public static List<Card> getPossibleSelect3OutOf1Cards(CharacterEnum character, int cardType, boolean generateHealingCard) {
+        List<Card> baseCards = getPossibleGeneratedCards(character, cardType, generateHealingCard);
         List<Card> cards = new ArrayList<>();
         for (Card card : baseCards) {
             cards.add(card.getTemporaryCostIfPossible(0));
@@ -36,8 +36,11 @@ public class CardManager {
         return cards;
     }
 
-    public static List<Card> getColorlessCards() {
+    public static List<Card> getColorlessCards(boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
+        if (generateHealingCard) {
+            cards.add(new CardColorless.BandageUp());
+        }
         cards.add(new CardColorless.Blind());
         cards.add(new CardColorless.DarkShackles());
         cards.add(new CardColorless.DeepBreath());
@@ -75,7 +78,7 @@ public class CardManager {
         return cards;
     }
 
-    private static List<Card> getIroncladCards(int cardType) {
+    private static List<Card> getIroncladCards(int cardType, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
 
         if (cardType == Card.ATTACK) {
@@ -110,10 +113,14 @@ public class CardManager {
 
             // Rare attacks
             cards.add(new CardIronclad.Bludgeon());
-            cards.add(new CardIronclad.Feed());
+            if (generateHealingCard) {
+                cards.add(new CardIronclad.Feed());
+            }
             cards.add(new CardIronclad.FiendFire());
             cards.add(new CardIronclad.Immolate());
-            cards.add(new CardIronclad.Reaper());
+            if (generateHealingCard) {
+                cards.add(new CardIronclad.Reaper());
+            }
         } else if (cardType == Card.SKILL) {
             // Common skills
             cards.add(new CardIronclad.Armanent());
@@ -171,10 +178,11 @@ public class CardManager {
         return cards;
     }
 
-    private static List<Card> getSilentCards(int cardType) {
+    private static List<Card> getSilentCards(int cardType, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
 
         if (cardType == Card.ATTACK) {
+            // Common attacks
             cards.add(new CardSilent.Bane());
             cards.add(new CardSilent.DaggerSpray());
             cards.add(new CardSilent.DaggerThrow());
@@ -184,6 +192,8 @@ public class CardManager {
             cards.add(new CardSilent.Slice());
             cards.add(new CardSilent.SneakyStrike());
             cards.add(new CardSilent.SuckerPunch());
+
+            // Uncommon attacks
             cards.add(new CardSilent.AllOutAttack());
             cards.add(new CardSilent.Backstab());
             cards.add(new CardSilent.Choke());
@@ -197,13 +207,14 @@ public class CardManager {
             cards.add(new CardSilent.Predator());
             cards.add(new CardSilent.RiddleWithHoles());
             cards.add(new CardSilent.Skewer());
+
+            // Rare attacks
             cards.add(new CardSilent.DieDieDie());
             cards.add(new CardSilent.GlassKnife());
             cards.add(new CardSilent.GrandFinale());
             cards.add(new CardSilent.Unload());
         } else if (cardType == Card.SKILL) {
-            // Need to use proper constructor parameters for Silent skill cards
-            // Many require specific parameters - for now using defaults that work
+            // Common skills
             cards.add(new CardSilent.Acrobatics());
             cards.add(new CardSilent.Backflip());
             cards.add(new CardSilent.BladeDance());
@@ -214,6 +225,8 @@ public class CardManager {
             cards.add(new CardSilent.Outmaneuver());
             cards.add(new CardSilent.PiercingWail());
             cards.add(new CardSilent.Prepared());
+
+            // Uncommon skills
             cards.add(new CardSilent.Blur());
             cards.add(new CardSilent.BouncingFlask());
             cards.add(new CardSilent.CalculatedGamble());
@@ -225,9 +238,11 @@ public class CardManager {
             cards.add(new CardSilent.Expertise());
             cards.add(new CardSilent.LegSweep());
             cards.add(new CardSilent.Reflex());
-            cards.add(new CardSilent.Setup(false));
+            cards.add(new CardSilent.Setup(true));
             cards.add(new CardSilent.Tactician());
             cards.add(new CardSilent.Terror());
+
+            // Rare skills
             cards.add(new CardSilent.Adrenaline());
             cards.add(new CardSilent.Alchemize(0, 0, 0));
             cards.add(new CardSilent.BulletTime());
@@ -258,10 +273,11 @@ public class CardManager {
         return cards;
     }
 
-    private static List<Card> getDefectCards(int cardType) {
+    private static List<Card> getDefectCards(int cardType, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
 
         if (cardType == Card.ATTACK) {
+            // Common attacks
             cards.add(new CardDefect.BallLightning());
             cards.add(new CardDefect.Barrage());
             cards.add(new CardDefect.BeamCell());
@@ -272,6 +288,8 @@ public class CardManager {
             cards.add(new CardDefect.Rebound());
             cards.add(new CardDefect.Streamline());
             cards.add(new CardDefect.SweepingBeam());
+
+            // Uncommon attacks
             cards.add(new CardDefect.Blizzard());
             cards.add(new CardDefect.BullsEye());
             cards.add(new CardDefect.DoomAndGloom());
@@ -280,13 +298,15 @@ public class CardManager {
             cards.add(new CardDefect.RipAndTear());
             cards.add(new CardDefect.Scrape());
             cards.add(new CardDefect.Sunder());
+
+            // Rare attacks
             cards.add(new CardDefect.AllForOne(0, 0));
             cards.add(new CardDefect.CoreSurge());
             cards.add(new CardDefect.HyperBeam());
             cards.add(new CardDefect.MeteorStrike());
             cards.add(new CardDefect.ThunderStrike());
         } else if (cardType == Card.SKILL) {
-            // Basic skills  
+            // Common skills
             cards.add(new CardDefect.ChargeBattery());
             cards.add(new CardDefect.Coolheaded());
             cards.add(new CardDefect.Hologram());
@@ -332,7 +352,9 @@ public class CardManager {
             cards.add(new CardDefect.Heatsinks());
             cards.add(new CardDefect.HelloWorld());
             cards.add(new CardDefect.Loop());
-            cards.add(new CardDefect.SelfRepair());
+            if (generateHealingCard) {
+                cards.add(new CardDefect.SelfRepair());
+            }
             cards.add(new CardDefect.StaticDischarge());
             cards.add(new CardDefect.Storm());
 
@@ -348,7 +370,7 @@ public class CardManager {
         return cards;
     }
 
-    private static List<Card> getWatcherCards(int cardType) {
+    private static List<Card> getWatcherCards(int cardType, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
 
         if (cardType == Card.ATTACK) {
@@ -383,32 +405,45 @@ public class CardManager {
             cards.add(new CardWatcher.LessonLearned(0.0));
             cards.add(new CardWatcher.Ragnarok());
         } else if (cardType == Card.SKILL) {
-            cards.add(new CardWatcher.Blasphemy());
-            cards.add(new CardWatcher.Collect());
+            // Common skills
             cards.add(new CardWatcher.Crescendo());
-            cards.add(new CardWatcher.DeceiveReality());
-            cards.add(new CardWatcher.DeusExMachina());
-            cards.add(new CardWatcher.EmptyMind());
-            cards.add(new CardWatcher.ForeignInfluence());
+            cards.add(new CardWatcher.EmptyBody());
+            cards.add(new CardWatcher.Evaluate());
             cards.add(new CardWatcher.Halt());
-            cards.add(new CardWatcher.Indignation());
-            cards.add(new CardWatcher.InnerPeace());
-            cards.add(new CardWatcher.Judgment());
-            cards.add(new CardWatcher.Meditate());
-            cards.add(new CardWatcher.Omniscience());
-            cards.add(new CardWatcher.Perseverance());
-            cards.add(new CardWatcher.Pray());
+            cards.add(new CardWatcher.PressurePoints());
             cards.add(new CardWatcher.Prostrate());
             cards.add(new CardWatcher.Protect());
-            cards.add(new CardWatcher.Scrawl());
-            cards.add(new CardWatcher.SimmeringFury());
-            cards.add(new CardWatcher.SpiritShield());
             cards.add(new CardWatcher.ThirdEye());
             cards.add(new CardWatcher.Tranquility());
-            cards.add(new CardWatcher.Vault());
+
+            // Uncommon skills
+            cards.add(new CardWatcher.Collect());
+            cards.add(new CardWatcher.DeceiveReality());
+            cards.add(new CardWatcher.EmptyMind());
+            cards.add(new CardWatcher.ForeignInfluence());
+            cards.add(new CardWatcher.Indignation());
+            cards.add(new CardWatcher.InnerPeace());
+            cards.add(new CardWatcher.Meditate());
+            cards.add(new CardWatcher.Perseverance());
+            cards.add(new CardWatcher.Pray());
+            cards.add(new CardWatcher.Sanctity());
+            cards.add(new CardWatcher.SimmeringFury());
+            cards.add(new CardWatcher.Swivel());
             cards.add(new CardWatcher.WaveOfTheHand());
-            cards.add(new CardWatcher.Wish(0.0));
             cards.add(new CardWatcher.Worship());
+            cards.add(new CardWatcher.WreathOfFlame());
+
+            // Rare skills
+            cards.add(new CardWatcher.Alpha());
+            cards.add(new CardWatcher.Blasphemy());
+            cards.add(new CardWatcher.ConjureBlade(0));
+            cards.add(new CardWatcher.DeusExMachina());
+            cards.add(new CardWatcher.Judgment());
+            cards.add(new CardWatcher.Omniscience());
+            cards.add(new CardWatcher.Scrawl());
+            cards.add(new CardWatcher.SpiritShield());
+            cards.add(new CardWatcher.Vault());
+            cards.add(new CardWatcher.Wish(0.0));
         } else if (cardType == Card.POWER) {
             // Uncommon powers
             cards.add(new CardWatcher.BattleHymn());

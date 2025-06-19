@@ -619,7 +619,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.ATTACK);
+            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.ATTACK, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -681,7 +681,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.SKILL);
+            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.SKILL, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -736,7 +736,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.POWER);
+            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.POWER, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -791,7 +791,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getColorlessCards();
+            return CardManager.getColorlessCards(false);
         }
 
         public void gamePropertiesSetup(GameState state) {
