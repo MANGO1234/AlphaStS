@@ -221,7 +221,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = 0; i < limit; i++) {
                 c.add(new Claw(3 + i * 2, limit));
@@ -279,7 +279,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = 0; i < limit; i++) {
                 c.add(new ClawP(5 + i * 2, limit));
@@ -619,7 +619,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = n; i >= limit; i--) {
                 c.add(new SteamBarrier(i, limit));
@@ -669,7 +669,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = n; i >= limit; i--) {
                 c.add(new SteamBarrierP(i, limit));
@@ -707,7 +707,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new Streamline(2), new Streamline(1), new Streamline(0));
         }
 
@@ -745,7 +745,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new StreamlineP(2), new StreamlineP(1), new StreamlineP(0));
         }
 
@@ -811,7 +811,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Void());
         }
     }
@@ -1359,7 +1359,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new ForceField(3), new ForceField(2), new ForceField(1), new ForceField(0));
         }
 
@@ -1421,7 +1421,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new ForceFieldP(3), new ForceFieldP(2), new ForceFieldP(1), new ForceFieldP(0));
         }
 
@@ -1794,7 +1794,7 @@ public class CardDefect {
             return cards;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return getPossibleGeneratedCards();
         }
     }
@@ -1900,7 +1900,7 @@ public class CardDefect {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Burn());
         }
     }
@@ -2381,7 +2381,7 @@ public class CardDefect {
             return cards;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return getPossibleGeneratedCards();
         }
     }
@@ -2699,7 +2699,7 @@ public class CardDefect {
             return cards;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return getPossibleGeneratedCards();
         }
     }

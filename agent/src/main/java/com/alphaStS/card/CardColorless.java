@@ -5,6 +5,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 import com.alphaStS.utils.Utils;
 
 import java.util.List;
@@ -128,7 +129,71 @@ public class CardColorless {
         }
     }
 
-    // todo: Discovery
+    private static abstract class _DiscoveryT extends Card {
+        private final boolean exhausts;
+        private final boolean generateCard;
+
+        public _DiscoveryT(String cardName, boolean exhausts) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.exhausts = exhausts;
+            this.exhaustWhenPlayed = exhausts;
+            this.generateCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (!generateCard) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            boolean interactive = state.getSearchRandomGen() instanceof InteractiveMode.RandomGenInteractive;
+            int idx1 = state.getSearchRandomGen().nextInt(state.properties.discoveryIdxes.length, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + 255, state.properties.discoveryIdxes) : null);
+            int idx2 = state.getSearchRandomGen().nextInt(state.properties.discoveryIdxes.length - 1, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (255 << 8) + idx1, state.properties.discoveryIdxes) : null);
+            int idx3 = state.getSearchRandomGen().nextInt(state.properties.discoveryIdxes.length - 2, RandomGenCtx.SelectCard1OutOf3,
+                    interactive ? new Tuple3<>(state, (idx2 << 8) + idx1, state.properties.discoveryIdxes) : null);
+            if (idx2 >= idx1) {
+                idx2++;
+            }
+            if (idx3 >= Math.min(idx1, idx2)) {
+                idx3++;
+            }
+            if (idx3 >= Math.max(idx1, idx2)) {
+                idx3++;
+            }
+            state.setSelect1OutOf3Idxes(state.properties.discoveryIdxes[idx1], state.properties.discoveryIdxes[idx2], state.properties.discoveryIdxes[idx3]);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (!generateCard) {
+                return;
+            }
+            var cards = CardManager.getCharacterCardsSelect1OutOf3(state.properties.character, false);
+            state.properties.discoveryIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.discoveryIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
+            }
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            if (!generateCard) {
+                return null;
+            }
+            return CardManager.getCharacterCardsSelect1OutOf3(gameProperties.character, false);
+        }
+    }
+
+    public static class Discovery extends _DiscoveryT {
+        public Discovery() {
+            super("Discovery", true);
+        }
+    }
+
+    public static class DiscoveryP extends _DiscoveryT {
+        public DiscoveryP() {
+            super("Discovery+", false);
+        }
+    }
 
     private static abstract class _DramaticEntranceT extends Card {
         private final int n;
@@ -182,7 +247,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             if (upgraded) {
                 return cards.stream().map((card) -> card.getPermCostIfPossible(1)).toList();
             } else {
@@ -408,7 +473,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map((card) -> card.getPermCostIfPossible(0)).toList();
         }
     }
@@ -636,7 +701,7 @@ public class CardColorless {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
         }
     }
@@ -653,7 +718,51 @@ public class CardColorless {
         }
     }
 
-    // todo: Chrysalis
+    private static abstract class _ChrysalisT extends Card {
+        private final int skillCount;
+
+        public _ChrysalisT(String cardName, int skillCount) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.skillCount = skillCount;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var characterSkillPerm0Idxes = state.properties.characterSkillPerm0Idxes;
+            for (int i = 0; i < skillCount; i++) {
+                state.setIsStochastic();
+                int randomIdx = state.getSearchRandomGen().nextInt(characterSkillPerm0Idxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, characterSkillPerm0Idxes));
+                int cardIdx = characterSkillPerm0Idxes[randomIdx];
+                state.addCardToDeck(cardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var cards = CardManager.getPossibleGeneratedCards(state.properties.character, Card.SKILL, false);
+            state.properties.characterSkillPerm0Idxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.characterSkillPerm0Idxes[i] = state.properties.findCardIndex(cards.get(i).getPermCostIfPossible(0));
+            }
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getPossibleGeneratedCards(gameProperties.character, Card.SKILL, false)
+                    .stream().map((card) -> card.getPermCostIfPossible(0)).toList();
+        }
+    }
+
+    public static class Chrysalis extends _ChrysalisT {
+        public Chrysalis() {
+            super("Chrysalis", 3);
+        }
+    }
+
+    public static class ChrysalisP extends _ChrysalisT {
+        public ChrysalisP() {
+            super("Chrysalis+", 5);
+        }
+    }
 
     private static abstract class _HandOfGreedT extends Card {
         private int n;
@@ -883,7 +992,51 @@ public class CardColorless {
         }
     }
 
-    // todo: Metamorphosis
+    private static abstract class _MetamorphosisT extends Card {
+        private final int attackCount;
+
+        public _MetamorphosisT(String cardName, int attackCount) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.attackCount = attackCount;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var characterAttackPerm0Idxes = state.properties.characterAttackPerm0Idxes;
+            for (int i = 0; i < attackCount; i++) {
+                state.setIsStochastic();
+                int randomIdx = state.getSearchRandomGen().nextInt(characterAttackPerm0Idxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, characterAttackPerm0Idxes));
+                int cardIdx = characterAttackPerm0Idxes[randomIdx];
+                state.addCardToDeck(cardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var cards = CardManager.getPossibleGeneratedCards(state.properties.character, Card.ATTACK, false);
+            state.properties.characterAttackPerm0Idxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.characterAttackPerm0Idxes[i] = state.properties.findCardIndex(cards.get(i).getPermCostIfPossible(0));
+            }
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getPossibleGeneratedCards(gameProperties.character, Card.ATTACK, false)
+                    .stream().map((card) -> card.getPermCostIfPossible(0)).toList();
+        }
+    }
+
+    public static class Metamorphosis extends _MetamorphosisT {
+        public Metamorphosis() {
+            super("Metamorphosis", 3);
+        }
+    }
+
+    public static class MetamorphosisP extends _MetamorphosisT {
+        public MetamorphosisP() {
+            super("Metamorphosis+", 5);
+        }
+    }
 
     private static abstract class _PanacheT extends Card {
         private final int n;

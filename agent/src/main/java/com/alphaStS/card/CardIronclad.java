@@ -53,7 +53,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new Anger());
         }
     }
@@ -70,7 +70,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new AngerP());
         }
     }
@@ -94,7 +94,7 @@ public class CardIronclad {
             return card.getUpgrade() != null;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
@@ -110,7 +110,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
@@ -696,7 +696,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Wound());
         }
     }
@@ -713,7 +713,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Wound());
         }
     }
@@ -757,7 +757,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new BloodForBlood(3), new BloodForBlood(2), new BloodForBlood(1), new BloodForBlood(0));
         }
 
@@ -794,7 +794,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new BloodForBloodP(2), new BloodForBloodP(1), new BloodForBloodP(0));
         }
 
@@ -1082,7 +1082,7 @@ public class CardIronclad {
             return card.cardType == Card.ATTACK;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
         }
     }
@@ -1103,7 +1103,7 @@ public class CardIronclad {
             return card.cardType == Card.ATTACK;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
         }
     }
@@ -1451,7 +1451,7 @@ public class CardIronclad {
             }
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(
                     new CardIronclad.Anger(),
                     new CardIronclad.BodySlam(),
@@ -1591,7 +1591,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Wound());
         }
     }
@@ -1608,7 +1608,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Wound());
         }
     }
@@ -1730,7 +1730,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Dazed());
         }
     }
@@ -1747,7 +1747,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Dazed());
         }
     }
@@ -2595,7 +2595,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Burn());
         }
     }
@@ -2613,7 +2613,7 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Burn());
         }
     }

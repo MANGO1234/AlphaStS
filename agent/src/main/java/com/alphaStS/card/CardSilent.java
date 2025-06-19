@@ -180,7 +180,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Shiv());
         }
     }
@@ -213,7 +213,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Shiv());
         }
     }
@@ -1197,7 +1197,7 @@ public class CardSilent {
 
         @Override public void gamePropertiesSetup(GameState state) {
             if (state.properties.distractionIndexes == null) {
-                var cards = getPossibleGeneratedCards(null);
+                var cards = getPossibleGeneratedCards(state.properties, null);
                 state.properties.distractionIndexes = new int[cards.size()];
                 for (int i = 0; i < cards.size(); i++) {
                     state.properties.distractionIndexes[i] = state.properties.findCardIndex(cards.get(i));
@@ -1205,7 +1205,7 @@ public class CardSilent {
             }
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(
                     new Card.CardTmpChangeCost(new CardSilent.Acrobatics(), 0),
                     new Card.CardTmpChangeCost(new CardSilent.Backflip(), 0),
@@ -1295,7 +1295,7 @@ public class CardSilent {
             });
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(this);
         }
     }
@@ -1582,7 +1582,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Shiv());
         }
 
@@ -1668,7 +1668,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = 0; i < maxEnergyCost + 1; i++) {
                 c.add(new CardSilent.MasterfulStab(i, maxEnergyCost));
@@ -1716,7 +1716,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = 0; i < maxEnergyCost + 1; i++) {
                 c.add(new CardSilent.MasterfulStabP(i, maxEnergyCost));
@@ -1925,7 +1925,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return doNothing ? List.of() : cards.stream().map(card -> card.getTemporaryCostUntilPlayedIfPossible(0)).toList();
         }
 
@@ -2660,7 +2660,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = dmg; i >= limit; i -= 2) {
                 c.add(new CardSilent.GlassKnife(i, limit));
@@ -2709,7 +2709,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = dmg; i >= limit; i -= 2) {
                 c.add(new CardSilent.GlassKnifeP(i, limit));
@@ -2835,7 +2835,7 @@ public class CardSilent {
             });
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return new ArrayList<>(cards);
         }
     }
@@ -2925,7 +2925,7 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Shiv(), new CardColorless.ShivP());
         }
     }

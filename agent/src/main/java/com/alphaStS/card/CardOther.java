@@ -1,7 +1,6 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enums.Stance;
 
 import java.util.List;
@@ -250,7 +249,7 @@ public class CardOther {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new Card.CardTmpChangeCost(new Card.Strike(), 0));
         }
     }

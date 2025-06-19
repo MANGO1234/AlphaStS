@@ -29,7 +29,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public void gamePropertiesSetup(GameState state) {}
     List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
     List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) { return List.of(); }
-    List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
+    List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public Relic setPreBattleScenariosEnabled(int... preBattleScenariosEnabled) {
         this.preBattleScenariosEnabled = preBattleScenariosEnabled;
         Arrays.sort(this.preBattleScenariosEnabled);
@@ -1664,7 +1664,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var c = getPossibleSelect1OutOf3Cards(gameProperties);
             var l = new ArrayList<Card>(c);
             for (Card card : c) {
                 if (card instanceof Card.CardTmpChangeCost t) {
@@ -1674,7 +1674,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             return l;
         }
 
-        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return List.of(
                     new CardColorless.Blind(),
                     new CardColorless.DarkShackles(),
@@ -1715,7 +1715,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.hasToolbox = true;
-            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            var cards = getPossibleSelect1OutOf3Cards(state.properties);
             state.properties.toolboxIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.toolboxIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
