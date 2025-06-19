@@ -638,7 +638,7 @@ public final class GameState implements State {
                 properties.healCardsBooleanArr[properties.healCardsIdxes[i]] = true;
             }
         }
-        properties.select1OutOf3CardsIdxes = findSelect1OutOf3CardsToKeepTrackOf(relics, potions);
+        properties.select1OutOf3CardsIdxes = findSelect1OutOf3CardsToKeepTrackOf(Arrays.asList(properties.cardDict), relics, potions);
         properties.select1OutOf3CardsReverseIdxes = new int[properties.cardDict.length];
         Arrays.fill(properties.select1OutOf3CardsReverseIdxes, -1);
         for (int i = 0; i < properties.select1OutOf3CardsIdxes.length; i++) {
@@ -971,10 +971,11 @@ public final class GameState implements State {
         return l.stream().filter((x) -> !(properties.cardDict[x] instanceof Card.CardTmpChangeCost)).sorted().mapToInt(Integer::intValue).toArray();
     }
 
-    private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Relic> relics, List<Potion> potions) {
+    private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Card> cards, List<Relic> relics, List<Potion> potions) {
         List<Integer> idxes = new ArrayList<>();
-        potions.forEach(potion -> potion.getPossibleSelect3OutOf1Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
-        relics.forEach(relic -> relic.getPossibleSelect3OutOf1Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
+        cards.forEach(c -> c.getPossibleSelect1OutOf3Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
+        potions.forEach(potion -> potion.getPossibleSelect1OutOf3Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
+        relics.forEach(relic -> relic.getPossibleSelect1OutOf3Cards(properties).forEach((card) -> idxes.add(properties.findCardIndex(card))));
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
             EnemyEncounter.getPossibleSelect1OutOf3CardsFromRewardScreen(properties).forEach((card) -> idxes.add(properties.findCardIndex(card)));
         }
@@ -993,7 +994,7 @@ public final class GameState implements State {
         do {
             var newSet = new HashSet<>(set);
             for (Card c : set) {
-                addPossibleGeneratedCardsFromListOfCard(c.getPossibleGeneratedCards(set.stream().toList()), newSet, discardSet);
+                addPossibleGeneratedCardsFromListOfCard(c.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);
             }
             for (Relic relic : relics) {
                 addPossibleGeneratedCardsFromListOfCard(relic.getPossibleGeneratedCards(properties, set.stream().toList()), newSet, discardSet);

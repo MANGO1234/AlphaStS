@@ -297,7 +297,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Insight());
         }
     }
@@ -706,7 +706,7 @@ public class CardWatcher {
             });
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Smite());
         }
     }
@@ -738,7 +738,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Smite());
         }
     }
@@ -847,7 +847,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Safety());
         }
     }
@@ -1197,7 +1197,7 @@ public class CardWatcher {
             });
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var generatedCards = new ArrayList<Card>();
             // Meditate can potentially return any card from discard with temporary retain
             for (Card card : cards) {
@@ -1334,7 +1334,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = block; i <= limit; i += 2) {
                 c.add(new Perseverance(i, limit));
@@ -1399,7 +1399,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = block; i <= limit; i += 3) {
                 c.add(new PerseveranceP(i, limit));
@@ -1450,7 +1450,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Insight());
         }
 
@@ -1486,7 +1486,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.ThroughViolence());
         }
     }
@@ -1595,7 +1595,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new SandsOfTime(3), new SandsOfTime(2), new SandsOfTime(1), new SandsOfTime(0));
         }
 
@@ -1639,7 +1639,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new SandsOfTimeP(3), new SandsOfTimeP(2), new SandsOfTimeP(1), new SandsOfTimeP(0));
         }
 
@@ -1787,7 +1787,7 @@ public class CardWatcher {
             });
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Insight());
         }
     }
@@ -2097,7 +2097,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = damage; i <= limit; i += 4) {
                 c.add(new WindmillStrike(i, limit));
@@ -2163,7 +2163,7 @@ public class CardWatcher {
             return GameActionCtx.PLAY_CARD;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
             for (int i = damage; i <= limit; i += 5) {
                 c.add(new WindmillStrikeP(i, limit));
@@ -2418,7 +2418,7 @@ public class CardWatcher {
             }
         }
 
-        @Override public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var result = new ArrayList<Card>();
             for (int i = 0; i <= limit; i++) {
                 result.add(new CardColorless.Expunger(i));
@@ -2474,7 +2474,7 @@ public class CardWatcher {
             });
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Miracle());
         }
     }
@@ -2914,7 +2914,7 @@ public class CardWatcher {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) {
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var generatedCards = new ArrayList<Card>();
             if (upgraded) {
                 generatedCards.add(new com.alphaStS.card.CardOther.WishPlatedArmorP());
@@ -2928,7 +2928,7 @@ public class CardWatcher {
             return generatedCards;
         }
 
-        public List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+        public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             if (upgraded) {
                 return List.of(
                     new com.alphaStS.card.CardOther.WishPlatedArmorP(),

@@ -27,8 +27,25 @@ public class CardManager {
         return cards;
     }
 
-    public static List<Card> getPossibleSelect3OutOf1Cards(CharacterEnum character, int cardType, boolean generateHealingCard) {
+    public static List<Card> getPossibleSelect1OutOf3Cards(CharacterEnum character, int cardType, boolean generateHealingCard) {
         List<Card> baseCards = getPossibleGeneratedCards(character, cardType, generateHealingCard);
+        List<Card> cards = new ArrayList<>();
+        for (Card card : baseCards) {
+            cards.add(card.getTemporaryCostIfPossible(0));
+        }
+        return cards;
+    }
+
+    public static List<Card> getCharacterCards(CharacterEnum character, boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        cards.addAll(getPossibleGeneratedCards(character, Card.ATTACK, generateHealingCard));
+        cards.addAll(getPossibleGeneratedCards(character, Card.SKILL, generateHealingCard));
+        cards.addAll(getPossibleGeneratedCards(character, Card.POWER, generateHealingCard));
+        return cards;
+    }
+
+    public static List<Card> getCharacterCardsSelect1OutOf3(CharacterEnum character, boolean generateHealingCard) {
+        List<Card> baseCards = getCharacterCards(character, generateHealingCard);
         List<Card> cards = new ArrayList<>();
         for (Card card : baseCards) {
             cards.add(card.getTemporaryCostIfPossible(0));

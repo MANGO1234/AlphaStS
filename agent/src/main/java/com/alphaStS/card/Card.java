@@ -96,7 +96,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
-    public List<Card> getPossibleGeneratedCards(List<Card> cards) { return List.of(); }
+    public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
+    public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
     public int onPlayTransformCardIdx(GameProperties prop) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
@@ -212,7 +213,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
         public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
@@ -282,7 +283,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
         public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
         public int onPlayTransformCardIdx(GameProperties prop) {
             int idx = card.onPlayTransformCardIdx(prop);
@@ -353,7 +354,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
         public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
@@ -415,7 +416,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
         public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(List<Card> cards) { return card.getPossibleGeneratedCards(cards); }
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
         public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
         public int onPlayTransformCardIdx(GameProperties prop) {
             int idx = card.onPlayTransformCardIdx(prop);

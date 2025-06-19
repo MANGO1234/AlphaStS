@@ -68,7 +68,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public abstract GameActionCtx use(GameState state, int idx);
     List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) { return List.of(); }
-    List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) { return List.of(); }
+    List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public void gamePropertiesSetup(GameState state) {}
 
 
@@ -608,7 +608,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var c = getPossibleSelect1OutOf3Cards(gameProperties);
             var l = new ArrayList<Card>(c);
             for (Card card : c) {
                 if (card instanceof Card.CardTmpChangeCost t) {
@@ -618,12 +618,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return l;
         }
 
-        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.ATTACK, false);
+        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getPossibleSelect1OutOf3Cards(gameProperties.character, Card.ATTACK, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            var cards = getPossibleSelect1OutOf3Cards(state.properties);
             state.properties.attackPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.attackPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
@@ -663,13 +663,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var c = getPossibleSelect1OutOf3Cards(gameProperties);
             var l = new ArrayList<>(c);
             for (Card card : c) {
+                // todo: I shouldn't have to do this here
                 if (card instanceof Card.CardTmpChangeCost t) {
                     l.add(t.card);
                     if (t.card instanceof CardDefect.ForceField forceField) {
-                        for (Card possibleGeneratedCard : forceField.getPossibleGeneratedCards(cards)) {
+                        for (Card possibleGeneratedCard : forceField.getPossibleGeneratedCards(gameProperties, cards)) {
                             if (possibleGeneratedCard.energyCost > 0) {
                                 l.add(new Card.CardTmpChangeCost(possibleGeneratedCard, 0));
                             }
@@ -680,12 +681,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return l;
         }
 
-        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.SKILL, false);
+        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getPossibleSelect1OutOf3Cards(gameProperties.character, Card.SKILL, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            var cards = getPossibleSelect1OutOf3Cards(state.properties);
             state.properties.skillPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.skillPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
@@ -725,7 +726,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var c = getPossibleSelect1OutOf3Cards(gameProperties);
             var l = new ArrayList<Card>(c);
             for (Card card : c) {
                 if (card instanceof Card.CardTmpChangeCost t) {
@@ -735,12 +736,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return l;
         }
 
-        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect3OutOf1Cards(gameProperties.character, Card.POWER, false);
+        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getPossibleSelect1OutOf3Cards(gameProperties.character, Card.POWER, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            var cards = getPossibleSelect1OutOf3Cards(state.properties);
             state.properties.powerPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.powerPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
@@ -780,7 +781,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            var c = getPossibleSelect3OutOf1Cards(gameProperties);
+            var c = getPossibleSelect1OutOf3Cards(gameProperties);
             var l = new ArrayList<>(c);
             for (Card card : c) {
                 if (card instanceof Card.CardTmpChangeCost t) {
@@ -790,12 +791,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return l;
         }
 
-        @Override List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getColorlessCards(false);
         }
 
         public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect3OutOf1Cards(state.properties);
+            var cards = getPossibleSelect1OutOf3Cards(state.properties);
             state.properties.colorlessPotionIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.colorlessPotionIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
