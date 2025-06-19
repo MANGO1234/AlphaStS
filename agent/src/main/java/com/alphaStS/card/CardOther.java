@@ -454,10 +454,11 @@ public class CardOther {
         public _WishPlatedArmorT(String cardName, int armor) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.armor = armor;
+            this.select1OutOf3CardEffectCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(armor);
+            state.getPlayerForWrite().gainPlatedArmor(armor);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -480,6 +481,8 @@ public class CardOther {
         public _WishStrengthT(String cardName, int strength) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.strength = strength;
+            this.changePlayerStrength = true;
+            this.select1OutOf3CardEffectCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -512,6 +515,7 @@ public class CardOther {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getCounterForWrite()[counterIdx] += gold;
+            this.select1OutOf3CardEffectCard = true;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -561,6 +565,7 @@ public class CardOther {
     public static class EnterCalm extends Card {
         public EnterCalm() {
             super("Enter Calm", Card.SKILL, 0, Card.COMMON);
+            this.select1OutOf3CardEffectCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -572,6 +577,7 @@ public class CardOther {
     public static class EnterWrath extends Card {
         public EnterWrath() {
             super("Enter Wrath", Card.SKILL, 0, Card.COMMON);
+            this.select1OutOf3CardEffectCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

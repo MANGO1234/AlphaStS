@@ -1161,17 +1161,17 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // Remove card from discard and add to hand with retain if there's room
+            // Remove card from discard and add to hand with temporary retain if there's room
             state.removeCardFromDiscard(idx);
             if (state.handArrLen < GameState.HAND_LIMIT) {
-                Card retainedCard = new Card.CardRetain(state.properties.cardDict[idx]);
+                Card retainedCard = new Card.CardTmpRetain(state.properties.cardDict[idx]);
                 int retainedCardIdx = state.properties.findCardIndex(retainedCard);
                 state.addCardToHand(retainedCardIdx);
             } else {
                 // No room in hand, just add the original card
                 state.addCardToHand(idx);
             }
-            
+
             // Check if we need to select more cards
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForWrite()[counterIdx] < cardCount) {
@@ -1199,9 +1199,9 @@ public class CardWatcher {
 
         public List<Card> getPossibleGeneratedCards(List<Card> cards) {
             var generatedCards = new ArrayList<Card>();
-            // Meditate can potentially return any card from discard as retained
+            // Meditate can potentially return any card from discard with temporary retain
             for (Card card : cards) {
-                generatedCards.add(card.getRetainIfPossible());
+                generatedCards.add(card.getTmpRetainIfPossible());
             }
             return generatedCards;
         }
