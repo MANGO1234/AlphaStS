@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 public abstract class Relic implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
     public boolean changePlayerStrength;
     public boolean changePlayerDexterity;
+    public boolean changePlayerDexterityEot;
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean healPlayer;
@@ -2931,7 +2932,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Duality
+    public static class Duality extends Relic {
+        public Duality() {
+            changePlayerDexterity = true;
+            changePlayerDexterityEot = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                            state.getPlayerForWrite().gainDexterity(1);
+                            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, 1);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static class TeardropLocket extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2960,8 +2979,29 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Golden Eye
-    // todo: Melange
+    public static class GoldenEye extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasGoldenEye = true;
+        }
+    }
+
+    public static class Melange extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnShuffleHandler("Melange", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                            @Override public void doAction(GameState state) {
+                                var cardIdx = state.properties.findCardIndex(new com.alphaStS.card.CardOther.ScryOnShuffle());
+                                var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                                state.setActionCtx(GameActionCtx.PLAY_CARD, action, null);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
 
     public static class HolyWater extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2981,5 +3021,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Violet Lotus
+    public static class VioletLotus extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.hasVioletLotus = true;
+        }
+    }
 }

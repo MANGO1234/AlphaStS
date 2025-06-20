@@ -212,6 +212,8 @@ public class GameProperties implements Cloneable {
     public boolean hasIceCream;
     public boolean hasFrozenEye;
     public boolean hasMedicalKit;
+    public boolean hasVioletLotus;
+    public boolean hasGoldenEye;
     public boolean hasOddMushroom;
     public boolean hasRunicDome;
     public boolean isRunicDomeEnabled(GameState state) {
