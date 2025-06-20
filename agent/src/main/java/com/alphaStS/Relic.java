@@ -1106,7 +1106,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DeadBranch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleCards(state.properties);
+            var cards = getPossibleGeneratedCards(state.properties, null);
             state.properties.deadBranchCardsIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.deadBranchCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
@@ -1130,11 +1130,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleCards(properties);
-        }
-
-        List<Card> getPossibleCards(GameProperties gameProperties) {
-            return CardManager.getCharacterCards(gameProperties.character, false);
+            return CardManager.getCharacterCards(properties.character, false);
         }
     }
 
@@ -1600,7 +1596,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     public static class Astrolabe extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleCards(state.properties);
+            var cards = getPossibleGeneratedCards(state.properties, null);
             state.properties.astrolabeCardsIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.astrolabeCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
@@ -1630,11 +1626,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleCards(properties);
-        }
-
-        List<Card> getPossibleCards(GameProperties gameProperties) {
-            return CardManager.getCharacterCards(gameProperties.character, true).stream()
+            return CardManager.getCharacterCards(properties.character, true).stream()
                     .map(Card::getUpgrade)
                     .filter(Objects::nonNull)
                     .toList();
@@ -1718,7 +1710,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleCards(state.properties);
+            var cards = getPossibleGeneratedCards(state.properties, null);
             state.properties.pandorasBoxCardsIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.pandorasBoxCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
@@ -1750,19 +1742,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleCards(properties);
-        }
-
-        List<Card> getPossibleCards(GameProperties gameProperties) {
-            List<Card> cards = CardManager.getCharacterCards(gameProperties.character, true);
+            List<Card> generatedCards = CardManager.getCharacterCards(properties.character, true);
             if (upgradeSkill) {
-                for (int i = 0; i < cards.size(); i++) {
-                    if (cards.get(i).cardType == Card.SKILL) {
-                        cards.set(i, cards.get(i).getUpgrade());
+                for (int i = 0; i < generatedCards.size(); i++) {
+                    if (generatedCards.get(i).cardType == Card.SKILL) {
+                        generatedCards.set(i, generatedCards.get(i).getUpgrade());
                     }
                 }
             }
-            return cards;
+            return generatedCards;
         }
     }
 
@@ -2025,7 +2013,29 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     // Neows Blessing: No need to implement
-    // todo: Nilrys Codex
+
+    public static class NilrysCodex extends Relic {
+        public NilrysCodex() {
+            selectCard1OutOf3 = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var cards = getPossibleSelect1OutOf3Cards(state.properties);
+            state.properties.nilrysCodexIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.nilrysCodexIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
+            }
+            // todo: implement later
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return getPossibleSelect1OutOf3Cards(properties);
+        }
+
+        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return CardManager.getCharacterCards(gameProperties.character, false);
+        }
+    }
 
     public static class OddMushroom extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {

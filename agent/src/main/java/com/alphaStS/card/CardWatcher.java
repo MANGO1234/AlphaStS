@@ -1,5 +1,6 @@
 package com.alphaStS.card;
 
+import com.alphaStS.CardManager;
 import com.alphaStS.DebuffType;
 import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameEventCardHandler;
@@ -982,8 +983,25 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // TODO: Implement effect - Choose 1 of 3 Attacks of any color to add to hand, costs 0 this turn
-            return GameActionCtx.PLAY_CARD;
+            state.setSelect1OutOf3Idxes(state.properties.foreignInfluenceIdxes);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override
+        public void gamePropertiesSetup(GameState state) {
+            var cards = CardManager.getAllAttackCardsSelect1OutOf3(false);
+            state.properties.foreignInfluenceIdxes = new int[cards.size()];
+            for (int i = 0; i < cards.size(); i++) {
+                state.properties.foreignInfluenceIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
+            }
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getAllAttackCards(false);
+        }
+
+        public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getAllAttackCardsSelect1OutOf3(false);
         }
     }
 

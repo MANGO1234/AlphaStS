@@ -130,14 +130,12 @@ public class CardColorless {
     }
 
     private static abstract class _DiscoveryT extends Card {
-        private final boolean exhausts;
         private final boolean generateCard;
 
-        public _DiscoveryT(String cardName, boolean exhausts) {
+        public _DiscoveryT(String cardName, boolean exhausts, boolean generateCard) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
-            this.exhausts = exhausts;
             this.exhaustWhenPlayed = exhausts;
-            this.generateCard = true;
+            this.generateCard = generateCard;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -168,14 +166,14 @@ public class CardColorless {
     }
 
     public static class Discovery extends _DiscoveryT {
-        public Discovery() {
-            super("Discovery", true);
+        public Discovery(boolean generateCard) {
+            super("Discovery", true, generateCard);
         }
     }
 
     public static class DiscoveryP extends _DiscoveryT {
-        public DiscoveryP() {
-            super("Discovery+", false);
+        public DiscoveryP(boolean generateCard) {
+            super("Discovery+", false, generateCard);
         }
     }
 

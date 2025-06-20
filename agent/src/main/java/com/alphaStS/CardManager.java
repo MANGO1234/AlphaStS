@@ -53,45 +53,63 @@ public class CardManager {
         return cards;
     }
 
+    public static List<Card> getAllAttackCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        cards.addAll(getPossibleGeneratedCards(CharacterEnum.IRONCLAD, Card.ATTACK, generateHealingCard));
+        cards.addAll(getPossibleGeneratedCards(CharacterEnum.SILENT, Card.ATTACK, generateHealingCard));
+        cards.addAll(getPossibleGeneratedCards(CharacterEnum.DEFECT, Card.ATTACK, generateHealingCard));
+        cards.addAll(getPossibleGeneratedCards(CharacterEnum.WATCHER, Card.ATTACK, generateHealingCard));
+        return cards;
+    }
+
+    public static List<Card> getAllAttackCardsSelect1OutOf3(boolean generateHealingCard) {
+        List<Card> baseCards = getAllAttackCards(generateHealingCard);
+        List<Card> cards = new ArrayList<>();
+        for (Card card : baseCards) {
+            cards.add(card.getTemporaryCostIfPossible(0));
+        }
+        return cards;
+    }
+
     public static List<Card> getColorlessCards(boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
         if (generateHealingCard) {
-            cards.add(new CardColorless.BandageUp());
+            cards.add(new CardColorless.BandageUp().getTemporaryCostIfPossible(0));
         }
-        cards.add(new CardColorless.Blind());
-        cards.add(new CardColorless.DarkShackles());
-        cards.add(new CardColorless.DeepBreath());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("0"), 0));
-        cards.add(new CardColorless.DramaticEntrance());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("1"), 0));
-        cards.add(new CardColorless.Finesse());
-        cards.add(new CardColorless.FlashOfSteel());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("2"), 0));
-        cards.add(new CardColorless.GoodInstincts());
-        cards.add(new CardColorless.Impatience());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("3"), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("4"), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.MindBlast(), 0));
-        cards.add(new CardColorless.Panacea());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("5"), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("6"), 0));
-        cards.add(new CardColorless.SwiftStrike());
-        cards.add(new CardColorless.Trip());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.Apotheosis(), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("7"), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.HandOfGreed(0.1), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("8"), 0));
-        cards.add(new CardColorless.MasterOfStrategy());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.Mayhem(), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("10"), 0));
-        cards.add(new CardColorless.Panacea());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("11"), 0));
-        cards.add(new CardColorless.SecretTechnique());
-        cards.add(new CardColorless.SecretWeapon());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("12"), 0));
-        cards.add(new CardColorless.ThinkingAhead());
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.ToBeImplemented("13"), 0));
-        cards.add(new Card.CardTmpChangeCost(new CardColorless.Violence(), 0));
+        cards.add(new CardColorless.Blind().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.DarkShackles().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.DeepBreath().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Discovery(false).getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.DramaticEntrance().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Enlightenment().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Finesse().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.FlashOfSteel().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Forethought().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.GoodInstincts().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Impatience().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.JackOfAllTrades().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Madness().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.MindBlast().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Panacea().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.PanicButton().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Purity().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.SwiftStrike().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Trip().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Apotheosis().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Chrysalis().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.HandOfGreed(0).getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Magnetism().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.MasterOfStrategy().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Mayhem().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Metamorphosis().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Panache().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.SadisticNature().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.SecretTechnique().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.SecretWeapon().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.TheBomb().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.ThinkingAhead().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Transmutation().getTemporaryCostIfPossible(0));
+        cards.add(new CardColorless.Violence().getTemporaryCostIfPossible(0));
         return cards;
     }
 
