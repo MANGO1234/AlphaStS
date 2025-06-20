@@ -584,4 +584,15 @@ public class CardOther {
             return GameActionCtx.PLAY_CARD;
         }
     }
+
+    public static class ScryOnShuffle extends Card {
+        public ScryOnShuffle() {
+            super("Scry On Shuffle", Card.SKILL, 0, Card.COMMON);
+            this.selectFromHand = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return state.startScry(3);
+        }
+    }
 }

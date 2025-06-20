@@ -4668,6 +4668,9 @@ public final class GameState implements State {
     }
 
     public GameActionCtx startScry(int count) {
+        if (properties.hasGoldenEye && properties.getRelic(Relic.GoldenEye.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            count += 2;
+        }
         var scryTotalCount = Math.min(count, deckArrLen);
         if (scryTotalCount == 0) {
             return GameActionCtx.PLAY_CARD;
@@ -5455,6 +5458,9 @@ public final class GameState implements State {
         }
         if (stance == Stance.CALM && newStance != Stance.CALM) {
             gainEnergy(2);
+            if (properties.hasVioletLotus && properties.getRelic(Relic.VioletLotus.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                gainEnergy(1);
+            }
         }
         if (newStance == Stance.DIVINITY && stance != Stance.DIVINITY) {
             gainEnergy(3);
