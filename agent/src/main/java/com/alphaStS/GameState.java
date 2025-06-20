@@ -478,7 +478,7 @@ public final class GameState implements State {
         }
 
         // scry actions
-        if (cards.stream().anyMatch((x) -> x.scry)) {
+        if (cards.stream().anyMatch((x) -> x.scry) || relics.stream().anyMatch((x) -> x.scry)) {
             properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()] = new GameAction[properties.realCardsLen + 1];
             for (int i = 0; i < properties.realCardsLen; i++) {
                 properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()][i] = new GameAction(GameActionType.SCRY_KEEP_CARD, i);
