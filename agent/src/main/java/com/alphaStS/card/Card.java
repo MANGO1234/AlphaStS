@@ -48,6 +48,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean changePlayerDexterity;
     public boolean changePlayerFocus;
     public boolean changePlayerArtifact;
+    public boolean changePlayerVulnerable;
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean chokeEnemy;
@@ -188,6 +189,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerDexterity = card.changePlayerDexterity;
             changePlayerFocus = card.changePlayerFocus;
             changePlayerArtifact = card.changePlayerArtifact;
+            changePlayerVulnerable = card.changePlayerVulnerable;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             chokeEnemy = card.chokeEnemy;
@@ -264,6 +266,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerDexterity = card.changePlayerDexterity;
             changePlayerFocus = card.changePlayerFocus;
             changePlayerArtifact = card.changePlayerArtifact;
+            changePlayerVulnerable = card.changePlayerVulnerable;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             chokeEnemy = card.chokeEnemy;
@@ -339,6 +342,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerDexterity = card.changePlayerDexterity;
             changePlayerFocus = card.changePlayerFocus;
             changePlayerArtifact = card.changePlayerArtifact;
+            changePlayerVulnerable = card.changePlayerVulnerable;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             chokeEnemy = card.chokeEnemy;
@@ -402,6 +406,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             changePlayerDexterity = card.changePlayerDexterity;
             changePlayerFocus = card.changePlayerFocus;
             changePlayerArtifact = card.changePlayerArtifact;
+            changePlayerVulnerable = card.changePlayerVulnerable;
             vulnEnemy = card.vulnEnemy;
             weakEnemy = card.weakEnemy;
             chokeEnemy = card.chokeEnemy;

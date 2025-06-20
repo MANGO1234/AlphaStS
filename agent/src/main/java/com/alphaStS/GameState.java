@@ -698,6 +698,7 @@ public final class GameState implements State {
         properties.playerFocusCanChange |= enemiesArg.stream().anyMatch((x) -> x.properties.changePlayerFocus);
         properties.playerFocusCanChange |= potions.stream().anyMatch((x) -> x.changePlayerFocus);
         properties.playerCanGetVuln = enemiesArg.stream().anyMatch((x) -> x.properties.canVulnerable);
+        properties.playerCanGetVuln |= cards.stream().anyMatch((x) -> x.changePlayerVulnerable);
         properties.playerCanGetWeakened = enemiesArg.stream().anyMatch((x) -> x.properties.canWeaken);
         properties.playerCanGetFrailed = enemiesArg.stream().anyMatch((x) -> x.properties.canFrail);
         properties.playerCanGetEntangled = enemiesArg.stream().anyMatch((x) -> x.properties.canEntangle);
