@@ -11,7 +11,6 @@ import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
-import com.alphaStS.utils.Tuple3;
 import one.util.streamex.IntStreamEx;
 
 import java.util.*;
@@ -25,6 +24,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean weakEnemy;
     public boolean healPlayer;
     public boolean selectCard1OutOf3;
+    public boolean scry;
     public int[] preBattleScenariosEnabled;
     public Card startOfBattleAction;
 
@@ -2922,6 +2922,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Damaru extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerMantraCounter();
             state.properties.addStartOfTurnHandler("Damaru", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
@@ -2986,20 +2987,31 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class Melange extends Relic {
+        public Melange() {
+            scry = true;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnShuffleHandler("Melange", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                             @Override public void doAction(GameState state) {
-                                var cardIdx = state.properties.findCardIndex(new com.alphaStS.card.CardOther.ScryOnShuffle());
-                                var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                                state.setActionCtx(GameActionCtx.PLAY_CARD, action, null);
+                                var actionCtx = state.startScry(3);
+                                if (actionCtx == GameActionCtx.SCRYING) {
+                                    var cardIdx = state.properties.findCardIndex(new com.alphaStS.card.CardOther.ScryOnShuffle());
+                                    var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                                    state.setActionCtx(GameActionCtx.SCRYING, action, null);
+                                }
                             }
                         });
                     }
                 }
             });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.ScryOnShuffle());
         }
     }
 

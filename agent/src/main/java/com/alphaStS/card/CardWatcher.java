@@ -2905,11 +2905,11 @@ public class CardWatcher {
             Card armorCard = upgraded ? new com.alphaStS.card.CardOther.WishPlatedArmorP() : new com.alphaStS.card.CardOther.WishPlatedArmor();
             Card strengthCard = upgraded ? new com.alphaStS.card.CardOther.WishStrengthP() : new com.alphaStS.card.CardOther.WishStrength();
             Card goldCard = upgraded ? new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio) : new com.alphaStS.card.CardOther.WishGold(healthRewardRatio);
-            
+
             int armorIdx = state.properties.findCardIndex(armorCard);
             int strengthIdx = state.properties.findCardIndex(strengthCard);
             int goldIdx = state.properties.findCardIndex(goldCard);
-            
+
             state.setSelect1OutOf3Idxes(armorIdx, strengthIdx, goldIdx);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
