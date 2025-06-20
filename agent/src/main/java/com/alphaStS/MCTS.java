@@ -3,7 +3,6 @@ package com.alphaStS;
 import java.util.*;
 
 import cc.mallet.types.Dirichlet;
-import com.alphaStS.card.CardColorless;
 import com.alphaStS.card.CardDefect;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.model.Model;

@@ -989,7 +989,7 @@ public class CardWatcher {
 
         @Override
         public void gamePropertiesSetup(GameState state) {
-            var cards = CardManager.getAllAttackCardsSelect1OutOf3(false);
+            var cards = CardManager.getAllAttackCardsTmp0Cost(false);
             state.properties.foreignInfluenceIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.foreignInfluenceIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
@@ -1001,7 +1001,7 @@ public class CardWatcher {
         }
 
         public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties, List<Card> cards) {
-            return CardManager.getAllAttackCardsSelect1OutOf3(false);
+            return CardManager.getAllAttackCardsTmp0Cost(false);
         }
     }
 

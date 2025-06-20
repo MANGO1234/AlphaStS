@@ -1453,7 +1453,7 @@ public class CardIronclad {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getPossibleSelect1OutOf3Cards(CharacterEnum.IRONCLAD, Card.ATTACK, false);
+            return CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.IRONCLAD, Card.ATTACK, false);
         }
     }
 

@@ -5,7 +5,6 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
-import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 
@@ -602,7 +601,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect1OutOf3Cards(gameProperties.character, Card.ATTACK, false);
+            return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.ATTACK, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -648,7 +647,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect1OutOf3Cards(gameProperties.character, Card.SKILL, false);
+            return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.SKILL, false);
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -686,7 +685,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            return CardManager.getPossibleSelect1OutOf3Cards(gameProperties.character, Card.POWER, false);
+            return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.POWER, false);
         }
 
         public void gamePropertiesSetup(GameState state) {

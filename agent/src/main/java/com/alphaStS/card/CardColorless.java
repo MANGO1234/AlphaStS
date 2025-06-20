@@ -5,7 +5,6 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.utils.Tuple;
-import com.alphaStS.utils.Tuple3;
 import com.alphaStS.utils.Utils;
 
 import java.util.List;
@@ -150,7 +149,7 @@ public class CardColorless {
             if (!generateCard) {
                 return;
             }
-            var cards = CardManager.getCharacterCardsSelect1OutOf3(state.properties.character, false);
+            var cards = CardManager.getCharacterCardsTmp0Cost(state.properties.character, false);
             state.properties.discoveryIdxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.discoveryIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
@@ -161,7 +160,7 @@ public class CardColorless {
             if (!generateCard) {
                 return null;
             }
-            return CardManager.getCharacterCardsSelect1OutOf3(gameProperties.character, false);
+            return CardManager.getCharacterCardsTmp0Cost(gameProperties.character, false);
         }
     }
 
@@ -405,6 +404,10 @@ public class CardColorless {
                 state.addCardToHand(cardIdx);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getColorlessCards(false);
         }
     }
 
@@ -723,7 +726,7 @@ public class CardColorless {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = CardManager.getPossibleGeneratedCards(state.properties.character, Card.SKILL, false);
+            var cards = CardManager.getCharacterCardsByType(state.properties.character, Card.SKILL, false);
             state.properties.characterSkillPerm0Idxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.characterSkillPerm0Idxes[i] = state.properties.findCardIndex(cards.get(i).getPermCostIfPossible(0));
@@ -731,7 +734,7 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return CardManager.getPossibleGeneratedCards(gameProperties.character, Card.SKILL, false)
+            return CardManager.getCharacterCardsByType(gameProperties.character, Card.SKILL, false)
                     .stream().map((card) -> card.getPermCostIfPossible(0)).toList();
         }
     }
@@ -891,6 +894,10 @@ public class CardColorless {
                 }
             });
         }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getColorlessCards(false);
+        }
     }
 
     public static class Magnetism extends _MagnetismT {
@@ -997,7 +1004,7 @@ public class CardColorless {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = CardManager.getPossibleGeneratedCards(state.properties.character, Card.ATTACK, false);
+            var cards = CardManager.getCharacterCardsByType(state.properties.character, Card.ATTACK, false);
             state.properties.characterAttackPerm0Idxes = new int[cards.size()];
             for (int i = 0; i < cards.size(); i++) {
                 state.properties.characterAttackPerm0Idxes[i] = state.properties.findCardIndex(cards.get(i).getPermCostIfPossible(0));
@@ -1005,7 +1012,7 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return CardManager.getPossibleGeneratedCards(gameProperties.character, Card.ATTACK, false)
+            return CardManager.getCharacterCardsByType(gameProperties.character, Card.ATTACK, false)
                     .stream().map((card) -> card.getPermCostIfPossible(0)).toList();
         }
     }
@@ -1303,6 +1310,10 @@ public class CardColorless {
 
         public int energyCost(GameState state) {
             return state.energy;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return CardManager.getColorlessCardsTmp0Cost(false);
         }
     }
 

@@ -8,7 +8,7 @@ import java.util.List;
 
 public class CardManager {
 
-    public static List<Card> getPossibleGeneratedCards(CharacterEnum character, int cardType, boolean generateHealingCard) {
+    public static List<Card> getCharacterCardsByType(CharacterEnum character, int cardType, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
         switch (character) {
             case IRONCLAD:
@@ -27,8 +27,8 @@ public class CardManager {
         return cards;
     }
 
-    public static List<Card> getPossibleSelect1OutOf3Cards(CharacterEnum character, int cardType, boolean generateHealingCard) {
-        List<Card> baseCards = getPossibleGeneratedCards(character, cardType, generateHealingCard);
+    public static List<Card> getCharacterCardsByTypeTmp0Cost(CharacterEnum character, int cardType, boolean generateHealingCard) {
+        List<Card> baseCards = getCharacterCardsByType(character, cardType, generateHealingCard);
         List<Card> cards = new ArrayList<>();
         for (Card card : baseCards) {
             cards.add(card.getTemporaryCostIfPossible(0));
@@ -38,13 +38,13 @@ public class CardManager {
 
     public static List<Card> getCharacterCards(CharacterEnum character, boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
-        cards.addAll(getPossibleGeneratedCards(character, Card.ATTACK, generateHealingCard));
-        cards.addAll(getPossibleGeneratedCards(character, Card.SKILL, generateHealingCard));
-        cards.addAll(getPossibleGeneratedCards(character, Card.POWER, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(character, Card.ATTACK, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(character, Card.SKILL, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(character, Card.POWER, generateHealingCard));
         return cards;
     }
 
-    public static List<Card> getCharacterCardsSelect1OutOf3(CharacterEnum character, boolean generateHealingCard) {
+    public static List<Card> getCharacterCardsTmp0Cost(CharacterEnum character, boolean generateHealingCard) {
         List<Card> baseCards = getCharacterCards(character, generateHealingCard);
         List<Card> cards = new ArrayList<>();
         for (Card card : baseCards) {
@@ -55,14 +55,14 @@ public class CardManager {
 
     public static List<Card> getAllAttackCards(boolean generateHealingCard) {
         List<Card> cards = new ArrayList<>();
-        cards.addAll(getPossibleGeneratedCards(CharacterEnum.IRONCLAD, Card.ATTACK, generateHealingCard));
-        cards.addAll(getPossibleGeneratedCards(CharacterEnum.SILENT, Card.ATTACK, generateHealingCard));
-        cards.addAll(getPossibleGeneratedCards(CharacterEnum.DEFECT, Card.ATTACK, generateHealingCard));
-        cards.addAll(getPossibleGeneratedCards(CharacterEnum.WATCHER, Card.ATTACK, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(CharacterEnum.IRONCLAD, Card.ATTACK, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(CharacterEnum.SILENT, Card.ATTACK, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(CharacterEnum.DEFECT, Card.ATTACK, generateHealingCard));
+        cards.addAll(getCharacterCardsByType(CharacterEnum.WATCHER, Card.ATTACK, generateHealingCard));
         return cards;
     }
 
-    public static List<Card> getAllAttackCardsSelect1OutOf3(boolean generateHealingCard) {
+    public static List<Card> getAllAttackCardsTmp0Cost(boolean generateHealingCard) {
         List<Card> baseCards = getAllAttackCards(generateHealingCard);
         List<Card> cards = new ArrayList<>();
         for (Card card : baseCards) {
@@ -110,6 +110,15 @@ public class CardManager {
         cards.add(new CardColorless.ThinkingAhead().getTemporaryCostIfPossible(0));
         cards.add(new CardColorless.Transmutation().getTemporaryCostIfPossible(0));
         cards.add(new CardColorless.Violence().getTemporaryCostIfPossible(0));
+        return cards;
+    }
+
+    public static List<Card> getColorlessCardsTmp0Cost(boolean generateHealingCard) {
+        List<Card> baseCards = getColorlessCards(generateHealingCard);
+        List<Card> cards = new ArrayList<>();
+        for (Card card : baseCards) {
+            cards.add(card.getTemporaryCostIfPossible(0));
+        }
         return cards;
     }
 

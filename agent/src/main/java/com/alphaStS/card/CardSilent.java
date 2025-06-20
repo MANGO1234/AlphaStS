@@ -1207,7 +1207,7 @@ public class CardSilent {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return CardManager.getPossibleSelect1OutOf3Cards(CharacterEnum.SILENT, Card.SKILL, false);
+            return CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.SILENT, Card.SKILL, false);
         }
     }
 

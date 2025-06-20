@@ -2348,7 +2348,7 @@ public class CardDefect {
 
         private static List<Card> getPossibleGeneratedCards() {
             if (cards == null) {
-                cards = CardManager.getPossibleSelect1OutOf3Cards(CharacterEnum.DEFECT, Card.POWER, false);
+                cards = CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.DEFECT, Card.POWER, false);
             }
             return cards;
         }
@@ -2652,7 +2652,7 @@ public class CardDefect {
 
         private static List<Card> getPossibleGeneratedCards() {
             if (cards == null) {
-                cards = CardManager.getPossibleGeneratedCards(CharacterEnum.DEFECT, Card.POWER, false);
+                cards = CardManager.getCharacterCardsByType(CharacterEnum.DEFECT, Card.POWER, false);
             }
             return cards;
         }

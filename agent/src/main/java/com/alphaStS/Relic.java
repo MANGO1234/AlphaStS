@@ -6,7 +6,6 @@ import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
-import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
 import com.alphaStS.utils.CounterStat;
@@ -14,7 +13,6 @@ import com.alphaStS.utils.Tuple;
 import one.util.streamex.IntStreamEx;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 public abstract class Relic implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
     public boolean changePlayerStrength;
@@ -1928,7 +1926,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         private static List<Card> getPossibleGeneratedCards(GameProperties properties) {
             if (cards == null) {
-                cards = CardManager.getPossibleSelect1OutOf3Cards(properties.character, Card.POWER, false);
+                cards = CardManager.getCharacterCardsByTypeTmp0Cost(properties.character, Card.POWER, false);
             }
             return cards;
         }
