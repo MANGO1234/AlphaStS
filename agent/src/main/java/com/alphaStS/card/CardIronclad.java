@@ -562,33 +562,33 @@ public class CardIronclad {
         }
     }
 
-    public static class Thunderclap extends Card {
-        public Thunderclap() {
-            super("Thunderclap", Card.ATTACK, 1, Card.COMMON);
+    private static abstract class _ThunderclapT extends Card {
+        private final int damage;
+
+        public _ThunderclapT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
             vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, 4);
+                state.playerDoDamageToEnemy(enemy, damage);
                 enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
             }
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class ThunderclapP extends Card {
-        public ThunderclapP() {
-            super("Thunderclap+", Card.ATTACK, 1, Card.COMMON);
-            vulnEnemy = true;
+    public static class Thunderclap extends _ThunderclapT {
+        public Thunderclap() {
+            super("Thunderclap", 4);
         }
+    }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, 7);
-                enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
-            }
-            return GameActionCtx.PLAY_CARD;
+    public static class ThunderclapP extends _ThunderclapT {
+        public ThunderclapP() {
+            super("Thunderclap+", 7);
         }
     }
 
@@ -635,31 +635,33 @@ public class CardIronclad {
         }
     }
 
-    public static class TwinStrike extends Card {
-        public TwinStrike() {
-            super("Twin Strike", Card.ATTACK, 1, Card.COMMON);
+    private static abstract class _TwinStrikeT extends Card {
+        private final int damage;
+
+        public _TwinStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
             selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 5 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
-            state.playerDoDamageToEnemy(enemy, 5 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            int actualDamage = damage + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0);
+            state.playerDoDamageToEnemy(enemy, actualDamage);
+            state.playerDoDamageToEnemy(enemy, actualDamage);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class TwinStrikeP extends Card {
-        public TwinStrikeP() {
-            super("Twin Strike+", Card.ATTACK, 1, Card.COMMON);
-            selectEnemy = true;
+    public static class TwinStrike extends _TwinStrikeT {
+        public TwinStrike() {
+            super("Twin Strike", 5);
         }
+    }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 7 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
-            state.playerDoDamageToEnemy(enemy, 7 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
-            return GameActionCtx.PLAY_CARD;
+    public static class TwinStrikeP extends _TwinStrikeT {
+        public TwinStrikeP() {
+            super("Twin Strike+", 7);
         }
     }
 
@@ -699,61 +701,62 @@ public class CardIronclad {
         }
     }
 
-    public static class WildStrike extends Card {
+    private static abstract class _WildStrikeT extends Card {
+        private final int damage;
+
+        public _WildStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            state.addCardToDeck(state.properties.woundCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.Wound());
+        }
+    }
+
+    public static class WildStrike extends _WildStrikeT {
         public WildStrike() {
-            super("Wild Strike", Card.ATTACK, 1, Card.COMMON);
-            selectEnemy = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 12 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
-            state.addCardToDeck(state.properties.woundCardIdx);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardOther.Wound());
+            super("Wild Strike", 12);
         }
     }
 
-    public static class WildStrikeP extends Card {
+    public static class WildStrikeP extends _WildStrikeT {
         public WildStrikeP() {
-            super("Wild Strike+", Card.ATTACK, 1, Card.COMMON);
-            selectEnemy = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 17 + (state.properties.hasStrikeDummy && state.properties.getRelic(Relic.StrikeDummy.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
-            state.addCardToDeck(state.properties.woundCardIdx);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new CardOther.Wound());
+            super("Wild Strike+", 17);
         }
     }
 
-    public static class BattleTrance extends Card {
+    private static abstract class _BattleTranceT extends Card {
+        private final int draw;
+
+        public _BattleTranceT(String cardName, int draw) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.draw = draw;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(draw);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BattleTrance extends _BattleTranceT {
         public BattleTrance() {
-            super("Battle Trance", Card.SKILL, 0, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.draw(3);
-            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
-            return GameActionCtx.PLAY_CARD;
+            super("Battle Trance", 3);
         }
     }
 
-    public static class BattleTranceP extends Card {
+    public static class BattleTranceP extends _BattleTranceT {
         public BattleTranceP() {
-            super("Battle Trance+", Card.SKILL, 0, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.draw(4);
-            state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_MORE_CARD_DRAW, 1);
-            return GameActionCtx.PLAY_CARD;
+            super("Battle Trance+", 4);
         }
     }
 
@@ -831,81 +834,87 @@ public class CardIronclad {
         }
     }
 
-    public static class Bloodletting extends Card {
+    private static abstract class _BloodlettingT extends Card {
+        private final int energy;
+
+        public _BloodlettingT(String cardName, int energy) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.energy = energy;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.doNonAttackDamageToPlayer(3, false, this);
+            state.gainEnergy(energy);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Bloodletting extends _BloodlettingT {
         public Bloodletting() {
-            super("Bloodletting", Card.SKILL, 0, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.doNonAttackDamageToPlayer(3, false, this);
-            state.gainEnergy(2);
-            return GameActionCtx.PLAY_CARD;
+            super("Bloodletting", 2);
         }
     }
 
-    public static class BloodlettingP extends Card {
+    public static class BloodlettingP extends _BloodlettingT {
         public BloodlettingP() {
-            super("Bloodletting+", Card.SKILL, 0, Card.UNCOMMON);
+            super("Bloodletting+", 3);
+        }
+    }
+
+    private static abstract class _BurningPactT extends Card {
+        private final int draw;
+
+        public _BurningPactT(String cardName, int draw) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.draw = draw;
+            selectFromHand = true;
+            canExhaustAnyCard = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.doNonAttackDamageToPlayer(3, false, this);
-            state.gainEnergy(3);
+            state.exhaustCardFromHand(idx);
+            state.draw(draw);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class BurningPact extends Card {
+    public static class BurningPact extends _BurningPactT {
         public BurningPact() {
-            super("Burning Pact", Card.SKILL, 1, Card.UNCOMMON);
-            selectFromHand =  true;
-            canExhaustAnyCard = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.exhaustCardFromHand(idx);
-            state.draw(2);
-            return GameActionCtx.PLAY_CARD;
+            super("Burning Pact", 2);
         }
     }
 
-    public static class BurningPactP extends Card {
+    public static class BurningPactP extends _BurningPactT {
         public BurningPactP() {
-            super("Burning Pact+", Card.SKILL, 1, Card.UNCOMMON);
-            selectFromHand =  true;
-            canExhaustAnyCard = true;
+            super("Burning Pact+", 3);
+        }
+    }
+
+    private static abstract class _CarnageT extends Card {
+        private final int damage;
+
+        public _CarnageT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            selectEnemy = true;
+            ethereal = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.exhaustCardFromHand(idx);
-            state.draw(3);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class Carnage extends Card {
+    public static class Carnage extends _CarnageT {
         public Carnage() {
-            super("Carnage", Card.ATTACK, 2, Card.UNCOMMON);
-            selectEnemy = true;
-            ethereal = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
-            return GameActionCtx.PLAY_CARD;
+            super("Carnage", 20);
         }
     }
 
-    public static class CarnageP extends Card {
+    public static class CarnageP extends _CarnageT {
         public CarnageP() {
-            super("Carnage+", Card.ATTACK, 2, Card.UNCOMMON);
-            selectEnemy = true;
-            ethereal = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 28);
-            return GameActionCtx.PLAY_CARD;
+            super("Carnage+", 28);
         }
     }
 
@@ -964,186 +973,165 @@ public class CardIronclad {
         }
     }
 
-    public static class DarkEmbrace extends Card {
+    private static abstract class _DarkEmbraceT extends Card {
+        public _DarkEmbraceT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DarkEmbrace", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
+                }
+            });
+        }
+    }
+
+    public static class DarkEmbrace extends _DarkEmbraceT {
         public DarkEmbrace() {
-            super("Dark Embrace", Card.POWER, 2, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 1;
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("DarkEmbrace", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
-                }
-            });
+            super("Dark Embrace", 2);
         }
     }
 
-    public static class DarkEmbraceP extends Card {
+    public static class DarkEmbraceP extends _DarkEmbraceT {
         public DarkEmbraceP() {
-            super("Dark Embrace+", Card.POWER, 1, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 1;
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("DarkEmbrace", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
-                }
-            });
+            super("Dark Embrace+", 1);
         }
     }
 
-    public static class Disarm extends Card {
+    private static abstract class _DisarmT extends Card {
+        private final int strengthLoss;
+
+        public _DisarmT(String cardName, int strengthLoss) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.strengthLoss = strengthLoss;
+            exhaustWhenPlayed = true;
+            selectEnemy = true;
+            affectEnemyStrength = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, strengthLoss);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Disarm extends _DisarmT {
         public Disarm() {
-            super("Disarm", Card.SKILL, 1, Card.UNCOMMON);
-            exhaustWhenPlayed = true;
-            selectEnemy = true;
-            affectEnemyStrength = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, 2);
-            return GameActionCtx.PLAY_CARD;
+            super("Disarm", 2);
         }
     }
 
-    public static class DisarmP extends Card {
+    public static class DisarmP extends _DisarmT {
         public DisarmP() {
-            super("Disarm+", Card.SKILL, 1, Card.UNCOMMON);
-            exhaustWhenPlayed = true;
+            super("Disarm+", 3);
+        }
+    }
+
+    private static abstract class _DropkickT extends Card {
+        private final int damage;
+
+        public _DropkickT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
             selectEnemy = true;
-            affectEnemyStrength = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            if (enemy.getVulnerable() > 0) {
+                state.energy += 1;
+                state.draw(1);
+            }
             return GameActionCtx.PLAY_CARD;
         }
     }
 
-    public static class Dropkick extends Card {
+    public static class Dropkick extends _DropkickT {
         public Dropkick() {
-            super("Dropkick", Card.ATTACK, 1, Card.UNCOMMON);
-            selectEnemy = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 5);
-            if (enemy.getVulnerable() > 0) {
-                state.energy += 1;
-                state.draw(1);
-            }
-            return GameActionCtx.PLAY_CARD;
+            super("Dropkick", 5);
         }
     }
 
-    public static class DropkickP extends Card {
+    public static class DropkickP extends _DropkickT {
         public DropkickP() {
-            super("Dropkick+", Card.ATTACK, 1, Card.UNCOMMON);
-            selectEnemy = true;
+            super("Dropkick+", 8);
+        }
+    }
+
+    private static abstract class _DualWieldT extends Card {
+        private final int copies;
+
+        public _DualWieldT(String cardName, int copies) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.copies = copies;
+            selectFromHand = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, 8);
-            if (enemy.getVulnerable() > 0) {
-                state.energy += 1;
-                state.draw(1);
+            for (int i = 0; i < copies; i++) {
+                state.addCardToHand(idx);
             }
             return GameActionCtx.PLAY_CARD;
         }
+
+        @Override public boolean canSelectCard(Card card) {
+            return card.cardType == Card.ATTACK;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
+        }
     }
 
-    public static class DualWield extends Card {
+    public static class DualWield extends _DualWieldT {
         public DualWield() {
-            super("Dual Wield", Card.SKILL, 1, Card.UNCOMMON);
-            selectFromHand = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToHand(idx);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public boolean canSelectCard(Card card) {
-            return card.cardType == Card.ATTACK;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
+            super("Dual Wield", 1);
         }
     }
 
-    public static class DualWieldP extends Card {
+    public static class DualWieldP extends _DualWieldT {
         public DualWieldP() {
-            super("Dual Wield+", Card.SKILL, 1, Card.UNCOMMON);
-            selectFromHand = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToHand(idx);
-            state.addCardToHand(idx);
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public boolean canSelectCard(Card card) {
-            return card.cardType == Card.ATTACK;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return cards.stream().filter(card -> card.cardType == Card.ATTACK).toList();
+            super("Dual Wield+", 2);
         }
     }
 
-    public static class Entrench extends Card {
+    private static abstract class _EntrenchT extends Card {
+        public _EntrenchT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var player = state.getPlayerForWrite();
+            player.gainBlockNotFromCardPlay(player.getBlock());
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Entrench extends _EntrenchT {
         public Entrench() {
-            super("Entrench", Card.SKILL, 2, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var player = state.getPlayerForWrite();
-            player.gainBlockNotFromCardPlay(player.getBlock());
-            return GameActionCtx.PLAY_CARD;
+            super("Entrench", 2);
         }
     }
 
-    public static class EntrenchP extends Card {
+    public static class EntrenchP extends _EntrenchT {
         public EntrenchP() {
-            super("Entrench+", Card.SKILL, 1, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var player = state.getPlayerForWrite();
-            player.gainBlockNotFromCardPlay(player.getBlock());
-            return GameActionCtx.PLAY_CARD;
+            super("Entrench+", 1);
         }
     }
 
@@ -1192,13 +1180,16 @@ public class CardIronclad {
         }
     }
 
-    public static class FeelNoPain extends Card {
-        public FeelNoPain() {
-            super("Feel No Pain", Card.POWER, 1, Card.UNCOMMON);
+    private static abstract class _FeelNoPainT extends Card {
+        private final int blockAmount;
+
+        public _FeelNoPainT(String cardName, int blockAmount) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.blockAmount = blockAmount;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 3;
+            state.getCounterForWrite()[counterIdx] += blockAmount;
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1220,31 +1211,15 @@ public class CardIronclad {
         }
     }
 
-    public static class FeelNoPainP extends Card {
+    public static class FeelNoPain extends _FeelNoPainT {
+        public FeelNoPain() {
+            super("Feel No Pain", 3);
+        }
+    }
+
+    public static class FeelNoPainP extends _FeelNoPainT {
         public FeelNoPainP() {
-            super("Feel No Pain+", Card.POWER, 1, Card.UNCOMMON);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += 4;
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("FNP", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 8.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addOnExhaustHandler("FNP", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
-                }
-            });
+            super("Feel No Pain+", 4);
         }
     }
 
