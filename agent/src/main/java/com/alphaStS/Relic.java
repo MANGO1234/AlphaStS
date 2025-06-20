@@ -1130,89 +1130,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            if (properties.character == CharacterEnum.DEFECT) {
-                return getPossibleCards(properties);
-            }
-            return null;
+            return getPossibleCards(properties);
         }
 
         List<Card> getPossibleCards(GameProperties gameProperties) {
-            if (gameProperties.character == CharacterEnum.DEFECT) {
-                return List.of(
-                        new CardDefect.Aggregate(),
-                        new CardDefect.AllForOne(0, 0),
-                        new CardDefect.Amplify(),
-                        new CardDefect.AutoShields(),
-                        new CardDefect.BallLightning(),
-                        new CardDefect.Barrage(),
-                        new CardDefect.BeamCell(),
-                        new CardDefect.BiasedCognition(),
-                        new CardDefect.Blizzard(),
-                        new CardDefect.BootSequence(),
-                        new CardDefect.Buffer(),
-                        new CardDefect.BullsEye(),
-                        new CardDefect.Capacitor(),
-                        new CardDefect.Chaos(),
-                        new CardDefect.ChargeBattery(),
-                        new CardDefect.Chill(),
-                        new CardDefect.Claw(3),
-                        new CardDefect.ColdSnap(),
-                        new CardDefect.CompiledDriver(),
-                        new CardDefect.Consume(),
-                        new CardDefect.Coolheaded(),
-                        new CardDefect.CoreSurge(),
-                        new CardDefect.CreativeAI(),
-                        new CardDefect.Darkness(),
-                        new CardDefect.Defragment(),
-                        new CardDefect.DoomAndGloom(),
-                        new CardDefect.DoubleEnergy(),
-                        new CardDefect.EchoForm(),
-                        new CardDefect.Electrodynamics(),
-                        new CardDefect.Equilibrium(),
-                        new CardDefect.Fission(),
-                        new CardDefect.ForceField(),
-                        new CardDefect.FTL(),
-                        new CardDefect.Fusion(),
-                        new CardDefect.GeneticAlgorithm(1, 0),
-                        new CardDefect.Glacier(),
-                        new CardDefect.GoForTheEye(),
-                        new CardDefect.Heatsinks(),
-                        new CardDefect.HelloWorld(),
-                        new CardDefect.Hologram(),
-                        new CardDefect.HyperBeam(),
-                        new CardDefect.Leap(),
-                        new CardDefect.Loop(),
-                        new CardDefect.MachineLearning(),
-                        new CardDefect.Melter(),
-                        new CardDefect.MeteorStrike(),
-                        new CardDefect.MultiCast(),
-                        new CardDefect.Overclock(),
-                        new CardDefect.Rainbow(),
-                        new CardDefect.Reboot(),
-                        new CardDefect.Rebound(),
-                        new CardDefect.Recursion(),
-                        new CardDefect.Recycle(),
-                        new CardDefect.ReinforcedBody(),
-                        new CardDefect.Reprogram(),
-                        new CardDefect.RipAndTear(),
-                        new CardDefect.Scrape(),
-                        new CardDefect.Seek(),
-                        // new CardDefect.SelfRepair(),
-                        new CardDefect.Skim(),
-                        new CardDefect.Stack(),
-                        new CardDefect.StaticDischarge(),
-                        new CardDefect.SteamBarrier(6),
-                        new CardDefect.Storm(),
-                        new CardDefect.Streamline(),
-                        new CardDefect.Sunder(),
-                        new CardDefect.SweepingBeam(),
-                        new CardDefect.Tempest(),
-                        new CardDefect.ThunderStrike(),
-                        new CardDefect.Turbo(),
-                        new CardDefect.WhiteNoise()
-                );
-            }
-            throw new IllegalArgumentException();
+            return CardManager.getCharacterCards(gameProperties.character, false);
         }
     }
 
@@ -1660,42 +1582,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            return List.of(
-                    new CardColorless.Blind(),
-                    new CardColorless.DarkShackles(),
-                    new CardColorless.DeepBreath(),
-                    new CardColorless.ToBeImplemented("0"),
-                    new CardColorless.DramaticEntrance(),
-                    new CardColorless.ToBeImplemented("1"),
-                    new CardColorless.Finesse(),
-                    new CardColorless.FlashOfSteel(),
-                    new CardColorless.ToBeImplemented("2"),
-                    new CardColorless.GoodInstincts(),
-                    new CardColorless.Impatience(),
-                    new CardColorless.ToBeImplemented("3"),
-                    new CardColorless.ToBeImplemented("4"),
-                    new CardColorless.MindBlast(),
-                    new CardColorless.Panacea(),
-                    new CardColorless.PanicButton(),
-                    new CardColorless.ToBeImplemented("6"),
-                    new CardColorless.SwiftStrike(),
-                    new CardColorless.Trip(),
-                    new CardColorless.Apotheosis(),
-                    new CardColorless.ToBeImplemented("7"),
-                    new CardColorless.HandOfGreed(0.1),
-                    new CardColorless.ToBeImplemented("8"),
-                    new CardColorless.MasterOfStrategy(),
-                    new CardColorless.Mayhem(),
-                    new CardColorless.ToBeImplemented("10"),
-                    new CardColorless.Panacea(),
-                    new CardColorless.ToBeImplemented("11"),
-                    new CardColorless.SecretTechnique(),
-                    new CardColorless.SecretWeapon(),
-                    new CardColorless.TheBomb(),
-                    new CardColorless.ThinkingAhead(),
-                    new CardColorless.ToBeImplemented("13"),
-                    new CardColorless.ToBeImplemented("14")
-            );
+            return CardManager.getColorlessCards(false);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1743,89 +1630,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            if (properties.character == CharacterEnum.DEFECT) {
-                return getPossibleCards(properties);
-            }
-            return null;
+            return getPossibleCards(properties);
         }
 
         List<Card> getPossibleCards(GameProperties gameProperties) {
-            if (gameProperties.character == CharacterEnum.DEFECT) {
-                return List.of(
-                        new CardDefect.AggregateP(),
-                        new CardDefect.AllForOneP(0, 0),
-                        new CardDefect.AmplifyP(),
-                        new CardDefect.AutoShieldsP(),
-                        new CardDefect.BallLightningP(),
-                        new CardDefect.BarrageP(),
-                        new CardDefect.BeamCellP(),
-                        new CardDefect.BiasedCognitionP(),
-                        new CardDefect.BlizzardP(),
-                        new CardDefect.BootSequenceP(),
-                        new CardDefect.BufferP(),
-                        new CardDefect.BullsEyeP(),
-                        new CardDefect.CapacitorP(),
-                        new CardDefect.ChaosP(),
-                        new CardDefect.ChargeBatteryP(),
-                        new CardDefect.ChillP(),
-                        new CardDefect.ClawP(5),
-                        new CardDefect.ColdSnapP(),
-                        new CardDefect.CompiledDriverP(),
-                        new CardDefect.ConsumeP(),
-                        new CardDefect.CoolheadedP(),
-                        new CardDefect.CoreSurgeP(),
-                        new CardDefect.CreativeAIP(),
-                        new CardDefect.DarknessP(),
-                        new CardDefect.DefragmentP(),
-                        new CardDefect.DoomAndGloomP(),
-                        new CardDefect.DoubleEnergyP(),
-                        new CardDefect.EchoFormP(),
-                        new CardDefect.ElectrodynamicsP(),
-                        new CardDefect.EquilibriumP(),
-                        new CardDefect.FissionP(),
-                        new CardDefect.ForceFieldP(),
-                        new CardDefect.FTLP(),
-                        new CardDefect.FusionP(),
-                        new CardDefect.GeneticAlgorithmP(19, 3),
-                        new CardDefect.GlacierP(),
-                        new CardDefect.GoForTheEyeP(),
-                        new CardDefect.HeatsinksP(),
-                        new CardDefect.HelloWorldP(),
-                        new CardDefect.HologramP(),
-                        new CardDefect.HyperBeamP(),
-                        new CardDefect.LeapP(),
-                        new CardDefect.LoopP(),
-                        new CardDefect.MachineLearningP(),
-                        new CardDefect.MelterP(),
-                        new CardDefect.MeteorStrikeP(),
-                        new CardDefect.MultiCastP(),
-                        new CardDefect.OverclockP(),
-                        new CardDefect.RainbowP(),
-                        new CardDefect.RebootP(),
-                        new CardDefect.ReboundP(),
-                        new CardDefect.RecursionP(),
-                        new CardDefect.RecycleP(),
-                        new CardDefect.ReinforcedBodyP(),
-                        new CardDefect.ReprogramP(),
-                        new CardDefect.RipAndTearP(),
-                        new CardDefect.ScrapeP(),
-                        new CardDefect.SeekP(),
-                        new CardDefect.SelfRepairP(),
-                        new CardDefect.SkimP(),
-                        new CardDefect.StackP(),
-                        new CardDefect.StaticDischargeP(),
-                        new CardDefect.SteamBarrierP(),
-                        new CardDefect.StormP(),
-                        new CardDefect.StreamlineP(),
-                        new CardDefect.SunderP(),
-                        new CardDefect.SweepingBeamP(),
-                        new CardDefect.TempestP(),
-                        new CardDefect.ThunderStrikeP(),
-                        new CardDefect.TurboP(),
-                        new CardDefect.WhiteNoiseP()
-                );
-            }
-            throw new IllegalArgumentException();
+            return CardManager.getCharacterCards(gameProperties.character, true).stream()
+                    .map(Card::getUpgrade)
+                    .filter(Objects::nonNull)
+                    .toList();
         }
     }
 
@@ -1920,7 +1732,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.properties.pandorasBoxCardsTransformed = new int[n];
                     }
                     state.setIsStochastic();
-                    if (state.getStateDesc().length() > 0)
+                    if (!state.getStateDesc().isEmpty())
                         state.stateDesc.append(", ");
                     state.getStateDesc().append("Pandora's Box -> ");
                     for (int i = 0; i < n; i++) {
@@ -1942,154 +1754,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         List<Card> getPossibleCards(GameProperties gameProperties) {
-            List<Card> cards = new ArrayList<>();
-            if (gameProperties.character == CharacterEnum.SILENT) {
-                cards.add(new CardSilent.Bane());
-                cards.add(new CardSilent.DaggerSpray());
-                cards.add(new CardSilent.DaggerThrow());
-                cards.add(new CardSilent.FlyingKnee());
-                cards.add(new CardSilent.PoisonedStab());
-                cards.add(new CardSilent.QuickSlash());
-                cards.add(new CardSilent.Slice());
-                cards.add(new CardSilent.SneakyStrike());
-                cards.add(new CardSilent.SuckerPunch());
-                cards.add(new CardSilent.AllOutAttack());
-                cards.add(new CardSilent.Backstab());
-                cards.add(new CardSilent.Choke());
-                cards.add(new CardSilent.Dash());
-                cards.add(new CardSilent.EndlessAgony());
-                cards.add(new CardSilent.Eviscerate());
-                cards.add(new CardSilent.Finisher());
-                cards.add(new CardSilent.Flechette());
-                cards.add(new CardSilent.HeelHook());
-                cards.add(new CardSilent.MasterfulStab(6));
-                cards.add(new CardSilent.Predator());
-                cards.add(new CardSilent.RiddleWithHoles());
-                cards.add(new CardSilent.Skewer());
-                cards.add(new CardSilent.DieDieDie());
-                cards.add(new CardSilent.GlassKnife());
-                cards.add(new CardSilent.GrandFinale());
-                cards.add(new CardSilent.Unload());
-                cards.add(new CardSilent.Acrobatics());
-                cards.add(new CardSilent.Backflip());
-                cards.add(new CardSilent.BladeDance());
-                cards.add(new CardSilent.CloakAndDagger());
-                cards.add(new CardSilent.DeadlyPoison());
-                cards.add(new CardSilent.Deflect());
-                cards.add(new CardSilent.DodgeAndRoll());
-                cards.add(new CardSilent.Outmaneuver());
-                cards.add(new CardSilent.PiercingWail());
-                cards.add(new CardSilent.Prepared());
-                cards.add(new CardSilent.Blur());
-                cards.add(new CardSilent.BouncingFlask());
-                cards.add(new CardSilent.CalculatedGamble());
-                cards.add(new CardSilent.Catalyst());
-                cards.add(new CardSilent.Concentrate());
-                cards.add(new CardSilent.CripplingCloud());
-                cards.add(new CardSilent.Distraction());
-                cards.add(new CardSilent.EscapePlan());
-                cards.add(new CardSilent.Expertise());
-                cards.add(new CardSilent.LegSweep());
-                cards.add(new CardSilent.Reflex());
-                cards.add(new CardSilent.Setup(true));
-                cards.add(new CardSilent.Tactician());
-                cards.add(new CardSilent.Terror());
-                cards.add(new CardSilent.Adrenaline());
-                cards.add(new CardSilent.Alchemize(0, 0, 0));
-                cards.add(new CardSilent.BulletTime());
-                cards.add(new CardSilent.Burst());
-                cards.add(new CardSilent.CorpseExplosion());
-                cards.add(new CardSilent.Doppelganger());
-                cards.add(new CardSilent.Malaise());
-                cards.add(new CardSilent.Nightmare());
-                cards.add(new CardSilent.PhantasmalKiller());
-                cards.add(new CardSilent.StormOfSteel());
-                cards.add(new CardSilent.Accuracy());
-                cards.add(new CardSilent.Caltrops());
-                cards.add(new CardSilent.Footwork());
-                cards.add(new CardSilent.InfiniteBlade());
-                cards.add(new CardSilent.NoxiousFume());
-                cards.add(new CardSilent.WellLaidPlans());
-                cards.add(new CardSilent.AThousandCuts());
-                cards.add(new CardSilent.AfterImage());
-                cards.add(new CardSilent.Envenom());
-                cards.add(new CardSilent.ToolsOfTheTrade());
-                cards.add(new CardSilent.WraithForm());
-            } else if (gameProperties.character == CharacterEnum.DEFECT) {
-                cards.add(new CardDefect.Aggregate());
-                cards.add(new CardDefect.AllForOne(0, 0));
-                cards.add(new CardDefect.Amplify());
-                cards.add(new CardDefect.AutoShields());
-                cards.add(new CardDefect.BallLightning());
-                cards.add(new CardDefect.Barrage());
-                cards.add(new CardDefect.BeamCell());
-                cards.add(new CardDefect.BiasedCognition());
-                cards.add(new CardDefect.Blizzard());
-                cards.add(new CardDefect.BootSequence());
-                cards.add(new CardDefect.Buffer());
-                cards.add(new CardDefect.BullsEye());
-                cards.add(new CardDefect.Capacitor());
-                cards.add(new CardDefect.Chaos());
-                cards.add(new CardDefect.ChargeBattery());
-                cards.add(new CardDefect.Chill());
-                cards.add(new CardDefect.Claw(5));
-                cards.add(new CardDefect.ColdSnap());
-                cards.add(new CardDefect.CompiledDriver());
-                cards.add(new CardDefect.Consume());
-                cards.add(new CardDefect.Coolheaded());
-                cards.add(new CardDefect.CoreSurge());
-                cards.add(new CardDefect.CreativeAI());
-                cards.add(new CardDefect.Darkness());
-                cards.add(new CardDefect.Defragment());
-                cards.add(new CardDefect.DoomAndGloom());
-                cards.add(new CardDefect.DoubleEnergy());
-                cards.add(new CardDefect.EchoForm());
-                cards.add(new CardDefect.Electrodynamics());
-                cards.add(new CardDefect.Equilibrium());
-                cards.add(new CardDefect.Fission());
-                cards.add(new CardDefect.ForceField());
-                cards.add(new CardDefect.FTL());
-                cards.add(new CardDefect.Fusion());
-                cards.add(new CardDefect.GeneticAlgorithm(19, 3));
-                cards.add(new CardDefect.Glacier());
-                cards.add(new CardDefect.GoForTheEye());
-                cards.add(new CardDefect.Heatsinks());
-                cards.add(new CardDefect.HelloWorld());
-                cards.add(new CardDefect.Hologram());
-                cards.add(new CardDefect.HyperBeam());
-                cards.add(new CardDefect.Leap());
-                cards.add(new CardDefect.Loop());
-                cards.add(new CardDefect.MachineLearning());
-                cards.add(new CardDefect.Melter());
-                cards.add(new CardDefect.MeteorStrike());
-                cards.add(new CardDefect.MultiCast());
-                cards.add(new CardDefect.Overclock());
-                cards.add(new CardDefect.Rainbow());
-                cards.add(new CardDefect.Reboot());
-                cards.add(new CardDefect.Rebound());
-                cards.add(new CardDefect.Recursion());
-                cards.add(new CardDefect.Recycle());
-                cards.add(new CardDefect.ReinforcedBody());
-                cards.add(new CardDefect.Reprogram());
-                cards.add(new CardDefect.RipAndTear());
-                cards.add(new CardDefect.Scrape());
-                cards.add(new CardDefect.Seek());
-                cards.add(new CardDefect.SelfRepair());
-                cards.add(new CardDefect.Skim());
-                cards.add(new CardDefect.Stack());
-                cards.add(new CardDefect.StaticDischarge());
-                cards.add(new CardDefect.SteamBarrier());
-                cards.add(new CardDefect.Storm());
-                cards.add(new CardDefect.Streamline());
-                cards.add(new CardDefect.Sunder());
-                cards.add(new CardDefect.SweepingBeam());
-                cards.add(new CardDefect.Tempest());
-                cards.add(new CardDefect.ThunderStrike());
-                cards.add(new CardDefect.Turbo());
-                cards.add(new CardDefect.WhiteNoise());
-            } else {
-                throw new IllegalArgumentException();
-            }
+            List<Card> cards = CardManager.getCharacterCards(gameProperties.character, true);
             if (upgradeSkill) {
                 for (int i = 0; i < cards.size(); i++) {
                     if (cards.get(i).cardType == Card.SKILL) {
@@ -2253,8 +1918,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             var c = getPossibleGeneratedCards(state.properties);
-            cardsIdx = new int[tmpCardsLen];
-            for (int i = 0; i < tmpCardsLen; i++) {
+            cardsIdx = new int[c.size()];
+            for (int i = 0; i < c.size(); i++) {
                 cardsIdx[i] = state.properties.findCardIndex(c.get(i));
             }
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
@@ -2270,71 +1935,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         private static List<Card> cards;
-        private static int tmpCardsLen;
         private static Card filter;
         private static int[] cardsIdx;
 
         private static List<Card> getPossibleGeneratedCards(GameProperties properties) {
             if (cards == null) {
-                if (properties.character == CharacterEnum.DEFECT) {
-                    cards = Stream.of(
-                            new CardDefect.BiasedCognition().getTemporaryCostIfPossible(0),
-                            new CardDefect.Buffer().getTemporaryCostIfPossible(0),
-                            new CardDefect.Capacitor().getTemporaryCostIfPossible(0),
-                            new CardDefect.CreativeAI().getTemporaryCostIfPossible(0),
-                            new CardDefect.Defragment().getTemporaryCostIfPossible(0),
-                            new CardDefect.EchoForm().getTemporaryCostIfPossible(0),
-                            new CardDefect.Electrodynamics().getTemporaryCostIfPossible(0),
-                            new CardDefect.Heatsinks().getTemporaryCostIfPossible(0),
-                            new CardDefect.HelloWorld().getTemporaryCostIfPossible(0),
-                            new CardDefect.Loop().getTemporaryCostIfPossible(0),
-                            new CardDefect.MachineLearning().getTemporaryCostIfPossible(0),
-                            new CardDefect.StaticDischarge().getTemporaryCostIfPossible(0),
-                            new CardDefect.Storm().getTemporaryCostIfPossible(0),
-                            new CardDefect.BiasedCognition(),
-                            new CardDefect.Buffer(),
-                            new CardDefect.Capacitor(),
-                            new CardDefect.CreativeAI(),
-                            new CardDefect.Defragment(),
-                            new CardDefect.EchoForm(),
-                            new CardDefect.Electrodynamics(),
-                            new CardDefect.Heatsinks(),
-                            new CardDefect.HelloWorld(),
-                            new CardDefect.Loop(),
-                            new CardDefect.MachineLearning(),
-                            new CardDefect.StaticDischarge(),
-                            new CardDefect.Storm()
-                    ).filter((x) -> filter == null || filter.getTemporaryCostIfPossible(0).equals(x) || filter.equals(x)).toList();
-                    tmpCardsLen = cards.size() / 2;
-                } else if (properties.character == CharacterEnum.SILENT) {
-                    cards = Stream.of(
-                            new CardSilent.Accuracy().getTemporaryCostIfPossible(0),
-                            new CardSilent.Caltrops().getTemporaryCostIfPossible(0),
-                            new CardSilent.Footwork().getTemporaryCostIfPossible(0),
-                            new CardSilent.InfiniteBlade().getTemporaryCostIfPossible(0),
-                            new CardSilent.NoxiousFume().getTemporaryCostIfPossible(0),
-                            new CardSilent.WellLaidPlans().getTemporaryCostIfPossible(0),
-                            new CardSilent.AThousandCuts().getTemporaryCostIfPossible(0),
-                            new CardSilent.AfterImage().getTemporaryCostIfPossible(0),
-                            new CardSilent.Envenom().getTemporaryCostIfPossible(0),
-                            new CardSilent.ToolsOfTheTrade().getTemporaryCostIfPossible(0),
-                            new CardSilent.WraithForm().getTemporaryCostIfPossible(0),
-                            new CardSilent.Accuracy(),
-                            new CardSilent.Caltrops(),
-                            new CardSilent.Footwork(),
-                            new CardSilent.InfiniteBlade(),
-                            new CardSilent.NoxiousFume(),
-                            new CardSilent.WellLaidPlans(),
-                            new CardSilent.AThousandCuts(),
-                            new CardSilent.AfterImage(),
-                            new CardSilent.Envenom(),
-                            new CardSilent.ToolsOfTheTrade(),
-                            new CardSilent.WraithForm()
-                    ).filter((x) -> filter == null || filter.getTemporaryCostIfPossible(0).equals(x) || filter.equals(x)).toList();
-                    tmpCardsLen = cards.size() / 2;
-                } else {
-                        throw new IllegalArgumentException("Unsupported character: " + properties.character);
-                }
+                cards = CardManager.getPossibleSelect1OutOf3Cards(properties.character, Card.POWER, false);
             }
             return cards;
         }
