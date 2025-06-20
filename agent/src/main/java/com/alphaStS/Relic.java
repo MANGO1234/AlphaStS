@@ -8,6 +8,7 @@ import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.enums.Stance;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
@@ -2902,13 +2903,83 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // ********************************************************** Watcher Specific Relics ***********************************************************
     // **********************************************************************************************************************************************
 
-    // todo: Pure Water
-    // todo: Damaru
+    public static class PureWater extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.addCardToHand(state.properties.miracleCardIdx);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Miracle());
+        }
+    }
+
+    public static class Damaru extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Damaru", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.gainMantra(1);
+                    }
+                }
+            });
+        }
+    }
+
     // todo: Duality
-    // todo: Teardrop Locket
-    // todo: Cloak Clasp
+
+    public static class TeardropLocket extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.changeStance(Stance.CALM);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class CloakClasp extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addEndOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        int handSize = state.handArr.length;
+                        if (handSize > 0) {
+                            state.getPlayerForWrite().gainBlockNotFromCardPlay(handSize);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     // todo: Golden Eye
     // todo: Melange
-    // todo: Holy Water
+
+    public static class HolyWater extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.addCardToHand(state.properties.miracleCardIdx);
+                        state.addCardToHand(state.properties.miracleCardIdx);
+                        state.addCardToHand(state.properties.miracleCardIdx);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Miracle());
+        }
+    }
+
     // todo: Violet Lotus
 }
