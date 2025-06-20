@@ -10,6 +10,7 @@ import com.alphaStS.utils.Tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.alphaStS.enums.CharacterEnum;
 
 public class CardSilent {
     public static class Neutralize extends Card {
@@ -1206,41 +1207,7 @@ public class CardSilent {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(
-                    new Card.CardTmpChangeCost(new CardSilent.Acrobatics(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.Backflip(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.BladeDance(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.CloakAndDagger(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.DeadlyPoison(), 0),
-                    new CardSilent.Deflect(),
-                    new Card.CardTmpChangeCost(new CardSilent.DodgeAndRoll(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.Outmaneuver(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.PiercingWail(), 0),
-                    new CardSilent.Prepared(),
-                    new Card.CardTmpChangeCost(new CardSilent.Blur(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.BouncingFlask(), 0),
-                    new CardSilent.CalculatedGamble(),
-                    new Card.CardTmpChangeCost(new CardSilent.Catalyst(), 0),
-                    new CardSilent.Concentrate(),
-                    new Card.CardTmpChangeCost(new CardSilent.CripplingCloud(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.Distraction(), 0),
-                    new CardSilent.EscapePlan(),
-                    new Card.CardTmpChangeCost(new CardSilent.Expertise(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.LegSweep(), 0),
-                    new CardSilent.Reflex(),
-                    new Card.CardTmpChangeCost(new CardSilent.Setup(true), 0),
-                    new CardSilent.Tactician(),
-                    new Card.CardTmpChangeCost(new CardSilent.Terror(), 0),
-                    new CardSilent.Adrenaline(),
-                    new Card.CardTmpChangeCost(new CardSilent.BulletTime(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.Burst(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.CorpseExplosion(), 0),
-                    new CardSilent.Doppelganger(),
-                    new CardSilent.Malaise(),
-                    new Card.CardTmpChangeCost(new CardSilent.Nightmare(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.PhantasmalKiller(), 0),
-                    new Card.CardTmpChangeCost(new CardSilent.StormOfSteel(), 0)
-            );
+            return CardManager.getPossibleSelect1OutOf3Cards(CharacterEnum.SILENT, Card.SKILL, false);
         }
     }
 

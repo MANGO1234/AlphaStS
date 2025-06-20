@@ -11,6 +11,7 @@ import com.alphaStS.utils.Tuple;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import com.alphaStS.enums.CharacterEnum;
 
 public class CardDefect {
     public static class DualCast extends Card {
@@ -2336,47 +2337,18 @@ public class CardDefect {
 
         @Override public void gamePropertiesSetup(GameState state) {
             var c = getPossibleGeneratedCards();
-            cardsIdx = new int[tmpCardsLen];
-            for (int i = 0; i < tmpCardsLen; i++) {
+            cardsIdx = new int[c.size()];
+            for (int i = 0; i < c.size(); i++) {
                 cardsIdx[i] = state.properties.findCardIndex(c.get(i));
             }
         }
 
         private static List<Card> cards;
-        private static int tmpCardsLen;
         private static int[] cardsIdx;
 
         private static List<Card> getPossibleGeneratedCards() {
             if (cards == null) {
-                cards = List.of(
-                        new Card.CardTmpChangeCost(new CardDefect.BiasedCognition(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Buffer(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Capacitor(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.CreativeAI(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Defragment(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.EchoForm(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Electrodynamics(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Heatsinks(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.HelloWorld(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Loop(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.MachineLearning(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.StaticDischarge(), 0),
-                        new Card.CardTmpChangeCost(new CardDefect.Storm(), 0),
-                        new CardDefect.BiasedCognition(),
-                        new CardDefect.Buffer(),
-                        new CardDefect.Capacitor(),
-                        new CardDefect.CreativeAI(),
-                        new CardDefect.Defragment(),
-                        new CardDefect.EchoForm(),
-                        new CardDefect.Electrodynamics(),
-                        new CardDefect.Heatsinks(),
-                        new CardDefect.HelloWorld(),
-                        new CardDefect.Loop(),
-                        new CardDefect.MachineLearning(),
-                        new CardDefect.StaticDischarge(),
-                        new CardDefect.Storm()
-                );
-                tmpCardsLen = cards.size() / 2;
+                cards = CardManager.getPossibleSelect1OutOf3Cards(CharacterEnum.DEFECT, Card.POWER, false);
             }
             return cards;
         }
@@ -2680,21 +2652,7 @@ public class CardDefect {
 
         private static List<Card> getPossibleGeneratedCards() {
             if (cards == null) {
-                cards = List.of(
-                        new CardDefect.BiasedCognition(),
-                        new CardDefect.Buffer(),
-                        new CardDefect.Capacitor(),
-                        new CardDefect.CreativeAI(),
-                        new CardDefect.Defragment(),
-                        new CardDefect.EchoForm(),
-                        new CardDefect.Electrodynamics(),
-                        new CardDefect.Heatsinks(),
-                        new CardDefect.HelloWorld(),
-                        new CardDefect.Loop(),
-                        new CardDefect.MachineLearning(),
-                        new CardDefect.StaticDischarge(),
-                        new CardDefect.Storm()
-                );
+                cards = CardManager.getPossibleGeneratedCards(CharacterEnum.DEFECT, Card.POWER, false);
             }
             return cards;
         }

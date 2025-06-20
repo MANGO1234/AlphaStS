@@ -8,6 +8,7 @@ import com.alphaStS.utils.Tuple;
 
 import java.util.Arrays;
 import java.util.List;
+import com.alphaStS.enums.CharacterEnum;
 import java.util.Objects;
 
 public class CardIronclad {
@@ -1452,36 +1453,7 @@ public class CardIronclad {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(
-                    new CardIronclad.Anger(),
-                    new CardIronclad.BodySlam(),
-                    new CardIronclad.Clash(),
-                    new Card.CardTmpChangeCost(new CardIronclad.Cleave(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Clothesline(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Headbutt(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.HeavyBlade(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.IronWave(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.PerfectedStrike(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.PommelStrike(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.SwordBoomerang(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Thunderclap(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.TwinStrike(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.WildStrike(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.BloodForBlood(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Carnage(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Dropkick(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Hemokinesis(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Pummel(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Rampage(), 0),
-                    new CardIronclad.RecklessCharge(),
-                    new Card.CardTmpChangeCost(new CardIronclad.SearingBlow(0), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.SeverSoul(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Uppercut(), 0),
-                    new CardIronclad.Whirlwind(),
-                    new Card.CardTmpChangeCost(new CardIronclad.Bludgeon(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.FiendFire(), 0),
-                    new Card.CardTmpChangeCost(new CardIronclad.Immolate(), 0)
-            );
+            return CardManager.getPossibleSelect1OutOf3Cards(CharacterEnum.IRONCLAD, Card.ATTACK, false);
         }
     }
 

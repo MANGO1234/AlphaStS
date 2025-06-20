@@ -1076,7 +1076,9 @@ public final class GameState implements State {
     private static void addPossibleGeneratedCardsFromListOfCard(List<Card> c, HashSet<Card> newSet, HashSet<Card> discardSet) {
         for (Card possibleCard : c) {
             newSet.add(possibleCard);
-            newSet.add(possibleCard.getBaseCard());
+            if (possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpUntilPlayedCost) {
+                newSet.add(possibleCard.getBaseCard());
+            }
         }
     }
 
