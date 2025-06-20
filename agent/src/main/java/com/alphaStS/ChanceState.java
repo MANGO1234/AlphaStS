@@ -18,11 +18,11 @@ public class ChanceState implements State {
         GameState state;
         long n;
         long other_n;
-        double[] prev_q;
+        VArray prev_q;
 
         public Node(GameState state, int startN) {
             this.state = state;
-            prev_q = new double[state.properties.v_total_len];
+            prev_q = new VArray(state.properties.v_total_len);
             n = startN;
         }
 
@@ -31,7 +31,7 @@ public class ChanceState implements State {
         }
 
         public void init() {
-            prev_q = new double[state.properties.v_total_len];
+            prev_q = new VArray(state.properties.v_total_len);
         }
     }
 
@@ -44,8 +44,8 @@ public class ChanceState implements State {
     Node prevWidenedNode;
     long total_node_n; // actual n, sum of nodes' n in cache
     long total_n; // n called from parent
-    double[] total_q;
-    double[] total_node_q;
+    VArray total_q;
+    VArray total_node_q;
     double varianceM;
     double varianceS;
     List<GameState> queue;
@@ -77,7 +77,7 @@ public class ChanceState implements State {
                 currentNodeArrCommittedIdx = new AtomicInteger(0);
                 nodesArrLock = new ReentrantReadWriteLock();
                 uniqueNodeEntry = new AtomicInteger(0);
-                total_node_q = new double[parentState.properties.v_total_len];
+                total_node_q = new VArray(parentState.properties.v_total_len);
             }
         } else {
             cache = new HashMap<>();
@@ -99,7 +99,7 @@ public class ChanceState implements State {
         }
         this.parentState = parentState;
         this.parentAction = action;
-        total_q = new double[parentState.properties.v_total_len];
+        total_q = new VArray(parentState.properties.v_total_len);
         queue = new ArrayList<>();
     }
 
@@ -109,10 +109,10 @@ public class ChanceState implements State {
         queue.add(state);
     }
 
-    public void correctV(GameState state2, double[] v, double[] realV) {
+    public void correctV(GameState state2, VArray v, VArray realV) {
         if (parentState.properties.multithreadedMTCS) virtualLoss.decrementAndGet();
-        var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
-        var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
+        var newVarianceM = varianceM + (realV.get(GameState.V_COMB_IDX) - varianceM) / total_n;
+        var newVarianceS = varianceS + (realV.get(GameState.V_COMB_IDX) - varianceM) * (realV.get(GameState.V_COMB_IDX) - newVarianceM);
         varianceM = newVarianceM;
         varianceS = newVarianceS;
         var node = cache.get(state2);
@@ -134,14 +134,14 @@ public class ChanceState implements State {
 
             for (int i = 0; i < node.state.properties.v_total_len; i++) {
                 var node_cur_q = node.state.getTotalQ(i) / (node.state.total_n + 1);
-                var prev_q = total_n == 1 ? 0 : total_q[i] / (total_n - 1);
-                var new_q = (prev_q * (total_node_n - 1) - node.prev_q[i] * (node.n - 1)) / total_node_n + node_cur_q * node.n / total_node_n;
-                node.prev_q[i] = node_cur_q;
-                v[i] = new_q * total_n - total_q[i];
+                var prev_q = total_n == 1 ? 0 : total_q.get(i) / (total_n - 1);
+                var new_q = (prev_q * (total_node_n - 1) - node.prev_q.get(i) * (node.n - 1)) / total_node_n + node_cur_q * node.n / total_node_n;
+                node.prev_q.set(i, node_cur_q);
+                v.set(i, new_q * total_n - total_q.get(i));
             }
         }
         for (int i = 0; i < node.state.properties.v_total_len; i++) {
-            total_q[i] += v[i];
+            total_q.add(i, v.get(i));
         }
     }
 
@@ -315,7 +315,7 @@ public class ChanceState implements State {
         }
     }
 
-    public void correctVParallel(Node node, boolean revisitFromProgressive, double[] v, double[] realV) {
+    public void correctVParallel(Node node, boolean revisitFromProgressive, VArray v, VArray realV) {
         if (parentState.properties.multithreadedMTCS) virtualLoss.decrementAndGet();
         if ((Configuration.USE_PROGRESSIVE_WIDENING && (!Configuration.TEST_PROGRESSIVE_WIDENING || parentState.properties.testNewFeature)) ||
                 Configuration.isTranspositionAcrossChanceNodeOn(parentState) ||
@@ -340,8 +340,8 @@ public class ChanceState implements State {
             }
             for (int i = 0; i < node.state.properties.v_total_len; i++) {
                 var node_cur_q = node.state.getTotalQ(i) / (node.state.total_n + 1);
-                v[i] = node_cur_q * node.n - node.prev_q[i] * prevNodeN;
-                node.prev_q[i] = node_cur_q;
+                v.set(i, node_cur_q * node.n - node.prev_q.get(i) * prevNodeN);
+                node.prev_q.set(i, node_cur_q);
             }
             node.state.writeUnlock();
             if (Configuration.USE_PROGRESSIVE_WIDENING && prevNodeN == 0) {
@@ -372,18 +372,18 @@ public class ChanceState implements State {
         if (!revisitFromProgressive) {
             total_node_n += 1;
         }
-        var newVarianceM = varianceM + (realV[GameState.V_COMB_IDX] - varianceM) / total_n;
-        var newVarianceS = varianceS + (realV[GameState.V_COMB_IDX] - varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
+        var newVarianceM = varianceM + (realV.get(GameState.V_COMB_IDX) - varianceM) / total_n;
+        var newVarianceS = varianceS + (realV.get(GameState.V_COMB_IDX) - varianceM) * (realV.get(GameState.V_COMB_IDX) - newVarianceM);
         varianceM = newVarianceM;
         varianceS = newVarianceS;
         for (int i = 0; i < node.state.properties.v_total_len; i++) {
             if (Configuration.USE_PROGRESSIVE_WIDENING) {
-                var prevTotalQ = total_q[i];
-                total_node_q[i] += v[i];
-                total_q[i] = total_node_q[i] / total_node_n * total_n;
-                v[i] = total_q[i] - prevTotalQ;
+                var prevTotalQ = total_q.get(i);
+                total_node_q.add(i, v.get(i));
+                total_q.set(i, total_node_q.get(i) / total_node_n * total_n);
+                v.set(i, total_q.get(i) - prevTotalQ);
             } else {
-                total_q[i] += v[i];
+                total_q.add(i, v.get(i));
             }
         }
         statsLock.writeLock().unlock();

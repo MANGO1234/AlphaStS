@@ -18,8 +18,8 @@ public class MCTS {
     public double[] exploredV;
     Model model;
     int numberOfPossibleActions;
-    private double[] v;
-    private double[] realV;
+    private VArray v;
+    private VArray realV;
     private final int[] ret = new int[2];
     private double terminal_v_win;
     public int forceRootAction = -1;
@@ -39,8 +39,8 @@ public class MCTS {
     void search(GameState state, boolean training, int remainingCalls) {
         exploredV = null;
         if (v == null) {
-            v = new double[state.properties.v_total_len];
-            realV = new double[state.properties.v_total_len];
+            v = new VArray(state.properties.v_total_len);
+            realV = new VArray(state.properties.v_total_len);
         }
         search2(state, training, remainingCalls);
     }
@@ -58,41 +58,41 @@ public class MCTS {
         if (exploredV != null) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.initSearchInfo2();
-                v[i] = exploredV[i];
-                state.addTotalQ(i, v[i]);
+                v.set(i, exploredV[i]);
+                state.addTotalQ(i, v.get(i));
             }
             return SEARCH_SUCCESS;
         }
         if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction];
-                realV[i] = v[i];
+                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
+                realV.set(i, v.get(i));
             }
             numberOfPossibleActions = 1;
             return SEARCH_SUCCESS;
         }
         if (state.isTerminal() != 0) {
-            state.get_v(v);
-            System.arraycopy(v, 0, realV, 0, state.properties.v_total_len);
+            state.get_v(v.getData());
+            realV.copyFrom(v);
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
             }
-            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
-                terminal_v_win = v[GameState.V_WIN_IDX];
+            if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
+                terminal_v_win = v.get(GameState.V_WIN_IDX);
             }
             return SEARCH_SUCCESS;
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v);
-            System.arraycopy(v, 0, realV, 0, state.properties.v_total_len);
+            state.get_v(v.getData());
+            realV.copyFrom(v);
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
             }
             numberOfPossibleActions = state.getLegalActions().length;
-            state.varianceM = v[GameState.V_COMB_IDX];
+            state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
             return SEARCH_SUCCESS;
         }
@@ -219,7 +219,7 @@ public class MCTS {
                     }
                     state.ns[action] = ns;
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = ns.getTotalQ(i) / (ns.total_n + 1);
+                        v.set(i, ns.getTotalQ(i) / (ns.total_n + 1));
                     }
                 } else if (s instanceof ChanceState ns) {
                     if (Configuration.isBanTranspositionInTreeOn(state) && numberOfActions > 1 && !isRoot) {
@@ -236,7 +236,7 @@ public class MCTS {
                     }
                     state.ns[action] = ns;
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = ns.total_q[i] / ns.total_n;
+                        v.set(i, ns.total_q.get(i) / ns.total_n);
                     }
                 }
             }
@@ -265,7 +265,7 @@ public class MCTS {
                         cState.correctV(state2, v, realV);
                     }
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = cState.total_q[i] / cState.total_n * (state.n[action] + 1) - state.getChildQ(action, i);
+                        v.set(i, cState.total_q.get(i) / cState.total_n * (state.n[action] + 1) - state.getChildQ(action, i));
                     }
                 } else {
                     state2 = cState.getNextState(true, level);
@@ -293,7 +293,7 @@ public class MCTS {
                         }
                     }
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = nState.getTotalQ(i) / (nState.total_n + 1) * (state.n[action] + 1) - state.getChildQ(action, i);
+                        v.set(i, nState.getTotalQ(i) / (nState.total_n + 1) * (state.n[action] + 1) - state.getChildQ(action, i));
                     }
                 } else {
                     if (handleFailedSearch2(state, action, nState, training, remainingCalls, false, level, deterministicPathPush(deterministicPath, state, action))) {
@@ -304,13 +304,13 @@ public class MCTS {
         }
 
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addChildQ(action, i, v[i]);
-            state.addTotalQ(i, v[i]);
+            state.addChildQ(action, i, v.get(i));
+            state.addTotalQ(i, v.get(i));
         }
         state.n[action] += 1;
         state.total_n += 1;
-        var newVarianceM = state.varianceM + (realV[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
-        var newVarianceS = state.varianceS + (realV[GameState.V_COMB_IDX] - state.varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
+        var newVarianceM = state.varianceM + (realV.get(GameState.V_COMB_IDX) - state.varianceM) / (state.total_n + 1);
+        var newVarianceS = state.varianceS + (realV.get(GameState.V_COMB_IDX) - state.varianceM) * (realV.get(GameState.V_COMB_IDX) - newVarianceM);
         state.varianceM = newVarianceM;
         state.varianceS = newVarianceS;
         if (terminal_v_win > 0.5) {
@@ -320,7 +320,7 @@ public class MCTS {
                 state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double q_total = state.getChildQ(action, i) / state.n[action] * (state.total_n + 1);
-                    v[i] += q_total - state.getTotalQ(i);
+                    v.add(i, q_total - state.getTotalQ(i));
                 }
             }
         }
@@ -536,8 +536,8 @@ public class MCTS {
         if (state.terminalAction >= 0) {
             state.readLock();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction];
-                realV[i] = v[i];
+                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
+                realV.set(i, v.get(i));
             }
             state.readUnlock();
             numberOfPossibleActions = 1;
@@ -545,14 +545,14 @@ public class MCTS {
         }
 
         if (state.isTerminal() != 0) {
-            state.get_v(v);
-            System.arraycopy(v, 0, realV, 0, state.properties.v_total_len);
+            state.get_v(v.getData());
+            realV.copyFrom(v);
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
             }
-            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
-                terminal_v_win = v[GameState.V_WIN_IDX];
+            if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
+                terminal_v_win = v.get(GameState.V_WIN_IDX);
             }
             return SEARCH_SUCCESS;
         }
@@ -561,14 +561,14 @@ public class MCTS {
             state.writeLock();
             if (state.policy == null) {
                 state.doEval(model);
-                state.get_v(v);
-                System.arraycopy(v, 0, realV, 0, state.properties.v_total_len);
+                state.get_v(v.getData());
+                realV.copyFrom(v);
                 state.initSearchInfo2();
                 for (int i = 0; i < state.properties.v_total_len; i++) {
-                    state.setTotalQ(i, v[i]);
+                    state.setTotalQ(i, v.get(i));
                 }
                 numberOfPossibleActions = state.getLegalActions().length;
-                state.varianceM = v[GameState.V_COMB_IDX];
+                state.varianceM = v.get(GameState.V_COMB_IDX);
                 state.varianceS = 0;
                 state.writeUnlock();
                 return SEARCH_SUCCESS;
@@ -737,7 +737,7 @@ public class MCTS {
                     }
                     ns.readLock();
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = ns.getTotalQ(i) / (ns.total_n + 1);
+                        v.set(i, ns.getTotalQ(i) / (ns.total_n + 1));
                     }
                     ns.readUnlock();
                 } else if (s instanceof ChanceState ns) {
@@ -762,7 +762,7 @@ public class MCTS {
                     }
                     ns.readLock();
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = ns.total_q[i] / ns.total_n;
+                        v.set(i, ns.total_q.get(i) / ns.total_n);
                     }
                     ns.readUnlock();
                 } else {
@@ -783,7 +783,7 @@ public class MCTS {
                     state.readLock();
                     cState.readLock();
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = cState.total_q[i] / cState.total_n * (state.n[action] + 1) - state.getChildQ(action, i);
+                        v.set(i, cState.total_q.get(i) / cState.total_n * (state.n[action] + 1) - state.getChildQ(action, i));
                     }
                     cState.readUnlock();
                     state.readUnlock();
@@ -806,7 +806,7 @@ public class MCTS {
                     state.readLock();
                     nState.readLock();
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = nState.getTotalQ(i) / (nState.total_n + 1) * (state.n[action] + 1) - state.getChildQ(action, i);
+                        v.set(i, nState.getTotalQ(i) / (nState.total_n + 1) * (state.n[action] + 1) - state.getChildQ(action, i));
                     }
                     nState.readUnlock();
                     state.readUnlock();
@@ -831,13 +831,13 @@ public class MCTS {
             return SEARCH_SUCCESS;
         }
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addChildQ(action, i, v[i]);
-            state.addTotalQ(i, v[i]);
+            state.addChildQ(action, i, v.get(i));
+            state.addTotalQ(i, v.get(i));
         }
         state.n[action] += 1;
         state.total_n += 1;
-        var newVarianceM = state.varianceM + (realV[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
-        var newVarianceS = state.varianceS + (realV[GameState.V_COMB_IDX] - state.varianceM) * (realV[GameState.V_COMB_IDX] - newVarianceM);
+        var newVarianceM = state.varianceM + (realV.get(GameState.V_COMB_IDX) - state.varianceM) / (state.total_n + 1);
+        var newVarianceS = state.varianceS + (realV.get(GameState.V_COMB_IDX) - state.varianceM) * (realV.get(GameState.V_COMB_IDX) - newVarianceM);
         state.varianceM = newVarianceM;
         state.varianceS = newVarianceS;
         if (terminal_v_win > 0.5) {
@@ -847,7 +847,7 @@ public class MCTS {
                 state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double q_total = state.getChildQ(action, i) / state.n[action] * (state.total_n + 1);
-                    v[i] += q_total - state.getTotalQ(i);
+                    v.add(i, q_total - state.getTotalQ(i));
                 }
             }
         }
@@ -957,10 +957,10 @@ public class MCTS {
                     // so the begin turn chance state may be different and have different states
                     continue;
                 }
-                var v = new double[20];
+                var v = new VArray(state.properties.v_total_len);
                 cs.correctV(state, v, realV);
                 for (int i = 0; i < state.properties.v_total_len; i++) {
-                    var vChange = cs.total_q[i] / cs.total_n * parent.v1().n[parent.v2()] - parent.v1().getChildQ(parent.v2(), i);
+                    var vChange = cs.total_q.get(i) / cs.total_n * parent.v1().n[parent.v2()] - parent.v1().getChildQ(parent.v2(), i);
                     parent.v1().addChildQ(parent.v2(), i, vChange);
                     parent.v1().addTotalQ(i, vChange);
                 }
@@ -977,40 +977,40 @@ public class MCTS {
     void search3_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction];
-                realV[i] = v[i];
+                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
+                realV.set(i, v.get(i));
             }
             numberOfPossibleActions = 1;
             return;
         }
         if (state.isTerminal() != 0) {
-            state.get_v(v);
-            System.arraycopy(v, 0, realV, 0, state.properties.v_total_len);
+            state.get_v(v.getData());
+            realV.copyFrom(v);
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
                 if (state.getTotalQ(i) == Double.POSITIVE_INFINITY) {
                     Integer.parseInt(null);
                 }
             }
-            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
-                terminal_v_win = v[GameState.V_WIN_IDX];
+            if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
+                terminal_v_win = v.get(GameState.V_WIN_IDX);
             }
             return;
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v);
-            System.arraycopy(v, 0, realV, 0, state.properties.v_total_len);
+            state.get_v(v.getData());
+            realV.copyFrom(v);
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
                 if (state.getTotalQ(i) == Double.POSITIVE_INFINITY) {
                     Integer.parseInt(null);
                 }
             }
             numberOfPossibleActions = state.getLegalActions().length;
-            state.varianceM = v[GameState.V_COMB_IDX];
+            state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
             return;
         }
@@ -1076,12 +1076,12 @@ public class MCTS {
                 } else if (s instanceof GameState ns) {
                     state.ns[action] = ns;
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = ns.getTotalQ(i) / (ns.total_n + 1);
+                        v.set(i, ns.getTotalQ(i) / (ns.total_n + 1));
                     }
                 } else if (s instanceof ChanceState ns) {
                     state.ns[action] = ns;
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = ns.total_q[i] / ns.total_n;
+                        v.set(i, ns.total_q.get(i) / ns.total_n);
                     }
                 }
             }
@@ -1092,7 +1092,7 @@ public class MCTS {
 //                    this.search3_r(state2, training, remainingCalls, false);
 //                    cState.correctV(state2, v, realV);
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = cState.total_q[i] / cState.total_n * (state.n[action] + 1) - state.getChildQ(action, i);
+                        v.set(i, cState.total_q.get(i) / cState.total_n * (state.n[action] + 1) - state.getChildQ(action, i));
                     }
                 } else {
                     state2 = cState.getNextState(true, -1);
@@ -1103,7 +1103,7 @@ public class MCTS {
                 if (state.n[action] < nState.total_n + 1) {
 //                    this.search3_r(nState, training, remainingCalls, false);
                     for (int i = 0; i < state.properties.v_total_len; i++) {
-                        v[i] = nState.getTotalQ(i) / (nState.total_n + 1) * (state.n[action] + 1) - state.getChildQ(action, i);
+                        v.set(i, nState.getTotalQ(i) / (nState.total_n + 1) * (state.n[action] + 1) - state.getChildQ(action, i));
                     }
                 } else {
                     this.search3_r(nState, training, remainingCalls, false);
@@ -1112,7 +1112,7 @@ public class MCTS {
         }
 
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addChildQ(action, i, v[i]);
+            state.addChildQ(action, i, v.get(i));
         }
         state.n[action] += 1;
         state.total_n += 1;
@@ -1133,8 +1133,8 @@ public class MCTS {
             if (state.ns[actionToPropagate] instanceof ChanceState) {
                 qTotal = state.getChildQ(actionToPropagate, i) / state.n[actionToPropagate] * state.total_n + state.get_q();
             }
-            v[i] = qTotal - state.getTotalQ(i);
-            state.addTotalQ(i, v[i]);
+            v.set(i, qTotal - state.getTotalQ(i));
+            state.addTotalQ(i, v.get(i));
         }
         numberOfPossibleActions = numberOfActions;
     }
@@ -1145,18 +1145,18 @@ public class MCTS {
 
     void searchPlain_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
-            state.get_v(v);
+            state.get_v(v.getData());
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
             }
             numberOfPossibleActions = 1;
             return;
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v);
+            state.get_v(v.getData());
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.setTotalQ(i, v[i]);
+                state.setTotalQ(i, v.get(i));
             }
             numberOfPossibleActions = state.getLegalActions().length;
             return;
@@ -1198,12 +1198,12 @@ public class MCTS {
 
 
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addChildQ(action, i, v[i]);
+            state.addChildQ(action, i, v.get(i));
         }
         state.n[action] += 1;
         state.total_n += 1;
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addTotalQ(i, v[i]);
+            state.addTotalQ(i, v.get(i));
         }
         numberOfPossibleActions = numberOfActions;
     }
@@ -1211,7 +1211,7 @@ public class MCTS {
     void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
         if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v[i] = state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction];;
+                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);;
             }
             return;
         }
@@ -1304,22 +1304,22 @@ public class MCTS {
             GameState state = (GameState) edge.line().state;
             state.n[edge.action()] += 1;
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.addChildQ(edge.action(), i, v[i]);
+                state.addChildQ(edge.action(), i, v.get(i));
             }
             state.total_n += 1;
-            var newVarianceM = state.varianceM + (v[GameState.V_COMB_IDX] - state.varianceM) / (state.total_n + 1);
-            var newVarianceS = state.varianceS + (v[GameState.V_COMB_IDX] - state.varianceM) * (v[GameState.V_COMB_IDX] - newVarianceM);
+            var newVarianceM = state.varianceM + (v.get(GameState.V_COMB_IDX) - state.varianceM) / (state.total_n + 1);
+            var newVarianceS = state.varianceS + (v.get(GameState.V_COMB_IDX) - state.varianceM) * (v.get(GameState.V_COMB_IDX) - newVarianceM);
             state.varianceM = newVarianceM;
             state.varianceS = newVarianceS;
             if (line.state instanceof GameState childState && childState.terminalAction >= 0) {
                 state.terminalAction = edge.action();
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     double qTotal = childState.getTotalQ(i) / (childState.total_n + 1) * (state.total_n + 1);
-                    v[i] = qTotal - state.getTotalQ(i);
+                    v.set(i, qTotal - state.getTotalQ(i));
                 }
             }
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.addTotalQ(i, v[i]);
+                state.addTotalQ(i, v.get(i));
             }
             line = edge.line();
         }
@@ -1331,36 +1331,36 @@ public class MCTS {
             searchLine(nextState, training, false, -1);
             cState.correctV(nextState, v, realV);
             curLine.n += 1;
-            curLine.q_comb += v[GameState.V_COMB_IDX];
-            curLine.q_win += v[GameState.V_WIN_IDX];
-            curLine.q_health += v[GameState.V_HEALTH_IDX];
+            curLine.q_comb += v.get(GameState.V_COMB_IDX);
+            curLine.q_win += v.get(GameState.V_WIN_IDX);
+            curLine.q_health += v.get(GameState.V_HEALTH_IDX);
             parentState.searchFrontier.total_n += 1;
             return;
         }
         GameState state = (GameState) curLine.state;
         if (state.isTerminal() != 0) {
-            state.get_v(v);
+            state.get_v(v.getData());
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.addTotalQ(i, v[i]);
+                state.addTotalQ(i, v.get(i));
             }
             curLine.n += 1;
-            curLine.q_comb += v[GameState.V_COMB_IDX];
-            curLine.q_win += v[GameState.V_WIN_IDX];
-            curLine.q_health += v[GameState.V_HEALTH_IDX];
+            curLine.q_comb += v.get(GameState.V_COMB_IDX);
+            curLine.q_win += v.get(GameState.V_WIN_IDX);
+            curLine.q_health += v.get(GameState.V_HEALTH_IDX);
             parentState.searchFrontier.total_n += 1;
-            if (v[GameState.V_WIN_IDX] > 0.5 && cannotImproveState(state)) {
+            if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
                 state.terminalAction = -1234;
-                terminal_v_win = v[GameState.V_WIN_IDX];
+                terminal_v_win = v.get(GameState.V_WIN_IDX);
             }
             return;
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v);
+            state.get_v(v.getData());
             state.initSearchInfo2();
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.addTotalQ(i, v[i]);
+                state.addTotalQ(i, v.get(i));
             }
             if (training) {
                 state.policyMod = applyDirichletNoiseToPolicy(state.policy, 0.5f);
@@ -1368,11 +1368,11 @@ public class MCTS {
                 state.policyMod = state.policy;
             }
             curLine.n = 1;
-            curLine.q_comb = v[GameState.V_COMB_IDX];
-            curLine.q_win = v[GameState.V_WIN_IDX];
-            curLine.q_health = v[GameState.V_HEALTH_IDX];
+            curLine.q_comb = v.get(GameState.V_COMB_IDX);
+            curLine.q_win = v.get(GameState.V_WIN_IDX);
+            curLine.q_health = v.get(GameState.V_HEALTH_IDX);
             parentState.searchFrontier.total_n += 1;
-            state.varianceM = v[GameState.V_COMB_IDX];
+            state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
             return;
         }
@@ -1465,18 +1465,18 @@ public class MCTS {
         }
         state.n[action] += 1;
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addChildQ(action, i, v[i]);
+            state.addChildQ(action, i, v.get(i));
         }
         state.total_n += 1;
         if (terminal_v_win > 0.5) {
             state.terminalAction = action;
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 double qTotal = state.getChildQ(action, i) / state.n[action] * (state.total_n + 1);
-                v[i] = qTotal - state.getTotalQ(i);
+                v.set(i, qTotal - state.getTotalQ(i));
             }
         }
         for (int i = 0; i < state.properties.v_total_len; i++) {
-            state.addTotalQ(i, v[i]);
+            state.addTotalQ(i, v.get(i));
         }
     }
 
