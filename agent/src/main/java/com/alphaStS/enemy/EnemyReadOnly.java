@@ -81,6 +81,9 @@ public abstract class EnemyReadOnly {
     protected int mark;
     protected int move = -1;
     protected int lastMove = -1;
+    public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
+    public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
+    public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;
@@ -97,6 +100,32 @@ public abstract class EnemyReadOnly {
     public abstract void doMove(GameState state, EnemyReadOnly self);
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
+
+    public void setupGeneratedCardIndexes(GameProperties properties) {
+        List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
+        if (possibleCards.isEmpty()) {
+            return;
+        }
+
+        if (possibleCards.size() == 1) {
+            generatedCardIdx = properties.findCardIndex(possibleCards.get(0));
+        }
+
+        generatedCardIdxes = new int[possibleCards.size()];
+        for (int i = 0; i < possibleCards.size(); i++) {
+            generatedCardIdxes[i] = properties.findCardIndex(possibleCards.get(i));
+        }
+
+        // Create reverse index mapping
+        generatedCardReverseIdxes = new int[properties.cardDict.length];
+        for (int i = 0; i < generatedCardReverseIdxes.length; i++) {
+            generatedCardReverseIdxes[i] = -1;
+        }
+        for (int i = 0; i < generatedCardIdxes.length; i++) {
+            generatedCardReverseIdxes[generatedCardIdxes[i]] = i;
+        }
+    }
+
     public void gamePropertiesSetup(GameState state) {}
     public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(); }
     public int getNNInputLen(GameProperties prop) { return 0; }

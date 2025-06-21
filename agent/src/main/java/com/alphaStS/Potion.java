@@ -25,6 +25,9 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     boolean selectFromDiscard;
     boolean isGenerated;
     int generatedIdx;
+    public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
+    public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
+    public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
     int counterIdx = -1;
     protected short basePenaltyRatio = 80;
     private int penaltyRatioSteps = 1;
@@ -68,6 +71,32 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public abstract GameActionCtx use(GameState state, int idx);
     List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) { return List.of(); }
     List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
+
+    public void setupGeneratedCardIndexes(GameProperties properties) {
+        List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
+        if (possibleCards.isEmpty()) {
+            return;
+        }
+
+        if (possibleCards.size() == 1) {
+            generatedCardIdx = properties.findCardIndex(possibleCards.get(0));
+        }
+
+        generatedCardIdxes = new int[possibleCards.size()];
+        for (int i = 0; i < possibleCards.size(); i++) {
+            generatedCardIdxes[i] = properties.findCardIndex(possibleCards.get(i));
+        }
+
+        // Create reverse index mapping
+        generatedCardReverseIdxes = new int[properties.cardDict.length];
+        for (int i = 0; i < generatedCardReverseIdxes.length; i++) {
+            generatedCardReverseIdxes[i] = -1;
+        }
+        for (int i = 0; i < generatedCardIdxes.length; i++) {
+            generatedCardReverseIdxes[generatedCardIdxes[i]] = i;
+        }
+    }
+
     public void gamePropertiesSetup(GameState state) {}
 
 
@@ -292,8 +321,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                         counters[counterIdx] |= 1 << 8;
                         state.addGameActionToEndOfDeque(curState -> {
                             var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                            if (curState.playCard(action, lastIdx, true, DuplicationPotion.class, false, false, energyUsed, cloneParentLocation)) {
-                            } else {
+                            if (!curState.playCard(action, lastIdx, true, DuplicationPotion.class, false, false, energyUsed, cloneParentLocation)) {
                                 curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
                             }
                         });
@@ -741,7 +769,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return gameProperties.generateSneckoCards(cards);
+            return GameProperties.generateSneckoCards(cards);
         }
 
         public void gamePropertiesSetup(GameState state) {

@@ -645,15 +645,19 @@ public final class GameState implements State {
             properties.select1OutOf3CardsReverseIdxes[properties.select1OutOf3CardsIdxes[i]] = i;
         }
         for (Relic relic : relics) {
+            relic.setupGeneratedCardIndexes(properties);
             relic.gamePropertiesSetup(this);
         }
         for (Card card : properties.cardDict) {
+            card.setupGeneratedCardIndexes(properties);
             card.gamePropertiesSetup(this);
         }
         for (int i = 0; i < getEnemiesForRead().size(); i++) { // need to use i because setup can modify other enemies
+            getEnemiesForRead().get(i).setupGeneratedCardIndexes(properties);
             getEnemiesForRead().get(i).gamePropertiesSetup(this);
         }
         for (int i = 0; i < potions.size(); i++) { // need to use i because setup can modify other enemies
+            potions.get(i).setupGeneratedCardIndexes(properties);
             potions.get(i).gamePropertiesSetup(this);
         }
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {

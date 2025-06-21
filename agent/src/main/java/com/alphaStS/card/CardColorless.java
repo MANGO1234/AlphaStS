@@ -183,8 +183,8 @@ public class CardColorless {
     private static abstract class _DramaticEntranceT extends Card {
         private final int n;
 
-        public _DramaticEntranceT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _DramaticEntranceT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
             exhaustWhenPlayed = true;
             innate = true;
@@ -200,13 +200,13 @@ public class CardColorless {
 
     public static class DramaticEntrance extends _DramaticEntranceT {
         public DramaticEntrance() {
-            super("Dramatic Entrance", Card.ATTACK, 0, 8);
+            super("Dramatic Entrance", 8);
         }
     }
 
     public static class DramaticEntranceP extends _DramaticEntranceT {
         public DramaticEntranceP() {
-            super("Dramatic Entrance+", Card.ATTACK, 0, 12);
+            super("Dramatic Entrance+", 12);
         }
     }
 
@@ -627,8 +627,8 @@ public class CardColorless {
     private static abstract class _SwiftStrikeT extends Card {
         private final int n;
 
-        public _SwiftStrikeT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _SwiftStrikeT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -641,13 +641,13 @@ public class CardColorless {
 
     public static class SwiftStrike extends _SwiftStrikeT {
         public SwiftStrike() {
-            super("Swift Strike", Card.ATTACK, 0, 7);
+            super("Swift Strike", 7);
         }
     }
 
     public static class SwiftStrikeP extends _SwiftStrikeT {
         public SwiftStrikeP() {
-            super("Swift Strike+", Card.ATTACK, 0, 10);
+            super("Swift Strike+", 10);
         }
     }
 

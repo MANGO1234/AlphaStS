@@ -846,8 +846,8 @@ public class CardSilent {
     private static abstract class _BackstabT extends Card {
         private final int n;
 
-        public _BackstabT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _BackstabT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
             this.innate = true;
             this.exhaustWhenPlayed = true;
@@ -862,21 +862,21 @@ public class CardSilent {
 
     public static class Backstab extends _BackstabT {
         public Backstab() {
-            super("Backstab", Card.ATTACK, 0, 11);
+            super("Backstab", 11);
         }
     }
 
     public static class BackstabP extends _BackstabT {
         public BackstabP() {
-            super("Backstab+", Card.ATTACK, 0, 15);
+            super("Backstab+", 15);
         }
     }
 
     private static abstract class _BlurT extends Card {
         private final int n;
 
-        public _BlurT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _BlurT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -906,21 +906,21 @@ public class CardSilent {
 
     public static class Blur extends _BlurT {
         public Blur() {
-            super("Blur", Card.SKILL, 1, 5);
+            super("Blur", 5);
         }
     }
 
     public static class BlurP extends _BlurT {
         public BlurP() {
-            super("Blur+", Card.SKILL, 1, 8);
+            super("Blur+", 8);
         }
     }
 
     private static abstract class _BouncingFlaskT extends Card {
         private final int n;
 
-        public _BouncingFlaskT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _BouncingFlaskT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.n = n;
             this.poisonEnemy = true;
         }
@@ -938,13 +938,13 @@ public class CardSilent {
 
     public static class BouncingFlask extends _BouncingFlaskT {
         public BouncingFlask() {
-            super("Bouncing Flask", Card.SKILL, 2, 3);
+            super("Bouncing Flask", 3);
         }
     }
 
     public static class BouncingFlaskP extends _BouncingFlaskT {
         public BouncingFlaskP() {
-            super("Bouncing Flask+", Card.SKILL, 2, 4);
+            super("Bouncing Flask+", 4);
         }
     }
 
@@ -2084,8 +2084,8 @@ public class CardSilent {
     private static abstract class _AThousandCutsT extends Card {
         protected final int n;
 
-        public _AThousandCutsT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _AThousandCutsT(String cardName, int n) {
+            super(cardName, Card.POWER, 2, Card.RARE);
             this.n = n;
         }
 
@@ -2125,13 +2125,13 @@ public class CardSilent {
 
     public static class AThousandCuts extends _AThousandCutsT {
         public AThousandCuts() {
-            super("A Thousand Cuts", Card.POWER, 2, 1);
+            super("A Thousand Cuts", 1);
         }
     }
 
     public static class AThousandCutsP extends _AThousandCutsT {
         public AThousandCutsP() {
-            super("A Thousand Cuts+", Card.POWER, 2, 2);
+            super("A Thousand Cuts+", 2);
         }
     }
 
@@ -2703,8 +2703,8 @@ public class CardSilent {
     private static abstract class _GrandFinaleT extends Card {
         private final int n;
 
-        public _GrandFinaleT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _GrandFinaleT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
             this.n = n;
         }
 
@@ -2726,13 +2726,13 @@ public class CardSilent {
 
     public static class GrandFinale extends _GrandFinaleT {
         public GrandFinale() {
-            super("Grand Finale", Card.ATTACK, 0, 50);
+            super("Grand Finale", 50);
         }
     }
 
     public static class GrandFinaleP extends _GrandFinaleT {
         public GrandFinaleP() {
-            super("Grand Finale+", Card.ATTACK, 0, 60);
+            super("Grand Finale+", 60);
         }
     }
 

@@ -64,6 +64,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean healPlayer;
     public boolean scry;
     public boolean select1OutOf3CardEffectCard;
+    public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
+    public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
+    public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
     int counterIdx = -1;
     int vArrayIdx = -1;
 
@@ -102,6 +105,32 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
     public int onPlayTransformCardIdx(GameProperties prop) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
+
+    public void setupGeneratedCardIndexes(GameProperties properties) {
+        List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
+        if (possibleCards.isEmpty()) {
+            return;
+        }
+
+        if (possibleCards.size() == 1) {
+            generatedCardIdx = properties.findCardIndex(possibleCards.get(0));
+        }
+
+        generatedCardIdxes = new int[possibleCards.size()];
+        for (int i = 0; i < possibleCards.size(); i++) {
+            generatedCardIdxes[i] = properties.findCardIndex(possibleCards.get(i));
+        }
+
+        // Create reverse index mapping
+        generatedCardReverseIdxes = new int[properties.cardDict.length];
+        for (int i = 0; i < generatedCardReverseIdxes.length; i++) {
+            generatedCardReverseIdxes[i] = -1;
+        }
+        for (int i = 0; i < generatedCardIdxes.length; i++) {
+            generatedCardReverseIdxes[generatedCardIdxes[i]] = i;
+        }
+    }
+
     public void gamePropertiesSetup(GameState state) {}
     public void onDiscard(GameState state) {}
     public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {}
