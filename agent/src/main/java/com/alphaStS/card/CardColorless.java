@@ -38,12 +38,6 @@ public class CardColorless {
         }
     }
 
-    public static class ToBeImplemented extends Card {
-        public ToBeImplemented(String a) {
-            super("ToBeImplemented" + a, Card.SKILL, 0, Card.COMMON);
-        }
-    }
-
     public static class Blind extends Card {
         public Blind() {
             super("Blind", Card.SKILL, 0, Card.UNCOMMON);
@@ -74,8 +68,8 @@ public class CardColorless {
     private static abstract class _DarkShacklesT extends Card {
         private final int n;
 
-        public _DarkShacklesT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _DarkShacklesT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
             this.exhaustWhenPlayed = true;
             this.selectEnemy = true;
@@ -91,21 +85,21 @@ public class CardColorless {
 
     public static class DarkShackles extends _DarkShacklesT {
         public DarkShackles() {
-            super("Dark Shackles", Card.SKILL, 0, 9);
+            super("Dark Shackles", 9);
         }
     }
 
     public static class DarkShacklesP extends _DarkShacklesT {
         public DarkShacklesP() {
-            super("Dark Shackles+", Card.SKILL, 0, 15);
+            super("Dark Shackles+", 15);
         }
     }
 
     private static abstract class _DeepBreathT extends Card {
         private final int n;
 
-        public _DeepBreathT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _DeepBreathT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -118,13 +112,13 @@ public class CardColorless {
 
     public static class DeepBreath extends _DeepBreathT {
         public DeepBreath() {
-            super("Deep Breath", Card.SKILL, 0, 1);
+            super("Deep Breath", 1);
         }
     }
 
     public static class DeepBreathP extends _DeepBreathT {
         public DeepBreathP() {
-            super("Deep Breath+", Card.SKILL, 0, 2);
+            super("Deep Breath+", 2);
         }
     }
 
@@ -213,8 +207,8 @@ public class CardColorless {
     private static abstract class _EnlightenmentT extends Card {
         private final boolean upgraded;
 
-        public _EnlightenmentT(String cardName, int cardType, int energyCost, boolean upgraded) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _EnlightenmentT(String cardName, boolean upgraded) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.upgraded = upgraded;
         }
 
@@ -243,21 +237,21 @@ public class CardColorless {
 
     public static class Enlightenment extends _EnlightenmentT {
         public Enlightenment() {
-            super("Enlightenment", Card.SKILL, 0, false);
+            super("Enlightenment", false);
         }
     }
 
     public static class EnlightenmentP extends _EnlightenmentT {
         public EnlightenmentP() {
-            super("Enlightenment+", Card.SKILL, 0, true);
+            super("Enlightenment+", true);
         }
     }
 
     private static abstract class _FinesseT extends Card {
         private final int n;
 
-        public _FinesseT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _FinesseT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -270,21 +264,21 @@ public class CardColorless {
 
     public static class Finesse extends _FinesseT {
         public Finesse() {
-            super("Finesse", Card.SKILL, 0, 2);
+            super("Finesse", 2);
         }
     }
 
     public static class FinesseP extends _FinesseT {
         public FinesseP() {
-            super("Finesse+", Card.SKILL, 0, 4);
+            super("Finesse+", 4);
         }
     }
 
     private static abstract class _FlashOfSteelT extends Card {
         private final int n;
 
-        public _FlashOfSteelT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _FlashOfSteelT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
         }
@@ -298,13 +292,13 @@ public class CardColorless {
 
     public static class FlashOfSteel extends _FlashOfSteelT {
         public FlashOfSteel() {
-            super("Flash Of Steel", Card.ATTACK, 0, 3);
+            super("Flash Of Steel", 3);
         }
     }
 
     public static class FlashOfSteelP extends _FlashOfSteelT {
         public FlashOfSteelP() {
-            super("Flash Of Steel+", Card.ATTACK, 0, 5);
+            super("Flash Of Steel+", 5);
         }
     }
 
@@ -337,8 +331,8 @@ public class CardColorless {
     private static abstract class _GoodInstinctsT extends Card {
         private final int n;
 
-        public _GoodInstinctsT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _GoodInstinctsT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -350,21 +344,21 @@ public class CardColorless {
 
     public static class GoodInstincts extends _GoodInstinctsT {
         public GoodInstincts() {
-            super("Good Instincts", Card.SKILL, 0, 6);
+            super("Good Instincts", 6);
         }
     }
 
     public static class GoodInstinctsP extends _GoodInstinctsT {
         public GoodInstinctsP() {
-            super("Good Instincts+", Card.SKILL, 0, 9);
+            super("Good Instincts+", 9);
         }
     }
 
     private static abstract class _ImpatienceT extends Card {
         private final int n;
 
-        public _ImpatienceT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _ImpatienceT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
         }
 
@@ -381,13 +375,13 @@ public class CardColorless {
 
     public static class Impatience extends _ImpatienceT {
         public Impatience() {
-            super("Impatience", Card.SKILL, 0, 2);
+            super("Impatience", 2);
         }
     }
 
     public static class ImpatienceP extends _ImpatienceT {
         public ImpatienceP() {
-            super("Impatience+", Card.SKILL, 0, 3);
+            super("Impatience+", 3);
         }
     }
 
@@ -428,8 +422,8 @@ public class CardColorless {
     }
 
     private static abstract class _MadnessT extends Card {
-        public _MadnessT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _MadnessT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
         }
 
         public GameActionCtx play(GameState state, int _idx, int energyUsed) {
@@ -471,19 +465,19 @@ public class CardColorless {
 
     public static class Madness extends _MadnessT {
         public Madness() {
-            super("Madness", Card.SKILL, 1);
+            super("Madness", 1);
         }
     }
 
     public static class MadnessP extends _MadnessT {
         public MadnessP() {
-            super("Madness+", Card.SKILL, 0);
+            super("Madness+", 0);
         }
     }
 
     private static abstract class _MindBlastT extends Card {
-        public _MindBlastT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _MindBlastT(String cardName, int energyCost) {
+            super(cardName, Card.ATTACK, energyCost, Card.UNCOMMON);
             innate = true;
             selectEnemy = true;
         }
@@ -496,21 +490,21 @@ public class CardColorless {
 
     public static class MindBlast extends _MindBlastT {
         public MindBlast() {
-            super("Mind Blast", Card.ATTACK, 2);
+            super("Mind Blast", 2);
         }
     }
 
     public static class MindBlastP extends _MindBlastT {
         public MindBlastP() {
-            super("Mind Blast+", Card.ATTACK, 1);
+            super("Mind Blast+", 1);
         }
     }
 
     private static abstract class _PanaceaT extends Card {
         private final int n;
 
-        public _PanaceaT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _PanaceaT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
             changePlayerArtifact = true;
             exhaustWhenPlayed = true;
@@ -524,21 +518,21 @@ public class CardColorless {
 
     public static class Panacea extends _PanaceaT {
         public Panacea() {
-            super("Panacea", Card.SKILL, 0, 1);
+            super("Panacea", 1);
         }
     }
 
     public static class PanaceaP extends _PanaceaT {
         public PanaceaP() {
-            super("Panacea+", Card.SKILL, 0, 2);
+            super("Panacea+", 2);
         }
     }
 
     private static abstract class _PanicButtonT extends Card {
         private final int n;
 
-        public _PanicButtonT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _PanicButtonT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
             this.exhaustWhenPlayed = true;
         }
@@ -552,13 +546,13 @@ public class CardColorless {
 
     public static class PanicButton extends _PanicButtonT {
         public PanicButton() {
-            super("Panic Button", Card.SKILL, 0, 30);
+            super("Panic Button", 30);
         }
     }
 
     public static class PanicButtonP extends _PanicButtonT {
         public PanicButtonP() {
-            super("Panic Button+", Card.SKILL, 0, 40);
+            super("Panic Button+", 40);
         }
     }
 
@@ -679,8 +673,8 @@ public class CardColorless {
     }
 
     private static abstract class _ApotheosisT extends Card {
-        public _ApotheosisT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _ApotheosisT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
@@ -699,13 +693,13 @@ public class CardColorless {
 
     public static class Apotheosis extends CardColorless._ApotheosisT {
         public Apotheosis() {
-            super("Apotheosis", Card.SKILL, 2);
+            super("Apotheosis", 2);
         }
     }
 
     public static class ApotheosisP extends CardColorless._ApotheosisT {
         public ApotheosisP() {
-            super("Apotheosis+", Card.SKILL, 1);
+            super("Apotheosis+", 1);
         }
     }
 
@@ -759,8 +753,8 @@ public class CardColorless {
         private int n;
         protected double healthRewardRatio = 0;
 
-        public _HandOfGreedT(String cardName, int cardType, int n, double healthRewardRatio) {
-            super(cardName, cardType, 2, Card.RARE);
+        public _HandOfGreedT(String cardName, int n, double healthRewardRatio) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
             this.selectEnemy = true;
             this.healthRewardRatio = healthRewardRatio;
@@ -851,7 +845,7 @@ public class CardColorless {
 
     public static class HandOfGreed extends CardColorless._HandOfGreedT {
         public HandOfGreed(double healthRewardRatio) {
-            super("Hand Of Greed", Card.ATTACK, 20, healthRewardRatio);
+            super("Hand Of Greed", 20, healthRewardRatio);
         }
 
         public Card getUpgrade() {
@@ -861,7 +855,7 @@ public class CardColorless {
 
     public static class HandOfGreedP extends CardColorless._HandOfGreedT {
         public HandOfGreedP(double healthRewardRatio) {
-            super("Hand Of Greed+", Card.ATTACK, 25, healthRewardRatio);
+            super("Hand Of Greed+", 25, healthRewardRatio);
         }
     }
 
@@ -919,8 +913,8 @@ public class CardColorless {
     private static abstract class _MasterOfStrategyT extends Card {
         private final int n;
 
-        public _MasterOfStrategyT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _MasterOfStrategyT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
             this.n = n;
             exhaustWhenPlayed = true;
         }
@@ -933,19 +927,19 @@ public class CardColorless {
 
     public static class MasterOfStrategy extends CardColorless._MasterOfStrategyT {
         public MasterOfStrategy() {
-            super("Master Of Strategy", Card.SKILL, 0, 3);
+            super("Master Of Strategy", 3);
         }
     }
 
     public static class MasterOfStrategyP extends CardColorless._MasterOfStrategyT {
         public MasterOfStrategyP() {
-            super("Master Of Strategy+", Card.SKILL, 0, 4);
+            super("Master Of Strategy+", 4);
         }
     }
 
     private static abstract class _MayhemT extends Card {
-        public _MayhemT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _MayhemT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -977,13 +971,13 @@ public class CardColorless {
 
     public static class Mayhem extends CardColorless._MayhemT {
         public Mayhem() {
-            super("Mayhem", Card.POWER, 2);
+            super("Mayhem", 2);
         }
     }
 
     public static class MayhemP extends CardColorless._MayhemT {
         public MayhemP() {
-            super("Mayhem+", Card.POWER, 1);
+            super("Mayhem+", 1);
         }
     }
 
@@ -1036,8 +1030,8 @@ public class CardColorless {
     private static abstract class _PanacheT extends Card {
         private final int n;
 
-        public _PanacheT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _PanacheT(String cardName, int n) {
+            super(cardName, Card.POWER, 0, Card.RARE);
             this.n = n;
         }
 
@@ -1085,13 +1079,13 @@ public class CardColorless {
 
     public static class Panache extends CardColorless._PanacheT {
         public Panache() {
-            super("Panache", Card.POWER, 0, 10);
+            super("Panache", 10);
         }
     }
 
     public static class PanacheP extends CardColorless._PanacheT {
         public PanacheP() {
-            super("Panache+", Card.POWER, 0, 14);
+            super("Panache+", 14);
         }
     }
 
@@ -1138,8 +1132,8 @@ public class CardColorless {
     }
 
     private static abstract class _SecretTechniqueT extends Card {
-        public _SecretTechniqueT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _SecretTechniqueT(String cardName, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
             selectFromDeck = true;
         }
@@ -1157,19 +1151,19 @@ public class CardColorless {
 
     public static class SecretTechnique extends CardColorless._SecretTechniqueT {
         public SecretTechnique() {
-            super("Secret Technique", Card.SKILL, 0, true);
+            super("Secret Technique", true);
         }
     }
 
     public static class SecretTechniqueP extends CardColorless._SecretTechniqueT {
         public SecretTechniqueP() {
-            super("Secret Technique+", Card.SKILL, 0, false);
+            super("Secret Technique+", false);
         }
     }
 
     private static abstract class _SecretWeaponT extends Card {
-        public _SecretWeaponT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _SecretWeaponT(String cardName, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
             selectFromDeck = true;
         }
@@ -1187,21 +1181,21 @@ public class CardColorless {
 
     public static class SecretWeapon extends CardColorless._SecretWeaponT {
         public SecretWeapon() {
-            super("Secret Weapon", Card.SKILL, 0, true);
+            super("Secret Weapon", true);
         }
     }
 
     public static class SecretWeaponP extends CardColorless._SecretWeaponT {
         public SecretWeaponP() {
-            super("Secret Weapon+", Card.SKILL, 0, false);
+            super("Secret Weapon+", false);
         }
     }
 
     private static abstract class _TheBombT extends Card {
         private final int n;
 
-        public _TheBombT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _TheBombT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
             this.n = n;
         }
 
@@ -1249,19 +1243,19 @@ public class CardColorless {
 
     public static class TheBomb extends CardColorless._TheBombT {
         public TheBomb() {
-            super("The Bomb", Card.SKILL, 2, 40);
+            super("The Bomb", 40);
         }
     }
 
     public static class TheBombP extends CardColorless._TheBombT {
         public TheBombP() {
-            super("The Bomb+", Card.SKILL, 2, 50);
+            super("The Bomb+", 50);
         }
     }
 
     private static abstract class _ThinkingAheadT extends Card {
-        public _ThinkingAheadT(String cardName, int cardType, int energyCost, boolean exhaustWhenPlayed) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _ThinkingAheadT(String cardName, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
             selectFromHand = true;
             selectFromHandLater = true;
@@ -1282,13 +1276,13 @@ public class CardColorless {
 
     public static class ThinkingAhead extends CardColorless._ThinkingAheadT {
         public ThinkingAhead() {
-            super("Thinking Ahead", Card.SKILL, 0, true);
+            super("Thinking Ahead", true);
         }
     }
 
     public static class ThinkingAheadP extends CardColorless._ThinkingAheadT {
         public ThinkingAheadP() {
-            super("Thinking Ahead+", Card.SKILL, 0, false);
+            super("Thinking Ahead+", false);
         }
     }
 
@@ -1336,8 +1330,8 @@ public class CardColorless {
     private static abstract class _ViolenceT extends Card {
         private final int n;
 
-        public _ViolenceT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
+        public _ViolenceT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
             this.exhaustWhenPlayed = true;
         }
@@ -1368,13 +1362,13 @@ public class CardColorless {
 
     public static class Violence extends _ViolenceT {
         public Violence() {
-            super("Violence", Card.SKILL, 0, 3);
+            super("Violence", 3);
         }
     }
 
     public static class ViolenceP extends _ViolenceT {
         public ViolenceP() {
-            super("Violence+", Card.SKILL, 0, 5);
+            super("Violence+", 5);
         }
     }
 
@@ -1382,8 +1376,8 @@ public class CardColorless {
         private final int n;
         private final int heal;
 
-        public _BiteT(String cardName, int cardType, int energyCost, int n, int heal) {
-            super(cardName, cardType, energyCost, Card.COMMON);
+        public _BiteT(String cardName, int n, int heal) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             this.heal = heal;
             this.selectEnemy = true;
@@ -1399,13 +1393,13 @@ public class CardColorless {
 
     public static class Bite extends _BiteT {
         public Bite() {
-            super("Bite", Card.ATTACK, 1, 7, 2);
+            super("Bite", 7, 2);
         }
     }
 
     public static class BiteP extends _BiteT {
         public BiteP() {
-            super("Bite+", Card.ATTACK, 1, 8, 3);
+            super("Bite+", 8, 3);
         }
     }
 
@@ -1414,8 +1408,8 @@ public class CardColorless {
         private final int dmgInc;
         protected final int healthRewardRatio;
 
-        public _RitualDaggerT(String cardName, int cardType, int energyCost, int n, int dmgInc, int healthRewardRatio) {
-            super(cardName, cardType, energyCost, Card.COMMON);
+        public _RitualDaggerT(String cardName, int n, int dmgInc, int healthRewardRatio) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             this.dmgInc = dmgInc;
             this.selectEnemy = true;
@@ -1507,7 +1501,7 @@ public class CardColorless {
 
     public static class RitualDagger extends _RitualDaggerT {
         public RitualDagger(int dmg, int healthReward) {
-            super("Ritual Dagger", Card.ATTACK, 1, dmg, 3, healthReward);
+            super("Ritual Dagger", dmg, 3, healthReward);
         }
 
         @Override public Card getUpgrade() {
@@ -1517,15 +1511,15 @@ public class CardColorless {
 
     public static class RitualDaggerP extends _RitualDaggerT {
         public RitualDaggerP(int dmg, int healthReward) {
-            super("Ritual Dagger+", Card.ATTACK, 1, dmg, 5, healthReward);
+            super("Ritual Dagger+", dmg, 5, healthReward);
         }
     }
 
     private static abstract class _ShivT extends Card {
         private final int n;
 
-        public _ShivT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.COMMON);
+        public _ShivT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n = n;
             this.selectEnemy = true;
             this.exhaustWhenPlayed = true;
@@ -1539,19 +1533,19 @@ public class CardColorless {
 
     public static class Shiv extends _ShivT {
         public Shiv() {
-            super("Shiv", Card.ATTACK, 0, 4);
+            super("Shiv", 4);
         }
     }
 
     public static class ShivP extends _ShivT {
         public ShivP() {
-            super("Shiv+", Card.ATTACK, 0, 6);
+            super("Shiv+", 6);
         }
     }
 
     private static abstract class _ApparitionT extends Card {
-        public _ApparitionT(String cardName, int cardType, int energyCost, boolean ethereal) {
-            super(cardName, cardType, energyCost, Card.COMMON);
+        public _ApparitionT(String cardName, boolean ethereal) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
             this.ethereal = ethereal;
             this.exhaustWhenPlayed = true;
         }
@@ -1568,13 +1562,13 @@ public class CardColorless {
 
     public static class Apparition extends _ApparitionT {
         public Apparition() {
-            super("Apparition", Card.SKILL, 1, true);
+            super("Apparition", true);
         }
     }
 
     public static class ApparitionP extends _ApparitionT {
         public ApparitionP() {
-            super("Apparition+", Card.SKILL, 1, false);
+            super("Apparition+", false);
         }
     }
 

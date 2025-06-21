@@ -2375,8 +2375,8 @@ public class CardDefect {
         private final int discardOrderMaxKeepTrackIn10s;
         private final int discardOrder0CardMaxCopies;
 
-        public _AllForOneT(String cardName, int cardType, int energyCost, int n, int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _AllForOneT(String cardName, int n, int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
             this.selectEnemy = true;
             this.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
@@ -2417,21 +2417,21 @@ public class CardDefect {
 
     public static class AllForOne extends CardDefect._AllForOneT {
         public AllForOne(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
-            super("All For One", Card.ATTACK, 2, 10, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+            super("All For One", 10, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
         }
     }
 
     public static class AllForOneP extends CardDefect._AllForOneT {
         public AllForOneP(int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
-            super("All For One+", Card.ATTACK, 2, 14, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
+            super("All For One+", 14, discardOrderMaxKeepTrackIn10s, discardOrder0CardMaxCopies);
         }
     }
 
     private static abstract class _AmplifyT extends Card {
         private final int n;
 
-        public _AmplifyT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _AmplifyT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
             this.n = n;
         }
 
@@ -2484,13 +2484,13 @@ public class CardDefect {
 
     public static class Amplify extends CardDefect._AmplifyT {
         public Amplify() {
-            super("Amplify", Card.SKILL, 1, 1);
+            super("Amplify", 1);
         }
     }
 
     public static class AmplifyP extends CardDefect._AmplifyT {
         public AmplifyP() {
-            super("Amplify+", Card.SKILL, 1, 2);
+            super("Amplify+", 2);
         }
     }
 
@@ -2779,8 +2779,8 @@ public class CardDefect {
     private static abstract class _ElectrodynamicsT extends Card {
         private final int n;
 
-        public _ElectrodynamicsT(String cardName, int cardType, int energyCost, int n) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _ElectrodynamicsT(String cardName, int n) {
+            super(cardName, Card.POWER, 2, Card.RARE);
             this.n = n;
         }
 
@@ -2810,21 +2810,21 @@ public class CardDefect {
 
     public static class Electrodynamics extends CardDefect._ElectrodynamicsT {
         public Electrodynamics() {
-            super("Electrodynamics", Card.POWER, 2, 2);
+            super("Electrodynamics", 2);
         }
     }
 
     public static class ElectrodynamicsP extends CardDefect._ElectrodynamicsT {
         public ElectrodynamicsP() {
-            super("Electrodynamics+", Card.POWER, 2, 3);
+            super("Electrodynamics+", 3);
         }
     }
 
     private static abstract class _FissionT extends Card {
         private final boolean upgraded;
 
-        public _FissionT(String cardName, int cardType, int energyCost, boolean upgraded) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _FissionT(String cardName, boolean upgraded) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
             this.upgraded = upgraded;
             this.exhaustWhenPlayed = true;
         }
@@ -2849,13 +2849,13 @@ public class CardDefect {
 
     public static class Fission extends CardDefect._FissionT {
         public Fission() {
-            super("Fission", Card.SKILL, 0, false);
+            super("Fission", false);
         }
     }
 
     public static class FissionP extends CardDefect._FissionT {
         public FissionP() {
-            super("Fission+", Card.SKILL, 0, true);
+            super("Fission+", true);
         }
     }
 
@@ -2890,8 +2890,8 @@ public class CardDefect {
     }
 
     private static abstract class _MachineLearningT extends Card {
-        public _MachineLearningT(String cardName, int cardType, int energyCost, boolean innate) {
-            super(cardName, cardType, energyCost, Card.RARE);
+        public _MachineLearningT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
             this.innate = innate;
         }
 
@@ -2920,13 +2920,13 @@ public class CardDefect {
 
     public static class MachineLearning extends CardDefect._MachineLearningT {
         public MachineLearning() {
-            super("Machine Learning", Card.POWER, 1, false);
+            super("Machine Learning", false);
         }
     }
 
     public static class MachineLearningP extends CardDefect._MachineLearningT {
         public MachineLearningP() {
-            super("Machine Learning+", Card.POWER, 1, true);
+            super("Machine Learning+", true);
         }
     }
 
@@ -3047,9 +3047,12 @@ public class CardDefect {
         }
     }
 
-    public static class Seek extends Card {
-        public Seek() {
-            super("Seek", Card.SKILL, 0, Card.RARE);
+    private static abstract class _SeekT extends Card {
+        private final boolean isUpgraded;
+
+        public _SeekT(String cardName, boolean isUpgraded) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.isUpgraded = isUpgraded;
             exhaustWhenPlayed = true;
             selectFromDeck = true;
         }
@@ -3057,20 +3060,9 @@ public class CardDefect {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.removeCardFromDeck(idx, false);
             state.addCardToHand(idx);
-            return GameActionCtx.PLAY_CARD;
-        }
-    }
-
-    public static class SeekP extends Card {
-        public SeekP() {
-            super("Seek+", Card.SKILL, 0, Card.RARE);
-            exhaustWhenPlayed = true;
-            selectFromDeck = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.removeCardFromDeck(idx, false);
-            state.addCardToHand(idx);
+            if (!isUpgraded) {
+                return GameActionCtx.PLAY_CARD;
+            }
             state.getCounterForWrite()[counterIdx]++;
             if (state.getCounterForWrite()[counterIdx] == 2) {
                 state.getCounterForWrite()[counterIdx] = 0;
@@ -3080,15 +3072,29 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Seek+", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
+            if (isUpgraded) {
+                state.properties.registerCounter("Seek+", this, new GameProperties.NetworkInputHandler() {
+                    @Override public int addToInput(GameState state, float[] input, int idx) {
+                        input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                        return idx + 1;
+                    }
+                    @Override public int getInputLenDelta() {
+                        return 1;
+                    }
+                });
+            }
+        }
+    }
+
+    public static class Seek extends _SeekT {
+        public Seek() {
+            super("Seek", false);
+        }
+    }
+
+    public static class SeekP extends _SeekT {
+        public SeekP() {
+            super("Seek+", true);
         }
     }
 

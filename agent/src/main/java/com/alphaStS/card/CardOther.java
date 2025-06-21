@@ -146,7 +146,6 @@ public class CardOther {
                     return 1;
                 }
             });
-            // todo: wrong if multiple normality in hand
             state.properties.addOnCardPlayedHandler("Normality", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     state.getCounterForWrite()[counterIdx] += 1;

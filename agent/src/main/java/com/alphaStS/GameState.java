@@ -2164,15 +2164,11 @@ public final class GameState implements State {
                     addCardToDeck(action.idx(), false);
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {
-                    if (!(properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented)) {
-                        addCardToHandGeneration(action.idx());
-                    }
+                    addCardToHandGeneration(action.idx());
                     beginTurnPart2();
                 }
             } else {
-                if (properties.cardDict[action.idx()] instanceof CardColorless.ToBeImplemented) {
-
-                } else if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
+                if (properties.cardDict[action.idx()].select1OutOf3CardEffectCard) {
                     properties.cardDict[action.idx()].play(this, 0, 0);
                 } else {
                     addCardToHandGeneration(action.idx());
