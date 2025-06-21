@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.card.Card;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.utils.Tuple3;
 import com.alphaStS.utils.Utils;
 
 import java.io.*;
@@ -427,5 +428,33 @@ public class GameStateUtils {
             }
         }
         return count;
+    }
+
+    public static Tuple3<Integer, int[], int[]> setupGeneratedCardIndexes(
+            List<Card> possibleCards, GameProperties properties) {
+        if (possibleCards.isEmpty()) {
+            return new Tuple3<>(-1, new int[0], new int[0]);
+        }
+
+        int singleCardIdx = -1;
+        if (possibleCards.size() == 1) {
+            singleCardIdx = properties.findCardIndex(possibleCards.get(0));
+        }
+
+        int[] forwardIdxes = new int[possibleCards.size()];
+        for (int i = 0; i < possibleCards.size(); i++) {
+            forwardIdxes[i] = properties.findCardIndex(possibleCards.get(i));
+        }
+
+        // Create reverse index mapping
+        int[] reverseIdxes = new int[properties.cardDict.length];
+        for (int i = 0; i < reverseIdxes.length; i++) {
+            reverseIdxes[i] = -1;
+        }
+        for (int i = 0; i < forwardIdxes.length; i++) {
+            reverseIdxes[forwardIdxes[i]] = i;
+        }
+
+        return new Tuple3<>(singleCardIdx, forwardIdxes, reverseIdxes);
     }
 }

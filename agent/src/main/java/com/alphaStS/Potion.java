@@ -74,27 +74,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public void setupGeneratedCardIndexes(GameProperties properties) {
         List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
-        if (possibleCards.isEmpty()) {
-            return;
-        }
-
-        if (possibleCards.size() == 1) {
-            generatedCardIdx = properties.findCardIndex(possibleCards.get(0));
-        }
-
-        generatedCardIdxes = new int[possibleCards.size()];
-        for (int i = 0; i < possibleCards.size(); i++) {
-            generatedCardIdxes[i] = properties.findCardIndex(possibleCards.get(i));
-        }
-
-        // Create reverse index mapping
-        generatedCardReverseIdxes = new int[properties.cardDict.length];
-        for (int i = 0; i < generatedCardReverseIdxes.length; i++) {
-            generatedCardReverseIdxes[i] = -1;
-        }
-        for (int i = 0; i < generatedCardIdxes.length; i++) {
-            generatedCardReverseIdxes[generatedCardIdxes[i]] = i;
-        }
+        var result = GameStateUtils.setupGeneratedCardIndexes(possibleCards, properties);
+        generatedCardIdx = result.v1();
+        generatedCardIdxes = result.v2();
+        generatedCardReverseIdxes = result.v3();
     }
 
     public void gamePropertiesSetup(GameState state) {}
@@ -168,7 +151,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(state.properties.shivPCardIdx);
+                state.addCardToHand(generatedCardIdx);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1344,9 +1327,13 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             int miracleCount = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             for (int i = 0; i < miracleCount; i++) {
-                state.addCardToHand(state.properties.miracleCardIdx);
+                state.addCardToHand(generatedCardIdx);
             }
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return List.of(new CardColorless.Miracle());
         }
 
         @Override public String toString() {
@@ -1368,11 +1355,18 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class StancePotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(
-                state.properties.findCardIndex(new com.alphaStS.card.CardOther.EnterCalm()),
-                state.properties.findCardIndex(new com.alphaStS.card.CardOther.EnterWrath()),
+                generatedCardIdxes[0],
+                generatedCardIdxes[1],
                 state.properties.cardDict.length
             );
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return List.of(
+                new com.alphaStS.card.CardOther.EnterCalm(),
+                new com.alphaStS.card.CardOther.EnterWrath()
+            );
         }
 
         @Override public String toString() {

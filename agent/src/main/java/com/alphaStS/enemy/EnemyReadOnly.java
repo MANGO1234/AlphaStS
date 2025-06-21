@@ -3,6 +3,7 @@ package com.alphaStS.enemy;
 import com.alphaStS.card.Card;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.GameStateUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -103,27 +104,10 @@ public abstract class EnemyReadOnly {
 
     public void setupGeneratedCardIndexes(GameProperties properties) {
         List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
-        if (possibleCards.isEmpty()) {
-            return;
-        }
-
-        if (possibleCards.size() == 1) {
-            generatedCardIdx = properties.findCardIndex(possibleCards.get(0));
-        }
-
-        generatedCardIdxes = new int[possibleCards.size()];
-        for (int i = 0; i < possibleCards.size(); i++) {
-            generatedCardIdxes[i] = properties.findCardIndex(possibleCards.get(i));
-        }
-
-        // Create reverse index mapping
-        generatedCardReverseIdxes = new int[properties.cardDict.length];
-        for (int i = 0; i < generatedCardReverseIdxes.length; i++) {
-            generatedCardReverseIdxes[i] = -1;
-        }
-        for (int i = 0; i < generatedCardIdxes.length; i++) {
-            generatedCardReverseIdxes[generatedCardIdxes[i]] = i;
-        }
+        var result = GameStateUtils.setupGeneratedCardIndexes(possibleCards, properties);
+        generatedCardIdx = result.v1();
+        generatedCardIdxes = result.v2();
+        generatedCardReverseIdxes = result.v3();
     }
 
     public void gamePropertiesSetup(GameState state) {}
