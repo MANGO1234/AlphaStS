@@ -135,22 +135,16 @@ public class CardColorless {
             if (!generateCard) {
                 return GameActionCtx.PLAY_CARD;
             }
-            state.setSelect1OutOf3Idxes(state.properties.discoveryIdxes);
+            state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override public void gamePropertiesSetup(GameState state) {
-            if (!generateCard) {
-                return;
-            }
-            var cards = CardManager.getCharacterCardsTmp0Cost(state.properties.character, false);
-            state.properties.discoveryIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.discoveryIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
-            }
-        }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return getPossibleSelect3OutOf1Cards(gameProperties);
+        }
+
+        public List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
             if (!generateCard) {
                 return null;
             }

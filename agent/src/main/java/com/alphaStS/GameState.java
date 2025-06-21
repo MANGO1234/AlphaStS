@@ -5170,6 +5170,9 @@ public final class GameState implements State {
     }
 
     public void setSelect1OutOf3Idxes(int idx1, int idx2, int idx3) {
+        idx1 = idx1 >= 0 && idx1 < properties.cardDict.length ? properties.select1OutOf3CardsReverseIdxes[idx1] : 255;
+        idx2 = idx2 >= 0 && idx2 < properties.cardDict.length ? properties.select1OutOf3CardsReverseIdxes[idx2] : 255;
+        idx3 = idx3 >= 0 && idx3 < properties.cardDict.length ? properties.select1OutOf3CardsReverseIdxes[idx3] : 255;
         if (idx2 > idx3) {
             int tmp = idx2;
             idx2 = idx3;

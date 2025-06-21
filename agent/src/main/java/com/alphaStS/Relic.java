@@ -1571,19 +1571,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         public static void changeToSelectionCtx(GameState state) {
-            state.setSelect1OutOf3Idxes(state.properties.toolboxIdxes);
+            var toolbox = state.properties.getRelic(Toolbox.class);
+            state.setSelect1OutOf3Idxes(toolbox.generatedCardIdxes);
             state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            var c = getPossibleSelect1OutOf3Cards(gameProperties);
-            var l = new ArrayList<Card>(c);
-            for (Card card : c) {
-                if (card instanceof Card.CardTmpChangeCost t) {
-                    l.add(t.card);
-                }
-            }
-            return l;
+            return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
@@ -1592,11 +1586,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.hasToolbox = true;
-            var cards = getPossibleSelect1OutOf3Cards(state.properties);
-            state.properties.toolboxIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.toolboxIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
-            }
         }
     }
 

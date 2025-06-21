@@ -83,12 +83,7 @@ public class GameProperties implements Cloneable {
     public int[] tmpRetainCardReverseTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
-    public int[] attackPotionIdxes;
-    public int[] discoveryIdxes;
-    public int[] foreignInfluenceIdxes;
     public int[] nilrysCodexIdxes;
-    public int[] skillPotionIdxes;
-    public int[] powerPotionIdxes;
     public int[] colorlessTmp0Idxes;
     public int[] colorlessUpgradedTmp0Idxes;
     public int[] characterSkillPerm0Idxes;
@@ -97,7 +92,6 @@ public class GameProperties implements Cloneable {
     public int[] astrolabeCardsIdxes;
     public int[] pandorasBoxCardsIdxes;
     public int[] deadBranchCardsIdxes;
-    public int[] toolboxIdxes;
     public int[][] sneckoIdxes;
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;

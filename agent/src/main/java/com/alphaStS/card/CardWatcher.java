@@ -983,21 +983,13 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.setSelect1OutOf3Idxes(state.properties.foreignInfluenceIdxes);
+            state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override
-        public void gamePropertiesSetup(GameState state) {
-            var cards = CardManager.getAllAttackCardsTmp0Cost(false);
-            state.properties.foreignInfluenceIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.foreignInfluenceIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
-            }
-        }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return CardManager.getAllAttackCards(false);
+            return getPossibleSelect1OutOf3Cards(gameProperties, cards);
         }
 
         public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties, List<Card> cards) {
