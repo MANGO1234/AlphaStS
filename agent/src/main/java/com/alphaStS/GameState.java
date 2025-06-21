@@ -4392,7 +4392,7 @@ public final class GameState implements State {
         searchFrontier = null;
     }
 
-    public void initSearchInfo2() {
+    public void initSearchInfoLeaf() {
         if (q_total == null) q_total = new VArray(properties.v_total_len);
     }
 

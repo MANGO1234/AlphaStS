@@ -57,4 +57,10 @@ public class VArray {
         result.copyFrom(this);
         return result;
     }
+
+    public void setToChildQ(GameState state, int action) {
+        for (int i = 0; i < state.properties.v_total_len; i++) {
+            set(i, state.getChildQ(action, i) / state.n[action]);
+        }
+    }
 }

@@ -17,12 +17,13 @@ public class MCTS {
     public Map<Integer, double[]> exploredActions = null;
     public double[] exploredV;
     Model model;
-    int numberOfPossibleActions;
-    private VArray v;
-    private VArray realV;
-    private final int[] ret = new int[2];
-    private double terminal_v_win;
-    public int forceRootAction = -1;
+    private VArray v; // v that will be modified during tree search to propagate upward
+    private VArray realV; // v of the leaf node (used for variance calculation)
+    private final int[] selectActionRet = new int[2]; // [0] is action selected, [1] is number of actions possible
+    private boolean reachedGuaranteedWin; // win has been reached, propagate until first ChanceNode
+    public int forceRootAction = -1; // use in some circumstance to force root action to be an action (e.g. to search a ChanceNode)
+
+    int numberOfPossibleActions; // the number of possible actions at root, used by the caller
 
     public MCTS(Model model) {
         this.model = model;
@@ -46,7 +47,7 @@ public class MCTS {
     }
 
     void search2(GameState state, boolean training, int remainingCalls) {
-        terminal_v_win = -100;
+        reachedGuaranteedWin = false;
         if (state.properties.multithreadedMTCS) {
             search2parallel_r(state, training, remainingCalls, true, 0, false, null);
         } else {
@@ -57,29 +58,27 @@ public class MCTS {
     int search2_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, List<Tuple<GameState, Integer>> deterministicPath) {
         if (exploredV != null) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                state.initSearchInfo2();
+                state.initSearchInfoLeaf();
                 v.set(i, exploredV[i]);
                 state.addTotalQ(i, v.get(i));
             }
             return SEARCH_SUCCESS;
         }
         if (state.terminalAction >= 0) {
-            for (int i = 0; i < state.properties.v_total_len; i++) {
-                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
-                realV.set(i, v.get(i));
-            }
+            v.setToChildQ(state, state.terminalAction);
+            realV.copyFrom(v);
             numberOfPossibleActions = 1;
             return SEARCH_SUCCESS;
         }
         if (state.isTerminal() != 0) {
             state.get_v(v.getData());
             realV.copyFrom(v);
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
             if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
-                terminal_v_win = v.get(GameState.V_WIN_IDX);
+                reachedGuaranteedWin = true;
             }
             return SEARCH_SUCCESS;
         }
@@ -87,7 +86,7 @@ public class MCTS {
             state.doEval(model);
             state.get_v(v.getData());
             realV.copyFrom(v);
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
@@ -102,8 +101,8 @@ public class MCTS {
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
         selectAction(state, policy, training, isRoot, true);
-        int action = ret[0];
-        int numberOfActions = ret[1];
+        int action = selectActionRet[0];
+        int numberOfActions = selectActionRet[1];
         while (true) {
             if (numberOfActions == 0) {
                 return SEARCH_NO_ACTIONS_LEFT;
@@ -118,8 +117,8 @@ public class MCTS {
             if (newState.isStochastic && checkDeterministicPath(deterministicPath, state, action)) {
                 addBannedAction(state, action);
                 selectAction(state, policy, training, isRoot, false);
-                action = ret[0];
-                numberOfActions = ret[1];
+                action = selectActionRet[0];
+                numberOfActions = selectActionRet[1];
             } else {
                 break;
             }
@@ -313,9 +312,9 @@ public class MCTS {
         var newVarianceS = state.varianceS + (realV.get(GameState.V_COMB_IDX) - state.varianceM) * (realV.get(GameState.V_COMB_IDX) - newVarianceM);
         state.varianceM = newVarianceM;
         state.varianceS = newVarianceS;
-        if (terminal_v_win > 0.5) {
+        if (reachedGuaranteedWin) {
             if (state.ns[action] instanceof ChanceState) {
-                terminal_v_win = -100;
+                reachedGuaranteedWin = false;
             } else {
                 state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -535,11 +534,9 @@ public class MCTS {
     int search2parallel_r(GameState state, boolean training, int remainingCalls, boolean isRoot, int level, boolean addVirtualLoss, List<Tuple<GameState, Integer>> deterministicPath) {
         if (state.terminalAction >= 0) {
             state.readLock();
-            for (int i = 0; i < state.properties.v_total_len; i++) {
-                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
-                realV.set(i, v.get(i));
-            }
+            v.setToChildQ(state, state.terminalAction);
             state.readUnlock();
+            realV.copyFrom(v);
             numberOfPossibleActions = 1;
             return SEARCH_SUCCESS;
         }
@@ -547,12 +544,12 @@ public class MCTS {
         if (state.isTerminal() != 0) {
             state.get_v(v.getData());
             realV.copyFrom(v);
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
             if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
-                terminal_v_win = v.get(GameState.V_WIN_IDX);
+                reachedGuaranteedWin = true;
             }
             return SEARCH_SUCCESS;
         }
@@ -563,7 +560,7 @@ public class MCTS {
                 state.doEval(model);
                 state.get_v(v.getData());
                 realV.copyFrom(v);
-                state.initSearchInfo2();
+                state.initSearchInfoLeaf();
                 for (int i = 0; i < state.properties.v_total_len; i++) {
                     state.setTotalQ(i, v.get(i));
                 }
@@ -588,8 +585,8 @@ public class MCTS {
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
         selectAction(state, policy, training, isRoot, true);
-        int action = ret[0];
-        int numberOfActions = ret[1];
+        int action = selectActionRet[0];
+        int numberOfActions = selectActionRet[1];
         while (true) {
             if (numberOfActions == 0) {
                 if (addVirtualLoss) {
@@ -611,8 +608,8 @@ public class MCTS {
                 addBannedAction(state, action);
                 state.writeUnlock();
                 selectAction(state, policy, training, isRoot, false);
-                action = ret[0];
-                numberOfActions = ret[1];
+                action = selectActionRet[0];
+                numberOfActions = selectActionRet[1];
             } else {
                 break;
             }
@@ -840,9 +837,9 @@ public class MCTS {
         var newVarianceS = state.varianceS + (realV.get(GameState.V_COMB_IDX) - state.varianceM) * (realV.get(GameState.V_COMB_IDX) - newVarianceM);
         state.varianceM = newVarianceM;
         state.varianceS = newVarianceS;
-        if (terminal_v_win > 0.5) {
+        if (reachedGuaranteedWin) {
             if (state.ns[action] instanceof ChanceState) {
-                terminal_v_win = -100;
+                reachedGuaranteedWin = false;
             } else {
                 state.terminalAction = action;
                 for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -970,31 +967,26 @@ public class MCTS {
     }
 
     void search3(GameState state, boolean training, int remainingCalls) {
-        terminal_v_win = -100;
+        reachedGuaranteedWin = false;
         search3_r(state, training, remainingCalls, true);
     }
 
     void search3_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.terminalAction >= 0) {
-            for (int i = 0; i < state.properties.v_total_len; i++) {
-                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
-                realV.set(i, v.get(i));
-            }
+            v.setToChildQ(state, state.terminalAction);
+            realV.copyFrom(v);
             numberOfPossibleActions = 1;
             return;
         }
         if (state.isTerminal() != 0) {
             state.get_v(v.getData());
             realV.copyFrom(v);
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
-                if (state.getTotalQ(i) == Double.POSITIVE_INFINITY) {
-                    Integer.parseInt(null);
-                }
             }
             if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
-                terminal_v_win = v.get(GameState.V_WIN_IDX);
+                reachedGuaranteedWin = true;
             }
             return;
         }
@@ -1002,12 +994,9 @@ public class MCTS {
             state.doEval(model);
             state.get_v(v.getData());
             realV.copyFrom(v);
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
-                if (state.getTotalQ(i) == Double.POSITIVE_INFINITY) {
-                    Integer.parseInt(null);
-                }
             }
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v.get(GameState.V_COMB_IDX);
@@ -1020,8 +1009,8 @@ public class MCTS {
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
         selectAction(state, policy, training, isRoot, true);
-        int action = ret[0];
-        int numberOfActions = ret[1];
+        int action = selectActionRet[0];
+        int numberOfActions = selectActionRet[1];
 
         State nextState = state.ns[action];
         GameState state2;
@@ -1117,9 +1106,9 @@ public class MCTS {
         state.n[action] += 1;
         state.total_n += 1;
         int actionToPropagate;
-        if (terminal_v_win > 0.5) {
+        if (reachedGuaranteedWin) {
             if (state.ns[action] instanceof ChanceState) {
-                terminal_v_win = -100;
+                reachedGuaranteedWin = false;
                 actionToPropagate = getActionWithMaxNodesOrTerminal(state);
             } else {
                 state.terminalAction = action;
@@ -1167,8 +1156,8 @@ public class MCTS {
 
         float[] policy = getPolicy(state, training, remainingCalls, isRoot);
         selectAction(state, policy, training, isRoot, true);
-        int action = ret[0];
-        int numberOfActions = ret[1];
+        int action = selectActionRet[0];
+        int numberOfActions = selectActionRet[1];
 
         State nextState = state.ns[action];
         GameState state2;
@@ -1219,7 +1208,7 @@ public class MCTS {
             state.searchFrontier = new SearchFrontier();
             state.searchFrontier.addLine(new LineOfPlay(state, 1, 1, null, 0));
         }
-        terminal_v_win = -100;
+        reachedGuaranteedWin = false;
 
         int max_n = 0;
         var lines = state.searchFrontier.lines.values();
@@ -1290,7 +1279,7 @@ public class MCTS {
         }
         searchLine_r(state, maxLine, training, 1);
         searchLinePropagate(state, maxLine);
-        terminal_v_win = -100;
+        reachedGuaranteedWin = false;
     }
 
     private void searchLinePropagate(GameState parentState, LineOfPlay line) {
@@ -1340,7 +1329,7 @@ public class MCTS {
         GameState state = (GameState) curLine.state;
         if (state.isTerminal() != 0) {
             state.get_v(v.getData());
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.addTotalQ(i, v.get(i));
             }
@@ -1351,14 +1340,14 @@ public class MCTS {
             parentState.searchFrontier.total_n += 1;
             if (v.get(GameState.V_WIN_IDX) > 0.5 && cannotImproveState(state)) {
                 state.terminalAction = -1234;
-                terminal_v_win = v.get(GameState.V_WIN_IDX);
+                reachedGuaranteedWin = true;
             }
             return;
         }
         if (state.policy == null) {
             state.doEval(model);
             state.get_v(v.getData());
-            state.initSearchInfo2();
+            state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.addTotalQ(i, v.get(i));
             }
@@ -1468,7 +1457,7 @@ public class MCTS {
             state.addChildQ(action, i, v.get(i));
         }
         state.total_n += 1;
-        if (terminal_v_win > 0.5) {
+        if (reachedGuaranteedWin) {
             state.terminalAction = action;
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 double qTotal = state.getChildQ(action, i) / state.n[action] * (state.total_n + 1);
@@ -1515,8 +1504,8 @@ public class MCTS {
     private void selectAction(GameState state, float[] policy, boolean training, boolean isRoot, boolean firstCall) {
         // MCTS caller force root action to be taken
         if (isRoot && forceRootAction >= 0) {
-            ret[0] = forceRootAction;
-            ret[1] = 1;
+            selectActionRet[0] = forceRootAction;
+            selectActionRet[1] = 1;
             return;
         }
 
@@ -1700,8 +1689,8 @@ public class MCTS {
                 }
             }
         }
-        ret[0] = action;
-        ret[1] = numberOfActions;
+        selectActionRet[0] = action;
+        selectActionRet[1] = numberOfActions;
     }
 
     private float[] applyFutileSearchPruning(GameState state, float[] policy, int remainingCalls) {
