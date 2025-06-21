@@ -757,6 +757,8 @@ public class CardIronclad {
     }
 
     public static class BloodForBlood extends Card {
+        public static int[] bloodForBloodTransformIndexes;
+
         public BloodForBlood() {
             this(4);
         }
@@ -772,28 +774,43 @@ public class CardIronclad {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new BloodForBlood(3), new BloodForBlood(2), new BloodForBlood(1), new BloodForBlood(0));
+            var l = new ArrayList<Card>();
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof BloodForBlood) {
+                    l.add(cards.get(i).wrap(new BloodForBlood(3)));
+                    l.add(cards.get(i).wrap(new BloodForBlood(2)));
+                    l.add(cards.get(i).wrap(new BloodForBlood(1)));
+                    l.add(cards.get(i).wrap(new BloodForBlood(0)));
+                }
+            }
+            return l;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.bloodForBloodTransformIndexes = new int[state.properties.cardDict.length];
-            Arrays.fill(state.properties.bloodForBloodTransformIndexes, -1);
-            for (int i = 0; i < 4; i++) {
-                state.properties.bloodForBloodTransformIndexes[state.properties.findCardIndex(new BloodForBlood(i + 1))] = state.properties.findCardIndex(new BloodForBlood(i));
+            bloodForBloodTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(bloodForBloodTransformIndexes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof BloodForBlood && card.getBaseCard().energyCost > 0) {
+                    var toIdx = state.properties.findCardIndex(card.wrap(new BloodForBlood(card.getBaseCard().energyCost - 1)));
+                    bloodForBloodTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    state.handArrTransform(state.properties.bloodForBloodTransformIndexes);
-                    state.discardArrTransform(state.properties.bloodForBloodTransformIndexes);
-                    state.deckArrTransform(state.properties.bloodForBloodTransformIndexes);
-                    state.exhaustArrTransform(state.properties.bloodForBloodTransformIndexes);
+                    state.handArrTransform(bloodForBloodTransformIndexes);
+                    state.discardArrTransform(bloodForBloodTransformIndexes);
+                    state.deckArrTransform(bloodForBloodTransformIndexes);
+                    state.exhaustArrTransform(bloodForBloodTransformIndexes);
                 }
             });
         }
     }
 
     public static class BloodForBloodP extends Card {
+        public static int[] bloodForBloodPTransformIndexes;
+
         public BloodForBloodP() {
             this(3);
         }
@@ -809,22 +826,34 @@ public class CardIronclad {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new BloodForBloodP(2), new BloodForBloodP(1), new BloodForBloodP(0));
+            var l = new ArrayList<Card>();
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof BloodForBlood) {
+                    l.add(cards.get(i).wrap(new BloodForBloodP(2)));
+                    l.add(cards.get(i).wrap(new BloodForBloodP(1)));
+                    l.add(cards.get(i).wrap(new BloodForBloodP(0)));
+                }
+            }
+            return l;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.bloodForBloodPTransformIndexes = new int[state.properties.cardDict.length];
-            Arrays.fill(state.properties.bloodForBloodPTransformIndexes, -1);
-            for (int i = 0; i < 4; i++) {
-                state.properties.bloodForBloodPTransformIndexes[state.properties.findCardIndex(new BloodForBloodP(i + 1))] = state.properties.findCardIndex(new BloodForBloodP(i));
+            bloodForBloodPTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(bloodForBloodPTransformIndexes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof BloodForBloodP && card.getBaseCard().energyCost > 0) {
+                    var toIdx = state.properties.findCardIndex(card.wrap(new BloodForBloodP(card.getBaseCard().energyCost - 1)));
+                    bloodForBloodPTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    state.handArrTransform(state.properties.bloodForBloodPTransformIndexes);
-                    state.discardArrTransform(state.properties.bloodForBloodPTransformIndexes);
-                    state.deckArrTransform(state.properties.bloodForBloodPTransformIndexes);
-                    state.exhaustArrTransform(state.properties.bloodForBloodPTransformIndexes);
+                    state.handArrTransform(bloodForBloodPTransformIndexes);
+                    state.discardArrTransform(bloodForBloodPTransformIndexes);
+                    state.deckArrTransform(bloodForBloodPTransformIndexes);
+                    state.exhaustArrTransform(bloodForBloodPTransformIndexes);
                 }
             });
         }

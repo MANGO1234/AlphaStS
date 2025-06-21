@@ -659,16 +659,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             var c = getPossibleSelect1OutOf3Cards(gameProperties);
             var l = new ArrayList<>(c);
             for (Card card : c) {
-                // todo: I shouldn't have to do this here
                 if (card instanceof Card.CardTmpChangeCost t) {
                     l.add(t.card);
-                    if (t.card instanceof CardDefect.ForceField forceField) {
-                        for (Card possibleGeneratedCard : forceField.getPossibleGeneratedCards(gameProperties, cards)) {
-                            if (possibleGeneratedCard.energyCost > 0) {
-                                l.add(new Card.CardTmpChangeCost(possibleGeneratedCard, 0));
-                            }
-                        }
-                    }
                 }
             }
             return l;

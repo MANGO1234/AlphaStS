@@ -129,8 +129,6 @@ public class GameProperties implements Cloneable {
     public int gamblingChipsCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
     public int foresightCardIdx = -1;
-    public int[] bloodForBloodTransformIndexes;
-    public int[] bloodForBloodPTransformIndexes;
     public int[] sandsOfTimeTransformIndexes;
     public int[] sandsOfTimePTransformIndexes;
     public int[] windmillStrikeTransformIndexes;
@@ -143,16 +141,12 @@ public class GameProperties implements Cloneable {
     public int[] setUpCardIdxes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
-    public int[] forceFieldTransformIndexes;
-    public int[] forceFieldPTransformIndexes;
     public int[] clawIndexes;
     public int[] clawTransformIndexes;
     public int[] clawPIndexes;
     public int[] clawPTransformIndexes;
     public int[] rampageIndexes;
-    public int[] rampageTransformIndexes;
     public int[] rampagePIndexes;
-    public int[] rampagePTransformIndexes;
     public int[] glassKnifeIndexes;
     public int[] glassKnifePIndexes;
     public int[] steamBarrierIndexes;

@@ -192,6 +192,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return this;
     }
 
+    public Card wrap(Card card) {
+        return card;
+    }
+
     public static class CardTmpChangeCost extends Card {
         public final Card card;
 
@@ -255,6 +259,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card getBaseCard() {
             return card.getBaseCard();
         }
+        public Card wrap(Card newCard) {
+            return new CardTmpChangeCost(card.wrap(newCard), energyCost);
+        }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
@@ -263,7 +270,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (upgrade.energyCost == 0) {
                 return null;
             }
-            // todo BloodForBlood + Tmp
             return new CardTmpChangeCost(upgrade, 0);
         }
     }
@@ -332,6 +338,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card getBaseCard() {
             return card.getBaseCard();
         }
+        public Card wrap(Card newCard) {
+            return new CardTmpUntilPlayedCost(card.wrap(newCard), energyCost);
+        }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
@@ -340,7 +349,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (upgrade.energyCost == 0) {
                 return null;
             }
-            // todo BloodForBlood + Tmp
             return new CardTmpChangeCost(upgrade, 0);
         }
     }
@@ -395,6 +403,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public Card getBaseCard() {
             return card.getBaseCard();
         }
+        public Card wrap(Card newCard) {
+            return new CardPermChangeCost(card.wrap(newCard), energyCost);
+        }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
@@ -403,7 +414,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             if (upgrade.energyCost == energyCost || (upgrade.energyCost < energyCost && card.energyCost < upgrade.energyCost)) {
                 return upgrade;
             }
-            // todo BloodForBlood + Perm
             return new CardPermChangeCost(upgrade, energyCost);
         }
     }
@@ -466,6 +476,9 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
         public Card getBaseCard() {
             return card.getBaseCard();
+        }
+        public Card wrap(Card newCard) {
+            return new CardTmpRetain(card.wrap(newCard));
         }
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
