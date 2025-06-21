@@ -167,4 +167,33 @@ public class Utils {
         }
         return 1;
     }
+
+    /**
+     * Converts a camelCase string to a display string with spaces.
+     * Examples: "FearPotion" -> "Fear Potion", "PotionOfCapacity" -> "Potion Of Capacity"
+     */
+    public static String camelCaseToDisplayString(String camelCase) {
+        if (camelCase == null || camelCase.isEmpty()) {
+            return camelCase;
+        }
+
+        StringBuilder result = new StringBuilder();
+        boolean isFirstChar = true;
+
+        for (int i = 0; i < camelCase.length(); i++) {
+            char c = camelCase.charAt(i);
+
+            if (Character.isUpperCase(c)) {
+                if (!isFirstChar) {
+                    result.append(' ');
+                }
+                result.append(c);
+            } else {
+                result.append(c);
+            }
+            isFirstChar = false;
+        }
+
+        return result.toString();
+    }
 }

@@ -10,6 +10,7 @@ import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Utils;
 import one.util.streamex.IntStreamEx;
 
 import java.util.*;
@@ -83,6 +84,15 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             }
         }
         return false;
+    }
+
+    String displayString;
+    @Override
+    public String toString() {
+        if (displayString == null) {
+            displayString = Utils.camelCaseToDisplayString(this.getClass().getSimpleName());
+        }
+        return displayString;
     }
 
     // ************************************************************* Common Relics ******************************************************************

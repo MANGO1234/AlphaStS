@@ -5,6 +5,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Utils;
 
 import java.util.*;
 
@@ -82,6 +83,14 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public void gamePropertiesSetup(GameState state) {}
 
+    String displayString;
+    @Override
+    public String toString() {
+        if (displayString == null) {
+            displayString = Utils.camelCaseToDisplayString(this.getClass().getSimpleName());
+        }
+        return displayString;
+    }
 
     public static class FearPotion extends Potion {
         public FearPotion() {
@@ -93,10 +102,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Fear Potion";
         }
     }
 
@@ -111,10 +116,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Weak Potion";
-        }
     }
 
     public static class FirePotion extends Potion {
@@ -127,10 +128,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Fire Potion";
-        }
     }
 
     public static class ExplosivePotion extends Potion {
@@ -140,10 +137,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 state.playerDoDamageToEnemy(enemy, n);
             }
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Explosive Potion";
         }
     }
 
@@ -159,10 +152,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardColorless.ShivP());
         }
-
-        @Override public String toString() {
-            return "Cunning Potion";
-        }
     }
 
     public static class PoisonPotion extends Potion {
@@ -176,10 +165,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POISON, n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Poison Potion";
-        }
     }
 
     public static class StrengthPotion extends Potion {
@@ -192,10 +177,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.getPlayerForWrite().gainStrength(n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Strength Potion";
-        }
     }
 
     public static class DexterityPotion extends Potion {
@@ -207,10 +188,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
             state.getPlayerForWrite().gainDexterity(n);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Dexterity Potion";
         }
     }
 
@@ -226,10 +203,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Flex Potion";
-        }
     }
 
     public static class SpeedPotion extends Potion {
@@ -244,10 +217,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Speed Potion";
-        }
     }
 
     public static class BlockPotion extends Potion {
@@ -258,10 +227,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getPlayerForWrite().gainBlockNotFromCardPlay(getBlockAmount(state));
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Block Potion";
         }
     }
 
@@ -312,10 +277,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             });
         }
-
-        @Override public String toString() {
-            return "Duplication Potion";
-        }
     }
 
     public static class DrawPotion extends Potion {
@@ -323,20 +284,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.draw(3);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Draw Potion";
-        }
     }
 
     public static class PotionOfCapacity extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.gainOrbSlot(state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Potion Of Capacity";
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -353,10 +306,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             }
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Essence of Darkness";
         }
     }
 
@@ -381,10 +330,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.healPlayer(getHealAmount(state));
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Blood Potion";
-        }
     }
 
     public static class RegenerationPotion extends Potion {
@@ -404,10 +349,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 10 : 5;
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Regeneration Potion";
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -445,10 +386,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.getPlayerForWrite().gainArtifact(n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Ancient Potion";
-        }
     }
 
     public static class EnergyPotion extends Potion {
@@ -456,10 +393,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
             state.gainEnergy(n);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Energy Potion";
         }
     }
 
@@ -472,10 +405,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.draw(n);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Swift Potion";
-        }
     }
 
     public static class LiquidBronze extends Potion {
@@ -485,10 +414,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Liquid Bronze";
         }
 
         public void gamePropertiesSetup(GameState state) {
@@ -527,10 +452,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
         }
 
-        @Override public String toString() {
-            return "Liquid Memory";
-        }
-
         public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("LiquidMemory", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -554,9 +475,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerPlayCardOnTopOfDeckCounter();
         }
-        @Override public String toString() {
-            return "Distilled Chaos";
-        }
     }
 
     public static class BlessingOfTheForge extends Potion {
@@ -568,10 +486,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
-
-        @Override public String toString() {
-            return "Blessing of the Forge";
-        }
     }
 
     public static class EssenceOfSteel extends Potion {
@@ -579,10 +493,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             int platedArmorAmount = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 8 : 4;
             state.getPlayerForWrite().gainPlatedArmor(platedArmorAmount);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Essence Of Steel";
         }
     }
 
@@ -596,10 +506,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override public String toString() {
-            return "Attack Potion";
-        }
-
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
@@ -607,7 +513,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.ATTACK, false);
         }
-
     }
 
     public static class SkillPotion extends Potion {
@@ -620,10 +525,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override public String toString() {
-            return "Skill Potion";
-        }
-
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
@@ -631,7 +532,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.SKILL, false);
         }
-
     }
 
     public static class PowerPotion extends Potion {
@@ -644,10 +544,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override public String toString() {
-            return "Power Potion";
-        }
-
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
@@ -655,7 +551,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.POWER, false);
         }
-
     }
 
     public static class ColorlessPotion extends Potion {
@@ -668,10 +563,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override public String toString() {
-            return "Colorless Potion";
-        }
-
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
@@ -679,7 +570,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getColorlessCards(false);
         }
-
     }
 
     public static class SneckoOil extends Potion {
@@ -701,10 +591,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         public void gamePropertiesSetup(GameState state) {
             state.properties.setupSneckoIndexes();
         }
-
-        @Override public String toString() {
-            return "Snecko Oil";
-        }
     }
 
     public static class CultistPotion extends Potion {
@@ -715,10 +601,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 2 : 1;
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Cultist Potion";
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -757,10 +639,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public String toString() {
-            return "Gambler's Brew";
-        }
-
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("GamblersBrew", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -789,10 +667,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.healPlayer(getHealAmount(state));
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Fairy In A Bottle";
-        }
     }
 
     public static class LizardTail extends FairyInABottle {
@@ -802,10 +676,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         public int getHealAmount(GameState state) {
             return (int) (0.5 * this.playerMaxHp);
-        }
-
-        @Override public String toString() {
-            return "Lizard Tail";
         }
     }
 
@@ -818,10 +688,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             state.gainFocus(state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2);
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Focus Potion";
-        }
     }
 
     public static class SmokeBomb extends Potion {
@@ -832,10 +698,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 }
             }
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Smoke Bomb";
         }
     }
 
@@ -855,10 +717,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 state.properties.potionsGenerator.generatePotion(state);
             }
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Entropic Brew";
         }
     }
 
@@ -1224,19 +1082,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerIntangibleCounter();
         }
-
-        @Override public String toString() {
-            return "Ghost In A jar";
-        }
     }
 
     public static class EmptyPotion extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Empty Potion";
         }
     }
 
@@ -1252,10 +1102,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             }
             return GameActionCtx.PLAY_CARD;
         }
-
-        @Override public String toString() {
-            return "Elixir";
-        }
     }
 
     public static class HeartOfIron extends Potion {
@@ -1263,10 +1109,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             int metallicizeAmount = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 12 : 6;
             state.getCounterForWrite()[state.properties.metallicizeCounterIdx] += metallicizeAmount;
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Heart of Iron";
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -1286,20 +1128,12 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardColorless.Miracle());
         }
-
-        @Override public String toString() {
-            return "Bottled Miracle";
-        }
     }
 
     public static class Ambrosia extends Potion {
         @Override public GameActionCtx use(GameState state, int idx) {
             state.changeStance(com.alphaStS.enums.Stance.DIVINITY);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public String toString() {
-            return "Ambrosia";
         }
     }
 
@@ -1318,10 +1152,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                 new com.alphaStS.card.CardOther.EnterCalm(),
                 new com.alphaStS.card.CardOther.EnterWrath()
             );
-        }
-
-        @Override public String toString() {
-            return "Stance Potion";
         }
     }
 }
