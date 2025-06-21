@@ -6,6 +6,7 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.utils.Tuple;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.alphaStS.enums.CharacterEnum;
@@ -1642,31 +1643,87 @@ public class CardIronclad {
         }
     }
 
-    // todo: need to think of a way to implement rampage (with card generation -> nn input being fixed)
-    private static abstract class _RampageT extends Card {
-        private final int damage;
+    public static class Rampage extends Card {
+        public int limit;
+        private int dmg;
 
-        public _RampageT(String cardName, int damage) {
-            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
-            this.damage = damage;
+        public Rampage() {
+            this(8, 50);
+        }
+
+        public Rampage(int dmg, int limit) {
+            super("Rampage (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.limit = limit;
             selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
         }
-    }
 
-    public static class Rampage extends _RampageT {
-        public Rampage() {
-            super("Rampage", 8);
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = dmg + 5; i <= limit; i += 5) {
+                c.add(new Rampage(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.rampageIndexes = new int[limit + 1];
+            for (int i = 0; i < state.properties.rampageIndexes.length; i++) {
+                state.properties.rampageIndexes[i] = state.properties.findCardIndex(new Rampage(i, limit));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            return (dmg + 5) >= prop.rampageIndexes.length ? -1 : prop.rampageIndexes[dmg + 5];
+        }
+
+        public Card getUpgrade() {
+            return new RampageP(dmg, limit + 25);
         }
     }
 
-    public static class RampageP extends _RampageT {
+    public static class RampageP extends Card {
+        public int limit;
+        private int dmg;
+
         public RampageP() {
-            super("Rampage+", 8);
+            this(8, 75);
+        }
+
+        public RampageP(int dmg, int limit) {
+            super("Rampage+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.limit = limit;
+            selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = dmg + 8; i <= limit; i += 8) {
+                c.add(new RampageP(i, limit));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.rampagePIndexes = new int[limit + 1];
+            for (int i = 0; i < state.properties.rampagePIndexes.length; i++) {
+                state.properties.rampagePIndexes[i] = state.properties.findCardIndex(new RampageP(i, limit));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+            return (dmg + 8) >= prop.rampagePIndexes.length ? -1 : prop.rampagePIndexes[dmg + 8];
         }
     }
 
@@ -1745,7 +1802,7 @@ public class CardIronclad {
 
     public static class RuptureP extends _RuptureT {
         public RuptureP() {
-            super("Rupture", Card.POWER, 1, 2);
+            super("Rupture+", Card.POWER, 1, 2);
         }
     }
 

@@ -129,7 +129,7 @@ public class CardColorless {
     }
 
     private static abstract class _DiscoveryT extends Card {
-        private final boolean generateCard;
+        protected final boolean generateCard;
 
         public _DiscoveryT(String cardName, boolean exhausts, boolean generateCard) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
@@ -167,6 +167,10 @@ public class CardColorless {
     public static class Discovery extends _DiscoveryT {
         public Discovery(boolean generateCard) {
             super("Discovery", true, generateCard);
+        }
+
+        @Override public Card getUpgrade() {
+            return new DiscoveryP(generateCard);
         }
     }
 
@@ -1789,7 +1793,7 @@ public class CardColorless {
 
     private static abstract class _ExpungerT extends Card {
         private final int damage;
-        private final int xValue;
+        protected final int xValue;
 
         public _ExpungerT(String cardName, int damage, int xValue) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
@@ -1809,6 +1813,10 @@ public class CardColorless {
     public static class Expunger extends _ExpungerT {
         public Expunger(int xValue) {
             super("Expunger (" + xValue + ")", 9, xValue);
+        }
+
+        @Override public Card getUpgrade() {
+            return new ExpungerP(xValue);
         }
     }
 

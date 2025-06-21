@@ -2410,7 +2410,7 @@ public class CardWatcher {
 
     private static abstract class _ConjureBladeT extends Card {
         private final boolean addExtraHit;
-        private final int limit;
+        protected final int limit;
 
         public _ConjureBladeT(String cardName, boolean addExtraHit, int limit) {
             super(cardName, Card.SKILL, -1, Card.RARE);
@@ -2448,6 +2448,10 @@ public class CardWatcher {
     public static class ConjureBlade extends _ConjureBladeT {
         public ConjureBlade(int limit) {
             super("Conjure Blade", false, limit);
+        }
+
+        @Override public Card getUpgrade() {
+            return new ConjureBladeP(limit);
         }
     }
 
@@ -2967,6 +2971,10 @@ public class CardWatcher {
         public Wish(double healthRewardRatio) {
             super("Wish", 3, healthRewardRatio);
             this.upgraded = false;
+        }
+
+        @Override public Card getUpgrade() {
+            return new WishP(healthRewardRatio);
         }
     }
 

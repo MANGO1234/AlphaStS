@@ -56,7 +56,7 @@ public class CardUpgrade {
         map.put(new CardIronclad.PowerThrough(), new CardIronclad.PowerThroughP());
         map.put(new CardIronclad.Pummel(), new CardIronclad.PummelP());
         map.put(new CardIronclad.Rage(), new CardIronclad.RageP());
-        map.put(new CardIronclad.Rampage(), new CardIronclad.RampageP());
+//        map.put(new CardIronclad.Rampage(), new CardIronclad.RampageP());
         map.put(new CardIronclad.RecklessCharge(), new CardIronclad.RecklessChargeP());
         map.put(new CardIronclad.Rupture(), new CardIronclad.RuptureP());
         map.put(new CardIronclad.SecondWind(), new CardIronclad.SecondWindP());
