@@ -1523,7 +1523,7 @@ public class EnemyBeyond {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.writhingMassVIdx = idx;
                 }
             }, new TrainingTarget() {
@@ -1540,7 +1540,7 @@ public class EnemyBeyond {
                         }
                         v.set(GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx, implantUsed ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx, state.getVOther(state.properties.writhingMassVIdx));
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx, state.getVExtra(state.properties.writhingMassVIdx));
                     }
                 }
 

@@ -107,7 +107,7 @@ public final class GameState implements State {
     private int[] legalActions;
     float v_win; // if terminal, 1.0 or -1.0, else from NN
     float v_health; // if terminal, player_health/player_max_health, else from NN
-    float[] v_other; // if terminal, player_health/player_max_health, else from NN
+    float[] v_extra; // set by the extra TrainingTarget
     double varianceM;
     double varianceS;
     private VArray q_total; // sum of q values
@@ -744,7 +744,7 @@ public final class GameState implements State {
         }
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             properties.addExtraTrainingTarget("FightProgress", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.fightProgressVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -752,7 +752,7 @@ public final class GameState implements State {
                     if (isTerminal > 0) {
                         v.set(state.properties.fightProgressVIdx, 1);
                     } else if (isTerminal == 0) {
-                        v.set(state.properties.fightProgressVIdx, state.getVOther(properties.fightProgressVIdx - V_OTHER_IDX_START));
+                        v.set(state.properties.fightProgressVIdx, state.getVExtra(properties.fightProgressVIdx - V_OTHER_IDX_START));
                     }
                 }
 
@@ -761,7 +761,7 @@ public final class GameState implements State {
         }
         if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
             properties.addExtraTrainingTarget("ZAWin", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.qwinVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -771,7 +771,7 @@ public final class GameState implements State {
                     } else if (isTerminal < 0) {
                         v.set(state.properties.qwinVIdx, 0);
                     } else if (isTerminal == 0) {
-                        v.set(state.properties.qwinVIdx, state.getVOther(properties.qwinVIdx - V_OTHER_IDX_START));
+                        v.set(state.properties.qwinVIdx, state.getVExtra(properties.qwinVIdx - V_OTHER_IDX_START));
                     }
                 }
 
@@ -782,7 +782,7 @@ public final class GameState implements State {
             // note: we translate turns left to estimated ending turn so there's no need to change anything in the searching
             // code. Having the network predict ending turn directly seem to work for a training target too.
             properties.addExtraTrainingTarget("TurnsLeft", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.turnsLeftVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -790,7 +790,7 @@ public final class GameState implements State {
                     if (isTerminal != 0) {
                         v.set(state.properties.turnsLeftVIdx, state.realTurnNum / state.properties.maxPossibleRealTurnsLeft);
                     } else {
-                        v.set(state.properties.turnsLeftVIdx, state.realTurnNum / state.properties.maxPossibleRealTurnsLeft + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START));
+                        v.set(state.properties.turnsLeftVIdx, state.realTurnNum / state.properties.maxPossibleRealTurnsLeft + state.getVExtra(properties.turnsLeftVIdx - V_OTHER_IDX_START));
                         v.set(state.properties.turnsLeftVIdx, Math.min(v.get(state.properties.turnsLeftVIdx), 1.0));
                     }
                 }
@@ -805,7 +805,7 @@ public final class GameState implements State {
         }
         if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
             properties.addExtraTrainingTarget("ZeroDmgProb", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.zeroDmgProbVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
@@ -817,8 +817,8 @@ public final class GameState implements State {
                     if (isTerminal != 0) {
                         v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0);
                     } else {
-                        v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START));
-                        if (state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START) < -0.05) {
+                        v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), state.getVExtra(properties.zeroDmgProbVIdx - V_OTHER_IDX_START));
+                        if (state.getVExtra(properties.zeroDmgProbVIdx - V_OTHER_IDX_START) < -0.05) {
                             throw new IllegalStateException("???");
                         }
                     }
@@ -853,7 +853,7 @@ public final class GameState implements State {
             if (properties.potions.get(i) instanceof Potion.FairyInABottle || properties.hasToyOrniphopter) {
                 int _i = i;
                 properties.addExtraTrainingTarget((properties.potions.get(i) + String.valueOf(i)).replace(" ", ""), new GameProperties.TrainingTargetRegistrant() {
-                    @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                    @Override public void setVExtraIdx(GameProperties properties, int idx) {
                         properties.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
                     }
                 }, new TrainingTarget() {
@@ -870,7 +870,7 @@ public final class GameState implements State {
                             } else if (state.potionsState[_i * 3] == 0) {
                                 v.set(state.properties.potionsVArrayIdx[_i], 0);
                             } else {
-                                v.set(state.properties.potionsVArrayIdx[_i], state.getVOther(state.properties.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START));
+                                v.set(state.properties.potionsVArrayIdx[_i], state.getVExtra(state.properties.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START));
                             }
                         }
                     }
@@ -2260,7 +2260,7 @@ public final class GameState implements State {
             }
         }
         legalActions = null;
-        v_other = null;
+        v_extra = null;
         policy = null;
         if (isStochastic) {
             if (!Configuration.isTranspositionAcrossChanceNodeOn(this) || (action.type() == GameActionType.BEGIN_TURN || action.type() == GameActionType.BEGIN_BATTLE)) {
@@ -3010,17 +3010,17 @@ public final class GameState implements State {
             str.append(formatFloat(calcQValue())).append("/");
         }
         str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
-        if (v_other != null) {
+        if (v_extra != null) {
             var vArray = new VArray(properties.v_total_len);
             getVArray(vArray);
             int idx = 0;
             for (var target : properties.extraTrainingTargets) {
                 int n = target.getNumberOfTargets();
                 if (n == 1) {
-                    if (v_other[idx] == vArray.get(V_OTHER_IDX_START + idx)) {
-                        str.append("/").append(formatFloat(v_other[idx]));
+                    if (v_extra[idx] == vArray.get(V_OTHER_IDX_START + idx)) {
+                        str.append("/").append(formatFloat(v_extra[idx]));
                     } else {
-                        str.append("/").append(formatFloat(v_other[idx])).append("->").append(formatFloat(vArray.get(V_OTHER_IDX_START + idx)));
+                        str.append("/").append(formatFloat(v_extra[idx])).append("->").append(formatFloat(vArray.get(V_OTHER_IDX_START + idx)));
                     }
                 } else {
                     str.append("/[");
@@ -3028,7 +3028,7 @@ public final class GameState implements State {
                         if (i > 0) {
                             str.append(',');
                         }
-                        str.append(formatFloat(v_other[idx + i]));
+                        str.append(formatFloat(v_extra[idx + i]));
                     }
                     str.append(']');
                 }
@@ -3254,7 +3254,7 @@ public final class GameState implements State {
         policy = output.policy();
         v_health = output.v_health();
         v_win = output.v_win();
-        v_other = output.v_other();
+        v_extra = output.v_other();
     }
 
     private static boolean needChosenCardsInInput() {
@@ -4399,7 +4399,7 @@ public final class GameState implements State {
         policy = null;
         v_health = 0;
         v_win = 0;
-        v_other = null;
+        v_extra = null;
         q_total = null;
         q_child = null;
         n = null;
@@ -5196,8 +5196,8 @@ public final class GameState implements State {
         setIsStochastic();
     }
 
-    public double getVOther(int vArrayIdx) {
-        return v_other == null ? 0 : v_other[vArrayIdx];
+    public double getVExtra(int vExtraIdx) {
+        return v_extra == null ? 0 : v_extra[vExtraIdx];
     }
 
     public void setIsStochastic() {

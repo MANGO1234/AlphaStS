@@ -371,7 +371,7 @@ public class GameProperties implements Cloneable {
     }
 
     public interface TrainingTargetRegistrant {
-        void setVArrayIdx(GameProperties properties, int idx);
+        void setVExtraIdx(GameProperties properties, int idx);
     }
 
     public interface NetworkInputHandler {
@@ -484,7 +484,7 @@ public class GameProperties implements Cloneable {
     public void compileExtraTrainingTarget() {
         var registrants = trainingTargetsRegistrantMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
         for (int i = 0; i < registrants.size(); i++) {
-            registrants.get(i).getValue().setVArrayIdx(this, extraOutputLen);
+            registrants.get(i).getValue().setVExtraIdx(this, extraOutputLen);
             trainingTargetsRegistrantVIdxMap.put(extraOutputLen, new Tuple<>(registrants.get(i).getKey(), trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets()));
             extraOutputLen += trainingTargetsMap.get(registrants.get(i).getKey()).getNumberOfTargets();
             extraTrainingTargets.add(trainingTargetsMap.get(registrants.get(i).getKey()));

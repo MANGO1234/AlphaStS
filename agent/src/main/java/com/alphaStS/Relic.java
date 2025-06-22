@@ -61,10 +61,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         return counterIdx;
     }
 
-    int vArrayIdx = -1;
+    int vExtraIdx = -1;
 
-    @Override public void setVArrayIdx(GameProperties properties, int idx) {
-        vArrayIdx = idx;
+    @Override public void setVExtraIdx(GameProperties properties, int idx) {
+        vExtraIdx = idx;
     }
 
     public static boolean isEliteFight(GameState state) {
@@ -287,14 +287,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("HappyFlower", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 3.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 3.0);
                         } else if (isTerminal == 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getVOther(vArrayIdx));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getVExtra(vExtraIdx));
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vExtraIdx) / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
@@ -373,14 +373,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("Nunchaku", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 9.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 9.0);
                         } else if (isTerminal == 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getVOther(vArrayIdx));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getVExtra(vExtraIdx));
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vExtraIdx) / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
@@ -455,14 +455,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("PenNib", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 9.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 9.0);
                         } else if (isTerminal == 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getVOther(vArrayIdx));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getVExtra(vExtraIdx));
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vExtraIdx) / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
@@ -716,14 +716,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("InkBottle", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 9.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 9.0);
                         } else if (isTerminal == 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getVOther(vArrayIdx));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getVExtra(vExtraIdx));
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vExtraIdx) / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
@@ -1037,14 +1037,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("Sundial", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 2.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 2.0);
                         } else if (isTerminal == 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getVOther(vArrayIdx));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getVExtra(vExtraIdx));
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / 2.0 / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vExtraIdx) / 2.0 / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
@@ -1265,12 +1265,12 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal != 0) {
                             for (int i = 0; i < 6; i++) {
-                                v.set(GameState.V_OTHER_IDX_START + vArrayIdx + i, 0);
+                                v.set(GameState.V_OTHER_IDX_START + vExtraIdx + i, 0);
                             }
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx], 1);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx + state.getCounterForRead()[counterIdx], 1);
                         } else if (isTerminal == 0) {
                             for (int i = 0; i < 6; i++) {
-                                v.set(GameState.V_OTHER_IDX_START + vArrayIdx + i, state.getVOther(vArrayIdx + i));
+                                v.set(GameState.V_OTHER_IDX_START + vExtraIdx + i, state.getVExtra(vExtraIdx + i));
                             }
                         }
                     }
@@ -1280,28 +1280,28 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             // final fight, no reward
                         } else if (state.currentEncounter == EnemyEncounter.EncounterEnum.SPEAR_AND_SHIELD) {
                             // next fight is heart: reward ending on 4 or 5
-                            v.add(GameState.V_HEALTH_IDX, 0.05 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx));
-                            v.add(GameState.V_HEALTH_IDX, 0.05 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 1));
-                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 2));
-                            v.add(GameState.V_HEALTH_IDX, 0.2 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 3));
-                            v.add(GameState.V_HEALTH_IDX, 0.3 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 4));
-                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 5));
+                            v.add(GameState.V_HEALTH_IDX, 0.05 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx));
+                            v.add(GameState.V_HEALTH_IDX, 0.05 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 1));
+                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 2));
+                            v.add(GameState.V_HEALTH_IDX, 0.2 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 3));
+                            v.add(GameState.V_HEALTH_IDX, 0.3 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 4));
+                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 5));
                         } else if (rewardType == NEXT_FIGHT_IS_SPEAR_AND_SHIELD_REWARD) {
                             // next fight is spear and shield: end at 4 with minor reward for 3
-                            v.add(GameState.V_HEALTH_IDX, 0.02 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx));
-                            v.add(GameState.V_HEALTH_IDX, 0.02 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 1));
-                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 2));
-                            v.add(GameState.V_HEALTH_IDX, 0.2 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 3));
-                            v.add(GameState.V_HEALTH_IDX, v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 4));
-                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 5));
+                            v.add(GameState.V_HEALTH_IDX, 0.02 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx));
+                            v.add(GameState.V_HEALTH_IDX, 0.02 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 1));
+                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 2));
+                            v.add(GameState.V_HEALTH_IDX, 0.2 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 3));
+                            v.add(GameState.V_HEALTH_IDX, v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 4));
+                            v.add(GameState.V_HEALTH_IDX, 0.01 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 5));
                         } else {
                             // higher is better
-                            v.add(GameState.V_HEALTH_IDX, 0.05 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx));
-                            v.add(GameState.V_HEALTH_IDX, 0.05 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 1));
-                            v.add(GameState.V_HEALTH_IDX, 0.1 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 2));
-                            v.add(GameState.V_HEALTH_IDX, 0.2 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 3));
-                            v.add(GameState.V_HEALTH_IDX, 0.3 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 4));
-                            v.add(GameState.V_HEALTH_IDX, 0.3 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vArrayIdx + 5));
+                            v.add(GameState.V_HEALTH_IDX, 0.05 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx));
+                            v.add(GameState.V_HEALTH_IDX, 0.05 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 1));
+                            v.add(GameState.V_HEALTH_IDX, 0.1 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 2));
+                            v.add(GameState.V_HEALTH_IDX, 0.2 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 3));
+                            v.add(GameState.V_HEALTH_IDX, 0.3 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 4));
+                            v.add(GameState.V_HEALTH_IDX, 0.3 / 6.0 * v.get(GameState.V_OTHER_IDX_START + vExtraIdx + 5));
                         }
                     }
 
@@ -2342,14 +2342,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 state.properties.addExtraTrainingTarget("Inserter", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx]);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx]);
                         } else if (isTerminal == 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getVOther(vArrayIdx));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getVExtra(vExtraIdx));
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.get(GameState.V_OTHER_IDX_START + vExtraIdx) / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }

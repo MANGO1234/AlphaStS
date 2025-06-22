@@ -69,7 +69,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
     public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
     int counterIdx = -1;
-    int vArrayIdx = -1;
+    int vExtraIdx = -1;
 
     public void setCounterIdx(GameProperties gameProperties, int idx) {
         counterIdx = idx;
@@ -79,8 +79,8 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return counterIdx;
     }
 
-    public void setVArrayIdx(GameProperties gameProperties, int idx) {
-        vArrayIdx = idx;
+    public void setVExtraIdx(GameProperties gameProperties, int idx) {
+        vExtraIdx = idx;
     }
 
     public Card(String cardName, int cardType, int energyCost, int rarity) {

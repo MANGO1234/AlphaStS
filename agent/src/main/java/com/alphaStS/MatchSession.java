@@ -1051,7 +1051,7 @@ public class MatchSession {
                         steps.get(i + 1).v[state.properties.qwinVIdx] = 1 - 0.75 * (1 - vWin);
                     }
                 }
-                steps.get(i).v[state.properties.qwinVIdx] = -10 + steps.get(i).state().getVOther(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START);
+                steps.get(i).v[state.properties.qwinVIdx] = -10 + steps.get(i).state().getVExtra(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START);
             }
             state = steps.get(i).state();
             state.clearNextStates();

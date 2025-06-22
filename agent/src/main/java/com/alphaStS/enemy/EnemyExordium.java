@@ -1916,7 +1916,7 @@ public class EnemyExordium {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("Looter", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
@@ -1933,7 +1933,7 @@ public class EnemyExordium {
                         }
                         v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVOther(state.properties.looterVArrayIdx));
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVExtra(state.properties.looterVArrayIdx));
                     }
                 }
 
@@ -2034,7 +2034,7 @@ public class EnemyExordium {
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addExtraTrainingTarget("Mugger", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVArrayIdx(GameProperties properties, int idx) {
+                @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
@@ -2051,7 +2051,7 @@ public class EnemyExordium {
                     if (isTerminal > 0 || escaped) {
                         v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVOther(state.properties.looterVArrayIdx));
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVExtra(state.properties.looterVArrayIdx));
                     }
                 }
 

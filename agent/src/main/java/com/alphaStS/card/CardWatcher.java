@@ -2694,12 +2694,12 @@ public class CardWatcher {
                 state.properties.addExtraTrainingTarget("LessonLearned", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 10.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 10.0);
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        double vUpgrades = v.get(GameState.V_OTHER_IDX_START + vArrayIdx);
+                        double vUpgrades = v.get(GameState.V_OTHER_IDX_START + vExtraIdx);
                         v.add(GameState.V_HEALTH_IDX, 10 * vUpgrades * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                     }
                 });

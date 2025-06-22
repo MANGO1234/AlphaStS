@@ -2420,19 +2420,19 @@ public class CardIronclad {
                 state.properties.addExtraTrainingTarget("Feed", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 16.0);
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 16.0);
                         } else if (isTerminal == 0) {
                             int minFeed = state.getCounterForRead()[counterIdx];
                             int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
-                            double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, state.getVOther(vArrayIdx)));
-                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, vFeed);
+                            double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, state.getVExtra(vExtraIdx)));
+                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, vFeed);
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
                         int minFeed = state.getCounterForRead()[counterIdx];
                         int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
-                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v.get(GameState.V_OTHER_IDX_START + vArrayIdx)));
+                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v.get(GameState.V_OTHER_IDX_START + vExtraIdx)));
                         if (true) {
                             v.add(GameState.V_HEALTH_IDX, 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                         } else {
