@@ -314,9 +314,6 @@ public class GameProperties implements Cloneable {
     public int turnsLeftVExtraIdx = -1;
     public int zeroDmgProbVExtraIdx = -1;
     public int alchemizeVExtraIdx = -1;
-    public int writhingMassVExtraIdx = -1;
-    public int looterVExtraIdx = -1;
-    public int muggerVExtraIdx = -1;
     public int[] potionsVExtraIdx;
 
     public int difficultyChosen;

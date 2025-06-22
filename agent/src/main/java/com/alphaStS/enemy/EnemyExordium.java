@@ -1915,11 +1915,7 @@ public class EnemyExordium {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addExtraTrainingTarget("Looter", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVExtraIdx(GameProperties properties, int idx) {
-                    properties.looterVExtraIdx = idx;
-                }
-            }, new TrainingTarget() {
+            state.properties.addExtraTrainingTarget("Looter", this, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal > 0) {
                         boolean escaped = false;
@@ -1931,14 +1927,14 @@ public class EnemyExordium {
                                 }
                             }
                         }
-                        v.setVExtra(state.properties.looterVExtraIdx, escaped ? 1.0f : 0.0f);
+                        v.setVExtra(vExtraIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.setVExtra(state.properties.looterVExtraIdx, state.getVExtra(state.properties.looterVExtraIdx));
+                        v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
                     }
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    double value = v.getVExtra(state.properties.looterVExtraIdx);
+                    double value = v.getVExtra(vExtraIdx);
                     v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.9 + (1 - value) * 0.1));
                 }
             });
@@ -2033,11 +2029,7 @@ public class EnemyExordium {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addExtraTrainingTarget("Mugger", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVExtraIdx(GameProperties properties, int idx) {
-                    properties.muggerVExtraIdx = idx;
-                }
-            }, new TrainingTarget() {
+            state.properties.addExtraTrainingTarget("Mugger", this, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     boolean escaped = false;
                     for (var enemy : state.getEnemiesForRead()) {
@@ -2049,14 +2041,14 @@ public class EnemyExordium {
                         }
                     }
                     if (isTerminal > 0 || escaped) {
-                        v.setVExtra(state.properties.muggerVExtraIdx, escaped ? 1.0f : 0.0f);
+                        v.setVExtra(vExtraIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.setVExtra(state.properties.muggerVExtraIdx, state.getVExtra(state.properties.muggerVExtraIdx));
+                        v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
                     }
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    double value = v.getVExtra(state.properties.muggerVExtraIdx);
+                    double value = v.getVExtra(vExtraIdx);
                     v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.9 + (1 - value) * 0.1));
                 }
             });

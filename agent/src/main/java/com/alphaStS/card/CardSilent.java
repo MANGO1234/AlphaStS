@@ -2219,6 +2219,11 @@ public class CardSilent {
             this.healthReward = healthReward;
         }
 
+        @Override public void setVExtraIdx(GameProperties gameProperties, int idx) {
+            super.setVExtraIdx(gameProperties, idx);
+            gameProperties.alchemizeVExtraIdx = idx;
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int potions = state.getPotionCount();
             if (basePenaltyRatio == 0) {
@@ -2247,12 +2252,7 @@ public class CardSilent {
                 }
             });
 
-            state.properties.addExtraTrainingTarget("Alchemize", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVExtraIdx(GameProperties properties, int idx) {
-                    vExtraIdx = idx;
-                    properties.alchemizeVExtraIdx = idx;
-                }
-            }, new TrainingTarget() {
+            state.properties.addExtraTrainingTarget("Alchemize", this, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal != 0) {
                         for (int i = 0; i < 5; i++) {

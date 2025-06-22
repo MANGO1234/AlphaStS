@@ -8,7 +8,7 @@ import com.alphaStS.GameStateUtils;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class EnemyReadOnly {
+public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegistrant {
     public static class EnemyProperties implements Cloneable {
         public int numOfMoves;
         public int maxHealth;
@@ -85,6 +85,7 @@ public abstract class EnemyReadOnly {
     public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
     public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
     public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
+    int vExtraIdx = -1;
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;
@@ -108,6 +109,10 @@ public abstract class EnemyReadOnly {
         generatedCardIdx = result.v1();
         generatedCardIdxes = result.v2();
         generatedCardReverseIdxes = result.v3();
+    }
+
+    public void setVExtraIdx(GameProperties gameProperties, int idx) {
+        vExtraIdx = idx;
     }
 
     public void gamePropertiesSetup(GameState state) {}

@@ -1522,11 +1522,7 @@ public class EnemyBeyond {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addExtraTrainingTarget("WrithingMassImplant", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVExtraIdx(GameProperties properties, int idx) {
-                    properties.writhingMassVExtraIdx = idx;
-                }
-            }, new TrainingTarget() {
+            state.properties.addExtraTrainingTarget("WrithingMassImplant", this, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal > 0) {
                         boolean implantUsed = false;
@@ -1538,14 +1534,14 @@ public class EnemyBeyond {
                                 }
                             }
                         }
-                        v.setVExtra(state.properties.writhingMassVExtraIdx, implantUsed ? 1.0f : 0.0f);
+                        v.setVExtra(vExtraIdx, implantUsed ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.setVExtra(state.properties.writhingMassVExtraIdx, state.getVExtra(state.properties.writhingMassVExtraIdx));
+                        v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
                     }
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    double value = v.getVExtra(state.properties.writhingMassVExtraIdx);
+                    double value = v.getVExtra(vExtraIdx);
                     v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (1 - value * implantPenalty));
                 }
             });
