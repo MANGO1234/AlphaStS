@@ -487,7 +487,7 @@ public final class GameState implements State {
         }
 
         // select from select 1 out of 3 cards action
-        if (relics.stream().anyMatch((x) -> x.selectCard1OutOf3) || potions.stream().anyMatch((x) -> x.selectCard1OutOf3)) {
+        if (cards.stream().anyMatch((x) -> !x.getPossibleSelect1OutOf3Cards(properties).isEmpty()) || relics.stream().anyMatch((x) -> !x.getPossibleSelect1OutOf3Cards(properties).isEmpty()) || potions.stream().anyMatch((x) -> !x.getPossibleSelect1OutOf3Cards(properties).isEmpty())) {
             properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()] = new GameAction[l];
             for (int i = 0; i < cards.size(); i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_1_OUT_OF_3.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_1_OUT_OF_3, i);

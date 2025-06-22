@@ -22,7 +22,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean vulnEnemy;
     public boolean weakEnemy;
     public boolean healPlayer;
-    public boolean selectCard1OutOf3;
     public boolean scry;
     public int[] preBattleScenariosEnabled;
     public Card startOfBattleAction;
@@ -1576,10 +1575,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class Toolbox extends Relic {
-        public Toolbox() {
-            selectCard1OutOf3 = true;
-        }
-
         public static void changeToSelectionCtx(GameState state) {
             var toolbox = state.properties.getRelic(Toolbox.class);
             state.setSelect1OutOf3Idxes(toolbox.generatedCardIdxes);
@@ -1913,26 +1908,20 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            var c = getPossibleGeneratedCards(state.properties);
-            cardsIdx = new int[c.size()];
-            for (int i = 0; i < c.size(); i++) {
-                cardsIdx[i] = state.properties.findCardIndex(c.get(i));
-            }
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         return;
                     }
                     state.setIsStochastic();
-                    var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
-                    state.addCardToHand(cardsIdx[r]);
+                    var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                    state.addCardToHand(generatedCardIdxes[r]);
                 }
             });
         }
 
         private static List<Card> cards;
         private static Card filter;
-        private static int[] cardsIdx;
 
         private static List<Card> getPossibleGeneratedCards(GameProperties properties) {
             if (cards == null) {
@@ -2023,9 +2012,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Neows Blessing: No need to implement
 
     public static class NilrysCodex extends Relic {
-        public NilrysCodex() {
-            selectCard1OutOf3 = true;
-        }
 
         @Override public void gamePropertiesSetup(GameState state) {
             var cards = getPossibleSelect1OutOf3Cards(state.properties);
@@ -2501,7 +2487,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         public AddCardBeforeBattleStarts(List<List<Card>> cards) {
             startOfBattleAction = new CardOther.AddCardBeforeBattleStarts(cards);
             this.cards = cards;
-            this.selectCard1OutOf3 = true;
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {

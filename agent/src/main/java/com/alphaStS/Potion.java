@@ -10,7 +10,6 @@ import com.alphaStS.utils.Utils;
 import java.util.*;
 
 public abstract class Potion implements GameProperties.CounterRegistrant {
-    boolean selectCard1OutOf3;
     boolean vulnEnemy;
     boolean weakEnemy;
     boolean changePlayerStrength;
@@ -397,9 +396,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class SwiftPotion extends Potion {
-        public SwiftPotion() {
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.hasSacredBark && state.properties.getRelic(Relic.SacredBark.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 6 : 3;
             state.draw(n);
@@ -408,9 +404,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class LiquidBronze extends Potion {
-        public LiquidBronze() {
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             state.getCounterForWrite()[counterIdx] += 3;
             return GameActionCtx.PLAY_CARD;
@@ -497,10 +490,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class AttackPotion extends Potion {
-        public AttackPotion() {
-            selectCard1OutOf3 = true;
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
@@ -516,10 +505,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class SkillPotion extends Potion {
-        public SkillPotion() {
-            selectCard1OutOf3 = true;
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
@@ -535,10 +520,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class PowerPotion extends Potion {
-        public PowerPotion() {
-            selectCard1OutOf3 = true;
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
@@ -554,10 +535,6 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class ColorlessPotion extends Potion {
-        public ColorlessPotion() {
-            selectCard1OutOf3 = true;
-        }
-
         @Override public GameActionCtx use(GameState state, int idx) {
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
