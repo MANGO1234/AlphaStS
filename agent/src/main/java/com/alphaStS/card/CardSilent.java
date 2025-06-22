@@ -2253,22 +2253,22 @@ public class CardSilent {
                     properties.alchemizeVIdx = idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal != 0) {
                         for (int i = 0; i < 5; i++) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = 0;
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx + i, 0);
                         }
-                        v[GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx]] = 1;
+                        v.set(GameState.V_OTHER_IDX_START + vArrayIdx + state.getCounterForRead()[counterIdx], 1);
                     } else if (isTerminal == 0) {
                         for (int i = 0; i < 5; i++) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx + i] = state.getVOther(vArrayIdx + i);
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx + i, state.getVOther(vArrayIdx + i));
                         }
                     }
                 }
 
-                @Override public void updateQValues(GameState state, double[] v) {
+                @Override public void updateQValues(GameState state, VArray v) {
                     for (int i = 0; i < 5; i++) {
-                        v[GameState.V_HEALTH_IDX] += i * healthReward * v[GameState.V_OTHER_IDX_START + vArrayIdx] / state.getPlayeForRead().getMaxHealth();
+                        v.add(GameState.V_HEALTH_IDX, i * healthReward * v.get(GameState.V_OTHER_IDX_START + vArrayIdx) / state.getPlayeForRead().getMaxHealth());
                     }
                 }
 

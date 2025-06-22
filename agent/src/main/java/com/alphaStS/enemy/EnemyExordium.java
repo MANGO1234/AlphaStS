@@ -1920,7 +1920,7 @@ public class EnemyExordium {
                     properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal > 0) {
                         boolean escaped = false;
                         for (var enemy : state.getEnemiesForRead()) {
@@ -1931,15 +1931,15 @@ public class EnemyExordium {
                                 }
                             }
                         }
-                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = state.getVOther(state.properties.looterVArrayIdx);
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVOther(state.properties.looterVArrayIdx));
                     }
                 }
 
-                @Override public void updateQValues(GameState state, double[] v) {
-                    double value = v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx];
-                    v[GameState.V_HEALTH_IDX] *= (0.9 + (1 - value) * 0.1);
+                @Override public void updateQValues(GameState state, VArray v) {
+                    double value = v.get(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx);
+                    v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.9 + (1 - value) * 0.1));
                 }
             });
         }
@@ -2038,7 +2038,7 @@ public class EnemyExordium {
                     properties.looterVArrayIdx = idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     boolean escaped = false;
                     for (var enemy : state.getEnemiesForRead()) {
                         if (enemy instanceof Mugger mugger) {
@@ -2049,15 +2049,15 @@ public class EnemyExordium {
                         }
                     }
                     if (isTerminal > 0 || escaped) {
-                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = escaped ? 1.0f : 0.0f;
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx] = state.getVOther(state.properties.looterVArrayIdx);
+                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVOther(state.properties.looterVArrayIdx));
                     }
                 }
 
-                @Override public void updateQValues(GameState state, double[] v) {
-                    double value = v[GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx];
-                    v[GameState.V_HEALTH_IDX] *= (0.9 + (1 - value) * 0.1);
+                @Override public void updateQValues(GameState state, VArray v) {
+                    double value = v.get(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx);
+                    v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.9 + (1 - value) * 0.1));
                 }
             });
         }

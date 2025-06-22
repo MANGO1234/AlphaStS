@@ -71,7 +71,7 @@ public class MCTS {
             return SEARCH_SUCCESS;
         }
         if (state.isTerminal() != 0) {
-            state.getVArray(v.getData());
+            state.getVArray(v);
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -84,7 +84,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.getVArray(v.getData());
+            state.getVArray(v);
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -542,7 +542,7 @@ public class MCTS {
         }
 
         if (state.isTerminal() != 0) {
-            state.getVArray(v.getData());
+            state.getVArray(v);
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -558,7 +558,7 @@ public class MCTS {
             state.writeLock();
             if (state.policy == null) {
                 state.doEval(model);
-                state.getVArray(v.getData());
+                state.getVArray(v);
                 realV.copyFrom(v);
                 state.initSearchInfoLeaf();
                 for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -979,7 +979,7 @@ public class MCTS {
             return;
         }
         if (state.isTerminal() != 0) {
-            state.getVArray(v.getData());
+            state.getVArray(v);
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -992,7 +992,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.getVArray(v.getData());
+            state.getVArray(v);
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -1134,7 +1134,7 @@ public class MCTS {
 
     void searchPlain_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
-            state.getVArray(v.getData());
+            state.getVArray(v);
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
@@ -1143,7 +1143,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.getVArray(v.getData());
+            state.getVArray(v);
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
@@ -1200,7 +1200,7 @@ public class MCTS {
     void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
         if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
-                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);;
+                v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
             }
             return;
         }
@@ -1328,7 +1328,7 @@ public class MCTS {
         }
         GameState state = (GameState) curLine.state;
         if (state.isTerminal() != 0) {
-            state.getVArray(v.getData());
+            state.getVArray(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.addTotalQ(i, v.get(i));
@@ -1346,7 +1346,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.getVArray(v.getData());
+            state.getVArray(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.addTotalQ(i, v.get(i));

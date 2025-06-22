@@ -1530,25 +1530,25 @@ public class CardDefect {
             });
             if (healthRewardRatio > 0) {
                 state.properties.addExtraTrainingTarget("GeneticAlgorithm", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal != 0) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 16.0);
                         } else {
                             int minGA = state.getCounterForRead()[counterIdx];
                             int maxGARemaining = getMaxPossibleGARemaining(state);
                             double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, state.getVOther(vArrayIdx)));
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = vGA;
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, vGA);
                         }
                     }
 
-                    @Override public void updateQValues(GameState state, double[] v) {
+                    @Override public void updateQValues(GameState state, VArray v) {
                         int minGA = state.getCounterForRead()[counterIdx];
                         int maxGARemaining = getMaxPossibleGARemaining(state);
-                        double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                        double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, v.get(GameState.V_OTHER_IDX_START + vArrayIdx)));
                         if (true) {
-                            v[GameState.V_HEALTH_IDX] += 16 * vGA * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                            v.add(GameState.V_HEALTH_IDX, 16 * vGA * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                         } else {
-                            v[GameState.V_HEALTH_IDX] *= (0.8 + vGA / 0.25 * 0.2);
+                            v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.8 + vGA / 0.25 * 0.2));
                         }
                     }
                 });

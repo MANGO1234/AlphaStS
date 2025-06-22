@@ -129,7 +129,7 @@ public class ChanceState implements State {
 //            }
 //            for (int i = 0; i < node.state.prop.v_total_len; i++) {
 //                new_total_q[i] = new_total_q[i] / nnn * total_n;
-//                v[i] = new_total_q[i] - total_q[i];
+//                v.set(i, new_total_q[i] - total_q[i]);
 //            }
 
             for (int i = 0; i < node.state.properties.v_total_len; i++) {
@@ -330,7 +330,7 @@ public class ChanceState implements State {
             //            }
             //            for (int i = 0; i < node.state.prop.v_total_len; i++) {
             //                new_total_q[i] = new_total_q[i] / nnn * total_n;
-            //                v[i] = new_total_q[i] - total_q[i];
+            //                v.set(i, new_total_q[i] - total_q[i]);
             //            }
 
             node.state.writeLock();

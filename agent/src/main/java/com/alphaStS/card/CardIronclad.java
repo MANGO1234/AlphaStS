@@ -2418,25 +2418,25 @@ public class CardIronclad {
             });
             if (healthRewardRatio > 0) {
                 state.properties.addExtraTrainingTarget("Feed", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 16.0;
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 16.0);
                         } else if (isTerminal == 0) {
                             int minFeed = state.getCounterForRead()[counterIdx];
                             int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
                             double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, state.getVOther(vArrayIdx)));
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = vFeed;
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, vFeed);
                         }
                     }
 
-                    @Override public void updateQValues(GameState state, double[] v) {
+                    @Override public void updateQValues(GameState state, VArray v) {
                         int minFeed = state.getCounterForRead()[counterIdx];
                         int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
-                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v[GameState.V_OTHER_IDX_START + vArrayIdx]));
+                        double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v.get(GameState.V_OTHER_IDX_START + vArrayIdx)));
                         if (true) {
-                            v[GameState.V_HEALTH_IDX] += 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                            v.add(GameState.V_HEALTH_IDX, 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                         } else {
-                            v[GameState.V_HEALTH_IDX] *= (0.8 + vFeed / 0.25 * 0.2);
+                            v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.8 + vFeed / 0.25 * 0.2));
                         }
                     }
                 });

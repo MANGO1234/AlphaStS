@@ -748,15 +748,15 @@ public final class GameState implements State {
                     properties.fightProgressVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal > 0) {
-                        v[state.properties.fightProgressVIdx] = 1;
+                        v.set(state.properties.fightProgressVIdx, 1);
                     } else if (isTerminal == 0) {
-                        v[state.properties.fightProgressVIdx] = state.getVOther(properties.fightProgressVIdx - V_OTHER_IDX_START);
+                        v.set(state.properties.fightProgressVIdx, state.getVOther(properties.fightProgressVIdx - V_OTHER_IDX_START));
                     }
                 }
 
-                @Override public void updateQValues(GameState state, double[] v) {}
+                @Override public void updateQValues(GameState state, VArray v) {}
             });
         }
         if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
@@ -765,17 +765,17 @@ public final class GameState implements State {
                     properties.qwinVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal > 0) {
-                        v[state.properties.qwinVIdx] = 0;
+                        v.set(state.properties.qwinVIdx, 0);
                     } else if (isTerminal < 0) {
-                        v[state.properties.qwinVIdx] = 0;
+                        v.set(state.properties.qwinVIdx, 0);
                     } else if (isTerminal == 0) {
-                        v[state.properties.qwinVIdx] = state.getVOther(properties.qwinVIdx - V_OTHER_IDX_START);
+                        v.set(state.properties.qwinVIdx, state.getVOther(properties.qwinVIdx - V_OTHER_IDX_START));
                     }
                 }
 
-                @Override public void updateQValues(GameState state, double[] v) {}
+                @Override public void updateQValues(GameState state, VArray v) {}
             });
         }
         if (Configuration.USE_TURNS_LEFT_HEAD) {
@@ -786,16 +786,16 @@ public final class GameState implements State {
                     properties.turnsLeftVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     if (isTerminal != 0) {
-                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / state.properties.maxPossibleRealTurnsLeft;
+                        v.set(state.properties.turnsLeftVIdx, state.realTurnNum / state.properties.maxPossibleRealTurnsLeft);
                     } else {
-                        v[state.properties.turnsLeftVIdx] = state.realTurnNum / state.properties.maxPossibleRealTurnsLeft + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START);
-                        v[state.properties.turnsLeftVIdx] = Math.min(v[state.properties.turnsLeftVIdx], 1.0);
+                        v.set(state.properties.turnsLeftVIdx, state.realTurnNum / state.properties.maxPossibleRealTurnsLeft + state.getVOther(properties.turnsLeftVIdx - V_OTHER_IDX_START));
+                        v.set(state.properties.turnsLeftVIdx, Math.min(v.get(state.properties.turnsLeftVIdx), 1.0));
                     }
                 }
 
-                @Override public void updateQValues(GameState state, double[] v) {
+                @Override public void updateQValues(GameState state, VArray v) {
                 }
 
                 @Override public int getNumberOfTargets() {
@@ -809,21 +809,21 @@ public final class GameState implements State {
                     properties.zeroDmgProbVIdx = V_OTHER_IDX_START + idx;
                 }
             }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
-                    v[state.properties.zeroDmgProbVIdx] = 0;
+                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                    v.set(state.properties.zeroDmgProbVIdx, 0);
                     for (int i = state.properties.v_real_len; i < state.properties.v_total_len; i++) {
-                        v[i] = 0;
+                        v.set(i, 0);
                     }
                     if (isTerminal != 0) {
-                        v[state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage()] = (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0;
+                        v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0);
                     } else {
-                        v[state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage()] = state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START);
+                        v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START));
                         if (state.getVOther(properties.zeroDmgProbVIdx - V_OTHER_IDX_START) < -0.05) {
                             throw new IllegalStateException("???");
                         }
                     }
                 }
-                @Override public void updateQValues(GameState state, double[] v) {}
+                @Override public void updateQValues(GameState state, VArray v) {}
                 @Override public int getNumberOfTargets() {
                     return 1;
                 }
@@ -857,29 +857,29 @@ public final class GameState implements State {
                         properties.potionsVArrayIdx[_i] = V_OTHER_IDX_START + idx;
                     }
                 }, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal != 0) {
                             if (state.potionsState[_i * 3] == 1 || state.potionsState[_i * 3 + 2] == 0) {
-                                v[state.properties.potionsVArrayIdx[_i]] = 1;
+                                v.set(state.properties.potionsVArrayIdx[_i], 1);
                             } else {
-                                v[state.properties.potionsVArrayIdx[_i]] = 0;
+                                v.set(state.properties.potionsVArrayIdx[_i], 0);
                             }
                         } else {
                             if (state.potionsState[_i * 3 + 2] == 0) {
-                                v[state.properties.potionsVArrayIdx[_i]] = 1;
+                                v.set(state.properties.potionsVArrayIdx[_i], 1);
                             } else if (state.potionsState[_i * 3] == 0) {
-                                v[state.properties.potionsVArrayIdx[_i]] = 0;
+                                v.set(state.properties.potionsVArrayIdx[_i], 0);
                             } else {
-                                v[state.properties.potionsVArrayIdx[_i]] = state.getVOther(state.properties.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START);
+                                v.set(state.properties.potionsVArrayIdx[_i], state.getVOther(state.properties.potionsVArrayIdx[_i] - GameState.V_OTHER_IDX_START));
                             }
                         }
                     }
 
-                    @Override public void updateQValues(GameState state, double[] v) {
+                    @Override public void updateQValues(GameState state, VArray v) {
                         if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
-                            v[V_HEALTH_IDX] += pot.getHealAmount(state) * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
+                            v.add(V_HEALTH_IDX, pot.getHealAmount(state) * v.get(state.properties.potionsVArrayIdx[_i]) / state.getPlayeForRead().getMaxHealth());
                         } else if (!properties.isHeartFight(state)) {
-                            v[V_HEALTH_IDX] += 5 * v[state.properties.potionsVArrayIdx[_i]] / state.getPlayeForRead().getMaxHealth();
+                            v.add(V_HEALTH_IDX, 5 * v.get(state.properties.potionsVArrayIdx[_i]) / state.getPlayeForRead().getMaxHealth());
                         }
                     }
                 });
@@ -2349,32 +2349,32 @@ public final class GameState implements State {
         return getPlayeForRead().getHealth() > 0 && turnNum > 50;
     }
 
-    public double calcQValue(double[] v) {
-        var health = v[V_HEALTH_IDX];
-        var win = v[V_WIN_IDX];
+    public double calcQValue(VArray v) {
+        var health = v.get(V_HEALTH_IDX);
+        var win = v.get(V_WIN_IDX);
         for (int i = 0; i < properties.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !GameProperties.isHeartFight(this)) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+                v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0));
+                v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !GameProperties.isHeartFight(this)) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+                v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0));
+                v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !GameProperties.isHeartFight(this)) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+                v.set(V_HEALTH_IDX, Math.max(v.get(V_HEALTH_IDX) - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0));
+                v.set(V_WIN_IDX, v.get(V_WIN_IDX) * potionsState[i * 3 + 1] / 100.0);
             }
         }
         for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
             properties.extraTrainingTargets.get(i).updateQValues(this, v);
         }
-        double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * v[V_HEALTH_IDX] * 0.5;
-        v[V_WIN_IDX] = win;
-        v[V_HEALTH_IDX] = health;
+        double base = v.get(V_WIN_IDX) * 0.5 + v.get(V_WIN_IDX) * v.get(V_WIN_IDX) * v.get(V_HEALTH_IDX) * 0.5;
+        v.set(V_WIN_IDX, win);
+        v.set(V_HEALTH_IDX, health);
         for (int i = 0; i < properties.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.FairyInABottle) {
-                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[properties.potionsVArrayIdx[i]];
+                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v.get(properties.potionsVArrayIdx[i]);
                 continue;
             }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !GameProperties.isHeartFight(this)) {
@@ -2384,7 +2384,7 @@ public final class GameState implements State {
         if (properties.alchemizeVIdx >= 0 && properties.alchemizeMult > 0 && !GameProperties.isHeartFight(this)) {
             var alchemizeMult = 0.0;
             for (int i = 0; i < 5; i++) {
-                alchemizeMult += Math.pow(properties.alchemizeMult, i) * v[GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i];
+                alchemizeMult += Math.pow(properties.alchemizeMult, i) * v.get(GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i);
             }
             base *= alchemizeMult;
         }
@@ -2392,7 +2392,7 @@ public final class GameState implements State {
     }
 
     public double calcQValue() {
-        var out = new double[properties.v_total_len];
+        var out = new VArray(properties.v_total_len);
         getVArray(out);
         return calcQValue(out);
     }
@@ -2401,13 +2401,13 @@ public final class GameState implements State {
         return getTotalQ(idx) / (total_n + 1);
     }
 
-    void getVArray(double[] out) {
+    void getVArray(VArray out) {
         var player = getPlayeForRead();
         if (player.getHealth() <= 0 || turnNum > 50) {
-            Arrays.fill(out, 0);
+            out.fill(0);
             if (properties.extraOutputLen > 0) {
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                    out[properties.fightProgressVIdx] = calcFightProgress(false);
+                    out.set(properties.fightProgressVIdx, calcFightProgress(false));
                 }
             }
             for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
@@ -2423,22 +2423,22 @@ public final class GameState implements State {
             }
         }
         if (enemiesAllDead) {
-            out[V_WIN_IDX] = 1;
-            out[V_HEALTH_IDX] = ((double) player.getHealth()) / player.getMaxHealth();
+            out.set(V_WIN_IDX, 1);
+            out.set(V_HEALTH_IDX, ((double) player.getHealth()) / player.getMaxHealth());
         } else {
-            out[V_WIN_IDX] = v_win;
-            out[V_HEALTH_IDX] = Math.min(v_health, getMaxPossibleHealth() / (float) getPlayeForRead().getMaxHealth());
+            out.set(V_WIN_IDX, v_win);
+            out.set(V_HEALTH_IDX, Math.min(v_health, getMaxPossibleHealth() / (float) getPlayeForRead().getMaxHealth()));
         }
         for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
             properties.extraTrainingTargets.get(i).fillVArray(this, out, enemiesAllDead ? 1 : 0);
         }
-        out[V_COMB_IDX] = calcQValue(out);
+        out.set(V_COMB_IDX, calcQValue(out));
     }
 
-    double[] cached_v;
-    double[] getVArrayCached() {
+    VArray cached_v;
+    VArray getVArrayCached() {
         if (cached_v == null) {
-            cached_v = new double[properties.v_total_len];
+            cached_v = new VArray(properties.v_total_len);
             getVArray(cached_v);
         }
         return cached_v;
@@ -3011,16 +3011,16 @@ public final class GameState implements State {
         }
         str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
         if (v_other != null) {
-            double[] o = new double[properties.v_total_len];
-            getVArray(o);
+            var vArray = new VArray(properties.v_total_len);
+            getVArray(vArray);
             int idx = 0;
             for (var target : properties.extraTrainingTargets) {
                 int n = target.getNumberOfTargets();
                 if (n == 1) {
-                    if (v_other[idx] == o[V_OTHER_IDX_START + idx]) {
+                    if (v_other[idx] == vArray.get(V_OTHER_IDX_START + idx)) {
                         str.append("/").append(formatFloat(v_other[idx]));
                     } else {
-                        str.append("/").append(formatFloat(v_other[idx])).append("->").append(formatFloat(o[V_OTHER_IDX_START + idx]));
+                        str.append("/").append(formatFloat(v_other[idx])).append("->").append(formatFloat(vArray.get(V_OTHER_IDX_START + idx)));
                     }
                 } else {
                     str.append("/[");

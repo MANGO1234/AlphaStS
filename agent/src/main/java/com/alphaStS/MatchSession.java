@@ -791,11 +791,11 @@ public class MatchSession {
 //            for (int i = 0; i < node.n; i++) {
 //                varK++;
 //                if (first) {
-//                    varM = v[GameState.V_COMB_IDX];
+//                    varM = v.get(GameState.V_COMB_IDX);
 //                    first = false;
 //                } else {
-//                    var tmp = varM + (v[GameState.V_COMB_IDX] - varM) / varK;
-//                    varS = varS + (v[GameState.V_COMB_IDX] - varM) * (v[GameState.V_COMB_IDX] - tmp);
+//                    var tmp = varM + (v.get(GameState.V_COMB_IDX) - varM) / varK;
+//                    varS = varS + (v.get(GameState.V_COMB_IDX) - varM) * (v.get(GameState.V_COMB_IDX) - tmp);
 //                    varM = tmp;
 //                }
 //            }
@@ -806,11 +806,11 @@ public class MatchSession {
 //            var v = s != stateActual ? s.get_v_cached() : vCur;
 //            varK++;
 //            if (first) {
-//                varM = v[GameState.V_COMB_IDX];
+//                varM = v.get(GameState.V_COMB_IDX);
 //                first = false;
 //            } else {
-//                var tmp = varM + (v[GameState.V_COMB_IDX] - varM) / varK;
-//                varS = varS + (v[GameState.V_COMB_IDX] - varM) * (v[GameState.V_COMB_IDX] - tmp);
+//                var tmp = varM + (v.get(GameState.V_COMB_IDX) - varM) / varK;
+//                varS = varS + (v.get(GameState.V_COMB_IDX) - varM) * (v.get(GameState.V_COMB_IDX) - tmp);
 //                varM = tmp;
 //            }
         }
@@ -823,7 +823,7 @@ public class MatchSession {
                 }
                 var out = node.state.getVArrayCached();
                 for (int i = 0; i < est.length; i++) {
-                    est[i] += out[i] * node.n;
+                    est[i] += out.get(i) * node.n;
                 }
             }
         }
@@ -992,8 +992,10 @@ public class MatchSession {
         var vLen = state.properties.v_total_len;
         double[] vCur = new double[vLen];
         double[] vPro = new double[vLen];
-        state.getVArray(vCur);
-        state.getVArray(vPro);
+        var vCurArray = new VArray(vCur);
+        var vProArray = new VArray(vPro);
+        state.getVArray(vCurArray);
+        state.getVArray(vProArray);
         if (state.isStochastic) {
             var prevStep = steps.get(steps.size() - 2);
             vCur = calcExpectedValue((ChanceState) prevStep.state().ns[prevStep.action()], null, mcts, vCur);

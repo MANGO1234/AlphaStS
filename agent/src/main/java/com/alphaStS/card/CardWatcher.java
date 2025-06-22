@@ -8,6 +8,7 @@ import com.alphaStS.GameEventHandler;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
+import com.alphaStS.VArray;
 import com.alphaStS.PlayerBuff;
 import com.alphaStS.RandomGenCtx;
 import com.alphaStS.TrainingTarget;
@@ -2691,15 +2692,15 @@ public class CardWatcher {
             });
             if (healthRewardRatio > 0) {
                 state.properties.addExtraTrainingTarget("LessonLearned", this, new TrainingTarget() {
-                    @Override public void fillVArray(GameState state, double[] v, int isTerminal) {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v[GameState.V_OTHER_IDX_START + vArrayIdx] = state.getCounterForRead()[counterIdx] / 10.0;
+                            v.set(GameState.V_OTHER_IDX_START + vArrayIdx, state.getCounterForRead()[counterIdx] / 10.0);
                         }
                     }
 
-                    @Override public void updateQValues(GameState state, double[] v) {
-                        double vUpgrades = v[GameState.V_OTHER_IDX_START + vArrayIdx];
-                        v[GameState.V_HEALTH_IDX] += 10 * vUpgrades * healthRewardRatio / state.getPlayeForRead().getMaxHealth();
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        double vUpgrades = v.get(GameState.V_OTHER_IDX_START + vArrayIdx);
+                        v.add(GameState.V_HEALTH_IDX, 10 * vUpgrades * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
