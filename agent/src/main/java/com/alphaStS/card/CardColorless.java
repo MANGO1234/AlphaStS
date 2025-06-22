@@ -389,10 +389,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var colorlessCardIdxes = state.properties.colorlessCardIdxes;
             for (int i = 0; i < numCards; i++) {
-                int randomIdx = state.getSearchRandomGen().nextInt(colorlessCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, colorlessCardIdxes));
-                int cardIdx = colorlessCardIdxes[randomIdx];
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                int cardIdx = generatedCardIdxes[randomIdx];
                 state.addCardToHand(cardIdx);
             }
             return GameActionCtx.PLAY_CARD;
@@ -707,11 +706,10 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var characterSkillPerm0Idxes = state.properties.characterSkillPerm0Idxes;
             for (int i = 0; i < skillCount; i++) {
                 state.setIsStochastic();
-                int randomIdx = state.getSearchRandomGen().nextInt(characterSkillPerm0Idxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, characterSkillPerm0Idxes));
-                int cardIdx = characterSkillPerm0Idxes[randomIdx];
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                int cardIdx = generatedCardIdxes[randomIdx];
                 state.addCardToDeck(cardIdx);
             }
             return GameActionCtx.PLAY_CARD;
@@ -876,11 +874,10 @@ public class CardColorless {
 
             state.properties.addStartOfTurnHandler("Magnetism", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    var colorlessCardIdxes = state.properties.colorlessCardIdxes;
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
-                        int randomIdx = state.getSearchRandomGen().nextInt(colorlessCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, colorlessCardIdxes));
-                        int cardIdx = colorlessCardIdxes[randomIdx];
+                        int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        int cardIdx = generatedCardIdxes[randomIdx];
                         state.addCardToHand(cardIdx);
                     }
                 }
@@ -985,11 +982,10 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var characterAttackPerm0Idxes = state.properties.characterAttackPerm0Idxes;
             for (int i = 0; i < attackCount; i++) {
                 state.setIsStochastic();
-                int randomIdx = state.getSearchRandomGen().nextInt(characterAttackPerm0Idxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, characterAttackPerm0Idxes));
-                int cardIdx = characterAttackPerm0Idxes[randomIdx];
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                int cardIdx = generatedCardIdxes[randomIdx];
                 state.addCardToDeck(cardIdx);
             }
             return GameActionCtx.PLAY_CARD;

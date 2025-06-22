@@ -808,7 +808,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainEnergy(n);
-            state.addCardToDiscard(state.properties.voidCardIdx);
+            state.addCardToDiscard(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1758,8 +1758,8 @@ public class CardDefect {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
-                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
-                        state.addCardToHand(cardsIdx[r]);
+                        var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        state.addCardToHand(generatedCardIdxes[r]);
                     }
                 }
             });
@@ -1896,7 +1896,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.draw(n);
-            state.addCardToDiscard(state.properties.burnCardIdx);
+            state.addCardToDiscard(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2329,8 +2329,8 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.setIsStochastic();
-            var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
-            state.addCardToHand(cardsIdx[r]);
+            var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+            state.addCardToHand(generatedCardIdxes[r]);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2638,8 +2638,8 @@ public class CardDefect {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
                         state.setIsStochastic();
-                        var r = state.getSearchRandomGen().nextInt(cardsIdx.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, cardsIdx));
-                        state.addCardToHand(cardsIdx[r]);
+                        var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        state.addCardToHand(generatedCardIdxes[r]);
                     }
                 }
             });
