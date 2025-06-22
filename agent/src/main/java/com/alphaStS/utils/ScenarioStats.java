@@ -221,18 +221,18 @@ public class ScenarioStats {
                 biasedCognitionLimitDist[i] += state.properties.biasedCognitionLimitDistribution[i];
             }
         }
-        var finalQ = state.get_q();
+        var finalQ = state.calcQValue();
         for (int i = 0; i < steps.size() - 1; i++) {
             var curState = steps.get(i).state();
             if (curState.turnNum < 1) {
                 continue;
             }
             predictionError.computeIfAbsent(state.turnNum - curState.turnNum, (k) -> new Tuple<>(0.0, 0));
-            predictionError.computeIfPresent(state.turnNum - curState.turnNum, (k, v) -> new Tuple<>(v.v1() + curState.get_q_TreeSearch(GameState.V_COMB_IDX) - finalQ, v.v2() + 1));
+            predictionError.computeIfPresent(state.turnNum - curState.turnNum, (k, v) -> new Tuple<>(v.v1() + curState.getQValueTreeSearch(GameState.V_COMB_IDX) - finalQ, v.v2() + 1));
         }
         finalFightProgress += state.calcFightProgress(false);
         if (state.isTerminal() > 0) {
-            finalQComb += state.get_q();
+            finalQComb += state.calcQValue();
             int idx = 0;
             for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                 if (state.potionUsed(i)) {
@@ -361,7 +361,7 @@ public class ScenarioStats {
             GameState state = steps.get(steps.size() - 1).state();
             GameState state2 = steps2.get(steps2.size() - 1).state();
             if ((state.isTerminal() == 1 && state2.isTerminal() == 1)) {
-                double diff = state.get_q() - state2.get_q();
+                double diff = state.calcQValue() - state2.calcQValue();
                 if (diff > 0) {
                     winQs.add(diff);
                 } else if (diff < 0) {

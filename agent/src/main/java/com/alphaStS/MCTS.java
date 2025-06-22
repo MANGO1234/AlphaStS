@@ -71,7 +71,7 @@ public class MCTS {
             return SEARCH_SUCCESS;
         }
         if (state.isTerminal() != 0) {
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -84,7 +84,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -542,7 +542,7 @@ public class MCTS {
         }
 
         if (state.isTerminal() != 0) {
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -558,7 +558,7 @@ public class MCTS {
             state.writeLock();
             if (state.policy == null) {
                 state.doEval(model);
-                state.get_v(v.getData());
+                state.getVArray(v.getData());
                 realV.copyFrom(v);
                 state.initSearchInfoLeaf();
                 for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -979,7 +979,7 @@ public class MCTS {
             return;
         }
         if (state.isTerminal() != 0) {
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -992,7 +992,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             realV.copyFrom(v);
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
@@ -1120,7 +1120,7 @@ public class MCTS {
         for (int i = 0; i < state.properties.v_total_len; i++) {
             double qTotal = state.getChildQ(actionToPropagate, i) / state.n[actionToPropagate] * (state.total_n + 1);
             if (state.ns[actionToPropagate] instanceof ChanceState) {
-                qTotal = state.getChildQ(actionToPropagate, i) / state.n[actionToPropagate] * state.total_n + state.get_q();
+                qTotal = state.getChildQ(actionToPropagate, i) / state.n[actionToPropagate] * state.total_n + state.calcQValue();
             }
             v.set(i, qTotal - state.getTotalQ(i));
             state.addTotalQ(i, v.get(i));
@@ -1134,7 +1134,7 @@ public class MCTS {
 
     void searchPlain_r(GameState state, boolean training, int remainingCalls, boolean isRoot) {
         if (state.isTerminal() != 0) {
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
@@ -1143,7 +1143,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.setTotalQ(i, v.get(i));
             }
@@ -1328,7 +1328,7 @@ public class MCTS {
         }
         GameState state = (GameState) curLine.state;
         if (state.isTerminal() != 0) {
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.addTotalQ(i, v.get(i));
@@ -1346,7 +1346,7 @@ public class MCTS {
         }
         if (state.policy == null) {
             state.doEval(model);
-            state.get_v(v.getData());
+            state.getVArray(v.getData());
             state.initSearchInfoLeaf();
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 state.addTotalQ(i, v.get(i));

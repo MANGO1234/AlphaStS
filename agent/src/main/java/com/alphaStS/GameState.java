@@ -1874,8 +1874,8 @@ public final class GameState implements State {
                 for (int j = 0; j < upto; j++) {
                     properties.currentMCTS.search(c, false, -1);
                 }
-                q_win[i] = c.get_q_TreeSearch(GameState.V_WIN_IDX);
-                q_comb[i] = c.get_q_TreeSearch(GameState.V_COMB_IDX);
+                q_win[i] = c.getQValueTreeSearch(GameState.V_WIN_IDX);
+                q_comb[i] = c.getQValueTreeSearch(GameState.V_COMB_IDX);
             }
             properties.biasedCognitionLimitSet = false;
             var qTmp = properties.biasedCognitionLimitCache.putIfAbsent(this.clone(false), new Tuple<>(q_win, q_comb));
@@ -2319,23 +2319,93 @@ public final class GameState implements State {
         }
     }
 
-    int get_v_len() {
-        return properties.v_total_len;
+    public int getScenarioIdxChosen() {
+        int idx = 0;
+        if (properties.preBattleRandomization != null) {
+            idx = preBattleRandomizationIdxChosen;
+            if (preBattleRandomizationIdxChosen < 0) {
+                System.out.println(this);
+                throw new RuntimeException();
+            }
+        }
+        if (properties.preBattleScenarios != null) {
+            idx *= properties.preBattleScenarios.listRandomizations().size();
+            idx += preBattleScenariosChosenIdx;
+            if (preBattleScenariosChosenIdx < 0) {
+                throw new RuntimeException();
+            }
+        }
+        if (properties.randomization != null) {
+            idx *= properties.randomization.listRandomizations().size();
+            idx += battleRandomizationIdxChosen;
+            if (battleRandomizationIdxChosen < 0) {
+                throw new RuntimeException();
+            }
+        }
+        return idx;
     }
 
-    void get_v(double[] out) {
+    public boolean isLossFrom50() {
+        return getPlayeForRead().getHealth() > 0 && turnNum > 50;
+    }
+
+    public double calcQValue(double[] v) {
+        var health = v[V_HEALTH_IDX];
+        var win = v[V_WIN_IDX];
+        for (int i = 0; i < properties.potions.size(); i++) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !GameProperties.isHeartFight(this)) {
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+            }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !GameProperties.isHeartFight(this)) {
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+            }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !GameProperties.isHeartFight(this)) {
+                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
+                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
+            }
+        }
+        for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
+            properties.extraTrainingTargets.get(i).updateQValues(this, v);
+        }
+        double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * v[V_HEALTH_IDX] * 0.5;
+        v[V_WIN_IDX] = win;
+        v[V_HEALTH_IDX] = health;
+        for (int i = 0; i < properties.potions.size(); i++) {
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.FairyInABottle) {
+                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[properties.potionsVArrayIdx[i]];
+                continue;
+            }
+            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !GameProperties.isHeartFight(this)) {
+                base *= potionsState[i * 3 + 1] / 100.0;
+            }
+        }
+        if (properties.alchemizeVIdx >= 0 && properties.alchemizeMult > 0 && !GameProperties.isHeartFight(this)) {
+            var alchemizeMult = 0.0;
+            for (int i = 0; i < 5; i++) {
+                alchemizeMult += Math.pow(properties.alchemizeMult, i) * v[GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i];
+            }
+            base *= alchemizeMult;
+        }
+        return base;
+    }
+
+    public double calcQValue() {
+        var out = new double[properties.v_total_len];
+        getVArray(out);
+        return calcQValue(out);
+    }
+
+    public double getQValueTreeSearch(int idx) {
+        return getTotalQ(idx) / (total_n + 1);
+    }
+
+    void getVArray(double[] out) {
         var player = getPlayeForRead();
         if (player.getHealth() <= 0 || turnNum > 50) {
             Arrays.fill(out, 0);
             if (properties.extraOutputLen > 0) {
-//                int cur = 0;
-//                for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
-//                    int n = properties.extraTrainingTargets.get(i).getNumberOfTargets();
-//                    if (n > 1 && !properties.extraTrainingTargetsLabel.get(i).equals("DmgDistribution")) {
-//                        out[V_OTHER_IDX_START + cur + n - 1] = 1;
-//                    }
-//                    cur += n;
-//                }
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
                     out[properties.fightProgressVIdx] = calcFightProgress(false);
                 }
@@ -2362,42 +2432,16 @@ public final class GameState implements State {
         for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
             properties.extraTrainingTargets.get(i).fillVArray(this, out, enemiesAllDead ? 1 : 0);
         }
-        out[V_COMB_IDX] = calc_q(out);
+        out[V_COMB_IDX] = calcQValue(out);
     }
 
     double[] cached_v;
-    double[] get_v_cached() {
+    double[] getVArrayCached() {
         if (cached_v == null) {
-            cached_v = new double[get_v_len()];
-            get_v(cached_v);
+            cached_v = new double[properties.v_total_len];
+            getVArray(cached_v);
         }
         return cached_v;
-    }
-
-    public int getScenarioIdxChosen() {
-        int idx = 0;
-        if (properties.preBattleRandomization != null) {
-            idx = preBattleRandomizationIdxChosen;
-            if (preBattleRandomizationIdxChosen < 0) {
-                System.out.println(this);
-                throw new RuntimeException();
-            }
-        }
-        if (properties.preBattleScenarios != null) {
-            idx *= properties.preBattleScenarios.listRandomizations().size();
-            idx += preBattleScenariosChosenIdx;
-            if (preBattleScenariosChosenIdx < 0) {
-                throw new RuntimeException();
-            }
-        }
-        if (properties.randomization != null) {
-            idx *= properties.randomization.listRandomizations().size();
-            idx += battleRandomizationIdxChosen;
-            if (battleRandomizationIdxChosen < 0) {
-                throw new RuntimeException();
-            }
-        }
-        return idx;
     }
 
     public boolean isQInitialized() {
@@ -2740,62 +2784,6 @@ public final class GameState implements State {
         }
     }
 
-    public boolean isLossFrom50() {
-        return getPlayeForRead().getHealth() > 0 && turnNum > 50;
-    }
-
-    public double calc_q(double[] v) {
-        var health = v[V_HEALTH_IDX];
-        var win = v[V_WIN_IDX];
-        for (int i = 0; i < properties.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BloodPotion pot && !GameProperties.isHeartFight(this)) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
-            }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && potionsState[i * 3 + 1] < 100 && properties.potions.get(i) instanceof Potion.RegenerationPotion pot && !GameProperties.isHeartFight(this)) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getHealAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
-            }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.BlockPotion pot && !GameProperties.isHeartFight(this)) {
-                v[V_HEALTH_IDX] = Math.max(v[V_HEALTH_IDX] - ((pot.getBlockAmount(this) + 1) / (float) player.getMaxHealth()), 0);
-                v[V_WIN_IDX] = v[V_WIN_IDX] * potionsState[i * 3 + 1] / 100.0;
-            }
-        }
-        for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
-            properties.extraTrainingTargets.get(i).updateQValues(this, v);
-        }
-        double base = v[V_WIN_IDX] * 0.5 + v[V_WIN_IDX] * v[V_WIN_IDX] * v[V_HEALTH_IDX] * 0.5;
-        v[V_WIN_IDX] = win;
-        v[V_HEALTH_IDX] = health;
-        for (int i = 0; i < properties.potions.size(); i++) {
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.FairyInABottle) {
-                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v[properties.potionsVArrayIdx[i]];
-                continue;
-            }
-            if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !GameProperties.isHeartFight(this)) {
-                base *= potionsState[i * 3 + 1] / 100.0;
-            }
-        }
-        if (properties.alchemizeVIdx >= 0 && properties.alchemizeMult > 0 && !GameProperties.isHeartFight(this)) {
-            var alchemizeMult = 0.0;
-            for (int i = 0; i < 5; i++) {
-                alchemizeMult += Math.pow(properties.alchemizeMult, i) * v[GameState.V_OTHER_IDX_START + properties.alchemizeVIdx + i];
-            }
-            base *= alchemizeMult;
-        }
-        return base;
-    }
-
-    public double get_q() {
-        var out = new double[get_v_len()];
-        get_v(out);
-        return calc_q(out);
-    }
-
-    public double get_q_TreeSearch(int idx) {
-        return getTotalQ(idx) / (total_n + 1);
-    }
-
     public byte getPotionCount() {
         byte ret = 0;
         if (potionsState != null) {
@@ -3019,12 +3007,12 @@ public final class GameState implements State {
         boolean showQComb = properties.potions.size() > 0 || (properties.extraTrainingTargets.size() > 0 && isTerminal() > 0);
         str.append(", v=(");
         if (showQComb) {
-            str.append(formatFloat(get_q())).append("/");
+            str.append(formatFloat(calcQValue())).append("/");
         }
         str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
         if (v_other != null) {
             double[] o = new double[properties.v_total_len];
-            get_v(o);
+            getVArray(o);
             int idx = 0;
             for (var target : properties.extraTrainingTargets) {
                 int n = target.getNumberOfTargets();

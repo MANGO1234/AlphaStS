@@ -1,6 +1,5 @@
 package com.alphaStS;
 
-import com.alphaStS.card.CardIronclad;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelExecutor;
 import com.alphaStS.model.ModelPlain;
@@ -822,7 +821,7 @@ public class MatchSession {
                 if (node.state.policy == null) {
                     node.state.doEval(mcts.model);
                 }
-                var out = node.state.get_v_cached();
+                var out = node.state.getVArrayCached();
                 for (int i = 0; i < est.length; i++) {
                     est[i] += out[i] * node.n;
                 }
@@ -990,11 +989,11 @@ public class MatchSession {
         var trainingGameEnd = System.currentTimeMillis();
 
         // do scoring here before clearing states to reuse nn eval if possible
-        var vLen = state.get_v_len();
+        var vLen = state.properties.v_total_len;
         double[] vCur = new double[vLen];
         double[] vPro = new double[vLen];
-        state.get_v(vCur);
-        state.get_v(vPro);
+        state.getVArray(vCur);
+        state.getVArray(vPro);
         if (state.isStochastic) {
             var prevStep = steps.get(steps.size() - 2);
             vCur = calcExpectedValue((ChanceState) prevStep.state().ns[prevStep.action()], null, mcts, vCur);
@@ -1854,7 +1853,7 @@ public class MatchSession {
                 Game game = result.game;
                 List<GameStep> steps = game.steps;
                 var state = steps.get(steps.size() - 1).state();
-                averageQ += state.get_q();
+                averageQ += state.calcQValue();
 
                 for (int i = 1; i < steps.size() - 1; i++) {
                     var step = steps.get(i);
