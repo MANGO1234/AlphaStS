@@ -130,8 +130,8 @@ public class EnemyEnding {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == BURN_STRIKE) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
-                state.addCardOnTopOfDeck(state.properties.burnCardIdx);
-                state.addCardOnTopOfDeck(state.properties.burnCardIdx);
+                state.addCardOnTopOfDeck(properties.generatedCardIdx);
+                state.addCardOnTopOfDeck(properties.generatedCardIdx);
             } else if (move == PIERCER) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     enemy.gainStrength(2);
@@ -336,11 +336,11 @@ public class EnemyEnding {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 2);
-                state.addCardToDeck(state.properties.dazedCardIdx);
-                state.addCardToDeck(state.properties.burnCardIdx);
-                state.addCardToDeck(state.properties.voidCardIdx);
-                state.addCardToDeck(state.properties.slimeCardIdx);
-                state.addCardToDeck(state.properties.woundCardIdx);
+                state.addCardToDeck(properties.generatedCardIdxes[0]);
+                state.addCardToDeck(properties.generatedCardIdxes[1]);
+                state.addCardToDeck(properties.generatedCardIdxes[2]);
+                state.addCardToDeck(properties.generatedCardIdxes[3]);
+                state.addCardToDeck(properties.generatedCardIdxes[4]);
             } else if (move == BLOOD_SHOT) {
                 state.enemyDoDamageToPlayer(this, 2, 15);
             } else if (move == ECHO) {
@@ -419,14 +419,14 @@ public class EnemyEnding {
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof CorruptHeart && ((CorruptHeart) source).buffCount >= 2 && isAttack && damageDealt > 0) {
-                        state.addCardToDiscard(state.properties.woundCardIdx);
+                        state.addCardToDiscard(properties.generatedCardIdxes[4]);
                     }
                 }
             });
             state.properties.isHeartGauntlet = state.properties.switchBattleHandler != null;
         }
 
-        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Burn(), new CardOther.Wound(), new CardOther.Dazed(), new CardOther.Slime(), new CardOther.Void()); }
+        public List<Card> getPossibleGeneratedCards(GameProperties prop, List<Card> cards) { return List.of(new CardOther.Dazed(), new CardOther.Burn(), new CardOther.Void(), new CardOther.Slime(), new CardOther.Wound()); }
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);

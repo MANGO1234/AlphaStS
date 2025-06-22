@@ -232,9 +232,9 @@ public class EnemyExordium {
             if (move == BEAM) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
             } else if (move == BOLT) {
-                state.addCardToDiscard(state.properties.dazedCardIdx);
-                state.addCardToDiscard(state.properties.dazedCardIdx);
-                state.addCardToDiscard(state.properties.dazedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -311,8 +311,8 @@ public class EnemyExordium {
                 state.enemyDoDamageToPlayer(this, n, 6);
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
-                state.addCardToDiscard(state.properties.burnCardIdx);
-                state.addCardToDiscard(state.properties.burnCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdxes[0]);
+                state.addCardToDiscard(properties.generatedCardIdxes[0]);
             } else if (move == TACKLE_1 || move == TACKLE_2) {
                 state.enemyDoDamageToPlayer(this, 6, 2);
             } else if (move == INFLAME_1) {
@@ -322,13 +322,13 @@ public class EnemyExordium {
                 state.enemyDoDamageToPlayer(this, 3, 6);
                 var burnUpgrade = new int[state.properties.cardDict.length];
                 Arrays.fill(burnUpgrade, -1);
-                burnUpgrade[state.properties.burnCardIdx] = state.properties.burnPCardIdx;
+                burnUpgrade[properties.generatedCardIdxes[0]] = properties.generatedCardIdxes[1];
                 state.handArrTransform(burnUpgrade);
                 state.discardArrTransform(burnUpgrade);
                 state.deckArrTransform(burnUpgrade);
-                state.addCardToDiscard(state.properties.burnPCardIdx);
-                state.addCardToDiscard(state.properties.burnPCardIdx);
-                state.addCardToDiscard(state.properties.burnPCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdxes[1]);
+                state.addCardToDiscard(properties.generatedCardIdxes[1]);
+                state.addCardToDiscard(properties.generatedCardIdxes[1]);
             }
         }
 
@@ -587,7 +587,7 @@ public class EnemyExordium {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == GOOP_SPRAY) {
                 for (int i = 0; i < 5; i++) {
-                    state.addCardToDiscard(state.properties.slimeCardIdx);
+                    state.addCardToDiscard(properties.generatedCardIdx);
                 }
             } else if (move == SLAM) {
                 state.enemyDoDamageToPlayer(this, 38, 1);
@@ -713,8 +713,8 @@ public class EnemyExordium {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == FLAME_TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
-                state.addCardToDiscard(state.properties.slimeCardIdx);
-                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == LICK) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 3);
             } else if (move == SPLIT) {
@@ -803,7 +803,7 @@ public class EnemyExordium {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == FLAME_TACKLE) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
-                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == LICK) {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.FRAIL, 1);
             }
@@ -942,8 +942,8 @@ public class EnemyExordium {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CORROSIVE_SPIT) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
-                state.addCardToDiscard(state.properties.slimeCardIdx);
-                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == LICK) {
@@ -1044,7 +1044,7 @@ public class EnemyExordium {
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == CORROSIVE_SPIT) {
                 state.enemyDoDamageToPlayer(this, 8, 1);
-                state.addCardToDiscard(state.properties.slimeCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             } else if (move == TACKLE) {
                 state.enemyDoDamageToPlayer(this, 12, 1);
             } else if (move == LICK) {

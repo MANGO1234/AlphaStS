@@ -37,6 +37,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean useLast2MovesForMoveSelection;
         public boolean canSelfRevive;
         public boolean isAct3;
+        public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
+        public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
+        public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
 
         public EnemyProperties(int numOfMoves, boolean useLast2MovesForMoveSelection) {
             this.numOfMoves = numOfMoves;
@@ -82,9 +85,6 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int mark;
     protected int move = -1;
     protected int lastMove = -1;
-    public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
-    public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
-    public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
     int vExtraIdx = -1;
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
@@ -103,12 +103,12 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     public abstract Enemy copy();
     public abstract String getMoveString(GameState state, int move);
 
-    public void setupGeneratedCardIndexes(GameProperties properties) {
-        List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
-        var result = GameStateUtils.setupGeneratedCardIndexes(possibleCards, properties);
-        generatedCardIdx = result.v1();
-        generatedCardIdxes = result.v2();
-        generatedCardReverseIdxes = result.v3();
+    public void setupGeneratedCardIndexes(GameProperties gameProperties) {
+        List<Card> possibleCards = getPossibleGeneratedCards(gameProperties, List.of(gameProperties.cardDict));
+        var result = GameStateUtils.setupGeneratedCardIndexes(possibleCards, gameProperties);
+        properties.generatedCardIdx = result.v1();
+        properties.generatedCardIdxes = result.v2();
+        properties.generatedCardReverseIdxes = result.v3();
     }
 
     public void setVExtraIdx(GameProperties gameProperties, int idx) {

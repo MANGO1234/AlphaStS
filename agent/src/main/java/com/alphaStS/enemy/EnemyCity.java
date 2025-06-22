@@ -1063,7 +1063,7 @@ public class EnemyCity {
             state.properties.addOnDamageHandler("BookOfStabbing", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (source instanceof BookOfStabbing && damageDealt > 0) {
-                        state.addCardToDiscard(state.properties.woundCardIdx);
+                        state.addCardToDiscard(properties.generatedCardIdx);
                     }
                 }
             });
@@ -1096,9 +1096,9 @@ public class EnemyCity {
             if (move == SCOURING_WHIP) {
                 state.enemyDoDamageToPlayer(this, 7, 1);
                 gainStrength(1);
-                state.addCardToDiscard(state.properties.woundCardIdx);
-                state.addCardToDiscard(state.properties.woundCardIdx);
-                state.addCardToDiscard(state.properties.woundCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
+                state.addCardToDiscard(properties.generatedCardIdx);
             }
         }
 
@@ -2015,7 +2015,7 @@ public class EnemyCity {
             state.properties.addOnCardPlayedHandler("Chosen", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK && state.getPlayeForRead().isHexed()) {
-                        state.addCardToDeck(state.properties.dazedCardIdx);
+                        state.addCardToDeck(properties.generatedCardIdx);
                     }
                 }
             });
