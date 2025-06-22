@@ -176,7 +176,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(state.properties.shivCardIdx);
+                state.addCardToHand(generatedCardIdx);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -209,7 +209,7 @@ public class CardSilent {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(6);
             for (int i = 0; i < n; i++) {
-                state.addCardToHand(state.properties.shivCardIdx);
+                state.addCardToHand(generatedCardIdx);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1190,8 +1190,8 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var r = state.getSearchRandomGen().nextInt(state.properties.distractionIndexes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.distractionIndexes));
-            state.addCardToHand(state.properties.distractionIndexes[r]);
+            var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+            state.addCardToHand(generatedCardIdxes[r]);
             state.setIsStochastic();
             return GameActionCtx.PLAY_CARD;
         }
@@ -1567,7 +1567,7 @@ public class CardSilent {
             state.properties.addPreStartOfTurnHandler("InfiniteBlade", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                        state.addCardToHand(state.properties.shivCardIdx);
+                        state.addCardToHand(generatedCardIdx);
                     }
                 }
             });
@@ -2887,7 +2887,7 @@ public class CardSilent {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int c = state.discardHand(true);
             for (int i = 0; i < c; i++) {
-                state.addCardToHand(upgraded ? state.properties.shivPCardIdx : state.properties.shivCardIdx);
+                state.addCardToHand(upgraded ? generatedCardIdxes[1] : generatedCardIdxes[0]);
             }
             return GameActionCtx.PLAY_CARD;
         }
