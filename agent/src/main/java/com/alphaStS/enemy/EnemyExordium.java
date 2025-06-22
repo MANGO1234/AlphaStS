@@ -1931,14 +1931,14 @@ public class EnemyExordium {
                                 }
                             }
                         }
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
+                        v.setVExtra(state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVExtra(state.properties.looterVArrayIdx));
+                        v.setVExtra(state.properties.looterVArrayIdx, state.getVExtra(state.properties.looterVArrayIdx));
                     }
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    double value = v.get(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx);
+                    double value = v.getVExtra(state.properties.looterVArrayIdx);
                     v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.9 + (1 - value) * 0.1));
                 }
             });
@@ -2049,14 +2049,14 @@ public class EnemyExordium {
                         }
                     }
                     if (isTerminal > 0 || escaped) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
+                        v.setVExtra(state.properties.looterVArrayIdx, escaped ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx, state.getVExtra(state.properties.looterVArrayIdx));
+                        v.setVExtra(state.properties.looterVArrayIdx, state.getVExtra(state.properties.looterVArrayIdx));
                     }
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    double value = v.get(GameState.V_OTHER_IDX_START + state.properties.looterVArrayIdx);
+                    double value = v.getVExtra(state.properties.looterVArrayIdx);
                     v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.9 + (1 - value) * 0.1));
                 }
             });

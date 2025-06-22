@@ -1538,14 +1538,14 @@ public class EnemyBeyond {
                                 }
                             }
                         }
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx, implantUsed ? 1.0f : 0.0f);
+                        v.setVExtra(state.properties.writhingMassVIdx, implantUsed ? 1.0f : 0.0f);
                     } else if (isTerminal == 0) {
-                        v.set(GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx, state.getVExtra(state.properties.writhingMassVIdx));
+                        v.setVExtra(state.properties.writhingMassVIdx, state.getVExtra(state.properties.writhingMassVIdx));
                     }
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    double value = v.get(GameState.V_OTHER_IDX_START + state.properties.writhingMassVIdx);
+                    double value = v.getVExtra(state.properties.writhingMassVIdx);
                     v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (1 - value * implantPenalty));
                 }
             });

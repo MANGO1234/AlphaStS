@@ -1753,13 +1753,13 @@ public class MCTS {
                 if (state.ns[i] instanceof ChanceState cs) {
                     var t = 0.0;
                     for (ChanceState.Node node : cs.cache.values()) {
-                        t += node.state.getVExtra(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START) * node.n / cs.total_node_n;
+                        t += node.state.getVExtra(state.properties.qwinVIdx) * node.n / cs.total_node_n;
                     }
                     ds.addValue(t);
                     uncertainty[i] = t;
                 } else {
-                    ds.addValue(((GameState) state.ns[i]).getVExtra(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START));
-                    uncertainty[i] = ((GameState) state.ns[i]).getVExtra(state.properties.qwinVIdx - GameState.V_OTHER_IDX_START);
+                    ds.addValue(((GameState) state.ns[i]).getVExtra(state.properties.qwinVIdx));
+                    uncertainty[i] = ((GameState) state.ns[i]).getVExtra(state.properties.qwinVIdx);
                 }
             }
         }

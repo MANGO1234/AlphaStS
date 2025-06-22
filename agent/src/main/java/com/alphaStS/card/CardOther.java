@@ -531,12 +531,12 @@ public class CardOther {
                 state.properties.addExtraTrainingTarget("WishGold", this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.set(GameState.V_OTHER_IDX_START + vExtraIdx, state.getCounterForRead()[counterIdx] / 100.0);
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 100.0);
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        double vGold = v.get(GameState.V_OTHER_IDX_START + vExtraIdx);
+                        double vGold = v.getVExtra(vExtraIdx);
                         v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                     }
                 });

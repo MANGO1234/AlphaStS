@@ -58,6 +58,14 @@ public class VArray {
         return result;
     }
 
+    public double getVExtra(int vExtraIdx) {
+        return data[GameState.V_OTHER_IDX_START + vExtraIdx];
+    }
+
+    public void setVExtra(int vExtraIdx, double value) {
+        data[GameState.V_OTHER_IDX_START + vExtraIdx] = value;
+    }
+
     public void setToChildQ(GameState state, int action) {
         for (int i = 0; i < state.properties.v_total_len; i++) {
             set(i, state.getChildQ(action, i) / state.n[action]);
