@@ -1124,11 +1124,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DeadBranch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleGeneratedCards(state.properties, null);
-            state.properties.deadBranchCardsIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.deadBranchCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
-            }
+            state.properties.hasDeadBranch = true;
             state.properties.addOnExhaustHandler("DeadBranch", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
@@ -1136,8 +1132,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                             if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                                 return;
                             }
-                            var idx = state.getSearchRandomGen().nextInt(state.properties.deadBranchCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.deadBranchCardsIdxes));
-                            idx = state.addCardToHandGeneration(state.properties.deadBranchCardsIdxes[idx]);
+                            var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                            idx = state.addCardToHandGeneration(generatedCardIdxes[idx]);
                             state.setIsStochastic();
                             if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                             state.getStateDesc().append("Dead Branch -> ").append(state.properties.cardDict[idx].cardName);
@@ -1599,11 +1595,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
     public static class Astrolabe extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleGeneratedCards(state.properties, null);
-            state.properties.astrolabeCardsIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.astrolabeCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
-            }
+            state.properties.astrolabeCardsIdxes = generatedCardIdxes;
             state.properties.addStartOfBattleHandler("Astrolabe", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
@@ -1616,10 +1608,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (state.getStateDesc().length() > 0) state.stateDesc.append(", ");
                     state.getStateDesc().append("Astrolabe -> ");
                     for (int i = 0; i < 3; i++) {
-                        var idx = state.getSearchRandomGen().nextInt(state.properties.astrolabeCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.astrolabeCardsIdxes));
-                        state.addCardToDeck(state.properties.astrolabeCardsIdxes[idx], false);
+                        var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        state.addCardToDeck(generatedCardIdxes[idx], false);
                         if (i > 0) state.stateDesc.append(" + ");
-                        state.getStateDesc().append(state.properties.cardDict[state.properties.astrolabeCardsIdxes[idx]].cardName);
+                        state.getStateDesc().append(state.properties.cardDict[generatedCardIdxes[idx]].cardName);
                         if (state.properties.makingRealMove) {
                             state.properties.astrolabeCardsTransformed[i] = idx;
                         }
@@ -1713,11 +1705,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleGeneratedCards(state.properties, null);
-            state.properties.pandorasBoxCardsIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.pandorasBoxCardsIdxes[i] = state.properties.findCardIndex(cards.get(i));
-            }
+            state.properties.pandorasBoxCardsIdxes = generatedCardIdxes;
             state.properties.addStartOfBattleHandler("PandorasBox" + n, new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
@@ -1731,11 +1719,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         state.stateDesc.append(", ");
                     state.getStateDesc().append("Pandora's Box -> ");
                     for (int i = 0; i < n; i++) {
-                        var idx = state.getSearchRandomGen().nextInt(state.properties.pandorasBoxCardsIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, state.properties.pandorasBoxCardsIdxes));
-                        state.addCardToDeck(state.properties.pandorasBoxCardsIdxes[idx], false);
+                        var idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        state.addCardToDeck(generatedCardIdxes[idx], false);
                         if (i > 0)
                             state.stateDesc.append(" + ");
-                        state.getStateDesc().append(state.properties.cardDict[state.properties.pandorasBoxCardsIdxes[idx]].cardName);
+                        state.getStateDesc().append(state.properties.cardDict[generatedCardIdxes[idx]].cardName);
                         if (state.properties.makingRealMove) {
                             state.properties.pandorasBoxCardsTransformed[i] = idx;
                         }
@@ -1901,6 +1889,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Cultist Mask: No need to implement
 
     public static class Enchiridion extends Relic {
+        private Card filter;
+
         public Enchiridion() {}
 
         public Enchiridion(Card filter) {
@@ -1913,25 +1903,18 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         return;
                     }
-                    state.setIsStochastic();
-                    var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
-                    state.addCardToHand(generatedCardIdxes[r]);
+                    var cardIdx = generatedCardIdx;
+                    if (generatedCardIdxes.length > 1) {
+                        state.setIsStochastic();
+                        cardIdx = generatedCardIdxes[state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes))];
+                    }
+                    state.addCardToHand(cardIdx);
                 }
             });
         }
 
-        private static List<Card> cards;
-        private static Card filter;
-
-        private static List<Card> getPossibleGeneratedCards(GameProperties properties) {
-            if (cards == null) {
-                cards = CardManager.getCharacterCardsByTypeTmp0Cost(properties.character, Card.POWER, false);
-            }
-            return cards;
-        }
-
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleGeneratedCards(properties);
+            return filter == null ? CardManager.getCharacterCardsByTypeTmp0Cost(properties.character, Card.POWER, false) : List.of(filter.getTemporaryCostIfPossible(0));
         }
     }
 
@@ -2014,11 +1997,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class NilrysCodex extends Relic {
 
         @Override public void gamePropertiesSetup(GameState state) {
-            var cards = getPossibleSelect1OutOf3Cards(state.properties);
-            state.properties.nilrysCodexIdxes = new int[cards.size()];
-            for (int i = 0; i < cards.size(); i++) {
-                state.properties.nilrysCodexIdxes[i] = state.properties.select1OutOf3CardsReverseIdxes[state.properties.findCardIndex(cards.get(i))];
-            }
             // todo: implement later
         }
 
@@ -2171,9 +2149,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("NinjaScroll", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
-                        state.addCardToHand(state.properties.shivCardIdx);
-                        state.addCardToHand(state.properties.shivCardIdx);
-                        state.addCardToHand(state.properties.shivCardIdx);
+                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx);
                     }
                 }
             });
@@ -2518,7 +2496,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
-                        state.addCardToHand(state.properties.miracleCardIdx);
+                        state.addCardToHand(generatedCardIdx);
                     }
                 }
             });
@@ -2629,9 +2607,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
-                        state.addCardToHand(state.properties.miracleCardIdx);
-                        state.addCardToHand(state.properties.miracleCardIdx);
-                        state.addCardToHand(state.properties.miracleCardIdx);
+                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx);
+                        state.addCardToHand(generatedCardIdx);
                     }
                 }
             });

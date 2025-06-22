@@ -2710,7 +2710,7 @@ public final class GameState implements State {
                     }
                 }
             }
-            if (properties.deadBranchCardsIdxes != null && properties.getRelic(Relic.DeadBranch.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.hasDeadBranch && properties.getRelic(Relic.DeadBranch.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
                 maxPossiblePowers += 10000;
             }
             if (properties.hasBirdFacedUrn && maxPossiblePowers > 0) {

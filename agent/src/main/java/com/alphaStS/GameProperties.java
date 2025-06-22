@@ -91,7 +91,6 @@ public class GameProperties implements Cloneable {
     public int[] cardRewardIdxes;
     public int[] astrolabeCardsIdxes;
     public int[] pandorasBoxCardsIdxes;
-    public int[] deadBranchCardsIdxes;
     public int[][] sneckoIdxes;
     public int angerCardIdx = -1;
     public int angerPCardIdx = -1;
@@ -238,6 +237,7 @@ public class GameProperties implements Cloneable {
     public boolean hasChemicalX;
     public boolean hasHandDrill;
     public boolean hasMarkOfTheBloom;
+    public boolean hasDeadBranch;
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
