@@ -1044,14 +1044,14 @@ public class MatchSession {
             steps.get(i).v = Arrays.copyOf(vPro, vCur.length);
             if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
                 if (!USE_Z_TRAINING && steps.get(i).isExplorationMove && steps.get(i + 1).v != null) {
-                    var vWin = steps.get(i + 1).v[state.properties.qwinVIdx] - (-10);
+                    var vWin = steps.get(i + 1).v[state.properties.qwinVExtraIdx] - (-10);
                     if (isBetter < 0) {
-                        steps.get(i + 1).v[state.properties.qwinVIdx] = 0.75 * vWin;
+                        steps.get(i + 1).v[state.properties.qwinVExtraIdx] = 0.75 * vWin;
                     } else if (isBetter > 0) {
-                        steps.get(i + 1).v[state.properties.qwinVIdx] = 1 - 0.75 * (1 - vWin);
+                        steps.get(i + 1).v[state.properties.qwinVExtraIdx] = 1 - 0.75 * (1 - vWin);
                     }
                 }
-                steps.get(i).v[state.properties.qwinVIdx] = -10 + steps.get(i).state().getVExtra(state.properties.qwinVIdx);
+                steps.get(i).v[state.properties.qwinVExtraIdx] = -10 + steps.get(i).state().getVExtra(state.properties.qwinVExtraIdx);
             }
             state = steps.get(i).state();
             state.clearNextStates();
@@ -1784,7 +1784,7 @@ public class MatchSession {
                             bracketEnd = j + r.v2() - 1;
                         }
                     }
-                    if (j == step.state().properties.zeroDmgProbVIdx) {
+                    if (j == step.state().properties.zeroDmgProbVExtraIdx) {
                         writer.write(String.valueOf(step.v[step.state().properties.v_real_len + step.state().getPlayeForRead().getAccumulatedDamage()]));
                     } else {
                         writer.write(String.valueOf(step.v[j]));

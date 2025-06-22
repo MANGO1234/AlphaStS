@@ -62,7 +62,6 @@ public class GameProperties implements Cloneable {
     public List<Integer> alchemizeCardIdxes;
     public int numOfPotionSlots = 2;
     public int nonGeneratedPotionsLength;
-    public int[] potionsVArrayIdx;
     public int[] potionsScenarios;
     public EnemyList originalEnemies;
     public int maxNumOfActions;
@@ -193,9 +192,6 @@ public class GameProperties implements Cloneable {
     public int brillianceCounterIdx = -1;
     public int wreathOfFlameCounterIdx = -1;
     public int swivelCounterIdx = -1;
-    public int looterVArrayIdx = -1;
-    public int writhingMassVIdx = -1;
-    public int alchemizeVIdx = -1;
 
     public boolean hasBlueCandle;
     public boolean hasBoot;
@@ -310,11 +306,18 @@ public class GameProperties implements Cloneable {
     public int maxNumOfOrbs;
 
     public double cpuct = 0.1;
-    public int fightProgressVIdx;
-    public int turnsLeftVIdx = -1;
-    public int zeroDmgProbVIdx = -1;
     public float maxPossibleRealTurnsLeft = 50.0f;
-    public int qwinVIdx = -1;
+
+    // V Extra indices for training targets
+    public int fightProgressVExtraIdx = -1;
+    public int qwinVExtraIdx = -1;
+    public int turnsLeftVExtraIdx = -1;
+    public int zeroDmgProbVExtraIdx = -1;
+    public int alchemizeVExtraIdx = -1;
+    public int writhingMassVExtraIdx = -1;
+    public int looterVExtraIdx = -1;
+    public int muggerVExtraIdx = -1;
+    public int[] potionsVExtraIdx;
 
     public int difficultyChosen;
 

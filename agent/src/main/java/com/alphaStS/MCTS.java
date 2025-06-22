@@ -1551,7 +1551,7 @@ public class MCTS {
                 q = state.n[i] > 0 ? state.getChildQ(i, GameState.V_WIN_IDX) / childN : state.getTotalQ(GameState.V_WIN_IDX) / (state.total_n + 1);
             }
             if (useFightProgress) { // only when every child has at least one node
-                q = state.getChildQ(i, state.properties.fightProgressVIdx) / childN;
+                q = state.getChildQ(i, state.properties.fightProgressVExtraIdx) / childN;
             }
 
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.properties.testNewFeature)) {
@@ -1672,7 +1672,7 @@ public class MCTS {
                         if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                             continue;
                         }
-                        double turns2 = state.getChildQ(i, state.properties.turnsLeftVIdx) / state.n[i];
+                        double turns2 = state.getChildQ(i, state.properties.turnsLeftVExtraIdx) / state.n[i];
                         if (qValues[i] >= 0.999 * maxQ) {
                             uValues[i] += (1 - turns2) * state.properties.maxPossibleRealTurnsLeft / 50.0 ;
                         }
@@ -1753,13 +1753,13 @@ public class MCTS {
                 if (state.ns[i] instanceof ChanceState cs) {
                     var t = 0.0;
                     for (ChanceState.Node node : cs.cache.values()) {
-                        t += node.state.getVExtra(state.properties.qwinVIdx) * node.n / cs.total_node_n;
+                        t += node.state.getVExtra(state.properties.qwinVExtraIdx) * node.n / cs.total_node_n;
                     }
                     ds.addValue(t);
                     uncertainty[i] = t;
                 } else {
-                    ds.addValue(((GameState) state.ns[i]).getVExtra(state.properties.qwinVIdx));
-                    uncertainty[i] = ((GameState) state.ns[i]).getVExtra(state.properties.qwinVIdx);
+                    ds.addValue(((GameState) state.ns[i]).getVExtra(state.properties.qwinVExtraIdx));
+                    uncertainty[i] = ((GameState) state.ns[i]).getVExtra(state.properties.qwinVExtraIdx);
                 }
             }
         }

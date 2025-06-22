@@ -2250,7 +2250,7 @@ public class CardSilent {
             state.properties.addExtraTrainingTarget("Alchemize", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVExtraIdx(GameProperties properties, int idx) {
                     vExtraIdx = idx;
-                    properties.alchemizeVIdx = idx;
+                    properties.alchemizeVExtraIdx = idx;
                 }
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
