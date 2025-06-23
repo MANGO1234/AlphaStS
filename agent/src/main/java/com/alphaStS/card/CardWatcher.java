@@ -295,7 +295,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(block);
-            state.addCardToDeck(state.properties.insightCardIdx);
+            state.addCardToDeck(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -701,7 +701,7 @@ public class CardWatcher {
                 @Override public void handle(GameState state) {
                     if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                            state.addCardToHand(state.properties.smiteCardIdx);
+                            state.addCardToHand(generatedCardIdx);
                         }
                     }
                 }
@@ -736,7 +736,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
-            state.addCardToHand(state.properties.smiteCardIdx);
+            state.addCardToHand(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -845,7 +845,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(block);
-            state.addCardToHand(state.properties.safetyCardIdx);
+            state.addCardToHand(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1457,7 +1457,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.gainMantra(mantra);
-            state.addCardToDeck(state.properties.insightCardIdx);
+            state.addCardToDeck(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1493,7 +1493,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
-            state.addCardToDeck(state.properties.throughViolenceCardIdx);
+            state.addCardToDeck(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1791,7 +1791,7 @@ public class CardWatcher {
                 @Override public void handle(GameState state) {
                     if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0) {
                         for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
-                            state.addCardToDeck(state.properties.insightCardIdx);
+                            state.addCardToDeck(generatedCardIdx);
                         }
                     }
                 }
@@ -2416,7 +2416,7 @@ public class CardWatcher {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int xValue = addExtraHit ? energyUsed + 1 : energyUsed;
             int indexToUse = Math.min(xValue, limit);
-            state.addCardToDeck(state.properties.conjureBladeIndexes[indexToUse]);
+            state.addCardToDeck(generatedCardIdxes[indexToUse]);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2474,7 +2474,7 @@ public class CardWatcher {
                     if (state.properties.cardDict[cardIdx] instanceof _DeusExMachinaT deusEx) {
                         // Add Miracles to hand
                         for (int i = 0; i < deusEx.miracleCount; i++) {
-                            state.addCardToHand(state.properties.miracleCardIdx);
+                            state.addCardToHand(generatedCardIdx);
                         }
                         // Exhaust this card - find and remove it from hand
                         for (int i = 0; i < state.handArrLen; i++) {
@@ -2916,15 +2916,9 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            // Set up the 3 wish choices
-            Card armorCard = upgraded ? new com.alphaStS.card.CardOther.WishPlatedArmorP() : new com.alphaStS.card.CardOther.WishPlatedArmor();
-            Card strengthCard = upgraded ? new com.alphaStS.card.CardOther.WishStrengthP() : new com.alphaStS.card.CardOther.WishStrength();
-            Card goldCard = upgraded ? new com.alphaStS.card.CardOther.WishGoldP(healthRewardRatio) : new com.alphaStS.card.CardOther.WishGold(healthRewardRatio);
-
-            int armorIdx = state.properties.findCardIndex(armorCard);
-            int strengthIdx = state.properties.findCardIndex(strengthCard);
-            int goldIdx = state.properties.findCardIndex(goldCard);
-
+            int armorIdx = generatedCardIdxes[0];
+            int strengthIdx = generatedCardIdxes[1];
+            int goldIdx = generatedCardIdxes[2];
             state.setSelect1OutOf3Idxes(armorIdx, strengthIdx, goldIdx);
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
