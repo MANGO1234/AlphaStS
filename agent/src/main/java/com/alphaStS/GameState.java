@@ -557,36 +557,8 @@ public final class GameState implements State {
         }
         List<Integer> strikeIdxes = new ArrayList<>();
         for (int i = 0; i < cards.size(); i++) {
-            if (cards.get(i).cardName.equals("Burn")) {
-                properties.burnCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Burn+")) {
-                properties.burnPCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Dazed")) {
-                properties.dazedCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Slimed")) {
-                properties.slimeCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Normality")) {
+            if (cards.get(i).cardName.equals("Normality")) {
                 properties.normalityCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Wound")) {
-                properties.woundCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Void")) {
-                properties.voidCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Anger")) {
-                properties.angerCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Anger+")) {
-                properties.angerPCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Shiv")) {
-                properties.shivCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Shiv+")) {
-                properties.shivPCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Smite")) {
-                properties.smiteCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Insight")) {
-                properties.insightCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Safety")) {
-                properties.safetyCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Through Violence")) {
-                properties.throughViolenceCardIdx = i;
             } else if (cards.get(i).cardName.contains("Strike")) {
                 strikeIdxes.add(i);
             } else if (cards.get(i).cardName.equals("Echo Form")) {
@@ -597,14 +569,6 @@ public final class GameState implements State {
                 properties.apotheosisCardIdx = i;
             } else if (cards.get(i).cardName.equals("Apotheosis+")) {
                 properties.apotheosisPCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Miracle")) {
-                properties.miracleCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Miracle+")) {
-                properties.miraclePCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Beta")) {
-                properties.betaCardIdx = i;
-            } else if (cards.get(i).cardName.equals("Omega")) {
-                properties.omegaCardIdx = i;
             } else if (cards.get(i).cardName.equals("Well-Laid Plans") || cards.get(i).cardName.equals("Well-Laid Plans+")) {
                 properties.wellLaidPlansCardIdx = i;
             } else if (cards.get(i).cardName.equals("Tools Of The Trade") || cards.get(i).cardName.equals("Tools Of The Trade+")) {
@@ -616,21 +580,6 @@ public final class GameState implements State {
             }
         }
         properties.strikeCardIdxes = strikeIdxes.stream().mapToInt(Integer::intValue).toArray();
-        properties.colorlessCardIdxes = GameStateUtils.getCardIdxes(CardManager.getColorlessCards(false), properties);
-        var colorlessCards = CardManager.getColorlessCards(false);
-        properties.colorlessTmp0Idxes = new int[colorlessCards.size()];
-        properties.colorlessUpgradedTmp0Idxes = new int[colorlessCards.size()];
-        for (int i = 0; i < colorlessCards.size(); i++) {
-            Card tmpCostCard = colorlessCards.get(i).getTemporaryCostIfPossible(0);
-            if (tmpCostCard != null) {
-                properties.colorlessTmp0Idxes[i] = properties.findCardIndex(tmpCostCard);
-            }
-            Card upgradedCard = colorlessCards.get(i).getUpgrade();
-            if (upgradedCard != null) {
-                Card upgradedTmpCostCard = upgradedCard.getTemporaryCostIfPossible(0);
-                properties.colorlessUpgradedTmp0Idxes[i] = properties.findCardIndex(upgradedTmpCostCard);
-            }
-        }
         properties.healCardsIdxes = findCardThatCanHealIdxes(cards, relics);
         if (properties.healCardsIdxes != null) {
             properties.healCardsBooleanArr = new boolean[properties.cardDict.length];

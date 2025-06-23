@@ -784,11 +784,15 @@ public class CardWatcher {
             state.properties.addStartOfTurnHandler("Collect", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.addCardToHand(state.properties.miraclePCardIdx);
+                        state.addCardToHand(generatedCardIdx);
                         state.getCounterForWrite()[counterIdx]--;
                     }
                 }
             });
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.MiracleP());
         }
     }
 
@@ -2298,8 +2302,12 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToDeck(state.properties.betaCardIdx);
+            state.addCardToDeck(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Beta());
         }
     }
 
@@ -2418,15 +2426,6 @@ public class CardWatcher {
             int indexToUse = Math.min(xValue, limit);
             state.addCardToDeck(generatedCardIdxes[indexToUse]);
             return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.conjureBladeIndexes == null || state.properties.conjureBladeIndexes.length - 1 < limit) {
-                state.properties.conjureBladeIndexes = new int[limit + 1]; // 0-limit for different X values
-                for (int i = 0; i <= limit; i++) {
-                    state.properties.conjureBladeIndexes[i] = state.properties.findCardIndex(new CardColorless.Expunger(i));
-                }
-            }
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {

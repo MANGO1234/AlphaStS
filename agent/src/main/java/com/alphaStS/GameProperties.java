@@ -83,40 +83,17 @@ public class GameProperties implements Cloneable {
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] nilrysCodexIdxes;
-    public int[] colorlessTmp0Idxes;
-    public int[] colorlessUpgradedTmp0Idxes;
-    public int[] characterSkillPerm0Idxes;
-    public int[] characterAttackPerm0Idxes;
     public int[] cardRewardIdxes;
     public int[] astrolabeCardsIdxes;
     public int[] pandorasBoxCardsIdxes;
     public int[][] sneckoIdxes;
-    public int angerCardIdx = -1;
-    public int angerPCardIdx = -1;
     public int[] strikeCardIdxes;
-    public int[] colorlessCardIdxes;
     // cached status indexes
-    public int burnCardIdx = -1;
-    public int burnPCardIdx = -1;
-    public int dazedCardIdx = -1;
-    public int slimeCardIdx = -1;
     public int normalityCardIdx = -1;
-    public int woundCardIdx = -1;
-    public int voidCardIdx = -1;
-    public int shivCardIdx = -1;
-    public int shivPCardIdx = -1;
-    public int smiteCardIdx = -1;
-    public int insightCardIdx = -1;
-    public int safetyCardIdx = -1;
-    public int throughViolenceCardIdx = -1;
     public int echoFormCardIdx = -1;
     public int echoFormPCardIdx = -1;
     public int apotheosisCardIdx = -1;
     public int apotheosisPCardIdx = -1;
-    public int miracleCardIdx = -1;
-    public int miraclePCardIdx = -1;
-    public int betaCardIdx = -1;
-    public int omegaCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
     public int gamblingChipsCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
@@ -127,10 +104,8 @@ public class GameProperties implements Cloneable {
     public int[] windmillStrikePTransformIndexes;
     public int[] perseveranceTransformIndexes;
     public int[] perseverancePTransformIndexes;
-    public int[] conjureBladeIndexes;
     public int[] masterfulStabTransformIndexes;
     public int[] masterfulStabPTransformIndexes;
-    public int[] setUpCardIdxes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] clawIndexes;
@@ -143,8 +118,6 @@ public class GameProperties implements Cloneable {
     public int[] glassKnifePIndexes;
     public int[] steamBarrierIndexes;
     public int[] steamBarrierPIndexes;
-    public int[] infernalBladeIndexes;
-    public int[] distractionIndexes;
     public int[] healCardsIdxes;
     public boolean[] healCardsBooleanArr;
     public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
@@ -793,14 +766,6 @@ public class GameProperties implements Cloneable {
                     var enemy = state.getEnemiesForWrite().getForWrite(idx);
                     state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[registrant.getCounterIdx(state.properties)], true);
                 }
-            }
-        });
-    }
-
-    public void registerMetallicizeHandler(GameState state, int counterIdx) {
-        state.properties.addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
-            @Override public void handle(GameState state) {
-                state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
             }
         });
     }

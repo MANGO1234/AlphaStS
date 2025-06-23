@@ -1196,16 +1196,6 @@ public class CardSilent {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.distractionIndexes == null) {
-                var cards = getPossibleGeneratedCards(state.properties, null);
-                state.properties.distractionIndexes = new int[cards.size()];
-                for (int i = 0; i < cards.size(); i++) {
-                    state.properties.distractionIndexes[i] = state.properties.findCardIndex(cards.get(i));
-                }
-            }
-        }
-
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.SILENT, Card.SKILL, false);
         }
@@ -1894,17 +1884,6 @@ public class CardSilent {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return doNothing ? List.of() : cards.stream().map(card -> card.getTemporaryCostUntilPlayedIfPossible(0)).toList();
-        }
-
-        public void gamePropertiesSetup(GameState state) {
-            state.properties.setUpCardIdxes = new int[state.properties.cardDict.length];
-            for (int i = 0; i < state.properties.cardDict.length; i++) {
-                if (state.properties.cardDict[i] instanceof CardTmpUntilPlayedCost) {
-                    state.properties.setUpCardIdxes[i] = i;
-                } else {
-                    state.properties.setUpCardIdxes[i] = state.properties.findCardIndex(state.properties.cardDict[i].getTemporaryCostUntilPlayedIfPossible(0));
-                }
-            }
         }
     }
 

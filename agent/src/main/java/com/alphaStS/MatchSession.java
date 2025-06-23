@@ -1696,7 +1696,7 @@ public class MatchSession {
                         }
                     }
                     if (j == GameState.V_EXTRA_IDX_START + step.state().properties.zeroDmgProbVExtraIdx) {
-                        writer.write(String.valueOf(step.v.getVZeroDmg(+ step.state().getPlayeForRead().getAccumulatedDamage())));
+                        writer.write(String.valueOf(step.v.getVZeroDmg(step.state().getPlayeForRead().getAccumulatedDamage())));
                     } else {
                         writer.write(String.valueOf(step.v.get(j)));
                     }

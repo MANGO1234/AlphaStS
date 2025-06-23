@@ -1418,40 +1418,6 @@ public class CardIronclad {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.infernalBladeIndexes == null) {
-                state.properties.infernalBladeIndexes = new int[29];
-                state.properties.infernalBladeIndexes[0] = state.properties.findCardIndex(new CardIronclad.Anger());
-                state.properties.infernalBladeIndexes[1] = state.properties.findCardIndex(new CardIronclad.BodySlam());
-                state.properties.infernalBladeIndexes[2] = state.properties.findCardIndex(new CardIronclad.Clash());
-                state.properties.infernalBladeIndexes[3] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Cleave(), 0));
-                state.properties.infernalBladeIndexes[4] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Clothesline(), 0));
-                state.properties.infernalBladeIndexes[5] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Headbutt(), 0));
-                state.properties.infernalBladeIndexes[6] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.HeavyBlade(), 0));
-                state.properties.infernalBladeIndexes[7] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.IronWave(), 0));
-                state.properties.infernalBladeIndexes[8] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.PerfectedStrike(), 0));
-                state.properties.infernalBladeIndexes[9] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.PommelStrike(), 0));
-                state.properties.infernalBladeIndexes[10] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.SwordBoomerang(), 0));
-                state.properties.infernalBladeIndexes[11] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Thunderclap(), 0));
-                state.properties.infernalBladeIndexes[12] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.TwinStrike(), 0));
-                state.properties.infernalBladeIndexes[13] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.WildStrike(), 0));
-                state.properties.infernalBladeIndexes[14] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.BloodForBlood(), 0));
-                state.properties.infernalBladeIndexes[15] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Carnage(), 0));
-                state.properties.infernalBladeIndexes[16] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Dropkick(), 0));
-                state.properties.infernalBladeIndexes[17] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Hemokinesis(), 0));
-                state.properties.infernalBladeIndexes[18] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Pummel(), 0));
-                state.properties.infernalBladeIndexes[19] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Rampage(), 0));
-                state.properties.infernalBladeIndexes[20] = state.properties.findCardIndex(new CardIronclad.RecklessCharge());
-                state.properties.infernalBladeIndexes[21] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.SearingBlow(0), 0));
-                state.properties.infernalBladeIndexes[22] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.SeverSoul(), 0));
-                state.properties.infernalBladeIndexes[23] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Uppercut(), 0));
-                state.properties.infernalBladeIndexes[24] = state.properties.findCardIndex(new CardIronclad.Whirlwind());
-                state.properties.infernalBladeIndexes[25] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Bludgeon(), 0));
-                state.properties.infernalBladeIndexes[26] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.FiendFire(), 0));
-                state.properties.infernalBladeIndexes[27] = state.properties.findCardIndex(new Card.CardTmpChangeCost(new CardIronclad.Immolate(), 0));
-            }
-        }
-
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.IRONCLAD, Card.ATTACK, false);
         }
