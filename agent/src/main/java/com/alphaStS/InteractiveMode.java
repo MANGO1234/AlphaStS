@@ -2048,7 +2048,7 @@ public class InteractiveMode {
                 o.append(", turns_left=").append(formatFloat(s.getChildQ(action, GameState.V_EXTRA_IDX_START + s.properties.turnsLeftVExtraIdx) / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
             }
             if (s.properties.zeroDmgProbVExtraIdx >= 0) {
-                o.append(", zero_dmg_take_prob=").append(formatFloat(s.getChildQ(action, s.properties.v_real_len + s.getPlayeForRead().getAccumulatedDamage()) / max_n)).append("%");
+                o.append(", zero_dmg_take_prob=").append(formatFloat(s.getChildQArray(action).getVZeroDmg(s.getPlayeForRead().getAccumulatedDamage()) / max_n)).append("%");
             }
             out.println(o);
             finalOuput.append("\n").append(o);

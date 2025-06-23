@@ -1,6 +1,5 @@
 package com.alphaStS;
 
-import com.alphaStS.utils.BigRational;
 import com.alphaStS.utils.Tuple;
 
 import java.util.*;
@@ -136,9 +135,10 @@ public class ChanceState implements State {
                 var node_cur_q = node.state.getTotalQ(i) / (node.state.total_n + 1);
                 var prev_q = total_n == 1 ? 0 : total_q.get(i) / (total_n - 1);
                 var new_q = (prev_q * (total_node_n - 1) - node.prev_q.get(i) * (node.n - 1)) / total_node_n + node_cur_q * node.n / total_node_n;
-                node.prev_q.set(i, node_cur_q);
                 v.set(i, new_q * total_n - total_q.get(i));
             }
+            v.setChanceStateCorrectV(node.state.getTotalQArray(), node.state.total_n, total_q, total_n, total_node_n, node.prev_q, node.n);
+            node.prev_q.setToQNormalized(node.state.getTotalQArray(), node.state.total_n + 1);
         }
         for (int i = 0; i < node.state.properties.v_total_len; i++) {
             total_q.add(i, v.get(i));
@@ -341,8 +341,9 @@ public class ChanceState implements State {
             for (int i = 0; i < node.state.properties.v_total_len; i++) {
                 var node_cur_q = node.state.getTotalQ(i) / (node.state.total_n + 1);
                 v.set(i, node_cur_q * node.n - node.prev_q.get(i) * prevNodeN);
-                node.prev_q.set(i, node_cur_q);
             }
+            v.setChanceStateCorrectVParallel(node.state.getTotalQArray(), node.state.total_n, node.n, node.prev_q, prevNodeN);
+            node.prev_q.setToQNormalized(node.state.getTotalQArray(), node.state.total_n + 1);
             node.state.writeUnlock();
             if (Configuration.USE_PROGRESSIVE_WIDENING && prevNodeN == 0) {
                 uniqueNodeEntry.getAndIncrement();

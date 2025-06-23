@@ -8,7 +8,7 @@ public final class GameStep {
     public boolean takenFromChanceStateCache;
     public double trainingWriteCount;
     public boolean trainingSkipOpening;
-    public double[] v;
+    public VArray v;
     public List<String> lines;
     public boolean isExplorationMove;
     public RandomGen searchRandomGenMCTS;

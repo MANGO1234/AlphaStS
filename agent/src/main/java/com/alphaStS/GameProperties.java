@@ -256,7 +256,6 @@ public class GameProperties implements Cloneable {
     public int inputLen;
     public int extraOutputLen;
     public int v_total_len;
-    public int v_real_len;
     public boolean cardInDiscardInNNInput;
     public boolean discard0CardOrderMatters;
     public int discardOrderMaxKeepTrackIn10s; // currently, those are sent manually in all or one

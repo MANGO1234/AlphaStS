@@ -811,16 +811,10 @@ public final class GameState implements State {
             }, new TrainingTarget() {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     v.setVExtra(state.properties.zeroDmgProbVExtraIdx, 0);
-                    for (int i = state.properties.v_real_len; i < state.properties.v_total_len; i++) {
-                        v.set(i, 0);
-                    }
                     if (isTerminal != 0) {
-                        v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0);
+                        v.setVZeroDmg(state.getPlayeForRead().getAccumulatedDamage(), (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0);
                     } else {
-                        v.set(state.properties.v_real_len + state.getPlayeForRead().getAccumulatedDamage(), state.getVExtra(properties.zeroDmgProbVExtraIdx));
-                        if (state.getVExtra(properties.zeroDmgProbVExtraIdx) < -0.05) {
-                            throw new IllegalStateException("???");
-                        }
+                        v.setVZeroDmg(state.getPlayeForRead().getAccumulatedDamage(), state.getVExtra(properties.zeroDmgProbVExtraIdx));
                     }
                 }
                 @Override public void updateQValues(GameState state, VArray v) {}
@@ -834,10 +828,6 @@ public final class GameState implements State {
         properties.v_total_len = 3;
         for (var target : properties.extraTrainingTargets) {
             properties.v_total_len += target.getNumberOfTargets();
-        }
-        properties.v_real_len = properties.v_total_len;
-        if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
-            properties.v_total_len += (int) (getPlayeForRead().getMaxHealth() * 2);
         }
 
         // mcts related fields
@@ -2405,7 +2395,7 @@ public final class GameState implements State {
     void getVArray(VArray out) {
         var player = getPlayeForRead();
         if (player.getHealth() <= 0 || turnNum > 50) {
-            out.fill(0);
+            out.reset();
             if (properties.extraOutputLen > 0) {
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
                     out.setVExtra(properties.fightProgressVExtraIdx, calcFightProgress(false));
@@ -2453,28 +2443,11 @@ public final class GameState implements State {
         return q_total != null ? q_total.get(i) : 0;
     }
 
-    public void setTotalQ(int i, double v) {
-        if (q_total == null) {
-            q_total = new VArray(properties.v_total_len);
-        }
-        q_total.set(i, v);
-    }
-
     public double getChildQ(int childIdx, int i) {
         if (q_child == null || q_child[childIdx] == null) {
             return 0;
         }
         return q_child[childIdx].get(i);
-    }
-
-    public void setChildQ(int childIdx, int i, double v) {
-        if (q_child == null) {
-            q_child = new VArray[policy.length];
-        }
-        if (q_child[childIdx] == null) {
-            q_child[childIdx] = new VArray(properties.v_total_len);
-        }
-        q_child[childIdx].set(i, v);
     }
 
     public void addTotalQ(int i, double v) {
@@ -2492,6 +2465,23 @@ public final class GameState implements State {
             q_child[childIdx] = new VArray(properties.v_total_len);
         }
         q_child[childIdx].add(i, v);
+    }
+
+    public VArray getTotalQArray() {
+        if (q_total == null) {
+            q_total = new VArray(properties.v_total_len);
+        }
+        return q_total;
+    }
+
+    public VArray getChildQArray(int childIdx) {
+        if (q_child == null) {
+            q_child = new VArray[policy.length];
+        }
+        if (q_child[childIdx] == null) {
+            q_child[childIdx] = new VArray(properties.v_total_len);
+        }
+        return q_child[childIdx];
     }
 
     public double calcFightProgress(boolean onlyHeart) {
