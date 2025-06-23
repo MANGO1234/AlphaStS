@@ -777,42 +777,10 @@ public class MatchSession {
     boolean USE_Z_TRAINING;
     boolean POLICY_CAP_ON;
 
-    private double[] calcExpectedValue2(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
+    private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
         var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
-//        var varM = 0.0;
-//        var varS = 0.0;
-//        var varK = 0;
-//        boolean first = true;
-//        for (ChanceState.Node node : cState.cache.values()) {
-//            if (node.state.policy == null) {
-//                node.state.doEval(mcts.model);
-//            }
-//            var v = node.state != stateActual ? node.state.get_v_cached() : vCur;
-//            for (int i = 0; i < node.n; i++) {
-//                varK++;
-//                if (first) {
-//                    varM = v.get(GameState.V_COMB_IDX);
-//                    first = false;
-//                } else {
-//                    var tmp = varM + (v.get(GameState.V_COMB_IDX) - varM) / varK;
-//                    varS = varS + (v.get(GameState.V_COMB_IDX) - varM) * (v.get(GameState.V_COMB_IDX) - tmp);
-//                    varM = tmp;
-//                }
-//            }
-//        }
         while (cState.total_n < 10000 && cState.cache.size() < 200) {
-//        while (cState.total_n < 10000 && (cState.total_n < 50 || varS / (varK - 1) / cState.total_n * Utils.getChiSquareInverseProb((int) cState.total_n - 1) > 0.000004)) {
-            var s = cState.getNextState(false, -1);
-//            var v = s != stateActual ? s.get_v_cached() : vCur;
-//            varK++;
-//            if (first) {
-//                varM = v.get(GameState.V_COMB_IDX);
-//                first = false;
-//            } else {
-//                var tmp = varM + (v.get(GameState.V_COMB_IDX) - varM) / varK;
-//                varS = varS + (v.get(GameState.V_COMB_IDX) - varM) * (v.get(GameState.V_COMB_IDX) - tmp);
-//                varM = tmp;
-//            }
+            cState.getNextState(false, -1);
         }
 
         double[] est = new double[vCur.length];
@@ -837,50 +805,6 @@ public class MatchSession {
             }
         }
         return est;
-    }
-
-    private double[] calcExpectedValue(ChanceState cState, GameState generatedState, MCTS mcts, double[] vCur) {
-        return calcExpectedValue2(cState, generatedState, mcts, vCur);
-//        var stateActual = generatedState == null ? null : cState.addGeneratedState(generatedState);
-//        int k = 0;
-//        while (k++ < 100 && cState.total_n < 100) {
-//            mcts.search(cState.getNextState(false, -1), false, 1000);
-//        }
-//        while (k++ < 1000) {
-//            cState.getNextState(false, -1);
-//        }
-//        double[] est = new double[vCur.length];
-//        double[] out = new double[vCur.length];
-//        int nodeCount = 0;
-//        for (ChanceState.Node node : cState.cache.values()) {
-//            if (node.state.policy == null) {
-//                continue;
-//            }
-//            if (node.state != stateActual) {
-//                if (node.state.q == null) {
-//                    node.state.get_v(out);
-//                    for (int i = 0; i < est.length; i++) {
-//                        est[i] += out[i] / (node.state.total_n + 1) * node.n;
-//                    }
-//                } else {
-//                    for (int i = 0; i < est.length; i++) {
-//                        est[i] += node.state.getTotalQ(i) / (node.state.total_n + 1) * node.n;
-//                    }
-//                }
-//            }
-//            nodeCount += node.n;
-//        }
-//        float p = generatedState == null ? 0 : ((float) cState.getCount(stateActual)) / nodeCount;
-//        for (int i = 0; i < est.length; i++) {
-//            est[i] /= nodeCount;
-//            est[i] = (float) Math.min(vCur[i] * p + est[i], 1);
-//        }
-//        System.out.println(cState);
-//        System.out.println(Arrays.toString(est));
-//        cState = new ChanceState(null, cState.parentState, cState.parentAction);
-//        System.out.println(Arrays.toString(calcExpectedValue2(cState, generatedState, mcts, vCur)));
-//        System.out.println("************");
-//        return est;
     }
 
     private Game playTrainingGame(GameState origState, int nodeCount, MCTS mcts, long seed) {
