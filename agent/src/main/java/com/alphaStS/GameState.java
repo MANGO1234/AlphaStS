@@ -29,7 +29,7 @@ public final class GameState implements State {
     public static final int V_COMB_IDX = 0;
     public static final int V_WIN_IDX = 1;
     public static final int V_HEALTH_IDX = 2;
-    public static final int V_OTHER_IDX_START = 3;
+    public static final int V_EXTRA_IDX_START = 3;
 
     public static final int DISCARD = 1;
     public static final int DECK = 2;
@@ -877,9 +877,9 @@ public final class GameState implements State {
 
                     @Override public void updateQValues(GameState state, VArray v) {
                         if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
-                            v.add(V_HEALTH_IDX, pot.getHealAmount(state) * v.get(state.properties.potionsVExtraIdx[_i]) / state.getPlayeForRead().getMaxHealth());
+                            v.add(V_HEALTH_IDX, pot.getHealAmount(state) * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayeForRead().getMaxHealth());
                         } else if (!properties.isHeartFight(state)) {
-                            v.add(V_HEALTH_IDX, 5 * v.get(state.properties.potionsVExtraIdx[_i]) / state.getPlayeForRead().getMaxHealth());
+                            v.add(V_HEALTH_IDX, 5 * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayeForRead().getMaxHealth());
                         }
                     }
                 });
@@ -1081,6 +1081,7 @@ public final class GameState implements State {
     private static void addPossibleGeneratedCardsFromListOfCard(List<Card> c, HashSet<Card> newSet, HashSet<Card> discardSet) {
         for (Card possibleCard : c) {
             newSet.add(possibleCard);
+            discardSet.add(possibleCard.getBaseCard());
             if (possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpUntilPlayedCost) {
                 newSet.add(possibleCard.getBaseCard());
             }
@@ -2374,7 +2375,7 @@ public final class GameState implements State {
         v.set(V_HEALTH_IDX, health);
         for (int i = 0; i < properties.potions.size(); i++) {
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && properties.potions.get(i) instanceof Potion.FairyInABottle) {
-                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v.get(properties.potionsVExtraIdx[i]);
+                base *= potionsState[i * 3 + 1] / 100.0 + (100 - potionsState[i * 3 + 1]) / 100.0 * v.get(GameState.V_EXTRA_IDX_START + properties.potionsVExtraIdx[i]);
                 continue;
             }
             if (potionsState[i * 3] == 0 && potionsState[i * 3 + 2] == 1 && !(properties.potions.get(i) instanceof Potion.BloodPotion) && !(properties.potions.get(i) instanceof Potion.BlockPotion) && !(properties.potions.get(i) instanceof Potion.RegenerationPotion) && !GameProperties.isHeartFight(this)) {
@@ -3052,11 +3053,11 @@ public final class GameState implements State {
                 first = false;
                 str.append(q_str).append('/').append(q_win_str).append('/').append(q_health_str).append('/');
                 if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
-                    var q_progress_str = properties.fightProgressVExtraIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : getChildQ(i, properties.fightProgressVExtraIdx) / n[i]) : null;
+                    var q_progress_str = properties.fightProgressVExtraIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : getChildQ(i, GameState.V_EXTRA_IDX_START + properties.fightProgressVExtraIdx) / n[i]) : null;
                     str.append(q_progress_str).append('/');
                 }
                 if (Configuration.USE_TURNS_LEFT_HEAD) {
-                    var q_progress_str = properties.turnsLeftVExtraIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : getChildQ(i, properties.turnsLeftVExtraIdx) / n[i]) : null;
+                    var q_progress_str = properties.turnsLeftVExtraIdx >= 0 ? formatFloat(n[i] == 0 ? 0 : getChildQ(i, GameState.V_EXTRA_IDX_START + properties.turnsLeftVExtraIdx) / n[i]) : null;
                     str.append(q_progress_str).append('/');
                 }
                 if (p_str2 != null) {

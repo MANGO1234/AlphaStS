@@ -1551,7 +1551,7 @@ public class MCTS {
                 q = state.n[i] > 0 ? state.getChildQ(i, GameState.V_WIN_IDX) / childN : state.getTotalQ(GameState.V_WIN_IDX) / (state.total_n + 1);
             }
             if (useFightProgress) { // only when every child has at least one node
-                q = state.getChildQ(i, state.properties.fightProgressVExtraIdx) / childN;
+                q = state.getChildQ(i, GameState.V_EXTRA_IDX_START + state.properties.fightProgressVExtraIdx) / childN;
             }
 
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.properties.testNewFeature)) {
@@ -1672,7 +1672,7 @@ public class MCTS {
                         if (policy[i] <= 0 || (state.bannedActions != null && state.bannedActions[i]) || state.n[i] <= 0) {
                             continue;
                         }
-                        double turns2 = state.getChildQ(i, state.properties.turnsLeftVExtraIdx) / state.n[i];
+                        double turns2 = state.getChildQ(i, GameState.V_EXTRA_IDX_START + state.properties.turnsLeftVExtraIdx) / state.n[i];
                         if (qValues[i] >= 0.999 * maxQ) {
                             uValues[i] += (1 - turns2) * state.properties.maxPossibleRealTurnsLeft / 50.0 ;
                         }
