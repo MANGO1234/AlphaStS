@@ -131,7 +131,37 @@ public class VArray {
         for (int i = 0; i < data.length; i++) {
             data[i] += out.get(i) * n;
         }
-        // todo
+
+        if (accumulatedDmg == null) return;
+        int mergeLen = getAccumulatedArrLenAfterMerge(this, out);
+        ensureAccumulatedArrCapacity(mergeLen);
+        int overwrite = mergeLen - 1;
+        int leftIdx = accumulatedDmgLen - 1;
+        int rightIdx = out.accumulatedDmgLen - 1;
+        while (leftIdx >= 0 || rightIdx >= 0) {
+            double leftV = 0;
+            double rightV = 0;
+            int leftDmg = leftIdx >= 0 ? accumulatedDmg[leftIdx] : Integer.MIN_VALUE;
+            int rightDmg = rightIdx >= 0 ? out.accumulatedDmg[rightIdx] : Integer.MIN_VALUE;
+            if (leftDmg == rightDmg) {
+                accumulatedDmg[overwrite] = leftDmg;
+                leftV = accumulatedDmgV[leftIdx];
+                rightV = out.accumulatedDmgV[rightIdx];
+                leftIdx--;
+                rightIdx--;
+            } else if (leftDmg > rightDmg) {
+                accumulatedDmg[overwrite] = leftDmg;
+                leftV = accumulatedDmgV[leftIdx];
+                leftIdx--;
+            } else {
+                accumulatedDmg[overwrite] = rightDmg;
+                rightV = out.accumulatedDmgV[rightIdx];
+                rightIdx--;
+            }
+            accumulatedDmgV[overwrite] = leftV + rightV * n;
+            overwrite--;
+        }
+        accumulatedDmgLen = mergeLen;
     }
 
     public void trainingSetExpectedValueStage2(long totalNodeN, VArray vCur, float p) {
@@ -143,14 +173,74 @@ public class VArray {
                 data[i] = (float) Math.min(vCur.get(i) * p + data[i], 1);
             }
         }
-        // todo
+
+        if (accumulatedDmg == null) return;
+        int mergeLen = getAccumulatedArrLenAfterMerge(this, vCur);
+        ensureAccumulatedArrCapacity(mergeLen);
+        int overwrite = mergeLen - 1;
+        int leftIdx = accumulatedDmgLen - 1;
+        int rightIdx = vCur.accumulatedDmgLen - 1;
+        while (leftIdx >= 0 || rightIdx >= 0) {
+            double leftV = 0;
+            double rightV = 0;
+            int leftDmg = leftIdx >= 0 ? accumulatedDmg[leftIdx] : Integer.MIN_VALUE;
+            int rightDmg = rightIdx >= 0 ? vCur.accumulatedDmg[rightIdx] : Integer.MIN_VALUE;
+            if (leftDmg == rightDmg) {
+                accumulatedDmg[overwrite] = leftDmg;
+                leftV = accumulatedDmgV[leftIdx];
+                rightV = vCur.accumulatedDmgV[rightIdx];
+                leftIdx--;
+                rightIdx--;
+            } else if (leftDmg > rightDmg) {
+                accumulatedDmg[overwrite] = leftDmg;
+                leftV = accumulatedDmgV[leftIdx];
+                leftIdx--;
+            } else {
+                accumulatedDmg[overwrite] = rightDmg;
+                rightV = vCur.accumulatedDmgV[rightIdx];
+                rightIdx--;
+            }
+            accumulatedDmgV[overwrite] = Math.min(rightV * p + leftV / totalNodeN, 1);
+            overwrite--;
+        }
+        accumulatedDmgLen = mergeLen;
     }
 
     public void trainingDiscountReward(VArray vCur) {
         for (int j = 0; j < vCur.length(); j++) {
             data[j] = Configuration.DISCOUNT_REWARD_ON_RANDOM_NODE * vCur.get(j) + (1 - Configuration.DISCOUNT_REWARD_ON_RANDOM_NODE) * data[j];
         }
-        // todo
+
+        if (accumulatedDmg == null) return;
+        int mergeLen = getAccumulatedArrLenAfterMerge(this, vCur);
+        ensureAccumulatedArrCapacity(mergeLen);
+        int overwrite = mergeLen - 1;
+        int leftIdx = accumulatedDmgLen - 1;
+        int rightIdx = vCur.accumulatedDmgLen - 1;
+        while (leftIdx >= 0 || rightIdx >= 0) {
+            double leftV = 0;
+            double rightV = 0;
+            int leftDmg = leftIdx >= 0 ? accumulatedDmg[leftIdx] : Integer.MIN_VALUE;
+            int rightDmg = rightIdx >= 0 ? vCur.accumulatedDmg[rightIdx] : Integer.MIN_VALUE;
+            if (leftDmg == rightDmg) {
+                accumulatedDmg[overwrite] = leftDmg;
+                leftV = accumulatedDmgV[leftIdx];
+                rightV = vCur.accumulatedDmgV[rightIdx];
+                leftIdx--;
+                rightIdx--;
+            } else if (leftDmg > rightDmg) {
+                accumulatedDmg[overwrite] = leftDmg;
+                leftV = accumulatedDmgV[leftIdx];
+                leftIdx--;
+            } else {
+                accumulatedDmg[overwrite] = rightDmg;
+                rightV = vCur.accumulatedDmgV[rightIdx];
+                rightIdx--;
+            }
+            accumulatedDmgV[overwrite] = Configuration.DISCOUNT_REWARD_ON_RANDOM_NODE * rightV + (1 - Configuration.DISCOUNT_REWARD_ON_RANDOM_NODE) * leftV;
+            overwrite--;
+        }
+        accumulatedDmgLen = mergeLen;
     }
 
     public void setToQNormalized(VArray totalQArray, long totalN) {
