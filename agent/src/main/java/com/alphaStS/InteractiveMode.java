@@ -11,8 +11,12 @@ import com.alphaStS.utils.Utils;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -26,6 +30,7 @@ public class InteractiveMode {
     private List<MCTS> threadMCTS = new ArrayList<>();
     private int DEFAULT_NUMBER_OF_THREADS = 1;
     private int DEFAULT_BATCH_SIZE = 1;
+    private volatile boolean stopRequested = false;
 
     public InteractiveMode setDefaultNumberOfThreads(int numThreads) {
         DEFAULT_NUMBER_OF_THREADS = numThreads;
@@ -309,7 +314,7 @@ public class InteractiveMode {
             } else if (line.startsWith("n ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runMCTS(state, line);
+                runMCTS(state, line, reader);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.startsWith("nn ")) {
@@ -321,7 +326,7 @@ public class InteractiveMode {
                 } else {
                     ((RandomGenInteractive) state.properties.random).rngOn = true;
                     nnPV.clear();
-                    runNNPV(state, nnPV, line, history);
+                    runNNPV(state, nnPV, line, history, reader);
                     interactiveRecordSeed(state, history);
                     ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
                 }
@@ -334,13 +339,13 @@ public class InteractiveMode {
             } else if (line.startsWith("nnv ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runNNPVVolatility(state, line);
+                runNNPVVolatility(state, line, reader);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.startsWith("nnn ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runNNPV2(state, line);
+                runNNPV2(state, line, reader);
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.equals("config")) {
@@ -478,7 +483,7 @@ public class InteractiveMode {
     public void interactiveStart(List<GameStep> game, String modelDir) throws IOException {
         int idx = 0;
         GameState state = game.get(0).state();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in));
         modelExecutor = new ModelExecutor(modelDir);
         while (true) {
             var states = game.stream().map(GameStep::state).limit(idx).toList();
@@ -617,7 +622,7 @@ public class InteractiveMode {
                     var step = game.get(start);
                     step.state().properties.makingRealMove = false;
                     List<String> pv = new ArrayList<>();
-                    runNNPV(step.state().clone(false), pv, "nn " + nodeCount + " t=" + numberOfThreads + " b=" + batchSize, null);
+                    runNNPV(step.state().clone(false), pv, "nn " + nodeCount + " t=" + numberOfThreads + " b=" + batchSize, null, reader);
                     List<GameStep> pv1 = new ArrayList<>();
                     var s = step.state().clone(false);
                     for (int i = 0; i < pv.size(); i++) {
@@ -1897,7 +1902,7 @@ public class InteractiveMode {
         }
     }
 
-    private void runMCTS(GameState state, String line) {
+    private void runMCTS(GameState state, String line, InteractiveReader reader) {
         List<String> args = Arrays.asList(line.split(" "));
         if (args.size() < 2) {
             out.println("<node count>");
@@ -1913,6 +1918,7 @@ public class InteractiveMode {
         state.setMultithreaded(numberOfThreads * batchSize > 1);
         AtomicLong nodeCount = new AtomicLong(state.total_n + (state.policy == null ? 0 : 1));
         AtomicLong nodeDoneCount = new AtomicLong(state.total_n + (state.policy == null ? 0 : 1));
+        stopRequested = false;
         modelExecutor.start(numberOfThreads, batchSize);
         numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
         allocateThreadMCTS(modelExecutor, numberOfThreads);
@@ -1921,7 +1927,7 @@ public class InteractiveMode {
             final int _i = i;
             modelExecutor.addAndStartProducerThread(() -> {
                 long c = nodeCount.addAndGet(1);
-                while (c <= count) {
+                while (c <= count && !stopRequested) {
                     threadMCTS.get(_i).search(state, false, smartPruneEnable ? (int) (count - c + 1) : -1);
                     nodeDoneCount.addAndGet(1);
                     c = nodeCount.addAndGet(1);
@@ -1930,7 +1936,7 @@ public class InteractiveMode {
                 while (!modelExecutor.producerWaitForClose(_i));
             });
         }
-        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, null, start, "nodes", null);
+        waitAndPrintSearchInfo(count, startNodeCount, nodeDoneCount, null, start, "nodes", null, reader);
         modelExecutor.stop();
         state.setMultithreaded(false);
 
@@ -1945,11 +1951,24 @@ public class InteractiveMode {
         out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
     }
 
-    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, AtomicLong producersCount, long startTime, String item, Supplier<String> extraDetails) {
+    private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, AtomicLong producersCount, long startTime, String item, Supplier<String> extraDetails, InteractiveReader reader) {
         long lastPrintTime = System.currentTimeMillis() - 4000; // print after 1 second immediately
         long lastSleepDuration = 5;
-        while (doneCount.get() < totalCount && (producersCount == null || producersCount.get() > 0)) {
-            Utils.sleep(lastSleepDuration);
+        boolean stopped = false;
+        while (doneCount.get() < totalCount && (producersCount == null || producersCount.get() > 0) && !stopped) {
+            try {
+                // Check for stop command with timeout
+                String command = reader.readLine(lastSleepDuration, TimeUnit.MILLISECONDS);
+                if (command != null && command.trim().equalsIgnoreCase("stop")) {
+                    out.println("Search stopped by user command.");
+                    stopRequested = true;
+                    stopped = true;
+                    break;
+                }
+            } catch (IOException e) {
+                // Continue if read fails
+            }
+            
             lastSleepDuration = Math.min(lastSleepDuration * 2, 100);
             if (System.currentTimeMillis() - lastPrintTime > 5000) {
                 double speed = ((double) doneCount.get() - startCount) / (System.currentTimeMillis() - startTime) * 1000;
@@ -1961,7 +1980,7 @@ public class InteractiveMode {
         out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
     }
 
-    private Tuple<GameState, Integer> runNNPV(GameState state, List<String> pv, String line, List<String> history) {
+    private Tuple<GameState, Integer> runNNPV(GameState state, List<String> pv, String line, List<String> history, InteractiveReader reader) {
         List<String> args = Arrays.asList(line.split(" "));
         if (args.size() < 2) {
             out.println("<node count>");
@@ -1982,6 +2001,7 @@ public class InteractiveMode {
             var startNodeCount = s.total_n;
             AtomicLong nodeCount = new AtomicLong(s.total_n);
             AtomicLong nodeDoneCount = new AtomicLong(s.total_n);
+            stopRequested = false;
             modelExecutor.start(numberOfThreads, batchSize);
             var numberOfProducers = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
             allocateThreadMCTS(modelExecutor, numberOfProducers);
@@ -1992,7 +2012,7 @@ public class InteractiveMode {
                 modelExecutor.addAndStartProducerThread(() -> {
                     long c = nodeCount.addAndGet(1);
                     int consecutiveOneMoveRemaining = 0;
-                    while (c <= count) {
+                    while (c <= count && !stopRequested) {
                         threadMCTS.get(_i).search(_s, false, smartPruneDisable ? -1 : (int) (count - c + 1));
                         nodeDoneCount.addAndGet(1);
                         if (threadMCTS.get(_i).numberOfPossibleActions == 1) {
@@ -2027,7 +2047,7 @@ public class InteractiveMode {
                     }
                 }
                 return o.toString();
-            });
+            }, reader);
             modelExecutor.stop();
             s.setMultithreaded(false);
 
@@ -2078,7 +2098,8 @@ public class InteractiveMode {
                 out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
                 return null;
             }
-        } while (true);
+        } while (!stopRequested);
+        return null;
     }
 
     private Tuple<GameState, Integer> runNNPVInternal(GameState state, MCTS mcts, List<String> pv, int nodeCount, boolean clear) {
@@ -2110,7 +2131,7 @@ public class InteractiveMode {
         } while (true);
     }
 
-    private void runNNPVChance(BufferedReader reader, GameState state, String line) throws IOException {
+    private void runNNPVChance(InteractiveReader reader, GameState state, String line) throws IOException {
         List<String> args = Arrays.asList(line.split(" "));
         int nodeCount = parseArgsInt(args, "n", 100);
         int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
@@ -2144,13 +2165,14 @@ public class InteractiveMode {
             cState.clearAllSearchInfo();
             stateQueue.offer(cState);
         }
+        stopRequested = false;
         modelExecutor.start(numberOfThreads, batchSize);
         numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
         allocateThreadMCTS(modelExecutor, numberOfThreads);
         for (int i = 0; i < numberOfThreads; i++) {
             final int _i = i;
             modelExecutor.addAndStartProducerThread(() -> {
-                while (true) {
+                while (!stopRequested) {
                     GameState cState = stateQueue.poll();
                     if (cState == null) {
                         break;
@@ -2167,7 +2189,7 @@ public class InteractiveMode {
                 while (!modelExecutor.producerWaitForClose(_i));
             });
         }
-        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, null, start, "outcomes", null);
+        waitAndPrintSearchInfo(cs.cache.size(), 0, doneCount, null, start, "outcomes", null, reader);
         modelExecutor.stop();
 
         var sortedPvs = pvs.entrySet().stream().map(pv -> {
@@ -2191,7 +2213,7 @@ public class InteractiveMode {
         });
     }
 
-    private void runNNPVVolatility(GameState state, String line) {
+    private void runNNPVVolatility(GameState state, String line, InteractiveReader reader) {
         List<String> args = Arrays.asList(line.split(" "));
         int trialCount = parseArgsInt(args, "c", 100);
         int nodeCount = parseArgsInt(args, "n", 100);
@@ -2203,13 +2225,14 @@ public class InteractiveMode {
         var pvs = new HashMap<Tuple<GameState, Integer>, Tuple<List<String>, Integer>>();
         AtomicLong trialsRemaining = new AtomicLong(trialCount);
         AtomicLong trialsDoneCount = new AtomicLong(0);
+        stopRequested = false;
         modelExecutor.start(numberOfThreads, batchSize);
         numberOfThreads = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
         allocateThreadMCTS(modelExecutor, numberOfThreads);
         for (int i = 0; i < numberOfThreads; i++) {
             final int _i = i;
             modelExecutor.addAndStartProducerThread(() -> {
-                while (trialsRemaining.getAndDecrement() > 0) {
+                while (trialsRemaining.getAndDecrement() > 0 && !stopRequested) {
                     GameState s = state.clone(false);
                     interactiveSetSeed(s, s.properties.random.nextLong(RandomGenCtx.Other), s.properties.random.nextLong(RandomGenCtx.Other));
                     List<String> pv = new ArrayList<>();
@@ -2233,7 +2256,7 @@ public class InteractiveMode {
                 }
             });
         }
-        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, null, start, "trials", null);
+        waitAndPrintSearchInfo(trialCount, 0, trialsDoneCount, null, start, "trials", null, reader);
         modelExecutor.stop();
 
         pvs.forEach((_k, v) -> {
@@ -2268,7 +2291,7 @@ public class InteractiveMode {
         return false;
     }
 
-    private void runNNPV2(GameState state, String line) {
+    private void runNNPV2(GameState state, String line, InteractiveReader reader) {
         int count = parseInt(line.substring(4), 1);
         if (state.searchFrontier != null && state.searchFrontier.total_n != state.total_n + 1) {
             state.clearAllSearchInfo();
@@ -2279,6 +2302,7 @@ public class InteractiveMode {
         var startNodeCount = s.total_n;
         AtomicLong nodeCount = new AtomicLong(s.total_n);
         AtomicLong nodeDoneCount = new AtomicLong(s.total_n);
+        stopRequested = false;
         modelExecutor.start(1, 1);
         var numberOfProducers = ModelExecutor.getNumberOfProducers(1, 1);
         allocateThreadMCTS(modelExecutor, numberOfProducers);
@@ -2289,7 +2313,7 @@ public class InteractiveMode {
             modelExecutor.addAndStartProducerThread(() -> {
                 long c = nodeCount.addAndGet(1);
                 int consecutiveOneMoveRemaining = 0;
-                while (c <= count) {
+                while (c <= count && !stopRequested) {
                     threadMCTS.get(_i).searchLine(_s, false, true, (int) (count - c + 1));
                     nodeDoneCount.addAndGet(1);
                     if (threadMCTS.get(_i).numberOfPossibleActions == 1) {
@@ -2324,7 +2348,7 @@ public class InteractiveMode {
                 }
             }
             return o.toString();
-        });
+        }, reader);
         modelExecutor.stop();
 
         state.searchFrontier.lines.values().stream().filter((x) -> {
@@ -2365,10 +2389,32 @@ public class InteractiveMode {
     private static class InteractiveReader extends BufferedReader {
         private ArrayDeque<String> lines = new ArrayDeque<>();
         private InteractiveMode interactiveMode;
+        private BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
+        private Thread readerThread;
+        private AtomicBoolean shutdown = new AtomicBoolean(false);
 
         public InteractiveReader(InteractiveMode interactiveMode, Reader reader) {
             super(reader);
             this.interactiveMode = interactiveMode;
+            startReaderThread();
+        }
+
+        private void startReaderThread() {
+            readerThread = new Thread(() -> {
+                try {
+                    String line;
+                    while (!shutdown.get() && (line = super.readLine()) != null) {
+                        inputQueue.offer(line);
+                    }
+                } catch (IOException e) {
+                    if (!shutdown.get()) {
+                        // Log error if not shutting down
+                        System.err.println("Error reading input: " + e.getMessage());
+                    }
+                }
+            });
+            readerThread.setDaemon(true);
+            readerThread.start();
         }
 
         public String readLine() throws IOException {
@@ -2376,11 +2422,38 @@ public class InteractiveMode {
                 interactiveMode.out.println(lines.getFirst());
                 return lines.pollFirst();
             }
-            return super.readLine();
+            try {
+                return inputQueue.take();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Interrupted while reading input", e);
+            }
+        }
+
+        public String readLine(long timeout, TimeUnit unit) throws IOException {
+            if (lines.size() > 0) {
+                interactiveMode.out.println(lines.getFirst());
+                return lines.pollFirst();
+            }
+            try {
+                return inputQueue.poll(timeout, unit);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException("Interrupted while reading input", e);
+            }
         }
 
         public void addCmdsToQueue(List<String> cmds) {
             lines.addAll(cmds.stream().filter(x -> !x.startsWith("#")).toList());
+        }
+
+        @Override
+        public void close() throws IOException {
+            shutdown.set(true);
+            if (readerThread != null) {
+                readerThread.interrupt();
+            }
+            super.close();
         }
     }
 
