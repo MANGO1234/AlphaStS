@@ -205,11 +205,6 @@ public class ModelPlain implements Model {
                     policy = newPolicy;
                 }
             }
-            var legalActions = state.getLegalActions();
-            float[] policyCompressed = new float[legalActions.length];
-            for (int i = 0; i < legalActions.length; i++) {
-                policyCompressed[i] = policy[legalActions[i]];
-            }
 
             float[] v_other = null;
             if (output.size() > 3 && state.properties.extraOutputLen > 0) {
@@ -238,7 +233,7 @@ public class ModelPlain implements Model {
 
             v_health = (v_health + 1) / 2;
             v_win = (v_win + 1) / 2;
-            o = new NNOutput(v_health, v_win, v_other, softmax(policyCompressed), legalActions);
+            o = new NNOutput(v_health, v_win, v_other, softmax(policyCompressToLegalActions(state, policy)), hasEnemyReordering(state) ? policy : null, state.getLegalActions());
             cache.put(hash, o);
             time_taken += System.currentTimeMillis() - start;
             return o;
@@ -247,13 +242,41 @@ public class ModelPlain implements Model {
         }
     }
 
-    public NNOutput tryUseCache(NNInputHash input) {
+    public NNOutput tryUseCache(NNInputHash input, GameState state) {
         var output = cache.get(input);
         if (output != null) {
             cache_hits++;
             calls++;
+            output = updatePolicyWithReordering(state, output);
         }
         return output;
+    }
+
+    private static boolean hasEnemyReordering(GameState state) {
+        return state.getActionCtx() == GameActionCtx.SELECT_ENEMY && state.properties.enemiesReordering != null;
+    }
+
+    private static NNOutput updatePolicyWithReordering(GameState state, NNOutput output) {
+        if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
+            var order = state.getEnemyOrder();
+            if (order != null) {
+                var newPolicy = new float[output.rawPolicy().length];
+                for (int i = 0; i < newPolicy.length; i++) {
+                    newPolicy[order[i]] = output.rawPolicy()[i];
+                }
+                output = new NNOutput(output.v_health(), output.v_win(), output.v_other(), softmax(policyCompressToLegalActions(state, newPolicy)), output.rawPolicy(), output.legalActions());
+            }
+        }
+        return output;
+    }
+
+    private static float[] policyCompressToLegalActions(GameState state, float[] policy) {
+        var legalActions = state.getLegalActions();
+        float[] policyCompressed = new float[legalActions.length];
+        for (int i = 0; i < legalActions.length; i++) {
+            policyCompressed[i] = policy[legalActions[i]];
+        }
+        return policyCompressed;
     }
 
     public List<NNOutput> eval(List<GameState> states, List<NNInputHash> hashes, int reqCount) {
@@ -295,21 +318,6 @@ public class ModelPlain implements Model {
                         policy = Utils.arrayCopy(policy, startIdx, lenToCopy);
                     }
                 }
-                if (state.getActionCtx() == GameActionCtx.SELECT_ENEMY) {
-                    var order = state.getEnemyOrder();
-                    if (order != null) {
-                        var newPolicy = new float[policy.length];
-                        for (int i = 0; i < newPolicy.length; i++) {
-                            newPolicy[order[i]] = policy[i];
-                        }
-                        policy = newPolicy;
-                    }
-                }
-                var legalActions = state.getLegalActions();
-                float[] policyCompressed = new float[legalActions.length];
-                for (int i = 0; i < legalActions.length; i++) {
-                    policyCompressed[i] = policy[legalActions[i]];
-                }
 
                 float[] v_other = null;
                 if (output.size() > 3 && state.properties.extraOutputLen > 0) {
@@ -338,7 +346,7 @@ public class ModelPlain implements Model {
 
                 v_health = (v_health + 1) / 2;
                 v_win = (v_win + 1) / 2;
-                var o = new NNOutput(v_health, v_win, v_other, softmax(policyCompressed), legalActions);
+                var o = new NNOutput(v_health, v_win, v_other, softmax(policyCompressToLegalActions(state, policy)), hasEnemyReordering(state) ? policy : null, state.getLegalActions());
                 cache.put(hashes.get(row), o);
                 outputs.set(outputsIdx[row], o);
             }

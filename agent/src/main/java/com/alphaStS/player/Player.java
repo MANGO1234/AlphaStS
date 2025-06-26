@@ -15,10 +15,6 @@ public class Player extends PlayerReadOnly {
 
     public int damage(GameState state, int n) {
         int startHealth = health;
-        // Watcher stance damage modifiers
-        if (state.properties.character == CharacterEnum.WATCHER && state.getStance() == Stance.WRATH) {
-            n *= 2;
-        }
         int dmg = Math.max(0, n - block);
         if (dmg <= 5 && dmg >= 2 && state.properties.hasTorri && state.properties.getRelic(Relic.Torii.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
             dmg = 1;

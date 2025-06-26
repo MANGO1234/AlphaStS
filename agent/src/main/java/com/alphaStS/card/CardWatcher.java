@@ -12,6 +12,7 @@ import com.alphaStS.VArray;
 import com.alphaStS.PlayerBuff;
 import com.alphaStS.RandomGenCtx;
 import com.alphaStS.TrainingTarget;
+import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.enums.Stance;
 
 import java.util.ArrayList;
@@ -1545,7 +1546,7 @@ public class CardWatcher {
             state.properties.addOnStanceChangeHandler("Rushdown", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0 && state.getStance() == Stance.WRATH) {
-                        state.draw(state.getCounterForRead()[counterIdx]);
+                        state.addGameActionToStartOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
                     }
                 }
             });

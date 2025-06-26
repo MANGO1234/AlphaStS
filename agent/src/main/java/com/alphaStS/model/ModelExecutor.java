@@ -71,7 +71,7 @@ public class ModelExecutor {
                         if (req != null) {
                             if (req.v2() != null) {
                                 var hash = new NNInputHash(req.v2().getNNInput());
-                                var output = executorModels.get(_i).tryUseCache(hash);
+                                var output = executorModels.get(_i).tryUseCache(hash, req.v2());
                                 if (output != null) {
                                     locks.get(req.v1()).lock();
                                     results.set(req.v1(), output);

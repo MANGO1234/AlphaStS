@@ -1459,6 +1459,8 @@ public final class GameState implements State {
                     setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
                 }
                 break;
+            } else if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
+                break;
             } else if (actionCtx == GameActionCtx.PLAY_CARD) {
                 setActionCtx(properties.cardDict[cardIdx].play(this, -1, energyCost), action, cloneSource);
             }
@@ -2228,7 +2230,7 @@ public final class GameState implements State {
             return action == 0;
         } else if (actionCtx == GameActionCtx.SELECT_ENEMY) {
             GameAction[] a = properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()];
-            if (action < 0 || action >= a.length) {
+            if (a == null || action < 0 || action >= a.length) {
                 return false;
             }
             return enemies.get(a[action].idx()).isAlive();
@@ -4760,6 +4762,9 @@ public final class GameState implements State {
         if (player.getVulnerable() > 0) {
             dmg *= 1.5;
         }
+        if (getStance() == Stance.WRATH) {
+            dmg *= 2;
+        }
         if (enemy.getWeak() > 0) {
             dmg *= properties.hasPaperCrane && properties.getRelic(Relic.PaperCrane.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx) ? 0.6 : 0.75;
         }
@@ -4796,6 +4801,9 @@ public final class GameState implements State {
         }
         if (player.getVulnerable() > 0) {
             dmg *= 1.5;
+        }
+        if (getStance() == Stance.WRATH) {
+            dmg *= 2;
         }
         if (enemy.getWeak() > 0) {
             dmg *= properties.hasPaperCrane && properties.getRelic(Relic.PaperCrane.class).isRelicEnabledInScenario(preBattleScenariosChosenIdx) ? 0.6 : 0.75;

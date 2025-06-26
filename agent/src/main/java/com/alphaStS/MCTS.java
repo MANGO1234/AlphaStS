@@ -1147,6 +1147,12 @@ public class MCTS {
     }
 
     void searchLine(GameState state, boolean training, boolean isRoot, int remainingCalls) {
+        if (isRoot) {
+            if (v == null) {
+                v = new VArray(state.properties.v_total_len);
+                realV = new VArray(state.properties.v_total_len);
+            }
+        }
         if (state.terminalAction >= 0) {
             for (int i = 0; i < state.properties.v_total_len; i++) {
                 v.set(i, state.getChildQ(state.terminalAction, i) / state.n[state.terminalAction]);
