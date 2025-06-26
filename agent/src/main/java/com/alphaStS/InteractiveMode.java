@@ -91,7 +91,7 @@ public class InteractiveMode {
     }
 
     private void interactiveStartH(GameState origState, String saveDir, String modelDir, List<String> history) throws IOException {
-        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in));
+        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in), history.size() == 0);
         var states = new ArrayList<GameStep>();
         GameState state = origState;
         boolean isApplyingHistory = false;
@@ -483,7 +483,7 @@ public class InteractiveMode {
     public void interactiveStart(List<GameStep> game, String modelDir) throws IOException {
         int idx = 0;
         GameState state = game.get(0).state();
-        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in));
+        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in), true);
         modelExecutor = new ModelExecutor(modelDir);
         while (true) {
             var states = game.stream().map(GameStep::state).limit(idx).toList();
@@ -2392,11 +2392,15 @@ public class InteractiveMode {
         private BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
         private Thread readerThread;
         private AtomicBoolean shutdown = new AtomicBoolean(false);
+        private boolean useReaderThread = true;
 
-        public InteractiveReader(InteractiveMode interactiveMode, Reader reader) {
+        public InteractiveReader(InteractiveMode interactiveMode, Reader reader, boolean useReaderThread) {
             super(reader);
             this.interactiveMode = interactiveMode;
-            startReaderThread();
+            this.useReaderThread = useReaderThread;
+            if (useReaderThread) {
+                startReaderThread();
+            }
         }
 
         private void startReaderThread() {
@@ -2422,6 +2426,9 @@ public class InteractiveMode {
                 interactiveMode.out.println(lines.getFirst());
                 return lines.pollFirst();
             }
+            if (!useReaderThread) {
+                return super.readLine();
+            }
             try {
                 return inputQueue.take();
             } catch (InterruptedException e) {
@@ -2434,6 +2441,9 @@ public class InteractiveMode {
             if (lines.size() > 0) {
                 interactiveMode.out.println(lines.getFirst());
                 return lines.pollFirst();
+            }
+            if (!useReaderThread) {
+                return super.readLine();
             }
             try {
                 return inputQueue.poll(timeout, unit);
