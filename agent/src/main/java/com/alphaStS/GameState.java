@@ -377,9 +377,9 @@ public final class GameState implements State {
             properties.preBattleRandomization = properties.preBattleRandomization == null ? p : properties.preBattleRandomization.doAfter(p);
             properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                    if (state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART && properties.switchBattleHandler != null) {
                         for (int i = 0; i < properties.potions.size(); i++) {
-                            if (properties.potions.get(i).isGenerated) {
+                            if (properties.potions.get(i).isGenerated || (state.hadPotion(i) && !state.potionUsable(i))) {
                                 continue;
                             }
                             state.setPotionUsable(i);
@@ -745,13 +745,7 @@ public final class GameState implements State {
                         v.setVExtra(state.properties.turnsLeftVExtraIdx, Math.min(v.getVExtra(state.properties.turnsLeftVExtraIdx), 1.0));
                     }
                 }
-
-                @Override public void updateQValues(GameState state, VArray v) {
-                }
-
-                @Override public int getNumberOfTargets() {
-                    return 1;
-                }
+                @Override public void updateQValues(GameState state, VArray v) {}
             });
         }
         if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
@@ -769,9 +763,6 @@ public final class GameState implements State {
                     }
                 }
                 @Override public void updateQValues(GameState state, VArray v) {}
-                @Override public int getNumberOfTargets() {
-                    return 1;
-                }
             });
         }
         properties.compileExtraTrainingTarget();
@@ -1022,9 +1013,11 @@ public final class GameState implements State {
     private static void addPossibleGeneratedCardsFromListOfCard(List<Card> c, HashSet<Card> newSet, HashSet<Card> discardSet) {
         for (Card possibleCard : c) {
             newSet.add(possibleCard);
-            discardSet.add(possibleCard.getBaseCard());
-            if (possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpUntilPlayedCost) {
+            if (possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpChangeCost || possibleCard instanceof Card.CardTmpUntilPlayedCost) {
                 newSet.add(possibleCard.getBaseCard());
+                discardSet.add(possibleCard.getBaseCard());
+            } else {
+                discardSet.add(possibleCard);
             }
         }
     }
@@ -1190,7 +1183,6 @@ public final class GameState implements State {
     }
 
     public int drawOneCardSpecial() {
-        setIsStochastic();
         if (deckArrLen == 0) {
             reshuffle();
         }
@@ -1201,8 +1193,19 @@ public final class GameState implements State {
         if (deckArrFixedDrawLen > 0) {
             cardIdx = deckArr[deckArrLen - 1];
             deckArrFixedDrawLen--;
-        } else {
-            var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw, this);
+            deckArrLen -= 1;
+        } else if (drawOrder.size() > 0) {
+            cardIdx = getDrawOrderForWrite().peekTop();
+            int prevLen = drawOrder.size();
+            if (!drawCardByIdx(cardIdx, false)) {
+                return -1;
+            }
+            if (prevLen == drawOrder.size()) {
+                getDrawOrderForWrite().drawTop();
+            }
+        }  else {
+            setIsStochastic();
+            var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw);
             cardIdx = deckArr[idx];
             addCardToHand(deckArr[idx]);
             getDeckArrForWrite()[idx] = deckArr[deckArrLen - 1];
@@ -1271,7 +1274,7 @@ public final class GameState implements State {
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             checkWristBladeBuffForZeroCostAttack(cardIdx);
-            if (cloneSource == null) {
+            if (cloneSource == null && !exhaustWhenPlayed) {
                 removeCardFromHand(cardIdx);
             }
             if (realEnergyCost < 0) {
@@ -2523,7 +2526,7 @@ public final class GameState implements State {
         if (properties.burningBlood != null || properties.bloodyIdol != null || properties.bloodVial != null) {
             return true;
         }
-        if (properties.toyOrnithopter != null && properties.potions.size() > 0) {
+        if (properties.toyOrnithopter != null && !properties.potions.isEmpty()) {
             return true;
         }
         if (properties.regenerationCounterIdx >= 0) {
@@ -2536,7 +2539,7 @@ public final class GameState implements State {
             return true;
         }
         if (properties.meatOnTheBone != null) {
-            return getPlayeForRead().getHealth() < getPlayeForRead().getMaxHealth() / 2 + 12;
+            return getPlayeForRead().getHealth() < getPlayeForRead().getInBattleMaxHealth() / 2 + 12;
         }
         if (properties.healCardsIdxes == null) {
             return false;
@@ -2565,16 +2568,17 @@ public final class GameState implements State {
     // todo: yeah domain knowledge is really really hard
     public int getMaxPossibleHealth() {
 //        if (checkIfCanHeal()) {
-            int v = 0;
+            int maxHealPreBattleEnd = 0;
+            int maxPossibleIncreaseInMaxHP = 0;
             int maxPossibleRegen = 0;
             int maxPossiblePowers = 0;
-            if (properties.potions.size() > 0) {
+            if (!properties.potions.isEmpty()) {
                 for (int i = 0; i < properties.potions.size(); i++) {
                     if (potionUsable(i) && properties.toyOrnithopter != null && !(properties.potions.get(i) instanceof Potion.FairyInABottle)) {
-                        v += 5;
+                        maxHealPreBattleEnd += 5;
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.BloodPotion pot) {
-                        v += pot.getHealAmount(this);
+                        maxHealPreBattleEnd += pot.getHealAmount(this);
                     }
                     if (potionUsable(i) && properties.potions.get(i) instanceof Potion.RegenerationPotion) {
                         maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this);
@@ -2601,7 +2605,7 @@ public final class GameState implements State {
                 if (canGeneratePotion) {
                     maxPossibleRegen += Potion.RegenerationPotion.getRegenerationAmount(this) * properties.numOfPotionSlots;
                     if (properties.toyOrnithopter != null) {
-                        v += 5 * properties.numOfPotionSlots;
+                        maxHealPreBattleEnd += 5 * properties.numOfPotionSlots;
                     }
                     if (properties.birdFacedUrn != null) {
                         maxPossiblePowers += 1000;
@@ -2611,9 +2615,10 @@ public final class GameState implements State {
             if (properties.regenerationCounterIdx >= 0) {
                 maxPossibleRegen += getCounterForRead()[properties.regenerationCounterIdx];
             }
-            v += maxPossibleRegen * (maxPossibleRegen + 1) / 2;
+            maxHealPreBattleEnd += maxPossibleRegen * (maxPossibleRegen + 1) / 2;
             if (properties.feedCounterIdx >= 0) {
-                v += CardIronclad.Feed.getMaxPossibleFeedRemaining(this);
+                maxPossibleIncreaseInMaxHP = CardIronclad.Feed.getMaxPossibleFeedRemaining(this);
+                maxHealPreBattleEnd += maxPossibleIncreaseInMaxHP;
             }
             if (properties.healCardsIdxes != null) {
                 for (int i = 0; i < properties.healCardsIdxes.length; i++) {
@@ -2623,11 +2628,11 @@ public final class GameState implements State {
                     // todo: need to count max strength
                     if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Reaper")) {
                         for (var enemy : getEnemiesForRead()) {
-                            v += enemy.getHealth();
+                            maxHealPreBattleEnd += enemy.getHealth();
                         }
                     }
                     if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Bite")) {
-                        v = getPlayeForRead().getMaxHealth();
+                        maxHealPreBattleEnd += 10000;
                     }
                     if (properties.birdFacedUrn != null && properties.cardDict[properties.healCardsIdxes[i]].cardType == Card.POWER) {
                         if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Creative AI")) {
@@ -2636,7 +2641,7 @@ public final class GameState implements State {
                             maxPossiblePowers++;
                         }
                     }
-                    if (!properties.isHeartFight(this) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
+                    if (!GameProperties.isHeartFight(this) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
                         int m = getNonExhaustCount(properties.healCardsIdxes[i]);
                         if (m > 0) {
                             if (properties.echoFormCardIdx >= 0 || properties.echoFormPCardIdx >= 0) {
@@ -2652,7 +2657,7 @@ public final class GameState implements State {
                         int h = properties.cardDict[properties.healCardsIdxes[i]] instanceof CardDefect.SelfRepair ? 7 : 10;
                         if (properties.apotheosisCardIdx >= 0 && getNonExhaustCount(properties.apotheosisCardIdx) > 0) h = 10;
                         if (properties.apotheosisPCardIdx >= 0 && getNonExhaustCount(properties.apotheosisPCardIdx) > 0) h = 10;
-                        v += h * m;
+                        maxHealPreBattleEnd += h * m;
                     }
                 }
             }
@@ -2661,14 +2666,7 @@ public final class GameState implements State {
             }
             if (properties.birdFacedUrn != null && maxPossiblePowers > 0) {
                 boolean canDup = getNonExhaustCount("Amplify") > 0 || getNonExhaustCount("Echo Form") > 0;
-                v += (canDup ? 4 : 2) * maxPossiblePowers;
-            }
-
-            if (!properties.isHeartFight(this) && properties.selfRepairCounterIdx >= 0) {
-                v += getCounterForRead()[properties.selfRepairCounterIdx];
-            }
-            if (properties.burningBlood != null) {
-                v += 6;
+                maxHealPreBattleEnd += (canDup ? 4 : 2) * maxPossiblePowers;
             }
 
             int hp;
@@ -2678,25 +2676,31 @@ public final class GameState implements State {
                     maxPossibleHealth = Math.max(maxPossibleHealth, pot.getHealAmount(this));
                 }
             }
-            if (properties.meatOnTheBone != null) {
-                // todo: feed and meat on bone interaction when they are together
-                // todo: self repair and meat on bone interaction when they are together
-                if (maxPossibleHealth >= getPlayeForRead().getMaxHealth() / 2 + 12) {
-                    hp = Math.min(getPlayeForRead().getMaxHealth(), maxPossibleHealth + v);
-                } else if (maxPossibleHealth + v < getPlayeForRead().getMaxHealth() / 2) {
-                    hp = maxPossibleHealth + v + 12;
+            var maxHealth = player.getInBattleMaxHealth() + maxPossibleIncreaseInMaxHP;
+            if (properties.meatOnTheBone != null && properties.meatOnTheBone.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                if ((maxPossibleHealth + maxHealPreBattleEnd) >= maxHealth / 2 + 12) {
+                    hp = Math.min(maxHealth, maxPossibleHealth + maxHealPreBattleEnd);
+                } else if (maxPossibleHealth + maxHealPreBattleEnd < maxHealth / 2) {
+                    hp = maxPossibleHealth + maxHealPreBattleEnd + 12;
                 } else {
-                    hp = Math.min(getPlayeForRead().getMaxHealth(), Math.max(maxPossibleHealth + v, getPlayeForRead().getMaxHealth() / 2 + 12));
+                    hp = Math.min(maxHealth, Math.max(maxPossibleHealth + maxHealPreBattleEnd, maxHealth / 2 + 12));
                 }
             } else {
-                hp = Math.min(getPlayeForRead().getMaxHealth(), maxPossibleHealth + v);
+                hp = Math.min(maxHealth, maxPossibleHealth + maxHealPreBattleEnd);
             }
-            if (properties.bloodyIdol != null) {
-                hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 5);
+            if (!GameProperties.isHeartFight(this) && properties.selfRepairCounterIdx >= 0) {
+                hp += getCounterForRead()[properties.selfRepairCounterIdx];
             }
-            if (!properties.isHeartFight(this) && properties.bloodVial != null) {
-                hp = Math.min(getPlayeForRead().getMaxHealth(), hp + 2);
+            if (properties.burningBlood != null && properties.burningBlood.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                hp += 6;
             }
+            if (properties.bloodyIdol != null && properties.bloodyIdol.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                hp += 5;
+            }
+            if (!GameProperties.isHeartFight(this) && properties.bloodVial != null && properties.bloodVial.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                hp += 2;
+            }
+            hp = Math.min(maxHealth, hp);
             return hp;
 //        } else {
 //            return getPlayeForRead().getHealth();
@@ -4619,7 +4623,7 @@ public final class GameState implements State {
             }
             for (int i = deckArrFixedDrawLen; i < scryTotalCount; i++) {
                 setIsStochastic();
-                var idx = getSearchRandomGen().nextInt(this.deckArrLen - deckArrFixedDrawLen, RandomGenCtx.CardDraw, this);
+                var idx = getSearchRandomGen().nextInt(this.deckArrLen - deckArrFixedDrawLen, RandomGenCtx.CardDraw);
                 var cardIdx = deckArr[idx];
                 deckArr[idx] = deckArr[deckArr.length - 1 - i];
                 deckArr[deckArr.length - 1 - i] = cardIdx;
@@ -4750,9 +4754,13 @@ public final class GameState implements State {
     public void adjustEnemiesAlive(int count) {
         enemiesAlive += count;
         if (enemiesAlive == 0) {
-            for (var handler : properties.endOfBattleHandlers) {
-                handler.handle(this);
-            }
+            addGameActionToStartOfDeque(new GameEnvironmentAction() {
+                @Override public void doAction(GameState state) {
+                    for (var handler : properties.endOfBattleHandlers) {
+                        handler.handle(state);
+                    }
+                }
+            });
         }
     }
 

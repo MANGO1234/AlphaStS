@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
@@ -124,16 +125,13 @@ public class CardColorless {
     }
 
     private static abstract class _DiscoveryT extends Card {
-        protected final boolean generateCard;
-
-        public _DiscoveryT(String cardName, boolean exhausts, boolean generateCard) {
+        public _DiscoveryT(String cardName, boolean exhausts) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.exhaustWhenPlayed = exhausts;
-            this.generateCard = generateCard;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (!generateCard) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_DISCOVERY) == 0) {
                 return GameActionCtx.PLAY_CARD;
             }
             state.setSelect1OutOf3Idxes(generatedCardIdxes);
@@ -146,26 +144,22 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
-            if (!generateCard) {
-                return null;
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_DISCOVERY) == 0) {
+                return List.of();
             }
             return CardManager.getCharacterCardsTmp0Cost(gameProperties.character, false);
         }
     }
 
     public static class Discovery extends _DiscoveryT {
-        public Discovery(boolean generateCard) {
-            super("Discovery", true, generateCard);
-        }
-
-        @Override public Card getUpgrade() {
-            return new DiscoveryP(generateCard);
+        public Discovery() {
+            super("Discovery", true);
         }
     }
 
     public static class DiscoveryP extends _DiscoveryT {
-        public DiscoveryP(boolean generateCard) {
-            super("Discovery+", false, generateCard);
+        public DiscoveryP() {
+            super("Discovery+", false);
         }
     }
 
@@ -208,6 +202,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int _idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_ENLIGHTENMENT) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < state.getNumCardsInHand(); i++) {
                 int cardIdx = state.getHandArrForRead()[i];
                 if (!state.properties.cardDict[cardIdx].isXCost && state.properties.cardDict[cardIdx].energyCost > 1) {
@@ -222,6 +219,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_ENLIGHTENMENT) == 0) {
+                return List.of();
+            }
             if (upgraded) {
                 return cards.stream().map((card) -> card.getPermCostIfPossible(1)).toList();
             } else {
@@ -421,6 +421,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int _idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_MADNESS) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             int possibleCards = 0, diff = 0, idx = -1;
             var hand = GameStateUtils.getCardArrCounts(state.getHandArrForRead(), state.handArrLen, state.properties.cardDict.length);
             for (int i = 0; i < state.properties.realCardsLen; i++) {
@@ -453,6 +456,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_MADNESS) == 0) {
+                return List.of();
+            }
             return cards.stream().map((card) -> card.getPermCostIfPossible(0)).toList();
         }
     }
@@ -707,6 +713,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_CHRYSALIS) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < skillCount; i++) {
                 state.setIsStochastic();
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
@@ -717,6 +726,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_CHRYSALIS) == 0) {
+                return List.of();
+            }
             return CardManager.getCharacterCardsByType(gameProperties.character, Card.SKILL, false)
                     .stream().map((card) -> card.getPermCostIfPossible(0)).toList();
         }
@@ -776,18 +788,20 @@ public class CardColorless {
                         if (isTerminal > 0) {
                             v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 100.0);
                         } else if (isTerminal == 0) {
-                            int minFeed = state.getCounterForRead()[counterIdx];
-                            int maxFeedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
-                            double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, state.getVExtra(vExtraIdx)));
-                            v.setVExtra(vExtraIdx, vFeed);
+                            int minHandOfGreed = state.getCounterForRead()[counterIdx];
+                            int maxHandOfGreedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
+                            double vHandOfGreed = Math.max(minHandOfGreed / 100.0, Math.min((minHandOfGreed + maxHandOfGreedRemaining) / 100.0, state.getVExtra(vExtraIdx)));
+                            v.setVExtra(vExtraIdx, vHandOfGreed);
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        int minFeed = state.getCounterForRead()[counterIdx];
-                        int maxFeedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
-                        double vFeed = Math.max(minFeed / 100.0, Math.min((minFeed + maxFeedRemaining) / 100.0, v.getVExtra(vExtraIdx)));
-                        v.add(GameState.V_HEALTH_IDX, 100 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        int minHandOfGreed = state.getCounterForRead()[counterIdx];
+                        int maxHandOfGreedRemaining = getMaxPossibleHandOfGreedRemaining(state, true);
+                        double vHandOfGreed = Math.max(minHandOfGreed / 100.0, Math.min((minHandOfGreed + maxHandOfGreedRemaining) / 100.0, v.getVExtra(vExtraIdx)));
+                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                            v.add(GameState.V_HEALTH_IDX, 100 * vHandOfGreed * healthRewardRatio / 20.0 / state.getPlayeForRead().getMaxHealth());
+                        }
                     }
                 });
             }
@@ -795,7 +809,6 @@ public class CardColorless {
 
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             counterIdx = idx;
-            gameProperties.feedCounterIdx = idx; // todo: tmp for stats
             gameProperties.handOfGreedCounterIdx = idx;
         }
 
@@ -979,6 +992,9 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_METAMORPHOSIS) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             for (int i = 0; i < attackCount; i++) {
                 state.setIsStochastic();
                 int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
@@ -989,6 +1005,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_METAMORPHOSIS) == 0) {
+                return List.of();
+            }
             return CardManager.getCharacterCardsByType(gameProperties.character, Card.ATTACK, false)
                     .stream().map((card) -> card.getPermCostIfPossible(0)).toList();
         }
@@ -1329,6 +1348,7 @@ public class CardColorless {
                     state.addCardToHand(possibleIndexes[len - 1 - i]);
                 }
             } else {
+                state.setIsStochastic();
                 Utils.shuffle(state, possibleIndexes, len, len - 3, state.getSearchRandomGen());
                 for (int i = 0; i < n; i++) {
                     state.removeCardFromDeck(possibleIndexes[len - 1 - i], true);
@@ -1429,16 +1449,18 @@ public class CardColorless {
                         } else if (isTerminal == 0) {
                             int minValue = state.getCounterForRead()[counterIdx];
                             int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
-                            double vFeed = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, state.getVExtra(vExtraIdx)));
-                            v.setVExtra(vExtraIdx, vFeed);
+                            double vDagger = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, state.getVExtra(vExtraIdx)));
+                            v.setVExtra(vExtraIdx, vDagger);
                         }
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        int minValue = state.getCounterForRead()[counterIdx];
-                        int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
-                        double vFeed = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, v.getVExtra(vExtraIdx)));
-                        v.add(GameState.V_HEALTH_IDX, 10 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                            int minValue = state.getCounterForRead()[counterIdx];
+                            int maxRemaining = getMaxPossibleRitualDaggerRemaining(state, true);
+                            double vDagger = Math.max(minValue / 10.0, Math.min((minValue + maxRemaining) / 10.0, v.getVExtra(vExtraIdx)));
+                            v.add(GameState.V_HEALTH_IDX, 10 * vDagger * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        }
                     }
                 });
             }

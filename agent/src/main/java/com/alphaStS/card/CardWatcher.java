@@ -13,6 +13,7 @@ import com.alphaStS.PlayerBuff;
 import com.alphaStS.RandomGenCtx;
 import com.alphaStS.TrainingTarget;
 import com.alphaStS.action.CardDrawAction;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enums.Stance;
 
 import java.util.ArrayList;
@@ -2699,8 +2700,9 @@ public class CardWatcher {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        double vUpgrades = v.getVExtra(vExtraIdx);
-                        v.add(GameState.V_HEALTH_IDX, 10 * vUpgrades * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                            v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        }
                     }
                 });
             }

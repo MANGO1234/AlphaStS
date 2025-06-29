@@ -1,10 +1,12 @@
 package com.alphaStS.player;
 
 import com.alphaStS.*;
-import com.alphaStS.enums.CharacterEnum;
-import com.alphaStS.enums.Stance;
 
 public class Player extends PlayerReadOnly {
+    public Player(int health, int maxHealth, int inBattleMaxHealth) {
+        super(health, maxHealth, inBattleMaxHealth);
+    }
+
     public Player(int health, int maxHealth) {
         super(health, maxHealth);
     }
@@ -92,7 +94,7 @@ public class Player extends PlayerReadOnly {
     }
 
     public int heal(int n) {
-        int healed = Math.min(n, maxHealth - health) ;
+        int healed = Math.min(n, getInBattleMaxHealth() - health);
         health += healed;
         return healed;
     }
@@ -224,8 +226,13 @@ public class Player extends PlayerReadOnly {
         health = hp;
     }
 
-    public void setMaxHealth(int maxHealth) {
-        this.maxHealth = maxHealth;
+    public void setInBattleMaxHealth(int maxHealth) {
+        this.inBattleMaxHealth = maxHealth;
+        this.health = Math.min(maxHealth, this.health);
+    }
+
+    public void setAccumulatedDamage(int health) {
+        this.accumulatedDamage = health;
     }
 
     public void removeAllDebuffs(GameState state) {
@@ -259,6 +266,5 @@ public class Player extends PlayerReadOnly {
         if (state.properties.sneckoDebuffCounterIdx >= 0) {
             state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 0;
         }
-
     }
 }

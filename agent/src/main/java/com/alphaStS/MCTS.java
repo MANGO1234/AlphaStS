@@ -89,6 +89,9 @@ public class MCTS {
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
+            if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                v.correctForSwitchBattle(state.total_n + 1);
+            }
             return SEARCH_SUCCESS;
         }
         if (state.n == null) {
@@ -288,6 +291,10 @@ public class MCTS {
                     }
                 }
             }
+        }
+
+        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            v.correctForSwitchBattle(state.total_n + 1);
         }
         state.getChildQArray(action).addVArray(v);
         state.getTotalQArray().addVArray(v);
@@ -546,6 +553,9 @@ public class MCTS {
                 state.varianceM = v.get(GameState.V_COMB_IDX);
                 state.varianceS = 0;
                 state.writeUnlock();
+                if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                    v.correctForSwitchBattle(state.total_n + 1);
+                }
                 return SEARCH_SUCCESS;
             }
             state.writeUnlock();
@@ -788,6 +798,9 @@ public class MCTS {
             }
         }
 
+        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            v.correctForSwitchBattle(state.total_n + 1);
+        }
         state.writeLock();
         if (state.terminalAction >= 0) {
             state.writeUnlock(); // another thread may have detected terminal action
@@ -849,7 +862,7 @@ public class MCTS {
         if (state.playerTurnStartMaxPossibleHealth != state.getPlayeForRead().getHealth()) {
             return false;
         }
-        if (state.properties.isHeartFight(state)) {
+        if (GameProperties.isHeartFight(state)) {
             return true;
         }
         if (state.playerTurnStartPotionCount != state.getPotionCount()) {
@@ -962,6 +975,9 @@ public class MCTS {
             numberOfPossibleActions = state.getLegalActions().length;
             state.varianceM = v.get(GameState.V_COMB_IDX);
             state.varianceS = 0;
+            if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                v.correctForSwitchBattle(state.total_n + 1);
+            }
             return;
         }
         if (state.n == null) {
@@ -1053,6 +1069,9 @@ public class MCTS {
             }
         }
 
+        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            v.correctForSwitchBattle(state.total_n + 1);
+        }
         for (int i = 0; i < state.properties.v_total_len; i++) {
             state.addChildQ(action, i, v.get(i));
         }
@@ -1097,6 +1116,9 @@ public class MCTS {
             state.getVArray(v);
             state.getTotalQArray().copyFrom(v);
             numberOfPossibleActions = state.getLegalActions().length;
+            if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+                v.correctForSwitchBattle(state.total_n + 1);
+            }
             return;
         }
         if (state.n == null) {
@@ -1134,7 +1156,9 @@ public class MCTS {
             }
         }
 
-
+        if (GameProperties.isHeartFight(state) && state.properties.switchBattleHandler != null && state.actionCtx == GameActionCtx.BEGIN_BATTLE) {
+            v.correctForSwitchBattle(state.total_n + 1);
+        }
         for (int i = 0; i < state.properties.v_total_len; i++) {
             state.addChildQ(action, i, v.get(i));
         }
@@ -1599,9 +1623,6 @@ public class MCTS {
             }
             boolean useTurnLeftHead = !useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0;
             if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
-                if (state.getPlayeForRead().getAccumulatedDamage() >= state.getPlayeForRead().getMaxHealth() * 3) {
-                    throw new IllegalStateException();
-                }
                 if (state.getTotalQArray().getVZeroDmg(state.getPlayeForRead().getAccumulatedDamage()) / (state.total_n + 1) < 0.99) {
                     useTurnLeftHead = false;
                 }

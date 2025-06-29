@@ -1,5 +1,7 @@
 package com.alphaStS;
 
+import com.alphaStS.utils.Utils;
+
 import java.util.Arrays;
 
 public class VArray {
@@ -67,7 +69,7 @@ public class VArray {
 
     public void setVZeroDmg(int accumulatedDamage, double v) {
         accumulatedDmg[0] = accumulatedDamage;
-        accumulatedDmgV[1] = v;
+        accumulatedDmgV[0] = v;
         accumulatedDmgLen = 1;
     }
 
@@ -442,5 +444,24 @@ public class VArray {
             overwrite--;
         }
         accumulatedDmgLen = mergeLen;
+    }
+
+    public String toDetailedString(GameProperties properties) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < accumulatedDmgLen; i++) {
+            if (i == 0) {
+                builder.append("{");
+            } else {
+                builder.append(", ");
+            }
+            builder.append(accumulatedDmg[i]).append(": ").append(Utils.formatFloat(accumulatedDmgV[i]));
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
+    public void correctForSwitchBattle(int n) {
+        accumulatedDmgV[0] = 1;
+        accumulatedDmgLen = Math.max(accumulatedDmgLen, 1);
     }
 }

@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
@@ -2246,8 +2247,10 @@ public class CardSilent {
                 }
 
                 @Override public void updateQValues(GameState state, VArray v) {
-                    for (int i = 0; i < 5; i++) {
-                        v.add(GameState.V_HEALTH_IDX, i * healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                    if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                        for (int i = 0; i < 5; i++) {
+                            v.add(GameState.V_HEALTH_IDX, i * healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                        }
                     }
                 }
 

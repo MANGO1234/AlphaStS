@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
@@ -1545,10 +1546,8 @@ public class CardDefect {
                         int minGA = state.getCounterForRead()[counterIdx];
                         int maxGARemaining = getMaxPossibleGARemaining(state);
                         double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, v.getVExtra(vExtraIdx)));
-                        if (true) {
+                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
                             v.add(GameState.V_HEALTH_IDX, 16 * vGA * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
-                        } else {
-                            v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.8 + vGA / 0.25 * 0.2));
                         }
                     }
                 });

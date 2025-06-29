@@ -282,6 +282,7 @@ public class EnemyCity {
 
         public BronzeOrb(int health) {
             super(health, 3, true);
+            properties.isMinion = true;
             this.health = 0;
         }
 
@@ -621,6 +622,7 @@ public class EnemyCity {
         public TorchHead(int health) {
             super(health, 1, false);
             properties.canGainStrength = true;
+            properties.isMinion = true;
             this.health = 0;
         }
 

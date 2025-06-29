@@ -884,9 +884,6 @@ public interface GameStateRandomization {
                         if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(true);
                             enemy.setHealth(enemy.properties.maxHealth);
-                            enemy.gainStrength(-enemy.getStrength());
-                            enemy.setMetallicize(0);
-                            enemy.setRegeneration(0);
                         }
                     }
                 }
@@ -896,8 +893,6 @@ public interface GameStateRandomization {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.properties.origMaxHealth);
                             enemy.gainStrength(enemy.properties.actNumber + 1);
-                            enemy.setMetallicize(0);
-                            enemy.setRegeneration(0);
                         }
                     }
                 }
@@ -906,9 +901,7 @@ public interface GameStateRandomization {
                         if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.properties.origMaxHealth);
-                            enemy.gainStrength(-enemy.getStrength());
                             enemy.setMetallicize(2 * enemy.properties.actNumber + 2);
-                            enemy.setRegeneration(0);
                         }
                     }
                 }
@@ -917,8 +910,6 @@ public interface GameStateRandomization {
                         if (enemy.properties.hasBurningEliteBuff()) {
                             enemy.setBurningHealthBuff(false);
                             enemy.setHealth(enemy.properties.origMaxHealth);
-                            enemy.gainStrength(-enemy.getStrength());
-                            enemy.setMetallicize(0);
                             enemy.setRegeneration(2 * enemy.properties.actNumber + 1);
                         }
                     }

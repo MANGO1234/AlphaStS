@@ -1419,7 +1419,7 @@ public class InteractiveMode {
             if (i == currentIdx1 || i == currentIdx2) {
                 continue;
             }
-            var card = state.properties.cardDict[state.properties.select1OutOf3CardsIdxes[potionsIdxes[i]]];
+            var card = state.properties.cardDict[potionsIdxes[i]];
             out.println(p + ". " + card.cardName);
             p++;
         }
@@ -1529,6 +1529,41 @@ public class InteractiveMode {
     private int selectedDeckDrawOrder(BufferedReader reader, GameState state, int len, List<String> history) {
         for (int i = 0; i < len; i++) {
             out.println(i + ". " + state.properties.cardDict[state.deckArr[i]].cardName);
+        }
+        while (true) {
+            out.print("> ");
+            String line;
+            try {
+                line = reader.readLine();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (0 <= r && r < len) {
+                return r;
+            } else {
+                int[] deckArr = new int[state.deckArr.length];
+                for (int i = 0; i < deckArr.length; i++) {
+                    deckArr[i] = state.deckArr[i];
+                }
+                var allCards = Arrays.stream(deckArr).limit(len).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).toList();
+                var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
+                if (card != null) {
+                    for (int i = 0; i < len; i++) {
+                        if (state.properties.cardDict[state.deckArr[i]].cardName.toLowerCase().equals(card)) {
+                            return i;
+                        }
+                    }
+                }
+            }
+            out.println("Unknown Move");
+        }
+    }
+
+    private int selectedCardFromList(BufferedReader reader, GameState state, short[] arr, int len, List<String> history) {
+        for (int i = 0; i < len; i++) {
+            out.println(i + ". " + state.properties.cardDict[arr[i]].cardName);
         }
         while (true) {
             out.print("> ");
@@ -1980,12 +2015,15 @@ public class InteractiveMode {
         out.println("Time: " + (System.currentTimeMillis() - startTime) + " ms, Speed: " + Utils.formatFloat(speed) + " " + item + "/s (" + doneCount.get() + " " + item + " searched)" + (extraDetails != null ? " " + extraDetails.get() : ""));
     }
 
+    int nnPVLastNodeCount = 1000;
+
     private Tuple<GameState, Integer> runNNPV(GameState state, List<String> pv, String line, List<String> history, InteractiveReader reader) {
         List<String> args = Arrays.asList(line.split(" "));
         if (args.size() < 2) {
             out.println("<node count>");
         }
-        int count = parseInt(args.get(1), 1000);
+        int count = parseInt(args.get(1), nnPVLastNodeCount);
+        nnPVLastNodeCount = count;
         int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
         int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
         boolean smartPruneDisable = parseArgsBoolean(args, "noPrune");
@@ -1995,13 +2033,13 @@ public class InteractiveMode {
         int move_i = 0;
         long start = System.currentTimeMillis();
         StringBuilder finalOuput = new StringBuilder("\n### Final Output ###");
+        stopRequested = false;
         do {
             s.setMultithreaded(numberOfThreads * batchSize > 1);
             var curStart = System.currentTimeMillis();
             var startNodeCount = s.total_n;
             AtomicLong nodeCount = new AtomicLong(s.total_n);
             AtomicLong nodeDoneCount = new AtomicLong(s.total_n);
-            stopRequested = false;
             modelExecutor.start(numberOfThreads, batchSize);
             var numberOfProducers = ModelExecutor.getNumberOfProducers(numberOfThreads, batchSize);
             allocateThreadMCTS(modelExecutor, numberOfProducers);
@@ -2035,13 +2073,13 @@ public class InteractiveMode {
                 while (curS.isTerminal() == 0) {
                     int[] actions = MCTS.getActionWithMaxNodesOrTerminal2(curS);
                     if (actions.length == 1) {
-                        o.append(o.length() == 0 ? "" : ", ").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%)");
+                        o.append(o.isEmpty() ? "" : ", ").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%)");
                         if (curS.ns[actions[0]] == null || !(curS.ns[actions[0]] instanceof GameState)) {
                             break;
                         }
                         curS = (GameState) curS.ns[actions[0]];
                     } else {
-                        o.append(o.length() == 0 ? "[" : ", [").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%) | ");
+                        o.append(o.isEmpty() ? "[" : ", [").append(curS.getActionString(actions[0])).append(" (").append(Utils.formatFloat(curS.n[actions[0]] / (double) curS.total_n * 100)).append("%) | ");
                         o.append(curS.getActionString(actions[1])).append(" (").append(Utils.formatFloat(curS.n[actions[1]] / (double) curS.total_n * 100)).append("%)]");
                         break;
                     }
@@ -2090,7 +2128,7 @@ public class InteractiveMode {
                 out.println("Memory Usage: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) + " bytes");
                 return new Tuple<>(s, action);
             } else if (ns instanceof GameState ns2) {
-                if (clear || Configuration.isBanTranspositionInTreeOn(ns2)) { s.clearAllSearchInfo(); ns2.clearAllSearchInfo(); }
+                if (!stopRequested && (clear || Configuration.isBanTranspositionInTreeOn(ns2))) { s.clearAllSearchInfo(); ns2.clearAllSearchInfo(); }
                 ns2.bannedActions = null;
                 s = ns2;
             } else {
@@ -2098,8 +2136,7 @@ public class InteractiveMode {
                 out.println("Unknown ns: " + Arrays.stream(state.ns).map(Objects::isNull).toList());
                 return null;
             }
-        } while (!stopRequested);
-        return null;
+        } while (true);
     }
 
     private Tuple<GameState, Integer> runNNPVInternal(GameState state, MCTS mcts, List<String> pv, int nodeCount, boolean clear) {
@@ -2567,11 +2604,13 @@ public class InteractiveMode {
                 return interactiveMode.selectShieldAndSpear(reader, history);
             }
             case CardDraw -> {
-                var t = (Tuple3<GameState, Integer, Integer>) arg;
+                var t = (Tuple3<GameState, Integer, Object>) arg;
                 if (t.v2() == 0) {
                     return interactiveMode.selectedDeckDrawOrder(reader, t.v1(), bound, history);
+                } else if (t.v2() == 2) {
+                    return interactiveMode.selectedCardFromList(reader, t.v1(), (short[]) t.v3(), bound, history);
                 } else {
-                    return interactiveMode.selectedAddCardToDeckPosition(reader, t.v1(), bound, t.v3(), history);
+                    return interactiveMode.selectedAddCardToDeckPosition(reader, t.v1(), bound, (int) t.v3(), history);
                 }
             }
             case RandomEnemyHealth -> {

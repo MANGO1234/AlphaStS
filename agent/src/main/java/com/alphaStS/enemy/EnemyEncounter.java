@@ -5,7 +5,6 @@ import com.alphaStS.card.Card;
 import com.alphaStS.card.CardSilent;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.utils.Tuple;
-import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 
@@ -259,19 +258,25 @@ public class EnemyEncounter {
         var gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(), new EnemyExordium.GremlinWizard(),
                 new EnemyExordium.ShieldGremlin());
         for (var gremlin : gremlinList) {
+            gremlin.properties.isElite = true;
             gremlin.properties.isMinion = true;
+            gremlin.properties.actNumber = 2;
         }
         var gremlin0 = new Enemy.MergedEnemy(gremlinList);
         gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(),
                 new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
         for (var gremlin : gremlinList) {
+            gremlin.properties.isElite = true;
             gremlin.properties.isMinion = true;
+            gremlin.properties.actNumber = 2;
         }
         var gremlin1 = new Enemy.MergedEnemy(gremlinList);
         gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(),
                 new EnemyExordium.ShieldGremlin(), new EnemyExordium.GremlinWizard());
         for (var gremlin : gremlinList) {
+            gremlin.properties.isElite = true;
             gremlin.properties.isMinion = true;
+            gremlin.properties.actNumber = 2;
         }
         builder.addEnemyEncounter(gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
         builder.addEnemyReordering((state, order) -> {
@@ -616,6 +621,7 @@ public class EnemyEncounter {
             if (newState.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
                 newState.doAction(0);
             }
+            newState.isStochastic = false;
             if (newState.actionCtx == GameActionCtx.SELECT_SCENARIO) {
                 newState.doAction(state.preBattleScenariosChosenIdx);
             }
@@ -624,6 +630,8 @@ public class EnemyEncounter {
             newState.reviveEnemy(2, false, -1);
             ((EnemyEnding.CorruptHeart) newState.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
             newState.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth());
+            newState.getPlayerForWrite().setInBattleMaxHealth(state.getPlayeForRead().getInBattleMaxHealth());
+            newState.getPlayerForWrite().setAccumulatedDamage(state.getPlayeForRead().getAccumulatedDamage());
             if (state.properties.potions.size() > 0) {
                 for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
                     newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];

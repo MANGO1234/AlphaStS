@@ -233,7 +233,6 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.maxHealth = possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.maxHealth).reduce(0, Math::max);
             properties.origHealth = properties.maxHealth;
             properties.origMaxHealth = properties.maxHealth;
-            // todo: on isELite and isMinion
             properties.isElite = possibleEnemies.stream().anyMatch((e) -> e.properties.isElite);
             properties.isMinion = possibleEnemies.stream().anyMatch((e) -> e.properties.isMinion);
             properties.canVulnerable = possibleEnemies.stream().anyMatch((e) -> e.properties.canVulnerable);
@@ -251,6 +250,7 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.changePlayerFocus = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerFocus);
             properties.hasBurningEliteBuff = possibleEnemies.stream().anyMatch((e) -> e.properties.hasBurningEliteBuff);
             properties.hasArtifact = possibleEnemies.stream().anyMatch((e) -> e.properties.hasArtifact);
+            properties.actNumber = possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.actNumber).reduce(0, Math::max);
             setEnemy(0);
         }
 
@@ -375,7 +375,11 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         @Override public Enemy markAsBurningElite() {
-            return currentEnemy.markAsBurningElite();
+            super.markAsBurningElite();
+            for (int i = 0; i < possibleEnemies.size(); i++) {
+                possibleEnemies.get(i).markAsBurningElite();
+            }
+            return this;
         }
 
         @Override public void randomize(RandomGen random, boolean training, int difficulty) {
@@ -472,7 +476,7 @@ public abstract class Enemy extends EnemyReadOnly {
             if (o == null || getClass() != o.getClass())
                 return false;
             MergedEnemy enemy = (MergedEnemy) o;
-            return enemy.currentEnemyIdx == ((MergedEnemy) o).currentEnemyIdx && currentEnemy.equals(enemy.currentEnemy);
+            return currentEnemyIdx == ((MergedEnemy) o).currentEnemyIdx && currentEnemy.equals(enemy.currentEnemy);
         }
 
         @Override public int hashCode() {

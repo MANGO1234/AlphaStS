@@ -4,7 +4,6 @@ import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
-import com.alphaStS.Relic;
 
 import java.util.List;
 import java.util.Objects;
@@ -119,18 +118,21 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public void onDiscard(GameState state) {}
     public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {}
     public Card getUpgrade() { return CardUpgrade.map.get(this); }
+
     public Card getTemporaryCostIfPossible(int temporaryCost) {
         if (energyCost < 0 || energyCost == temporaryCost || isXCost) {
             return this;
         }
         return new Card.CardTmpChangeCost(this, temporaryCost);
     }
+
     public Card getTmpRetainIfPossible() {
         if (retain) {
             return this;
         }
         return new Card.CardTmpRetain(this);
     }
+
     public Card getTemporaryCostUntilPlayedIfPossible(int temporaryCost) {
         var card = this;
         if (this instanceof Card.CardTmpChangeCost c) {
@@ -143,7 +145,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     }
 
     public Card getPermCostIfPossible(int permCost) {
-        if (energyCost < 0 || energyCost <= permCost || isXCost) {
+        var card = this;
+        if (this instanceof Card.CardTmpChangeCost c) {
+            card = c.card;
+        }
+        if (card.energyCost < 0 || card.energyCost <= permCost || card.isXCost) {
             return this;
         }
         return new Card.CardPermChangeCost(this, permCost);
@@ -237,22 +243,34 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
         public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
         public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
+
         public int realEnergyCost() {
             return card.realEnergyCost();
         }
+
         public Card getBaseCard() {
             return card.getBaseCard();
         }
+
         public Card wrap(Card newCard) {
             return new CardTmpChangeCost(card.wrap(newCard), energyCost);
         }
+
+        public Card getPermCostIfPossible(int permCost) {
+            var c = card.getPermCostIfPossible(permCost);
+            if (c.energyCost < 0 || c.energyCost <= permCost || c.isXCost) {
+                return this;
+            }
+            return new Card.CardTmpChangeCost(c, energyCost);
+        }
+
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
                 return null;
             }
             if (upgrade.energyCost == 0) {
-                return null;
+                return upgrade;
             }
             return new CardTmpChangeCost(upgrade, 0);
         }

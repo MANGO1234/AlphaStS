@@ -309,7 +309,7 @@ public class CardUpgrade {
         map.put(new CardColorless.Blind(), new CardColorless.BlindP());
         map.put(new CardColorless.DarkShackles(), new CardColorless.DarkShacklesP());
         map.put(new CardColorless.DeepBreath(), new CardColorless.DeepBreathP());
-//        map.put(new CardColorless.Discovery(), new CardColorless.DiscoveryP());
+        map.put(new CardColorless.Discovery(), new CardColorless.DiscoveryP());
         map.put(new CardColorless.DramaticEntrance(), new CardColorless.DramaticEntranceP());
         map.put(new CardColorless.Enlightenment(), new CardColorless.EnlightenmentP());
         map.put(new CardColorless.Finesse(), new CardColorless.FinesseP());

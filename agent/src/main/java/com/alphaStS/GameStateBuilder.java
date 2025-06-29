@@ -181,8 +181,8 @@ public class GameStateBuilder {
     public List<Potion> getPotions() {
         int maxPotionSlot = relics.stream().anyMatch((x) -> x instanceof Relic.PotionBelt) ? 4 : 2;
         for (Relic relic : relics) {
-            if (relic instanceof Relic.LizardTail x) {
-                potions.add(new Potion.LizardTail(x.getMaxHp()));
+            if (relic instanceof Relic.LizardTail) {
+                potions.add(new Potion.LizardTail());
             }
         }
         boolean canGeneratePotion = false;

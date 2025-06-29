@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public class PlayerReadOnly {
     protected int origHealth;
+    protected int inBattleMaxHealth;
     protected int maxHealth;
     protected int health;
     protected int block;
@@ -23,7 +24,12 @@ public class PlayerReadOnly {
     protected int accumulatedDamage;
 
     public PlayerReadOnly(int health, int maxHealth) {
+        this(health, maxHealth, maxHealth);
+    }
+
+    public PlayerReadOnly(int health, int maxHealth, int inBattleMaxHealth) {
         this.maxHealth = maxHealth;
+        this.inBattleMaxHealth = inBattleMaxHealth;
         this.health = health;
         origHealth = health;
     }
@@ -31,6 +37,7 @@ public class PlayerReadOnly {
     public PlayerReadOnly(PlayerReadOnly other) {
         origHealth = other.origHealth;
         maxHealth = other.maxHealth;
+        inBattleMaxHealth = other.inBattleMaxHealth;
         health = other.health;
         block = other.block;
         strength = other.strength;
@@ -51,6 +58,10 @@ public class PlayerReadOnly {
 
     public int getMaxHealth() {
         return maxHealth;
+    }
+
+    public int getInBattleMaxHealth() {
+        return inBattleMaxHealth;
     }
 
     public int getOrigHealth() {
@@ -167,7 +178,7 @@ public class PlayerReadOnly {
         if (o == null || getClass() != o.getClass())
             return false;
         PlayerReadOnly that = (PlayerReadOnly) o;
-        return origHealth == that.origHealth && maxHealth == that.maxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && noMoreBlockFromCards == that.noMoreBlockFromCards && accumulatedDamage == that.accumulatedDamage;
+        return origHealth == that.origHealth && maxHealth == that.maxHealth && inBattleMaxHealth == that.inBattleMaxHealth && health == that.health && block == that.block && strength == that.strength && dexterity == that.dexterity && vulnerable == that.vulnerable && weak == that.weak && frail == that.frail && artifact == that.artifact && cannotDrawCard == that.cannotDrawCard && entangled == that.entangled && hexed == that.hexed && loseStrengthEot == that.loseStrengthEot && loseDexterityEot == that.loseDexterityEot && noMoreBlockFromCards == that.noMoreBlockFromCards && accumulatedDamage == that.accumulatedDamage;
     }
 
     @Override public int hashCode() {

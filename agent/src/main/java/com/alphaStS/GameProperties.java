@@ -71,6 +71,17 @@ public class GameProperties implements Cloneable {
     public List<List<String>> perScenarioCommands;
     public CharacterEnum character;
 
+    // todo: implement this
+    public final static int GENERATE_CARD_DISCOVERY = 1;
+    public final static int GENERATE_CARD_METAMORPHOSIS = 1 << 1;
+    public final static int GENERATE_CARD_CHRYSALIS = 1 << 2;
+    public final static int GENERATE_CARD_MADNESS = 1 << 3;
+    public final static int GENERATE_CARD_ENLIGHTENMENT = 1 << 4;
+    public final static int GENERATE_CARD_TRANSMUTATION = 1 << 5;
+    public final static int GENERATE_CARD_INFERNAL_BLADE = 1 << 6;
+    public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT;
+    public int generateCardOptions;
+
     // cached card indexes
     public int realCardsLen; // not including CardTmpCostChange (due to liquid memory)
     public int[] discardIdxes; // cards that can change in number of copies during a fight
@@ -212,7 +223,7 @@ public class GameProperties implements Cloneable {
     public Relic hoveringKite = null;
     public Relic wristBlade = null;
 
-    public int loseDexterityPerTurnCounterIdx;
+    public int loseDexterityPerTurnCounterIdx = -1;
     public int loseFocusPerTurnCounterIdx = -1;
     public int loseEnergyPerTurnCounterIdx = -1;
     public int constrictedCounterIdx = -1;

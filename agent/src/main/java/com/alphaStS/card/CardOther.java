@@ -1,6 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enums.Stance;
 
 import java.util.List;
@@ -536,8 +537,10 @@ public class CardOther {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        double vGold = v.getVExtra(vExtraIdx);
-                        v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
+                            double vGold = v.getVExtra(vExtraIdx);
+                            v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        }
                     }
                 });
             }

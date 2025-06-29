@@ -93,7 +93,7 @@ public class CounterStat {
             StringJoiner sj = new StringJoiner(", ");
             for (int i = 0; i < counterFrequency.size(); i++) {
                 if (counterFrequency.get(i) > 0) {
-                    sj.add(i + ": " + counterFrequency.get(i) + " (%" + String.format("%.3f", 100.0 * counterFrequency.get(i) / n) + ")");
+                    sj.add(i + ": " + counterFrequency.get(i) + " (" + String.format("%.3f", 100.0 * counterFrequency.get(i) / n) + "%)");
                 }
             }
             System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n) + " (" + sj + ")");

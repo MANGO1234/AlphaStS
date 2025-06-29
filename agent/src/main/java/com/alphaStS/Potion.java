@@ -322,7 +322,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         public int getHealAmount(GameState state) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 4 : 2;
-            return heal == 0 ? state.getPlayeForRead().getMaxHealth() * n / 10 : heal;
+            return heal == 0 ? state.getPlayeForRead().getInBattleMaxHealth() * n / 10 : heal;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -545,7 +545,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
-            return CardManager.getColorlessCards(false);
+            return CardManager.getColorlessCardsTmp0Cost(false);
         }
     }
 
@@ -630,14 +630,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class FairyInABottle extends Potion {
-        protected final int playerMaxHp;
-
-        public FairyInABottle(int playerMaxHP) {
-            this.playerMaxHp = playerMaxHP;
-        }
-
         public int getHealAmount(GameState state) {
-            return (int) ((state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 0.6 : 0.3) * this.playerMaxHp);
+            return (int) ((state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 0.6 : 0.3) * state.getPlayeForRead().getInBattleMaxHealth());
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -647,12 +641,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class LizardTail extends FairyInABottle {
-        public LizardTail(int playerMaxHP) {
-            super(playerMaxHP);
-        }
-
         public int getHealAmount(GameState state) {
-            return (int) (0.5 * this.playerMaxHp);
+            return (int) (0.5 * state.getPlayeForRead().getInBattleMaxHealth());
         }
     }
 
@@ -944,10 +934,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
                     new EntropicBrew(possibleGeneratedPotions).setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             rarePotions.add(List.of(
-                    new FairyInABottle(maxHealth).setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
-                    new FairyInABottle(maxHealth).setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
-                    new FairyInABottle(maxHealth).setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
-                    new FairyInABottle(maxHealth).setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
+                    new FairyInABottle().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),
+                    new FairyInABottle().setIsGenerated(true, 1).setBasePenaltyRatio(basePenaltyRatio),
+                    new FairyInABottle().setIsGenerated(true, 2).setBasePenaltyRatio(basePenaltyRatio),
+                    new FairyInABottle().setIsGenerated(true, 3).setBasePenaltyRatio(basePenaltyRatio)
             ));
             rarePotions.add(List.of(
                     new SmokeBomb().setIsGenerated(true, 0).setBasePenaltyRatio(basePenaltyRatio),

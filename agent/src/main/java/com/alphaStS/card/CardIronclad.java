@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.CounterStat;
 
@@ -270,7 +271,6 @@ public class CardIronclad {
         }
     }
 
-    // todo: test
     private static abstract class _HavocT extends Card {
         public _HavocT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.COMMON);
@@ -283,7 +283,7 @@ public class CardIronclad {
                 return GameActionCtx.PLAY_CARD;
             }
             if (state.properties.makingRealMove || state.properties.stateDescOn) {
-                if (state.getStateDesc().length() > 0) state.getStateDesc().append(", ");
+                if (!state.getStateDesc().isEmpty()) state.getStateDesc().append(", ");
                 state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
             }
             state.addGameActionToStartOfDeque(curState -> {
@@ -1413,6 +1413,9 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_INFERNAL_BLADE) == 0) {
+                return GameActionCtx.PLAY_CARD;
+            }
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
             state.addCardToHand(generatedCardIdxes[r]);
             state.setIsStochastic();
@@ -1420,6 +1423,9 @@ public class CardIronclad {
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_INFERNAL_BLADE) == 0) {
+                return List.of();
+            }
             return CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.IRONCLAD, Card.ATTACK, false);
         }
     }
@@ -1470,6 +1476,7 @@ public class CardIronclad {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.weak = weak;
             weakEnemy = true;
+            exhaustWhenPlayed = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1610,7 +1617,7 @@ public class CardIronclad {
             state.properties.addOnCardPlayedHandler("Rage", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1774,7 +1781,6 @@ public class CardIronclad {
                     return 1;
                 }
             });
-            // todo: test
             state.properties.addOnDamageHandler("Rupture", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt > 0 && source instanceof Card) {
@@ -2358,16 +2364,18 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            if (!state.getEnemiesForRead().get(idx).properties.isMinion && !state.properties.isHeartFight(state) && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+            if (!state.getEnemiesForRead().get(idx).properties.isMinion && !GameProperties.isHeartFight(state) && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
                     if (state.isTerminal() > 0) {
                         state.healPlayer(hpInc);
                         state.getCounterForWrite()[state.properties.feedCounterIdx] += hpInc;
+                        state.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForWrite().getMaxHealth() + hpInc);
                     }
                 } else {
                     state.healPlayer(hpInc);
                     state.getCounterForWrite()[state.properties.feedCounterIdx] += hpInc;
+                    state.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForWrite().getMaxHealth() + hpInc);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2400,11 +2408,7 @@ public class CardIronclad {
                         int minFeed = state.getCounterForRead()[counterIdx];
                         int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
                         double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v.getVExtra(vExtraIdx)));
-                        if (true) {
-                            v.add(GameState.V_HEALTH_IDX, 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
-                        } else {
-                            v.set(GameState.V_HEALTH_IDX, v.get(GameState.V_HEALTH_IDX) * (0.8 + vFeed / 0.25 * 0.2));
-                        }
+                        v.add(GameState.V_HEALTH_IDX, 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
                     }
                 });
             }
@@ -2429,14 +2433,8 @@ public class CardIronclad {
             return count;
         }
 
-        public static int getMaxPossibleFeedRemaining(GameState state) {
-            if (state.properties.isHeartFight(state)) {
-                return 0;
-            }
-            // todo: very very hacky
-            var remain = 0;
+        private static boolean canUpgradeFeed(GameState state) {
             var idxes = new int[5];
-
             boolean canUpgrade = false;
             state.properties.findCardIndex(idxes, "Armanent", "Armanent (Tmp 0)", "Armanent (Perm 0)", "Armanent (Perm 2)", "Armanent (Perm 3)");
             for (int i = 0; i < idxes.length; i++) {
@@ -2450,7 +2448,29 @@ public class CardIronclad {
                     canUpgrade = true;
                 }
             }
+            state.properties.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Perm 0)", "Apotheosis (Perm 2)", "Apotheosis (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    canUpgrade = true;
+                }
+            }
+            state.properties.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
+            for (int i = 0; i < idxes.length; i++) {
+                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                    canUpgrade = true;
+                }
+            }
+            return canUpgrade;
+        }
 
+        public static int getMaxPossibleFeedRemaining(GameState state) {
+            if (GameProperties.isHeartFight(state)) {
+                return 0;
+            }
+            // todo: very very hacky, need to create a generate card dependency graph and use that to get if a card can be generated
+            var remain = 0;
+            var idxes = new int[5];
+            var canUpgrade = canUpgradeFeed(state);
             int maxFeedable = 0;
             int maxFeedableP = 0;
             state.properties.findCardIndex(idxes, "Feed", "Feed (Tmp 0)", "Feed (Perm 0)", "Feed (Perm 2)", "Feed (Perm 3)");
@@ -2499,9 +2519,15 @@ public class CardIronclad {
             } else {
                 maxFeedable += exhumableFeeds;
             }
-            remain += Math.min(state.enemiesAlive, maxFeedableP) * 4;
-            if (state.enemiesAlive > maxFeedableP) {
-                remain += Math.min(state.enemiesAlive - maxFeedableP, maxFeedable) * 3;
+            int enemiesAlive = 0;
+            for (EnemyReadOnly enemy : state.getEnemiesForRead()) {
+                if (!enemy.properties.isMinion) {
+                    enemiesAlive++;
+                }
+            }
+            remain += Math.min(enemiesAlive, maxFeedableP) * 4;
+            if (enemiesAlive > maxFeedableP) {
+                remain += Math.min(enemiesAlive - maxFeedableP, maxFeedable) * 3;
             }
             return remain;
         }
