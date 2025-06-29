@@ -11,6 +11,7 @@ public record PlayerBuff(long mask, String name) {
     public final static PlayerBuff BLASPHEMY = new PlayerBuff(1L << 36, "Blasphemy");
     public final static PlayerBuff END_TURN_IMMEDIATELY = new PlayerBuff(1L << 37, "End Turn Immediately");
     public final static PlayerBuff USED_VAULT = new PlayerBuff(1L << 38, "Used Vault");
+    public final static PlayerBuff WRIST_BLADE = new PlayerBuff(1L << 39, "Wrist Blade");
 
     public final static PlayerBuff[] BUFFS = new PlayerBuff[] {
             BARRICADE,
@@ -22,5 +23,6 @@ public record PlayerBuff(long mask, String name) {
             BLASPHEMY,
             END_TURN_IMMEDIATELY,
             USED_VAULT,
+            WRIST_BLADE,
     };
 }

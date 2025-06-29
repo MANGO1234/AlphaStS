@@ -210,6 +210,7 @@ public class GameProperties implements Cloneable {
     public Relic markOfTheBloom = null;
     public Relic deadBranch = null;
     public Relic hoveringKite = null;
+    public Relic wristBlade = null;
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;

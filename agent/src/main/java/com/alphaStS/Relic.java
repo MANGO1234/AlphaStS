@@ -21,6 +21,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean changePlayerDexterityEot;
     public boolean vulnEnemy;
     public boolean weakEnemy;
+    public boolean poisonEnemy;
     public boolean healPlayer;
     public boolean scry;
     public boolean changeEnemyStrength;
@@ -2330,9 +2331,41 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Twisted Funnel
-    // todo: Ring of the Serpent
-    // todo: Wrist Blade
+    public static class TwistedFunnel extends Relic {
+        public TwistedFunnel() {
+            poisonEnemy = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("TwistedFunnel", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.applyDebuff(state, DebuffType.POISON, 4);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class RingOfTheSerpent extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("RingOfTheSerpent", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.draw(1);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class WristBlade extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.wristBlade = this;
+        }
+    }
 
     public static class HoveringKite extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {

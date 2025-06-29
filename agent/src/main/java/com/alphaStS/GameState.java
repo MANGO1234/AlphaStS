@@ -668,6 +668,7 @@ public final class GameState implements State {
         properties.enemyCanGetMark = cards.stream().anyMatch((x) -> x.markEnemy);
         properties.enemyCanGetPoisoned = cards.stream().anyMatch((x) -> x.poisonEnemy);
         properties.enemyCanGetPoisoned |= potions.stream().anyMatch((x) -> x.poisonEnemy);
+        properties.enemyCanGetPoisoned |= relics.stream().anyMatch((x) -> x.poisonEnemy);
         properties.enemyCanGetCorpseExplosion = cards.stream().anyMatch((x) -> x.corpseExplosionEnemy);
         properties.enemyStrengthEotCanChange = cards.stream().anyMatch((x) -> x.affectEnemyStrengthEot);
         properties.enemyStrengthCanChange = cards.stream().anyMatch((x) -> x.affectEnemyStrength);
@@ -1269,6 +1270,7 @@ public final class GameState implements State {
             return false;
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
+            checkWristBladeBuffForZeroCostAttack(cardIdx);
             if (cloneSource == null) {
                 removeCardFromHand(cardIdx);
             }
@@ -1469,6 +1471,7 @@ public final class GameState implements State {
 
         if (actionCtx == GameActionCtx.PLAY_CARD && isCardPlayed) {
 //            runActionsInQueueIfNonEmpty(); // this is bugged?
+            removeWristBladeBuff();
             if (cardPlayedSuccessfully && properties.previousCardPlayTracking) {
                 lastCardPlayedType = properties.cardDict[cardIdx].cardType;
             }
@@ -4668,6 +4671,9 @@ public final class GameState implements State {
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
         }
+        if ((buffs & PlayerBuff.WRIST_BLADE.mask()) != 0) {
+            dmg += 4;
+        }
         dmg += player.getStrength();
         if (properties.accuracyCounterIdx >= 0 && isShiv) {
             dmg += getCounterForRead()[properties.accuracyCounterIdx];
@@ -4727,6 +4733,18 @@ public final class GameState implements State {
 
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
         return playerDoDamageToEnemy(enemy, dmgInt, false);
+    }
+
+    public void checkWristBladeBuffForZeroCostAttack(int cardIdx) {
+        if (properties.wristBlade != null && properties.wristBlade.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.cardDict[cardIdx].cardType == Card.ATTACK && getCardEnergyCost(cardIdx) == 0) {
+                buffs |= PlayerBuff.WRIST_BLADE.mask();
+            }
+        }
+    }
+
+    public void removeWristBladeBuff() {
+        buffs &= ~PlayerBuff.WRIST_BLADE.mask();
     }
 
     public void adjustEnemiesAlive(int count) {
