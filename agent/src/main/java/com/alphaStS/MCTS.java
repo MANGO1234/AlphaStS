@@ -167,7 +167,7 @@ public class MCTS {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2 = state2.doAction(0);
-                        if (!state2.properties.hasFrozenEye || !state2.properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(state2.preBattleScenariosChosenIdx) || state2.isStochastic) {
+                        if (state2.properties.frozenEye == null || !state2.properties.frozenEye.isRelicEnabledInScenario(state2.preBattleScenariosChosenIdx) || state2.isStochastic) {
                             var cState = new ChanceState(state2, parentState, 0);
                             state.ns[action] = cState;
                             state.transpositions.put(parentState, cState);
@@ -656,7 +656,7 @@ public class MCTS {
                         var parentState = state2;
                         state2 = parentState.clone(false);
                         state2 = state2.doAction(0);
-                        if (!state2.properties.hasFrozenEye || !state2.properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(state2.preBattleScenariosChosenIdx) || state2.isStochastic) {
+                        if (state2.properties.frozenEye == null || !state2.properties.frozenEye.isRelicEnabledInScenario(state2.preBattleScenariosChosenIdx) || state2.isStochastic) {
                             var cState = new ChanceState(state2, parentState, 0);
                             var node = cState.addGeneratedStateParallel(state2);
                             state.transpositions.put(parentState, cState);
@@ -1004,7 +1004,7 @@ public class MCTS {
                 var s = state.transpositions.get(state2);
                 if (s == null) {
                     if (state2.actionCtx == GameActionCtx.BEGIN_TURN && state2.isTerminal() == 0) {
-                        if (!state2.properties.hasFrozenEye || !state2.properties.getRelic(Relic.FrozenEye.class).isRelicEnabledInScenario(state2.preBattleScenariosChosenIdx) || state2.isStochastic) {
+                        if (state2.properties.frozenEye == null || !state2.properties.frozenEye.isRelicEnabledInScenario(state2.preBattleScenariosChosenIdx) || state2.isStochastic) {
                             var parentState = state2;
                             state2 = parentState.clone(false);
                             state2 = state2.doAction(0);

@@ -599,17 +599,17 @@ public class EnemyBeyond {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return prop.hasRunicDome ? 2 : 1;
+            return prop.runicDome != null ? 2 : 1;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return prop.hasRunicDome ? "2 inputs to keep track of whether Time Eater has hasted and started the turn with less than half health" :
+            return prop.runicDome != null ? "2 inputs to keep track of whether Time Eater has hasted and started the turn with less than half health" :
                     "1 input to keep track of whether Time Eater has hasted";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = hasted ? 0.5f : 0;
-            if (prop.hasRunicDome) {
+            if (prop.runicDome != null) {
                 input[idx] = startTurnLessHalfHealth ? 0.5f : 0f;
                 return 2;
             }
@@ -800,7 +800,7 @@ public class EnemyBeyond {
             int prevHp = health;
             int dmg = super.damage(n, state);
             if (intangible) {
-                if (state.properties.hasBoot && state.properties.getRelic(Relic.TheBoot.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                if (state.properties.boot != null && state.properties.boot.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                     if (prevHp - health > 5) {
                         setHealth(prevHp - 5);
                         return 5;

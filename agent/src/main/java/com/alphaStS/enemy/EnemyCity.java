@@ -940,21 +940,21 @@ public class EnemyCity {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            if (prop.hasRunicDome) {
+            if (prop.runicDome != null) {
                 return 1;
             }
             return 0;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            if (prop.hasRunicDome) {
+            if (prop.runicDome != null) {
                 return "1 input to keep track of gremlin count at the beginning of turn (because of Runic Dome)";
             }
             return null;
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
-            if (prop.hasRunicDome) {
+            if (prop.runicDome != null) {
                 input[idx] = (startOfTurnEnemiesAlive - 1) / 3f;
                 return 1;
             }

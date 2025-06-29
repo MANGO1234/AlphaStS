@@ -166,47 +166,48 @@ public class GameProperties implements Cloneable {
     public int wreathOfFlameCounterIdx = -1;
     public int swivelCounterIdx = -1;
 
-    public boolean hasBlueCandle;
-    public boolean hasBoot;
-    public boolean hasToyOrniphopter;
-    public boolean hasCaliper;
-    public boolean hasGinger;
-    public boolean hasIceCream;
-    public boolean hasFrozenEye;
-    public boolean hasMedicalKit;
-    public boolean hasVioletLotus;
-    public boolean hasGoldenEye;
-    public boolean hasOddMushroom;
-    public boolean hasRunicDome;
+    public Relic blueCandle = null;
+    public Relic boot = null;
+    public Relic toyOrnithopter = null;
+    public Relic calipers = null;
+    public Relic ginger = null;
+    public Relic iceCream = null;
+    public Relic frozenEye = null;
+    public Relic medicalKit = null;
+    public Relic violetLotus = null;
+    public Relic goldenEye = null;
+    public Relic oddMushroom = null;
+    public Relic runicDome = null;
     public boolean isRunicDomeEnabled(GameState state) {
-        return hasRunicDome && getRelic(Relic.RunicDome.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx);
+        return runicDome != null && runicDome.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx);
     }
-    public boolean hasRunicPyramid;
-    public boolean hasSacredBark;
-    public boolean hasStrangeSpoon;
-    public boolean hasToolbox;
-    public boolean hasTurnip;
-    public boolean hasUnceasingTop;
-    public boolean hasTorri;
-    public boolean hasTungstenRod;
-    public boolean hasChampionBelt;
-    public boolean hasPaperPhrog;
-    public boolean hasMeatOnBone;
-    public boolean hasBirdFacedUrn;
-    public boolean hasBurningBlood;
-    public boolean hasBloodyIdol;
-    public boolean hasBloodVial;
-    public boolean hasPaperCrane;
-    public boolean hasSneckoSkull;
-    public boolean hasSneckoEye;
-    public boolean hasStrikeDummy;
-    public boolean hasTingsha;
-    public boolean hasToughBandages;
-    public boolean hasGoldPlatedCable;
-    public boolean hasChemicalX;
-    public boolean hasHandDrill;
-    public boolean hasMarkOfTheBloom;
-    public boolean hasDeadBranch;
+    public Relic runicPyramid = null;
+    public Relic sacredBark = null;
+    public Relic strangeSpoon = null;
+    public Relic toolbox = null;
+    public Relic turnip = null;
+    public Relic unceasingTop = null;
+    public Relic torii = null;
+    public Relic tungstenRod = null;
+    public Relic championBelt = null;
+    public Relic paperPhrog = null;
+    public Relic meatOnTheBone = null;
+    public Relic birdFacedUrn = null;
+    public Relic burningBlood = null;
+    public Relic bloodyIdol = null;
+    public Relic bloodVial = null;
+    public Relic paperCrane = null;
+    public Relic sneckoSkull = null;
+    public Relic sneckoEye = null;
+    public Relic strikeDummy = null;
+    public Relic tingsha = null;
+    public Relic toughBandages = null;
+    public Relic goldPlatedCable = null;
+    public Relic chemicalX = null;
+    public Relic handDrill = null;
+    public Relic markOfTheBloom = null;
+    public Relic deadBranch = null;
+    public Relic hoveringKite = null;
 
     public int loseDexterityPerTurnCounterIdx;
     public int loseFocusPerTurnCounterIdx = -1;
@@ -325,14 +326,6 @@ public class GameProperties implements Cloneable {
         }
     }
 
-    public Relic getRelic(Class relicClass) {
-        for (int i = 0; i < relics.size(); i++) {
-            if (relics.get(i).getClass() == relicClass) {
-                return relics.get(i);
-            }
-        }
-        return null;
-    }
 
     public interface CounterRegistrant {
         void setCounterIdx(GameProperties gameProperties, int idx);

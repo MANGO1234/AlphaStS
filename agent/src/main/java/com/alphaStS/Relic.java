@@ -195,7 +195,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BloodVial extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasBloodVial = true;
+            state.properties.bloodVial = this;
             state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
@@ -504,7 +504,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class TheBoot extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasBoot = true;
+            state.properties.boot = this;
         }
     }
 
@@ -512,7 +512,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class ToyOrnithopter extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasToyOrniphopter = true;
+            state.properties.toyOrnithopter = this;
             // technically heals, but we don't actually want to wait for it
         }
     }
@@ -603,7 +603,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BlueCandle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasBlueCandle = true;
+            state.properties.blueCandle = this;
         }
     }
 
@@ -820,7 +820,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MeatOnTheBone extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasMeatOnBone = true;
+            state.properties.meatOnTheBone = this;
             state.properties.addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
@@ -851,7 +851,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (!state.properties.getRelic(Relic.MummifiedHand.class).isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                    if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
                         return;
                     }
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
@@ -979,7 +979,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class StrikeDummy extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasStrikeDummy = true;
+            state.properties.strikeDummy = this;
         }
     }
 
@@ -1069,7 +1069,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasBirdFacedUrn = true;
+            state.properties.birdFacedUrn = this;
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (!isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
@@ -1085,7 +1085,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Calipers extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasCaliper = true;
+            state.properties.calipers = this;
         }
     }
 
@@ -1124,7 +1124,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class DeadBranch extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasDeadBranch = true;
+            state.properties.deadBranch = this;
             state.properties.addOnExhaustHandler("DeadBranch", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
@@ -1186,7 +1186,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Ginger extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasGinger = true;
+            state.properties.ginger = this;
         }
     }
 
@@ -1204,7 +1204,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class IceCream extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasIceCream = true;
+            state.properties.iceCream = this;
         }
     }
 
@@ -1421,25 +1421,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Torii extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasTorri = true;
+            state.properties.torii = this;
         }
     }
 
     public static class TungstenRod extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasTungstenRod = true;
+            state.properties.tungstenRod = this;
         }
     }
 
     public static class Turnip extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasTurnip = true;
+            state.properties.turnip = this;
         }
     }
 
     public static class UnceasingTop extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasUnceasingTop = true;
+            state.properties.unceasingTop = this;
         }
     }
 
@@ -1450,7 +1450,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Cauldron: No need to implement
     public static class ChemicalX extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasChemicalX = true;
+            state.properties.chemicalX = this;
         }
     }
 
@@ -1470,14 +1470,14 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class FrozenEye extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasFrozenEye = true;
+            state.properties.frozenEye = this;
 //            state.properties.needDeckOrderMemory = true;
         }
     }
 
     public static class HandDrill extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasHandDrill = true;
+            state.properties.handDrill = this;
         }
     }
 
@@ -1485,7 +1485,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MedicalKit extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasMedicalKit = true;
+            state.properties.medicalKit = this;
         }
     }
 
@@ -1554,7 +1554,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class StrangeSpoon extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasStrangeSpoon = true;
+            state.properties.strangeSpoon = this;
         }
     }
 
@@ -1572,8 +1572,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Toolbox extends Relic {
         public static void changeToSelectionCtx(GameState state) {
-            var toolbox = state.properties.getRelic(Toolbox.class);
-            state.setSelect1OutOf3Idxes(toolbox.generatedCardIdxes);
+            state.setSelect1OutOf3Idxes(state.properties.toolbox.generatedCardIdxes);
             state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
         }
 
@@ -1586,7 +1585,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasToolbox = true;
+            state.properties.toolbox = this;
         }
     }
 
@@ -1770,19 +1769,19 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-            state.properties.hasRunicDome = true;
+            state.properties.runicDome = this;
         }
     }
 
     public static class RunicPyramid extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasRunicPyramid = true;
+            state.properties.runicPyramid = this;
         }
     }
 
     public static class SacredBark extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasSacredBark = true;
+            state.properties.sacredBark = this;
         }
     }
 
@@ -1808,7 +1807,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         public void gamePropertiesSetup(GameState state) {
             state.properties.setupSneckoIndexes();
             state.properties.registerSneckoDebuffCounter();
-            state.properties.hasSneckoEye = true;
+            state.properties.sneckoEye = this;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
@@ -1877,7 +1876,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BloodyIdol extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasBloodyIdol = true;
+            state.properties.bloodyIdol = this;
             state.properties.addEndOfBattleHandler("BloodyIdol", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
                     state.healPlayer(5);
@@ -1933,7 +1932,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class MarkOfTheBloom extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasMarkOfTheBloom = true;
+            state.properties.markOfTheBloom = this;
         }
     }
 
@@ -2011,7 +2010,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class OddMushroom extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasOddMushroom = true;
+            state.properties.oddMushroom = this;
         }
     }
 
@@ -2084,7 +2083,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BurningBlood extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasBurningBlood = true;
+            state.properties.burningBlood = this;
             state.properties.addEndOfBattleHandler("BurningBlood", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
                     state.healPlayer(6);
@@ -2130,13 +2129,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class PaperPhrog extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasPaperPhrog = true;
+            state.properties.paperPhrog = this;
         }
     }
 
     public static class ChampionBelt extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasChampionBelt = true;
+            state.properties.championBelt = this;
         }
     }
 
@@ -2164,25 +2163,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class PaperCrane extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasPaperCrane = true;
+            state.properties.paperCrane = this;
         }
     }
 
     public static class SneckoSkull extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasSneckoSkull = true;
+            state.properties.sneckoSkull = this;
         }
     }
 
     public static class Tingsha extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasTingsha = true;
+            state.properties.tingsha = this;
         }
     }
 
     public static class ToughBandages extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasToughBandages = true;
+            state.properties.toughBandages = this;
         }
     }
 
@@ -2267,7 +2266,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GoldPlatedCable extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasGoldPlatedCable = true;
+            state.properties.goldPlatedCable = this;
         }
     }
 
@@ -2569,7 +2568,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class GoldenEye extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasGoldenEye = true;
+            state.properties.goldenEye = this;
         }
     }
 
@@ -2622,7 +2621,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class VioletLotus extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.hasVioletLotus = true;
+            state.properties.violetLotus = this;
         }
     }
+
 }
