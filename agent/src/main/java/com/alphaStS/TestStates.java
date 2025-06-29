@@ -38,7 +38,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addEnemyEncounter(new EnemyExordium.JawWorm(false));
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         var randomization = new GameStateRandomization.CardCountRandomization(List.of(
                 List.of(new CardCount(new CardIronclad.Bash(), 1)),
                 List.of(new CardCount(new Card.Defend(), 1),
@@ -1196,7 +1196,7 @@ public class TestStates {
         builder.addPotion(new Potion.SwiftPotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(90));
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.LetterOpener());
@@ -1252,7 +1252,7 @@ public class TestStates {
         builder.addPotion(new Potion.BlockPotion().setBasePenaltyRatio(100));
 //        builder.setGameStateViaInteractiveMode(List.of("rng off", "do", "def", "mal+", "def", "cal", "pha+", "legswe+", "e", "0", "1", "exit"));
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.LetterOpener());
@@ -1585,7 +1585,7 @@ public class TestStates {
         ), GameStateRandomization.CardCountRandomization.UPGRADE));
         builder.setPreBattleScenarios(startOfGameScenarios);
         builder.addRelic(new Relic.MummifiedHand());
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.LetterOpener());
@@ -2101,7 +2101,7 @@ public class TestStates {
         builder.addCard(new CardSilent.WellLaidPlans(), 1);
         builder.addCard(new CardOther.Parasite(), 1);
         builder.addCard(new CardColorless.PanicButton(), 1);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.CoffeeDripper());
         builder.addRelic(new Relic.CursedKey());
@@ -2157,7 +2157,7 @@ public class TestStates {
         builder.addCard(new CardColorless.DarkShackles(), 1);
         builder.addCard(new CardColorless.ApotheosisP(), 1);
         builder.addCard(new CardOther.CurseOfTheBell(), 1);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.ArtOfWar());
         builder.addRelic(new Relic.Nunchaku(9, 2));
@@ -2217,7 +2217,7 @@ public class TestStates {
         builder.addCard(new CardSilent.FootworkP(), 1);
         builder.addCard(new CardColorless.ApotheosisP(), 1);
         builder.addCard(new CardColorless.Apparition(), 3);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Anchor());
         builder.addRelic(new Relic.NinjaScroll());
         builder.addRelic(new Relic.BronzeScales());
@@ -2261,7 +2261,7 @@ public class TestStates {
         builder.addCard(new CardSilent.DodgeAndRoll(), 1);
         builder.addCard(new Card.Strike(), 5);
         builder.addCard(new Card.Defend(), 5);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.StoneCalendar());
         builder.addRelic(new Relic.Sundial(0, 0));
         builder.addEnemyEncounter(new EnemyExordium.TheGuardian());
@@ -2313,7 +2313,7 @@ public class TestStates {
         builder.addCard(new CardSilent.QuickSlashP(), 1);
         builder.addCard(new CardColorless.RitualDagger(54, 0), 1);
         builder.addCard(new CardColorless.GoodInstincts(), 1);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.IceCream());
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.ArtOfWar());
@@ -2362,7 +2362,7 @@ public class TestStates {
         builder.addCard(new CardSilent.GrandFinale(), 1);
         builder.addCard(new CardSilent.PreparedP(), 2);
         builder.addCard(new CardColorless.TripP(), 1);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Kunai());
         builder.addRelic(new Relic.Ectoplasm());
         builder.addRelic(new Relic.Enchiridion());
@@ -2422,7 +2422,7 @@ public class TestStates {
         builder.addCard(new CardSilent.Caltrops(), 1);
         builder.addCard(new CardSilent.BladeDanceP(), 1);
         builder.addCard(new CardColorless.SecretTechnique(), 0); // via Toolbox
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Shuriken());
         builder.addRelic(new Relic.ToyOrnithopter());
         builder.addRelic(new Relic.Orichalcum());
@@ -2481,7 +2481,7 @@ public class TestStates {
         builder.addCard(new CardSilent.AcrobaticsP(), 1);
         builder.addCard(new CardSilent.FootworkP(), 1);
         builder.addCard(new CardColorless.SecretTechniqueP(), 1);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Torii());
         builder.addRelic(new Relic.Ectoplasm());
         builder.addRelic(new Relic.MummifiedHand());
@@ -2534,7 +2534,7 @@ public class TestStates {
         builder.addCard(new CardSilent.CalculatedGamble(), 1);
         builder.addCard(new CardSilent.AfterImage(), 1);
         builder.addCard(new CardOther.Decay(), 1);
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.OddlySmoothStone());
         builder.addRelic(new Relic.Nunchaku(8, 0));
@@ -2745,7 +2745,7 @@ public class TestStates {
         builder.addCard(new CardColorless.Apparition(), 2);
         builder.addCard(new CardColorless.ApparitionP(), 1);
         builder.setPlayer(new Player(35, 35));
-        builder.addRelic(new Relic.RingOfSerpent());
+        builder.addRelic(new Relic.RingOfSnake());
         builder.addRelic(new Relic.HappyFlower(2, 1));
         builder.addRelic(new Relic.CentennialPuzzle());
         builder.addRelic(new Relic.ArtOfWar());

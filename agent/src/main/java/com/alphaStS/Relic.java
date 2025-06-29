@@ -2092,18 +2092,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class RingOfSerpent extends Relic {
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addStartOfTurnHandler("RingOfSerpant", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
-                        state.draw(2);
-                    }
-                }
-            });
-        }
-    }
-
     public static class RedSkull extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnDamageHandler(new OnDamageHandler() {
@@ -2133,15 +2121,42 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    // todo: Self-Forming Clay
+
     public static class ChampionBelt extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.championBelt = this;
         }
     }
 
+    // todo: Charon's Clay
+    // todo: Magic Flower
+    // todo: Brimstone
+    // todo: Black Blood
+    // todo: Mark of Pain
+    // todo: Runic Cube
+
     // **********************************************************************************************************************************************
-    // ********************************************************** Snecko Specific Relics ************************************************************
+    // ********************************************************** Silent Specific Relics ************************************************************
     // **********************************************************************************************************************************************
+
+    public static class RingOfSnake extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("RingOfSnake", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 1 && isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.draw(2);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SneckoSkull extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.sneckoSkull = this;
+        }
+    }
 
     public static class NinjaScroll extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2167,11 +2182,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    public static class SneckoSkull extends Relic {
-        @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.sneckoSkull = this;
-        }
-    }
+    // todo: Specimen
 
     public static class Tingsha extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2184,6 +2195,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.toughBandages = this;
         }
     }
+
+    // todo: Twisted Funnel
+    // todo: Ring of the Serpent
+    // todo: Wrist Blade
 
     public static class HoveringKite extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
