@@ -671,6 +671,7 @@ public final class GameState implements State {
         properties.enemyCanGetCorpseExplosion = cards.stream().anyMatch((x) -> x.corpseExplosionEnemy);
         properties.enemyStrengthEotCanChange = cards.stream().anyMatch((x) -> x.affectEnemyStrengthEot);
         properties.enemyStrengthCanChange = cards.stream().anyMatch((x) -> x.affectEnemyStrength);
+        properties.enemyStrengthCanChange |= relics.stream().anyMatch((x) -> x.changeEnemyStrength);
         properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Corruption")) ? PlayerBuff.CORRUPTION.mask() : 0;
         properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Barricade")) ? PlayerBuff.BARRICADE.mask() : 0;
         properties.possibleBuffs |= cards.stream().anyMatch((x) -> x.cardName.contains("Blasphemy")) ? PlayerBuff.BLASPHEMY.mask() : 0;

@@ -23,6 +23,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean weakEnemy;
     public boolean healPlayer;
     public boolean scry;
+    public boolean changeEnemyStrength;
     public int[] preBattleScenariosEnabled;
     public Card startOfBattleAction;
     public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
@@ -2185,7 +2186,25 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Brimstone
+    public static class Brimstone extends Relic {
+        public Brimstone() {
+            changePlayerStrength = true;
+            changeEnemyStrength = true;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Brimstone", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.getPlayerForWrite().gainStrength(2);
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.gainStrength(1);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static class BlackBlood extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2200,8 +2219,40 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Mark of Pain
-    // todo: Runic Cube
+    public static class MarkOfPain extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("MarkOfPain", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.energy += 1;
+                    }
+                }
+            });
+            state.properties.addStartOfBattleHandler("MarkOfPain", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.addCardToDeck(generatedCardIdx, false);
+                        state.addCardToDeck(generatedCardIdx, false);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.Wound());
+        }
+    }
+    public static class RunicCube extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnDamageHandler(new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && damageDealt > 0) {
+                        state.draw(1);
+                    }
+                }
+            });
+        }
+    }
 
     // **********************************************************************************************************************************************
     // ********************************************************** Silent Specific Relics ************************************************************
@@ -2249,7 +2300,23 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Specimen
+    public static class Specimen extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnEnemyDeathHandler("Specimen", new GameEventEnemyHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly deadEnemy) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        int poisonAmount = deadEnemy.getPoison();
+                        if (poisonAmount > 0) {
+                            int randomEnemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                            if (randomEnemyIdx >= 0) {
+                                state.getEnemiesForWrite().getForWrite(randomEnemyIdx).applyDebuff(state, DebuffType.POISON, poisonAmount);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static class Tingsha extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
