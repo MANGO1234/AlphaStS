@@ -4837,9 +4837,11 @@ public final class GameState implements State {
     }
 
     public void healPlayer(int hp) {
-        if (properties.markOfTheBloom != null && 
-            properties.markOfTheBloom.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.markOfTheBloom != null && properties.markOfTheBloom.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
             return;
+        }
+        if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            hp = (int) Math.ceil(hp * 1.5);
         }
         var healed = getPlayerForWrite().heal(hp);
         if (healed > 0) {

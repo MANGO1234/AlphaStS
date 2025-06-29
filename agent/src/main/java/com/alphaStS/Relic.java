@@ -2086,7 +2086,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.burningBlood = this;
             state.properties.addEndOfBattleHandler("BurningBlood", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
-                    state.healPlayer(6);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.healPlayer(6);
+                    }
                 }
             });
         }
@@ -2096,18 +2098,22 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
-                    if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
-                        if (state.getPlayeForRead().getHealth() + damageDealt > state.getPlayeForRead().getMaxHealth() / 2) {
-                            state.getPlayerForWrite().gainStrength(3);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getMaxHealth() / 2) {
+                            if (state.getPlayeForRead().getHealth() + damageDealt > state.getPlayeForRead().getMaxHealth() / 2) {
+                                state.getPlayerForWrite().gainStrength(3);
+                            }
                         }
                     }
                 }
             });
             state.properties.addOnHealHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int healed) {
-                    if (state.getPlayeForRead().getHealth() > state.getPlayeForRead().getMaxHealth() / 2) {
-                        if (state.getPlayeForRead().getHealth() - healed <= state.getPlayeForRead().getMaxHealth() / 2) {
-                            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        if (state.getPlayeForRead().getHealth() > state.getPlayeForRead().getMaxHealth() / 2) {
+                            if (state.getPlayeForRead().getHealth() - healed <= state.getPlayeForRead().getMaxHealth() / 2) {
+                                state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
+                            }
                         }
                     }
                 }
@@ -2121,7 +2127,37 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Self-Forming Clay
+    public static class SelfFormingClay extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SelfFormingClay", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = counter[counterIdx] / 30.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnDamageHandler(new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && damageDealt > 0) {
+                        state.getCounterForWrite()[counterIdx] += 3;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("SelfFormingClay", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        if (state.getCounterForRead()[counterIdx] > 0) {
+                            state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                            state.getCounterForWrite()[counterIdx] = 0;
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     public static class ChampionBelt extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2129,10 +2165,41 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
-    // todo: Charon's Clay
-    // todo: Magic Flower
+    public static class CharonsAshes extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnExhaustHandler("CharonsAshes", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.nonAttackDamage(3, true, state);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class MagicFlower extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.magicFlower = this;
+        }
+    }
+
     // todo: Brimstone
-    // todo: Black Blood
+
+    public static class BlackBlood extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.blackBlood = this;
+            state.properties.addEndOfBattleHandler("BlackBlood", new GameEventHandler(1) {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                        state.healPlayer(12);
+                    }
+                }
+            });
+        }
+    }
+
     // todo: Mark of Pain
     // todo: Runic Cube
 
