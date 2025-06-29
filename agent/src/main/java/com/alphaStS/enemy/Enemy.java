@@ -1,12 +1,9 @@
 package com.alphaStS.enemy;
 
 import com.alphaStS.*;
-import com.alphaStS.action.GuardianGainBlockAction;
 import com.alphaStS.card.Card;
-import com.alphaStS.card.CardOther;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public abstract class Enemy extends EnemyReadOnly {

@@ -95,7 +95,7 @@ public class CounterStat {
                     sj.add(i + ": " + counterFrequency.get(i));
                 }
             }
-            System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n) + " (" + sj.toString() + ")");
+            System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n) + " (" + sj + ")");
         } else {
             System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n));
         }

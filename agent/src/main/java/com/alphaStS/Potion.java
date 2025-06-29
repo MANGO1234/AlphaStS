@@ -133,7 +133,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         @Override public GameActionCtx use(GameState state, int idx) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 20 : 10;
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoNonAttackDamageToEnemy(enemy, n, true);
             }
             return GameActionCtx.PLAY_CARD;
         }
