@@ -17,6 +17,7 @@ public class CounterStat {
     int cmpLoss;
     int cmpLossAmt;
     int counterLen = 1;
+    boolean showFrequency = false;
 
     public CounterStat() {} // for jackson
 
@@ -88,17 +89,22 @@ public class CounterStat {
         for (int i = 0; i < counterFrequency.size(); i++) {
             totalCounterAmt += counterFrequency.get(i) * i;
         }
-        if (counterLen > 1) {
+        if (counterLen > 1 || showFrequency) {
             StringJoiner sj = new StringJoiner(", ");
             for (int i = 0; i < counterFrequency.size(); i++) {
                 if (counterFrequency.get(i) > 0) {
-                    sj.add(i + ": " + counterFrequency.get(i));
+                    sj.add(i + ": " + counterFrequency.get(i) + " (%" + String.format("%.3f", 100.0 * counterFrequency.get(i) / n) + ")");
                 }
             }
             System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n) + " (" + sj + ")");
         } else {
             System.out.println(indent + "Average " + counterName + " Counter: " + String.format("%.5f", ((double) totalCounterAmt) / n));
         }
+    }
+
+    public CounterStat setShowFrequency(boolean showFrequency) {
+        this.showFrequency = showFrequency;
+        return this;
     }
 
     public void printCmpStat(String indent) {

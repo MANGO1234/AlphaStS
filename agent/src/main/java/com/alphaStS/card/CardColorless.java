@@ -6,6 +6,7 @@ import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
+import com.alphaStS.utils.CounterStat;
 
 import java.util.List;
 import java.util.Objects;
@@ -798,6 +799,10 @@ public class CardColorless {
             gameProperties.handOfGreedCounterIdx = idx;
         }
 
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Hand Of Greed").setShowFrequency(true);
+        }
+
         public static int getMaxPossibleHandOfGreedRemaining(GameState state, boolean checkEndOfGame) {
             if (state.properties.handOfGreedCounterIdx < 0) {
                 return 0;
@@ -1442,6 +1447,10 @@ public class CardColorless {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             counterIdx = idx;
             gameProperties.ritualDaggerCounterIdx = counterIdx;
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Ritual Dagger").setShowFrequency(true);
         }
 
         public static int getMaxPossibleRitualDaggerRemaining(GameState state, boolean checkEndOfGame) {

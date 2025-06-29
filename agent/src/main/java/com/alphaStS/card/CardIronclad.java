@@ -5,6 +5,7 @@ import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.CounterStat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -2412,6 +2413,10 @@ public class CardIronclad {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             counterIdx = idx;
             gameProperties.feedCounterIdx = idx;
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Feed").setShowFrequency(true);
         }
 
         private static int getCardCount(GameState state, int idx) {

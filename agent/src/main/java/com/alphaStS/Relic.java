@@ -476,7 +476,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
 
         @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "PenNib");
+            return new CounterStat(counterIdx, "Pen Nib");
         }
     }
 
@@ -1375,10 +1375,6 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                 }
             });
-        }
-
-        @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "Pocketwatch");
         }
     }
 

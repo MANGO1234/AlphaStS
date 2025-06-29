@@ -1627,7 +1627,7 @@ public class CardDefect {
         }
 
         @Override public CounterStat getCounterStat() {
-            return new CounterStat(counterIdx, "GeneticAlgorithm");
+            return new CounterStat(counterIdx, "Genetic Algorithm");
         }
     }
 

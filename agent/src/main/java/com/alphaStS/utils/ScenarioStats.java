@@ -16,9 +16,6 @@ public class ScenarioStats {
     public int totalDamageTaken;
     public int[] potionsUsed;
     public int[] potionsUsedAgg;
-    public int daggerKilledEnemy;
-    public int feedKilledEnemy;
-    public int feedHealTotal;
     public Map<Integer, Integer> damageCount;
     public Map<Integer, Integer> damageCountNoDeath;
     public double finalQComb;
@@ -102,9 +99,6 @@ public class ScenarioStats {
         for (int j = 0; j < potionsUsedAgg.length; j++) {
             potionsUsedAgg[j] += stat.potionsUsedAgg[j];
         }
-        daggerKilledEnemy += stat.daggerKilledEnemy;
-        feedKilledEnemy += stat.feedKilledEnemy;
-        feedHealTotal += stat.feedHealTotal;
         for (var dmg : stat.damageCount.keySet()) {
             damageCount.putIfAbsent(dmg, 0);
             damageCount.computeIfPresent(dmg, (k, v) -> v + stat.damageCount.get(dmg));
@@ -241,23 +235,6 @@ public class ScenarioStats {
                 }
             }
             potionsUsed[idx]++;
-            if (state.properties.ritualDaggerCounterIdx >= 0) {
-                if (state.getCounterForRead()[state.properties.ritualDaggerCounterIdx] > 0) {
-                    daggerKilledEnemy++;
-                }
-            }
-            if (state.properties.feedCounterIdx >= 0) {
-                if (state.getCounterForRead()[state.properties.feedCounterIdx] > 0) {
-                    feedKilledEnemy++;
-                    feedHealTotal += state.getCounterForWrite()[state.properties.feedCounterIdx];
-                }
-            }
-            if (state.properties.geneticAlgorithmCounterIdx >= 0) {
-                if (state.getCounterForRead()[state.properties.geneticAlgorithmCounterIdx] > 0) {
-                    feedKilledEnemy++;
-                    feedHealTotal += state.getCounterForWrite()[state.properties.geneticAlgorithmCounterIdx];
-                }
-            }
             for (CounterStat counterStat : counterStats) {
                 counterStat.add(state);
             }
@@ -306,32 +283,6 @@ public class ScenarioStats {
                     winByPotion[i]++;
                 } else if (state.potionUsed(i) && !state2.potionUsed(i)) {
                     lossByPotion[i]++;
-                }
-            }
-
-            if (state.properties.ritualDaggerCounterIdx >= 0) {
-                var daggerUsed1 = state.getCounterForRead()[state.properties.ritualDaggerCounterIdx] > 0;
-                var daggerUsed2 = state2.getCounterForRead()[state.properties.ritualDaggerCounterIdx] > 0;
-                if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && daggerUsed1 != daggerUsed2) {
-                    if (daggerUsed1) {
-                        winByDagger++;
-                    } else {
-                        lossByDagger++;
-                    }
-                }
-            }
-
-            if (state.properties.feedCounterIdx >= 0) {
-                var feedUsed1 = state.getCounterForRead()[state.properties.feedCounterIdx] > 0;
-                var feedUsed2 = state2.getCounterForRead()[state.properties.feedCounterIdx] > 0;
-                if ((state.isTerminal() == 1 && state2.isTerminal() == 1) && feedUsed1 != feedUsed2) {
-                    if (feedUsed1) {
-                        winByFeed++;
-                        winByFeedAmt += state.getCounterForRead()[state.properties.feedCounterIdx] - state2.getCounterForRead()[state.properties.feedCounterIdx];
-                    } else {
-                        lossByFeed++;
-                        lossByFeedAmt += state2.getCounterForRead()[state.properties.feedCounterIdx] - state.getCounterForRead()[state.properties.feedCounterIdx];
-                    }
                 }
             }
 
@@ -406,7 +357,7 @@ public class ScenarioStats {
                     StringBuilder desc = new StringBuilder();
                     for (int j = 0; j < state.properties.nonGeneratedPotionsLength; j++) {
                         if ((i & (1 << j)) > 0) {
-                            desc.append(desc.length() > 0 ? "+" : "").append(state.properties.potions.get(j));
+                            desc.append(!desc.isEmpty() ? "+" : "").append(state.properties.potions.get(j));
                         }
                     }
                     System.out.println(indent + "    " + desc + " Used Percentage: " + String.format("%.5f", ((double) potionsUsed[i]) / (numOfGames - deathCount)));
@@ -416,12 +367,6 @@ public class ScenarioStats {
             for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                 System.out.println(indent + "    " + state.properties.potions.get(i) + " Used Percentage: " + String.format("%.5f", ((double) potionsUsedAgg[i]) / (numOfGames - deathCount)));
             }
-        }
-        if (state.properties.ritualDaggerCounterIdx >= 0) {
-            System.out.println(indent + "Dagger Killed Percentage: " + String.format("%.5f", ((double) daggerKilledEnemy) / (numOfGames - deathCount)));
-        }
-        if (state.properties.feedCounterIdx >= 0) {
-            System.out.println(indent + "Feed Killed Percentage: " + String.format("%.5f", ((double) feedKilledEnemy) / (numOfGames - deathCount)) + "(Average=" + ((double) feedHealTotal) / feedKilledEnemy + ")");
         }
         for (CounterStat counterStat : counterStats) {
             counterStat.printStat(indent, numOfGames - deathCount);
@@ -441,12 +386,6 @@ public class ScenarioStats {
                 for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                     printBinomialStat(indent, "Win/Loss Potion " + state.properties.potions.get(i), winByPotion[i], lossByPotion[i]);
                 }
-            }
-            if (state.properties.ritualDaggerCounterIdx >= 0) {
-                System.out.println(indent + "Win/Loss Dagger: " + winByDagger + "/" + lossByDagger);
-            }
-            if (state.properties.feedCounterIdx >= 0) {
-                System.out.println(indent + "Win/Loss Feed: " + winByFeed + "/" + lossByFeed + " (" + winByFeedAmt / (double) winByFeed + "/" + lossByFeedAmt / (double) lossByFeed + "/" + (winByFeedAmt - lossByFeedAmt) / (double) (winByFeed + lossByFeed) + ")");
             }
             for (CounterStat counterStat : counterStats) {
                 counterStat.printCmpStat(indent);
