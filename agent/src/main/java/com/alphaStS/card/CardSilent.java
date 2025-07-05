@@ -2323,7 +2323,7 @@ public class CardSilent {
         }
 
         @Override public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) {
-            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
+            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0).map((x) -> x.getTemporaryCostIfPossible(0)).toList();
         }
     }
 

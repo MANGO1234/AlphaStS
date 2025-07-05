@@ -728,7 +728,7 @@ public class CardDefect {
             if (permCost <= 2) {
                 return new Streamline(permCost);
             }
-            return new Card.CardPermChangeCost(this, permCost);
+            return super.getPermCostIfPossible(permCost);
         }
     }
 
@@ -766,7 +766,7 @@ public class CardDefect {
             if (permCost <= 2) {
                 return new StreamlineP(permCost);
             }
-            return new Card.CardPermChangeCost(this, permCost);
+            return super.getPermCostIfPossible(permCost);
         }
     }
 
@@ -1419,7 +1419,7 @@ public class CardDefect {
     public static class ForceFieldP extends Card {
         public static int[] forceFieldPTransformIndexes;
 
-        private ForceFieldP(int energyCost) {
+        public ForceFieldP(int energyCost) {
             super("Force Field+ (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }
 

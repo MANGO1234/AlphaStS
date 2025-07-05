@@ -1181,7 +1181,7 @@ public class CardWatcher {
             // Remove card from discard and add to hand with temporary retain if there's room
             state.removeCardFromDiscard(idx);
             if (state.handArrLen < GameState.HAND_LIMIT) {
-                Card retainedCard = new Card.CardTmpRetain(state.properties.cardDict[idx]);
+                Card retainedCard = state.properties.cardDict[idx].getTmpRetainIfPossible();
                 int retainedCardIdx = state.properties.findCardIndex(retainedCard);
                 state.addCardToHand(retainedCardIdx);
             } else {

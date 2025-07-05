@@ -88,9 +88,7 @@ public class GameProperties implements Cloneable {
     public int[] discardReverseIdxes;
     public int[] upgradeIdxes;
     public int[] tmp0CostCardTransformIdxes;
-    public int[] tmp0CostCardReverseTransformIdxes;
-    public int[] tmpRetainCardTransformIdxes;
-    public int[] tmpRetainCardReverseTransformIdxes;
+    public int[] tmpModifiedCardReverseTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
     public int[] nilrysCodexIdxes;
@@ -816,12 +814,12 @@ public class GameProperties implements Cloneable {
 
     public static List<Card> generateSneckoCards(List<Card> cards) {
         var newCards = new ArrayList<Card>();
-        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardPermChangeCost) && !(x instanceof Card.CardTmpChangeCost) && !cardCanGenerateSneckoEnergyCost(x)).forEach((x) -> {
+        cards.stream().filter((x) -> !x.isXCost && x.energyCost >= 0 && !(x instanceof Card.CardWrapper)).forEach((x) -> {
             for (int i = 0; i < 4; i++) {
                 if (x.energyCost == i) {
                     continue;
                 }
-                newCards.add(new Card.CardPermChangeCost(x, i));
+                newCards.add(x.getPermCostIfPossible(i));
             }
         });
         if (cards.stream().anyMatch((x) -> x.cardName.equals("Streamline"))) {
@@ -833,12 +831,13 @@ public class GameProperties implements Cloneable {
         return newCards;
     }
 
+    // todo
     public void setupSneckoIndexes() {
         sneckoIdxes = new int[cardDict.length][];
         var m = new HashMap<String, int[]>();
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (!(card instanceof Card.CardPermChangeCost) && !(card instanceof Card.CardTmpChangeCost)) {
+            if (!(card instanceof Card.CardWrapper)) {
                 if (cardCanGenerateSneckoEnergyCost(card) || card.energyCost > 3) {
                     var a = new int[] { 0, -1, -1, -1, -1 };
                     m.put(getCanonicalCardName(card), a);
@@ -852,8 +851,8 @@ public class GameProperties implements Cloneable {
         }
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (card instanceof Card.CardPermChangeCost c && card.energyCost < 4) {
-                var a = m.get(c.card.cardName);
+            if (card instanceof Card.CardWrapper c && c.isPermChangeCost() && card.energyCost < 4) {
+                var a = m.get(c.getBaseCard().cardName);
                 a[++a[0]] = i;
                 sneckoIdxes[i] = a;
             } else if (cardCanGenerateSneckoEnergyCost(card) && card.energyCost < 4) {
@@ -864,13 +863,13 @@ public class GameProperties implements Cloneable {
         }
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (card instanceof Card.CardTmpChangeCost c) {
-                if (c.card instanceof Card.CardPermChangeCost cc) {
-                    sneckoIdxes[i] = m.get(cc.card.cardName);
+            if (card instanceof Card.CardWrapper c && c.isTmpChangeCost()) {
+                if (c.getBaseCard() instanceof Card.CardWrapper cc && cc.isPermChangeCost()) {
+                    sneckoIdxes[i] = m.get(cc.getBaseCard().cardName);
                 } else if (cardCanGenerateSneckoEnergyCost(card)) {
                     sneckoIdxes[i] = m.get(getCanonicalCardName(card));
                 } else {
-                    sneckoIdxes[i] = m.get(c.card.cardName);
+                    sneckoIdxes[i] = m.get(c.getBaseCard().cardName);
                 }
             } else if (cardCanGenerateSneckoEnergyCost(card) || card.energyCost > 3) {
                 sneckoIdxes[i] = m.get(getCanonicalCardName(card));

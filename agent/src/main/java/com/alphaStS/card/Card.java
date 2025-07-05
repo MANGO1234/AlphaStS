@@ -98,6 +98,14 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return this;
     }
 
+    public boolean retain() {
+        return retain;
+    }
+
+    public boolean isTmpModifiedCard() {
+        return false;
+    }
+
     public GameActionCtx play(GameState state, int idx, int energyUsed) { return GameActionCtx.PLAY_CARD; }
     public void onExhaust(GameState state) {}
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
@@ -120,39 +128,31 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public Card getUpgrade() { return CardUpgrade.map.get(this); }
 
     public Card getTemporaryCostIfPossible(int temporaryCost) {
-        if (energyCost < 0 || energyCost == temporaryCost || isXCost) {
+        if (energyCost <= temporaryCost || isXCost) {
             return this;
         }
-        return new Card.CardTmpChangeCost(this, temporaryCost);
+        return new Card.CardWrapper(this, temporaryCost, -1, -1, false);
     }
 
     public Card getTmpRetainIfPossible() {
         if (retain) {
             return this;
         }
-        return new Card.CardTmpRetain(this);
+        return new Card.CardWrapper(this, -1, -1, -1, true);
     }
 
     public Card getTemporaryCostUntilPlayedIfPossible(int temporaryCost) {
-        var card = this;
-        if (this instanceof Card.CardTmpChangeCost c) {
-            card = c.card;
-        }
-        if (card.energyCost < 0 || card.energyCost == temporaryCost || card.isXCost) {
+        if (energyCost <= temporaryCost || isXCost) {
             return this;
         }
-        return new Card.CardTmpUntilPlayedCost(card, temporaryCost);
+        return new Card.CardWrapper(this, -1, temporaryCost, -1, false);
     }
 
     public Card getPermCostIfPossible(int permCost) {
-        var card = this;
-        if (this instanceof Card.CardTmpChangeCost c) {
-            card = c.card;
-        }
-        if (card.energyCost < 0 || card.energyCost <= permCost || card.isXCost) {
+        if (energyCost < 0 || energyCost == permCost || isXCost) {
             return this;
         }
-        return new Card.CardPermChangeCost(this, permCost);
+        return new Card.CardWrapper(this, -1, -1, permCost, false);
     }
 
     @Override public String toString() {
@@ -186,27 +186,69 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return card;
     }
 
-    public static class CardTmpChangeCost extends Card {
-        public final Card card;
+    public static class CardWrapper extends Card {
+        private final Card card;
+        private final int tmpChangeCost;
+        private final int tmpUntilPlayedCost;
+        private final int permChangeCost;
+        private final boolean tmpRetain;
+        private int cardIdx;
 
-        public CardTmpChangeCost(Card card, int energyCost) {
-            super(card.cardName + " (Tmp " + energyCost + ")", card.cardType, energyCost, card.rarity);
+        public CardWrapper(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
+            super(generateCardName(card, tmpChangeCost, tmpUntilPlayedCost, tmpChangeCost, tmpRetain), card.cardType, getEffectiveEnergyCost(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost), card.rarity);
             this.card = card;
+            this.tmpChangeCost = tmpChangeCost;
+            this.tmpUntilPlayedCost = tmpUntilPlayedCost;
+            this.permChangeCost = permChangeCost;
+            this.tmpRetain = tmpRetain;
+            copyCardProperties(card);
+        }
+
+        private static int getEffectiveEnergyCost(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost) {
+            if (tmpChangeCost != -1) return tmpChangeCost;
+            if (tmpUntilPlayedCost != -1) return tmpUntilPlayedCost;
+            if (permChangeCost != -1) return permChangeCost;
+            return card.energyCost;
+        }
+
+        private static String generateCardName(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
+            StringBuilder sb = new StringBuilder(card.cardName);
+            if (tmpChangeCost != -1) {
+                sb.append(" (Tmp ").append(tmpChangeCost).append(")");
+            }
+            if (tmpUntilPlayedCost != -1) {
+                sb.append(" (Tmp Until Played ").append(tmpUntilPlayedCost).append(")");
+            }
+            if (permChangeCost != -1) {
+                sb.append(" (Perm ").append(permChangeCost).append(")");
+            }
+            if (tmpRetain) {
+                sb.append(" (Tmp Retain)");
+            }
+            return sb.toString();
+        }
+
+        private void copyCardProperties(Card card) {
             ethereal = card.ethereal;
             innate = card.innate;
             exhaustWhenPlayed = card.exhaustWhenPlayed;
             exhaustNonAttacks = card.exhaustNonAttacks;
+            alwaysDiscard = card.alwaysDiscard;
             returnToDeckWhenPlay = card.returnToDeckWhenPlay;
             retain = card.retain;
             selectEnemy = card.selectEnemy;
+            delayUseEnergy = card.delayUseEnergy;
             selectFromDiscard = card.selectFromDiscard;
             selectFromExhaust = card.selectFromExhaust;
             selectFromDeck = card.selectFromDeck;
             selectFromHand = card.selectFromHand;
+            isXCost = card.isXCost;
             selectFromDiscardLater = card.selectFromDiscardLater;
             selectFromHandLater = card.selectFromHandLater;
             exhaustSkill = card.exhaustSkill;
             canExhaustAnyCard = card.canExhaustAnyCard;
+            discardNonAttack = card.discardNonAttack;
+            canDiscardAnyCard = card.canDiscardAnyCard;
             changePlayerStrength = card.changePlayerStrength;
             changePlayerStrengthEot = card.changePlayerStrengthEot;
             changePlayerDexterity = card.changePlayerDexterity;
@@ -226,268 +268,174 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             needsLastCardType = card.needsLastCardType;
             putCardOnTopDeck = card.putCardOnTopDeck;
             healPlayer = card.healPlayer;
+            scry = card.scry;
+            select1OutOf3CardEffectCard = card.select1OutOf3CardEffectCard;
         }
 
+        @Override
         public void setCounterIdx(GameProperties gameProperties, int idx) {
             card.setCounterIdx(gameProperties, idx);
         }
 
+        @Override
         public int getCounterIdx(GameProperties gameProperties) {
             return card.getCounterIdx(gameProperties);
         }
 
-        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
-        public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
-        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
-        public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
-        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
-        public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
+        @Override
+        public void setVExtraIdx(GameProperties gameProperties, int idx) {
+            card.setVExtraIdx(gameProperties, idx);
+        }
 
+        @Override
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return card.play(state, idx, energyUsed);
+        }
+
+        @Override
+        public void onExhaust(GameState state) {
+            card.onExhaust(state);
+        }
+
+        @Override
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return card.getPossibleGeneratedCards(properties, cards);
+        }
+
+        @Override
+        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) {
+            return card.getPossibleTransformTmpCostCards(cards);
+        }
+
+        @Override
+        public int onPlayTransformCardIdx(GameProperties prop) {
+            if (tmpUntilPlayedCost != -1 || tmpRetain) {
+                int idx = card.onPlayTransformCardIdx(prop);
+                return idx == -1 ? cardIdx : idx;
+            }
+            return card.onPlayTransformCardIdx(prop);
+        }
+
+        @Override
+        public boolean canSelectCard(Card card2) {
+            return card.canSelectCard(card2);
+        }
+
+        @Override
+        public void gamePropertiesSetup(GameState state) {
+            card.gamePropertiesSetup(state);
+            if (tmpUntilPlayedCost != -1 || tmpRetain) {
+                cardIdx = state.properties.findCardIndex(card);
+            }
+        }
+
+        @Override
         public int realEnergyCost() {
             return card.realEnergyCost();
         }
 
+        @Override
+        public boolean retain() {
+            return tmpRetain || card.retain;
+        }
+
+        @Override
+        public boolean isTmpModifiedCard() {
+            return isTmpChangeCost() || isTmpUntilPlayedCost();
+        }
+
+        @Override
         public Card getBaseCard() {
             return card.getBaseCard();
         }
 
-        public Card wrap(Card newCard) {
-            return new CardTmpChangeCost(card.wrap(newCard), energyCost);
+        private Card wrap(Card newCard, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
+            int newTmpChangeCost = -1;
+            int newTmpUntilPlayedCost = -1;
+            int newPermChangeCost = -1;
+            boolean newTmpRetain = false;
+            var modified = false;
+            var cardEnergyCost = newCard.energyCost;
+            if (permChangeCost >= 0 && cardEnergyCost != permChangeCost) {
+                cardEnergyCost = permChangeCost;
+                var permCard = newCard.getPermCostIfPossible(permChangeCost);
+                if (permCard instanceof CardWrapper) {
+                    newPermChangeCost = permChangeCost;
+                    modified = true;
+                } else {
+                    newCard = permCard;
+                }
+            }
+            if (tmpChangeCost >= 0 && !(cardEnergyCost <= tmpChangeCost || newCard.isXCost)) {
+                newTmpChangeCost = tmpChangeCost;
+                modified = true;
+            }
+            if (tmpUntilPlayedCost >= 0 && !(cardEnergyCost <= tmpUntilPlayedCost || newCard.isXCost)) {
+                newTmpUntilPlayedCost = tmpUntilPlayedCost;
+                modified = true;
+            }
+            if (!newCard.retain && tmpRetain) {
+                newTmpRetain = true;
+                modified = true;
+            }
+            if (!modified) {
+                return newCard;
+            }
+            return new CardWrapper(newCard, newTmpChangeCost, newTmpUntilPlayedCost, newPermChangeCost, newTmpRetain);
         }
 
+        @Override
+        public Card wrap(Card newCard) {
+            return wrap(newCard, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, tmpRetain);
+        }
+
+        @Override
         public Card getPermCostIfPossible(int permCost) {
-            var c = card.getPermCostIfPossible(permCost);
-            if (c.energyCost < 0 || c.energyCost <= permCost || c.isXCost) {
-                return this;
-            }
-            return new Card.CardTmpChangeCost(c, energyCost);
+            return wrap(card, tmpChangeCost, tmpUntilPlayedCost, permCost, tmpRetain);
         }
 
+        @Override
+        public Card getTemporaryCostUntilPlayedIfPossible(int newCost) {
+            return wrap(card, tmpChangeCost, newCost, permChangeCost, tmpRetain);
+        }
+
+        @Override
+        public Card getTemporaryCostIfPossible(int newCost) {
+            return wrap(card, newCost, tmpUntilPlayedCost, permChangeCost, tmpRetain);
+        }
+
+        @Override
+        public Card getTmpRetainIfPossible() {
+            return wrap(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, true);
+        }
+
+        public boolean isTmpChangeCost() {
+            return tmpChangeCost != -1;
+        }
+
+        public boolean isTmpUntilPlayedCost() {
+            return tmpUntilPlayedCost != -1;
+        }
+
+        public boolean isPermChangeCost() {
+            return permChangeCost != -1;
+        }
+
+        public boolean isTmpRetain() {
+            return tmpRetain;
+        }
+
+        @Override
         public Card getUpgrade() {
             var upgrade = card.getUpgrade();
             if (upgrade == null) {
                 return null;
             }
-            if (upgrade.energyCost == 0) {
-                return upgrade;
+            int newPermCost = permChangeCost;
+            if (upgrade.energyCost < permChangeCost && card.energyCost < upgrade.energyCost) {
+                newPermCost = -1;
             }
-            return new CardTmpChangeCost(upgrade, 0);
-        }
-    }
-
-    public static class CardTmpUntilPlayedCost extends Card {
-        public final Card card;
-        private int cardIdx;
-
-        public CardTmpUntilPlayedCost(Card card, int energyCost) {
-            super(card.cardName + " (Tmp Until Played " + energyCost + ")", card.cardType, energyCost, card.rarity);
-            this.card = card;
-            ethereal = card.ethereal;
-            innate = card.innate;
-            exhaustWhenPlayed = card.exhaustWhenPlayed;
-            exhaustNonAttacks = card.exhaustNonAttacks;
-            returnToDeckWhenPlay = card.returnToDeckWhenPlay;
-            retain = card.retain;
-            selectEnemy = card.selectEnemy;
-            selectFromDiscard = card.selectFromDiscard;
-            selectFromExhaust = card.selectFromExhaust;
-            selectFromDeck = card.selectFromDeck;
-            selectFromHand = card.selectFromHand;
-            selectFromDiscardLater = card.selectFromDiscardLater;
-            selectFromHandLater = card.selectFromHandLater;
-            exhaustSkill = card.exhaustSkill;
-            canExhaustAnyCard = card.canExhaustAnyCard;
-            changePlayerStrength = card.changePlayerStrength;
-            changePlayerStrengthEot = card.changePlayerStrengthEot;
-            changePlayerDexterity = card.changePlayerDexterity;
-            changePlayerFocus = card.changePlayerFocus;
-            changePlayerArtifact = card.changePlayerArtifact;
-            changePlayerVulnerable = card.changePlayerVulnerable;
-            vulnEnemy = card.vulnEnemy;
-            weakEnemy = card.weakEnemy;
-            chokeEnemy = card.chokeEnemy;
-            affectEnemyStrength = card.affectEnemyStrength;
-            affectEnemyStrengthEot = card.affectEnemyStrengthEot;
-            putCardOnTopDeck = card.putCardOnTopDeck;
-            healPlayer = card.healPlayer;
-        }
-
-        public void setCounterIdx(GameProperties gameProperties, int idx) {
-            card.setCounterIdx(gameProperties, idx);
-        }
-
-        public int getCounterIdx(GameProperties gameProperties) {
-            return card.getCounterIdx(gameProperties);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
-        public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
-        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
-        public int onPlayTransformCardIdx(GameProperties prop) {
-            int idx = card.onPlayTransformCardIdx(prop);
-            return idx == -1 ? cardIdx : idx;
-        }
-        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
-        public void gamePropertiesSetup(GameState state) {
-            card.gamePropertiesSetup(state);
-            cardIdx = state.properties.findCardIndex(card);
-        }
-        public int realEnergyCost() {
-            return card.realEnergyCost();
-        }
-        public Card getBaseCard() {
-            return card.getBaseCard();
-        }
-        public Card wrap(Card newCard) {
-            return new CardTmpUntilPlayedCost(card.wrap(newCard), energyCost);
-        }
-        public Card getUpgrade() {
-            var upgrade = card.getUpgrade();
-            if (upgrade == null) {
-                return null;
-            }
-            if (upgrade.energyCost == 0) {
-                return null;
-            }
-            return new CardTmpChangeCost(upgrade, 0);
-        }
-    }
-
-    public static class CardPermChangeCost extends Card {
-        public final Card card;
-
-        public CardPermChangeCost(Card card, int energyCost) {
-            super(card.cardName + " (Perm " + energyCost + ")", card.cardType, energyCost, card.rarity);
-            this.card = card;
-            ethereal = card.ethereal;
-            innate = card.innate;
-            exhaustWhenPlayed = card.exhaustWhenPlayed;
-            exhaustNonAttacks = card.exhaustNonAttacks;
-            returnToDeckWhenPlay = card.returnToDeckWhenPlay;
-            retain = card.retain;
-            selectEnemy = card.selectEnemy;
-            selectFromDiscard = card.selectFromDiscard;
-            selectFromExhaust = card.selectFromExhaust;
-            selectFromDeck = card.selectFromDeck;
-            selectFromHand = card.selectFromHand;
-            selectFromDiscardLater = card.selectFromDiscardLater;
-            selectFromHandLater = card.selectFromHandLater;
-            exhaustSkill = card.exhaustSkill;
-            canExhaustAnyCard = card.canExhaustAnyCard;
-            changePlayerStrength = card.changePlayerStrength;
-            changePlayerStrengthEot = card.changePlayerStrengthEot;
-            changePlayerDexterity = card.changePlayerDexterity;
-            changePlayerFocus = card.changePlayerFocus;
-            changePlayerArtifact = card.changePlayerArtifact;
-            changePlayerVulnerable = card.changePlayerVulnerable;
-            vulnEnemy = card.vulnEnemy;
-            weakEnemy = card.weakEnemy;
-            chokeEnemy = card.chokeEnemy;
-            affectEnemyStrength = card.affectEnemyStrength;
-            affectEnemyStrengthEot = card.affectEnemyStrengthEot;
-            putCardOnTopDeck = card.putCardOnTopDeck;
-            healPlayer = card.healPlayer;
-        }
-
-        public void setCounterIdx(GameProperties gameProperties, int idx) {
-            card.setCounterIdx(gameProperties, idx);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
-        public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
-        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
-        public int onPlayTransformCardIdx(GameProperties prop) { return card.onPlayTransformCardIdx(prop); }
-        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
-        public void gamePropertiesSetup(GameState state) { card.gamePropertiesSetup(state); }
-        public Card getBaseCard() {
-            return card.getBaseCard();
-        }
-        public Card wrap(Card newCard) {
-            return new CardPermChangeCost(card.wrap(newCard), energyCost);
-        }
-        public Card getUpgrade() {
-            var upgrade = card.getUpgrade();
-            if (upgrade == null) {
-                return null;
-            }
-            if (upgrade.energyCost == energyCost || (upgrade.energyCost < energyCost && card.energyCost < upgrade.energyCost)) {
-                return upgrade;
-            }
-            return new CardPermChangeCost(upgrade, energyCost);
-        }
-    }
-
-    public static class CardTmpRetain extends Card {
-        public final Card card;
-        private int cardIdx;
-
-        public CardTmpRetain(Card card) {
-            super(card.cardName + " (Tmp Retain)", card.cardType, card.energyCost, card.rarity);
-            this.card = card;
-            ethereal = card.ethereal;
-            innate = card.innate;
-            exhaustWhenPlayed = card.exhaustWhenPlayed;
-            exhaustNonAttacks = card.exhaustNonAttacks;
-            returnToDeckWhenPlay = card.returnToDeckWhenPlay;
-            retain = true; // This is the key - force retain to true, but only temporarily
-            selectEnemy = card.selectEnemy;
-            selectFromDiscard = card.selectFromDiscard;
-            selectFromExhaust = card.selectFromExhaust;
-            selectFromDeck = card.selectFromDeck;
-            selectFromHand = card.selectFromHand;
-            selectFromDiscardLater = card.selectFromDiscardLater;
-            selectFromHandLater = card.selectFromHandLater;
-            exhaustSkill = card.exhaustSkill;
-            canExhaustAnyCard = card.canExhaustAnyCard;
-            changePlayerStrength = card.changePlayerStrength;
-            changePlayerStrengthEot = card.changePlayerStrengthEot;
-            changePlayerDexterity = card.changePlayerDexterity;
-            changePlayerFocus = card.changePlayerFocus;
-            changePlayerArtifact = card.changePlayerArtifact;
-            changePlayerVulnerable = card.changePlayerVulnerable;
-            vulnEnemy = card.vulnEnemy;
-            weakEnemy = card.weakEnemy;
-            chokeEnemy = card.chokeEnemy;
-            affectEnemyStrength = card.affectEnemyStrength;
-            affectEnemyStrengthEot = card.affectEnemyStrengthEot;
-            putCardOnTopDeck = card.putCardOnTopDeck;
-            healPlayer = card.healPlayer;
-        }
-        public void setCounterIdx(GameProperties gameProperties, int idx) {
-            card.setCounterIdx(gameProperties, idx);
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) { return card.play(state, idx, energyUsed); }
-        public void onExhaust(GameState state) { card.onExhaust(state); }
-        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return card.getPossibleGeneratedCards(properties, cards); }
-        public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return card.getPossibleTransformTmpCostCards(cards); }
-        public int onPlayTransformCardIdx(GameProperties prop) {
-            int idx = card.onPlayTransformCardIdx(prop);
-            return idx == -1 ? cardIdx : idx;
-        }
-        public boolean canSelectCard(Card card2) { return card.canSelectCard(card); }
-        public void gamePropertiesSetup(GameState state) {
-            card.gamePropertiesSetup(state);
-            cardIdx = state.properties.findCardIndex(card);
-        }
-        public int realEnergyCost() {
-            return card.realEnergyCost();
-        }
-        public Card getBaseCard() {
-            return card.getBaseCard();
-        }
-        public Card wrap(Card newCard) {
-            return new CardTmpRetain(card.wrap(newCard));
-        }
-        public Card getUpgrade() {
-            var upgrade = card.getUpgrade();
-            if (upgrade == null) {
-                return null;
-            }
-            return new CardTmpRetain(upgrade);
+            return wrap(upgrade, tmpChangeCost, tmpUntilPlayedCost, newPermCost, tmpRetain);
         }
     }
 

@@ -245,12 +245,12 @@ public class CardOther {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToHand(state.properties.findCardIndex(new Card.CardTmpChangeCost(new Card.Strike(), 0)));
+            state.addCardToHand(state.properties.findCardIndex(new Card.Strike().getTemporaryCostIfPossible(0)));
             return GameActionCtx.PLAY_CARD;
         }
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new Card.CardTmpChangeCost(new Card.Strike(), 0));
+            return List.of(new Card.Strike().getTemporaryCostIfPossible(0));
         }
     }
 

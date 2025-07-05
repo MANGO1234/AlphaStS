@@ -442,7 +442,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0 && !(x instanceof Card.CardTmpChangeCost)).map((x) -> (Card) new Card.CardTmpChangeCost(x, 0)).toList();
+            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0).map((x) -> (Card) x.getTemporaryCostIfPossible(0)).toList();
         }
 
         public void gamePropertiesSetup(GameState state) {

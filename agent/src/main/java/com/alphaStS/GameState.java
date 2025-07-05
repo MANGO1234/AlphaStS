@@ -221,7 +221,7 @@ public final class GameState implements State {
 
     public void addNightmareCard(int idx) {
         if (idx >= properties.realCardsLen) {
-            nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, properties.tmp0CostCardReverseTransformIdxes[idx]);
+            nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, properties.tmpModifiedCardReverseTransformIdxes[idx]);
         } else {
             nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, idx);
         }
@@ -905,7 +905,7 @@ public final class GameState implements State {
                 }
             }
         }
-        return l.stream().filter((x) -> !(properties.cardDict[x] instanceof Card.CardTmpChangeCost)).sorted().mapToInt(Integer::intValue).toArray();
+        return l.stream().filter((x) -> !properties.cardDict[x].isTmpModifiedCard()).sorted().mapToInt(Integer::intValue).toArray();
     }
 
     private int[] findSelect1OutOf3CardsToKeepTrackOf(List<Card> cards, List<Relic> relics, List<Potion> potions) {
@@ -961,9 +961,9 @@ public final class GameState implements State {
 
         var cards = new ArrayList<>(set);
         cards.sort((o1, o2) -> {
-            if (!(o1 instanceof Card.CardTmpChangeCost) && o2 instanceof Card.CardTmpChangeCost) {
+            if (!o1.isTmpModifiedCard() && o2.isTmpModifiedCard()) {
                 return -1;
-            } else if (o1 instanceof Card.CardTmpChangeCost && !(o2 instanceof Card.CardTmpChangeCost)) {
+            } else if (o1.isTmpModifiedCard() && !o2.isTmpModifiedCard()) {
                 return 1;
             } else {
                 return o1.cardName.compareTo(o2.cardName);
@@ -973,31 +973,18 @@ public final class GameState implements State {
         for (int i = 0; i < cards.size(); i++) {
             properties.cardDict[i] = cards.get(i);
         }
-        properties.realCardsLen = (int) cards.stream().takeWhile((card) -> !(card instanceof Card.CardTmpChangeCost)).count();
+        properties.realCardsLen = (int) cards.stream().takeWhile((card) -> !card.isTmpModifiedCard()).count();
         if (properties.realCardsLen != cards.size()) {
             properties.tmp0CostCardTransformIdxes = new int[cards.size()];
-            properties.tmp0CostCardReverseTransformIdxes = new int[cards.size()];
+            properties.tmpModifiedCardReverseTransformIdxes = new int[cards.size()];
             Arrays.fill(properties.tmp0CostCardTransformIdxes, -1);
-            Arrays.fill(properties.tmp0CostCardReverseTransformIdxes, -1);
+            Arrays.fill(properties.tmpModifiedCardReverseTransformIdxes, -1);
             for (int i = 0; i < cards.size(); i++) {
-                if (properties.cardDict[i] instanceof Card.CardTmpChangeCost) {
-                    properties.tmp0CostCardReverseTransformIdxes[i] = properties.findCardIndex(((Card.CardTmpChangeCost) properties.cardDict[i]).card);
+                if (properties.cardDict[i].isTmpModifiedCard()) {
+                    properties.tmpModifiedCardReverseTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getBaseCard());
                 } else {
-                    properties.tmp0CostCardTransformIdxes[i] = properties.findCardIndex(new Card.CardTmpChangeCost(properties.cardDict[i], 0));
+                    properties.tmp0CostCardTransformIdxes[i] = properties.findCardIndex(properties.cardDict[i].getTemporaryCostIfPossible(0));
                 }
-            }
-        }
-
-        // Setup tmpRetain transformation indexes
-        properties.tmpRetainCardTransformIdxes = new int[cards.size()];
-        properties.tmpRetainCardReverseTransformIdxes = new int[cards.size()];
-        Arrays.fill(properties.tmpRetainCardTransformIdxes, -1);
-        Arrays.fill(properties.tmpRetainCardReverseTransformIdxes, -1);
-        for (int i = 0; i < cards.size(); i++) {
-            if (properties.cardDict[i] instanceof Card.CardTmpRetain) {
-                properties.tmpRetainCardReverseTransformIdxes[i] = properties.findCardIndex(((Card.CardTmpRetain) properties.cardDict[i]).card);
-            } else {
-                properties.tmpRetainCardTransformIdxes[i] = properties.findCardIndex(new Card.CardTmpRetain(properties.cardDict[i]));
             }
         }
 
@@ -1013,7 +1000,7 @@ public final class GameState implements State {
     private static void addPossibleGeneratedCardsFromListOfCard(List<Card> c, HashSet<Card> newSet, HashSet<Card> discardSet) {
         for (Card possibleCard : c) {
             newSet.add(possibleCard);
-            if (possibleCard instanceof Card.CardTmpRetain || possibleCard instanceof Card.CardTmpChangeCost || possibleCard instanceof Card.CardTmpUntilPlayedCost) {
+            if (possibleCard instanceof Card.CardWrapper w && (w.isTmpRetain() || w.isTmpChangeCost() || w.isTmpUntilPlayedCost())) {
                 newSet.add(possibleCard.getBaseCard());
                 discardSet.add(possibleCard.getBaseCard());
             } else {
@@ -1287,7 +1274,7 @@ public final class GameState implements State {
                 energy -= realEnergyCost;
             }
             if (cardIdx >= properties.realCardsLen) {
-                cardIdx = properties.tmp0CostCardReverseTransformIdxes[cardIdx];
+                cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
                 action = properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
             }
             for (var handler : properties.onPreCardPlayedHandlers) {
@@ -1918,14 +1905,14 @@ public final class GameState implements State {
 
         // set temp cost cards to original cost
         if (properties.cardDict.length != properties.realCardsLen) {
-            handArrTransform(properties.tmp0CostCardReverseTransformIdxes);
+            handArrTransform(properties.tmpModifiedCardReverseTransformIdxes);
         }
         if (chosenCardsArr != null) {
             chosenCardsArr = Arrays.copyOf(chosenCardsArr, chosenCardsArrLen);
             if (properties.cardDict.length != properties.realCardsLen) {
                 for (int i = 0; i < chosenCardsArrLen; i++) {
-                    if (properties.tmp0CostCardReverseTransformIdxes[chosenCardsArr[i]] >= 0) {
-                        chosenCardsArr[i] = (short) properties.tmp0CostCardReverseTransformIdxes[chosenCardsArr[i]];
+                    if (properties.tmpModifiedCardReverseTransformIdxes[chosenCardsArr[i]] >= 0) {
+                        chosenCardsArr[i] = (short) properties.tmpModifiedCardReverseTransformIdxes[chosenCardsArr[i]];
                     }
                 }
             }
@@ -1953,7 +1940,7 @@ public final class GameState implements State {
             } else if (properties.cardDict[handArr[i]].alwaysDiscard) {
                 addCardToDiscard(handArr[i]);
                 getHandArrForWrite()[i] = -1;
-            } else if (properties.cardDict[handArr[i]].retain) {
+            } else if (properties.cardDict[handArr[i]].retain()) {
                 // Retain cards stay in hand, call onRetain handlers
                 for (var handler : properties.onRetainHandlers) {
                     handler.handle(this, i, -1, -1, null, -1);
@@ -1966,7 +1953,7 @@ public final class GameState implements State {
         updateHandArr();
 
         // remove temporary retain from cards (after retain processing is complete)
-        handArrTransform(properties.tmpRetainCardReverseTransformIdxes);
+        handArrTransform(properties.tmpModifiedCardReverseTransformIdxes);
 
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
@@ -4200,7 +4187,7 @@ public final class GameState implements State {
 
     public void exhaustedCardHandle(int cardIdx, boolean fromCardPlay) {
         if (cardIdx >= properties.realCardsLen) {
-            cardIdx = properties.tmp0CostCardReverseTransformIdxes[cardIdx];
+            cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
         }
         if (fromCardPlay && properties.strangeSpoon != null && properties.strangeSpoon.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
             addCardToDiscard(cardIdx);
@@ -4378,14 +4365,16 @@ public final class GameState implements State {
     }
 
     public int addCardToHandGeneration(int cardIndex) {
-        if (properties.forceFieldCounterIdx >= 0 && properties.cardDict[cardIndex].cardName.startsWith("Force Field (4)")) {
-            if (properties.cardDict[cardIndex].cardName.equals("Force Field (4)")) {
-                cardIndex = properties.findCardIndex(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0)));
-            } else if (properties.cardDict[cardIndex].cardName.equals("Force Field (4) (Tmp 0)")) {
-                if (getCounterForRead()[properties.forceFieldCounterIdx] >= 4) {
-                    cardIndex = properties.findCardIndex(new CardDefect.ForceField(0));
-                } else {
-                    cardIndex = properties.findCardIndex(new Card.CardTmpChangeCost(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0)), 0));
+        if (properties.forceFieldCounterIdx >= 0) {
+            var baseCard = properties.cardDict[cardIndex].getBaseCard();
+            if (baseCard instanceof CardDefect.ForceField forceField) {
+                if (forceField.energyCost == 4) {
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceField(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
+                }
+            }
+            if (baseCard instanceof CardDefect.ForceFieldP forceField) {
+                if (forceField.energyCost == 4) {
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceFieldP(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
                 }
             }
         }
@@ -4419,7 +4408,7 @@ public final class GameState implements State {
     }
 
     public void addCardToDiscard(int cardIndex) {
-        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmp0CostCardReverseTransformIdxes[cardIndex] : cardIndex;
+        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmpModifiedCardReverseTransformIdxes[cardIndex] : cardIndex;
         discardArr = cardIdxArrAdd(discardArr, !discardCloned, discardArrLen, cardIndex);
         discardArrLen++;
         discardCloned = true;
@@ -4572,7 +4561,7 @@ public final class GameState implements State {
 
     public void addCardOnTopOfDeck(int idx) {
         if (idx >= properties.realCardsLen) {
-            idx = properties.tmp0CostCardReverseTransformIdxes[idx];
+            idx = properties.tmpModifiedCardReverseTransformIdxes[idx];
         }
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen);
@@ -4592,7 +4581,7 @@ public final class GameState implements State {
     }
 
     public void addCardToExhaust(int cardIndex) {
-        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmp0CostCardReverseTransformIdxes[cardIndex] : cardIndex;
+        cardIndex = cardIndex >= properties.realCardsLen ? properties.tmpModifiedCardReverseTransformIdxes[cardIndex] : cardIndex;
         exhaustArr = cardIdxArrAdd(exhaustArr, !exhaustCloned, exhaustArrLen, cardIndex);
         exhaustArrLen++;
         exhaustCloned = true;
