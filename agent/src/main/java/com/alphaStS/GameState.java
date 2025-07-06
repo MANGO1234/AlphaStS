@@ -4144,6 +4144,398 @@ public final class GameState implements State {
         return x;
     }
 
+    public void printNNInput(float[] input) {
+        if (input.length != properties.inputLen) {
+            throw new IllegalArgumentException("Input array length (" + input.length + ") does not match expected length (" + properties.inputLen + ")");
+        }
+
+        var player = getPlayeForRead();
+        int idx = 0;
+        System.out.println("Neural Network Input Analysis:");
+
+        if (Configuration.ADD_CURRENT_TURN_NUM_TO_NN_INPUT) {
+            System.out.println("Turn Number: " + input[idx++]);
+            if (properties.isHeartGauntlet) {
+                System.out.println("Real Turn Number: " + input[idx++]);
+            }
+        }
+
+        if (properties.preBattleScenariosBackup != null) {
+            System.out.print("Pre-battle Scenarios: [");
+            for (int i = 0; i < properties.preBattleScenariosBackup.listRandomizations().size(); i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        if (properties.startOfBattleActions.size() > 0) {
+            System.out.print("Start of Battle Actions: [");
+            for (int i = 0; i < properties.startOfBattleActions.size(); i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        System.out.print("Cards in Deck: [");
+        for (int i = 0; i < properties.realCardsLen; i++) {
+            if (i > 0) System.out.print(", ");
+            System.out.print(input[idx++]);
+        }
+        System.out.println("]");
+
+        System.out.print("Cards in Hand: [");
+        for (int i = 0; i < properties.cardDict.length; i++) {
+            if (i > 0) System.out.print(", ");
+            System.out.print(input[idx++]);
+        }
+        System.out.println("]");
+
+        if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
+            System.out.println("Hand Size: " + input[idx++]);
+        }
+        if (Configuration.CARD_IN_DECK_IN_NN_INPUT) {
+            System.out.println("Deck Size: " + input[idx++]);
+        }
+        if (properties.cardInDiscardInNNInput) {
+            System.out.println("Discard Size: " + input[idx++]);
+        }
+
+        System.out.print("Cards in Discard: [");
+        for (int i = 0; i < properties.discardIdxes.length; i++) {
+            if (i > 0) System.out.print(", ");
+            System.out.print(input[idx++]);
+        }
+        System.out.println("]");
+
+        if (properties.selectFromExhaust) {
+            System.out.print("Cards in Exhaust: [");
+            for (int i = 0; i < properties.realCardsLen; i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        if (needChosenCardsInInput() && chosenCardsArr != null) {
+            System.out.print("Chosen Cards (Well Laid Plans): [");
+            for (int i = 0; i < properties.cardDict.length; i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        if (nightmareCards != null) {
+            System.out.print("Nightmare Cards: [");
+            for (int i = 0; i < properties.realCardsLen; i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && properties.needDeckOrderMemory) {
+            System.out.print("Deck Order Memory: [");
+            int memorySize = properties.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
+            for (int i = 0; i < memorySize; i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        if (false && properties.discard0CardOrderMatters) {
+            idx += properties.discardOrder0CostNumber * properties.discardOrder0CardMaxCopies;
+            idx += properties.discardOrder0CostNumber * properties.discardOrder0CardMaxCopies * properties.discardOrderMaxKeepTrackIn10s;
+        }
+
+        for (int i = 3; i < properties.actionsByCtx.length; i++) {
+            if (properties.actionsByCtx[i] != null && (Configuration.ADD_BEGIN_TURN_CTX_TO_NN_INPUT || i != GameActionCtx.BEGIN_TURN.ordinal())) {
+                System.out.println("Action Context " + GameActionCtx.values()[i] + ": " + input[idx++]);
+            }
+        }
+
+        System.out.println("Energy: " + input[idx++]);
+        System.out.println("Player Health: " + input[idx++]);
+        System.out.println("Player Block: " + input[idx++]);
+
+        if (properties.maxNumOfOrbs > 0) {
+            System.out.println("Orbs:");
+            for (int i = 0; i < properties.maxNumOfOrbs; i++) {
+                System.out.print("  Orb " + i + ": [");
+                for (int j = 0; j < 5; j++) {
+                    if (j > 0) System.out.print(", ");
+                    System.out.print(input[idx++]);
+                }
+                System.out.println("]");
+            }
+        }
+
+        if (properties.playerFocusCanChange) {
+            System.out.println("Player Focus: " + input[idx++]);
+        }
+
+        if (properties.character == CharacterEnum.WATCHER) {
+            System.out.println("Watcher Stance - Neutral: " + input[idx++]);
+            System.out.println("Watcher Stance - Wrath: " + input[idx++]);
+            System.out.println("Watcher Stance - Calm: " + input[idx++]);
+            System.out.println("Watcher Stance - Divinity: " + input[idx++]);
+        }
+
+        if (properties.previousCardPlayTracking) {
+            System.out.println("Previous Card Type - None: " + input[idx++]);
+            System.out.println("Previous Card Type - Attack: " + input[idx++]);
+            System.out.println("Previous Card Type - Skill: " + input[idx++]);
+        }
+
+        if (properties.playerArtifactCanChange) {
+            System.out.println("Player Artifact: " + input[idx++]);
+        }
+        if (properties.playerStrengthCanChange) {
+            System.out.println("Player Strength: " + input[idx++]);
+        }
+        if (properties.playerDexterityCanChange) {
+            System.out.println("Player Dexterity: " + input[idx++]);
+        }
+        if (properties.playerStrengthEotCanChange) {
+            System.out.println("Player Lose Strength EOT: " + input[idx++]);
+        }
+        if (properties.playerDexterityEotCanChange) {
+            System.out.println("Player Lose Dexterity EOT: " + input[idx++]);
+        }
+        if (properties.playerPlatedArmorCanChange) {
+            System.out.println("Player Plated Armor: " + input[idx++]);
+        }
+        if (properties.playerCanGetVuln) {
+            System.out.println("Player Vulnerable: " + input[idx++]);
+        }
+        if (properties.playerCanGetWeakened) {
+            System.out.println("Player Weak: " + input[idx++]);
+        }
+        if (properties.playerCanGetFrailed) {
+            System.out.println("Player Frail: " + input[idx++]);
+        }
+        if (properties.playerCanGetEntangled) {
+            System.out.println("Player Entangled: " + input[idx++]);
+        }
+        if (properties.battleTranceExist) {
+            System.out.println("Battle Trance Cannot Draw: " + input[idx++]);
+        }
+        if (properties.energyRefillCanChange) {
+            System.out.println("Energy Refill (Berserk): " + input[idx++]);
+        }
+
+        for (PlayerBuff buff : PlayerBuff.BUFFS) {
+            if ((properties.possibleBuffs & buff.mask()) != 0) {
+                System.out.println("Player Buff " + buff.name() + ": " + input[idx++]);
+            }
+        }
+
+        for (var counterInfo : properties.counterInfos) {
+            if (counterInfo.handler != null) {
+                int deltaLen = counterInfo.handler.getInputLenDelta();
+                System.out.print("Counter " + counterInfo.name + ": [");
+                for (int i = 0; i < deltaLen; i++) {
+                    if (i > 0) System.out.print(", ");
+                    System.out.print(input[idx++]);
+                }
+                System.out.println("]");
+            }
+        }
+
+        for (int i = 0; i < properties.nnInputHandlers.length; i++) {
+            int deltaLen = properties.nnInputHandlers[i].getInputLenDelta();
+            System.out.print("NN Input Handler " + properties.nnInputHandlersName[i] + ": [");
+            for (int j = 0; j < deltaLen; j++) {
+                if (j > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        for (int i = 0; i < properties.potions.size(); i++) {
+            System.out.println("Potion " + properties.potions.get(i) + " - Has: " + input[idx++]);
+            System.out.println("Potion " + properties.potions.get(i) + " - Charges: " + input[idx++]);
+            System.out.println("Potion " + properties.potions.get(i) + " - Can Use: " + input[idx++]);
+        }
+
+        if (properties.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if ((action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectEnemy && action.idx() < properties.realCardsLen) ||
+                     action.type() == GameActionType.USE_POTION && properties.potions.get(action.idx()).selectEnemy) {
+                    System.out.println("Select Enemy Action " + action + ": " + input[idx++]);
+                }
+            }
+        }
+
+        if (properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if ((action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromHand && action.idx() < properties.realCardsLen) ||
+                     action.type() == GameActionType.USE_POTION && properties.potions.get(action.idx()).selectFromHand) {
+                    System.out.println("Select Card Hand Action " + action + ": " + input[idx++]);
+                }
+            }
+        }
+
+        if (properties.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if ((action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromDiscard && action.idx() < properties.realCardsLen) ||
+                     action.type() == GameActionType.USE_POTION && properties.potions.get(action.idx()).selectFromDiscard) {
+                    System.out.println("Select Card Discard Action " + action + ": " + input[idx++]);
+                }
+            }
+        }
+
+        if (properties.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromExhaust && action.idx() < properties.realCardsLen) {
+                    System.out.println("Select Card Exhaust Action " + action + ": " + input[idx++]);
+                }
+            }
+        }
+
+        if (properties.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].selectFromDeck && action.idx() < properties.realCardsLen) {
+                    System.out.println("Select Card Deck Action " + action + ": " + input[idx++]);
+                }
+            }
+        }
+
+        if (properties.actionsByCtx[GameActionCtx.SCRYING.ordinal()] != null) {
+            for (GameAction action : properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
+                if (action.type() == GameActionType.PLAY_CARD && properties.cardDict[action.idx()].scry && action.idx() < properties.realCardsLen) {
+                    System.out.println("Scrying Action " + action + ": " + input[idx++]);
+                }
+            }
+        }
+
+        if (properties.select1OutOf3CardsIdxes.length > 0) {
+            System.out.print("Select 1 out of 3 Cards: [");
+            for (int i = 0; i < properties.select1OutOf3CardsIdxes.length; i++) {
+                if (i > 0) System.out.print(", ");
+                System.out.print(input[idx++]);
+            }
+            System.out.println("]");
+        }
+
+        var enemyOrder = getEnemyOrder();
+        for (int enemyIdx = 0; enemyIdx < enemies.size(); enemyIdx++) {
+            var enemy = enemies.get(enemyOrder != null ? enemyOrder[enemyIdx] : enemyIdx);
+            String enemyName = enemy instanceof Enemy.MergedEnemy m ? m.getDescName() : enemy.getName();
+            System.out.println("*** " + enemyName + " ***");
+
+            System.out.println("  Health: " + input[idx++]);
+            if (properties.enemyCanGetVuln) {
+                System.out.println("  Vulnerable: " + input[idx++]);
+            }
+            if (properties.enemyCanGetWeakened) {
+                System.out.println("  Weak: " + input[idx++]);
+            }
+            if (properties.enemyCanGetChoked) {
+                System.out.println("  Choke: " + input[idx++]);
+            }
+            if (properties.enemyCanGetLockOn) {
+                System.out.println("  Lock-On: " + input[idx++]);
+            }
+            if (properties.enemyCanGetTalkToTheHand) {
+                System.out.println("  Talk to the Hand: " + input[idx++]);
+            }
+            if (properties.enemyCanGetMark) {
+                System.out.println("  Mark: " + input[idx++]);
+            }
+            if (properties.enemyCanGetPoisoned) {
+                System.out.println("  Poison: " + input[idx++]);
+            }
+            if (properties.enemyCanGetCorpseExplosion) {
+                System.out.println("  Corpse Explosion: " + input[idx++]);
+            }
+            if (properties.enemyStrengthEotCanChange) {
+                System.out.println("  Lose Strength EOT: " + input[idx++]);
+            }
+            if (enemy.properties.canGainStrength || properties.enemyStrengthCanChange) {
+                System.out.println("  Strength: " + input[idx++]);
+            }
+            if (enemy.properties.canGainBlock) {
+                System.out.println("  Block: " + input[idx++]);
+            }
+            if (enemy.properties.hasArtifact) {
+                System.out.println("  Artifact: " + input[idx++]);
+            }
+            if (enemy.properties.canGainRegeneration) {
+                System.out.println("  Regeneration: " + input[idx++]);
+            }
+            if (enemy.properties.canGainMetallicize) {
+                System.out.println("  Metallicize: " + input[idx++]);
+            }
+            if (enemy.properties.canGainPlatedArmor) {
+                System.out.println("  Plated Armor: " + input[idx++]);
+            }
+            if (enemy.properties.canGainRegeneration || enemy.properties.canHeal || properties.enemyCanGetCorpseExplosion) {
+                System.out.println("  Max Health: " + input[idx++]);
+            }
+
+            if (enemy instanceof Enemy.MergedEnemy m) {
+                System.out.print("  Current Enemy: [");
+                for (int i = 0; i < m.possibleEnemies.size(); i++) {
+                    if (i > 0) System.out.print(", ");
+                    System.out.print(input[idx++]);
+                }
+                System.out.println("]");
+
+                for (int pIdx = 0; pIdx < m.possibleEnemies.size(); pIdx++) {
+                    System.out.print("  Moves for " + m.possibleEnemies.get(pIdx).getName() + ": [");
+                    for (int i = 0; i < m.possibleEnemies.get(pIdx).properties.numOfMoves; i++) {
+                        if (i > 0) System.out.print(", ");
+                        System.out.print(input[idx++]);
+                    }
+                    System.out.println("]");
+                    if (m.possibleEnemies.get(pIdx).properties.useLast2MovesForMoveSelection) {
+                        System.out.print("  Last Moves for " + m.possibleEnemies.get(pIdx).getName() + ": [");
+                        for (int i = 0; i < m.possibleEnemies.get(pIdx).properties.numOfMoves; i++) {
+                            if (i > 0) System.out.print(", ");
+                            System.out.print(input[idx++]);
+                        }
+                        System.out.println("]");
+                    }
+                }
+            } else {
+                System.out.print("  Current Moves: [");
+                for (int i = 0; i < enemy.properties.numOfMoves; i++) {
+                    if (i > 0) System.out.print(", ");
+                    System.out.print(input[idx++]);
+                }
+                System.out.println("]");
+                if (enemy.properties.useLast2MovesForMoveSelection) {
+                    System.out.print("  Last Moves: [");
+                    for (int i = 0; i < enemy.properties.numOfMoves; i++) {
+                        if (i > 0) System.out.print(", ");
+                        System.out.print(input[idx++]);
+                    }
+                    System.out.println("]");
+                }
+            }
+
+            int enemyNNInputLen = enemy.getNNInputLen(properties);
+            if (enemyNNInputLen > 0) {
+                System.out.print("  Enemy Specific Input: [");
+                for (int i = 0; i < enemyNNInputLen; i++) {
+                    if (i > 0) System.out.print(", ");
+                    System.out.print(input[idx++]);
+                }
+                System.out.println("]");
+            }
+
+            if (enemy instanceof EnemyExordium.RedLouse || enemy instanceof EnemyExordium.GreenLouse) {
+                System.out.println("  Louse Curl Up: " + input[idx++]);
+            }
+        }
+
+        System.out.println("Total inputs processed: " + idx + " / " + properties.inputLen);
+    }
+
     public int[] getEnemyOrder() {
         if (properties.enemiesReordering == null) {
             return null;
