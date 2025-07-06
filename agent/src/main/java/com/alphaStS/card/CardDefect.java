@@ -243,7 +243,7 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             int i = (dmg - 3) / 2;
             return i < limit - 1 ? prop.clawIndexes[i + 1] : -1;
         }
@@ -301,7 +301,7 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             int i = (dmg - 5) / 2;
             return i < limit - 1 ? prop.clawPIndexes[i + 1] : -1;
         }
@@ -639,7 +639,7 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             return n > limit ? prop.steamBarrierIndexes[n - limit - 1] : -1;
         }
 
@@ -689,7 +689,7 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             return n > limit ? prop.steamBarrierPIndexes[n - limit - 1] : -1;
         }
     }
@@ -720,7 +720,7 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             return energyCost > 0 ? prop.streamlineIndexes[energyCost - 1] : -1;
         }
 
@@ -758,7 +758,7 @@ public class CardDefect {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             return energyCost > 0 ? prop.streamlinePIndexes[energyCost - 1] : -1;
         }
 

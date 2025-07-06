@@ -79,6 +79,7 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_ENLIGHTENMENT = 1 << 4;
     public final static int GENERATE_CARD_TRANSMUTATION = 1 << 5;
     public final static int GENERATE_CARD_INFERNAL_BLADE = 1 << 6;
+    public final static int GENERATE_CARD_RAMPAGE_UPGRADE = 1 << 7;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT;
     public int generateCardOptions;
 
@@ -121,8 +122,8 @@ public class GameProperties implements Cloneable {
     public int[] clawTransformIndexes;
     public int[] clawPIndexes;
     public int[] clawPTransformIndexes;
-    public int[] rampageIndexes;
-    public int[] rampagePIndexes;
+    public int[] rampageTransformIndexes;
+    public int[] rampagePTransformIndexes;
     public int[] glassKnifeIndexes;
     public int[] glassKnifePIndexes;
     public int[] steamBarrierIndexes;

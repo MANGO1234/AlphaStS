@@ -238,34 +238,6 @@ public class CardOther {
         }
     }
 
-    private abstract static class _FakeInfernalBladeT extends Card {
-        public _FakeInfernalBladeT(String cardName, int cardType, int energyCost) {
-            super(cardName, cardType, energyCost, Card.UNCOMMON);
-            exhaustWhenPlayed = true;
-        }
-
-        public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.addCardToHand(state.properties.findCardIndex(new Card.Strike().getTemporaryCostIfPossible(0)));
-            return GameActionCtx.PLAY_CARD;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new Card.Strike().getTemporaryCostIfPossible(0));
-        }
-    }
-
-    public static class FakeInfernalBlade extends _FakeInfernalBladeT {
-        public FakeInfernalBlade() {
-            super("Fake Infernal Blade", Card.ATTACK, 1);
-        }
-    }
-
-    public static class FakeInfernalBladeP extends _FakeInfernalBladeT {
-        public FakeInfernalBladeP() {
-            super("Fake Infernal Blade+", Card.SKILL, 0);
-        }
-    }
-
     public static class GamblingChips extends Card {
         public GamblingChips() {
             super("Gambling Chips", Card.SKILL, -1, Card.COMMON);

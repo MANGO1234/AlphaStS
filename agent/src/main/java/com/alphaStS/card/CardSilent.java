@@ -2627,7 +2627,7 @@ public class CardSilent {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             int i = (dmg - limit) / 2;
             return i > 0 ? prop.glassKnifeIndexes[i - 1] : -1;
         }
@@ -2676,7 +2676,7 @@ public class CardSilent {
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             int i = (dmg - limit) / 2;
             return i > 0 ? prop.glassKnifePIndexes[i - 1] : -1;
         }

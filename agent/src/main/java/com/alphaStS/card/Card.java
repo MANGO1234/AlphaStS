@@ -111,7 +111,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
     public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) { return List.of(); }
-    public int onPlayTransformCardIdx(GameProperties prop) { return -1; }
+    public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) { return -1; }
     public boolean canSelectCard(Card card) { return true; }
 
     public void setupGeneratedCardIndexes(GameProperties properties) {
@@ -186,6 +186,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         return card;
     }
 
+    public Card wrapAfterPlay(Card card) {
+        return card;
+    }
+
     public static class CardWrapper extends Card {
         private final Card card;
         private final int tmpChangeCost;
@@ -195,7 +199,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private int cardIdx;
 
         public CardWrapper(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
-            super(generateCardName(card, tmpChangeCost, tmpUntilPlayedCost, tmpChangeCost, tmpRetain), card.cardType, getEffectiveEnergyCost(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost), card.rarity);
+            super(generateCardName(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, tmpRetain), card.cardType, getEffectiveEnergyCost(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost), card.rarity);
             this.card = card;
             this.tmpChangeCost = tmpChangeCost;
             this.tmpUntilPlayedCost = tmpUntilPlayedCost;
@@ -303,22 +307,32 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
+        public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            return card.getPossibleSelect1OutOf3Cards(gameProperties);
+        }
+
+        @Override
         public List<Card> getPossibleTransformTmpCostCards(List<Card> cards) {
             return card.getPossibleTransformTmpCostCards(cards);
         }
 
         @Override
-        public int onPlayTransformCardIdx(GameProperties prop) {
+        public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
             if (tmpUntilPlayedCost != -1 || tmpRetain) {
-                int idx = card.onPlayTransformCardIdx(prop);
+                int idx = card.onPlayTransformCardIdx(prop, cardIdx);
                 return idx == -1 ? cardIdx : idx;
             }
-            return card.onPlayTransformCardIdx(prop);
+            return card.onPlayTransformCardIdx(prop, cardIdx);
         }
 
         @Override
         public boolean canSelectCard(Card card2) {
             return card.canSelectCard(card2);
+        }
+
+        @Override
+        public void setupGeneratedCardIndexes(GameProperties properties) {
+            card.setupGeneratedCardIndexes(properties);
         }
 
         @Override
@@ -331,7 +345,12 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public int realEnergyCost() {
-            return card.realEnergyCost();
+            return permChangeCost >= 0 ? permChangeCost : card.realEnergyCost();
+        }
+
+        @Override
+        public int energyCost(GameState state) {
+            return permChangeCost >= 0 ? permChangeCost : card.energyCost(state);
         }
 
         @Override
@@ -390,6 +409,11 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         @Override
+        public Card wrapAfterPlay(Card newCard) {
+            return wrap(newCard, -1, -1, permChangeCost, false);
+        }
+
+        @Override
         public Card getPermCostIfPossible(int permCost) {
             return wrap(card, tmpChangeCost, tmpUntilPlayedCost, permCost, tmpRetain);
         }
@@ -423,6 +447,16 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public boolean isTmpRetain() {
             return tmpRetain;
+        }
+
+        @Override
+        public void onDiscard(GameState state) {
+            card.onDiscard(state);
+        }
+
+        @Override
+        public void onDiscardEndOfTurn(GameState state, int numCardsInHand) {
+            card.onDiscardEndOfTurn(state, numCardsInHand);
         }
 
         @Override

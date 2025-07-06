@@ -79,6 +79,7 @@ public final class GameState implements State {
     GameAction currentAction;
     public short turnNum;
     public short realTurnNum;
+    public short actionsInCurTurn;
     int playerTurnStartMaxPossibleHealth;
     byte playerTurnStartPotionCount;
     byte playerTurnStartMaxHandOfGreed;
@@ -1032,6 +1033,7 @@ public final class GameState implements State {
         energy = other.energy;
         turnNum = other.turnNum;
         realTurnNum = other.realTurnNum;
+        actionsInCurTurn = other.actionsInCurTurn;
         playerTurnStartMaxPossibleHealth = other.playerTurnStartMaxPossibleHealth;
         playerTurnStartPotionCount = other.playerTurnStartPotionCount;
         playerTurnStartMaxHandOfGreed = other.playerTurnStartMaxHandOfGreed;
@@ -1488,7 +1490,7 @@ public final class GameState implements State {
             for (var handler : properties.onCardPlayedHandlers) {
                 handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, cloneParentLocation);
             }
-            int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(properties);
+            int transformCardIdx = properties.cardDict[cardIdx].onPlayTransformCardIdx(properties, cardIdx);
             int prevCardIdx = cardIdx;
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
@@ -1676,6 +1678,7 @@ public final class GameState implements State {
     }
 
     void beginTurn() {
+        actionsInCurTurn = 0;
         if (turnNum == 0) { // start of turn 1
             List<Integer> order = new ArrayList<>();
             for (int i = 0; i < deckArrLen; i++) { // todo: edge case more innate cards than first turn draw
@@ -2195,6 +2198,7 @@ public final class GameState implements State {
                 playCard(nextAction, enemyIdx, true, null, false, false, -1, -1);
             }
         }
+        actionsInCurTurn++;
         legalActions = null;
         v_extra = null;
         policy = null;
@@ -2709,7 +2713,7 @@ public final class GameState implements State {
     }
 
     public int isTerminal() {
-        if (getPlayeForRead().getHealth() <= 0 || turnNum > 50) {
+        if (getPlayeForRead().getHealth() <= 0 || turnNum > 50 || actionsInCurTurn > 100) {
             return -1;
         } else {
             for (var enemy : enemies) {
@@ -3713,8 +3717,8 @@ public final class GameState implements State {
         }
         idx += properties.discardIdxes.length;
         if (properties.selectFromExhaust) {
-            for (int i = 0; i < discardArrLen; i++) {
-                x[idx + discardArr[i]] += (float) 0.1;
+            for (int i = 0; i < exhaustArrLen; i++) {
+                x[idx + exhaustArr[i]] += (float) 0.1;
             }
             idx += properties.realCardsLen;
         }

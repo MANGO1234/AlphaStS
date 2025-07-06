@@ -1414,6 +1414,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if ((state.properties.generateCardOptions & GameProperties.GENERATE_CARD_INFERNAL_BLADE) == 0) {
+                state.addCardToHand(state.properties.findCardIndex(new Card.Strike().getTemporaryCostIfPossible(0)));
                 return GameActionCtx.PLAY_CARD;
             }
             var r = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
@@ -1424,7 +1425,7 @@ public class CardIronclad {
 
         @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_INFERNAL_BLADE) == 0) {
-                return List.of();
+                return List.of(new Card.Strike().getTemporaryCostIfPossible(0));
             }
             return CardManager.getCharacterCardsByTypeTmp0Cost(CharacterEnum.IRONCLAD, Card.ATTACK, false);
         }
@@ -1644,9 +1645,10 @@ public class CardIronclad {
     public static class Rampage extends Card {
         public int limit;
         private int dmg;
+        private boolean upgradable;
 
         public Rampage() {
-            this(8, 50);
+            this(8, 33);
         }
 
         public Rampage(int dmg, int limit) {
@@ -1663,25 +1665,33 @@ public class CardIronclad {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg + 5; i <= limit; i += 5) {
-                c.add(new Rampage(i, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof Rampage) {
+                    for (int j = dmg + 5; j <= limit; j += 5) {
+                        c.add(card.wrapAfterPlay(new Rampage(j, limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.rampageIndexes = new int[limit + 1];
-            for (int i = 0; i < state.properties.rampageIndexes.length; i++) {
-                state.properties.rampageIndexes[i] = state.properties.findCardIndex(new Rampage(i, limit));
+            upgradable = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_RAMPAGE_UPGRADE) != 0;
+            state.properties.rampageTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.rampageTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof Rampage rampage) {
+                    state.properties.rampageTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(new Rampage(rampage.dmg + 5, limit)));
+                }
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
-            return (dmg + 5) >= prop.rampageIndexes.length ? -1 : prop.rampageIndexes[dmg + 5];
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.rampageTransformIndexes[cardIdx];
         }
 
         public Card getUpgrade() {
-            return new RampageP(dmg, limit + 25);
+            return upgradable ? new RampageP(dmg, limit + 25) : null;
         }
     }
 
@@ -1690,7 +1700,7 @@ public class CardIronclad {
         private int dmg;
 
         public RampageP() {
-            this(8, 75);
+            this(8, 58);
         }
 
         public RampageP(int dmg, int limit) {
@@ -1707,21 +1717,28 @@ public class CardIronclad {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg + 8; i <= limit; i += 8) {
-                c.add(new RampageP(i, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof Rampage) {
+                    for (int j = dmg + 8; j <= limit; j += 8) {
+                        c.add(card.wrapAfterPlay(new RampageP(j, limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.rampagePIndexes = new int[limit + 1];
-            for (int i = 0; i < state.properties.rampagePIndexes.length; i++) {
-                state.properties.rampagePIndexes[i] = state.properties.findCardIndex(new RampageP(i, limit));
+            state.properties.rampagePTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.rampagePTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof Rampage rampage) {
+                    state.properties.rampagePTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(new RampageP(rampage.dmg + 8, limit)));
+                }
             }
         }
 
-        @Override public int onPlayTransformCardIdx(GameProperties prop) {
-            return (dmg + 8) >= prop.rampagePIndexes.length ? -1 : prop.rampagePIndexes[dmg + 8];
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.rampagePTransformIndexes[cardIdx];
         }
     }
 
@@ -2332,6 +2349,10 @@ public class CardIronclad {
             state.removeCardFromExhaust(idx);
             state.addCardToHand(idx);
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return !(card.getBaseCard() instanceof _ExhumeT);
         }
     }
 
