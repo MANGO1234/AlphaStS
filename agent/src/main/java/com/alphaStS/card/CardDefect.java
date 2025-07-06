@@ -225,26 +225,36 @@ public class CardDefect {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = 0; i < limit; i++) {
-                c.add(new Claw(3 + i * 2, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof Claw) {
+                    for (int i = dmg + 2; i < limit * 2 + 3; i += 2) {
+                        c.add(card.wrap(new Claw(i, limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.clawIndexes = new int[limit];
-            for (int i = 0; i < state.properties.clawIndexes.length; i++) {
-                state.properties.clawIndexes[i] = state.properties.findCardIndex(new Claw(3 + i * 2));
-            }
             state.properties.clawTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.clawTransformIndexes, -1);
-            for (int i = 0; i < limit - 1; i++) {
-                state.properties.clawTransformIndexes[state.properties.findCardIndex(new Claw(3 + i * 2))] = state.properties.findCardIndex(new Claw(3 + (i + 1) * 2));
+            for (int i = 0; i < state.properties.clawTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof Claw claw && claw.dmg < claw.limit * 2 + 1) {
+                    state.properties.clawTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(new Claw(claw.dmg + 2, claw.limit)));
+                }
+            }
+            state.properties.clawAfterPlayTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.clawAfterPlayTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof Claw claw && claw.dmg < claw.limit * 2 + 1) {
+                    state.properties.clawAfterPlayTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new Claw(claw.dmg + 2, claw.limit)));
+                }
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.clawTransformIndexes[cardIdx];
+            return prop.clawAfterPlayTransformIndexes[cardIdx];
         }
 
         public Card getUpgrade() {
@@ -282,26 +292,36 @@ public class CardDefect {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = 0; i < limit; i++) {
-                c.add(new ClawP(5 + i * 2, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof Claw) {
+                    for (int i = dmg + 2; i < limit * 2 + 5; i += 2) {
+                        c.add(card.wrap(new ClawP(i, limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.clawPIndexes = new int[limit];
-            for (int i = 0; i < state.properties.clawPIndexes.length; i++) {
-                state.properties.clawPIndexes[i] = state.properties.findCardIndex(new ClawP(5 + i * 2));
-            }
             state.properties.clawPTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.clawPTransformIndexes, -1);
-            for (int i = 0; i < limit - 1; i++) {
-                state.properties.clawPTransformIndexes[state.properties.findCardIndex(new ClawP(5 + i * 2))] = state.properties.findCardIndex(new ClawP(5 + (i + 1) * 2));
+            for (int i = 0; i < state.properties.clawPTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof ClawP claw && claw.dmg < claw.limit * 2 + 3) {
+                    state.properties.clawPTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new ClawP(claw.dmg + 2, claw.limit)));
+                }
+            }
+            state.properties.clawPAfterPlayTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.clawPAfterPlayTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof ClawP claw && claw.dmg < claw.limit * 2 + 3) {
+                    state.properties.clawPAfterPlayTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new ClawP(claw.dmg + 2, claw.limit)));
+                }
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return prop.clawPTransformIndexes[cardIdx];
+            return prop.clawPAfterPlayTransformIndexes[cardIdx];
         }
     }
 
@@ -621,8 +641,12 @@ public class CardDefect {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = n; i >= limit; i--) {
-                c.add(new SteamBarrier(i, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof SteamBarrier) {
+                    for (int i = n - 1; i >= limit; i--) {
+                        c.add(card.wrapAfterPlay(new SteamBarrier(i, limit)));
+                    }
+                }
             }
             return c;
         }
@@ -671,8 +695,12 @@ public class CardDefect {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = n; i >= limit; i--) {
-                c.add(new SteamBarrierP(i, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof SteamBarrier) {
+                    for (int i = n - 1; i >= limit; i--) {
+                        c.add(card.wrapAfterPlay(new SteamBarrierP(i, limit)));
+                    }
+                }
             }
             return c;
         }

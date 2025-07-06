@@ -122,10 +122,10 @@ public class GameProperties implements Cloneable {
     public int[] bloodForBloodPTransformIndexes;
     public int[] forceFieldTransformIndexes;
     public int[] forceFieldPTransformIndexes;
-    public int[] clawIndexes;
     public int[] clawTransformIndexes;
-    public int[] clawPIndexes;
+    public int[] clawAfterPlayTransformIndexes;
     public int[] clawPTransformIndexes;
+    public int[] clawPAfterPlayTransformIndexes;
     public int[] rampageTransformIndexes;
     public int[] rampagePTransformIndexes;
     public int[] glassKnifeTransformIndexes;

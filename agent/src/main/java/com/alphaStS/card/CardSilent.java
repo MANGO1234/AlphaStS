@@ -2611,8 +2611,12 @@ public class CardSilent {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg; i >= limit; i -= 2) {
-                c.add(new CardSilent.GlassKnife(i, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof GlassKnife) {
+                    for (int i = dmg - 2; i >= limit; i -= 2) {
+                        c.add(card.wrapAfterPlay(new GlassKnife(i, limit)));
+                    }
+                }
             }
             return c;
         }
@@ -2659,8 +2663,12 @@ public class CardSilent {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = dmg; i >= limit; i -= 2) {
-                c.add(new CardSilent.GlassKnifeP(i, limit));
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof GlassKnife) {
+                    for (int i = dmg - 2; i >= limit; i -= 2) {
+                        c.add(card.wrapAfterPlay(new GlassKnifeP(i, limit)));
+                    }
+                }
             }
             return c;
         }
