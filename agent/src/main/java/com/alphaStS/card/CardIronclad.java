@@ -758,7 +758,6 @@ public class CardIronclad {
     }
 
     public static class BloodForBlood extends Card {
-        public static int[] bloodForBloodTransformIndexes;
 
         public BloodForBlood() {
             this(4);
@@ -788,29 +787,28 @@ public class CardIronclad {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            bloodForBloodTransformIndexes = new int[state.properties.cardDict.length];
-            Arrays.fill(bloodForBloodTransformIndexes, -1);
+            state.properties.bloodForBloodTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.bloodForBloodTransformIndexes, -1);
             for (int i = 0; i < state.properties.cardDict.length; i++) {
                 var card = state.properties.cardDict[i];
                 if (card.getBaseCard() instanceof BloodForBlood && card.getBaseCard().energyCost > 0) {
                     var toIdx = state.properties.findCardIndex(card.wrap(new BloodForBlood(card.getBaseCard().energyCost - 1)));
-                    bloodForBloodTransformIndexes[i] = toIdx;
+                    state.properties.bloodForBloodTransformIndexes[i] = toIdx;
                 }
             }
             state.properties.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    state.handArrTransform(bloodForBloodTransformIndexes);
-                    state.discardArrTransform(bloodForBloodTransformIndexes);
-                    state.deckArrTransform(bloodForBloodTransformIndexes);
-                    state.exhaustArrTransform(bloodForBloodTransformIndexes);
+                    state.handArrTransform(state.properties.bloodForBloodTransformIndexes);
+                    state.discardArrTransform(state.properties.bloodForBloodTransformIndexes);
+                    state.deckArrTransform(state.properties.bloodForBloodTransformIndexes);
+                    state.exhaustArrTransform(state.properties.bloodForBloodTransformIndexes);
                 }
             });
         }
     }
 
     public static class BloodForBloodP extends Card {
-        public static int[] bloodForBloodPTransformIndexes;
 
         public BloodForBloodP() {
             this(3);
@@ -839,22 +837,22 @@ public class CardIronclad {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            bloodForBloodPTransformIndexes = new int[state.properties.cardDict.length];
-            Arrays.fill(bloodForBloodPTransformIndexes, -1);
+            state.properties.bloodForBloodPTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.bloodForBloodPTransformIndexes, -1);
             for (int i = 0; i < state.properties.cardDict.length; i++) {
                 var card = state.properties.cardDict[i];
                 if (card.getBaseCard() instanceof BloodForBloodP && card.getBaseCard().energyCost > 0) {
                     var toIdx = state.properties.findCardIndex(card.wrap(new BloodForBloodP(card.getBaseCard().energyCost - 1)));
-                    bloodForBloodPTransformIndexes[i] = toIdx;
+                    state.properties.bloodForBloodPTransformIndexes[i] = toIdx;
                 }
             }
             state.properties.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
-                    state.handArrTransform(bloodForBloodPTransformIndexes);
-                    state.discardArrTransform(bloodForBloodPTransformIndexes);
-                    state.deckArrTransform(bloodForBloodPTransformIndexes);
-                    state.exhaustArrTransform(bloodForBloodPTransformIndexes);
+                    state.handArrTransform(state.properties.bloodForBloodPTransformIndexes);
+                    state.discardArrTransform(state.properties.bloodForBloodPTransformIndexes);
+                    state.deckArrTransform(state.properties.bloodForBloodPTransformIndexes);
+                    state.exhaustArrTransform(state.properties.bloodForBloodPTransformIndexes);
                 }
             });
         }

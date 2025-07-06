@@ -2618,18 +2618,17 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.glassKnifeIndexes != null && (dmg - limit) / 2 + 1 < state.properties.glassKnifeIndexes.length) {
-                return;
-            }
-            state.properties.glassKnifeIndexes = new int[(dmg - limit) / 2 + 1];
-            for (int i = 0; i < state.properties.glassKnifeIndexes.length; i++) {
-                state.properties.glassKnifeIndexes[i] = state.properties.findCardIndex(new CardSilent.GlassKnife(i * 2));
+            state.properties.glassKnifeTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.glassKnifeTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof GlassKnife glassKnife && glassKnife.dmg > glassKnife.limit) {
+                    state.properties.glassKnifeTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new GlassKnife(glassKnife.dmg - 2, glassKnife.limit)));
+                }
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            int i = (dmg - limit) / 2;
-            return i > 0 ? prop.glassKnifeIndexes[i - 1] : -1;
+            return prop.glassKnifeTransformIndexes[cardIdx];
         }
     }
 
@@ -2667,18 +2666,17 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.glassKnifePIndexes != null && (dmg - limit) / 2 + 1 < state.properties.glassKnifePIndexes.length) {
-                return;
-            }
-            state.properties.glassKnifePIndexes = new int[(dmg - limit) / 2 + 1];
-            for (int i = 0; i < state.properties.glassKnifePIndexes.length; i++) {
-                state.properties.glassKnifePIndexes[i] = state.properties.findCardIndex(new CardSilent.GlassKnifeP(i * 2));
+            state.properties.glassKnifePTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.glassKnifePTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof GlassKnifeP glassKnife && glassKnife.dmg > glassKnife.limit) {
+                    state.properties.glassKnifePTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new GlassKnifeP(glassKnife.dmg - 2, glassKnife.limit)));
+                }
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            int i = (dmg - limit) / 2;
-            return i > 0 ? prop.glassKnifePIndexes[i - 1] : -1;
+            return prop.glassKnifePTransformIndexes[cardIdx];
         }
     }
 

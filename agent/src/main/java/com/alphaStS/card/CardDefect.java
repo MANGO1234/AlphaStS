@@ -244,8 +244,7 @@ public class CardDefect {
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            int i = (dmg - 3) / 2;
-            return i < limit - 1 ? prop.clawIndexes[i + 1] : -1;
+            return prop.clawTransformIndexes[cardIdx];
         }
 
         public Card getUpgrade() {
@@ -302,8 +301,7 @@ public class CardDefect {
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            int i = (dmg - 5) / 2;
-            return i < limit - 1 ? prop.clawPIndexes[i + 1] : -1;
+            return prop.clawPTransformIndexes[cardIdx];
         }
     }
 
@@ -630,17 +628,17 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.steamBarrierIndexes != null && state.properties.steamBarrierIndexes.length > n - limit + 1) {
-                return;
-            }
-            state.properties.steamBarrierIndexes = new int[n - limit + 1];
-            for (int i = limit; i <= n; i++) {
-                state.properties.steamBarrierIndexes[i - limit] = state.properties.findCardIndex(new SteamBarrier(i, limit));
+            state.properties.steamBarrierTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.steamBarrierTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof SteamBarrier steamBarrier && steamBarrier.n > steamBarrier.limit) {
+                    state.properties.steamBarrierTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new SteamBarrier(steamBarrier.n - 1, steamBarrier.limit)));
+                }
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return n > limit ? prop.steamBarrierIndexes[n - limit - 1] : -1;
+            return prop.steamBarrierTransformIndexes[cardIdx];
         }
 
         public Card getUpgrade() {
@@ -680,17 +678,17 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.steamBarrierPIndexes != null && state.properties.steamBarrierPIndexes.length > n - limit + 1) {
-                return;
-            }
-            state.properties.steamBarrierPIndexes = new int[n - limit + 1];
-            for (int i = limit; i <= n; i++) {
-                state.properties.steamBarrierPIndexes[i - limit] = state.properties.findCardIndex(new SteamBarrierP(i, limit));
+            state.properties.steamBarrierPTransformIndexes = new int[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.steamBarrierPTransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof SteamBarrierP steamBarrier && steamBarrier.n > steamBarrier.limit) {
+                    state.properties.steamBarrierPTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrapAfterPlay(new SteamBarrierP(steamBarrier.n - 1, steamBarrier.limit)));
+                }
             }
         }
 
         @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
-            return n > limit ? prop.steamBarrierPIndexes[n - limit - 1] : -1;
+            return prop.steamBarrierPTransformIndexes[cardIdx];
         }
     }
 
@@ -1348,7 +1346,6 @@ public class CardDefect {
     }
 
     public static class ForceField extends Card {
-        public static int[] forceFieldTransformIndexes;
 
         public ForceField(int energyCost) {
             super("Force Field (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
@@ -1377,22 +1374,22 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            forceFieldTransformIndexes = new int[state.properties.cardDict.length];
-            Arrays.fill(forceFieldTransformIndexes, -1);
+            state.properties.forceFieldTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.forceFieldTransformIndexes, -1);
             for (int i = 0; i < state.properties.cardDict.length; i++) {
                 var card = state.properties.cardDict[i];
                 if (card.getBaseCard() instanceof ForceField && card.getBaseCard().energyCost > 0) {
                     var toIdx = state.properties.findCardIndex(card.wrap(new ForceField(card.getBaseCard().energyCost - 1)));
-                    forceFieldTransformIndexes[i] = toIdx;
+                    state.properties.forceFieldTransformIndexes[i] = toIdx;
                 }
             }
             state.properties.addOnCardPlayedHandler("ForceField", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
-                        state.handArrTransform(forceFieldTransformIndexes);
-                        state.discardArrTransform(forceFieldTransformIndexes);
-                        state.deckArrTransform(forceFieldTransformIndexes);
-                        state.exhaustArrTransform(forceFieldTransformIndexes);
+                        state.handArrTransform(state.properties.forceFieldTransformIndexes);
+                        state.discardArrTransform(state.properties.forceFieldTransformIndexes);
+                        state.deckArrTransform(state.properties.forceFieldTransformIndexes);
+                        state.exhaustArrTransform(state.properties.forceFieldTransformIndexes);
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }
@@ -1417,7 +1414,6 @@ public class CardDefect {
     }
 
     public static class ForceFieldP extends Card {
-        public static int[] forceFieldPTransformIndexes;
 
         public ForceFieldP(int energyCost) {
             super("Force Field+ (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
@@ -1435,7 +1431,7 @@ public class CardDefect {
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var l = new ArrayList<Card>();
             for (int i = 0; i < cards.size(); i++) {
-                if (cards.get(i).getBaseCard() instanceof ForceField) {
+                if (cards.get(i).getBaseCard() instanceof ForceFieldP) {
                     l.add(cards.get(i).wrap(new ForceFieldP(3)));
                     l.add(cards.get(i).wrap(new ForceFieldP(2)));
                     l.add(cards.get(i).wrap(new ForceFieldP(1)));
@@ -1446,22 +1442,22 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            forceFieldPTransformIndexes = new int[state.properties.cardDict.length];
-            Arrays.fill(forceFieldPTransformIndexes, -1);
+            state.properties.forceFieldPTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.forceFieldPTransformIndexes, -1);
             for (int i = 0; i < state.properties.cardDict.length; i++) {
                 var card = state.properties.cardDict[i];
                 if (card.getBaseCard() instanceof ForceFieldP && card.getBaseCard().energyCost > 0) {
                     var toIdx = state.properties.findCardIndex(card.wrap(new ForceFieldP(card.getBaseCard().energyCost - 1)));
-                    forceFieldPTransformIndexes[i] = toIdx;
+                    state.properties.forceFieldPTransformIndexes[i] = toIdx;
                 }
             }
             state.properties.addOnCardPlayedHandler("ForceField+", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
-                        state.handArrTransform(forceFieldPTransformIndexes);
-                        state.discardArrTransform(forceFieldPTransformIndexes);
-                        state.deckArrTransform(forceFieldPTransformIndexes);
-                        state.exhaustArrTransform(forceFieldPTransformIndexes);
+                        state.handArrTransform(state.properties.forceFieldPTransformIndexes);
+                        state.discardArrTransform(state.properties.forceFieldPTransformIndexes);
+                        state.deckArrTransform(state.properties.forceFieldPTransformIndexes);
+                        state.exhaustArrTransform(state.properties.forceFieldPTransformIndexes);
                         state.getCounterForWrite()[counterIdx]++;
                     }
                 }
