@@ -1353,32 +1353,32 @@ public class CardWatcher {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = block; i <= limit; i += 2) {
-                c.add(new Perseverance(i, limit));
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof Perseverance p) {
+                    for (int j = p.block; j <= p.limit; j += 2) {
+                        c.add(cards.get(i).wrap(new Perseverance(j, p.limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.perseveranceTransformIndexes != null && state.properties.perseveranceTransformIndexes.length > (limit - block) / 2 + 1) {
-                return;
-            }
-            state.properties.perseveranceTransformIndexes = new int[(limit - block) / 2 + 1];
-            for (int i = block; i <= limit; i += 2) {
-                state.properties.perseveranceTransformIndexes[(i - block) / 2] = state.properties.findCardIndex(new Perseverance(i, limit));
+            state.properties.perseveranceTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.perseveranceTransformIndexes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof Perseverance p && p.block < p.limit) {
+                    var newBlock = Math.min(p.block + 2, p.limit);
+                    var toIdx = state.properties.findCardIndex(card.wrap(new Perseverance(newBlock, p.limit)));
+                    state.properties.perseveranceTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnRetainHandler("Perseverance", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int cardIdx = state.getHandArrForRead()[handIdx];
-                    if (state.properties.cardDict[cardIdx] instanceof Perseverance p) {
-                        int newBlock = Math.min(p.block + 2, p.limit);
-                        int newCardIdx = -1;
-                        for (int i = 0; i < state.properties.perseveranceTransformIndexes.length; i++) {
-                            if (state.properties.cardDict[state.properties.perseveranceTransformIndexes[i]] instanceof Perseverance candidate && candidate.block == newBlock) {
-                                newCardIdx = state.properties.perseveranceTransformIndexes[i];
-                                break;
-                            }
-                        }
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof Perseverance) {
+                        int newCardIdx = state.properties.perseveranceTransformIndexes[cardIdx];
                         if (newCardIdx != -1) {
                             state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
                         }
@@ -1418,32 +1418,32 @@ public class CardWatcher {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = block; i <= limit; i += 3) {
-                c.add(new PerseveranceP(i, limit));
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof PerseveranceP p) {
+                    for (int j = p.block; j <= p.limit; j += 3) {
+                        c.add(cards.get(i).wrap(new PerseveranceP(j, p.limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.perseverancePTransformIndexes != null && state.properties.perseverancePTransformIndexes.length > (limit - block) / 3 + 1) {
-                return;
-            }
-            state.properties.perseverancePTransformIndexes = new int[(limit - block) / 3 + 1];
-            for (int i = block; i <= limit; i += 3) {
-                state.properties.perseverancePTransformIndexes[(i - block) / 3] = state.properties.findCardIndex(new PerseveranceP(i, limit));
+            state.properties.perseverancePTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.perseverancePTransformIndexes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof PerseveranceP p && p.block < p.limit) {
+                    var newBlock = Math.min(p.block + 3, p.limit);
+                    var toIdx = state.properties.findCardIndex(card.wrap(new PerseveranceP(newBlock, p.limit)));
+                    state.properties.perseverancePTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnRetainHandler("PerseveranceP", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int cardIdx = state.getHandArrForRead()[handIdx];
-                    if (state.properties.cardDict[cardIdx] instanceof PerseveranceP p) {
-                        int newBlock = Math.min(p.block + 3, p.limit);
-                        int newCardIdx = -1;
-                        for (int i = 0; i < state.properties.perseverancePTransformIndexes.length; i++) {
-                            if (state.properties.cardDict[state.properties.perseverancePTransformIndexes[i]] instanceof PerseveranceP candidate && candidate.block == newBlock) {
-                                newCardIdx = state.properties.perseverancePTransformIndexes[i];
-                                break;
-                            }
-                        }
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof PerseveranceP) {
+                        int newCardIdx = state.properties.perseverancePTransformIndexes[cardIdx];
                         if (newCardIdx != -1) {
                             state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
                         }
@@ -1613,23 +1613,32 @@ public class CardWatcher {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new SandsOfTime(3), new SandsOfTime(2), new SandsOfTime(1), new SandsOfTime(0));
+            var l = new ArrayList<Card>();
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof SandsOfTime) {
+                    l.add(cards.get(i).wrap(new SandsOfTime(3)));
+                    l.add(cards.get(i).wrap(new SandsOfTime(2)));
+                    l.add(cards.get(i).wrap(new SandsOfTime(1)));
+                    l.add(cards.get(i).wrap(new SandsOfTime(0)));
+                }
+            }
+            return l;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.sandsOfTimeTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.sandsOfTimeTransformIndexes, -1);
-            for (int i = 1; i <= 4; i++) {
-                int fromIdx = state.properties.findCardIndex(new SandsOfTime(i));
-                int toIdx = state.properties.findCardIndex(new SandsOfTime(i - 1));
-                if (fromIdx != -1 && toIdx != -1) {
-                    state.properties.sandsOfTimeTransformIndexes[fromIdx] = toIdx;
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof SandsOfTime && card.getBaseCard().energyCost > 0) {
+                    var toIdx = state.properties.findCardIndex(card.wrap(new SandsOfTime(card.getBaseCard().energyCost - 1)));
+                    state.properties.sandsOfTimeTransformIndexes[i] = toIdx;
                 }
             }
             state.properties.addOnRetainHandler("SandsOfTime", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int cardIdx = state.getHandArrForRead()[handIdx];
-                    if (state.properties.cardDict[cardIdx] instanceof SandsOfTime) {
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof SandsOfTime) {
                         int newCardIdx = state.properties.sandsOfTimeTransformIndexes[cardIdx];
                         if (newCardIdx != -1) {
                             state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
@@ -1657,23 +1666,32 @@ public class CardWatcher {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return List.of(new SandsOfTimeP(3), new SandsOfTimeP(2), new SandsOfTimeP(1), new SandsOfTimeP(0));
+            var l = new ArrayList<Card>();
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof SandsOfTimeP) {
+                    l.add(cards.get(i).wrap(new SandsOfTimeP(3)));
+                    l.add(cards.get(i).wrap(new SandsOfTimeP(2)));
+                    l.add(cards.get(i).wrap(new SandsOfTimeP(1)));
+                    l.add(cards.get(i).wrap(new SandsOfTimeP(0)));
+                }
+            }
+            return l;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.sandsOfTimePTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.sandsOfTimePTransformIndexes, -1);
-            for (int i = 1; i <= 4; i++) {
-                int fromIdx = state.properties.findCardIndex(new SandsOfTimeP(i));
-                int toIdx = state.properties.findCardIndex(new SandsOfTimeP(i - 1));
-                if (fromIdx != -1 && toIdx != -1) {
-                    state.properties.sandsOfTimePTransformIndexes[fromIdx] = toIdx;
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof SandsOfTimeP && card.getBaseCard().energyCost > 0) {
+                    var toIdx = state.properties.findCardIndex(card.wrap(new SandsOfTimeP(card.getBaseCard().energyCost - 1)));
+                    state.properties.sandsOfTimePTransformIndexes[i] = toIdx;
                 }
             }
             state.properties.addOnRetainHandler("SandsOfTimeP", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int cardIdx = state.getHandArrForRead()[handIdx];
-                    if (state.properties.cardDict[cardIdx] instanceof SandsOfTimeP) {
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof SandsOfTimeP) {
                         int newCardIdx = state.properties.sandsOfTimePTransformIndexes[cardIdx];
                         if (newCardIdx != -1) {
                             state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
@@ -2116,32 +2134,32 @@ public class CardWatcher {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = damage; i <= limit; i += 4) {
-                c.add(new WindmillStrike(i, limit));
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof WindmillStrike ws) {
+                    for (int j = ws.damage; j <= ws.limit; j += 4) {
+                        c.add(cards.get(i).wrap(new WindmillStrike(j, ws.limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.windmillStrikeTransformIndexes != null && state.properties.windmillStrikeTransformIndexes.length > (limit - damage) / 4 + 1) {
-                return;
-            }
-            state.properties.windmillStrikeTransformIndexes = new int[(limit - damage) / 4 + 1];
-            for (int i = damage; i <= limit; i += 4) {
-                state.properties.windmillStrikeTransformIndexes[(i - damage) / 4] = state.properties.findCardIndex(new WindmillStrike(i, limit));
+            state.properties.windmillStrikeTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.windmillStrikeTransformIndexes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof WindmillStrike ws && ws.damage < ws.limit) {
+                    var newDamage = Math.min(ws.damage + 4, ws.limit);
+                    var toIdx = state.properties.findCardIndex(card.wrap(new WindmillStrike(newDamage, ws.limit)));
+                    state.properties.windmillStrikeTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnRetainHandler("WindmillStrike", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int cardIdx = state.getHandArrForRead()[handIdx];
-                    if (state.properties.cardDict[cardIdx] instanceof WindmillStrike ws) {
-                        int newDamage = Math.min(ws.damage + 4, ws.limit);
-                        int newCardIdx = -1;
-                        for (int i = 0; i < state.properties.windmillStrikeTransformIndexes.length; i++) {
-                            if (state.properties.cardDict[state.properties.windmillStrikeTransformIndexes[i]] instanceof WindmillStrike candidate && candidate.damage == newDamage) {
-                                newCardIdx = state.properties.windmillStrikeTransformIndexes[i];
-                                break;
-                            }
-                        }
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof WindmillStrike) {
+                        int newCardIdx = state.properties.windmillStrikeTransformIndexes[cardIdx];
                         if (newCardIdx != -1) {
                             state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
                         }
@@ -2182,32 +2200,32 @@ public class CardWatcher {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = damage; i <= limit; i += 5) {
-                c.add(new WindmillStrikeP(i, limit));
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof WindmillStrikeP ws) {
+                    for (int j = ws.damage; j <= ws.limit; j += 5) {
+                        c.add(cards.get(i).wrap(new WindmillStrikeP(j, ws.limit)));
+                    }
+                }
             }
             return c;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            if (state.properties.windmillStrikePTransformIndexes != null && state.properties.windmillStrikePTransformIndexes.length > (limit - damage) / 5 + 1) {
-                return;
-            }
-            state.properties.windmillStrikePTransformIndexes = new int[(limit - damage) / 5 + 1];
-            for (int i = damage; i <= limit; i += 5) {
-                state.properties.windmillStrikePTransformIndexes[(i - damage) / 5] = state.properties.findCardIndex(new WindmillStrikeP(i, limit));
+            state.properties.windmillStrikePTransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.windmillStrikePTransformIndexes, -1);
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof WindmillStrikeP ws && ws.damage < ws.limit) {
+                    var newDamage = Math.min(ws.damage + 5, ws.limit);
+                    var toIdx = state.properties.findCardIndex(card.wrap(new WindmillStrikeP(newDamage, ws.limit)));
+                    state.properties.windmillStrikePTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnRetainHandler("WindmillStrikeP", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int handIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     int cardIdx = state.getHandArrForRead()[handIdx];
-                    if (state.properties.cardDict[cardIdx] instanceof WindmillStrikeP ws) {
-                        int newDamage = Math.min(ws.damage + 5, ws.limit);
-                        int newCardIdx = -1;
-                        for (int i = 0; i < state.properties.windmillStrikePTransformIndexes.length; i++) {
-                            if (state.properties.cardDict[state.properties.windmillStrikePTransformIndexes[i]] instanceof WindmillStrikeP candidate && candidate.damage == newDamage) {
-                                newCardIdx = state.properties.windmillStrikePTransformIndexes[i];
-                                break;
-                            }
-                        }
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof WindmillStrikeP) {
+                        int newCardIdx = state.properties.windmillStrikePTransformIndexes[cardIdx];
                         if (newCardIdx != -1) {
                             state.getHandArrForWrite()[handIdx] = (short) newCardIdx;
                         }

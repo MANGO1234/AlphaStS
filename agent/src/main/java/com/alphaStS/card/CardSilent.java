@@ -1628,8 +1628,12 @@ public class CardSilent {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = 0; i < maxEnergyCost + 1; i++) {
-                c.add(new CardSilent.MasterfulStab(i, maxEnergyCost));
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof MasterfulStab ms) {
+                    for (int j = 0; j <= ms.maxEnergyCost; j++) {
+                        c.add(cards.get(i).wrap(new MasterfulStab(j, ms.maxEnergyCost)));
+                    }
+                }
             }
             return c;
         }
@@ -1637,8 +1641,12 @@ public class CardSilent {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.masterfulStabTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.masterfulStabTransformIndexes, -1);
-            for (int i = 0; i < maxEnergyCost; i++) {
-                state.properties.masterfulStabTransformIndexes[state.properties.findCardIndex(new CardSilent.MasterfulStab(i, maxEnergyCost))] = state.properties.findCardIndex(new CardSilent.MasterfulStab(i + 1, maxEnergyCost));
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof MasterfulStab ms && ms.energyCost < ms.maxEnergyCost) {
+                    var toIdx = state.properties.findCardIndex(card.wrap(new MasterfulStab(ms.energyCost + 1, ms.maxEnergyCost)));
+                    state.properties.masterfulStabTransformIndexes[i] = toIdx;
+                }
             }
             state.properties.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
@@ -1676,8 +1684,12 @@ public class CardSilent {
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var c = new ArrayList<Card>();
-            for (int i = 0; i < maxEnergyCost + 1; i++) {
-                c.add(new CardSilent.MasterfulStabP(i, maxEnergyCost));
+            for (int i = 0; i < cards.size(); i++) {
+                if (cards.get(i).getBaseCard() instanceof MasterfulStabP ms) {
+                    for (int j = 0; j <= ms.maxEnergyCost; j++) {
+                        c.add(cards.get(i).wrap(new MasterfulStabP(j, ms.maxEnergyCost)));
+                    }
+                }
             }
             return c;
         }
@@ -1685,10 +1697,14 @@ public class CardSilent {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.masterfulStabPTransformIndexes = new int[state.properties.cardDict.length];
             Arrays.fill(state.properties.masterfulStabPTransformIndexes, -1);
-            for (int i = 0; i < maxEnergyCost; i++) {
-                state.properties.masterfulStabPTransformIndexes[state.properties.findCardIndex(new CardSilent.MasterfulStabP(i, maxEnergyCost))] = state.properties.findCardIndex(new CardSilent.MasterfulStabP(i + 1, maxEnergyCost));
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var card = state.properties.cardDict[i];
+                if (card.getBaseCard() instanceof MasterfulStabP ms && ms.energyCost < ms.maxEnergyCost) {
+                    var toIdx = state.properties.findCardIndex(card.wrap(new MasterfulStabP(ms.energyCost + 1, ms.maxEnergyCost)));
+                    state.properties.masterfulStabPTransformIndexes[i] = toIdx;
+                }
             }
-            state.properties.addOnDamageHandler("Masterful Stab", new OnDamageHandler() {
+            state.properties.addOnDamageHandler("Masterful Stab+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
                     state.handArrTransform(state.properties.masterfulStabPTransformIndexes);
