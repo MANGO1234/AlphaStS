@@ -24,7 +24,7 @@ public abstract class Enemy extends EnemyReadOnly {
             return 0;
         }
         int dmg = ((int) n) - block;
-        if (state.properties.boot != null && dmg > 0 && dmg < 5 && state.properties.boot.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+        if (state.properties.boot != null && dmg > 0 && dmg < 5 && state.properties.boot.isRelicEnabledInScenario(state)) {
             dmg = 5;
         }
         int dmgDone = Math.max(0, dmg);
@@ -180,7 +180,7 @@ public abstract class Enemy extends EnemyReadOnly {
         switch (type) {
         case VULNERABLE -> {
             this.vulnerable += n;
-            if (state.properties.championBelt != null && state.properties.championBelt.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+            if (state.properties.championBelt != null && state.properties.championBelt.isRelicEnabledInScenario(state)) {
                 this.weak += 1;
             }
         }
@@ -190,7 +190,7 @@ public abstract class Enemy extends EnemyReadOnly {
             this.loseStrengthEot += n;
             this.gainStrength(-n);
         }
-        case POISON -> this.poison += n + (state.properties.sneckoSkull != null && state.properties.sneckoSkull.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 1 : 0);
+        case POISON -> this.poison += n + (state.properties.sneckoSkull != null && state.properties.sneckoSkull.isRelicEnabledInScenario(state) ? 1 : 0);
         case CORPSE_EXPLOSION -> this.corpseExplosion += n;
         case CHOKE -> this.choke += n;
         case LOCK_ON -> this.lockOn += n;

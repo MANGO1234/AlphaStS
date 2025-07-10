@@ -2962,7 +2962,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0));
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
@@ -3136,7 +3136,7 @@ public class CardDefect {
                     break;
                 }
                 var enemy = state.getEnemiesForWrite().getForWrite(j);
-                state.playerDoDamageToEnemy(enemy, n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+                state.playerDoDamageToEnemy(enemy, n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0));
             }
             return GameActionCtx.PLAY_CARD;
         }

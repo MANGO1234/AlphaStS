@@ -193,7 +193,7 @@ public class GameProperties implements Cloneable {
     public Relic oddMushroom = null;
     public Relic runicDome = null;
     public boolean isRunicDomeEnabled(GameState state) {
-        return runicDome != null && runicDome.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx);
+        return runicDome != null && runicDome.isRelicEnabledInScenario(state);
     }
     public Relic runicPyramid = null;
     public Relic sacredBark = null;

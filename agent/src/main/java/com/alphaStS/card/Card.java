@@ -480,7 +480,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 6 + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0));
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -492,7 +492,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9 + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 9 + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0));
             return GameActionCtx.PLAY_CARD;
         }
     }

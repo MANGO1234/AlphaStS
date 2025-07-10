@@ -800,7 +800,7 @@ public class EnemyBeyond {
             int prevHp = health;
             int dmg = super.damage(n, state);
             if (intangible) {
-                if (state.properties.boot != null && state.properties.boot.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+                if (state.properties.boot != null && state.properties.boot.isRelicEnabledInScenario(state)) {
                     if (prevHp - health > 5) {
                         setHealth(prevHp - 5);
                         return 5;

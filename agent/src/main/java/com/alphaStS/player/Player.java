@@ -18,10 +18,10 @@ public class Player extends PlayerReadOnly {
     public int damage(GameState state, int n) {
         int startHealth = health;
         int dmg = Math.max(0, n - block);
-        if (dmg <= 5 && dmg >= 2 && state.properties.torii != null && state.properties.torii.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+        if (dmg <= 5 && dmg >= 2 && state.properties.torii != null && state.properties.torii.isRelicEnabledInScenario(state)) {
             dmg = 1;
         }
-        if (dmg > 0 && state.properties.tungstenRod != null && state.properties.tungstenRod.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+        if (dmg > 0 && state.properties.tungstenRod != null && state.properties.tungstenRod.isRelicEnabledInScenario(state)) {
             dmg -= 1;
         }
         if (n > block && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
@@ -50,7 +50,7 @@ public class Player extends PlayerReadOnly {
         int startHealth = health;
         if (blockable) {
             int dmg = Math.max(0, n - block);
-            if (dmg > 0 && state.properties.tungstenRod != null && state.properties.tungstenRod.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+            if (dmg > 0 && state.properties.tungstenRod != null && state.properties.tungstenRod.isRelicEnabledInScenario(state)) {
                 dmg -= 1;
             }
             if (n > block && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
@@ -61,7 +61,7 @@ public class Player extends PlayerReadOnly {
             block = Math.max(0, block - n);
         } else {
             int dmg = n;
-            if (dmg > 0 && state.properties.tungstenRod != null && state.properties.tungstenRod.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+            if (dmg > 0 && state.properties.tungstenRod != null && state.properties.tungstenRod.isRelicEnabledInScenario(state)) {
                 dmg -= 1;
             }
             if (dmg >= 0 && state.properties.bufferCounterIdx >= 0 && state.getCounterForRead()[state.properties.bufferCounterIdx] > 0) {
@@ -136,9 +136,9 @@ public class Player extends PlayerReadOnly {
         if (n == 0) {
             return;
         }
-        if (state.properties.ginger != null && state.properties.ginger.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && type == DebuffType.WEAK) {
+        if (state.properties.ginger != null && state.properties.ginger.isRelicEnabledInScenario(state) && type == DebuffType.WEAK) {
             return;
-        } else if (state.properties.turnip != null && state.properties.turnip.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx) && type == DebuffType.FRAIL) {
+        } else if (state.properties.turnip != null && state.properties.turnip.isRelicEnabledInScenario(state) && type == DebuffType.FRAIL) {
             return;
         }
         if (artifact > 0) {
@@ -202,7 +202,7 @@ public class Player extends PlayerReadOnly {
         if ((state.buffs & PlayerBuff.BARRICADE.mask()) != 0) {
         } else if (state.properties.blurCounterIdx >= 0 && state.getCounterForRead()[state.properties.blurCounterIdx] > 0) {
             state.getCounterForWrite()[state.properties.blurCounterIdx]--;
-        } else if (state.properties.calipers != null && state.properties.calipers.isRelicEnabledInScenario(state.preBattleScenariosChosenIdx)) {
+        } else if (state.properties.calipers != null && state.properties.calipers.isRelicEnabledInScenario(state)) {
             block = Math.max(block - 15, 0);
         } else {
             block = 0;

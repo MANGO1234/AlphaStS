@@ -1206,9 +1206,9 @@ public final class GameState implements State {
     private int getCardEnergyCost(int cardIdx) {
         if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
             return 0;
-        } else if (properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
+        } else if (properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
             return 0;
-        } else if (properties.medicalKit != null && properties.medicalKit.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && properties.cardDict[cardIdx].cardType == Card.STATUS) {
+        } else if (properties.medicalKit != null && properties.medicalKit.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.STATUS) {
             return 0;
         } else if (properties.swivelCounterIdx >= 0 && counter[properties.swivelCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
             return 0;
@@ -1252,7 +1252,7 @@ public final class GameState implements State {
         int energyCost = overrideEnergyCost >= 0 ? overrideEnergyCost : getCardEnergyCost(cardIdx);
         int realEnergyCost = energyCost;
         if (properties.cardDict[cardIdx].isXCost && properties.chemicalX != null && 
-            properties.chemicalX.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            properties.chemicalX.isRelicEnabledInScenario(this)) {
             energyCost += 2;
         }
 
@@ -1558,7 +1558,7 @@ public final class GameState implements State {
 
     private void runStartOfBattleActionLoop() {
         while (actionCtx == GameActionCtx.START_OF_BATTLE && startOfBattleActionIdx < properties.startOfBattleActions.size()) {
-            if (properties.startOfBattleActions.get(startOfBattleActionIdx).isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.startOfBattleActions.get(startOfBattleActionIdx).isRelicEnabledInScenario(this)) {
                 var card = properties.startOfBattleActions.get(startOfBattleActionIdx).startOfBattleAction;
                 setActionCtx(card.play(this, properties.findCardIndex(card), 0), findPlayCardAction(card), null);
             }
@@ -1687,14 +1687,14 @@ public final class GameState implements State {
                 }
             }
             for (int i = 0; i < properties.relics.size(); i++) {
-                if (properties.relics.get(i) instanceof Relic._BottledRelic relic && relic.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                if (properties.relics.get(i) instanceof Relic._BottledRelic relic && relic.isRelicEnabledInScenario(this)) {
                     order.add(properties.findCardIndex(relic.card));
                 }
             }
             for (int i = 0; i < order.size(); i++) {
                 putCardOnTopOfDeck(order.get(i));
             }
-            if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this)) {
                 setIsStochastic();
                 Utils.shuffle(this, getDeckArrForWrite(), deckArrLen - deckArrFixedDrawLen, getSearchRandomGen());
                 deckArrFixedDrawLen = deckArrLen;
@@ -1736,7 +1736,7 @@ public final class GameState implements State {
             }
         }
         buffs &= ~PlayerBuff.USED_VAULT.mask();
-        if (properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
             Relic.Toolbox.changeToSelectionCtx(this);
         } else {
             beginTurnPart2();
@@ -1877,7 +1877,7 @@ public final class GameState implements State {
     }
 
     private boolean isDiscardingCardEndOfTurn() {
-        if (properties.runicPyramid != null && properties.runicPyramid.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.runicPyramid != null && properties.runicPyramid.isRelicEnabledInScenario(this)) {
             return false;
         }
         if (properties.equilibriumCounterIdx >= 0 && getCounterForRead()[properties.equilibriumCounterIdx] > 0) {
@@ -2030,7 +2030,7 @@ public final class GameState implements State {
         }
         buffs &= ~PlayerBuff.END_TURN_IMMEDIATELY.mask();
         getPlayerForWrite().endTurn(this);
-        if (properties.iceCream == null || !properties.iceCream.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.iceCream == null || !properties.iceCream.isRelicEnabledInScenario(this)) {
             energy = 0;
         }
     }
@@ -2167,7 +2167,7 @@ public final class GameState implements State {
                 setActionCtx(GameActionCtx.PLAY_CARD, null, null);
             }
         }
-        if (actionCtx == GameActionCtx.PLAY_CARD && properties.unceasingTop != null && properties.unceasingTop.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (actionCtx == GameActionCtx.PLAY_CARD && properties.unceasingTop != null && properties.unceasingTop.isRelicEnabledInScenario(this)) {
             while (handArrLen == 0 && draw(1) >= 0) {
                 runActionsInQueueIfNonEmpty();
             }
@@ -2652,7 +2652,7 @@ public final class GameState implements State {
                     }
                 }
             }
-            if (properties.deadBranch != null && properties.deadBranch.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.deadBranch != null && properties.deadBranch.isRelicEnabledInScenario(this)) {
                 maxPossiblePowers += 10000;
             }
             if (properties.birdFacedUrn != null && maxPossiblePowers > 0) {
@@ -2668,7 +2668,7 @@ public final class GameState implements State {
                 }
             }
             var maxHealth = player.getInBattleMaxHealth() + maxPossibleIncreaseInMaxHP;
-            if (properties.meatOnTheBone != null && properties.meatOnTheBone.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.meatOnTheBone != null && properties.meatOnTheBone.isRelicEnabledInScenario(this)) {
                 if ((maxPossibleHealth + maxHealPreBattleEnd) >= maxHealth / 2 + 12) {
                     hp = Math.min(maxHealth, maxPossibleHealth + maxHealPreBattleEnd);
                 } else if (maxPossibleHealth + maxHealPreBattleEnd < maxHealth / 2) {
@@ -2682,13 +2682,13 @@ public final class GameState implements State {
             if (!GameProperties.isHeartFight(this) && properties.selfRepairCounterIdx >= 0) {
                 hp += getCounterForRead()[properties.selfRepairCounterIdx];
             }
-            if (properties.burningBlood != null && properties.burningBlood.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.burningBlood != null && properties.burningBlood.isRelicEnabledInScenario(this)) {
                 hp += 6;
             }
-            if (properties.bloodyIdol != null && properties.bloodyIdol.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.bloodyIdol != null && properties.bloodyIdol.isRelicEnabledInScenario(this)) {
                 hp += 5;
             }
-            if (!GameProperties.isHeartFight(this) && properties.bloodVial != null && properties.bloodVial.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (!GameProperties.isHeartFight(this) && properties.bloodVial != null && properties.bloodVial.isRelicEnabledInScenario(this)) {
                 hp += 2;
             }
             hp = Math.min(maxHealth, hp);
@@ -4585,11 +4585,11 @@ public final class GameState implements State {
         if (cardIdx >= properties.realCardsLen) {
             cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
         }
-        if (fromCardPlay && properties.strangeSpoon != null && properties.strangeSpoon.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
+        if (fromCardPlay && properties.strangeSpoon != null && properties.strangeSpoon.isRelicEnabledInScenario(this) && getSearchRandomGen().nextBoolean(RandomGenCtx.Misc)) {
             addCardToDiscard(cardIdx);
             return;
         }
-        if (fromCardPlay && properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
+        if (fromCardPlay && properties.blueCandle != null && properties.blueCandle.isRelicEnabledInScenario(this) && properties.cardDict[cardIdx].cardType == Card.CURSE) {
             doNonAttackDamageToPlayer(1, false, null);
         }
         properties.cardDict[cardIdx].onExhaust(this);
@@ -4639,7 +4639,7 @@ public final class GameState implements State {
                 getDeckArrForWrite(discardArrLen)[deckArrLen++] = i;
             }
         }
-        if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this)) {
             setIsStochastic();
             Utils.shuffle(this, getDeckArrForWrite(), deckArrLen, getSearchRandomGen());
             deckArrFixedDrawLen = deckArrLen;
@@ -4832,7 +4832,7 @@ public final class GameState implements State {
 
     private void triggerDiscardEffect(int cardIndex) {
         properties.cardDict[cardIndex].onDiscard(this);
-        if (properties.hoveringKite != null && properties.hoveringKite.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.hoveringKite != null && properties.hoveringKite.isRelicEnabledInScenario(this)) {
             if (getCounterForRead()[properties.hoveringKiteCounterIdx] == 0) {
                 gainEnergy(1);
                 getCounterForWrite()[properties.hoveringKiteCounterIdx] = 1;
@@ -4844,7 +4844,7 @@ public final class GameState implements State {
         if (properties.eviscerateCounterIdx >= 0) {
             getCounterForWrite()[properties.eviscerateCounterIdx] += 1;
         }
-        if (properties.tingsha != null && properties.tingsha.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.tingsha != null && properties.tingsha.isRelicEnabledInScenario(this)) {
             addGameActionToEndOfDeque(new GameEnvironmentAction() {
                 @Override public void doAction(GameState state) {
                     var enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemySwordBoomerang);
@@ -4855,7 +4855,7 @@ public final class GameState implements State {
                 }
             });
         }
-        if (properties.toughBandages != null && properties.toughBandages.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.toughBandages != null && properties.toughBandages.isRelicEnabledInScenario(this)) {
             getPlayerForWrite().gainBlockNotFromCardPlay(3);
         }
     }
@@ -4891,7 +4891,7 @@ public final class GameState implements State {
     public void addCardToDeck(int idx, boolean random) {
         deckArrLen += 1;
         getDeckArrForWrite(deckArrLen);
-        if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && random) {
+        if (properties.frozenEye != null && properties.frozenEye.isRelicEnabledInScenario(this) && random) {
             var idxToInsert = 0;
             if (deckArrLen > 0) {
                 setIsStochastic();
@@ -4994,7 +4994,7 @@ public final class GameState implements State {
     }
 
     public GameActionCtx startScry(int count) {
-        if (properties.goldenEye != null && properties.goldenEye.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.goldenEye != null && properties.goldenEye.isRelicEnabledInScenario(this)) {
             count += 2;
         }
         var scryTotalCount = Math.min(count, deckArrLen);
@@ -5077,7 +5077,7 @@ public final class GameState implements State {
             dmg += counter[properties.wreathOfFlameCounterIdx];
         }
         if (enemy.getVulnerable() > 0) {
-            dmg = dmg * (properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(preBattleScenariosChosenIdx) ? 1.75 : 1.5);
+            dmg = dmg * (properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(this) ? 1.75 : 1.5);
         }
         if (player.getWeak() > 0) {
             dmg = dmg * 0.75;
@@ -5095,7 +5095,7 @@ public final class GameState implements State {
             int dmgDone = enemy.damage(dmg, this);
 
             if (dmgDone > 0 && enemyBlockBefore > 0 && enemy.getBlock() == 0 && properties.handDrill != null && 
-                properties.handDrill.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+                properties.handDrill.isRelicEnabledInScenario(this)) {
                 enemy.applyDebuff(this, DebuffType.VULNERABLE, 2);
             }
 
@@ -5125,7 +5125,7 @@ public final class GameState implements State {
     }
 
     public void checkWristBladeBuffForZeroCostAttack(int cardIdx) {
-        if (properties.wristBlade != null && properties.wristBlade.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.wristBlade != null && properties.wristBlade.isRelicEnabledInScenario(this)) {
             if (properties.cardDict[cardIdx].cardType == Card.ATTACK && getCardEnergyCost(cardIdx) == 0) {
                 buffs |= PlayerBuff.WRIST_BLADE.mask();
             }
@@ -5178,7 +5178,7 @@ public final class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getWeak() > 0) {
-            dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(preBattleScenariosChosenIdx) ? 0.6 : 0.75;
+            dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
         }
         if (properties.shieldAndSpireFacingIdx >= 0) {
             if (getCounterForRead()[properties.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
@@ -5218,7 +5218,7 @@ public final class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getWeak() > 0) {
-            dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(preBattleScenariosChosenIdx) ? 0.6 : 0.75;
+            dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
         }
         if (properties.shieldAndSpireFacingIdx >= 0) {
             if (getCounterForRead()[properties.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
@@ -5238,7 +5238,7 @@ public final class GameState implements State {
             dmg = 1;
         }
         var damageDealt = getPlayerForWrite().nonAttackDamage(this, dmg, blockable);
-        if (dmg > 0 && properties.tungstenRod != null && properties.tungstenRod.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (dmg > 0 && properties.tungstenRod != null && properties.tungstenRod.isRelicEnabledInScenario(this)) {
             dmg -= 1;
         }
         if (dmg > 0) {
@@ -5249,10 +5249,10 @@ public final class GameState implements State {
     }
 
     public void healPlayer(int hp) {
-        if (properties.markOfTheBloom != null && properties.markOfTheBloom.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.markOfTheBloom != null && properties.markOfTheBloom.isRelicEnabledInScenario(this)) {
             return;
         }
-        if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+        if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(this)) {
             hp = (int) Math.ceil(hp * 1.5);
         }
         var healed = getPlayerForWrite().heal(hp);
@@ -5704,7 +5704,7 @@ public final class GameState implements State {
         if (orbs == null) return;
         for (int i = 0; i < orbs.length; i += 2) {
             triggerNonPlasmaOrbPassive(i);
-            if (properties.goldPlatedCable != null && properties.goldPlatedCable.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && i == 0) {
+            if (properties.goldPlatedCable != null && properties.goldPlatedCable.isRelicEnabledInScenario(this) && i == 0) {
                 triggerNonPlasmaOrbPassive(i);
             }
         }
@@ -5716,7 +5716,7 @@ public final class GameState implements State {
         for (int i = 0; i < orbs.length; i += 2) {
             if (orbs[i] == OrbType.PLASMA.ordinal()) {
                 gainEnergy(1);
-                if (properties.goldPlatedCable != null && properties.goldPlatedCable.isRelicEnabledInScenario(preBattleScenariosChosenIdx) && i == 0) {
+                if (properties.goldPlatedCable != null && properties.goldPlatedCable.isRelicEnabledInScenario(this) && i == 0) {
                     gainEnergy(1);
                 }
                 if (triggerLoopCount > 0 && i == 0) {
@@ -5814,7 +5814,7 @@ public final class GameState implements State {
         }
         if (stance == Stance.CALM && newStance != Stance.CALM) {
             gainEnergy(2);
-            if (properties.violetLotus != null && properties.violetLotus.isRelicEnabledInScenario(preBattleScenariosChosenIdx)) {
+            if (properties.violetLotus != null && properties.violetLotus.isRelicEnabledInScenario(this)) {
                 gainEnergy(1);
             }
         }
