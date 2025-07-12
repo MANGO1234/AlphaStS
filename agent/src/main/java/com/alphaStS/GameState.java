@@ -552,8 +552,13 @@ public final class GameState implements State {
         }
 
         if (properties.cardIndexCache.size() == 0) {
+            Map<Class<?>, List<Integer>> tempCache = new HashMap<>();
             for (int i = 0; i < properties.cardDict.length; i++) {
-                properties.cardIndexCache.put(properties.cardDict[i].cardName, i);
+                Class<?> baseClass = properties.cardDict[i].getBaseCard().getClass();
+                tempCache.computeIfAbsent(baseClass, k -> new ArrayList<>()).add(i);
+            }
+            for (Map.Entry<Class<?>, List<Integer>> entry : tempCache.entrySet()) {
+                properties.cardIndexCache.put(entry.getKey(), entry.getValue().stream().mapToInt(Integer::intValue).toArray());
             }
         }
         List<Integer> strikeIdxes = new ArrayList<>();
@@ -2535,7 +2540,7 @@ public final class GameState implements State {
         if (properties.healCardsIdxes == null) {
             return false;
         }
-        if (properties.findCardIndex("Exhume") >= 0 || properties.findCardIndex("Exhume+") >= 0) {
+        if (properties.findCardIndex(CardIronclad.Exhume.class).length > 0 || properties.findCardIndex(CardIronclad.ExhumeP.class).length > 0) {
             return true;
         }
         for (int i = 0; i < handArrLen; i++) {

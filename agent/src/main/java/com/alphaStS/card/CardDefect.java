@@ -1039,10 +1039,15 @@ public class CardDefect {
         public void gamePropertiesSetup(GameState state) {
             var copies = 1; // todo: how to get max number of copies
             var copiesDup = 0;
-            var idxes = new int[20];
-            state.properties.findCardIndex(idxes, "Echo Form", "Echo Form (Tmp 0)", "Echo Form (Tmp 1)", "Echo Form (Perm 0)", "Echo Form (Perm 1)", "Echo Form (Perm 2)", "Echo Form+", "Echo Form+ (Tmp 0)", "Echo Form+ (Tmp 1)", "Echo Form+ (Perm 0)", "Echo Form+ (Perm 1)", "Echo Form+ (Perm 2)");
-            for (int i = 0; i < 12; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+            int[] idxes = state.properties.findCardIndex(EchoForm.class);
+            for (int i = 0; i < idxes.length; i++) {
+                if (getCardCount(state, idxes[i]) > 0) {
+                    copiesDup += 1;
+                }
+            }
+            idxes = state.properties.findCardIndex(EchoFormP.class);
+            for (int i = 0; i < idxes.length; i++) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     copiesDup += 1;
                 }
             }
@@ -1598,15 +1603,15 @@ public class CardDefect {
             var idxes = new int[20];
 
             boolean canUpgrade = false;
-            state.properties.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Tmp 1)", "Apotheosis (Perm 0)", "Apotheosis (Perm 1)", "Apotheosis (Perm 3)");
-            for (int i = 0; i < 6; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+            idxes = state.properties.findCardIndex(CardColorless.Apotheosis.class);
+            for (int i = 0; i < idxes.length; i++) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            state.properties.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Tmp 1)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
-            for (int i = 0; i < 6; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+            idxes = state.properties.findCardIndex(CardColorless.ApotheosisP.class);
+            for (int i = 0; i < idxes.length; i++) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
@@ -1634,9 +1639,16 @@ public class CardDefect {
                 }
             }
             if (state.properties.echoFormCounterIdx >= 0) {
-                state.properties.findCardIndex(idxes, "Echo Form", "Echo Form (Tmp 0)", "Echo Form (Tmp 1)", "Echo Form (Perm 0)", "Echo Form (Perm 1)", "Echo Form (Perm 2)", "Echo Form+", "Echo Form+ (Tmp 0)", "Echo Form+ (Tmp 1)", "Echo Form+ (Perm 0)", "Echo Form+ (Perm 1)", "Echo Form+ (Perm 2)");
-                for (int i = 0; i < 12; i++) {
-                    if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                idxes = state.properties.findCardIndex(EchoForm.class);
+                for (int i = 0; i < idxes.length; i++) {
+                    if (getCardCount(state, idxes[i]) > 0) {
+                        maxGAP *= 2;
+                        maxGA *= 2;
+                    }
+                }
+                idxes = state.properties.findCardIndex(EchoFormP.class);
+                for (int i = 0; i < idxes.length; i++) {
+                    if (getCardCount(state, idxes[i]) > 0) {
                         maxGAP *= 2;
                         maxGA *= 2;
                     }

@@ -329,20 +329,12 @@ public class GameProperties implements Cloneable {
         return -1;
     }
 
-    public Map<String, Integer> cardIndexCache = new HashMap<>();
+    public Map<Class<?>, int[]> cardIndexCache = new HashMap<>();
 
-    public int findCardIndex(String cardName) {
-        Integer v = cardIndexCache.get(cardName);
-        return v == null ? -1 : v;
+    public int[] findCardIndex(Class<?> cardClass) {
+        int[] cached = cardIndexCache.get(cardClass);
+        return cached != null ? cached : new int[0];
     }
-
-    public void findCardIndex(int[] idxes, String... cardNames) {
-        for (int i = 0; i < cardNames.length; i++) {
-            Integer v = cardIndexCache.get(cardNames[i]);
-            idxes[i] = v == null ? -1 : v;
-        }
-    }
-
 
     public interface CounterRegistrant {
         void setCounterIdx(GameProperties gameProperties, int idx);

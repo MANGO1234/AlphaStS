@@ -2453,29 +2453,28 @@ public class CardIronclad {
         }
 
         private static boolean canUpgradeFeed(GameState state) {
-            var idxes = new int[5];
             boolean canUpgrade = false;
-            state.properties.findCardIndex(idxes, "Armanent", "Armanent (Tmp 0)", "Armanent (Perm 0)", "Armanent (Perm 2)", "Armanent (Perm 3)");
+            int[] idxes = state.properties.findCardIndex(Armanent.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            state.properties.findCardIndex(idxes, "Armanent+", "Armanent+ (Tmp 0)", "Armanent+ (Perm 0)", "Armanent+ (Perm 2)", "Armanent+ (Perm 3)");
+            idxes = state.properties.findCardIndex(ArmanentP.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            state.properties.findCardIndex(idxes, "Apotheosis", "Apotheosis (Tmp 0)", "Apotheosis (Perm 0)", "Apotheosis (Perm 2)", "Apotheosis (Perm 3)");
+            idxes = state.properties.findCardIndex(CardColorless.Apotheosis.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            state.properties.findCardIndex(idxes, "Apotheosis+", "Apotheosis+ (Tmp 0)", "Apotheosis+ (Perm 0)", "Apotheosis+ (Perm 2)", "Apotheosis+ (Perm 3)");
+            idxes = state.properties.findCardIndex(CardColorless.ApotheosisP.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0 && getCardCount(state, idxes[i]) > 0) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
@@ -2488,15 +2487,11 @@ public class CardIronclad {
             }
             // todo: very very hacky, need to create a generate card dependency graph and use that to get if a card can be generated
             var remain = 0;
-            var idxes = new int[5];
             var canUpgrade = canUpgradeFeed(state);
             int maxFeedable = 0;
             int maxFeedableP = 0;
-            state.properties.findCardIndex(idxes, "Feed", "Feed (Tmp 0)", "Feed (Perm 0)", "Feed (Perm 2)", "Feed (Perm 3)");
+            int[] idxes = state.properties.findCardIndex(Feed.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] < 0) {
-                    continue;
-                }
                 if (canUpgrade) {
                     maxFeedableP += getCardCount(state, idxes[i]);
                 } else {
@@ -2507,11 +2502,8 @@ public class CardIronclad {
                     maxFeedable += 1;
                 }
             }
-            state.properties.findCardIndex(idxes, "Feed+", "Feed+ (Tmp 0)", "Feed+ (Perm 0)", "Feed+ (Perm 2)", "Feed+ (Perm 3)");
+            idxes = state.properties.findCardIndex(FeedP.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] < 0) {
-                    continue;
-                }
                 maxFeedableP += getCardCount(state, idxes[i]);
                 var curAction = state.getCurrentAction();
                 if (curAction != null && curAction.type() == GameActionType.PLAY_CARD && curAction.idx() == idxes[i]) {
@@ -2519,16 +2511,16 @@ public class CardIronclad {
                 }
             }
 
-            state.properties.findCardIndex(idxes, "Exhume", "Exhume (Tmp 0)", "Exhume (Perm 0)", "Exhume (Perm 2)", "Exhume (Perm 3)");
+            idxes = state.properties.findCardIndex(Exhume.class);
             var exhumableFeeds = 0;
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     exhumableFeeds += getCardCount(state, idxes[i]);
                 }
             }
-            state.properties.findCardIndex(idxes, "Exhume+", "Exhume+ (Tmp 0)", "Exhume+ (Perm 0)", "Exhume+ (Perm 2)", "Exhume+ (Perm 3)");
+            idxes = state.properties.findCardIndex(ExhumeP.class);
             for (int i = 0; i < idxes.length; i++) {
-                if (idxes[i] > 0) {
+                if (getCardCount(state, idxes[i]) > 0) {
                     exhumableFeeds += getCardCount(state, idxes[i]);
                 }
             }
