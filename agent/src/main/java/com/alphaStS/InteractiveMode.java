@@ -561,7 +561,7 @@ public class InteractiveMode {
                     ScenarioStats stats = statsArr.get(i);
                     double deathPercentage = (double) stats.deathCount / stats.numOfGames * 100;
                     double avgDamage = (double) stats.totalDamageTaken / stats.numOfGames;
-                    double avgQ = stats.finalQComb / stats.numOfGames;
+                    double avgQ = stats.finalQComb.getMean();
                     out.format("%-6d%-20.3f%-20.3f%-20.3f", i, avgQ, deathPercentage, avgDamage);
                     for (int j = 0; j < stats.potionsUsedAgg.length; j++) {
                         double potionPercentage = (double) stats.potionsUsedAgg[j] / (stats.numOfGames - stats.deathCount) * 100;
@@ -591,7 +591,7 @@ public class InteractiveMode {
                     ScenarioStats stats = statsArr.get(i);
                     double deathPercentage = (double) stats.deathCount / stats.numOfGames * 100;
                     double avgDamage = (double) stats.totalDamageTaken / stats.numOfGames;
-                    double avgQ = stats.finalQComb / stats.numOfGames;
+                    double avgQ = stats.finalQComb.getMean();
                     out.format("%-6d%-20.3f%-20.3f%-20.3f", i, avgQ, deathPercentage, avgDamage);
                     for (int j = 0; j < stats.potionsUsedAgg.length; j++) {
                         double potionPercentage = (double) stats.potionsUsedAgg[j] / (stats.numOfGames - stats.deathCount) * 100;
@@ -601,7 +601,7 @@ public class InteractiveMode {
                 }
                 out.println();
 
-                out.format("python.exe ./plot.py -a \"Q\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (s.finalQComb / s.numOfGames))).collect(Collectors.joining(", ")));
+                out.format("python.exe ./plot.py -a \"Q\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", s.finalQComb.getMean())).collect(Collectors.joining(", ")));
                 out.format(" \"Death Percentage\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (double) s.deathCount / s.numOfGames * 100)).collect(Collectors.joining(", ")));
                 out.format(" \"Average Damage\" \"[%s]\"", statsArr.stream().map(s -> String.format("%.3f", (double) s.totalDamageTaken / s.numOfGames)).collect(Collectors.joining(", ")));
                 for (int i = 0; i < statsArr.get(0).potionsUsedAgg.length; i++) {

@@ -4,6 +4,7 @@ import com.alphaStS.*;
 import com.alphaStS.MatchSession.GameResult;
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.stat.interval.ClopperPearsonInterval;
+import org.apache.commons.math3.distribution.NormalDistribution;
 
 import java.util.*;
 import java.util.stream.IntStream;
@@ -18,7 +19,8 @@ public class ScenarioStats {
     public int[] potionsUsedAgg;
     public Map<Integer, Integer> damageCount;
     public Map<Integer, Integer> damageCountNoDeath;
-    public double finalQComb;
+    public DescriptiveStatistics finalQComb;
+    public DescriptiveStatistics finalQCombNoDeath;
     public double finalFightProgress;
     public long modelCalls;
     public long totalTurns;
@@ -42,12 +44,6 @@ public class ScenarioStats {
     public List<Double> lossDmgs = new ArrayList<>();
     public int[] winByPotion;
     public int[] lossByPotion;
-    public int winByDagger;
-    public int lossByDagger;
-    public int winByFeed;
-    public int lossByFeed;
-    public long winByFeedAmt;
-    public long lossByFeedAmt;
     public List<Double> winQs = new ArrayList<>();
     public List<Double> lossQs = new ArrayList<>();
     public long modelCalls2;
@@ -57,6 +53,8 @@ public class ScenarioStats {
         this.properties = properties;
         damageCount = new HashMap<>();
         damageCountNoDeath = new HashMap<>();
+        finalQComb = new DescriptiveStatistics();
+        finalQCombNoDeath = new DescriptiveStatistics();
         potionsUsed = new int[1 << properties.nonGeneratedPotionsLength];
         potionsUsedAgg = new int[properties.nonGeneratedPotionsLength];
         counterStats = new ArrayList<>();
@@ -137,7 +135,12 @@ public class ScenarioStats {
             predictionError.computeIfAbsent(turnEntry.getKey(), (k) -> new Tuple<>(0.0, 0));
             predictionError.computeIfPresent(turnEntry.getKey(), (k, v) -> new Tuple<>(v.v1() + turnEntry.getValue().v1(), v.v2() + turnEntry.getValue().v2()));
         }
-        finalQComb += stat.finalQComb;
+        for (double value : stat.finalQComb.getValues()) {
+            finalQComb.addValue(value);
+        }
+        for (double value : stat.finalQCombNoDeath.getValues()) {
+            finalQCombNoDeath.addValue(value);
+        }
         finalFightProgress += stat.finalFightProgress;
         modelCalls += stat.modelCalls;
         totalTurns += stat.totalTurns;
@@ -158,12 +161,6 @@ public class ScenarioStats {
                 lossByPotion[i] += stat.lossByPotion[i];
             }
         }
-        winByDagger += stat.winByDagger;
-        lossByDagger += stat.lossByDagger;
-        winByFeed += stat.winByFeed;
-        lossByFeed += stat.lossByFeed;
-        winByFeedAmt += stat.winByFeedAmt;
-        lossByFeedAmt += stat.lossByFeedAmt;
         winQs.addAll(stat.winQs);
         lossQs.addAll(stat.lossQs);
         modelCalls2 += stat.modelCalls2;
@@ -226,7 +223,10 @@ public class ScenarioStats {
         }
         finalFightProgress += state.calcFightProgress(false);
         if (state.isTerminal() > 0) {
-            finalQComb += state.calcQValue();
+            finalQComb.addValue(state.calcQValue());
+            if (state.isTerminal() == 1) {
+                finalQCombNoDeath.addValue(state.calcQValue());
+            }
             int idx = 0;
             for (int i = 0; i < state.properties.nonGeneratedPotionsLength; i++) {
                 if (state.potionUsed(i)) {
@@ -371,7 +371,8 @@ public class ScenarioStats {
         for (CounterStat counterStat : counterStats) {
             counterStat.printStat(indent, numOfGames - deathCount);
         }
-        System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb / (numOfGames - deathCount)));
+        System.out.println(indent + "Average Final Q: " + String.format("%.5f", finalQComb.getMean()));
+        System.out.println(indent + "Average Final Q (Not Including Death): " + String.format("%.5f", finalQComb.getSum() / (numOfGames - deathCount)));
         System.out.println(indent + "Average Final Progress: " + String.format("%.5f", finalFightProgress / numOfGames));
         System.out.println(indent + "Nodes/Turns: " + modelCalls + "/" + totalTurns + "/" + (((double) modelCalls) / totalTurns));
         System.out.println(indent + "Average Turns: " + String.format("%.2f", ((double) totalTurns) / numOfGames) + "/" + String.format("%.2f", ((double) totalTurnsInWins) / (numOfGames - deathCount)));
@@ -520,26 +521,221 @@ public class ScenarioStats {
     }
 
     public static String getCommonString(Map<Integer, GameStateRandomization.Info> scenarios, int[] scenarioGroup) {
-        String pre = scenarios.get(scenarioGroup[0]).desc();
-        String suff = scenarios.get(scenarioGroup[0]).desc();
+        String prefix = scenarios.get(scenarioGroup[0]).desc();
+        String suffix = scenarios.get(scenarioGroup[0]).desc();
         for (int i = 1; i < scenarioGroup.length; i++) {
             var c = scenarios.get(scenarioGroup[i]).desc();
-            for (int j = 0; j < pre.length(); j++) {
-                if (c.charAt(j) != pre.charAt(j)) {
-                    pre = pre.substring(0, j);
+            for (int j = 0; j < prefix.length(); j++) {
+                if (c.charAt(j) != prefix.charAt(j)) {
+                    prefix = prefix.substring(0, j);
                     break;
                 }
             }
-            for (int j = 0; j < suff.length(); j++) {
-                if (c.charAt(c.length() - 1 - j) != suff.charAt(suff.length() - 1 - j)) {
-                    suff = suff.substring(suff.length() - j);
+            for (int j = 0; j < suffix.length(); j++) {
+                if (c.charAt(c.length() - 1 - j) != suffix.charAt(suffix.length() - 1 - j)) {
+                    suffix = suffix.substring(suffix.length() - j);
                     break;
                 }
             }
         }
-        if (pre.endsWith(" + ")) {
-            pre = pre.substring(0, pre.length() - 3);
+        if (prefix.endsWith(" + ")) {
+            prefix = prefix.substring(0, prefix.length() - 3);
         }
-        return pre + suff;
+        return prefix + suffix;
+    }
+
+    public static void printScenarioGroupComparisonTable(int[][] scenariosGroup, Map<Integer, ScenarioStats> scenarioStats, GameProperties properties) {
+        printComparisonTable(scenariosGroup, scenarioStats, properties,
+                            "Death Rate", "Row < Column", ScenarioStats::calculateLowerDeathRateProbability, ScenarioStats::calculateZScore);
+    }
+
+    public static void printAverageDamageComparisonTable(int[][] scenariosGroup, Map<Integer, ScenarioStats> scenarioStats, GameProperties properties) {
+        printComparisonTable(scenariosGroup, scenarioStats, properties,
+                            "Average Damage, No Deaths", "Row < Column", ScenarioStats::calculateLowerAverageDamageProbability, ScenarioStats::calculateAverageDamageZScore);
+    }
+
+    public static void printFinalQValueComparisonTable(int[][] scenariosGroup, Map<Integer, ScenarioStats> scenarioStats, GameProperties properties) {
+        printComparisonTable(scenariosGroup, scenarioStats, properties,
+                            "Final Q Value", "Row > Column", ScenarioStats::calculateHigherFinalQValueProbability, ScenarioStats::calculateFinalQValueZScore);
+    }
+
+    private static void printComparisonTable(int[][] scenariosGroup, Map<Integer, ScenarioStats> scenarioStats, GameProperties properties,
+            String metricName, String comparisonDirection, ComparisonCalculator probabilityCalculator, ComparisonCalculator zScoreCalculator) {
+        ScenarioStats[] groupStats;
+        String[] groupNames;
+
+        if (scenariosGroup != null && scenariosGroup.length > 1) {
+            // Use provided scenario groups
+            groupStats = new ScenarioStats[scenariosGroup.length];
+            groupNames = new String[scenariosGroup.length];
+
+            for (int i = 0; i < scenariosGroup.length; i++) {
+                groupNames[i] = "Group " + (i + 1);
+                var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
+                groupStats[i] = ScenarioStats.combine(properties, group);
+            }
+        } else if (scenarioStats.size() > 1) {
+            // Use individual scenarios as groups
+            var scenarioEntries = scenarioStats.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
+            groupStats = new ScenarioStats[scenarioEntries.size()];
+            groupNames = new String[scenarioEntries.size()];
+
+            for (int i = 0; i < scenarioEntries.size(); i++) {
+                var entry = scenarioEntries.get(i);
+                groupNames[i] = "Scenario " + entry.getKey();
+                groupStats[i] = entry.getValue();
+            }
+        } else {
+            return;
+        }
+
+        // Calculate dynamic widths
+        int maxGroupNameLength = 0;
+        for (String groupName : groupNames) {
+            maxGroupNameLength = Math.max(maxGroupNameLength, groupName.length());
+        }
+        int rowWidth = maxGroupNameLength + 2;
+        int colWidth = 25;
+
+        // Print table header
+        System.out.println("\nScenario Group Comparison (" + comparisonDirection + " " + metricName + "):");
+        System.out.printf("%-" + rowWidth + "s", "");
+        for (String groupName : groupNames) {
+            System.out.printf("%-" + colWidth + "s", groupName);
+        }
+        System.out.println();
+
+        // Print each row
+        for (int i = 0; i < groupStats.length; i++) {
+            System.out.printf("%-" + rowWidth + "s", groupNames[i]);
+
+            for (int j = 0; j < groupStats.length; j++) {
+                if (i == j) {
+                    System.out.printf("%-" + colWidth + "s", "--");
+                } else {
+                    double probability = probabilityCalculator.calculate(groupStats[i], groupStats[j]);
+                    double zScore = zScoreCalculator.calculate(groupStats[i], groupStats[j]);
+                    System.out.printf("%-" + colWidth + "s", Utils.formatFloat(probability * 100) + "% (" + Utils.formatFloat(zScore) + ")");
+                }
+            }
+            System.out.println();
+        }
+        System.out.println();
+    }
+
+    @FunctionalInterface
+    private interface ComparisonCalculator {
+        double calculate(ScenarioStats group1, ScenarioStats group2);
+    }
+
+    private static double calculateLowerDeathRateProbability(ScenarioStats group1, ScenarioStats group2) {
+        if (group1.numOfGames == 0 || group2.numOfGames == 0) {
+            return 0.5; // No data, assume equal
+        }
+        if (group1.deathCount == 0 && group2.deathCount == 0) {
+            return 0.5;
+        }
+        double zScore = calculateZScore(group1, group2);
+        return 1 - new NormalDistribution().cumulativeProbability(zScore);
+    }
+
+    private static double calculateZScore(ScenarioStats group1, ScenarioStats group2) {
+        if (group1.numOfGames == 0 || group2.numOfGames == 0) {
+            return 0.0;
+        }
+
+        double p1 = (double) group1.deathCount / group1.numOfGames;
+        double p2 = (double) group2.deathCount / group2.numOfGames;
+
+        // Two-proportion pooled z-test
+        double pooledP = (double) (group1.deathCount + group2.deathCount) / (group1.numOfGames + group2.numOfGames);
+
+        // Handle edge case where pooled proportion is 0 or 1
+        if (pooledP == 0.0 || pooledP == 1.0) {
+            return 0.0;
+        }
+
+        double standardError = Math.sqrt(pooledP * (1 - pooledP) * (1.0 / group1.numOfGames + 1.0 / group2.numOfGames));
+        if (standardError == 0.0) {
+            return 0.0;
+        }
+        return (p1 - p2) / standardError;
+    }
+
+    private static double calculateLowerAverageDamageProbability(ScenarioStats group1, ScenarioStats group2) {
+        int winCount1 = group1.numOfGames - group1.deathCount;
+        int winCount2 = group2.numOfGames - group2.deathCount;
+        if (winCount1 == 0 || winCount2 == 0) {
+            return 0.5; // No data, assume equal
+        }
+        double zScore = calculateAverageDamageZScore(group1, group2);
+        return 1 - new NormalDistribution().cumulativeProbability(zScore);
+    }
+
+    private static double calculateAverageDamageZScore(ScenarioStats group1, ScenarioStats group2) {
+        int winCount1 = group1.numOfGames - group1.deathCount;
+        int winCount2 = group2.numOfGames - group2.deathCount;
+        if (winCount1 == 0 || winCount2 == 0) {
+            return 0.0;
+        }
+
+        DescriptiveStatistics ds1 = new DescriptiveStatistics();
+        for (Map.Entry<Integer, Integer> dmgEntry : group1.damageCountNoDeath.entrySet()) {
+            for (int i = 0; i < dmgEntry.getValue(); i++) {
+                ds1.addValue(dmgEntry.getKey());
+            }
+        }
+        
+        DescriptiveStatistics ds2 = new DescriptiveStatistics();
+        for (Map.Entry<Integer, Integer> dmgEntry : group2.damageCountNoDeath.entrySet()) {
+            for (int i = 0; i < dmgEntry.getValue(); i++) {
+                ds2.addValue(dmgEntry.getKey());
+            }
+        }
+
+        // Pooled standard error for two-sample t-test
+        double mean1 = ds1.getMean();
+        double mean2 = ds2.getMean();
+        double variance1 = ds1.getVariance();
+        double variance2 = ds2.getVariance();
+        double pooledVariance = ((winCount1 - 1) * variance1 + (winCount2 - 1) * variance2) / (winCount1 + winCount2 - 2);
+        double standardError = Math.sqrt(pooledVariance * (1.0 / winCount1 + 1.0 / winCount2));
+        if (standardError == 0.0) {
+            return 0.0;
+        }
+        return (mean1 - mean2) / standardError;
+    }
+
+    private static double calculateHigherFinalQValueProbability(ScenarioStats group1, ScenarioStats group2) {
+        int winCount1 = group1.numOfGames - group1.deathCount;
+        int winCount2 = group2.numOfGames - group2.deathCount;
+        if (winCount1 == 0 || winCount2 == 0) {
+            return 0.5; // No data, assume equal
+        }
+        double zScore = calculateFinalQValueZScore(group1, group2);
+        return new NormalDistribution().cumulativeProbability(zScore);
+    }
+
+    private static double calculateFinalQValueZScore(ScenarioStats group1, ScenarioStats group2) {
+        if (group1.finalQCombNoDeath.getN() == 0 || group2.finalQCombNoDeath.getN() == 0) {
+            return 0.0;
+        }
+
+        double mean1 = group1.finalQCombNoDeath.getMean();
+        double mean2 = group2.finalQCombNoDeath.getMean();
+        double variance1 = group1.finalQCombNoDeath.getVariance();
+        double variance2 = group2.finalQCombNoDeath.getVariance();
+        long n1 = group1.finalQCombNoDeath.getN();
+        long n2 = group2.finalQCombNoDeath.getN();
+
+        // Calculate standard error using actual variances
+        double standardError = Math.sqrt(variance1 / n1 + variance2 / n2);
+
+        // Avoid division by zero
+        if (standardError == 0.0) {
+            return 0.0;
+        }
+
+        return (mean1 - mean2) / standardError;
     }
 }

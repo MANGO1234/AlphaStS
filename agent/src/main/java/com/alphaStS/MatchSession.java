@@ -437,6 +437,13 @@ public class MatchSession {
                         var group = IntStream.of(scenariosGroup[i]).mapToObj(scenarioStats::get).filter(Objects::nonNull).toArray(ScenarioStats[]::new);
                         ScenarioStats.combine(origState.properties, group).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.GROUPED_SCENARIOS) >= 0 && game_i.get() == numOfGames , 4);
                     }
+                    ScenarioStats.printScenarioGroupComparisonTable(scenariosGroup, scenarioStats, origState.properties);
+                    ScenarioStats.printAverageDamageComparisonTable(scenariosGroup, scenarioStats, origState.properties);
+                    ScenarioStats.printFinalQValueComparisonTable(scenariosGroup, scenarioStats, origState.properties);
+                } else if (scenarioStats.size() > 1) {
+                    ScenarioStats.printScenarioGroupComparisonTable(null, scenarioStats, origState.properties);
+                    ScenarioStats.printAverageDamageComparisonTable(null, scenarioStats, origState.properties);
+                    ScenarioStats.printFinalQValueComparisonTable(null, scenarioStats, origState.properties);
                 }
                 ScenarioStats.combine(origState.properties, scenarioStats.values().toArray(new ScenarioStats[0])).printStats(origState, printDamageLevel.compareTo(PrintDamageLevel.ALL_SCENARIOS_COMBINED) >= 0 && game_i.get() == numOfGames, 0);
                 System.out.println("Time Taken: " + (System.currentTimeMillis() - start));
