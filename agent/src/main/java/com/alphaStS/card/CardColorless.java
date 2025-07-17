@@ -140,10 +140,10 @@ public class CardColorless {
 
 
         public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
-            return getPossibleSelect3OutOf1Cards(gameProperties);
+            return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
-        public List<Card> getPossibleSelect3OutOf1Cards(GameProperties gameProperties) {
+        public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             if ((gameProperties.generateCardOptions & GameProperties.GENERATE_CARD_DISCOVERY) == 0) {
                 return List.of();
             }

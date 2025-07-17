@@ -2455,7 +2455,7 @@ public class CardSilent {
                         state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
                             @Override public void doAction(GameState state) {
                                 for (Enemy e : state.getEnemiesForWrite().iterateOverAlive()) {
-                                    state.playerDoNonAttackDamageToEnemy(e, enemy.properties.origHealth * k, true);
+                                    state.playerDoNonAttackDamageToEnemy(e, enemy.getMaxHealthInBattle() * k, true);
                                 }
                             }
                         });

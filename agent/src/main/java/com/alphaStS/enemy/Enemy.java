@@ -69,6 +69,10 @@ public abstract class Enemy extends EnemyReadOnly {
         health = hp;
     }
 
+    public void setMaxHealthInBattle(int hp) {
+        maxHealthInBattle = hp;
+    }
+
     public void setRegeneration(int regen) {
         regeneration = regen;
     }
@@ -162,7 +166,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
     protected void heal(int hp) {
         if (health > 0) {
-            health += Math.min(hp, Math.max(0, properties.origHealth - health));
+            health += Math.min(hp, Math.max(0, getMaxHealthInBattle() - health));
         }
     }
 
@@ -231,7 +235,6 @@ public abstract class Enemy extends EnemyReadOnly {
             super(0, possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.numOfMoves).reduce(0, Integer::sum), false);
             this.possibleEnemies = possibleEnemies;
             properties.maxHealth = possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.maxHealth).reduce(0, Math::max);
-            properties.origHealth = properties.maxHealth;
             properties.origMaxHealth = properties.maxHealth;
             properties.isElite = possibleEnemies.stream().anyMatch((e) -> e.properties.isElite);
             properties.isMinion = possibleEnemies.stream().anyMatch((e) -> e.properties.isMinion);
@@ -330,6 +333,10 @@ public abstract class Enemy extends EnemyReadOnly {
             currentEnemy.setHealth(hp);
         }
 
+        @Override public void setMaxHealthInBattle(int hp) {
+            currentEnemy.setMaxHealthInBattle(hp);
+        }
+
         @Override public void setRegeneration(int regen) {
             currentEnemy.setRegeneration(regen);
         }
@@ -408,6 +415,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
         @Override public int getHealth() {
             return currentEnemy.getHealth();
+        }
+
+        @Override public int getMaxHealthInBattle() {
+            return currentEnemy.getMaxHealthInBattle();
         }
 
         @Override public int getBlock() {

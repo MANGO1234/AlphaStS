@@ -12,7 +12,6 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     public static class EnemyProperties implements Cloneable {
         public int numOfMoves;
         public int maxHealth;
-        public int origHealth; // during randomization, property cloning can be set to change origHealth, origMaxHealth and hasBurningHealthBuff for that battle
         public int origMaxHealth; // during randomization, property cloning can be set to change origHealth and hasBurningHealthBuff for that battle
         public int actNumber;
         protected boolean hasBurningHealthBuff = false;
@@ -68,6 +67,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public EnemyProperties properties;
     protected int health;
+    protected int maxHealthInBattle;
     protected int block;
     protected int strength;
     protected int vulnerable;
@@ -89,10 +89,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public EnemyReadOnly(int health, int numOfMoves, boolean useLast2MovesForMoveSelection) {
         this.health = health;
+        this.maxHealthInBattle = health;
         properties = new EnemyProperties(numOfMoves, useLast2MovesForMoveSelection);
         properties.maxHealth = health;
         properties.origMaxHealth = health;
-        properties.origHealth = health;
     }
 
     public EnemyReadOnly(EnemyReadOnly other) {
@@ -134,6 +134,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected void copyFieldsFrom(Enemy other) {
         properties = other.properties;
         health = other.health;
+        maxHealthInBattle = other.maxHealthInBattle;
         block = other.block;
         strength = other.strength;
         vulnerable = other.vulnerable;
@@ -155,6 +156,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getHealth() {
         return health;
+    }
+
+    public int getMaxHealthInBattle() {
+        return maxHealthInBattle;
     }
 
     public int getBlock() {
@@ -361,7 +366,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (health == 0 && health == enemy.health) {
             return true;
         }
-        return health == enemy.health && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
+        return health == enemy.health && maxHealthInBattle == enemy.maxHealthInBattle && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
                 choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark;

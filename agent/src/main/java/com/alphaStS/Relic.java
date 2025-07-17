@@ -73,8 +73,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public boolean isRelicEnabledInScenario(GameState state) {
         boolean scenarioEnabled = preBattleScenariosEnabled == null || 
             (state.preBattleScenariosChosenIdx < preBattleScenariosEnabled.length && preBattleScenariosEnabled[state.preBattleScenariosChosenIdx]);
-        boolean battleRandomizationEnabled = battleRandomizationIdxsEnabled == null || 
-            (state.battleRandomizationIdxChosen < battleRandomizationIdxsEnabled.length && battleRandomizationIdxsEnabled[state.battleRandomizationIdxChosen]);
+        boolean battleRandomizationEnabled = battleRandomizationIdxsEnabled == null ||
+            (state.battleRandomizationIdxChosen >= 0 && state.battleRandomizationIdxChosen < battleRandomizationIdxsEnabled.length && battleRandomizationIdxsEnabled[state.battleRandomizationIdxChosen]);
         return scenarioEnabled && battleRandomizationEnabled;
     }
 
@@ -2137,7 +2137,20 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class RedSkull extends Relic {
+        public RedSkull() {
+            changePlayerStrength = true;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getInBattleMaxHealth() / 2) {
+                            state.getPlayerForWrite().gainStrength(3);
+                        }
+                    }
+                }
+            });
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (isRelicEnabledInScenario(state)) {

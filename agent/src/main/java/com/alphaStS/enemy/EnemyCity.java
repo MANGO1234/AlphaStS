@@ -771,7 +771,7 @@ public class EnemyCity {
                     }
                     var enemy = (MergedEnemy) enemies.get(startIdx + j);
                     enemy.randomize(state.getSearchRandomGen(), state.properties.curriculumTraining, -1);
-                    enemy.properties.origHealth = enemy.getHealth();
+                    enemy.setMaxHealthInBattle(enemy.getHealth());
                 }
                 if (state.enemiesAlive != 4) {
                     var j = 0;
@@ -1874,10 +1874,12 @@ public class EnemyCity {
         @Override public void nextMove(GameState state, RandomGen random) {
             int maxDiff = 0;
             for (var enemy : state.getEnemiesForRead()) {
-                maxDiff = Math.max(enemy.properties.origHealth - enemy.getHealth(), maxDiff);
+                if (enemy.isAlive()) {
+                    maxDiff += enemy.getMaxHealthInBattle() - enemy.getHealth();
+                }
             }
             int newMove;
-            if (maxDiff > 20 && move != HEAL && lastMove != HEAL) {
+            if (maxDiff > 20 && (move != HEAL || lastMove != HEAL)) {
                 newMove = HEAL;
             } else {
                 int r = random.nextInt(100, RandomGenCtx.EnemyChooseMove);

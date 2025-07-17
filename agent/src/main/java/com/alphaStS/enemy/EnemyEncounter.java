@@ -383,6 +383,12 @@ public class EnemyEncounter {
         builder.addEnemyEncounter(new EnemyCity.Centurion(), new EnemyCity.Mystic());
     }
 
+    public static void addSentryAndSphericGuardianFight(GameStateBuilder builder) {
+        var sentry = new EnemyExordium.Sentry(EnemyExordium.Sentry.BOLT);
+        sentry.properties.isElite = false;
+        builder.addEnemyEncounter(sentry, new EnemyCity.SphericGuardian());
+    }
+
     public static void addSentriesFight(GameStateBuilder builder) {
         var start = builder.getEnemies().size();
         builder.addEnemyEncounter(new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT),

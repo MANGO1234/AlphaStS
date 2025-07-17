@@ -1812,7 +1812,7 @@ public class EnemyBeyond {
                 gainStrength(2);
             } else if (move == REGROW) {
             } else if (move == REINCARNATE) {
-                health = properties.origHealth / 2;
+                health = getMaxHealthInBattle() / 2;
                 state.adjustEnemiesAlive(1);
             }
         }
@@ -1901,7 +1901,7 @@ public class EnemyBeyond {
 
         @Override public String toString(GameState state) {
             String s = super.toString(state);
-            s = s.replaceFirst("hp=(\\d+)", "hp=$1/" + properties.origHealth);
+            s = s.replaceFirst("hp=(\\d+)", "hp=$1/" + getMaxHealthInBattle());
             if (lowerPossibleNipDmg != upperPossibleNipDmg) {
                 return s.subSequence(0, s.length() - 1) + ", nipDmg=" + lowerPossibleNipDmg + "-" + upperPossibleNipDmg + "}";
             } else {
@@ -1924,7 +1924,7 @@ public class EnemyBeyond {
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = (lowerPossibleNipDmg - 7) / 4.0f;
             input[idx + 1] = (upperPossibleNipDmg - 7) / 4.0f;
-            input[idx + 2] = properties.origHealth / (float) properties.maxHealth;
+            input[idx + 2] = getMaxHealthInBattle() / (float) properties.maxHealth;
             return 3;
         }
     }

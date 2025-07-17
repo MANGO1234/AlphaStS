@@ -705,7 +705,7 @@ public class InteractiveMode {
                 continue;
             }
             out.println("Enemy " + (enemyIdx++) + ": " + enemy.getName());
-            out.println("  HP: " + enemy.getHealth() + "/" + enemy.properties.origHealth);
+            out.println("  HP: " + enemy.getHealth() + "/" + enemy.getMaxHealthInBattle());
             if (enemy.getStrength() != 0) {
                 out.println("  Strength: " + enemy.getStrength());
             }
@@ -1243,8 +1243,8 @@ public class InteractiveMode {
                     return;
                 }
                 int oldHp = state.getEnemiesForWrite().getForWrite(curEnemyIdx).getHealth();
-                int oldHpOrig = state.getEnemiesForWrite().getForWrite(curEnemyIdx).properties.origHealth;
-                state.getEnemiesForWrite().getForWrite(curEnemyIdx).properties.origHealth = hpOrig;
+                int oldHpOrig = state.getEnemiesForWrite().getForWrite(curEnemyIdx).getMaxHealthInBattle();
+                state.getEnemiesForWrite().getForWrite(curEnemyIdx).setMaxHealthInBattle(hpOrig);
                 int hp = Math.max(0, Math.min(state.getEnemiesForWrite().getForWrite(curEnemyIdx).properties.maxHealth, oldHp + (hpOrig - oldHpOrig)));
                 if (hp > 0 && !state.getEnemiesForRead().get(curEnemyIdx).isAlive()) {
                     state.reviveEnemy(curEnemyIdx, true, hp);
@@ -1989,16 +1989,13 @@ public class InteractiveMode {
     private void waitAndPrintSearchInfo(int totalCount, long startCount, AtomicLong doneCount, AtomicLong producersCount, long startTime, String item, Supplier<String> extraDetails, InteractiveReader reader) {
         long lastPrintTime = System.currentTimeMillis() - 4000; // print after 1 second immediately
         long lastSleepDuration = 5;
-        boolean stopped = false;
-        while (doneCount.get() < totalCount && (producersCount == null || producersCount.get() > 0) && !stopped) {
+        while (doneCount.get() < totalCount && (producersCount == null || producersCount.get() > 0)) {
             try {
                 // Check for stop command with timeout
                 String command = reader.readLine(lastSleepDuration, TimeUnit.MILLISECONDS);
                 if (command != null && command.trim().equalsIgnoreCase("stop")) {
                     out.println("Search stopped by user command.");
                     stopRequested = true;
-                    stopped = true;
-                    break;
                 }
             } catch (IOException e) {
                 // Continue if read fails

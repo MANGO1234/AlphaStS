@@ -2320,10 +2320,16 @@ public class CardIronclad {
                     });
                 }
             });
+            state.properties.addEndOfTurnHandler("DoubleTap", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
         }
     }
 
-    // todo: test
     public static class DoubleTap extends _DoubleTapT {
         public DoubleTap() {
             super("Double Tap", 1);

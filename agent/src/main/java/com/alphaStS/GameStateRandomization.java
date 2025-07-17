@@ -426,8 +426,7 @@ public interface GameStateRandomization {
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
-                    enemy.properties = enemy.properties.clone();
-                    enemy.properties.origHealth = enemy.getHealth();
+                    enemy.setMaxHealthInBattle(enemy.getHealth());
                 }
             } else if (minDifficulty == maxDifficulty) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -441,8 +440,7 @@ public interface GameStateRandomization {
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
-                    enemy.properties = enemy.properties.clone();
-                    enemy.properties.origHealth = enemy.getHealth();
+                    enemy.setMaxHealthInBattle(enemy.getHealth());
                 }
             } else {
                 if (minDifficulty == 0) {
@@ -466,8 +464,7 @@ public interface GameStateRandomization {
                             if (enemy.hasBurningHealthBuff()) {
                                 enemy.setHealth((int) (enemy.getHealth() * 1.25));
                             }
-                            enemy.properties = enemy.properties.clone();
-                            enemy.properties.origHealth = enemy.getHealth();
+                            enemy.setMaxHealthInBattle(enemy.getHealth());
                         }
                         return 0;
                     }
@@ -499,8 +496,7 @@ public interface GameStateRandomization {
                     if (enemy.hasBurningHealthBuff()) {
                         enemy.setHealth((int) (enemy.getHealth() * 1.25));
                     }
-                    enemy.properties = enemy.properties.clone();
-                    enemy.properties.origHealth = enemy.getHealth();
+                    enemy.setMaxHealthInBattle(enemy.getHealth());
                 }
             }
             return 0;
@@ -928,6 +924,46 @@ public interface GameStateRandomization {
 
         @Override public List<Card> getPossibleGeneratedCards() {
             return List.of();
+        }
+    }
+
+    class UpgradeRandomCardRandomization implements GameStateRandomization {
+        private final Set<Card> upgradableCards;
+
+        public UpgradeRandomCardRandomization(GameStateBuilder builder, Card... extraCards) {
+            upgradableCards = new HashSet<>();
+            upgradableCards.addAll(builder.getStartingCards().stream().filter((card) -> card.getUpgrade() != null).toList());
+            upgradableCards.addAll(Arrays.stream(extraCards).filter((card) -> card.getUpgrade() != null).toList());
+        }
+
+        @Override public int randomize(GameState state) {
+            List<Integer> possibleCards = new ArrayList<>();
+            for (int i = 0; i < state.getNumCardsInDeck(); i++) {
+                int cardIdx = state.getDeckArrForRead()[i];
+                if (upgradableCards.contains(state.properties.cardDict[cardIdx])) {
+                    possibleCards.add(i);
+                }
+            }
+            int idx = state.getSearchRandomGen().nextInt(possibleCards.size(), RandomGenCtx.BeginningOfGameRandomization, this);
+            int cardIdx = state.getDeckArrForRead()[possibleCards.get(idx)];
+            state.getStateDesc().append("Upgrade ").append(state.properties.cardDict[cardIdx].cardName);
+            state.removeCardFromDeck(cardIdx, true);
+            state.addCardToDeck(state.properties.upgradeIdxes[cardIdx]);
+            return 0;
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            randomize(state);
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            var map = new HashMap<Integer, Info>();
+            map.put(0, new Info(1.0, "Upgrade Random Card"));
+            return map;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            return upgradableCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
 

@@ -620,7 +620,6 @@ public class ScenarioStats {
             }
             System.out.println();
         }
-        System.out.println();
     }
 
     @FunctionalInterface

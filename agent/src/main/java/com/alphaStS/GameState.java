@@ -842,10 +842,6 @@ public final class GameState implements State {
     }
 
     private int[] findUpgradeIdxes(List<Card> cards, List<Relic> relics, List<Potion> potions) {
-        if (cards.stream().noneMatch((x) -> x.cardName.contains("Armanent") || x.cardName.contains("Apotheosis")) &&
-            relics.stream().noneMatch((x) -> x instanceof Relic.WarpedTongs) && potions.stream().noneMatch((x) -> x instanceof Potion.BlessingOfTheForge)) {
-            return null;
-        }
         int[] r = new int[cards.size()];
         Arrays.fill(r, -1);
         for (int i = 0; i < r.length; i++) {
@@ -1008,9 +1004,9 @@ public final class GameState implements State {
             newSet.add(possibleCard);
             if (possibleCard instanceof Card.CardWrapper w && (w.isTmpRetain() || w.isTmpChangeCost() || w.isTmpUntilPlayedCost())) {
                 newSet.add(possibleCard.getBaseCard());
-                discardSet.add(possibleCard.getBaseCard());
+                if (discardSet != null) discardSet.add(possibleCard.getBaseCard());
             } else {
-                discardSet.add(possibleCard);
+                if (discardSet != null) discardSet.add(possibleCard);
             }
         }
     }
@@ -1668,11 +1664,13 @@ public final class GameState implements State {
     }
 
     public void runActionsInQueueIfNonEmpty() {
-        while (gameActionDeque != null && gameActionDeque.size() > 0 && isTerminal() == 0) {
+        while (actionCtx == GameActionCtx.PLAY_CARD && gameActionDeque != null && gameActionDeque.size() > 0 && isTerminal() == 0) {
             gameActionDeque.pollFirst().doAction(this);
         }
-        if (gameActionDeque != null && isTerminal() != 0) {
-            gameActionDeque.clear();
+        if (actionCtx == GameActionCtx.PLAY_CARD) {
+            if (gameActionDeque != null && isTerminal() != 0) {
+                gameActionDeque.clear();
+            }
         }
     }
 
@@ -3992,7 +3990,7 @@ public final class GameState implements State {
                     x[idx++] = enemy.getPlatedArmor() / (float) 14.0;
                 }
                 if (enemy.properties.canGainRegeneration || enemy.properties.canHeal || properties.enemyCanGetCorpseExplosion) {
-                    x[idx++] = enemy.properties.origHealth / (float) enemy.properties.maxHealth;
+                    x[idx++] = enemy.getMaxHealthInBattle() / (float) enemy.properties.maxHealth;
                 }
                 if (enemy instanceof Enemy.MergedEnemy m) {
                     x[idx + m.currentEnemyIdx] = 1.0f;
@@ -5473,7 +5471,7 @@ public final class GameState implements State {
                 enemy.setHealth(startingHealth);
             }
             enemy.properties = enemy.properties.clone();
-            enemy.properties.origHealth = enemy.getHealth();
+            enemy.setMaxHealthInBattle(enemy.getHealth());
             if (getNextMove && !properties.isRunicDomeEnabled(this)) {
                 var oldIsStochastic = isStochastic;
                 isStochastic = false;
