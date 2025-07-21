@@ -196,7 +196,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         private final int tmpUntilPlayedCost;
         private final int permChangeCost;
         private final boolean tmpRetain;
-        private int cardIdx;
 
         public CardWrapper(Card card, int tmpChangeCost, int tmpUntilPlayedCost, int permChangeCost, boolean tmpRetain) {
             super(generateCardName(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost, tmpRetain), card.cardType, getEffectiveEnergyCost(card, tmpChangeCost, tmpUntilPlayedCost, permChangeCost), card.rarity);
@@ -338,9 +337,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
         @Override
         public void gamePropertiesSetup(GameState state) {
             card.gamePropertiesSetup(state);
-            if (tmpUntilPlayedCost != -1 || tmpRetain) {
-                cardIdx = state.properties.findCardIndex(card);
-            }
         }
 
         @Override
@@ -350,7 +346,10 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         @Override
         public int energyCost(GameState state) {
-            return permChangeCost >= 0 ? permChangeCost : card.energyCost(state);
+            if (tmpChangeCost != -1) return tmpChangeCost;
+            if (tmpUntilPlayedCost != -1) return tmpUntilPlayedCost;
+            if (permChangeCost != -1) return permChangeCost;
+            return card.energyCost;
         }
 
         @Override

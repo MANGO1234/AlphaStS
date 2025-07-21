@@ -1679,14 +1679,14 @@ public class MCTS {
             newPolicy = new float[policy.length];
             var sum = 0.0;
             for (int i = 0; i < policy.length; i++) {
-//                newPolicy[i] = (float) Math.pow(policy[i], (double) 100 / state.total_n);
-                if (state.ns[i] != null && state.n[i] >= 2) {
-                    if (state.ns[i] instanceof GameState gs) {
-                        newPolicy[i] = (float) Math.pow(policy[i], (gs.varianceS / gs.total_n) / (state.varianceS / state.total_n));
-                    } else if (state.ns[i] instanceof ChanceState cs) {
-                        newPolicy[i] = (float) Math.pow(policy[i], (cs.varianceS / (cs.total_n - 1)) / (state.varianceS / state.total_n));
-                    }
-                }
+                newPolicy[i] = (float) Math.pow(policy[i], (double) 100 / state.total_n);
+//                if (state.ns[i] != null && state.n[i] >= 2) {
+//                    if (state.ns[i] instanceof GameState gs) {
+//                        newPolicy[i] = (float) Math.pow(policy[i], (gs.varianceS / gs.total_n) / (state.varianceS / state.total_n));
+//                    } else if (state.ns[i] instanceof ChanceState cs) {
+//                        newPolicy[i] = (float) Math.pow(policy[i], (cs.varianceS / (cs.total_n - 1)) / (state.varianceS / state.total_n));
+//                    }
+//                }
                 sum += newPolicy[i];
             }
             for (int i = 0; i < policy.length; i++) {

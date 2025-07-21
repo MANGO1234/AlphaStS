@@ -1959,7 +1959,7 @@ public final class GameState implements State {
         updateHandArr();
 
         // remove temporary retain from cards (after retain processing is complete)
-        handArrTransform(properties.tmpModifiedCardReverseTransformIdxes);
+        if (properties.tmpModifiedCardReverseTransformIdxes != null) handArrTransform(properties.tmpModifiedCardReverseTransformIdxes);
 
         // handle well laid plan cards
         for (int i = 0; i < chosenCardsArrLen; i++) {
@@ -4774,6 +4774,19 @@ public final class GameState implements State {
             if (baseCard instanceof CardDefect.ForceFieldP forceField) {
                 if (forceField.energyCost == 4) {
                     cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardDefect.ForceFieldP(Math.max(4 - getCounterForRead()[properties.forceFieldCounterIdx], 0))));
+                }
+            }
+        }
+        if (properties.bloodForBloodCounterIdx >= 0) {
+            var baseCard = properties.cardDict[cardIndex].getBaseCard();
+            if (baseCard instanceof CardIronclad.BloodForBlood bloodForBlood) {
+                if (bloodForBlood.energyCost == 4) {
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBlood(Math.max(4 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
+                }
+            }
+            if (baseCard instanceof CardIronclad.BloodForBloodP bloodForBlood) {
+                if (bloodForBlood.energyCost == 3) {
+                    cardIndex = properties.findCardIndex(properties.cardDict[cardIndex].wrap(new CardIronclad.BloodForBloodP(Math.max(3 - getCounterForRead()[properties.bloodForBloodCounterIdx], 0))));
                 }
             }
         }

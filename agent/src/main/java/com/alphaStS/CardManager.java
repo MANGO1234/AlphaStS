@@ -9,22 +9,12 @@ import java.util.List;
 public class CardManager {
 
     public static List<Card> getCharacterCardsByType(CharacterEnum character, int cardType, boolean generateHealingCard) {
-        List<Card> cards = new ArrayList<>();
-        switch (character) {
-            case IRONCLAD:
-                cards.addAll(getIroncladCards(cardType, generateHealingCard));
-                break;
-            case SILENT:
-                cards.addAll(getSilentCards(cardType, generateHealingCard));
-                break;
-            case DEFECT:
-                cards.addAll(getDefectCards(cardType, generateHealingCard));
-                break;
-            case WATCHER:
-                cards.addAll(getWatcherCards(cardType, generateHealingCard));
-                break;
-        }
-        return cards;
+        return switch (character) {
+            case IRONCLAD -> getIroncladCards(cardType, generateHealingCard);
+            case SILENT -> getSilentCards(cardType, generateHealingCard);
+            case DEFECT -> getDefectCards(cardType, generateHealingCard);
+            case WATCHER -> getWatcherCards(cardType, generateHealingCard);
+        };
     }
 
     public static List<Card> getCharacterCardsByTypeTmp0Cost(CharacterEnum character, int cardType, boolean generateHealingCard) {
@@ -506,6 +496,121 @@ public class CardManager {
             cards.add(new CardWatcher.MasterReality());
         }
 
+        return cards;
+    }
+
+
+    public static List<Card> getCharacterRareCards(CharacterEnum character, boolean generateHealingCard) {
+        return switch (character) {
+            case IRONCLAD -> getIroncladRareCards(generateHealingCard);
+            case SILENT -> getSilentRareCards(generateHealingCard);
+            case DEFECT -> getDefectRareCards(generateHealingCard);
+            case WATCHER -> getWatcherRareCards(generateHealingCard);
+        };
+    }
+
+    private static List<Card> getIroncladRareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardIronclad.Bludgeon());
+        if (generateHealingCard) {
+            cards.add(new CardIronclad.Feed());
+        }
+        cards.add(new CardIronclad.FiendFire());
+        cards.add(new CardIronclad.Immolate());
+        if (generateHealingCard) {
+            cards.add(new CardIronclad.Reaper());
+        }
+        // Rare skills
+        cards.add(new CardIronclad.DoubleTap());
+        cards.add(new CardIronclad.Exhume());
+        cards.add(new CardIronclad.Impervious());
+        cards.add(new CardIronclad.LimitBreak());
+        cards.add(new CardIronclad.Offering());
+        // Rare powers
+        cards.add(new CardIronclad.Barricade());
+        cards.add(new CardIronclad.Berserk());
+        cards.add(new CardIronclad.Brutality());
+        cards.add(new CardIronclad.Corruption());
+        cards.add(new CardIronclad.DemonForm());
+        cards.add(new CardIronclad.Juggernaut());
+        return cards;
+    }
+
+    private static List<Card> getSilentRareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardSilent.DieDieDie());
+        cards.add(new CardSilent.GlassKnife());
+        cards.add(new CardSilent.GrandFinale());
+        cards.add(new CardSilent.Unload());
+        // Rare skills
+        cards.add(new CardSilent.Adrenaline());
+        cards.add(new CardSilent.Alchemize(0, 0, 0));
+        cards.add(new CardSilent.BulletTime());
+        cards.add(new CardSilent.Burst());
+        cards.add(new CardSilent.CorpseExplosion());
+        cards.add(new CardSilent.Doppelganger());
+        cards.add(new CardSilent.Malaise());
+        cards.add(new CardSilent.Nightmare());
+        cards.add(new CardSilent.PhantasmalKiller());
+        cards.add(new CardSilent.StormOfSteel());
+        // Rare powers
+        cards.add(new CardSilent.AThousandCuts());
+        cards.add(new CardSilent.AfterImage());
+        cards.add(new CardSilent.Envenom());
+        cards.add(new CardSilent.ToolsOfTheTrade());
+        cards.add(new CardSilent.WraithForm());
+        return cards;
+    }
+
+    private static List<Card> getDefectRareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardDefect.AllForOne(0, 0));
+        cards.add(new CardDefect.CoreSurge());
+        cards.add(new CardDefect.HyperBeam());
+        cards.add(new CardDefect.MeteorStrike());
+        cards.add(new CardDefect.ThunderStrike());
+        // Rare skills
+        cards.add(new CardDefect.Amplify());
+        cards.add(new CardDefect.Fission());
+        cards.add(new CardDefect.MultiCast());
+        cards.add(new CardDefect.Rainbow());
+        cards.add(new CardDefect.Reboot());
+        cards.add(new CardDefect.Seek());
+        // Rare powers
+        cards.add(new CardDefect.BiasedCognition());
+        cards.add(new CardDefect.Buffer());
+        cards.add(new CardDefect.CreativeAI());
+        cards.add(new CardDefect.EchoForm());
+        cards.add(new CardDefect.Electrodynamics());
+        cards.add(new CardDefect.MachineLearning());
+        return cards;
+    }
+
+    private static List<Card> getWatcherRareCards(boolean generateHealingCard) {
+        List<Card> cards = new ArrayList<>();
+        // Rare attacks
+        cards.add(new CardWatcher.Brilliance());
+        cards.add(new CardWatcher.LessonLearned(0.0));
+        cards.add(new CardWatcher.Ragnarok());
+        // Rare skills
+        cards.add(new CardWatcher.Alpha());
+        cards.add(new CardWatcher.Blasphemy());
+        cards.add(new CardWatcher.ConjureBlade(0));
+        cards.add(new CardWatcher.DeusExMachina());
+        cards.add(new CardWatcher.Judgment());
+        cards.add(new CardWatcher.Omniscience());
+        cards.add(new CardWatcher.Scrawl());
+        cards.add(new CardWatcher.SpiritShield());
+        cards.add(new CardWatcher.Vault());
+        cards.add(new CardWatcher.Wish(0.0));
+        // Rare powers
+        cards.add(new CardWatcher.DevaForm());
+        cards.add(new CardWatcher.Devotion());
+        cards.add(new CardWatcher.Establishment());
+        cards.add(new CardWatcher.MasterReality());
         return cards;
     }
 }

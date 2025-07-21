@@ -758,12 +758,11 @@ public class CardIronclad {
     }
 
     public static class BloodForBlood extends Card {
-
         public BloodForBlood() {
             this(4);
         }
 
-        private BloodForBlood(int energyCost) {
+        public BloodForBlood(int energyCost) {
             super("Blood For Blood (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             selectEnemy = true;
         }
@@ -799,22 +798,38 @@ public class CardIronclad {
             state.properties.addOnDamageHandler("Blood For Blood", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
+                    state.getCounterForWrite()[counterIdx]++;
                     state.handArrTransform(state.properties.bloodForBloodTransformIndexes);
                     state.discardArrTransform(state.properties.bloodForBloodTransformIndexes);
                     state.deckArrTransform(state.properties.bloodForBloodTransformIndexes);
                     state.exhaustArrTransform(state.properties.bloodForBloodTransformIndexes);
                 }
             });
+            registerBloodForBloodCounter(state, this);
+        }
+
+        private static void registerBloodForBloodCounter(GameState state, GameProperties.CounterRegistrant registrant) {
+            state.properties.registerCounter("BloodForBlood", registrant, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[registrant.getCounterIdx(state.properties)] / 10.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.bloodForBloodCounterIdx = counterIdx;
+                }
+            });
         }
     }
 
     public static class BloodForBloodP extends Card {
-
         public BloodForBloodP() {
             this(3);
         }
 
-        private BloodForBloodP(int energyCost) {
+        public BloodForBloodP(int energyCost) {
             super("Blood For Blood+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             selectEnemy = true;
         }
@@ -849,12 +864,14 @@ public class CardIronclad {
             state.properties.addOnDamageHandler("Blood For Blood+", new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (damageDealt <= 0) return;
+                    state.getCounterForWrite()[counterIdx]++;
                     state.handArrTransform(state.properties.bloodForBloodPTransformIndexes);
                     state.discardArrTransform(state.properties.bloodForBloodPTransformIndexes);
                     state.deckArrTransform(state.properties.bloodForBloodPTransformIndexes);
                     state.exhaustArrTransform(state.properties.bloodForBloodPTransformIndexes);
                 }
             });
+            BloodForBlood.registerBloodForBloodCounter(state, this);
         }
     }
 
@@ -1848,9 +1865,12 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            int c = state.handArrLen;
-            for (int i = 0; i < c; i++) {
-                state.exhaustCardFromHandByPosition(i, false);
+            int c = 0;
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.properties.cardDict[state.getHandArrForRead()[i]].cardType != Card.ATTACK) {
+                    state.exhaustCardFromHandByPosition(i, false);
+                    c++;
+                }
             }
             state.updateHandArr();
             for (int i = 0; i < c; i++) {

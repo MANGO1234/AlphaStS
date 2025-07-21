@@ -1379,7 +1379,6 @@ public class CardDefect {
     }
 
     public static class ForceField extends Card {
-
         public ForceField(int energyCost) {
             super("Force Field (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }
@@ -1447,7 +1446,6 @@ public class CardDefect {
     }
 
     public static class ForceFieldP extends Card {
-
         public ForceFieldP(int energyCost) {
             super("Force Field+ (" + energyCost + ")", Card.SKILL, energyCost, Card.COMMON);
         }

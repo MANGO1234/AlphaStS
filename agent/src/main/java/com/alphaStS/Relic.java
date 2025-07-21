@@ -2612,6 +2612,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class SelectCPuctLimit extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("CpuctLimit", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.biasedCognitionLimitCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
     public static class ShiningLight extends Relic {
         private final int dmg;
 
@@ -2739,6 +2757,63 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Bite());
+        }
+    }
+
+    public static class NeowRandomRareCard extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.setIsStochastic();
+                        int idx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                        state.getStateDesc().append("Random Rare Card (").append(state.properties.cardDict[generatedCardIdxes[idx]].cardName).append(")");
+                        state.addCardToDeck(generatedCardIdxes[idx]);
+                    }
+                }
+            });
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getCharacterRareCards(properties.character, true);
+        }
+    }
+
+    public static class ApparitionEvent extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForWrite().getInBattleMaxHealth() / 2);
+                        state.addCardToDeck(generatedCardIdx);
+                        state.addCardToDeck(generatedCardIdx);
+                        state.addCardToDeck(generatedCardIdx);
+                    }
+                }
+            });
+            state.properties.registerIntangibleCounter();
+        }
+
+        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Apparition());
+        }
+    }
+
+    public static class SetPlayerHealth extends Relic {
+        int hp;
+
+        public SetPlayerHealth(int hp) {
+            this.hp = hp;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getPlayerForWrite().setHealth(hp);
+                    }
+                }
+            });
         }
     }
 
