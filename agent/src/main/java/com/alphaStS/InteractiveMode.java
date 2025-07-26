@@ -781,16 +781,16 @@ public class InteractiveMode {
                 out.println("  Beat Of Death: " + heart.getBeatOfDeath());
                 out.println("  Buff Count: " + heart.getBuffCount());
             }
-            if (states.size() > 0) {
+            if (!states.isEmpty()) {
                 GameState prevState = states.get(states.size() - 1);
                 if (state.properties.isRunicDomeEnabled(state)) {
                     String prevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getMove());
-                    String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
+                    String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, prevState.getEnemiesForRead().get(enemyArrayIdx).getMove());
                     out.println("  Last Move: " + prevMove);
                     out.println("  Last Last Move: " + prevPrevMove);
                 } else {
                     String prevMove = state.getEnemiesForRead().get(enemyArrayIdx).getMoveString(state, enemy.getMove());
-                    String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, enemy.getLastMove());
+                    String prevPrevMove = prevState.getEnemiesForRead().get(enemyArrayIdx).getMoveString(prevState, prevState.getEnemiesForRead().get(enemyArrayIdx).getMove());
                     out.println("  Move: " + prevMove);
                     out.println("  Last Move: " + prevPrevMove);
                 }

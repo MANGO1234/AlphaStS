@@ -159,8 +159,10 @@ public class GameStateBuilder {
             state.currentEncounter = enemiesEncounters.get(0).encounterEnum;
         }
         if (isBurningElite) {
-            for (int i = 0; i < enemies.size(); i++) {
-                enemies.get(i).markAsBurningElite();
+            for (Enemy enemy : enemies) {
+                if (enemy.properties.isElite) {
+                    enemy.markAsBurningElite();
+                }
             }
             randomization = new GameStateRandomization.BurningEliteRandomization().doAfter(randomization);
         }

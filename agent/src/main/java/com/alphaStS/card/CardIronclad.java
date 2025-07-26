@@ -2,6 +2,8 @@ package com.alphaStS.card;
 
 import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
+import com.alphaStS.action.HavocAction;
+import com.alphaStS.action.HavocExhaustAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyReadOnly;
@@ -286,22 +288,8 @@ public class CardIronclad {
                 if (!state.getStateDesc().isEmpty()) state.getStateDesc().append(", ");
                 state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
             }
-            state.addGameActionToStartOfDeque(curState -> {
-                if (curState.properties.cardDict[cardIdx].cardType != Card.POWER) {
-                    curState.exhaustedCardHandle(cardIdx, true);
-                }
-            });
-            state.addGameActionToStartOfDeque(curState -> {
-                var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
-                curState.playCard(action, -1, true, null, false, true, -1, -1);
-                while (curState.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                    int enemyIdx = GameStateUtils.getRandomEnemyIdx(curState, RandomGenCtx.RandomEnemyGeneral);
-                    if (curState.properties.makingRealMove || curState.properties.stateDescOn) {
-                        curState.getStateDesc().append(" -> ").append(curState.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
-                    }
-                    curState.playCard(action, enemyIdx, true, null, false, true, -1, -1);
-                }
-            });
+            state.addGameActionToStartOfDeque(new HavocExhaustAction(cardIdx));
+            state.addGameActionToStartOfDeque(new HavocAction(cardIdx));
             return GameActionCtx.PLAY_CARD;
         }
     }

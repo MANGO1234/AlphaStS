@@ -566,7 +566,7 @@ public class EnemyCity {
 
         @Override public String getMoveString(GameState state, int move) {
             if (move == BUFF) {
-                return "All Enemies Gain 5 Strength+Gain 23 Block";
+                return "Gain 23 Block+All Enemies Gain 5 Strength";
             } else if (move == FIREBALL) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 21);
             } else if (move == MEGA_DEBUFF) {

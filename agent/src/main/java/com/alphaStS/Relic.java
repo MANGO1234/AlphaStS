@@ -72,7 +72,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public boolean isRelicEnabledInScenario(GameState state) {
         boolean scenarioEnabled = preBattleScenariosEnabled == null || 
-            (state.preBattleScenariosChosenIdx < preBattleScenariosEnabled.length && preBattleScenariosEnabled[state.preBattleScenariosChosenIdx]);
+            (state.preBattleScenariosChosenIdx >= 0 && state.preBattleScenariosChosenIdx < preBattleScenariosEnabled.length && preBattleScenariosEnabled[state.preBattleScenariosChosenIdx]);
         boolean battleRandomizationEnabled = battleRandomizationIdxsEnabled == null ||
             (state.battleRandomizationIdxChosen >= 0 && state.battleRandomizationIdxChosen < battleRandomizationIdxsEnabled.length && battleRandomizationIdxsEnabled[state.battleRandomizationIdxChosen]);
         return scenarioEnabled && battleRandomizationEnabled;
@@ -159,7 +159,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state)) {
+                    if (isRelicEnabledInScenario(state) && state.isFirstEncounter()) {
                         state.energy += 2;
                     }
                 }
