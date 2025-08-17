@@ -799,6 +799,13 @@ public interface GameStateRandomization {
                         enemy.setHealth(enemy.properties.maxHealth);
                     }
                 }
+            } else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.BRONZE_AUTOMATON) {
+                for (var t : encounter.idxes) {
+                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
+                    if (enemy instanceof EnemyCity.BronzeAutomaton) {
+                        enemy.setHealth(enemy.properties.maxHealth);
+                    }
+                }
             } else {
                 for (var t : encounter.idxes) {
                     var enemy = state.getEnemiesForWrite().getForWrite(t.v1());

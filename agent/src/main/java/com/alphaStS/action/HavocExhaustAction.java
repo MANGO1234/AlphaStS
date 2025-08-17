@@ -1,9 +1,6 @@
 package com.alphaStS.action;
 
-import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameState;
-import com.alphaStS.GameStateUtils;
-import com.alphaStS.RandomGenCtx;
 import com.alphaStS.card.Card;
 
 public class HavocExhaustAction implements GameEnvironmentAction {
@@ -14,6 +11,7 @@ public class HavocExhaustAction implements GameEnvironmentAction {
     }
 
     @Override public void doAction(GameState state) {
+        state.getCounterForWrite()[state.properties.havocCounterIdx]--;
         if (state.properties.cardDict[cardIdx].cardType != Card.POWER) {
             state.exhaustedCardHandle(cardIdx, true);
         }

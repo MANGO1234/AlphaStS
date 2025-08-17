@@ -1,7 +1,6 @@
 package com.alphaStS.action;
 
 import com.alphaStS.GameState;
-import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyExordium;
 import com.alphaStS.enemy.EnemyReadOnly;
 

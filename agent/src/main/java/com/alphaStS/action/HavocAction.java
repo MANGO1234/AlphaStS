@@ -13,6 +13,7 @@ public class HavocAction implements GameEnvironmentAction {
     }
 
     @Override public void doAction(GameState state) {
+        state.getCounterForWrite()[state.properties.havocCounterIdx]++;
         var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
         state.playCard(action, -1, true, null, false, true, -1, -1);
         while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {

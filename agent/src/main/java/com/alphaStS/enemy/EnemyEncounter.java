@@ -14,6 +14,7 @@ public class EnemyEncounter {
         CORRUPT_HEART,
         SPEAR_AND_SHIELD,
         SLIME_BOSS,
+        BRONZE_AUTOMATON,
     }
 
     public int startingHealth;
@@ -438,7 +439,7 @@ public class EnemyEncounter {
     }
 
     public static void addBronzeAutomatonFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyCity.BronzeOrb(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb());
+        builder.addEnemyEncounter(EncounterEnum.BRONZE_AUTOMATON, new EnemyCity.BronzeOrb(), new EnemyCity.BronzeAutomaton(), new EnemyCity.BronzeOrb());
     }
 
     public static void addDarklingsFight(GameStateBuilder builder) {

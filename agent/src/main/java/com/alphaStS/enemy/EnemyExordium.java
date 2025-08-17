@@ -1978,7 +1978,7 @@ public class EnemyExordium {
             } else if (move == LUNGE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             } else if (move == SMOKE_BOMB) {
-                state.enemyDoDamageToPlayer(this, 17, 1);
+                gainBlock(17);
             } else if (move == ESCAPE) {
                 escaped = true;
                 health = 0;

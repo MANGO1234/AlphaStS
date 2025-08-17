@@ -169,6 +169,7 @@ public class GameProperties implements Cloneable {
     public int sundialCounterIdx = -1;
     public int sadisticNatureCounterIdx = -1;
     public int inserterCounterIdx = -1;
+    public int havocCounterIdx = -1;
     public int loopCounterIdx = -1;
     public int forceFieldCounterIdx = -1;
     public int bloodForBloodCounterIdx = -1;

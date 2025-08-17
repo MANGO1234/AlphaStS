@@ -1,5 +1,6 @@
 package com.alphaStS;
 
+import com.alphaStS.action.EndOfGameAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
@@ -1108,7 +1109,7 @@ public final class GameState implements State {
         boolean firstRandomDraw = true;
         int drawnIdx = -1;
         for (int c = 0; c < count; c++) {
-            if (deckArrLen == 0) {
+            if (deckArrLen == 0 && (discardArrLen > 0 || (c != 0 && count > 0))) {
                 reshuffle();
             }
             if (deckArrLen == 0) {
@@ -1173,7 +1174,7 @@ public final class GameState implements State {
     }
 
     public int drawOneCardSpecial() {
-        if (deckArrLen == 0) {
+        if (deckArrLen == 0 && discardArrLen > 0) {
             reshuffle();
         }
         if (deckArrLen == 0) {
@@ -1197,7 +1198,6 @@ public final class GameState implements State {
             setIsStochastic();
             var idx = getSearchRandomGen().nextInt(this.deckArrLen, RandomGenCtx.CardDraw);
             cardIdx = deckArr[idx];
-            addCardToHand(deckArr[idx]);
             getDeckArrForWrite()[idx] = deckArr[deckArrLen - 1];
             deckArrLen -= 1;
         }
@@ -1242,7 +1242,7 @@ public final class GameState implements State {
                             boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
                             Class cloneSource, // cloned card source
                             boolean useEnergy, // when cloning/havoc/etc., do not use energy
-                            boolean exhaustWhenPlayed, // havoc only flag
+                            boolean exhaustWhenPlayed, // havoc only flag todo: delete
                             int overrideEnergyCost, // when cloning, need to know cost of X card to use
                             int cloneParentLocation // when cloning, need to transform the prev card (e.g. Streamline)
     ) {
@@ -1264,10 +1264,13 @@ public final class GameState implements State {
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             checkWristBladeBuffForZeroCostAttack(cardIdx);
-            if (cloneSource == null && !exhaustWhenPlayed) {
+            if (cloneSource == null && properties.havocCounterIdx >= 0 && getCounterForRead()[properties.havocCounterIdx] == 0) {
                 removeCardFromHand(cardIdx);
             }
             if (realEnergyCost < 0) {
+                if (properties.cardDict[cardIdx].cardType == Card.CURSE) {
+                    addCardToDiscard(cardIdx);
+                }
                 if (runActionQueueOnEnd) {
                     runActionsInQueueIfNonEmpty();
                 }
@@ -1315,7 +1318,7 @@ public final class GameState implements State {
                     var e = getEnemiesForRead().get(selectIdx);
                     if (e.isAlive()) {
                         lastSelectedIdx = selectIdx;
-                        onSelectEnemy(selectIdx);
+                        if (!exhaustWhenPlayed) onSelectEnemy(selectIdx);
                         setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                         selectIdx = -1;
                     } else {
@@ -1469,7 +1472,7 @@ public final class GameState implements State {
                 lastCardPlayedType = properties.cardDict[cardIdx].cardType;
             }
             // Determine cloneParentLocation before calling handlers
-            if (cloneSource == null && !exhaustWhenPlayed) {
+            if (cloneSource == null && properties.havocCounterIdx >= 0 && getCounterForRead()[properties.havocCounterIdx] == 0) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     cloneParentLocation = GameState.EXHAUST;
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
@@ -1496,7 +1499,7 @@ public final class GameState implements State {
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
             }
-            if (cloneSource == null && !exhaustWhenPlayed) {
+            if (cloneSource == null && properties.havocCounterIdx >= 0 && getCounterForRead()[properties.havocCounterIdx] == 0) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
@@ -1666,6 +1669,14 @@ public final class GameState implements State {
     public void runActionsInQueueIfNonEmpty() {
         while (actionCtx == GameActionCtx.PLAY_CARD && gameActionDeque != null && gameActionDeque.size() > 0 && isTerminal() == 0) {
             gameActionDeque.pollFirst().doAction(this);
+        }
+        if (isTerminal() > 0) {
+            while (gameActionDeque != null && gameActionDeque.size() > 0) {
+                var action = gameActionDeque.pollFirst();
+                if (action == EndOfGameAction.instance) {
+                    action.doAction(this);
+                }
+            }
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             if (gameActionDeque != null && isTerminal() != 0) {
@@ -2662,6 +2673,9 @@ public final class GameState implements State {
                 boolean canDup = getNonExhaustCount("Amplify") > 0 || getNonExhaustCount("Echo Form") > 0;
                 maxHealPreBattleEnd += (canDup ? 4 : 2) * maxPossiblePowers;
             }
+            if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(this)) {
+                maxHealPreBattleEnd += maxHealPreBattleEnd / 2;
+            }
 
             int hp;
             int maxPossibleHealth = getPlayeForRead().getHealth();
@@ -2686,13 +2700,25 @@ public final class GameState implements State {
                 hp += getCounterForRead()[properties.selfRepairCounterIdx];
             }
             if (properties.burningBlood != null && properties.burningBlood.isRelicEnabledInScenario(this)) {
-                hp += 6;
+                if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(this)) {
+                    hp += 9;
+                } else {
+                    hp += 6;
+                }
             }
             if (properties.bloodyIdol != null && properties.bloodyIdol.isRelicEnabledInScenario(this)) {
-                hp += 5;
+                if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(this)) {
+                    hp += 7;
+                } else {
+                    hp += 5;
+                }
             }
             if (!GameProperties.isHeartFight(this) && properties.bloodVial != null && properties.bloodVial.isRelicEnabledInScenario(this)) {
-                hp += 2;
+                if (properties.magicFlower != null && properties.magicFlower.isRelicEnabledInScenario(this)) {
+                    hp += 3;
+                } else {
+                    hp += 2;
+                }
             }
             hp = Math.min(maxHealth, hp);
             return hp;
@@ -4987,9 +5013,10 @@ public final class GameState implements State {
             if (deckArr[i] == idx) {
                 deckArr[i] = deckArr[deckArrLen - deckArrFixedDrawLen - 1];
                 deckArr[deckArrLen - deckArrFixedDrawLen - 1] = (short) idx;
+                deckArrFixedDrawLen++;
+                break;
             }
         }
-        deckArrFixedDrawLen++;
     }
 
     public void addCardToExhaust(int cardIndex) {
@@ -5155,13 +5182,7 @@ public final class GameState implements State {
     public void adjustEnemiesAlive(int count) {
         enemiesAlive += count;
         if (enemiesAlive == 0) {
-            addGameActionToStartOfDeque(new GameEnvironmentAction() {
-                @Override public void doAction(GameState state) {
-                    for (var handler : properties.endOfBattleHandlers) {
-                        handler.handle(state);
-                    }
-                }
-            });
+            addGameActionToStartOfDeque(EndOfGameAction.instance);
         }
     }
 

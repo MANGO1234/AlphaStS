@@ -285,12 +285,28 @@ public class CardIronclad {
                 return GameActionCtx.PLAY_CARD;
             }
             if (state.properties.makingRealMove || state.properties.stateDescOn) {
-                if (!state.getStateDesc().isEmpty()) state.getStateDesc().append(", ");
+                if (!state.getStateDesc().isEmpty())
+                    state.getStateDesc().append(", ");
                 state.getStateDesc().append(state.properties.cardDict[cardIdx].cardName);
             }
             state.addGameActionToStartOfDeque(new HavocExhaustAction(cardIdx));
             state.addGameActionToStartOfDeque(new HavocAction(cardIdx));
             return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Havoc", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.havocCounterIdx = counterIdx;
+                }
+            });
         }
     }
 
@@ -830,7 +846,7 @@ public class CardIronclad {
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var l = new ArrayList<Card>();
             for (int i = 0; i < cards.size(); i++) {
-                if (cards.get(i).getBaseCard() instanceof BloodForBlood) {
+                if (cards.get(i).getBaseCard() instanceof BloodForBloodP) {
                     l.add(cards.get(i).wrap(new BloodForBloodP(2)));
                     l.add(cards.get(i).wrap(new BloodForBloodP(1)));
                     l.add(cards.get(i).wrap(new BloodForBloodP(0)));
@@ -1024,7 +1040,9 @@ public class CardIronclad {
             });
             state.properties.addOnExhaustHandler("DarkEmbrace", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.addGameActionToEndOfDeque(new CardDrawAction(state.getCounterForRead()[counterIdx]));
+                    }
                 }
             });
         }
@@ -1648,7 +1666,7 @@ public class CardIronclad {
     public static class Rampage extends Card {
         public int limit;
         private int dmg;
-        private boolean upgradable;
+        private boolean upgradable = true;
 
         public Rampage() {
             this(8, 33);
@@ -1734,7 +1752,7 @@ public class CardIronclad {
             state.properties.rampagePTransformIndexes = new int[state.properties.cardDict.length];
             for (int i = 0; i < state.properties.rampagePTransformIndexes.length; i++) {
                 var card = state.properties.cardDict[i].getBaseCard();
-                if (card instanceof Rampage rampage) {
+                if (card instanceof RampageP rampage) {
                     state.properties.rampagePTransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(new RampageP(rampage.dmg + 8, limit)));
                 }
             }
