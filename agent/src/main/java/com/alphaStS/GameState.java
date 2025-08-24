@@ -1105,11 +1105,15 @@ public final class GameState implements State {
         if (count == 0 || getPlayeForRead().cannotDrawCard()) {
             return -1;
         }
+        boolean triggerShuffleEffect = discardArrLen > 0;
         count = Math.min(GameState.HAND_LIMIT - handArrLen, count);
         boolean firstRandomDraw = true;
         int drawnIdx = -1;
         for (int c = 0; c < count; c++) {
-            if (deckArrLen == 0 && (discardArrLen > 0 || (c != 0 && count > 0))) {
+            if (deckArrLen == 0 && (discardArrLen > 0 || triggerShuffleEffect)) {
+                if (discardArrLen == 0) {
+                    triggerShuffleEffect = false;
+                }
                 reshuffle();
             }
             if (deckArrLen == 0) {
@@ -1264,7 +1268,7 @@ public final class GameState implements State {
         }
         if (actionCtx == GameActionCtx.PLAY_CARD) {
             checkWristBladeBuffForZeroCostAttack(cardIdx);
-            if (cloneSource == null && properties.havocCounterIdx >= 0 && getCounterForRead()[properties.havocCounterIdx] == 0) {
+            if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 removeCardFromHand(cardIdx);
             }
             if (realEnergyCost < 0) {
@@ -1499,7 +1503,7 @@ public final class GameState implements State {
             if (transformCardIdx >= 0) {
                 cardIdx = transformCardIdx;
             }
-            if (cloneSource == null && properties.havocCounterIdx >= 0 && getCounterForRead()[properties.havocCounterIdx] == 0) {
+            if (cloneSource == null && (properties.havocCounterIdx < 0 || getCounterForRead()[properties.havocCounterIdx] == 0)) {
                 if (properties.cardDict[cardIdx].exhaustWhenPlayed) {
                     exhaustedCardHandle(cardIdx, true);
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
