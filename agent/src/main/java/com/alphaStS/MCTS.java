@@ -1249,9 +1249,6 @@ public class MCTS {
 //                p_prime = Math.pow(line.p_cur, 1.0 / line.depth) * (1 - ratio) + p_uniform * ratio;
 //            }
             double cpuct = state.properties.cpuct;
-            // if (state.getCounterForRead()[state.properties.biasedCognitionLimitCounterIdx] > 0) {
-            //     cpuct = state.getCounterForRead()[state.properties.biasedCognitionLimitCounterIdx] / 100.0;
-            // }
             if (Configuration.CPUCT_SCALING && (!Configuration.TEST_CPUCT_SCALING || state.properties.testNewFeature)) {
                 cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
             }
@@ -1545,6 +1542,10 @@ public class MCTS {
                 // so switch to total_n^0.25 which seem to work better?
 //                cpuct = cpuct + 0.1 * Math.log((state.total_n + 1 + 5000) / 5000.0);
                 cpuct = cpuct * sqrt(sqrt(Math.max(state.total_n, 1)));
+            }
+
+            if (state.properties.biasedCognitionLimitCounterIdx >= 0) {
+                cpuct = state.getCounterForRead()[state.properties.biasedCognitionLimitCounterIdx] / 100.0;
             }
 
             // std err is an experimentation, not working out, remove in future

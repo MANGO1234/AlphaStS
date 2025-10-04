@@ -21,6 +21,7 @@ import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
+import com.alphaStS.utils.Tuple3;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -76,7 +77,7 @@ public class GameProperties implements Cloneable {
     public boolean previousCardPlayTracking;
     public List<Relic> startOfBattleActions;
     public List<List<String>> perScenarioCommands;
-    public ConcurrentMap<GameState, Tuple<double[], double[]>> biasedCognitionLimitCache = new ConcurrentHashMap<>();
+    public ConcurrentMap<Tuple3<Integer, Integer, Integer>, Tuple<double[], double[]>> biasedCognitionLimitCache = new ConcurrentHashMap<>();
     public boolean biasedCognitionLimitSet;
     public int biasedCognitionLimitUsed;
     public double[] biasedCognitionLimitDistribution;

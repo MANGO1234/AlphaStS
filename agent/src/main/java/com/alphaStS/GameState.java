@@ -22,6 +22,7 @@ import com.alphaStS.utils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantLock;
@@ -315,7 +316,7 @@ public final class GameState implements State {
         // actionCtx, energy, energyRefill, hand, enemies health, previousCardIdx, drawOrder, buffs should cover most
         int result = Objects.hash(actionCtx, energy, energyRefill, starResource, currentAction, drawOrder, buffs);
         for (var enemy : enemies) {
-            result = 31 * result + enemy.getHealth();
+            result = 31 * result + enemy.hashCode();
         }
         if (deckArrFixedDrawLen > 0) { // e.g. need for frozen eye or hash is not distributed evenly
             int[] tmp = new int[deckArrFixedDrawLen];
@@ -327,7 +328,7 @@ public final class GameState implements State {
         if (actionCtx == GameActionCtx.SELECT_CARD_1_OUT_OF_3) {
             result = 31 * result + select1OutOf3CardsIdxes;
         }
-        result = 31 * result + player.getHealth();
+        result = 31 * result + player.hashCode();
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(handArr, handArrLen, properties.cardDict.length));
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(deckArr, deckArrLen, properties.cardDict.length));
         result = 31 * result + Arrays.hashCode(GameStateUtils.getCardArrCounts(discardArr, discardArrLen, properties.realCardsLen));
@@ -1806,16 +1807,17 @@ public final class GameState implements State {
             prevRngOn = ((InteractiveMode.RandomGenInteractive) properties.random).rngOn;
             ((InteractiveMode.RandomGenInteractive) properties.random).rngOn = true;
         }
-        var q = properties.biasedCognitionLimitCache.get(this);
+        var key = new Tuple3<>(preBattleRandomizationIdxChosen, preBattleScenariosChosenIdx, battleRandomizationIdxChosen);
+        var q = properties.biasedCognitionLimitCache.get(key);
         double[] q_win, q_comb;
         if (q == null) {
             q_win = new double[100];
             q_comb = new double[100];
             properties.biasedCognitionLimitSet = true;
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 40; i++) {
                 var c = this.clone(false);
                 c.getCounterForWrite()[properties.biasedCognitionLimitCounterIdx] = i;
-                var upto = properties.isTraining ? 1 : 100;
+                var upto = properties.isTraining ? 1 : 1000;
                 for (int j = 0; j < upto; j++) {
                     properties.currentMCTS.search(c, false, -1);
                 }
@@ -1823,7 +1825,7 @@ public final class GameState implements State {
                 q_comb[i] = c.getQValueTreeSearch(GameState.V_COMB_IDX);
             }
             properties.biasedCognitionLimitSet = false;
-            var qTmp = properties.biasedCognitionLimitCache.putIfAbsent(this.clone(false), new Tuple<>(q_win, q_comb));
+            var qTmp = properties.biasedCognitionLimitCache.putIfAbsent(key, new Tuple<>(q_win, q_comb));
             q_win = qTmp == null ? q_win : qTmp.v1();
             q_comb = qTmp == null ? q_comb : qTmp.v2();
         } else {
@@ -1832,25 +1834,26 @@ public final class GameState implements State {
         }
         properties.biasedCognitionLimitDistribution = q_win;
         q_win = Arrays.copyOf(q_win, q_win.length);
+        q_comb = Arrays.copyOf(q_comb, q_comb.length);
         if (properties.isTraining) {
             var minQ = 100000.0;
-            for (int i = 0; i < q_win.length; i++) {
-                if (q_win[i] < minQ) {
-                    minQ = q_win[i];
+            for (int i = 0; i < q_comb.length; i++) {
+                if (q_comb[i] < minQ) {
+                    minQ = q_comb[i];
                 }
             }
             var sum = 0.0;
-            for (int i = 0; i < q_win.length; i++) {
-                q_win[i] = Math.pow(q_win[i] - minQ, 3);
-                sum += q_win[i];
+            for (int i = 0; i < q_comb.length; i++) {
+                q_comb[i] = Math.pow(q_comb[i] - minQ, 5);
+                sum += q_comb[i];
             }
-            for (int i = 0; i < q_win.length; i++) {
-                q_win[i] /= sum;
+            for (int i = 0; i < q_comb.length; i++) {
+                q_comb[i] /= sum;
             }
             var r = getSearchRandomGen().nextDouble(RandomGenCtx.Misc);
             var t = 0.0;
-            for (int i = 0; i < q_win.length; i++) {
-                t += q_win[i];
+            for (int i = 0; i < q_comb.length; i++) {
+                t += q_comb[i];
                 if (t >= r) {
                     getCounterForWrite()[properties.biasedCognitionLimitCounterIdx] = i;
                     break;
@@ -1860,9 +1863,9 @@ public final class GameState implements State {
             // select highest
             var maxIdx = -1;
             var maxQ = -100.0;
-            for (int i = 0; i < q_win.length; i++) {
-                if (q_win[i] > maxQ) {
-                    maxQ = q_win[i];
+            for (int i = 0; i < q_comb.length; i++) {
+                if (q_comb[i] > maxQ) {
+                    maxQ = q_comb[i];
                     maxIdx = i;
                 }
             }
