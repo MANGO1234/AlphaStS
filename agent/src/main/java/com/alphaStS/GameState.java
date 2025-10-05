@@ -344,7 +344,7 @@ public final class GameState implements State {
         builder.build(this);
         List<Enemy> enemiesArg = builder.getEnemies();
         Player player = builder.getPlayer();
-        List<CardCount> cardCounts = builder.getCards();
+        List<Card> startingDeck = builder.getCards();
         List<Relic> relics = builder.getRelics();
         List<Potion> potions = builder.getPotions();
         GameStateRandomization randomization = builder.getRandomization();
@@ -416,7 +416,7 @@ public final class GameState implements State {
                     .stream().sorted(Comparator.comparingInt(Map.Entry::getKey)).toList();
         }
 
-        var cards = collectAllPossibleCards(cardCounts, enemiesArg, relics, potions);
+        var cards = collectAllPossibleCards(startingDeck, enemiesArg, relics, potions);
 
         // start of game actions
         properties.actionsByCtx = new GameAction[GameActionCtx.values().length][];
@@ -528,15 +528,10 @@ public final class GameState implements State {
         handArr = new short[0];
         discardArr = new short[0];
         exhaustArr = new short[0];
-        for (CardCount cardCount : cardCounts) {
-            deckArrLen += cardCount.count();
-        }
+        deckArrLen = startingDeck.size();
         deckArr = new short[deckArrLen];
-        int idx = 0;
-        for (short i = 0; i < cardCounts.size(); i++) {
-            for (int j = 0; j < cardCounts.get(i).count(); j++) {
-                deckArr[idx++] = (short) properties.findCardIndex(cardCounts.get(i).card());
-            }
+        for (int i = 0; i < startingDeck.size(); i++) {
+            deckArr[i] = (short) properties.findCardIndex(startingDeck.get(i));
         }
         energyRefill = 3;
         this.enemies = new EnemyList(enemiesArg);
@@ -922,8 +917,8 @@ public final class GameState implements State {
         return idxes.stream().mapToInt(Integer::intValue).sorted().toArray();
     }
 
-    private List<Card> collectAllPossibleCards(List<CardCount> cardCounts, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
-        var set = new HashSet<>(cardCounts.stream().map(CardCount::card).toList());
+    private List<Card> collectAllPossibleCards(List<Card> cardList, List<Enemy> enemies, List<Relic> relics, List<Potion> potions) {
+        var set = new HashSet<>(cardList);
         var discardSet = new HashSet<Card>();
         if (properties.preBattleScenarios != null) {
             addPossibleGeneratedCardsFromListOfCard(properties.preBattleScenarios.getPossibleGeneratedCards(), set, discardSet);

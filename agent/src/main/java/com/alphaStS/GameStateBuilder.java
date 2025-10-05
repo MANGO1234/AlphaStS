@@ -1,7 +1,6 @@
 package com.alphaStS;
 
 import com.alphaStS.card.Card;
-import com.alphaStS.card.CardCount;
 import com.alphaStS.card.CardSilent;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyCity;
@@ -22,7 +21,7 @@ import java.util.function.Function;
 public class GameStateBuilder {
     private Player player = null;
     private CharacterEnum character = CharacterEnum.IRONCLAD;
-    private List<CardCount> cards = new ArrayList<>();
+    private List<Card> cards = new ArrayList<>();
     private List<Enemy> enemies = new ArrayList<>();
     private List<EnemyEncounter> enemiesEncounters = new ArrayList<>();
     private List<Integer> gremlinEncounterFightIndexes = new ArrayList<>();
@@ -59,20 +58,28 @@ public class GameStateBuilder {
     }
 
     public void addCard(Card card, int count) {
-        cards.add(new CardCount(card, count));
+        for (int i = 0; i < count; i++) {
+            cards.add(card);
+        }
+    }
+
+    public void addCard(Card... cards) {
+        for (Card card : cards) {
+            this.cards.add(card);
+        }
     }
 
     public List<Card> getStartingCards() {
-        return this.cards.stream().map(CardCount::card).toList();
+        return new ArrayList<>(cards);
     }
 
     public List<Card> getStartingCards(Card... extraCards) {
         var cards = new ArrayList<>(List.of(extraCards));
-        cards.addAll(this.cards.stream().map(CardCount::card).toList());
+        cards.addAll(this.cards);
         return cards;
     }
 
-    public List<CardCount> getCards() {
+    public List<Card> getCards() {
         return cards;
     }
 
@@ -198,8 +205,8 @@ public class GameStateBuilder {
                 break;
             }
         }
-        for (int i = 0; i < cards.size(); i++) {
-            if (cards.get(i).card().cardName.startsWith("Alchemize") && cards.get(i).card() instanceof CardSilent._AlchemizeT alchemize) {
+        for (Card card : cards) {
+            if (card.cardName.startsWith("Alchemize") && card instanceof CardSilent._AlchemizeT alchemize) {
                 if (alchemize.basePenaltyRatio > 0) {
                     canGeneratePotion = true;
                     basePenaltyRatio = Math.max(basePenaltyRatio, alchemize.basePenaltyRatio);
