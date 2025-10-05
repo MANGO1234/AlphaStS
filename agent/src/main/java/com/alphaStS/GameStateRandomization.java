@@ -718,6 +718,214 @@ public interface GameStateRandomization {
         }
     }
 
+    class StateModificationRandomization implements GameStateRandomization {
+        private final List<List<StateModification>> scenarios;
+        private final Map<Integer, Info> infoMap;
+
+        public StateModificationRandomization(List<List<StateModification>> scenarios) {
+            List<List<StateModification>> normalized = new ArrayList<>(scenarios.size());
+            for (List<StateModification> scenario : scenarios) {
+                normalized.add(List.copyOf(scenario));
+            }
+            this.scenarios = List.copyOf(normalized);
+            infoMap = new HashMap<>();
+            double chance = 1.0 / this.scenarios.size();
+            for (int i = 0; i < this.scenarios.size(); i++) {
+                var scenario = this.scenarios.get(i);
+                var descriptions = scenario.stream().map(StateModification::describe).filter((desc) -> !desc.isBlank()).toList();
+                var desc = descriptions.isEmpty() ? "No Change" : String.join(", ", descriptions);
+                infoMap.put(i, new Info(chance, desc));
+            }
+        }
+
+        @Override public int randomize(GameState state) {
+            int r = state.getSearchRandomGen().nextInt(scenarios.size(), RandomGenCtx.BeginningOfGameRandomization, this);
+            randomize(state, r);
+            return r;
+        }
+
+        @Override public void randomize(GameState state, int r) {
+            var scenario = scenarios.get(r);
+            for (StateModification modification : scenario) {
+                modification.modify(state);
+            }
+        }
+
+        @Override public Map<Integer, Info> listRandomizations() {
+            return infoMap;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards() {
+            Set<Card> cards = new LinkedHashSet<>();
+            for (List<StateModification> scenario : scenarios) {
+                for (StateModification modification : scenario) {
+                    cards.addAll(modification.generatedCards());
+                }
+            }
+            return List.copyOf(cards);
+        }
+
+        protected static List<Card> copy(Card... cards) {
+            if (cards == null || cards.length == 0) {
+                return List.of();
+            }
+            return Arrays.asList(cards);
+        }
+
+        protected static List<Card> repeat(Card card, int count) {
+            if (count < 0) {
+                throw new IllegalArgumentException("count must be non-negative");
+            }
+            if (count == 0) {
+                return List.of();
+            }
+            Card[] cards = new Card[count];
+            Arrays.fill(cards, Objects.requireNonNull(card));
+            return List.copyOf(Arrays.asList(cards));
+        }
+
+        protected static Map<Card, Integer> countCards(List<Card> cards) {
+            Map<Card, Integer> counts = new LinkedHashMap<>();
+            for (Card card : cards) {
+                counts.merge(card, 1, Integer::sum);
+            }
+            return counts;
+        }
+
+        protected static String describeCounts(Map<Card, Integer> counts, String prefix) {
+            if (counts.isEmpty()) {
+                return "";
+            }
+            List<String> parts = new ArrayList<>();
+            for (var entry : counts.entrySet()) {
+                parts.add(prefix + entry.getValue() + " " + entry.getKey().cardName);
+            }
+            return String.join(", ", parts);
+        }
+
+        protected static void ensureDeckHasCards(GameState state, Map<Card, Integer> counts) {
+            for (var entry : counts.entrySet()) {
+                int idx = state.properties.findCardIndex(entry.getKey());
+                int current = GameStateUtils.getCardCount(state.getDeckArrForRead(), state.getNumCardsInDeck(), idx);
+                if (current < entry.getValue()) {
+                    throw new RuntimeException("Not enough cards in deck for " + entry.getKey().cardName);
+                }
+            }
+        }
+
+        interface StateModification {
+            void modify(GameState state);
+
+            default List<Card> generatedCards() {
+                return List.of();
+            }
+
+            default String describe() {
+                return "";
+            }
+        }
+
+        static class Add implements StateModification {
+            private final List<Card> cards;
+            private final Map<Card, Integer> counts;
+
+            public Add(Card card, int count) {
+                this.cards = repeat(card, count);
+                this.counts = countCards(this.cards);
+            }
+
+            public Add(Card... cards) {
+                this.cards = copy(cards);
+                this.counts = countCards(this.cards);
+            }
+
+            @Override public void modify(GameState state) {
+                for (Card card : cards) {
+                    state.addCardToDeck(state.properties.findCardIndex(card), false);
+                }
+            }
+
+            @Override public List<Card> generatedCards() {
+                return cards;
+            }
+
+            @Override public String describe() {
+                return describeCounts(counts, "");
+            }
+        }
+
+        static class Remove implements StateModification {
+            private final List<Card> cards;
+            private final Map<Card, Integer> counts;
+
+            public Remove(Card card, int count) {
+                this.cards = repeat(card, count);
+                this.counts = countCards(this.cards);
+            }
+
+            public Remove(Card... cards) {
+                this.cards = copy(cards);
+                this.counts = countCards(this.cards);
+            }
+
+            @Override public void modify(GameState state) {
+                ensureDeckHasCards(state, counts);
+                for (Card card : cards) {
+                    state.removeCardFromDeck(state.properties.findCardIndex(card), false);
+                }
+            }
+
+            @Override public List<Card> generatedCards() {
+                return cards;
+            }
+
+            @Override public String describe() {
+                return describeCounts(counts, "-");
+            }
+        }
+
+        static class Upgrade implements StateModification {
+            private final List<Card> cards;
+            private final Map<Card, Integer> counts;
+
+            public Upgrade(Card card, int count) {
+                this.cards = repeat(card, count);
+                ensureUpgradable(this.cards);
+                this.counts = countCards(this.cards);
+            }
+
+            public Upgrade(Card... cards) {
+                this.cards = copy(cards);
+                ensureUpgradable(this.cards);
+                this.counts = countCards(this.cards);
+            }
+
+            @Override public void modify(GameState state) {
+                ensureDeckHasCards(state, counts);
+                for (Card card : cards) {
+                    state.removeCardFromDeck(state.properties.findCardIndex(card), false);
+                    state.addCardToDeck(state.properties.findCardIndex(card.getUpgrade()), false);
+                }
+            }
+
+            @Override public List<Card> generatedCards() {
+                return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
+            }
+
+            @Override public String describe() {
+                return describeCounts(counts, "Upgrade ");
+            }
+
+            private static void ensureUpgradable(List<Card> cards) {
+                for (Card card : cards) {
+                    if (card.getUpgrade() == null) {
+                        throw new IllegalArgumentException("Card cannot be upgraded: " + card.cardName);
+                    }
+                }
+            }
+        }
+    }
+
     class PlayerHealthRandomization implements GameStateRandomization {
         private final Map<Integer, Info> infoMap;
         private final int[] possibleHealths;
