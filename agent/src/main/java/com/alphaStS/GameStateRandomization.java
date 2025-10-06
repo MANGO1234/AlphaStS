@@ -924,47 +924,21 @@ public interface GameStateRandomization {
                 }
             }
         }
-    }
 
-    class PlayerHealthRandomization implements GameStateRandomization {
-        private final Map<Integer, Info> infoMap;
-        private final int[] possibleHealths;
+        static class PlayerHealth implements StateModification {
+            private final int origHealth;
 
-        public PlayerHealthRandomization(int[] possibleHealths) {
-            this.possibleHealths = possibleHealths;
-            infoMap = new HashMap<>();
-            for (int i = 0; i < possibleHealths.length; i++) {
-                infoMap.put(i, new Info(1.0 / possibleHealths.length, "Health " + possibleHealths[i]));
+            public PlayerHealth(int origHealth) {
+                this.origHealth = origHealth;
             }
-        }
 
-        public PlayerHealthRandomization(int start, int end) {
-            this.possibleHealths = new int[end - start + 1];
-            for (int i = 0; i < possibleHealths.length; i++) {
-                this.possibleHealths[i] = start + i;
+            @Override public void modify(GameState state) {
+                state.getPlayerForWrite().setOrigHealth(origHealth);
             }
-            infoMap = new HashMap<>();
-            for (int i = 0; i < possibleHealths.length; i++) {
-                infoMap.put(i, new Info(1.0 / possibleHealths.length, "Health " + possibleHealths[i]));
+
+            @Override public String describe() {
+                return "Health " + origHealth;
             }
-        }
-
-        @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(possibleHealths.length, RandomGenCtx.BeginningOfGameRandomization, this);
-            randomize(state, r);
-            return r;
-        }
-
-        @Override public void randomize(GameState state, int r) {
-            state.getPlayerForWrite().setHealth(possibleHealths[r]);
-        }
-
-        @Override public Map<Integer, Info> listRandomizations() {
-            return infoMap;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards() {
-            return List.of();
         }
     }
 

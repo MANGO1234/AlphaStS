@@ -8,6 +8,7 @@ import com.alphaStS.GameStateRandomization.StateModificationRandomization;
 import com.alphaStS.GameStateRandomization.StateModificationRandomization.Add;
 import com.alphaStS.GameStateRandomization.StateModificationRandomization.Remove;
 import com.alphaStS.GameStateRandomization.StateModificationRandomization.Upgrade;
+import com.alphaStS.GameStateRandomization.StateModificationRandomization.PlayerHealth;
 
 import java.util.List;
 
@@ -151,20 +152,10 @@ public class TestStates {
         builder.addRelic(new Relic.WarpedTongs());
         var randomization = new StateModificationRandomization(List.of(
                 List.of(),
-                List.of(new Add(new CardIronclad.ShrugItOff())),
-                List.of(new Add(new CardIronclad.Carnage())),
+                List.of(new Upgrade(new CardIronclad.ShrugItOff()), new PlayerHealth(19)),
+                List.of(new Upgrade(new CardIronclad.Carnage()), new PlayerHealth(19)),
                 List.of(new Remove(new CardIronclad.PowerThrough()))
-        )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
-                (state) -> state.getPlayerForWrite().setOrigHealth(41),
-                (state) -> state.getPlayerForWrite().setOrigHealth(19),
-                (state) -> state.getPlayerForWrite().setOrigHealth(19),
-                (state) -> state.getPlayerForWrite().setOrigHealth(41)
-        ))).setDescriptions(
-                "Health 41",
-                "Health 19, Upgrade Shrug It Off",
-                "Health 19, Upgrade Carnage",
-                "Health 41, No Power Through"
-        );
+        ));
         builder.setRandomization(randomization);
         builder.setPlayer(new Player(41, 75));
         return new GameState(builder);
@@ -520,22 +511,12 @@ public class TestStates {
                 List.of(new Add(new CardColorless.Finesse())),
                 List.of(new Add(new CardIronclad.IronWave()))
         )).doAfter(new StateModificationRandomization(List.of(
-                List.of(),
-                List.of(new Upgrade(new CardIronclad.Anger())),
-                List.of(new Upgrade(new CardIronclad.Uppercut()))
-        )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
-                (state) -> state.getPlayerForWrite().setOrigHealth(57),
-                (state) -> state.getPlayerForWrite().setOrigHealth(40),
-                (state) -> state.getPlayerForWrite().setOrigHealth(40)
-        ))).setDescriptions(
-                "Rest",
-                "Upgrade Anger",
-                "Upgrade Uppercut"
-        ));
+                List.of(new PlayerHealth(57)),
+                List.of(new Upgrade(new CardIronclad.Anger()), new PlayerHealth(40)),
+                List.of(new Upgrade(new CardIronclad.Uppercut()), new PlayerHealth(40))
+        )));
         scenarios = scenarios.union(new StateModificationRandomization(List.of(
-                List.of(new Add(new Card.Strike()))
-        ))).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
-                (state) -> state.getPlayerForWrite().setOrigHealth(57)
+                List.of(new Add(new Card.Strike()), new PlayerHealth(57))
         )));
         builder.setPreBattleScenarios(scenarios);
         builder.setPlayer(new Player(40, 57));
@@ -1173,13 +1154,8 @@ public class TestStates {
                 List.of(new Upgrade(new CardDefect.Coolheaded())),
                 List.of(new Upgrade(new CardDefect.Glacier())),
                 List.of(new Upgrade(new CardDefect.Zap())),
-                List.of()
-        )).join(new GameStateRandomization.SimpleCustomRandomization(List.of(
-                (state) -> state.getPlayerForWrite().setOrigHealth(8),
-                (state) -> state.getPlayerForWrite().setOrigHealth(8),
-                (state) -> state.getPlayerForWrite().setOrigHealth(8),
-                (state) -> state.getPlayerForWrite().setOrigHealth(29)
-        ))).setDescriptions(
+                List.of(new PlayerHealth(29))
+        )).setDescriptions(
                 "Health 8, Upgrade Coolheaded",
                 "Health 8, Upgrade Glacier",
                 "Health 8, Upgrade Zap",
@@ -2234,10 +2210,10 @@ public class TestStates {
         builder.setPotionsScenarios(3);
         builder.setGameStateViaInteractiveMode(List.of("", "do", "backfl", "cloak", "curse of", "deflec", "blade", "surviv", "flying", "foo+", "e", "0", "exit"));
         GameStateRandomization randomization = new StateModificationRandomization(List.of(
-                List.of(new Add(new CardSilent.CalculatedGambleP())),
-                List.of(new Add(new CardSilent.Burst())),
+                List.of(new Add(new CardSilent.CalculatedGambleP()), new PlayerHealth(31)),
+                List.of(new Add(new CardSilent.Burst()), new PlayerHealth(31)),
                 List.of()
-        )).join(new GameStateRandomization.PlayerHealthRandomization(new int[] {31, 31, 33}));
+        ));
 //        builder.setPreBattleScenarios(randomization);
         builder.setPlayer(new Player(33, 78));
         return new GameState(builder);
@@ -2294,8 +2270,8 @@ public class TestStates {
         builder.setPotionsScenarios(5);
         GameStateRandomization randomization = new StateModificationRandomization(List.of(
                 List.of(new Add(new CardSilent.CloakAndDaggerP())),
-                List.of()
-        )).join(new GameStateRandomization.PlayerHealthRandomization(new int[] {59, 61}));
+                List.of(new PlayerHealth(61))
+        ));
         builder.setPreBattleScenarios(randomization);
         builder.setGameStateViaInteractiveMode(List.of("1", "", "rng off", "0", "blade+", "31", "5", "ascender", "malaise", "neutra", "blade+", "cataly", "piercing", "tactician", "calculated", "apparition", "finisher", "survivor", "dopple", "diedie", "backflip+", "envenom+", "cloa", "cloa", "esca", "deadly", "malaise+", "backflip+", "footwork+", "flet", "accura+", "apotheos+", "tool", "legswee", "apotheo+", "tool", "poi", "snea", "exit"));
         builder.setPlayer(new Player(59, 61));
@@ -2383,8 +2359,8 @@ public class TestStates {
                 List.of(new Add(new CardSilent.BladeDance())),
                 List.of(new Add(new CardSilent.DodgeAndRoll())),
                 List.of(new Add(new CardSilent.PiercingWail())),
-                List.of()
-        )).join(new GameStateRandomization.PlayerHealthRandomization(new int[] { 31, 31, 31, 33 }));
+                List.of(new PlayerHealth(33))
+        ));
         builder.setPreBattleScenarios(randomization);
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(100));
         builder.setPlayer(new Player(31, 33));
@@ -2432,9 +2408,8 @@ public class TestStates {
                 List.of(new Add(new CardSilent.CloakAndDaggerP())),
                 List.of(new Add(new CardSilent.DeadlyPoisonP())),
                 List.of(new Add(new CardSilent.BulletTimeP())),
-                List.of()
-        )).join(
-                 new GameStateRandomization.PlayerHealthRandomization(new int[] { 67, 67, 67, 69 }));
+                List.of(new PlayerHealth(69))
+        ));
         builder.setGameStateViaInteractiveMode(List.of("", "3", "do", "acro", "gran", "pre", "pre", "ne", "e", "rng off", "0", "6", "exit"));
         builder.setPreBattleScenarios(randomization);
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
