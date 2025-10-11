@@ -1,9 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.card.Card;
-import com.alphaStS.card.CardCount;
 import com.alphaStS.enemy.*;
-import com.alphaStS.player.Player;
 import com.alphaStS.utils.Tuple3;
 
 import java.io.OutputStream;
@@ -1068,55 +1066,6 @@ public interface GameStateRandomization {
 
         @Override public List<Card> getPossibleGeneratedCards() {
             return upgradableCards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
-        }
-    }
-
-    // todo
-    class CampfireRandomization implements GameStateRandomization {
-        private final List<Card> cards;
-        private final Map<Card, Integer> startingCardCount;
-        private final Map<Integer, Info> infoMap;
-        private final int restHp;
-        private final int noRestHp;
-
-        public CampfireRandomization(Player player, List<CardCount> possibleCards, List<Card> cards) {
-            if (cards == null) {
-                this.cards = possibleCards.stream().map(CardCount::card).filter((card) -> card.getUpgrade() != null).toList();
-            } else {
-                this.cards = cards.stream().filter((card) -> card.getUpgrade() != null).toList();
-            }
-            startingCardCount = new HashMap<>();
-            for (Card card : cards) {
-                for (CardCount possibleCard : possibleCards) {
-                    if (possibleCard.card().equals(card)) {
-                        startingCardCount.put(card, possibleCard.count());
-                    }
-                }
-            }
-            noRestHp = player.getHealth();
-            restHp = Math.min(player.getHealth() + (int) (0.3 * player.getMaxHealth()), player.getMaxHealth());
-            infoMap = new HashMap<>();
-            infoMap.put(0, new Info(1.0 / this.cards.size(), "Heal to " + restHp));
-            for (int i = 0; i < this.cards.size(); i++) {
-                infoMap.put(i + 1, new Info(1.0 / this.cards.size(), "Upgrade " + this.cards.get(i)));
-            }
-        }
-
-        @Override public int randomize(GameState state) {
-            int r = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.BeginningOfGameRandomization, this);
-            randomize(state, r);
-            return r;
-        }
-
-        @Override public void randomize(GameState state, int r) {
-        }
-
-        @Override public Map<Integer, Info> listRandomizations() {
-            return infoMap;
-        }
-
-        @Override public List<Card> getPossibleGeneratedCards() {
-            return List.of();
         }
     }
 }
