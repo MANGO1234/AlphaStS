@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.enums;
 
 public enum DebuffType {
     VULNERABLE,

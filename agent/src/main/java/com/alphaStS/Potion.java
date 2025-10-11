@@ -3,6 +3,7 @@ package com.alphaStS;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;

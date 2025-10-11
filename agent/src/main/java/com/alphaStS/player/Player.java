@@ -1,6 +1,7 @@
 package com.alphaStS.player;
 
 import com.alphaStS.*;
+import com.alphaStS.enums.DebuffType;
 
 public class Player extends PlayerReadOnly {
     public Player(int health, int maxHealth, int inBattleMaxHealth) {

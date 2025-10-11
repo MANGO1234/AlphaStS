@@ -5,6 +5,7 @@ import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 

@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.utils;
 
 import java.util.ArrayList;
 import java.util.List;

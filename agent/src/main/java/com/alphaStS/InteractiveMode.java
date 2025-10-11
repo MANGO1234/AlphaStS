@@ -4,6 +4,7 @@ import com.alphaStS.enemy.*;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.ModelExecutor;
+import com.alphaStS.utils.FuzzyMatch;
 import com.alphaStS.utils.ScenarioStats;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Tuple3;
@@ -423,7 +424,7 @@ public class InteractiveMode {
                     if (line.startsWith("IF:")) {
                         action = actions.indexOf(line.substring(3).toLowerCase());
                     } else {
-                        var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
+                        var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
                         if (actionStr != null) {
                             out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
                             action = actions.indexOf(actionStr);
@@ -1013,20 +1014,20 @@ public class InteractiveMode {
                     var allCards = Arrays.stream(state.properties.cardDict).map((c) -> c.cardName.toLowerCase()).toList();
                     // prefer deck first
                     var cards = Arrays.stream(Utils.shortToIntArray(state.getDeckArrForRead())).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).distinct().toList();
-                    var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
+                    var card = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
                     if (card != null) {
                         drawOrder.add(allCards.indexOf(card));
                         continue;
                     }
                     // then prefer discard
                     cards = Arrays.stream(Utils.shortToIntArray(state.getDiscardArrForRead())).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).distinct().toList();
-                    card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
+                    card = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), cards);
                     if (card != null) {
                         drawOrder.add(allCards.indexOf(card));
                         continue;
                     }
                     // then prefer all cards
-                    card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
+                    card = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
                     if (card != null) {
                         drawOrder.add(allCards.indexOf(card));
                         continue;
@@ -1063,7 +1064,7 @@ public class InteractiveMode {
             } else {
                 var enemiesOrig = Arrays.stream(idxes).mapToObj((i) -> state.getEnemiesForRead().get(i).getName() + " (" + i + ")").toList();
                 var enemies = enemiesOrig.stream().map(String::toLowerCase).toList();
-                var enemy = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), enemies);
+                var enemy = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), enemies);
                 if (enemy != null) {
                     out.println("Fuzzy Match: " + enemiesOrig.get(enemies.indexOf(enemy)));
                     return idxes[enemies.indexOf(enemy)];
@@ -1097,7 +1098,7 @@ public class InteractiveMode {
             } else {
                 var movesOrig = IntStream.range(0, curEnemy.properties.numOfMoves).mapToObj((i) -> curEnemy.getMoveString(state, i)).toList();
                 var moves = movesOrig.stream().map((x) -> x.toLowerCase(Locale.ROOT)).toList();
-                var move = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), moves);
+                var move = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), moves);
                 if (move != null) {
                     out.println("Fuzzy Match: " + movesOrig.get(moves.indexOf(move)));
                     state.getEnemiesForWrite().getForWrite(curEnemyIdx).setMove(moves.indexOf(move));
@@ -1548,7 +1549,7 @@ public class InteractiveMode {
                     deckArr[i] = state.deckArr[i];
                 }
                 var allCards = Arrays.stream(deckArr).limit(len).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).toList();
-                var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
+                var card = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
                 if (card != null) {
                     for (int i = 0; i < len; i++) {
                         if (state.properties.cardDict[state.deckArr[i]].cardName.toLowerCase().equals(card)) {
@@ -1583,7 +1584,7 @@ public class InteractiveMode {
                     deckArr[i] = state.deckArr[i];
                 }
                 var allCards = Arrays.stream(deckArr).limit(len).mapToObj((c) -> state.properties.cardDict[c].cardName.toLowerCase()).toList();
-                var card = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
+                var card = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), allCards);
                 if (card != null) {
                     for (int i = 0; i < len; i++) {
                         if (state.properties.cardDict[state.deckArr[i]].cardName.toLowerCase().equals(card)) {
@@ -1830,7 +1831,7 @@ public class InteractiveMode {
                         var _state = state;
                         var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
                         var actions = actionsOrig.stream().map(String::toLowerCase).toList();
-                        var actionStr = FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
+                        var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
                         if (actionStr != null) {
                             out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
                             action = actions.indexOf(actionStr);

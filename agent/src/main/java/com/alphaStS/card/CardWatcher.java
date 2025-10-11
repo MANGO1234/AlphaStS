@@ -1,7 +1,6 @@
 package com.alphaStS.card;
 
-import com.alphaStS.CardManager;
-import com.alphaStS.DebuffType;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameEventCardHandler;
 import com.alphaStS.GameEventHandler;

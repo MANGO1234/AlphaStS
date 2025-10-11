@@ -1,6 +1,5 @@
-package com.alphaStS;
+package com.alphaStS.card;
 
-import com.alphaStS.card.*;
 import com.alphaStS.enums.CharacterEnum;
 
 import java.util.ArrayList;

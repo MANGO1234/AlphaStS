@@ -7,6 +7,7 @@ import com.alphaStS.action.HavocExhaustAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyBeyond;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.CounterStat;
 

@@ -5,6 +5,7 @@ import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
 import com.alphaStS.model.Model;

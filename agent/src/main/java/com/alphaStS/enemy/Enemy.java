@@ -2,6 +2,7 @@ package com.alphaStS.enemy;
 
 import com.alphaStS.*;
 import com.alphaStS.card.Card;
+import com.alphaStS.enums.DebuffType;
 
 import java.util.ArrayList;
 import java.util.List;

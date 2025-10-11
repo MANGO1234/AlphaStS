@@ -6,6 +6,7 @@ import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
 import com.alphaStS.utils.CounterStat;
