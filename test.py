@@ -1,14 +1,16 @@
 import subprocess
 import os
+import json
 import numpy
 import struct
 import sys
 print(sys.byteorder)
 
-lens_str = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar',
-                           'com.alphaStS.Main', '--get-lengths'], capture_output=True).stdout.decode('ascii').split(',')
-input_len = int(lens_str[0])
-num_of_actions = int(lens_str[1])
+lens_raw = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar',
+                           'com.alphaStS.Main', '--get-lengths'], capture_output=True).stdout.decode('utf-8').strip()
+lens_data = json.loads(lens_raw)
+input_len = int(lens_data['inputLength'])
+num_of_actions = int(lens_data['policyLength'])
 agent_output = subprocess.run(['java', '-classpath', f'F:/git/alphaStS/agent/target/classes;{os.getenv("M2_HOME")}/repository/com/microsoft/onnxruntime/onnxruntime/1.10.0/onnxruntime-1.10.0.jar',
                            'com.alphaStS.Main', '-tm', '-c', '1', '-t', '-dir', './tmp'], capture_output=True).stdout
 split1 = agent_output.find(b'--------------------')

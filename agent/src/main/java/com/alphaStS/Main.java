@@ -27,10 +27,7 @@ public class Main {
 //        ((RandomGen.RandomGenPlain) state.properties.random).random.setSeed(5);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
-            System.out.print(state.getNNInput().length + "," + state.properties.totalNumOfActions);
-            for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {
-                System.out.print("," + state.properties.extraTrainingTargetsLabel.get(i) + "," + state.properties.extraTrainingTargets.get(i).getNumberOfTargets());
-            }
+            printLengths(state);
         } else if (args.length > 0 && (args[0].equals("--play") || args[0].equals("-p"))) {
             System.out.println("Seed: " + state.properties.random.getSeed(null));
             playGames(state, args);
@@ -70,6 +67,21 @@ public class Main {
     private static String PREV_ITER_DIRECTORY;
     private static int ITERATION = -1;
     private static int WAIT_FOR_ITERATION = -1;
+
+    private static void printLengths(GameState state) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        root.put("inputLength", state.getNNInput().length);
+        root.put("policyLength", state.properties.totalNumOfActions);
+        var extraTargetsNode = root.putArray("extraTargets");
+        for (int i = 0; i < state.properties.extraTrainingTargets.size(); i++) {
+            ObjectNode targetNode = mapper.createObjectNode();
+            targetNode.put("label", state.properties.extraTrainingTargetsLabel.get(i));
+            targetNode.put("length", state.properties.extraTrainingTargets.get(i).getNumberOfTargets());
+            extraTargetsNode.add(targetNode);
+        }
+        System.out.print(mapper.writeValueAsString(root));
+    }
 
     private static void parseCommonArgs(GameState state, String[] args) {
         for (int i = 0; i < args.length; i++) {

@@ -61,14 +61,14 @@ def snake_case(s):
     return ''.join(['_' + i.lower() if i.isupper()else i for i in s]).lstrip('_')
 
 p = subprocess.run(['java', '--add-opens', 'java.base/java.util=ALL-UNNAMED', '-classpath', CLASS_PATH, 'com.alphaStS.Main', '--get-lengths'], capture_output=True)
-lens_str = p.stdout.decode('ascii').split(',')
-input_len = int(lens_str[0])
-num_of_actions = int(lens_str[1])
+lens_data = json.loads(p.stdout.decode('utf-8').strip())
+input_len = int(lens_data['inputLength'])
+num_of_actions = int(lens_data['policyLength'])
 v_other_lens = []
 v_other_label = []
-for i in range(2, len(lens_str), 2):
-    v_other_label.append(snake_case(lens_str[i]))
-    v_other_lens.append(int(lens_str[i + 1]))
+for target in lens_data.get('extraTargets', []):
+    v_other_label.append(snake_case(target['label']))
+    v_other_lens.append(int(target['length']))
 v_other_len = sum(v_other_lens)
 print(f'input_len={input_len}, policy_len={num_of_actions}, v_other_len={v_other_len}')
 
