@@ -85,14 +85,21 @@ public class CardIronclad {
     }
 
     public static class Armanent extends Card {
+        private boolean canUpgrade = true;
+
         public Armanent() {
             super("Armanent", Card.SKILL, 1, Card.COMMON);
             selectFromHand = true;
         }
 
+        @Override public void gamePropertiesSetup(GameState state) {
+            canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_ARMANENT) != 0;
+            selectFromHand = canUpgrade;
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
-            if (idx >= 0) {
+            if (canUpgrade && idx >= 0) {
                 state.removeCardFromHand(idx);
                 state.addCardToHand(state.properties.upgradeIdxes[idx]);
             }
@@ -100,26 +107,40 @@ public class CardIronclad {
         }
 
         @Override public boolean canSelectCard(Card card) {
-            return card.getUpgrade() != null;
+            return canUpgrade && card.getUpgrade() != null;
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_ARMANENT) == 0) {
+                return List.of();
+            }
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
 
     public static class ArmanentP extends Card {
+        private boolean canUpgrade = true;
+
         public ArmanentP() {
             super("Armanent+", Card.SKILL, 1, Card.COMMON);
         }
 
+        @Override public void gamePropertiesSetup(GameState state) {
+            canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_ARMANENT) != 0;
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.getPlayerForWrite().gainBlock(5);
-            state.handArrTransform(state.properties.upgradeIdxes);
+            if (canUpgrade) {
+                state.handArrTransform(state.properties.upgradeIdxes);
+            }
             return GameActionCtx.PLAY_CARD;
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_ARMANENT) == 0) {
+                return List.of();
+            }
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }

@@ -674,12 +674,21 @@ public class CardColorless {
     }
 
     private static abstract class _ApotheosisT extends Card {
+        private boolean canUpgrade = true;
+
         public _ApotheosisT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
             exhaustWhenPlayed = true;
         }
 
+        @Override public void gamePropertiesSetup(GameState state) {
+            canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_APOTHEOSIS) != 0;
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (!canUpgrade) {
+                return GameActionCtx.PLAY_CARD;
+            }
             state.handArrTransform(state.properties.upgradeIdxes);
             state.discardArrTransform(state.properties.upgradeIdxes);
             state.deckArrTransform(state.properties.upgradeIdxes);
@@ -688,6 +697,9 @@ public class CardColorless {
         }
 
         public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_APOTHEOSIS) == 0) {
+                return List.of();
+            }
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).filter((x) -> !x.cardName.equals(this.cardName)).toList();
         }
     }
