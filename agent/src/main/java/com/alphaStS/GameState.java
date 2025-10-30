@@ -1983,6 +1983,13 @@ public final class GameState implements State {
             }
         }
         chosenCardsArrLen = 0;
+        if (properties.nilroysCodex != null && ((Relic.NilroysCodex) properties.nilroysCodex).openSelection(this)) {
+            return;
+        }
+        completeEndTurnRemainder();
+    }
+
+    private void completeEndTurnRemainder() {
         if (properties.hoveringKiteCounterIdx >= 0 && getCounterForRead()[properties.hoveringKiteCounterIdx] > 0) {
             getCounterForWrite()[properties.hoveringKiteCounterIdx] = 0;
         }
@@ -2112,7 +2119,11 @@ public final class GameState implements State {
                 playCard(currentAction, action.idx(), true, actionCardCloneSource, true, false, -1, -1);
             }
         } else if (action.type() == GameActionType.SELECT_CARD_1_OUT_OF_3) {
-            if (turnNum == 0) {
+            if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
+                addCardToDeck(action.idx());
+                setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
+                completeEndTurnRemainder();
+            } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     addCardToDeck(action.idx(), false);
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
@@ -2171,7 +2182,10 @@ public final class GameState implements State {
                 runActionsInQueueIfNonEmpty();
             }
         } else if (action.type() == GameActionType.END_SELECT_CARD_1_OUT_OF_3) {
-            if (turnNum == 0) {
+            if (currentAction != null && properties.nilroysCodexHelperCardIdx >= 0 && currentAction.idx() == properties.nilroysCodexHelperCardIdx) {
+                setActionCtx(GameActionCtx.BEGIN_TURN, null, null);
+                completeEndTurnRemainder();
+            } else if (turnNum == 0) {
                 if (Configuration.HEART_GAUNTLET_CARD_REWARD) { // todo
                     setActionCtx(GameActionCtx.BEGIN_BATTLE, null, null);
                 } else {

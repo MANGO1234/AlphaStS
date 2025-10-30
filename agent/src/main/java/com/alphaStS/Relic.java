@@ -2036,14 +2036,28 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     // Neows Blessing: No need to implement
 
-    public static class NilrysCodex extends Relic {
-
+    public static class NilroysCodex extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            // todo: implement later
+            state.properties.nilroysCodex = this;
+            int helperIdx = state.properties.findCardIndex(new CardOther.NilroysCodexChoice());
+            state.properties.nilroysCodexHelperCardIdx = helperIdx;
+            state.properties.nilroysCodexIdxes = Arrays.stream(generatedCardIdxes).filter(idx -> idx != helperIdx).toArray();
+        }
+
+        public boolean openSelection(GameState state) {
+            if (!isRelicEnabledInScenario(state)) {
+                return false;
+            }
+            state.setSelect1OutOf3Idxes(state.properties.nilroysCodexIdxes);
+            var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][state.properties.nilroysCodexHelperCardIdx];
+            state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, action, NilroysCodex.class);
+            return true;
         }
 
         @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
-            return getPossibleSelect1OutOf3Cards(properties);
+            var result = new ArrayList<>(getPossibleSelect1OutOf3Cards(properties));
+            result.add(new CardOther.NilroysCodexChoice());
+            return result;
         }
 
         @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {

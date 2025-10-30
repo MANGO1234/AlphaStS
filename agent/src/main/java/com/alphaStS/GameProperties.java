@@ -94,7 +94,8 @@ public class GameProperties implements Cloneable {
     public int[] tmpModifiedCardReverseTransformIdxes;
     public int[] select1OutOf3CardsIdxes;
     public int[] select1OutOf3CardsReverseIdxes;
-    public int[] nilrysCodexIdxes;
+    public int[] nilroysCodexIdxes;
+    public int nilroysCodexHelperCardIdx = -1;
     public int[] cardRewardIdxes;
     public int[] astrolabeCardsIdxes;
     public int[] pandorasBoxCardsIdxes;
@@ -203,6 +204,7 @@ public class GameProperties implements Cloneable {
     public Relic sacredBark = null;
     public Relic strangeSpoon = null;
     public Relic toolbox = null;
+    public Relic nilroysCodex = null;
     public Relic turnip = null;
     public Relic unceasingTop = null;
     public Relic torii = null;

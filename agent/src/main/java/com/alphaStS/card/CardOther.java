@@ -560,6 +560,16 @@ public class CardOther {
         }
     }
 
+    public static class NilroysCodexChoice extends Card {
+        public NilroysCodexChoice() {
+            super("Nilroy's Codex", Card.SKILL, 0, Card.RARE);
+        }
+
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
     public static class ScryOnShuffle extends Card {
         public ScryOnShuffle() {
             super("Scry On Shuffle", Card.SKILL, 0, Card.COMMON);
