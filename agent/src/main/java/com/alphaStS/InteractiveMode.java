@@ -1416,15 +1416,17 @@ public class InteractiveMode {
         currentIdx2 = currentIdx2 >= currentIdx1 ? currentIdx2 + 1 : currentIdx2;
         int currentPick = currentIdx1 == 255 ? 0 : currentIdx2 == 255 ? 1 : 2;
         int p = 0;
+        var availableCards = new ArrayList<String>();
         for (int i = 0; i < potionsIdxes.length; i++) {
             if (i == currentIdx1 || i == currentIdx2) {
                 continue;
             }
             var card = state.properties.cardDict[potionsIdxes[i]];
             out.println(p + ". " + card.cardName);
+            availableCards.add(card.cardName.toLowerCase(Locale.ROOT));
             p++;
         }
-        return readIntCommand(reader, history, potionsIdxes.length - currentPick);
+        return readIntCommand(reader, history, availableCards);
     }
 
     int selectCostForSnecko(BufferedReader reader, Tuple<GameState, Integer> arg, List<String> history) throws IOException {
@@ -1647,6 +1649,32 @@ public class InteractiveMode {
             int r = parseInt(line, -1);
             if (r >= 0 && r < x) {
                 return r;
+            }
+            out.println("Unknown Command");
+        }
+    }
+
+    private int readIntCommand(BufferedReader reader, List<String> history, List<String> options) throws IOException {
+        var normalizedOptions = options.stream()
+                .map((option) -> option == null ? "" : option.toLowerCase(Locale.ROOT))
+                .collect(Collectors.toList());
+        while (true) {
+            out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r >= 0 && r < options.size()) {
+                return r;
+            }
+            if (line != null) {
+                String normalizedInput = line.toLowerCase(Locale.ROOT);
+                String match = FuzzyMatch.getBestFuzzyMatch(normalizedInput, normalizedOptions);
+                if (match != null) {
+                    int idx = normalizedOptions.indexOf(match);
+                    if (idx >= 0) {
+                        return idx;
+                    }
+                }
             }
             out.println("Unknown Command");
         }
