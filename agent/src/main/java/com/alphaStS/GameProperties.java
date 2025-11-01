@@ -82,6 +82,7 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_RAMPAGE_UPGRADE = 1 << 7;
     public final static int GENERATE_CARD_ARMANENT = 1 << 8;
     public final static int GENERATE_CARD_APOTHEOSIS = 1 << 9;
+    public final static int GENERATE_CARD_SEARING_BLOW_UPGRADE = 1 << 10;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
     public int generateCardOptions;
 

@@ -1866,6 +1866,7 @@ public class CardIronclad {
     public static class SearingBlow extends Card {
         private final static int MAX_UPGRADES = 10;
         private final int n;
+        private boolean upgradable = true;
 
         public SearingBlow(int numberOfUpgrades) {
             super(numberOfUpgrades == 0 ? "Searing Blow" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2, Card.UNCOMMON);
@@ -1873,13 +1874,32 @@ public class CardIronclad {
             selectEnemy = true;
         }
 
+        public SearingBlow(int numberOfUpgrades, boolean upgradable) {
+            this(numberOfUpgrades);
+            this.upgradable = upgradable;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            upgradable = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_SEARING_BLOW_UPGRADE) != 0;
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n * (n + 7) / 2 + 12);
             return GameActionCtx.PLAY_CARD;
         }
 
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            if ((properties.generateCardOptions & GameProperties.GENERATE_CARD_SEARING_BLOW_UPGRADE) == 0 || n >= MAX_UPGRADES) {
+                return List.of();
+            }
+            return List.of(new SearingBlow(n + 1, upgradable));
+        }
+
         public Card getUpgrade() {
-            return n >= MAX_UPGRADES ? null : new SearingBlow(n + 1);
+            if (!upgradable || n >= MAX_UPGRADES) {
+                return null;
+            }
+            return new SearingBlow(n + 1);
         }
     }
 
