@@ -3,6 +3,7 @@ saves*
 tmp/
 __pycache__
 *.c
+*.class
 *.iml
 agent/.idea/
 *.pyd
