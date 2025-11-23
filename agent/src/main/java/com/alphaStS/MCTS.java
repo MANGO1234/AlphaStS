@@ -240,7 +240,7 @@ public class MCTS {
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
                         state2 = cState.getNextState(true, level);
                         if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, null)) {
-                            Integer.parseInt(null); // fail for now
+                            throw CrashException.builder().withState(state).withAction(action).withChildState(state2).build();
                         }
                         cState.correctV(state2, v, realV);
                         if (true) {
@@ -248,13 +248,13 @@ public class MCTS {
                             newS = newS.doAction(action);
                             updateTranspositions(newS, state2, state, action);
                         } else {
-                            Integer.parseInt(null);
+                            throw CrashException.builder().withState(state).withAction(action).withChildState(state2).build();
                         }
                     }
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         state2 = cState.getNextState(true, level);
                         if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, null)) {
-                            Integer.parseInt(null); // fail for now
+                            throw CrashException.builder().withState(state).withAction(action).withChildState(state2).build();
                         }
                         cState.correctV(state2, v, realV);
                     }
@@ -262,7 +262,7 @@ public class MCTS {
                 } else {
                     state2 = cState.getNextState(true, level);
                     if (handleFailedSearch2(state, action, state2, training, remainingCalls, false, level + 1, null)) {
-                        Integer.parseInt(null); // fail for now
+                        throw CrashException.builder().withState(state).withAction(action).withChildState(state2).build();
                     }
                     cState.correctV(state2, v, realV);
                     if (Configuration.UPDATE_TRANSPOSITIONS_ON_ALL_PATH && (!Configuration.TEST_UPDATE_TRANSPOSITIONS_ON_ALL_PATH || state.properties.testNewFeature)) {
@@ -634,7 +634,7 @@ public class MCTS {
                     state.ns[action] = cState;
                     state.writeUnlock();
                     if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false, null)) {
-                        Integer.parseInt(null); // fail for now
+                        throw CrashException.builder().withState(state).withAction(action).withChildState(node.state).build();
                     }
                     cState.correctVParallel(node, false, v, realV);
                 } else {
@@ -646,7 +646,7 @@ public class MCTS {
                     state.ns[action] = cState;
                     state.writeUnlock();
                     if (handleFailedSearch2Parallel(state, action, node.state, training, remainingCalls, false, level + 1, false, null)) {
-                        Integer.parseInt(null); // fail for now
+                        throw CrashException.builder().withState(state).withAction(action).withChildState(node.state).build();
                     }
                     cState.correctVParallel(node, false, v, realV);
                 }
@@ -739,7 +739,7 @@ public class MCTS {
                     if (ns.total_n == 0 || Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         var n = ns.getNextStateParallel();
                         if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false, null)) {
-                            Integer.parseInt(null); // fail for now
+                            throw CrashException.builder().withState(state).withAction(action).withChildState(n.v1().state).build();
                         }
                         ns.correctVParallel(n.v1(), n.v2(), v, realV);
                     }
@@ -757,7 +757,7 @@ public class MCTS {
                     if (Configuration.isTranspositionAlwaysExpandNewNodeOn(state)) {
                         var n = cState.getNextStateParallel();
                         if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false, null)) {
-                            Integer.parseInt(null); // fail for now
+                            throw CrashException.builder().withState(state).withAction(action).withChildState(n.v1().state).build();
                         }
                         cState.correctVParallel(n.v1(), n.v2(), v, realV);
                     }
@@ -769,7 +769,7 @@ public class MCTS {
                 } else {
                     var n = cState.getNextStateParallel();
                     if (handleFailedSearch2Parallel(state, action, n.v1().state, training, remainingCalls, false, level + 1, false, null)) {
-                        Integer.parseInt(null); // fail for now
+                        throw CrashException.builder().withState(state).withAction(action).withChildState(n.v1().state).build();
                     }
                     cState.correctVParallel(n.v1(), n.v2(), v, realV);
                 }

@@ -8,6 +8,7 @@ import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
 import com.alphaStS.Configuration;
+import com.alphaStS.CrashException;
 import com.alphaStS.GameActionCtx;
 import com.alphaStS.GameState;
 import com.alphaStS.utils.Utils;
@@ -166,7 +167,7 @@ public class ModelPlain implements Model {
                 for (int i = 0; i < state.getLegalActions().length; i++) {
                     System.err.println(state.getActionString(i));
                 }
-                Integer.parseInt(null);
+                throw CrashException.builder().withState(state).build();
             }
         }
 

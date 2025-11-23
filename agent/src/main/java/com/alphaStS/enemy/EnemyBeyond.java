@@ -479,7 +479,7 @@ public class EnemyBeyond {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     var c = state.getCounterForWrite();
                     if (c[state.properties.timeEaterCounterIdx] == 12) {
-                        Integer.parseInt(null);
+                        throw CrashException.builder().withState(state).build();
                     }
                     for (var enemy : state.getEnemiesForRead()) {
                         if (enemy instanceof TimeEater && enemy.isAlive()) {
@@ -937,7 +937,7 @@ public class EnemyBeyond {
                     System.err.println(prevScythe);
                     System.err.println(newMove);
                     System.err.println(mm);
-                    Integer.parseInt(null);
+                    throw CrashException.builder().withState(state).build();
                 }
             }
             lastMove = move;

@@ -1443,7 +1443,7 @@ public class MatchSession {
                                             stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
                                         }
                                     } else {
-                                        Integer.parseInt(null);
+                                        throw CrashException.builder().withState(state).withAction(action).build();
                                     }
                                 }
                             } else {
@@ -1471,7 +1471,7 @@ public class MatchSession {
                                 if (idx < state.getLegalActions().length && state.getLegalActions()[idx] == action) {
                                     stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
                                 } else {
-                                    Integer.parseInt(null);
+                                    throw CrashException.builder().withState(state).withAction(action).build();
                                 }
                             } else {
                                 stream.writeFloat(-1);
@@ -1492,7 +1492,7 @@ public class MatchSession {
                                     stream.writeFloat((float) (((double) state.n[idx++]) / state.total_n));
                                 }
                             } else {
-                                Integer.parseInt(null);
+                                throw CrashException.builder().withState(state).withAction(action).build();
                             }
                         } else {
                             stream.writeFloat(-1);

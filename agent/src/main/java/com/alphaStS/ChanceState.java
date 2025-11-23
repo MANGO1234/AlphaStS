@@ -162,7 +162,7 @@ public class ChanceState implements State {
                     return entry.getValue().state;
                 }
             }
-            Integer.parseInt(null);
+            throw CrashException.builder().withState(parentState).withAction(parentAction).build();
         }
         if (useProgressiveWidening && Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
             if (prevWidenedNode != null) {
@@ -243,7 +243,7 @@ public class ChanceState implements State {
                     return entry.getValue().state;
                 }
             }
-            Integer.parseInt(null);
+            throw CrashException.builder().withState(parentState).withAction(parentAction).build();
         }
         if (useProgressiveWidening && Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS) {
             node = otherCache.get(state);
