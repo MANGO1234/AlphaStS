@@ -1688,7 +1688,7 @@ public class CardIronclad {
     public static class Rampage extends Card {
         public int limit;
         private int dmg;
-        private boolean upgradable = true;
+        private boolean upgradable = false;
 
         public Rampage() {
             this(8, 33);
@@ -1701,6 +1701,11 @@ public class CardIronclad {
             selectEnemy = true;
         }
 
+        public Rampage(int dmg, int limit, boolean upgradable) {
+            this(dmg, limit);
+            this.upgradable = upgradable;
+        }
+
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
@@ -1711,7 +1716,7 @@ public class CardIronclad {
             for (Card card : cards) {
                 if (card.getBaseCard() instanceof Rampage) {
                     for (int j = dmg + 5; j <= limit; j += 5) {
-                        c.add(card.wrapAfterPlay(new Rampage(j, limit)));
+                        c.add(card.wrapAfterPlay(new Rampage(j, limit, upgradable)));
                     }
                 }
             }

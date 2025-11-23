@@ -847,6 +847,9 @@ public interface GameStateRandomization {
 
             @Override public void modify(GameState state) {
                 state.getPlayerForWrite().setOrigHealth(origHealth);
+                if (origHealth > state.getPlayerForWrite().getInBattleMaxHealth()) {
+                    state.getPlayerForWrite().setInBattleMaxHealth(origHealth);
+                }
             }
 
             @Override public String describe() {
@@ -901,6 +904,13 @@ public interface GameStateRandomization {
                         enemy.setHealth(enemy.properties.maxHealth);
                     }
                 }
+            }  else if (encounter.encounterEnum == EnemyEncounter.EncounterEnum.COLLECTOR) {
+                for (var t : encounter.idxes) {
+                    var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
+                    if (enemy instanceof EnemyCity.TheCollector) {
+                        enemy.setHealth(enemy.properties.maxHealth);
+                    }
+                }
             } else {
                 for (var t : encounter.idxes) {
                     var enemy = state.getEnemiesForWrite().getForWrite(t.v1());
@@ -917,7 +927,13 @@ public interface GameStateRandomization {
             if (encounter.startingHealth >= 1) {
                 state.getPlayerForWrite().setHealth(encounter.startingHealth);
             }
-            state.enemiesAlive = encounter.idxes.size();
+            int k = 0;
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                if (state.getEnemiesForRead().get(i).getHealth() > 0) {
+                    k++;
+                }
+            }
+            state.enemiesAlive = k;
         }
 
         @Override public Map<Integer, Info> listRandomizations() {

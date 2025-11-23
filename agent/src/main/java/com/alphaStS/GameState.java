@@ -823,22 +823,24 @@ public final class GameState implements State {
     }
 
     private int[] findCardThatCanHealIdxes(List<Card> cards, List<Relic> relics) {
-        // todo
-        long c = cards.stream().filter((x) -> x.healPlayer).count();
-        if (c == 0) {
-            return null;
-        }
-        int[] r = new int[(int) c];
-        int idx = 0;
-        for (int i = 0; i < cards.size(); i++) {
-            if (cards.get(i).healPlayer) {
-                r[idx++] = i;
+        boolean hasBirdFaceUrn = false;
+        for (Relic relic : relics) {
+            if (relic instanceof Relic.BirdFacedUrn) {
+                hasBirdFaceUrn = true;
             }
         }
-        return r;
+        List<Integer> idxes = new ArrayList<>();
+        for (int i = 0; i < cards.size(); i++) {
+            if (cards.get(i).healPlayer) {
+                idxes.add(i);
+            } else if (hasBirdFaceUrn && cards.get(i).cardType == Card.POWER) {
+                idxes.add(i);
+            }
+        }
+        return idxes.isEmpty() ? null : idxes.stream().mapToInt(Integer::intValue).toArray();
     }
 
-    private int[] findUpgradeIdxes(List<Card> cards, List<Relic> relics, List<Potion> potions) {
+    private int[] findUpgradeIdxes(List<Card> cards) {
         int[] r = new int[cards.size()];
         Arrays.fill(r, -1);
         for (int i = 0; i < r.length; i++) {
@@ -987,7 +989,7 @@ public final class GameState implements State {
             }
         }
 
-        properties.upgradeIdxes = findUpgradeIdxes(cards, relics, potions);
+        properties.upgradeIdxes = findUpgradeIdxes(cards);
         properties.discardIdxes = findDiscardToKeepTrackOf(discardSet, cards, potions);
         properties.discardReverseIdxes = new int[properties.realCardsLen];
         for (int i = 0; i < properties.discardIdxes.length; i++) {
@@ -2639,6 +2641,35 @@ public final class GameState implements State {
                 maxPossibleIncreaseInMaxHP = CardIronclad.Feed.getMaxPossibleFeedRemaining(this);
                 maxHealPreBattleEnd += maxPossibleIncreaseInMaxHP;
             }
+            if (properties.birdFacedUrn != null) {
+                for (int i = 0; i < handArrLen; i++) {
+                    if (properties.cardDict[handArr[i]].cardType == Card.POWER) {
+                        if (properties.cardDict[handArr[i]].getBaseCard() instanceof CardDefect._CreativeAIT) {
+                            maxPossiblePowers += 1000;
+                        } else {
+                            maxPossiblePowers++;
+                        }
+                    }
+                }
+                for (int i = 0; i < deckArrLen; i++) {
+                    if (properties.cardDict[deckArr[i]].cardType == Card.POWER) {
+                        if (properties.cardDict[deckArr[i]].getBaseCard() instanceof CardDefect._CreativeAIT) {
+                            maxPossiblePowers += 1000;
+                        } else {
+                            maxPossiblePowers++;
+                        }
+                    }
+                }
+                for (int i = 0; i < discardArrLen; i++) {
+                    if (properties.cardDict[discardArr[i]].cardType == Card.POWER) {
+                        if (properties.cardDict[discardArr[i]].getBaseCard() instanceof CardDefect._CreativeAIT) {
+                            maxPossiblePowers += 1000;
+                        } else {
+                            maxPossiblePowers++;
+                        }
+                    }
+                }
+            }
             if (properties.healCardsIdxes != null) {
                 for (int i = 0; i < properties.healCardsIdxes.length; i++) {
                     if (properties.healCardsIdxes[i] < 0) {
@@ -2652,13 +2683,6 @@ public final class GameState implements State {
                     }
                     if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Bite")) {
                         maxHealPreBattleEnd += 10000;
-                    }
-                    if (properties.birdFacedUrn != null && properties.cardDict[properties.healCardsIdxes[i]].cardType == Card.POWER) {
-                        if (properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Creative AI")) {
-                            maxPossiblePowers += 1000;
-                        } else {
-                            maxPossiblePowers++;
-                        }
                     }
                     if (!GameProperties.isHeartFight(this) && properties.cardDict[properties.healCardsIdxes[i]].cardName.startsWith("Self Repair")) {
                         int m = getNonExhaustCount(properties.healCardsIdxes[i]);

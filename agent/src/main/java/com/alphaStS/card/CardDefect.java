@@ -2643,7 +2643,7 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _CreativeAIT extends Card {
+    public static abstract class _CreativeAIT extends Card {
         public _CreativeAIT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
         }

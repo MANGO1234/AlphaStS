@@ -398,7 +398,7 @@ public class MatchSession {
                     chanceNodeStats.get(game.steps.get(0).state()).add(game.steps, steps2, result.modelCalls2, result.reruns);
                 }
                 game_i.incrementAndGet();
-                if (matchLogWriter != null) {
+                if (matchLogWriter != null && game.steps.get(game.steps.size() - 1).state().isTerminal() < 0) {
                     matchLogWriter.write("*** Match " + game_i + " ***\n");
                     writeGameRecord(matchLogWriter, result, steps, combinedInfoMap, r);
                 }

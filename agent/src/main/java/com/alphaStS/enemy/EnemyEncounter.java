@@ -15,6 +15,7 @@ public class EnemyEncounter {
         SPEAR_AND_SHIELD,
         SLIME_BOSS,
         BRONZE_AUTOMATON,
+        COLLECTOR,
     }
 
     public int startingHealth;
@@ -408,7 +409,7 @@ public class EnemyEncounter {
     }
 
     public static void addCollectorFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(new EnemyCity.TorchHead(), new EnemyCity.TorchHead(), new EnemyCity.TheCollector());
+        builder.addEnemyEncounter(EncounterEnum.COLLECTOR, new EnemyCity.TorchHead(), new EnemyCity.TorchHead(), new EnemyCity.TheCollector());
     }
 
     public static void addCultistsFight(GameStateBuilder builder) {
