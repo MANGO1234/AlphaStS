@@ -1409,6 +1409,19 @@ public class InteractiveMode {
         return 7;
     }
 
+    int selectShieldGremlinTarget(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        out.println("Select enemy for Shield Gremlin to protect:");
+        int idx = 0;
+        for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+            var enemy = state.getEnemiesForRead().get(i);
+            if (enemy.isAlive() && !(enemy instanceof EnemyExordium.ShieldGremlin)) {
+                out.println(idx + ". " + enemy.getName() + " (" + i + ")");
+                idx++;
+            }
+        }
+        return readIntCommand(reader, history, state.enemiesAlive - 1);
+    }
+
     int selectCardsForCardGenPotion(BufferedReader reader, Tuple3<GameState, Integer, int[]> arg, List<String> history, int[] potionsIdxes) throws IOException {
         var state = arg.v1();
         int currentIdx1 = arg.v2() & 255;
@@ -2586,6 +2599,13 @@ public class InteractiveMode {
             case GremlinLeader -> {
                 try {
                     return interactiveMode.selectGremlinForGremlinLeaderEncounter(reader, history);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            case ShieldGremlin -> {
+                try {
+                    return interactiveMode.selectShieldGremlinTarget(reader, (GameState) arg, history);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }

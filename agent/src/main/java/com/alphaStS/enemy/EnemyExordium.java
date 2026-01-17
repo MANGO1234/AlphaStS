@@ -2240,7 +2240,7 @@ public class EnemyExordium {
                     int r = 0;
                     if (state.enemiesAlive > 2) {
                         state.setIsStochastic();
-                        r = state.getSearchRandomGen().nextInt(state.enemiesAlive - 1, RandomGenCtx.ShieldGremlin);
+                        r = state.getSearchRandomGen().nextInt(state.enemiesAlive - 1, RandomGenCtx.ShieldGremlin, state);
                     }
                     for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                         if (enemy != self) {
