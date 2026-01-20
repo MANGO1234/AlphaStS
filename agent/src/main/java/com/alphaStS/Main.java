@@ -43,6 +43,12 @@ public class Main {
         } else if (args.length > 0 && args[0].equals("--server")) {
             System.out.println("Seed: " + state.properties.random.getSeed(null));
             startServer(state, args);
+        } else if (args.length > 0 && args[0].equals("--interactive-server")) {
+            System.out.println("Seed: " + state.properties.random.getSeed(null));
+            parseCommonArgs(state, args);
+            InteractiveServer.start(state, args);
+        } else if (args.length > 0 && args[0].equals("--interactive-server-test")) {
+            InteractiveServer.test(args);
         } else {
             System.out.println("Invalid arguments");
         }
@@ -442,5 +448,4 @@ public class Main {
             }
         }
     }
-
 }
