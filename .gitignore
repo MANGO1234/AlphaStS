@@ -18,3 +18,4 @@ agent/tests/
 .interactive_server.log
 .serena/
 .mcp.json
+!.claude/skills/
