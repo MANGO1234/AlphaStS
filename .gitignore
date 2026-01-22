@@ -12,3 +12,5 @@ target
 agent/hs_err_p*
 *.java~
 .claude/
+.interactive_server.pid
+.interactive_server.log
