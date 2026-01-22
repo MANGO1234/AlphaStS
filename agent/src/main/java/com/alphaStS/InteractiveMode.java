@@ -146,32 +146,7 @@ public class InteractiveMode {
             history.add(line);
 
             if (line.equals("e") || line.equals("End Turn")) {
-                var parentState = state;
-                state.clearAllSearchInfo();
-                if (!isApplyingHistory) {
-                    state = state.clone(false);
-                }
-                for (int i = 0; i < state.getLegalActions().length; i++) {
-                    if (state.getAction(i).type() == GameActionType.END_TURN) {
-                        states.add(new GameStep(parentState, i));
-                        history.add("# End of Turn");
-                        history.add("# " + state);
-                        state.properties.makingRealMove = true;
-                        state = state.doAction(i);
-                        state.properties.makingRealMove = false;
-                        break;
-                    }
-                }
-                for (int i = 0; i < state.getLegalActions().length; i++) {
-                    if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
-                        state.properties.makingRealMove = true;
-                        state = state.doAction(i);
-                        state.properties.makingRealMove = false;
-                        history.add("# Start of Turn");
-                        history.add("# " + state);
-                        break;
-                    }
-                }
+                state = handleEndTurn(state, states, history, isApplyingHistory);
                 printState = true;
             } else if (line.startsWith("#")) {
                 if (line.startsWith("##")) {
@@ -213,26 +188,7 @@ public class InteractiveMode {
             } else if (line.equals("input")) {
                 out.println(Arrays.toString(state.getNNInput()));
             } else if (line.equals("states")) {
-                int m = 0;
-                for (int i = 0; i < states.size(); i++) {
-                    if (i > 0 &&
-                            states.get(i - 1).state().currentAction != null &&
-                            states.get(i - 1).state().currentAction.type() == GameActionType.PLAY_CARD &&
-                            state.properties.cardDict[states.get(i - 1).state().currentAction.idx()].cardName.startsWith("Well-Laid Plans") &&
-                            states.get(i).state().actionCtx != GameActionCtx.SELECT_CARD_HAND) {
-                        out.println("\n" + states.get(i));
-                        m = 0;
-                    }
-                    out.println((++m) + ". " + states.get(i).state().getActionString(states.get(i).action()));
-                    var tmp = states.get(i).state().clone(false);
-                    tmp.getDrawOrderForWrite().clear(); // todo: need to do parallel actions so e.g. rebound works
-                    tmp = tmp.doAction(states.get(i).action());
-                    if ((tmp.isStochastic || states.get(i).state().getAction(states.get(i).action()).type() == GameActionType.END_TURN) && i < states.size() - 1) {
-                        out.println("\n" + states.get(i + 1));
-                        m = 0;
-                    }
-                }
-                out.println("-------------------------------------------------------------------------");
+                printActionHistory(state, states);
             } else if (line.startsWith("model ")) {
                 modelExecutor = new ModelExecutor(line.split(" ")[1]);
             } else if (line.equals("eh")) {
@@ -283,23 +239,7 @@ public class InteractiveMode {
                     out.println(l);
                 }
             } else if (line.equals("save") || line.startsWith("save ")) {
-                String suffix = "";
-                if (line.startsWith("save ")) {
-                    suffix = line.split(" ")[1];
-                }
-                if (suffix.equals("play")) {
-                    out.print("List.of(\"\"");
-                    List<String> hist = filterHistory(history.subList(lastHistoryIdxAfterPreBattle, history.size()));
-                    hist = hist.stream().filter(x -> !x.startsWith("#") && !x.startsWith("seed ")).collect(Collectors.toList());
-                    for (String l : hist) {
-                        out.print(", \"" + l + "\"");
-                    }
-                    out.println(", \"exit\")");
-                } else {
-                    BufferedWriter writer = new BufferedWriter(new FileWriter(saveDir + "/session" + suffix + ".txt"));
-                    writer.write(String.join("\n", filterHistory(history)) + "\n");
-                    writer.close();
-                }
+                handleSaveSession(line, saveDir, history, lastHistoryIdxAfterPreBattle);
             } else if (line.equals("load") || line.startsWith("load ")) {
                 String suffix = "";
                 if (line.startsWith("load ")) {
@@ -350,40 +290,7 @@ public class InteractiveMode {
                 interactiveRecordSeed(state, history);
                 ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
             } else if (line.equals("config")) {
-                out.println("1. Progressive Widening (" + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off") + ")");
-                out.println("2. Progressive Widening Improvements (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off") + ")");
-                out.println("3. Progressive Widening Improvements 2 (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off") + ")");
-                out.println("4. Ban Transposition In Tree (" + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off") + ")");
-                out.println("5. Flatten Policy As Nodes Increase (" + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off") + ")");
-                out.println("6. Prioritize Chance Nodes Before Deterministic In Tree (" + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off") + ")");
-                out.println("0. Exit");
-                while (true) {
-                    out.print("> ");
-                    line = reader.readLine();
-                    history.add(line);
-                    int r = parseInt(line, -1);
-                    if (r == 0) {
-                        break;
-                    } else if (r == 1) {
-                        Configuration.USE_PROGRESSIVE_WIDENING = !Configuration.USE_PROGRESSIVE_WIDENING;
-                        out.println("Progressive Widening: " + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off"));
-                    } else if (r == 2) {
-                        Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS;
-                        out.println("Progressive Widening Improvement: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off"));
-                    } else if (r == 3) {
-                        Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2;
-                        out.println("Progressive Widening Improvement 2: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off"));
-                    } else if (r == 4) {
-                        Configuration.BAN_TRANSPOSITION_IN_TREE = !Configuration.BAN_TRANSPOSITION_IN_TREE;
-                        out.println("Ban Transposition In Tree: " + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off"));
-                    } else if (r == 5) {
-                        Configuration.FLATTEN_POLICY_AS_NODES_INCREASE = !Configuration.FLATTEN_POLICY_AS_NODES_INCREASE;
-                        out.println("Flatten Policy As Nodes Increase: " + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off"));
-                    } else if (r == 6) {
-                        Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE = !Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE;
-                        out.println("Prioritize Chance Nodes Before Deterministic In Tree: " + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off"));
-                    }
-                }
+                handleConfigMenu(reader, history);
             } else if (line.equals("games") || line.startsWith("games ")) {
                 boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
@@ -416,50 +323,175 @@ public class InteractiveMode {
                 GameStateUtils.writeStateDescription(state, new BufferedWriter(new OutputStreamWriter(out)));
             } else if (line.equals("")) {
             } else {
-                int action = parseInt(line, -1);
-                if (action < 0 || action >= state.getLegalActions().length) {
-                    var _state = state;
-                    var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
-                    var actions = actionsOrig.stream().map(String::toLowerCase).toList();
-                    if (line.startsWith("IF:")) {
-                        action = actions.indexOf(line.substring(3).toLowerCase());
-                    } else {
-                        var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
-                        if (actionStr != null) {
-                            out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
-                            action = actions.indexOf(actionStr);
-                        }
-                    }
-                }
+                int action = parseActionInput(state, line);
                 if (action >= 0 && action <= state.getLegalActions().length) {
                     printState = reader.lines.size() == 0;
                     printAction = printState;
-                    states.add(new GameStep(state, action));
-                    state.clearAllSearchInfo();
-                    if (!isApplyingHistory) {
-                        state = state.clone(false);
-                    }
-                    if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
-                        lastHistoryIdxAfterPreBattle = history.size();
-                    }
-                    state.properties.makingRealMove = true;
-                    state.properties.isInteractive = true;
-                    state = state.doAction(action);
-                    state.properties.isInteractive = false;
-                    state.properties.makingRealMove = false;
-                    for (int i = 0; i < state.getLegalActions().length; i++) {
-                        if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
-                            state.properties.makingRealMove = true;
-                            state = state.doAction(i);
-                            state.properties.makingRealMove = false;
-                            history.add("# Start of Turn");
-                            history.add("# " + state);
-                            break;
-                        }
-                    }
+                    var result = executeAction(state, action, states, history, isApplyingHistory, lastHistoryIdxAfterPreBattle);
+                    state = result.state();
+                    lastHistoryIdxAfterPreBattle = result.lastHistoryIdxAfterPreBattle();
                 } else {
                     out.println("Unknown Command.");
                 }
+            }
+        }
+    }
+
+    private GameState handleEndTurn(GameState state, List<GameStep> states, List<String> history, boolean isApplyingHistory) {
+        var parentState = state;
+        state.clearAllSearchInfo();
+        if (!isApplyingHistory) {
+            state = state.clone(false);
+        }
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.getAction(i).type() == GameActionType.END_TURN) {
+                states.add(new GameStep(parentState, i));
+                history.add("# End of Turn");
+                history.add("# " + state);
+                state.properties.makingRealMove = true;
+                state = state.doAction(i);
+                state.properties.makingRealMove = false;
+                break;
+            }
+        }
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
+                state.properties.makingRealMove = true;
+                state = state.doAction(i);
+                state.properties.makingRealMove = false;
+                history.add("# Start of Turn");
+                history.add("# " + state);
+                break;
+            }
+        }
+        return state;
+    }
+
+    private void printActionHistory(GameState state, List<GameStep> states) {
+        int m = 0;
+        for (int i = 0; i < states.size(); i++) {
+            if (i > 0 &&
+                    states.get(i - 1).state().currentAction != null &&
+                    states.get(i - 1).state().currentAction.type() == GameActionType.PLAY_CARD &&
+                    state.properties.cardDict[states.get(i - 1).state().currentAction.idx()].cardName.startsWith("Well-Laid Plans") &&
+                    states.get(i).state().actionCtx != GameActionCtx.SELECT_CARD_HAND) {
+                out.println("\n" + states.get(i));
+                m = 0;
+            }
+            out.println((++m) + ". " + states.get(i).state().getActionString(states.get(i).action()));
+            var tmp = states.get(i).state().clone(false);
+            tmp.getDrawOrderForWrite().clear(); // todo: need to do parallel actions so e.g. rebound works
+            tmp = tmp.doAction(states.get(i).action());
+            if ((tmp.isStochastic || states.get(i).state().getAction(states.get(i).action()).type() == GameActionType.END_TURN) && i < states.size() - 1) {
+                out.println("\n" + states.get(i + 1));
+                m = 0;
+            }
+        }
+        out.println("-------------------------------------------------------------------------");
+    }
+
+    private void handleSaveSession(String line, String saveDir, List<String> history, int lastHistoryIdxAfterPreBattle) throws IOException {
+        String suffix = "";
+        if (line.startsWith("save ")) {
+            suffix = line.split(" ")[1];
+        }
+        if (suffix.equals("play")) {
+            out.print("List.of(\"\"");
+            List<String> hist = filterHistory(history.subList(lastHistoryIdxAfterPreBattle, history.size()));
+            hist = hist.stream().filter(x -> !x.startsWith("#") && !x.startsWith("seed ")).collect(Collectors.toList());
+            for (String l : hist) {
+                out.print(", \"" + l + "\"");
+            }
+            out.println(", \"exit\")");
+        } else {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(saveDir + "/session" + suffix + ".txt"));
+            writer.write(String.join("\n", filterHistory(history)) + "\n");
+            writer.close();
+        }
+    }
+
+    private int parseActionInput(GameState state, String line) {
+        int action = parseInt(line, -1);
+        if (action < 0 || action >= state.getLegalActions().length) {
+            var _state = state;
+            var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
+            var actions = actionsOrig.stream().map(String::toLowerCase).toList();
+            if (line.startsWith("IF:")) {
+                action = actions.indexOf(line.substring(3).toLowerCase());
+            } else {
+                var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
+                if (actionStr != null) {
+                    out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
+                    action = actions.indexOf(actionStr);
+                }
+            }
+        }
+        return action;
+    }
+
+    private record ExecuteActionResult(GameState state, int lastHistoryIdxAfterPreBattle) {}
+
+    private ExecuteActionResult executeAction(GameState state, int action, List<GameStep> states, List<String> history,
+                                              boolean isApplyingHistory, int lastHistoryIdxAfterPreBattle) {
+        states.add(new GameStep(state, action));
+        state.clearAllSearchInfo();
+        if (!isApplyingHistory) {
+            state = state.clone(false);
+        }
+        if (state.actionCtx == GameActionCtx.BEGIN_PRE_BATTLE) {
+            lastHistoryIdxAfterPreBattle = history.size();
+        }
+        state.properties.makingRealMove = true;
+        state.properties.isInteractive = true;
+        state = state.doAction(action);
+        state.properties.isInteractive = false;
+        state.properties.makingRealMove = false;
+        for (int i = 0; i < state.getLegalActions().length; i++) {
+            if (state.getAction(i).type() == GameActionType.BEGIN_TURN) {
+                state.properties.makingRealMove = true;
+                state = state.doAction(i);
+                state.properties.makingRealMove = false;
+                history.add("# Start of Turn");
+                history.add("# " + state);
+                break;
+            }
+        }
+        return new ExecuteActionResult(state, lastHistoryIdxAfterPreBattle);
+    }
+
+    private void handleConfigMenu(InteractiveReader reader, List<String> history) throws IOException {
+        out.println("1. Progressive Widening (" + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off") + ")");
+        out.println("2. Progressive Widening Improvements (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off") + ")");
+        out.println("3. Progressive Widening Improvements 2 (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off") + ")");
+        out.println("4. Ban Transposition In Tree (" + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off") + ")");
+        out.println("5. Flatten Policy As Nodes Increase (" + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off") + ")");
+        out.println("6. Prioritize Chance Nodes Before Deterministic In Tree (" + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off") + ")");
+        out.println("0. Exit");
+        while (true) {
+            out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r == 0) {
+                break;
+            } else if (r == 1) {
+                Configuration.USE_PROGRESSIVE_WIDENING = !Configuration.USE_PROGRESSIVE_WIDENING;
+                out.println("Progressive Widening: " + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off"));
+            } else if (r == 2) {
+                Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS;
+                out.println("Progressive Widening Improvement: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off"));
+            } else if (r == 3) {
+                Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 = !Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2;
+                out.println("Progressive Widening Improvement 2: " + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off"));
+            } else if (r == 4) {
+                Configuration.BAN_TRANSPOSITION_IN_TREE = !Configuration.BAN_TRANSPOSITION_IN_TREE;
+                out.println("Ban Transposition In Tree: " + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off"));
+            } else if (r == 5) {
+                Configuration.FLATTEN_POLICY_AS_NODES_INCREASE = !Configuration.FLATTEN_POLICY_AS_NODES_INCREASE;
+                out.println("Flatten Policy As Nodes Increase: " + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off"));
+            } else if (r == 6) {
+                Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE = !Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE;
+                out.println("Prioritize Chance Nodes Before Deterministic In Tree: " + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off"));
             }
         }
     }
