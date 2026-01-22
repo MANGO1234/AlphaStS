@@ -253,72 +253,51 @@ public class InteractiveMode {
             } else if (line.equals("tree") || line.startsWith("tree ")) {
                 printTree(state, line, modelDir);
             } else if (line.startsWith("n ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
-                ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runMCTS(state, line, reader);
-                interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                String cmd = line;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runMCTS(s, cmd, reader));
             } else if (line.startsWith("nn ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
                 if (line.substring(3).equals("exec")) {
                     reader.addCmdsToQueue(nnPV);
                 } else if (line.substring(3).equals("execv")) {
                     reader.addCmdsToQueue(nnPV.subList(0, nnPV.size() - 1));
                 } else {
-                    ((RandomGenInteractive) state.properties.random).rngOn = true;
-                    nnPV.clear();
-                    runNNPV(state, nnPV, line, history, reader);
-                    interactiveRecordSeed(state, history);
-                    ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                    String cmd = line;
+                    GameState s = state;
+                    executeWithRngEnabled(state, history, () -> {
+                        nnPV.clear();
+                        runNNPV(s, nnPV, cmd, history, reader);
+                    });
                 }
             } else if (line.startsWith("nnc ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
-                ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runNNPVChance(reader, state, line);
-                interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                String cmd = line;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runNNPVChance(reader, s, cmd));
             } else if (line.startsWith("nnv ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
-                ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runNNPVVolatility(state, line, reader);
-                interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                String cmd = line;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runNNPVVolatility(s, cmd, reader));
             } else if (line.startsWith("nnn ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
-                ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runNNPV2(state, line, reader);
-                interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                String cmd = line;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runNNPV2(s, cmd, reader));
             } else if (line.equals("config")) {
-                handleConfigMenu(reader, history);
+                handleConfigMenu(reader, history, state);
             } else if (line.equals("games") || line.startsWith("games ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
-                ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runGames(modelDir, state, line);
-                interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                String cmd = line;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runGames(modelDir, s, cmd));
             } else if (line.equals("cmpSet") || line.startsWith("cmpSet ")) {
                 runGamesCmpSetup(state, line);
             } else if (line.equals("cmp") || line.startsWith("cmp ")) {
-                boolean prevRngOff = ((RandomGenInteractive) state.properties.random).rngOn;
-                ((RandomGenInteractive) state.properties.random).rngOn = true;
-                runGamesCmp(reader, modelDir, line);
-                interactiveRecordSeed(state, history);
-                ((RandomGenInteractive) state.properties.random).rngOn = prevRngOff;
+                String cmd = line;
+                executeWithRngEnabled(state, history, () -> runGamesCmp(reader, modelDir, cmd));
             } else if (line.startsWith("seed ")) {
                 interactiveSetSeed(state, Long.parseLong(line.split(" ")[1]), Long.parseLong(line.split(" ")[2]));
             } else if (line.equals("rng off")) {
                 ((RandomGenInteractive) state.properties.random).rngOn = false;
             } else if (line.equals("rng on")) {
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
-            } else if (line.equals("test off")) {
-                state.properties.testNewFeature = false;
-            } else if (line.equals("test on")) {
-                state.properties.testNewFeature = true;
-            } else if (line.equals("stateDesc off")) {
-                state.properties.stateDescOn = false;
-            }  else if (line.equals("stateDesc on")) {
-                state.properties.stateDescOn = true;
             } else if (line.equals("desc")) {
                 GameStateUtils.writeStateDescription(state, new BufferedWriter(new OutputStreamWriter(out)));
             } else if (line.equals("")) {
@@ -459,13 +438,15 @@ public class InteractiveMode {
         return new ExecuteActionResult(state, lastHistoryIdxAfterPreBattle);
     }
 
-    private void handleConfigMenu(InteractiveReader reader, List<String> history) throws IOException {
+    private void handleConfigMenu(InteractiveReader reader, List<String> history, GameState state) throws IOException {
         out.println("1. Progressive Widening (" + (Configuration.USE_PROGRESSIVE_WIDENING ? "On" : "Off") + ")");
         out.println("2. Progressive Widening Improvements (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS ? "On" : "Off") + ")");
         out.println("3. Progressive Widening Improvements 2 (" + (Configuration.PROGRESSIVE_WIDENING_IMPROVEMENTS2 ? "On" : "Off") + ")");
         out.println("4. Ban Transposition In Tree (" + (Configuration.BAN_TRANSPOSITION_IN_TREE ? "On" : "Off") + ")");
         out.println("5. Flatten Policy As Nodes Increase (" + (Configuration.FLATTEN_POLICY_AS_NODES_INCREASE ? "On" : "Off") + ")");
         out.println("6. Prioritize Chance Nodes Before Deterministic In Tree (" + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off") + ")");
+        out.println("7. Test New Feature (" + (state.properties.testNewFeature ? "On" : "Off") + ")");
+        out.println("8. State Description (" + (state.properties.stateDescOn ? "On" : "Off") + ")");
         out.println("0. Exit");
         while (true) {
             out.print("> ");
@@ -492,6 +473,12 @@ public class InteractiveMode {
             } else if (r == 6) {
                 Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE = !Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE;
                 out.println("Prioritize Chance Nodes Before Deterministic In Tree: " + (Configuration.PRIORITIZE_CHANCE_NODES_BEFORE_DETERMINISTIC_IN_TREE ? "On" : "Off"));
+            } else if (r == 7) {
+                state.properties.testNewFeature = !state.properties.testNewFeature;
+                out.println("Test New Feature: " + (state.properties.testNewFeature ? "On" : "Off"));
+            } else if (r == 8) {
+                state.properties.stateDescOn = !state.properties.stateDescOn;
+                out.println("State Description: " + (state.properties.stateDescOn ? "On" : "Off"));
             }
         }
     }
@@ -503,6 +490,23 @@ public class InteractiveMode {
 
     private static void interactiveRecordSeed(GameState state, List<String> history) {
         history.add("seed " + state.properties.random.getSeed(null)  + " " + state.getSearchRandomGen().getSeed(null));
+    }
+
+    @FunctionalInterface
+    private interface RngOperation {
+        void run() throws IOException;
+    }
+
+    private void executeWithRngEnabled(GameState state, List<String> history, RngOperation operation) throws IOException {
+        RandomGenInteractive rng = (RandomGenInteractive) state.properties.random;
+        boolean prevRngOn = rng.rngOn;
+        rng.rngOn = true;
+        try {
+            operation.run();
+        } finally {
+            interactiveRecordSeed(state, history);
+            rng.rngOn = prevRngOn;
+        }
     }
 
     private static List<String> filterHistory(List<String> history) {
