@@ -272,7 +272,16 @@ public class GameStateBuilder {
         for (int i = 0; i < info.size(); i++) {
             var _i = i;
             setters.add((state) -> state.preBattleScenariosChosenIdx = _i);
-            desc[i] = info.get(i).desc();
+            StringBuilder descBuilder = new StringBuilder();
+            for (Relic relic : relics) {
+                if (relic.preBattleScenariosEnabled != null &&
+                    i < relic.preBattleScenariosEnabled.length &&
+                    relic.preBattleScenariosEnabled[i]) {
+                    descBuilder.append("Enable ").append(relic).append(", ");
+                }
+            }
+            descBuilder.append(info.get(i).desc());
+            desc[i] = descBuilder.toString();
         }
         preBattleGameScenarios = randomization.join(new GameStateRandomization.SimpleCustomRandomization(setters)).setDescriptions(desc);
     }
