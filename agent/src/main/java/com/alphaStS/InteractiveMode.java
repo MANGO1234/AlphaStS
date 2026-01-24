@@ -19,6 +19,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -27,6 +29,7 @@ import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
     private PrintStream out = System.out;
+    private InteractiveReader reader = null;
     private ModelExecutor modelExecutor;
     private List<MCTS> threadMCTS = new ArrayList<>();
     private int DEFAULT_NUMBER_OF_THREADS = 1;
@@ -66,6 +69,11 @@ public class InteractiveMode {
         this.out = out;
     }
 
+    public InteractiveMode(PrintStream out, InteractiveReader reader) {
+        this.out = out;
+        this.reader = reader;
+    }
+
     public void interactiveStart(GameState origState, String saveDir, String modelDir) throws IOException {
         List<String> history = new ArrayList<>();
         BufferedWriter writer;
@@ -92,7 +100,9 @@ public class InteractiveMode {
     }
 
     private void interactiveStartH(GameState origState, String saveDir, String modelDir, List<String> history) throws IOException {
-        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in), history.size() == 0);
+        InteractiveReader reader = this.reader != null
+                ? this.reader.setInteractiveMode(this)
+                : new InteractiveReader(new InputStreamReader(System.in)).setInteractiveMode(this).setUseReaderThread();
         var states = new ArrayList<GameStep>();
         GameState state = origState;
         boolean isApplyingHistory = false;
@@ -102,7 +112,7 @@ public class InteractiveMode {
         List<String> nnPV = new ArrayList<>();
         modelExecutor = new ModelExecutor(modelDir);
         if (history.size() > 0) {
-            reader.addCmdsToQueue(history);
+            reader.addCommandsToFrontOfQueue(history);
             isApplyingHistory = true;
             prevSearchRandomGen = state.getSearchRandomGen();
             prevRealMoveRandomGen = state.properties.realMoveRandomGen;
@@ -246,7 +256,7 @@ public class InteractiveMode {
                     suffix = line.split(" ")[1];
                 }
                 BufferedReader fileReader = new BufferedReader(new FileReader(saveDir + "/session" + suffix + ".txt"));
-                reader.addCmdsToQueue(fileReader.lines().toList());
+                reader.addCommandsToFrontOfQueue(fileReader.lines().toList());
                 fileReader.close();
             } else if (line.equals("tree explore")) {
                 exploreTree(state, reader, modelDir);
@@ -258,9 +268,9 @@ public class InteractiveMode {
                 executeWithRngEnabled(state, history, () -> runMCTS(s, cmd, reader));
             } else if (line.startsWith("nn ")) {
                 if (line.substring(3).equals("exec")) {
-                    reader.addCmdsToQueue(nnPV);
+                    reader.addCommandsToFrontOfQueue(nnPV);
                 } else if (line.substring(3).equals("execv")) {
-                    reader.addCmdsToQueue(nnPV.subList(0, nnPV.size() - 1));
+                    reader.addCommandsToFrontOfQueue(nnPV.subList(0, nnPV.size() - 1));
                 } else {
                     String cmd = line;
                     GameState s = state;
@@ -520,7 +530,7 @@ public class InteractiveMode {
     public void interactiveStart(List<GameStep> game, String modelDir) throws IOException {
         int idx = 0;
         GameState state = game.get(0).state();
-        InteractiveReader reader = new InteractiveReader(this, new InputStreamReader(System.in), true);
+        InteractiveReader reader = new InteractiveReader(new InputStreamReader(System.in)).setInteractiveMode(this).setUseReaderThread();
         modelExecutor = new ModelExecutor(modelDir);
         while (true) {
             var states = game.stream().map(GameStep::state).limit(idx).toList();
@@ -2498,24 +2508,29 @@ public class InteractiveMode {
         }
     }
 
-    private static class InteractiveReader extends BufferedReader {
-        private ArrayDeque<String> lines = new ArrayDeque<>();
+    static class InteractiveReader extends BufferedReader {
+        private final ArrayDeque<String> lines = new ArrayDeque<>();
         private InteractiveMode interactiveMode;
-        private BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
         private Thread readerThread;
-        private AtomicBoolean shutdown = new AtomicBoolean(false);
-        private boolean useReaderThread = true;
+        private boolean readFromQueue = false;
+        private BlockingQueue<String> inputQueue;
+        private AtomicBoolean shutdown;
+        private AtomicBoolean waitingForInput;
+        private ReentrantLock idleLock;
+        private Condition idleCondition;
 
-        public InteractiveReader(InteractiveMode interactiveMode, Reader reader, boolean useReaderThread) {
+        public InteractiveReader(Reader reader) {
             super(reader);
-            this.interactiveMode = interactiveMode;
-            this.useReaderThread = useReaderThread;
-            if (useReaderThread) {
-                startReaderThread();
-            }
         }
 
-        private void startReaderThread() {
+        public InteractiveReader setInteractiveMode(InteractiveMode interactiveMode) {
+            this.interactiveMode = interactiveMode;
+            return this;
+        }
+
+        // starting on a separate thread so main thread can interrupt long running action
+        public InteractiveReader setUseReaderThread() {
+            setReadFromQueue();
             readerThread = new Thread(() -> {
                 try {
                     String line;
@@ -2524,49 +2539,126 @@ public class InteractiveMode {
                     }
                 } catch (IOException e) {
                     if (!shutdown.get()) {
-                        // Log error if not shutting down
                         System.err.println("Error reading input: " + e.getMessage());
                     }
                 }
             });
             readerThread.setDaemon(true);
             readerThread.start();
+            return this;
+        }
+
+        public void setReadFromQueue() {
+            readFromQueue = true;
+            inputQueue = new LinkedBlockingQueue<>();
+            shutdown = new AtomicBoolean(false);
+            waitingForInput = new AtomicBoolean(false);
+            idleLock = new ReentrantLock();
+            idleCondition = idleLock.newCondition();
         }
 
         public String readLine() throws IOException {
-            if (lines.size() > 0) {
-                interactiveMode.out.println(lines.getFirst());
+            if (!lines.isEmpty()) {
+                if (interactiveMode != null) interactiveMode.out.println(lines.getFirst());
                 return lines.pollFirst();
             }
-            if (!useReaderThread) {
+            if (!readFromQueue) {
                 return super.readLine();
             }
+            idleLock.lock();
             try {
-                return inputQueue.take();
+                waitingForInput.set(true);
+                idleCondition.signalAll();
+            } finally {
+                idleLock.unlock();
+            }
+            String line;
+            try {
+                line = inputQueue.take();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Interrupted while reading input", e);
+                return null;
+            } finally {
+                waitingForInput.set(false);
             }
+            if (shutdown.get()) {
+                return null;
+            }
+            return line;
         }
 
         public String readLine(long timeout, TimeUnit unit) throws IOException {
-            if (lines.size() > 0) {
-                interactiveMode.out.println(lines.getFirst());
+            if (!lines.isEmpty()) {
+                if (interactiveMode != null) interactiveMode.out.println(lines.getFirst());
                 return lines.pollFirst();
             }
-            if (!useReaderThread) {
+            if (!readFromQueue) {
                 return super.readLine();
             }
+            idleLock.lock();
             try {
-                return inputQueue.poll(timeout, unit);
+                waitingForInput.set(true);
+                idleCondition.signalAll();
+            } finally {
+                idleLock.unlock();
+            }
+            String line;
+            try {
+                line = inputQueue.poll(timeout, unit);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                throw new IOException("Interrupted while reading input", e);
+                return null;
+            } finally {
+                waitingForInput.set(false);
+            }
+            if (shutdown.get()) {
+                return null;
+            }
+            return line;
+        }
+
+        public void addCommandsToFrontOfQueue(List<String> commands) {
+            lines.addAll(commands.stream().filter(x -> !x.startsWith("#")).toList());
+        }
+
+        public void addCommandsToInputQueue(List<String> commands) {
+            inputQueue.addAll(commands);
+        }
+
+        public boolean isWaitingForInput() {
+            return waitingForInput.get() && inputQueue.isEmpty();
+        }
+
+        public boolean waitUntilIdle(long timeoutMs) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMs;
+            idleLock.lock();
+            try {
+                while (!isWaitingForInput() && !shutdown.get()) {
+                    long remaining = deadline - System.currentTimeMillis();
+                    if (remaining <= 0) {
+                        return false;
+                    }
+                    idleCondition.await(remaining, TimeUnit.MILLISECONDS);
+                }
+            } finally {
+                idleLock.unlock();
+            }
+            return isWaitingForInput();
+        }
+
+        public void shutdown() {
+            shutdown.set(true);
+            inputQueue.add("");
+            idleLock.lock();
+            try {
+                idleCondition.signalAll();
+            } finally {
+                idleLock.unlock();
             }
         }
 
-        public void addCmdsToQueue(List<String> cmds) {
-            lines.addAll(cmds.stream().filter(x -> !x.startsWith("#")).toList());
+        public boolean isShutdown() {
+            return shutdown.get();
         }
 
         @Override
@@ -2574,6 +2666,12 @@ public class InteractiveMode {
             shutdown.set(true);
             if (readerThread != null) {
                 readerThread.interrupt();
+            }
+            idleLock.lock();
+            try {
+                idleCondition.signalAll();
+            } finally {
+                idleLock.unlock();
             }
             super.close();
         }

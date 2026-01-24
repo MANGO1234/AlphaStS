@@ -192,40 +192,69 @@ public class InteractiveServer {
 
     private static class InteractiveSession {
         final String sessionId;
-        final GameState originalState;
-        final InteractiveMode interactiveMode;
-        final List<String> history;
-        final ByteArrayOutputStream outputBuffer;
+        private final InteractiveMode.InteractiveReader inputReader;
+        private final CapturingPrintStream outputStream;
+        private final InteractiveMode interactiveMode;
+        private final Thread workerThread;
+        private volatile Throwable error = null;
+        private boolean shutdown;
 
         InteractiveSession(String sessionId, GameState originalState) {
             this.sessionId = sessionId;
-            this.originalState = originalState;
-            this.history = new ArrayList<>();
-            this.outputBuffer = new ByteArrayOutputStream();
-            PrintStream captureStream = new PrintStream(outputBuffer, true, StandardCharsets.UTF_8);
-            this.interactiveMode = new InteractiveMode(captureStream);
+            this.outputStream = new CapturingPrintStream();
+            this.inputReader = new InteractiveMode.InteractiveReader(new InputStreamReader(InputStream.nullInputStream()));
+            this.inputReader.setReadFromQueue();
+            this.interactiveMode = new InteractiveMode(outputStream, inputReader);
             this.interactiveMode.setDefaultNumberOfThreads(1);
             this.interactiveMode.setDefaultBatchSize(1);
+            this.workerThread = new Thread(() -> {
+                try {
+                    interactiveMode.interactiveStart(originalState.clone(false), null, null);
+                } catch (Exception e) {
+                    if (!inputReader.isShutdown()) {
+                        error = e;
+                    }
+                }
+            });
+            workerThread.setDaemon(true);
+            workerThread.start();
         }
 
-        String executeCommands(List<String> commands) {
-            // Add new commands to history
-            history.addAll(commands);
-
-            // Clear output buffer
-            outputBuffer.reset();
-
-            // Build full command list with exit
-            List<String> fullCommands = new ArrayList<>(history);
-            fullCommands.add("exit");
-
-            // Execute on a fresh clone of original state
-            GameState execState = originalState.clone(false);
-            interactiveMode.interactiveApplyHistory(execState, fullCommands);
-
-            // Extract output of the last command
-            String fullOutput = outputBuffer.toString(StandardCharsets.UTF_8);
-            return extractLastCommandOutput(fullOutput);
+        public String executeCommands(List<String> commands) throws IOException, InterruptedException {
+            if (error != null) {
+                throw new IOException("Worker thread error: " + error.getMessage(), error);
+            }
+            for (String command : commands) {
+                // Wait for worker to be idle before clearing output and sending command
+                // This ensures any previous output (including initial state) is discarded
+                while (!shutdown) {
+                    boolean idle = inputReader.waitUntilIdle(1000);
+                    if (idle) {
+                        break;
+                    }
+                    if (error != null) {
+                        throw new IOException("Worker thread error: " + error.getMessage(), error);
+                    }
+                    if (!workerThread.isAlive()) {
+                        throw new IOException("Session ended (worker thread terminated)");
+                    }
+                }
+                outputStream.clear();
+                inputReader.addCommandsToInputQueue(List.of(command));
+                while (!shutdown) {
+                    boolean idle = inputReader.waitUntilIdle(1000);
+                    if (idle) {
+                        break;
+                    }
+                    if (error != null) {
+                        throw new IOException("Worker thread error: " + error.getMessage(), error);
+                    }
+                    if (!workerThread.isAlive()) {
+                        throw new IOException("Session ended (worker thread terminated)");
+                    }
+                }
+            }
+            return outputStream.getAndClear();
         }
     }
 
@@ -356,6 +385,29 @@ public class InteractiveServer {
             System.out.println("Test FAILED with exception: " + e.getMessage());
             e.printStackTrace();
             System.exit(1);
+        }
+    }
+
+    /**
+     * A PrintStream that captures all output to a buffer.
+     */
+    public static class CapturingPrintStream extends PrintStream {
+        private final ByteArrayOutputStream buffer;
+
+        public CapturingPrintStream() {
+            super(new ByteArrayOutputStream(), true, java.nio.charset.StandardCharsets.UTF_8);
+            this.buffer = (ByteArrayOutputStream) out;
+        }
+
+        public String getAndClear() {
+            flush();
+            String output = buffer.toString(java.nio.charset.StandardCharsets.UTF_8);
+            buffer.reset();
+            return output;
+        }
+
+        public void clear() {
+            buffer.reset();
         }
     }
 }
