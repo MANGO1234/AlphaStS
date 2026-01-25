@@ -230,23 +230,20 @@ public class InteractiveMode {
             } else if (line.equals("eo")) {
                 setEnemyOther(reader, state, history);
                 printState = true;
-            } else if (line.startsWith("ph ")) {
-                int hp = parseInt(line.substring(3), -1);
-                if (hp >= 0) {
-                    state.getPlayerForWrite().setHealth(hp);
-                }
+            } else if (line.equals("ph")) {
+                setPlayerHealth(reader, state, history);
                 printState = true;
             } else if (line.equals("b")) {
                 if (states.size() > 0) {
                     state = states.remove(states.size() - 1).state();
                 }
                 printState = true;
-            } else if (line.startsWith("pot ")) {
-                setPotionUtility(state, line);
+            } else if (line.equals("pot")) {
+                setPotionUtility(reader, state, history);
             } else if (line.equals("do")) {
                 setDrawOrder(reader, state, history);
             } else if (line.equals("c")) {
-                handleCommandMenu(reader, state, history);
+                handleCommandMenu(reader, state, history, modelDir);
             } else if (line.equals("reset")) {
                 state.clearAllSearchInfo();
                 state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.searchRandomGen.nextLong(RandomGenCtx.Other)));
@@ -408,11 +405,13 @@ public class InteractiveMode {
         }
     }
 
-    private void handleCommandMenu(InteractiveReader reader, GameState state, List<String> history) throws IOException {
-        out.println("1. Remove Card From Hand");
-        out.println("2. Add Card To Hand");
-        out.println("3. Discard Card From Hand (If Exists)");
-        out.println("4. Add Card To Deck");
+    private void handleCommandMenu(InteractiveReader reader, GameState state, List<String> history, String modelDir) throws IOException {
+        out.println("1. Set Draw Order");
+        out.println("2. Remove Card From Hand");
+        out.println("3. Add Card To Hand");
+        out.println("4. Discard Card From Hand (If Exists)");
+        out.println("5. Add Card To Deck");
+        out.println("6. Diagnostic");
         out.println("0. Exit");
         while (true) {
             out.print("> ");
@@ -422,16 +421,77 @@ public class InteractiveMode {
             if (r == 0) {
                 break;
             } else if (r == 1) {
-                removeCardFromHandSelectScreen(reader, state, history);
+                setDrawOrder(reader, state, history);
                 break;
             } else if (r == 2) {
-                addCardToHandSelectScreen(reader, state, history);
+                removeCardFromHandSelectScreen(reader, state, history);
                 break;
             } else if (r == 3) {
-                discardCardFromHandSelectScreen(reader, state, history);
+                addCardToHandSelectScreen(reader, state, history);
                 break;
             } else if (r == 4) {
+                discardCardFromHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 5) {
                 addCardToDeckSelectScreen(reader, state, history);
+                break;
+            } else if (r == 6) {
+                handleDiagnosticMenu(reader, state, history, modelDir);
+                break;
+            }
+        }
+    }
+
+    private void handleDiagnosticMenu(InteractiveReader reader, GameState state, List<String> history, String modelDir) throws IOException {
+        out.println("1. Tree");
+        out.println("2. Tree Explore");
+        out.println("3. NN PV Chance");
+        out.println("4. NN PV Volatility");
+        out.println("5. NN PV 2");
+        out.println("0. Exit");
+        while (true) {
+            out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r == 0) {
+                break;
+            } else if (r == 1) {
+                out.print("Tree depth (empty for default): ");
+                String depthLine = reader.readLine();
+                history.add(depthLine);
+                if (depthLine.isEmpty()) {
+                    printTree(state, "tree", modelDir);
+                } else {
+                    printTree(state, "tree " + depthLine, modelDir);
+                }
+                break;
+            } else if (r == 2) {
+                exploreTree(state, reader, modelDir);
+                break;
+            } else if (r == 3) {
+                out.print("Node count: ");
+                String countLine = reader.readLine();
+                history.add(countLine);
+                String cmd = "nnc " + countLine;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runNNPVChance(reader, s, cmd));
+                break;
+            } else if (r == 4) {
+                out.print("Node count: ");
+                String countLine = reader.readLine();
+                history.add(countLine);
+                String cmd = "nnv " + countLine;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runNNPVVolatility(s, cmd, reader));
+                break;
+            } else if (r == 5) {
+                out.print("Node count: ");
+                String countLine = reader.readLine();
+                history.add(countLine);
+                String cmd = "nnn " + countLine;
+                GameState s = state;
+                executeWithRngEnabled(state, history, () -> runNNPV2(s, cmd, reader));
                 break;
             }
         }
@@ -1391,30 +1451,69 @@ public class InteractiveMode {
         }
     }
 
-    private void setPotionUtility(GameState state, String line) {
-        var s = line.substring(4).split(" ");
-        var potionIdx = -1;
-        var util = 0;
-        if (s.length == 1 && state.properties.potions.size() == 1) {
-            potionIdx = 0;
-        } else if (s.length >= 2) {
-            potionIdx = parseInt(s[0], -1);
-            util = parseInt(s[1], 0);
+    private void setPlayerHealth(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        while (true) {
+            out.print("Health: ");
+            String line = reader.readLine();
+            history.add(line);
+            if (line.equals("b")) {
+                return;
+            }
+            int hp = parseInt(line, -1);
+            if (hp >= 0) {
+                state.getPlayerForWrite().setHealth(hp);
+                return;
+            }
         }
-        if (potionIdx < 0) {
-            out.println("Invalid Command.");
+    }
+
+    private void setPotionUtility(BufferedReader reader, GameState state, List<String> history) throws IOException {
+        if (state.properties.potions.isEmpty()) {
+            out.println("No potions available.");
             return;
         }
-        if (util == 0) {
-            out.println("Set " + state.properties.potions.get(potionIdx) + " to unusable.");
-            state.getPotionsStateForWrite()[potionIdx * 3] = 0;
-            state.getPotionsStateForWrite()[potionIdx * 3 + 1] = 100;
-            state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 0;
-        } else {
-            out.println("Set " + state.properties.potions.get(potionIdx) + " utility to " + util + ".");
-            state.getPotionsStateForWrite()[potionIdx * 3] = 1;
-            state.getPotionsStateForWrite()[potionIdx * 3 + 1] = (short) util;
-            state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 1;
+
+        int potionIdx = 0;
+        if (state.properties.potions.size() > 1) {
+            for (int i = 0; i < state.properties.potions.size(); i++) {
+                out.println(i + ". " + state.properties.potions.get(i));
+            }
+            while (true) {
+                out.print("Potion: ");
+                String line = reader.readLine();
+                history.add(line);
+                if (line.equals("b")) {
+                    return;
+                }
+                potionIdx = parseInt(line, -1);
+                if (potionIdx >= 0 && potionIdx < state.properties.potions.size()) {
+                    break;
+                }
+            }
+        }
+
+        while (true) {
+            out.print("Utility (0 to disable): ");
+            String line = reader.readLine();
+            history.add(line);
+            if (line.equals("b")) {
+                return;
+            }
+            int util = parseInt(line, -1);
+            if (util >= 0) {
+                if (util == 0) {
+                    out.println("Set " + state.properties.potions.get(potionIdx) + " to unusable.");
+                    state.getPotionsStateForWrite()[potionIdx * 3] = 0;
+                    state.getPotionsStateForWrite()[potionIdx * 3 + 1] = 100;
+                    state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 0;
+                } else {
+                    out.println("Set " + state.properties.potions.get(potionIdx) + " utility to " + util + ".");
+                    state.getPotionsStateForWrite()[potionIdx * 3] = 1;
+                    state.getPotionsStateForWrite()[potionIdx * 3 + 1] = (short) util;
+                    state.getPotionsStateForWrite()[potionIdx * 3 + 2] = 1;
+                }
+                return;
+            }
         }
     }
 
