@@ -28,6 +28,7 @@ import java.util.stream.IntStream;
 import static com.alphaStS.utils.Utils.formatFloat;
 
 public class InteractiveMode {
+    private static final String ALIAS_CONFIG_FILE = "./alphaStS_alias.conf";
     private PrintStream out = System.out;
     private InteractiveReader reader = null;
     private ModelExecutor modelExecutor;
@@ -35,6 +36,7 @@ public class InteractiveMode {
     private int DEFAULT_NUMBER_OF_THREADS = 1;
     private int DEFAULT_BATCH_SIZE = 1;
     private volatile boolean stopRequested = false;
+    private Map<String, List<String>> aliases = new HashMap<>();
 
     public InteractiveMode setDefaultNumberOfThreads(int numThreads) {
         DEFAULT_NUMBER_OF_THREADS = numThreads;
@@ -74,6 +76,40 @@ public class InteractiveMode {
         this.reader = reader;
     }
 
+    private void loadAliases() {
+        aliases.clear();
+        File aliasFile = new File(ALIAS_CONFIG_FILE);
+        if (!aliasFile.exists()) {
+            return;
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(aliasFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+                int eqIdx = line.indexOf('=');
+                if (eqIdx <= 0) {
+                    continue;
+                }
+                String aliasName = line.substring(0, eqIdx).trim();
+                String commandsStr = line.substring(eqIdx + 1).trim();
+                if (!aliasName.isEmpty() && !commandsStr.isEmpty()) {
+                    List<String> commands = Arrays.stream(commandsStr.split(","))
+                            .map(String::trim)
+                            .filter(s -> !s.isEmpty())
+                            .toList();
+                    if (!commands.isEmpty()) {
+                        aliases.put(aliasName, commands);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            // Silently ignore errors reading alias file
+        }
+    }
+
     public void interactiveStart(GameState origState, String saveDir, String modelDir) throws IOException {
         List<String> history = new ArrayList<>();
         BufferedWriter writer;
@@ -103,6 +139,7 @@ public class InteractiveMode {
         InteractiveReader reader = this.reader != null
                 ? this.reader.setInteractiveMode(this)
                 : new InteractiveReader(new InputStreamReader(System.in)).setInteractiveMode(this).setUseReaderThread();
+        loadAliases();
         var states = new ArrayList<GameStep>();
         GameState state = origState;
         boolean isApplyingHistory = false;
@@ -145,6 +182,11 @@ public class InteractiveMode {
             }
             out.print("> ");
             String line = reader.readLine();
+            List<String> aliasCommands = aliases.get(line);
+            if (aliasCommands != null && !aliasCommands.isEmpty()) {
+                reader.addCommandsToFrontOfQueue(aliasCommands.subList(1, aliasCommands.size()));
+                line = aliasCommands.get(0);
+            }
             if (line.equals("exit")) {
                 if (isApplyingHistory) {
                     state.setSearchRandomGen(prevSearchRandomGen);
