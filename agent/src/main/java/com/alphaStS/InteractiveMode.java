@@ -205,36 +205,11 @@ public class InteractiveMode {
                     history.add(line);
                 }
             } else if (line.equals("a")) {
-                out.println("Deck");
-                var deck = GameStateUtils.getCardArrCounts(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.realCardsLen);
-                for (int i = 0; i < deck.length; i++) {
-                    if (deck[i] > 0) {
-                        out.println("  " + deck[i] + " " + state.properties.cardDict[i].cardName);
-                    }
-                }
+                printDeck(state);
             } else if (line.equals("s")) {
-                out.println("Discard");
-                var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.realCardsLen);
-                for (int i = 0; i < discard.length; i++) {
-                    if (discard[i] > 0 && (!state.properties.discard0CardOrderMatters || state.properties.cardDict[i].realEnergyCost() != 0)) {
-                        out.println("  " + discard[i] + " " + state.properties.cardDict[i].cardName);
-                    }
-                }
-                if (state.properties.discard0CardOrderMatters) {
-                    for (int i = 0; i < state.discardArrLen; i++) {
-                        if (state.properties.cardDict[state.discardArr[i]].realEnergyCost() == 0) {
-                            out.println("  " + state.properties.cardDict[state.discardArr[i]].cardName);
-                        }
-                    }
-                }
+                printDiscard(state);
             } else if (line.equals("x")) {
-                out.println("Exhaust");
-                var exhaust = GameStateUtils.getCardArrCounts(state.getExhaustArrForRead(), state.getNumCardsInExhaust(), state.properties.realCardsLen);
-                for (int i = 0; i < exhaust.length; i++) {
-                    if (exhaust[i] > 0) {
-                        out.println("  " + exhaust[i] + " " + state.properties.cardDict[i].cardName);
-                    }
-                }
+                printExhaust(state);
             } else if (line.equals("i")) {
                 printState = true;
             } else if (line.equals("input")) {
@@ -270,18 +245,8 @@ public class InteractiveMode {
                 setPotionUtility(state, line);
             } else if (line.equals("do")) {
                 setDrawOrder(reader, state, history);
-            } else if (line.equals("rc")) { // remove card from hand
-                removeCardFromHandSelectScreen(reader, state, history);
-                state.clearAllSearchInfo();
-            } else if (line.equals("ach")) { // add card to hand
-                addCardToHandSelectScreen(reader, state, history);
-                state.clearAllSearchInfo();
-            } else if (line.equals("dchIf")) { // discard from hand if it exists
-                discardCardFromHandSelectScreen(reader, state, history);
-                state.clearAllSearchInfo();
-            } else if (line.equals("acd")) { // add card to deck
-                addCardToDeckSelectScreen(reader, state, history);
-                state.clearAllSearchInfo();
+            } else if (line.equals("c")) {
+                handleCommandMenu(reader, state, history);
             } else if (line.equals("reset")) {
                 state.clearAllSearchInfo();
                 state.setSearchRandomGen(state.getSearchRandomGen().createWithSeed(state.searchRandomGen.nextLong(RandomGenCtx.Other)));
@@ -293,13 +258,7 @@ public class InteractiveMode {
             } else if (line.equals("save") || line.startsWith("save ")) {
                 handleSaveSession(line, saveDir, history, lastHistoryIdxAfterPreBattle);
             } else if (line.equals("load") || line.startsWith("load ")) {
-                String suffix = "";
-                if (line.startsWith("load ")) {
-                    suffix = line.split(" ")[1];
-                }
-                BufferedReader fileReader = new BufferedReader(new FileReader(saveDir + "/session" + suffix + ".txt"));
-                reader.addCommandsToFrontOfQueue(fileReader.lines().toList());
-                fileReader.close();
+                handleLoadSession(line, saveDir, reader);
             } else if (line.equals("tree explore")) {
                 exploreTree(state, reader, modelDir);
             } else if (line.equals("tree") || line.startsWith("tree ")) {
@@ -309,18 +268,7 @@ public class InteractiveMode {
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runMCTS(s, cmd, reader));
             } else if (line.startsWith("nn ")) {
-                if (line.substring(3).equals("exec")) {
-                    reader.addCommandsToFrontOfQueue(nnPV);
-                } else if (line.substring(3).equals("execv")) {
-                    reader.addCommandsToFrontOfQueue(nnPV.subList(0, nnPV.size() - 1));
-                } else {
-                    String cmd = line;
-                    GameState s = state;
-                    executeWithRngEnabled(state, history, () -> {
-                        nnPV.clear();
-                        runNNPV(s, nnPV, cmd, history, reader);
-                    });
-                }
+                handleNNCommand(line, state, history, reader, nnPV);
             } else if (line.startsWith("nnc ")) {
                 String cmd = line;
                 GameState s = state;
@@ -396,6 +344,97 @@ public class InteractiveMode {
             }
         }
         return state;
+    }
+
+    private void printDeck(GameState state) {
+        out.println("Deck");
+        var deck = GameStateUtils.getCardArrCounts(state.getDeckArrForRead(), state.getNumCardsInDeck(), state.properties.realCardsLen);
+        for (int i = 0; i < deck.length; i++) {
+            if (deck[i] > 0) {
+                out.println("  " + deck[i] + " " + state.properties.cardDict[i].cardName);
+            }
+        }
+    }
+
+    private void printDiscard(GameState state) {
+        out.println("Discard");
+        var discard = GameStateUtils.getCardArrCounts(state.getDiscardArrForRead(), state.getNumCardsInDiscard(), state.properties.realCardsLen);
+        for (int i = 0; i < discard.length; i++) {
+            if (discard[i] > 0 && (!state.properties.discard0CardOrderMatters || state.properties.cardDict[i].realEnergyCost() != 0)) {
+                out.println("  " + discard[i] + " " + state.properties.cardDict[i].cardName);
+            }
+        }
+        if (state.properties.discard0CardOrderMatters) {
+            for (int i = 0; i < state.discardArrLen; i++) {
+                if (state.properties.cardDict[state.discardArr[i]].realEnergyCost() == 0) {
+                    out.println("  " + state.properties.cardDict[state.discardArr[i]].cardName);
+                }
+            }
+        }
+    }
+
+    private void printExhaust(GameState state) {
+        out.println("Exhaust");
+        var exhaust = GameStateUtils.getCardArrCounts(state.getExhaustArrForRead(), state.getNumCardsInExhaust(), state.properties.realCardsLen);
+        for (int i = 0; i < exhaust.length; i++) {
+            if (exhaust[i] > 0) {
+                out.println("  " + exhaust[i] + " " + state.properties.cardDict[i].cardName);
+            }
+        }
+    }
+
+    private void handleLoadSession(String line, String saveDir, InteractiveReader reader) throws IOException {
+        String suffix = "";
+        if (line.startsWith("load ")) {
+            suffix = line.split(" ")[1];
+        }
+        BufferedReader fileReader = new BufferedReader(new FileReader(saveDir + "/session" + suffix + ".txt"));
+        reader.addCommandsToFrontOfQueue(fileReader.lines().toList());
+        fileReader.close();
+    }
+
+    private void handleNNCommand(String line, GameState state, List<String> history, InteractiveReader reader, List<String> nnPV) throws IOException {
+        if (line.substring(3).equals("exec")) {
+            reader.addCommandsToFrontOfQueue(nnPV);
+        } else if (line.substring(3).equals("execv")) {
+            reader.addCommandsToFrontOfQueue(nnPV.subList(0, nnPV.size() - 1));
+        } else {
+            String cmd = line;
+            GameState s = state;
+            executeWithRngEnabled(state, history, () -> {
+                nnPV.clear();
+                runNNPV(s, nnPV, cmd, history, reader);
+            });
+        }
+    }
+
+    private void handleCommandMenu(InteractiveReader reader, GameState state, List<String> history) throws IOException {
+        out.println("1. Remove Card From Hand");
+        out.println("2. Add Card To Hand");
+        out.println("3. Discard Card From Hand (If Exists)");
+        out.println("4. Add Card To Deck");
+        out.println("0. Exit");
+        while (true) {
+            out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r == 0) {
+                break;
+            } else if (r == 1) {
+                removeCardFromHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 2) {
+                addCardToHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 3) {
+                discardCardFromHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 4) {
+                addCardToDeckSelectScreen(reader, state, history);
+                break;
+            }
+        }
     }
 
     private void printActionHistory(GameState state, List<GameStep> states) {
