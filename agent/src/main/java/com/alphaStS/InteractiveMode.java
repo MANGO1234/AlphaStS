@@ -138,7 +138,10 @@ public class InteractiveMode {
     private void interactiveStartH(GameState origState, String saveDir, String modelDir, List<String> history) throws IOException {
         InteractiveReader reader = this.reader != null
                 ? this.reader.setInteractiveMode(this)
-                : new InteractiveReader(new InputStreamReader(System.in)).setInteractiveMode(this).setUseReaderThread();
+                : new InteractiveReader(new InputStreamReader(System.in)).setInteractiveMode(this);
+        if (history.isEmpty()) {
+            reader.setUseReaderThread();
+        }
         loadAliases();
         var states = new ArrayList<GameStep>();
         GameState state = origState;
