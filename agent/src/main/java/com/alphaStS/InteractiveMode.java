@@ -221,30 +221,11 @@ public class InteractiveMode {
                 printActionHistory(state, states);
             } else if (line.startsWith("model ")) {
                 modelExecutor = new ModelExecutor(line.split(" ")[1]);
-            } else if (line.equals("eh")) {
-                setEnemyHealth(reader, state, history);
-                printState = true;
-            } else if (line.equals("eho")) {
-                setEnemyHealthOriginal(reader, state, history);
-                printState = true;
-            } else if (line.equals("em")) {
-                setEnemyMove(reader, state, history);
-                printState = true;
-            } else if (line.equals("eo")) {
-                setEnemyOther(reader, state, history);
-                printState = true;
-            } else if (line.equals("ph")) {
-                setPlayerHealth(reader, state, history);
-                printState = true;
             } else if (line.equals("b")) {
                 if (states.size() > 0) {
                     state = states.remove(states.size() - 1).state();
                 }
                 printState = true;
-            } else if (line.equals("pot")) {
-                setPotionUtility(reader, state, history);
-            } else if (line.equals("do")) {
-                setDrawOrder(reader, state, history);
             } else if (line.equals("c")) {
                 handleCommandMenu(reader, state, history, modelDir);
             } else if (line.equals("reset")) {
@@ -415,6 +396,12 @@ public class InteractiveMode {
         out.println("4. Discard Card From Hand (If Exists)");
         out.println("5. Add Card To Deck");
         out.println("6. Diagnostic");
+        out.println("7. Set Enemy Health");
+        out.println("8. Set Enemy Health Original");
+        out.println("9. Set Enemy Move");
+        out.println("10. Set Enemy Other");
+        out.println("11. Set Player Health");
+        out.println("12. Set Potion Utility");
         out.println("0. Exit");
         while (true) {
             out.print("> ");
@@ -440,6 +427,24 @@ public class InteractiveMode {
                 break;
             } else if (r == 6) {
                 handleDiagnosticMenu(reader, state, history, modelDir);
+                break;
+            } else if (r == 7) {
+                setEnemyHealth(reader, state, history);
+                break;
+            } else if (r == 8) {
+                setEnemyHealthOriginal(reader, state, history);
+                break;
+            } else if (r == 9) {
+                setEnemyMove(reader, state, history);
+                break;
+            } else if (r == 10) {
+                setEnemyOther(reader, state, history);
+                break;
+            } else if (r == 11) {
+                setPlayerHealth(reader, state, history);
+                break;
+            } else if (r == 12) {
+                setPotionUtility(reader, state, history);
                 break;
             }
         }
