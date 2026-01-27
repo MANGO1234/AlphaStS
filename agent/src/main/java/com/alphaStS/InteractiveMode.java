@@ -2697,7 +2697,7 @@ public class InteractiveMode {
     }
 
     static class InteractiveReader extends BufferedReader {
-        private final ArrayDeque<String> lines = new ArrayDeque<>();
+        private ArrayDeque<String> lines = new ArrayDeque<>();
         private InteractiveMode interactiveMode;
         private Thread readerThread;
         private boolean readFromQueue = false;
@@ -2806,7 +2806,14 @@ public class InteractiveMode {
         }
 
         public void addCommandsToFrontOfQueue(List<String> commands) {
-            lines.addAll(commands.stream().filter(x -> !x.startsWith("#")).toList());
+            if (lines.isEmpty()) {
+                lines.addAll(commands);
+            } else {
+                ArrayDeque<String> newLines = new ArrayDeque<>();
+                newLines.addAll(commands);
+                newLines.addAll(lines);
+                lines = newLines;
+            }
         }
 
         public void addCommandsToInputQueue(List<String> commands) {
