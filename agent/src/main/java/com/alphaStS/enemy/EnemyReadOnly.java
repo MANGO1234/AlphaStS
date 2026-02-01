@@ -23,6 +23,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean canWeaken = false;
         public boolean canFrail = false;
         public boolean canGainStrength = false;
+        public boolean canGainLoseStrengthEot = false;
         public boolean canGainRegeneration = false;
         public boolean canHeal = false;
         public boolean canGainMetallicize = false;

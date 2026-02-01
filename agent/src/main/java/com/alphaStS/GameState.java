@@ -3448,7 +3448,7 @@ public final class GameState implements State {
             if (properties.enemyCanGetCorpseExplosion) {
                 inputLen += 1; // enemy corpse explosion
             }
-            if (properties.enemyStrengthEotCanChange) {
+            if (enemy.properties.canGainLoseStrengthEot || properties.enemyStrengthEotCanChange) {
                 inputLen += 1; // enemy gain strength eot
             }
             if (enemy.properties.canGainBlock) {
@@ -3691,7 +3691,7 @@ public final class GameState implements State {
             if (properties.enemyCanGetCorpseExplosion) {
                 str += "        1 input to keep track of corpse explosion\n";
             }
-            if (properties.enemyStrengthEotCanChange) {
+            if (enemy.properties.canGainLoseStrengthEot || properties.enemyStrengthEotCanChange) {
                 str += "        1 input to keep track of enemy gain strength eot\n";
             }
             if (enemy.properties.canGainBlock) {
@@ -4032,7 +4032,7 @@ public final class GameState implements State {
                 if (properties.enemyCanGetCorpseExplosion) {
                     x[idx++] = enemy.getCorpseExplosion() / 10.0f;
                 }
-                if (properties.enemyStrengthEotCanChange) {
+                if (enemy.properties.canGainLoseStrengthEot || properties.enemyStrengthEotCanChange) {
                     x[idx++] = enemy.getLoseStrengthEot() / (float) 20.0;
                 }
                 if (enemy.properties.canGainStrength || properties.enemyStrengthCanChange) {
@@ -4138,7 +4138,7 @@ public final class GameState implements State {
                 if (properties.enemyCanGetCorpseExplosion) {
                     x[idx++] = -0.1f;
                 }
-                if (properties.enemyStrengthEotCanChange) {
+                if (enemy.properties.canGainLoseStrengthEot || properties.enemyStrengthEotCanChange) {
                     x[idx++] = -0.1f;
                 }
                 if (enemy.properties.canGainStrength || properties.enemyStrengthCanChange) {
@@ -4523,7 +4523,7 @@ public final class GameState implements State {
             if (properties.enemyCanGetCorpseExplosion) {
                 System.out.println("  Corpse Explosion: " + input[idx++]);
             }
-            if (properties.enemyStrengthEotCanChange) {
+            if (enemy.properties.canGainLoseStrengthEot || properties.enemyStrengthEotCanChange) {
                 System.out.println("  Lose Strength EOT: " + input[idx++]);
             }
             if (enemy.properties.canGainStrength || properties.enemyStrengthCanChange) {

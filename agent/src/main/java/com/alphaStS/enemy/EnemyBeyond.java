@@ -2130,4 +2130,92 @@ public class EnemyBeyond {
             return thorn;
         }
     }
+
+    public static class Transient extends Enemy {
+        private static final int ATTACK = 0;
+        private static final int MAX_FADING_TURNS = 6;
+        private int turn;
+
+        public Transient() {
+            this(999);
+        }
+
+        public Transient(int health) {
+            super(health, 1, false);
+            properties.canGainStrength = true;
+            properties.canGainLoseStrengthEot = true;
+        }
+
+        public Transient(Transient other) {
+            super(other);
+            turn = other.turn;
+        }
+
+        @Override public Enemy copy() {
+            return new Transient(this);
+        }
+
+        @Override public int damage(double n, GameState state) {
+            int prevHealth = health;
+            int dmg = super.damage(n, state);
+            int hpLost = prevHealth - health;
+            if (hpLost > 0) {
+                applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, hpLost);
+            }
+            return dmg;
+        }
+
+        @Override public void nonAttackDamage(int n, boolean blockable, GameState state) {
+            int prevHealth = health;
+            super.nonAttackDamage(n, blockable, state);
+            int hpLost = prevHealth - health;
+            if (hpLost > 0) {
+                applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, hpLost);
+            }
+        }
+
+        @Override public void doMove(GameState state, EnemyReadOnly self) {
+            state.enemyDoDamageToPlayer(this, 40 + (turn - 1) * 10, 1);
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
+            turn++;
+            if (turn > MAX_FADING_TURNS) {
+                health = 0;
+            }
+            move = ATTACK;
+        }
+
+        @Override public String getMoveString(GameState state, int move) {
+            if (move == ATTACK) {
+                return "Attack " + state.enemyCalcDamageToPlayer(this, 40 + (turn - 1) * 10);
+            }
+            return "Unknown";
+        }
+
+        @Override public void randomize(RandomGen random, boolean training, int difficulty) {
+            health = 999;
+        }
+
+        @Override public String getName() {
+            return "Transient";
+        }
+
+        @Override public boolean equals(Object o) {
+            return super.equals(o) && turn == ((Transient) o).turn;
+        }
+
+        @Override public int getNNInputLen(GameProperties prop) {
+            return 1;
+        }
+
+        @Override public String getNNInputDesc(GameProperties prop) {
+            return "1 input to keep track of turns until Transient fades";
+        }
+
+        @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
+            input[idx] = (MAX_FADING_TURNS - turn) / (float) MAX_FADING_TURNS;
+            return 1;
+        }
+    }
 }
