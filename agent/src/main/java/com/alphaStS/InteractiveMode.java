@@ -1755,18 +1755,13 @@ public class InteractiveMode {
     }
 
 
-    private int selectShieldAndSpear(BufferedReader reader, List<String> history) {
+    private int selectShieldAndSpear(BufferedReader reader, List<String> history) throws IOException {
         out.println("Select Spire Shield Debuff");
         out.println("0. Focus");
         out.println("1. Strength");
         while (true) {
             out.print("> ");
-            String line;
-            try {
-                line = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
             if (0 <= r && r < 2) {
@@ -1776,18 +1771,13 @@ public class InteractiveMode {
         }
     }
 
-    private int selectedDeckDrawOrder(BufferedReader reader, GameState state, int len, List<String> history) {
+    private int selectedDeckDrawOrder(BufferedReader reader, GameState state, int len, List<String> history) throws IOException {
         for (int i = 0; i < len; i++) {
             out.println(i + ". " + state.properties.cardDict[state.deckArr[i]].cardName);
         }
         while (true) {
             out.print("> ");
-            String line;
-            try {
-                line = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
             if (0 <= r && r < len) {
@@ -1811,18 +1801,13 @@ public class InteractiveMode {
         }
     }
 
-    private int selectedCardFromList(BufferedReader reader, GameState state, short[] arr, int len, List<String> history) {
+    private int selectedCardFromList(BufferedReader reader, GameState state, short[] arr, int len, List<String> history) throws IOException {
         for (int i = 0; i < len; i++) {
             out.println(i + ". " + state.properties.cardDict[arr[i]].cardName);
         }
         while (true) {
             out.print("> ");
-            String line;
-            try {
-                line = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
             if (0 <= r && r < len) {
@@ -1846,7 +1831,7 @@ public class InteractiveMode {
         }
     }
 
-    private int selectedAddCardToDeckPosition(BufferedReader reader, GameState state, int len, int cardIdx, List<String> history) {
+    private int selectedAddCardToDeckPosition(BufferedReader reader, GameState state, int len, int cardIdx, List<String> history) throws IOException {
         out.println("Add " + state.properties.cardDict[cardIdx].cardName + " to deck position");
         out.println(0 + ". Beginning of Deck");
         for (int i = 0; i < len - 1; i++) {
@@ -1854,12 +1839,7 @@ public class InteractiveMode {
         }
         while (true) {
             out.print("> ");
-            String line;
-            try {
-                line = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
             if (0 <= r && r < len) {
@@ -1869,16 +1849,11 @@ public class InteractiveMode {
         }
     }
 
-    private int selectEnemyHealth(BufferedReader reader, int baseHealth, int bound, List<String> history) {
+    private int selectEnemyHealth(BufferedReader reader, int baseHealth, int bound, List<String> history) throws IOException {
         out.printf("Select Enemy Health (%d - %d): %n\n", baseHealth, baseHealth + bound - 1);
         while (true) {
             out.print("> ");
-            String line;
-            try {
-                line = reader.readLine();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            String line = reader.readLine();
             history.add(line);
             int r = parseInt(line, -1);
             if (baseHealth <= r && r < baseHealth + bound) {
@@ -2896,111 +2871,67 @@ public class InteractiveMode {
             if (rngOn) {
                 return super.nextInt(bound, ctx, arg);
             }
-            switch (ctx) {
-            case RandomCardHand -> {
-                try {
+            try {
+                switch (ctx) {
+                case RandomCardHand -> {
                     return interactiveMode.selectCardFromHand(reader, (GameState) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case RandomCardHandWarpedTongs -> {
-                try {
+                case RandomCardHandWarpedTongs -> {
                     return interactiveMode.selectCardForWarpedTongs(reader, (GameState) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case RandomCardHandMummifiedHand -> {
-                try {
+                case RandomCardHandMummifiedHand -> {
                     return interactiveMode.selectCardForMummifiedHand(reader, (GameState) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case BeginningOfGameRandomization -> {
-                try {
+                case BeginningOfGameRandomization -> {
                     return interactiveMode.selectScenarioForRandomization(reader, (GameStateRandomization) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case GremlinLeader -> {
-                try {
+                case GremlinLeader -> {
                     return interactiveMode.selectGremlinForGremlinLeaderEncounter(reader, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case ShieldGremlin -> {
-                try {
+                case ShieldGremlin -> {
                     return interactiveMode.selectShieldGremlinTarget(reader, (GameState) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case SelectCard1OutOf3 -> {
-                try {
+                case SelectCard1OutOf3 -> {
                     var a = (Tuple3<GameState, Integer, int[]>) arg;
                     return interactiveMode.selectCardsForCardGenPotion(reader, a, history, a.v3());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case Snecko -> {
-                try {
+                case Snecko -> {
                     return interactiveMode.selectCostForSnecko(reader, (Tuple<GameState, Integer>) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case Chaos -> {
-                try {
+                case Chaos -> {
                     return interactiveMode.selectChaosOrb(reader, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case EntropicBrew -> {
-                try {
+                case EntropicBrew -> {
                     return interactiveMode.selectEntropicBrew(reader, (Tuple<Potion.PotionGenerator, Integer>) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case RandomCardGen -> {
-                try {
+                case RandomCardGen -> {
                     return interactiveMode.selectRandomCardGen(reader, (Tuple<GameState, int[]>) arg, history);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            case ShieldAndSpear -> {
-                return interactiveMode.selectShieldAndSpear(reader, history);
-            }
-            case CardDraw -> {
-                var t = (Tuple3<GameState, Integer, Object>) arg;
-                if (t.v2() == 0) {
-                    return interactiveMode.selectedDeckDrawOrder(reader, t.v1(), bound, history);
-                } else if (t.v2() == 2) {
-                    return interactiveMode.selectedCardFromList(reader, t.v1(), (short[]) t.v3(), bound, history);
-                } else {
-                    return interactiveMode.selectedAddCardToDeckPosition(reader, t.v1(), bound, (int) t.v3(), history);
+                case ShieldAndSpear -> {
+                    return interactiveMode.selectShieldAndSpear(reader, history);
                 }
-            }
-            case RandomEnemyHealth -> {
-                return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);
-            }
-            case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb, RandomEnemyRipAndTear -> {
-                try {
+                case CardDraw -> {
+                    var t = (Tuple3<GameState, Integer, Object>) arg;
+                    if (t.v2() == 0) {
+                        return interactiveMode.selectedDeckDrawOrder(reader, t.v1(), bound, history);
+                    } else if (t.v2() == 2) {
+                        return interactiveMode.selectedCardFromList(reader, t.v1(), (short[]) t.v3(), bound, history);
+                    } else {
+                        return interactiveMode.selectedAddCardToDeckPosition(reader, t.v1(), bound, (int) t.v3(), history);
+                    }
+                }
+                case RandomEnemyHealth -> {
+                    return interactiveMode.selectEnemyHealth(reader, (Integer) arg, bound, history);
+                }
+                case RandomEnemyGeneral, RandomEnemyJuggernaut, RandomEnemySwordBoomerang, RandomEnemyLightningOrb, RandomEnemyRipAndTear -> {
                     return interactiveMode.selectEnemyRandomInteractive(reader, (GameState) arg, history, ctx);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
                 }
-            }
-            default -> {
-                return super.nextInt(bound, ctx, arg);
-            }
+                default -> {
+                    return super.nextInt(bound, ctx, arg);
+                }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
         }
 
@@ -3014,6 +2945,8 @@ public class InteractiveMode {
             return new RandomGenInteractive(interactiveMode, random, reader, history);
         }
 
+        // Called directly from GameState/EnemyCity via pattern match on RandomGenInteractive,
+        // not routed through nextInt, so they live here instead of InteractiveMode.
         public void selectEnemyMove(GameState state, Enemy enemy, int enemyIdx) {
             interactiveMode.out.println("Select move for " + enemy.getName() + " (" + enemyIdx + ")");
             for (int i = 0; i < enemy.properties.numOfMoves; i++) {
