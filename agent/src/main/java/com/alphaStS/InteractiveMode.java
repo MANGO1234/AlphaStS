@@ -240,28 +240,12 @@ public class InteractiveMode {
                 handleSaveSession(line, saveDir, history, lastHistoryIdxAfterPreBattle);
             } else if (line.equals("load") || line.startsWith("load ")) {
                 handleLoadSession(line, saveDir, reader);
-            } else if (line.equals("tree explore")) {
-                exploreTree(state, reader, modelDir);
-            } else if (line.equals("tree") || line.startsWith("tree ")) {
-                printTree(state, line, modelDir);
             } else if (line.startsWith("n ")) {
                 String cmd = line;
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runMCTS(s, cmd, reader));
             } else if (line.startsWith("nn ")) {
                 handleNNCommand(line, state, history, reader, nnPV);
-            } else if (line.startsWith("nnc ")) {
-                String cmd = line;
-                GameState s = state;
-                executeWithRngEnabled(state, history, () -> runNNPVChance(reader, s, cmd));
-            } else if (line.startsWith("nnv ")) {
-                String cmd = line;
-                GameState s = state;
-                executeWithRngEnabled(state, history, () -> runNNPVVolatility(s, cmd, reader));
-            } else if (line.startsWith("nnn ")) {
-                String cmd = line;
-                GameState s = state;
-                executeWithRngEnabled(state, history, () -> runNNPV2(s, cmd, reader));
             } else if (line.equals("config")) {
                 handleConfigMenu(reader, history, state);
             } else if (line.equals("games") || line.startsWith("games ")) {
