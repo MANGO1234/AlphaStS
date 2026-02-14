@@ -67,7 +67,7 @@ public class InteractiveServer {
      * <p>Sessions maintain command history across requests. Omit sessionId to create a new session.
      * Include sessionId to continue an existing session with accumulated history.</p>
      */
-    public static void start(GameState state, String[] args) throws IOException {
+    public static void start(GameState state, String[] args, String modelDir) throws IOException {
         // Parse port from args (--port <port>), default to 7999
         int port = 7999;
         for (int i = 0; i < args.length; i++) {
@@ -130,7 +130,7 @@ public class InteractiveServer {
                         } else {
                             // Create new session
                             sessionId = UUID.randomUUID().toString();
-                            session = new InteractiveSession(sessionId, state);
+                            session = new InteractiveSession(sessionId, state, modelDir);
                             sessions.put(sessionId, session);
                         }
 
@@ -199,7 +199,7 @@ public class InteractiveServer {
         private volatile Throwable error = null;
         private boolean shutdown;
 
-        InteractiveSession(String sessionId, GameState originalState) {
+        InteractiveSession(String sessionId, GameState originalState, String modelDir) {
             this.sessionId = sessionId;
             this.outputStream = new CapturingPrintStream();
             this.inputReader = new InteractiveMode.InteractiveReader(new InputStreamReader(InputStream.nullInputStream()));
@@ -209,7 +209,7 @@ public class InteractiveServer {
             this.interactiveMode.setDefaultBatchSize(1);
             this.workerThread = new Thread(() -> {
                 try {
-                    interactiveMode.interactiveStart(originalState.clone(false), null, null);
+                    interactiveMode.interactiveStart(originalState.clone(false), null, modelDir);
                 } catch (Exception e) {
                     if (!inputReader.isShutdown()) {
                         error = e;

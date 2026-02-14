@@ -6,9 +6,9 @@ This script provides commands to start and stop the AlphaStS interactive server.
 The server provides an HTTP JSON API for executing interactive mode commands.
 
 Usage:
-    python interactive_server.py start [--port PORT]  - Start the server in the background
-    python interactive_server.py stop                 - Stop the running server
-    python interactive_server.py status               - Check if server is running
+    python interactive_server.py start [--port PORT] [--model DIR]  - Start the server in the background
+    python interactive_server.py stop                               - Stop the running server
+    python interactive_server.py status                             - Check if server is running
 
 See interactive_cli_commands.md for available commands to send to the server.
 """
@@ -72,20 +72,21 @@ def is_server_running(port=DEFAULT_PORT):
 
 
 def read_pid():
-    """Read the PID from the PID file."""
+    """Read the PID and port from the PID file."""
     if os.path.exists(PID_FILE):
         try:
             with open(PID_FILE, 'r') as f:
-                return int(f.read().strip())
-        except (ValueError, IOError):
+                data = json.loads(f.read().strip())
+                return data.get('pid'), data.get('port', DEFAULT_PORT)
+        except (ValueError, IOError, json.JSONDecodeError):
             pass
-    return None
+    return None, None
 
 
-def write_pid(pid):
-    """Write the PID to the PID file."""
+def write_pid(pid, port):
+    """Write the PID and port to the PID file."""
     with open(PID_FILE, 'w') as f:
-        f.write(str(pid))
+        json.dump({'pid': pid, 'port': port}, f)
 
 
 def remove_pid():
@@ -94,7 +95,7 @@ def remove_pid():
         os.remove(PID_FILE)
 
 
-def start_server(port=DEFAULT_PORT):
+def start_server(port=DEFAULT_PORT, model_dir=None):
     """Start the interactive server in the background."""
     if is_server_running(port):
         print(f"Server is already running on port {port}")
@@ -116,6 +117,8 @@ def start_server(port=DEFAULT_PORT):
         '--interactive-server',
         '--port', str(port)
     ]
+    if model_dir:
+        agent_args.extend(['-dir', model_dir])
 
     # Start the server process in the background
     with open(LOG_FILE, 'w') as log:
@@ -127,7 +130,7 @@ def start_server(port=DEFAULT_PORT):
             start_new_session=True
         )
 
-    write_pid(process.pid)
+    write_pid(process.pid, port)
 
     # Wait for server to be ready
     print("Waiting for server to start...")
@@ -148,7 +151,7 @@ def start_server(port=DEFAULT_PORT):
 
 def stop_server():
     """Stop the running interactive server."""
-    pid = read_pid()
+    pid, _ = read_pid()
 
     if pid is None:
         print("No PID file found. Server may not be running.")
@@ -192,19 +195,21 @@ def stop_server():
         return False
 
 
-def status_server(port=DEFAULT_PORT):
+def status_server():
     """Check the server status."""
-    pid = read_pid()
+    pid, port = read_pid()
+
+    if pid is None:
+        print("Server is NOT RUNNING (no PID file)")
+        return False
 
     if is_server_running(port):
         print(f"Server is RUNNING on port {port}")
-        if pid:
-            print(f"PID: {pid}")
+        print(f"PID: {pid}")
         return True
     else:
         print(f"Server is NOT RUNNING on port {port}")
-        if pid:
-            print(f"Stale PID file found: {pid}")
+        print(f"Stale PID file found: {pid}")
         return False
 
 
@@ -214,6 +219,7 @@ def print_usage():
     print("\nExamples:")
     print("  python interactive_server.py start")
     print("  python interactive_server.py start --port 8000")
+    print("  python interactive_server.py start --model ../saves")
     print("  python interactive_server.py status")
     print("  python interactive_server.py stop")
 
@@ -225,8 +231,9 @@ def main():
 
     command = sys.argv[1].lower()
 
-    # Parse port argument
+    # Parse port and model arguments
     port = DEFAULT_PORT
+    model_dir = None
     for i, arg in enumerate(sys.argv):
         if arg == '--port' and i + 1 < len(sys.argv):
             try:
@@ -234,9 +241,11 @@ def main():
             except ValueError:
                 print(f"Error: Invalid port number: {sys.argv[i + 1]}")
                 sys.exit(1)
+        elif arg == '--model' and i + 1 < len(sys.argv):
+            model_dir = sys.argv[i + 1]
 
     if command == 'start':
-        success = start_server(port)
+        success = start_server(port, model_dir)
         sys.exit(0 if success else 1)
 
     elif command == 'stop':
@@ -244,7 +253,7 @@ def main():
         sys.exit(0 if success else 1)
 
     elif command == 'status':
-        running = status_server(port)
+        running = status_server()
         sys.exit(0 if running else 1)
 
     elif command in ('help', '-h', '--help'):
