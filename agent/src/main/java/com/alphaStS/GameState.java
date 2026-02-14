@@ -1206,6 +1206,12 @@ public final class GameState implements State {
         return cardIdx;
     }
 
+    private boolean isCardPlayBlocked() {
+        return (properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12) ||
+            (properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) ||
+            (properties.velvetChokerCounterIndexIdx >= 0 && counter[properties.velvetChokerCounterIndexIdx] >= 6);
+    }
+
     private int getCardEnergyCost(int cardIdx) {
         if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
             return 0;
@@ -2212,6 +2218,10 @@ public final class GameState implements State {
             if (cardIdx < 0) {
                 continue;
             }
+            if (isCardPlayBlocked()) {
+                addCardToDiscard(cardIdx);
+                continue;
+            }
             if (properties.makingRealMove || properties.stateDescOn) {
                 if (!getStateDesc().isEmpty())
                     stateDesc.append(", (Play Card) ");
@@ -3125,9 +3135,7 @@ public final class GameState implements State {
                         }
                     }
                 }
-                if (!(properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12) &&
-                    !(properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) &&
-                    !(properties.velvetChokerCounterIndexIdx >= 0 && counter[properties.velvetChokerCounterIndexIdx] >= 6)) {
+                if (!isCardPlayBlocked()) {
                     for (int i = 0; i < handArrLen; i++) {
                         if (!legal[handArr[i]]) {
                             if (getPlayeForRead().isEntangled() && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
