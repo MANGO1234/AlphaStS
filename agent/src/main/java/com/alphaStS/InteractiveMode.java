@@ -2705,6 +2705,7 @@ public class InteractiveMode {
         }
 
         public void setReadFromQueue() {
+            if (readFromQueue) return;
             readFromQueue = true;
             inputQueue = new LinkedBlockingQueue<>();
             shutdown = new AtomicBoolean(false);

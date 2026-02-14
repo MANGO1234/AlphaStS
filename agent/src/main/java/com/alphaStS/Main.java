@@ -46,7 +46,7 @@ public class Main {
         } else if (args.length > 0 && args[0].equals("--interactive-server")) {
             System.out.println("Seed: " + state.properties.random.getSeed(null));
             parseCommonArgs(state, args);
-            InteractiveServer.start(state, args, CUR_ITER_DIRECTORY);
+            InteractiveServer.start(state, args, SAVES_DIR, CUR_ITER_DIRECTORY);
         } else if (args.length > 0 && args[0].equals("--interactive-server-test")) {
             InteractiveServer.test(args);
         } else {
