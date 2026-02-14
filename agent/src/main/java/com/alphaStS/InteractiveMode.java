@@ -391,17 +391,17 @@ public class InteractiveMode {
 
     private void handleCommandMenu(InteractiveReader reader, GameState state, List<String> history, String modelDir) throws IOException {
         out.println("1. Set Draw Order");
-        out.println("2. Remove Card From Hand");
-        out.println("3. Add Card To Hand");
-        out.println("4. Discard Card From Hand (If Exists)");
-        out.println("5. Add Card To Deck");
-        out.println("6. Diagnostic");
-        out.println("7. Set Enemy Health");
-        out.println("8. Set Enemy Health Original");
-        out.println("9. Set Enemy Move");
-        out.println("10. Set Enemy Other");
-        out.println("11. Set Player Health");
-        out.println("12. Set Potion Utility");
+        out.println("2. Set Enemy Health");
+        out.println("3. Set Enemy Health Original");
+        out.println("4. Set Enemy Move");
+        out.println("5. Set Enemy Other");
+        out.println("6. Set Player Health");
+        out.println("7. Set Potion Utility");
+        out.println("8. Remove Card From Hand");
+        out.println("9. Add Card To Hand");
+        out.println("10. Discard Card From Hand (If Exists)");
+        out.println("11. Add Card To Deck");
+        out.println("12. Diagnostic");
         out.println("0. Exit");
         while (true) {
             out.print("> ");
@@ -414,37 +414,37 @@ public class InteractiveMode {
                 setDrawOrder(reader, state, history);
                 break;
             } else if (r == 2) {
-                removeCardFromHandSelectScreen(reader, state, history);
-                break;
-            } else if (r == 3) {
-                addCardToHandSelectScreen(reader, state, history);
-                break;
-            } else if (r == 4) {
-                discardCardFromHandSelectScreen(reader, state, history);
-                break;
-            } else if (r == 5) {
-                addCardToDeckSelectScreen(reader, state, history);
-                break;
-            } else if (r == 6) {
-                handleDiagnosticMenu(reader, state, history, modelDir);
-                break;
-            } else if (r == 7) {
                 setEnemyHealth(reader, state, history);
                 break;
-            } else if (r == 8) {
+            } else if (r == 3) {
                 setEnemyHealthOriginal(reader, state, history);
                 break;
-            } else if (r == 9) {
+            } else if (r == 4) {
                 setEnemyMove(reader, state, history);
                 break;
-            } else if (r == 10) {
+            } else if (r == 5) {
                 setEnemyOther(reader, state, history);
                 break;
-            } else if (r == 11) {
+            } else if (r == 6) {
                 setPlayerHealth(reader, state, history);
                 break;
-            } else if (r == 12) {
+            } else if (r == 7) {
                 setPotionUtility(reader, state, history);
+                break;
+            } else if (r == 8) {
+                removeCardFromHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 9) {
+                addCardToHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 10) {
+                discardCardFromHandSelectScreen(reader, state, history);
+                break;
+            } else if (r == 11) {
+                addCardToDeckSelectScreen(reader, state, history);
+                break;
+            } else if (r == 12) {
+                handleDiagnosticMenu(reader, state, history, modelDir);
                 break;
             }
         }

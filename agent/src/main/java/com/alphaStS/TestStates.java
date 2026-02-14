@@ -1381,7 +1381,7 @@ public class TestStates {
 //        EnemyEncounter.addDonuAndDecaFight(builder);
 //        EnemyEncounter.addAwakenedOneFight(builder);
         builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
-        builder.setGameStateViaInteractiveMode(List.of("", "c", "1", "def", "coo", "com", "p", "compi", "loop+", "e", "rng off", "0", "c", "9", "2", "exit"));
+        builder.setGameStateViaInteractiveMode(List.of("", "c", "1", "def", "coo", "com", "p", "compi", "loop+", "e", "rng off", "0", "c", "4", "2", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
@@ -1432,7 +1432,7 @@ public class TestStates {
         builder.addCard(new CardOther.Decay(), 1);
         EnemyEncounter.addShieldAndSpearFight(builder);
 //        EnemyEncounter.addCorruptHeartFight(builder);
-        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "c", "9", "1", "0", "c", "9", "0", "1", "exit"));
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "c", "4", "1", "0", "c", "4", "0", "1", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(1);
@@ -1483,7 +1483,7 @@ public class TestStates {
         builder.addCard(new CardDefect.StackP(), 1);
         builder.addCard(new CardOther.Decay(), 1);
         EnemyEncounter.addCorruptHeartFight(builder);
-//        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "c", "9", "1", "0", "c", "9", "0", "1", "exit"));
+//        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "19", "18", "13", "c", "4", "1", "0", "c", "4", "0", "1", "exit"));
         builder.addPotion(new Potion.BlessingOfTheForge().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.FairyInABottle().setBasePenaltyRatio(100));
         builder.setPotionsScenarios(1);
@@ -1573,7 +1573,7 @@ public class TestStates {
 //        builder.addEnemyEncounter(new EnemyCity.BookOfStabbing());
 //        EnemyEncounter.addSlaversEliteFight(builder);
 //        EnemyEncounter.addGremlinLeaderFight2(builder);
-        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "c", "1", "con", "zap", "def", "rain", "str", "co", "p", "coo", "dua", "e", "0", "1", "3", "2", "3", "2", "1", "2", "c", "9", "0", "1", "c", "9", "1", "1", "c", "9", "2", "1", "c", "8", "0", "27", "c", "8", "1", "33", "c", "8", "2", "28", "exit"));
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "c", "1", "con", "zap", "def", "rain", "str", "co", "p", "coo", "dua", "e", "0", "1", "3", "2", "3", "2", "1", "2", "c", "4", "0", "1", "c", "4", "1", "1", "c", "4", "2", "1", "c", "3", "0", "27", "c", "3", "1", "33", "c", "3", "2", "28", "exit"));
         builder.addPotion(new Potion.FirePotion().setBasePenaltyRatio(90));
         builder.addPotion(new Potion.EssenceOfSteel().setBasePenaltyRatio(90));
         builder.setPotionsScenarios(3);
@@ -2036,7 +2036,7 @@ public class TestStates {
         builder.addEnemyEncounter(new EnemyBeyond.TimeEater());
 //        EnemyEncounter.addShieldAndSpearFight(builder);
 //        EnemyEncounter.addCorruptHeartFight(builder);
-        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "c", "1", "go", "tur", "bull", "self+", "p", "self", "bea", "e", "0", "0", "3", "c", "9", "0", "exit"));
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "c", "1", "go", "tur", "bull", "self+", "p", "self", "bea", "e", "0", "0", "3", "c", "4", "0", "exit"));
         GameStateRandomization randomization = new StateModificationRandomization(List.of(
                 List.of(new Add(new CardDefect.Coolheaded())),
                 List.of(new Add(new CardDefect.AllForOne(0, 0))),
@@ -2731,7 +2731,7 @@ public class TestStates {
         builder.addCard(new CardDefect.ChargeBatteryP(), 1);
         EnemyEncounter.addAwakenedOneFight(builder);
         //        builder.setInnateOrder("Boot Sequence", "Dramatic Entrance+");
-        builder.setGameStateViaInteractiveMode(List.of("c", "1", "Ascender's Bane", "Rebound", "Reboot+", "e", "0", "c", "8", "0", "56", "c", "8", "1", "56", "exit"));
+        builder.setGameStateViaInteractiveMode(List.of("c", "1", "Ascender's Bane", "Rebound", "Reboot+", "e", "0", "c", "3", "0", "56", "c", "3", "1", "56", "exit"));
         builder.setPlayer(new Player(1, 1));
         builder.addRelic(new Relic.CrackedOrb());
         builder.addRelic(new Relic.PreservedInsect());
