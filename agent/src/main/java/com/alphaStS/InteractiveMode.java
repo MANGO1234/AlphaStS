@@ -215,12 +215,8 @@ public class InteractiveMode {
                 printExhaust(state);
             } else if (line.equals("i")) {
                 printState = true;
-            } else if (line.equals("input")) {
-                out.println(Arrays.toString(state.getNNInput()));
             } else if (line.equals("states")) {
                 printActionHistory(state, states);
-            } else if (line.startsWith("model ")) {
-                modelExecutor = new ModelExecutor(line.split(" ")[1]);
             } else if (line.equals("b")) {
                 if (states.size() > 0) {
                     state = states.remove(states.size() - 1).state();
@@ -263,8 +259,6 @@ public class InteractiveMode {
                 ((RandomGenInteractive) state.properties.random).rngOn = false;
             } else if (line.equals("rng on")) {
                 ((RandomGenInteractive) state.properties.random).rngOn = true;
-            } else if (line.equals("desc")) {
-                GameStateUtils.writeStateDescription(state, new BufferedWriter(new OutputStreamWriter(out)));
             } else if (line.equals("")) {
             } else {
                 int action = parseActionInput(state, line);
@@ -435,11 +429,14 @@ public class InteractiveMode {
     }
 
     private void handleDiagnosticMenu(InteractiveReader reader, GameState state, List<String> history, String modelDir) throws IOException {
-        out.println("1. Tree");
-        out.println("2. Tree Explore");
+        out.println("1. Print Search Tree");
+        out.println("2. Explore Search Tree");
         out.println("3. NN PV Chance");
         out.println("4. NN PV Volatility");
         out.println("5. NN PV 2");
+        out.println("6. Print NN Input");
+        out.println("7. Switch Model");
+        out.println("8. Print Battle Description");
         out.println("0. Exit");
         while (true) {
             out.print("> ");
@@ -484,6 +481,18 @@ public class InteractiveMode {
                 String cmd = "nnn " + countLine;
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runNNPV2(s, cmd, reader));
+                break;
+            } else if (r == 6) {
+                out.println(Arrays.toString(state.getNNInput()));
+                break;
+            } else if (r == 7) {
+                out.print("Model directory: ");
+                String modelPath = reader.readLine();
+                history.add(modelPath);
+                modelExecutor = new ModelExecutor(modelPath);
+                break;
+            } else if (r == 8) {
+                GameStateUtils.writeStateDescription(state, new BufferedWriter(new OutputStreamWriter(out)));
                 break;
             }
         }
