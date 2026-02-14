@@ -248,11 +248,8 @@ public class InteractiveMode {
                 String cmd = line;
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runGames(modelDir, s, cmd));
-            } else if (line.equals("cmpSet") || line.startsWith("cmpSet ")) {
-                runGamesCmpSetup(state, line);
-            } else if (line.equals("cmp") || line.startsWith("cmp ")) {
-                String cmd = line;
-                executeWithRngEnabled(state, history, () -> runGamesCmp(reader, modelDir, cmd));
+            } else if (line.equals("cmp")) {
+                runGamesCmpMenu(reader, state, history, modelDir);
             } else if (line.startsWith("seed ")) {
                 interactiveSetSeed(state, Long.parseLong(line.split(" ")[1]), Long.parseLong(line.split(" ")[2]));
             } else if (line.equals("rng off")) {
@@ -456,29 +453,30 @@ public class InteractiveMode {
                 }
                 break;
             } else if (r == 2) {
+                history.remove(history.size() - 1);
                 exploreTree(state, reader, modelDir);
                 break;
             } else if (r == 3) {
-                out.print("Node count: ");
-                String countLine = reader.readLine();
-                history.add(countLine);
-                String cmd = "nnc " + countLine;
+                out.print("Args: ");
+                String args = reader.readLine();
+                history.remove(history.size() - 1);
+                String cmd = "nnc " + args;
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runNNPVChance(reader, s, cmd));
                 break;
             } else if (r == 4) {
-                out.print("Node count: ");
-                String countLine = reader.readLine();
-                history.add(countLine);
-                String cmd = "nnv " + countLine;
+                out.print("Args: ");
+                String args = reader.readLine();
+                history.remove(history.size() - 1);
+                String cmd = "nnv " + args;
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runNNPVVolatility(s, cmd, reader));
                 break;
             } else if (r == 5) {
-                out.print("Node count: ");
-                String countLine = reader.readLine();
-                history.add(countLine);
-                String cmd = "nnn " + countLine;
+                out.print("Args: ");
+                String args = reader.readLine();
+                history.remove(history.size() - 1);
+                String cmd = "nnn " + args;
                 GameState s = state;
                 executeWithRngEnabled(state, history, () -> runNNPV2(s, cmd, reader));
                 break;
@@ -547,14 +545,10 @@ public class InteractiveMode {
             var _state = state;
             var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
             var actions = actionsOrig.stream().map(String::toLowerCase).toList();
-            if (line.startsWith("IF:")) {
-                action = actions.indexOf(line.substring(3).toLowerCase());
-            } else {
-                var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
-                if (actionStr != null) {
-                    out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
-                    action = actions.indexOf(actionStr);
-                }
+            var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
+            if (actionStr != null) {
+                out.println("Fuzzy Match: " + actionsOrig.get(actions.indexOf(actionStr)));
+                action = actions.indexOf(actionStr);
             }
         }
         return action;
@@ -663,9 +657,7 @@ public class InteractiveMode {
 
     private static List<String> filterHistory(List<String> history) {
         return history.stream().filter((l) ->
-                !l.startsWith("tree") && !l.startsWith("games") && !l.equals("hist") && !l.equals("save") && !l.equals("load")
-                        && !l.startsWith("nn ") && !l.startsWith("n ") && !l.startsWith("nnc ") && !l.startsWith("nnn ") && !l.startsWith("nnv ")
-                        && !l.startsWith("cmp ") && !l.startsWith("save ") && !l.startsWith("load ")
+                !l.equals("games") && !l.startsWith("games ") && !l.equals("hist") && !l.equals("save") && !l.equals("load") && !l.startsWith("save ") && !l.startsWith("load ") && !l.startsWith("nn ") && !l.startsWith("n ")
         ).collect(Collectors.toList());
     }
 
@@ -1932,68 +1924,129 @@ public class InteractiveMode {
     private static GameState state2;
     private static int startingAction1;
     private static int startingAction2;
+    private static int cmpNodeCount = 500;
+    private static int cmpNumberOfGames = 100;
+    private int cmpNumberOfThreads = -1;
+    private int cmpBatchSize = -1;
+    private static int cmpRandomizationScenario = -1;
 
-    private void runGamesCmpSetup(GameState state, String line) {
-        String[] s = line.split(" ");
-        if (s.length <= 1) {
-            return;
-        }
-        int startingAction = -1;
-        if (s.length >= 3) {
-            if (s[2].equals("e")) {
-                startingAction = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+    private void runGamesCmpMenu(InteractiveReader reader, GameState state, List<String> history, String modelDir) throws IOException {
+        int numberOfThreads = cmpNumberOfThreads > 0 ? cmpNumberOfThreads : DEFAULT_NUMBER_OF_THREADS;
+        int batchSize = cmpBatchSize > 0 ? cmpBatchSize : DEFAULT_BATCH_SIZE;
+        while (true) {
+            out.println("1. Set State 1" + (state1 != null ? " (set)" : ""));
+            out.println("2. Set State 2" + (state2 != null ? " (set)" : ""));
+            out.println("3. Run Comparison");
+            out.println("-- Comparison Parameters --");
+            out.println("4. Set Node Count (" + cmpNodeCount + ")");
+            out.println("5. Set Number of Games (" + cmpNumberOfGames + ")");
+            out.println("6. Set Number of Threads (" + numberOfThreads + ")");
+            out.println("7. Set Batch Size (" + batchSize + ")");
+            out.println("8. Set Randomization Scenario (" + (cmpRandomizationScenario < 0 ? "none" : cmpRandomizationScenario) + ")");
+            out.println("0. Exit");
+            out.print("> ");
+            String line = reader.readLine();
+            history.add(line);
+            int r = parseInt(line, -1);
+            if (r == 1 || r == 2) {
+                int startingAction = -1;
+                out.print("Starting Action (empty for none, 'e' for end turn): ");
+                line = reader.readLine();
+                history.add(line);
+                if (!line.isEmpty()) {
+                    if (line.equals("e")) {
+                        startingAction = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+                    } else {
+                        startingAction = parseInt(line, -1);
+                    }
+                    if (startingAction < 0 || startingAction >= state.getLegalActions().length) {
+                        out.println("Unknown action.");
+                        continue;
+                    }
+                }
+                if (r == 1) {
+                    state1 = state.clone(false);
+                    startingAction1 = startingAction;
+                    out.println("State 1 set.");
+                } else {
+                    state2 = state.clone(false);
+                    startingAction2 = startingAction;
+                    out.println("State 2 set.");
+                }
+                break;
+            } else if (r == 3) {
+                if (state1 == null || state2 == null) {
+                    out.println("Both states must be set first.");
+                    continue;
+                }
+                history.remove(history.size() - 1);
+                history.add("0");
+                out.println(state1);
+                if (startingAction1 >= 0) {
+                    out.println("    " + state1.getActionString(startingAction1));
+                }
+                out.println(state2);
+                if (startingAction2 >= 0) {
+                    out.println("    " + state2.getActionString(startingAction2));
+                }
+                out.println("Continue? (y/n)");
+                out.print("> ");
+                line = reader.readLine();
+                if (!line.equals("y")) {
+                    break;
+                }
+                MatchSession session = new MatchSession(modelDir);
+                session.startingAction = startingAction1;
+                session.setModelComparison(modelDir, state2, startingAction2);
+                var prevRandomization = state1.properties.randomization;
+                if (cmpRandomizationScenario >= 0) {
+                    state1.properties.randomization = state1.properties.randomization.fixR(cmpRandomizationScenario);
+                }
+                int nc = cmpNodeCount, ng = cmpNumberOfGames, nt = numberOfThreads, bs = batchSize;
+                executeWithRngEnabled(state, history, () -> session.playGames(state1, ng, nc, nt, bs, true, false));
+                state1.properties.randomization = prevRandomization;
+                break;
+            } else if (r == 4) {
+                out.print("Node Count (" + cmpNodeCount + "): ");
+                line = reader.readLine();
+                history.add(line);
+                if (!line.isEmpty()) {
+                    cmpNodeCount = parseInt(line, cmpNodeCount);
+                }
+            } else if (r == 5) {
+                out.print("Number of Games (" + cmpNumberOfGames + "): ");
+                line = reader.readLine();
+                history.add(line);
+                if (!line.isEmpty()) {
+                    cmpNumberOfGames = parseInt(line, cmpNumberOfGames);
+                }
+            } else if (r == 6) {
+                out.print("Number of Threads (" + numberOfThreads + "): ");
+                line = reader.readLine();
+                history.add(line);
+                if (!line.isEmpty()) {
+                    numberOfThreads = parseInt(line, numberOfThreads);
+                    cmpNumberOfThreads = numberOfThreads;
+                }
+            } else if (r == 7) {
+                out.print("Batch Size (" + batchSize + "): ");
+                line = reader.readLine();
+                history.add(line);
+                if (!line.isEmpty()) {
+                    batchSize = parseInt(line, batchSize);
+                    cmpBatchSize = batchSize;
+                }
+            } else if (r == 8) {
+                out.print("Randomization Scenario (" + (cmpRandomizationScenario < 0 ? "none" : cmpRandomizationScenario) + ", empty for none): ");
+                line = reader.readLine();
+                history.add(line);
+                if (!line.isEmpty()) {
+                    cmpRandomizationScenario = parseInt(line, -1);
+                }
             } else {
-                startingAction = parseInt(s[2], -1);
-            }
-            if (startingAction < 0 || startingAction >= state.getLegalActions().length) {
-                out.println("Unknown action.");
-                return;
+                break;
             }
         }
-        if (s[1].equals("1")) {
-            state1 = state.clone(false);
-            startingAction1 = startingAction;
-        } else if (s[1].equals("2")) {
-            state2 = state.clone(false);
-            startingAction2 = startingAction;
-        } else {
-            out.println("cmpSet <1|2>");
-        }
-    }
-
-    private void runGamesCmp(BufferedReader reader, String modelDir, String line) throws IOException {
-        if (state1 == null || state2 == null) {
-            out.println("States not set");
-            return;
-        }
-        List<String> args = Arrays.asList(line.split(" "));
-        int nodeCount = parseArgsInt(args, "n", 500);
-        int numberOfThreads = parseArgsInt(args, "t", DEFAULT_NUMBER_OF_THREADS);
-        int batchSize = parseArgsInt(args, "b", DEFAULT_BATCH_SIZE);
-        int numberOfGames = parseArgsInt(args, "c", 100);
-        int randomizationScenario = parseArgsInt(args, "r", -1);
-        MatchSession session = new MatchSession(modelDir);
-        session.startingAction = startingAction1;
-        session.setModelComparison(modelDir, state2, startingAction2);
-        var prevRandomization = state1.properties.randomization;
-        if (randomizationScenario >= 0) {
-            state1.properties.randomization = state1.properties.randomization.fixR(randomizationScenario);
-        }
-        out.println(state1);
-        if (startingAction1 >= 0) {
-            out.println("    " + state1.getActionString(startingAction1));
-        }
-        out.println(state2);
-        if (startingAction2 >= 0) {
-            out.println("    " + state2.getActionString(startingAction2));
-        }
-        out.println("Continue? (y/n)");
-        out.print("> ");
-        if (!reader.readLine().equals("y")) {
-            return;
-        }
-        session.playGames(state1, numberOfGames, nodeCount, numberOfThreads, batchSize, true, false);
-        state1.properties.randomization = prevRandomization;
     }
 
     private void exploreTree(GameState root, BufferedReader reader, String modelDir) throws IOException {
