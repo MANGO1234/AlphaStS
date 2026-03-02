@@ -2102,6 +2102,59 @@ public class TestStates {
         return new GameState(builder);
     }
 
+    public static GameState TestStateDefectRun11() {
+        var builder = new GameStateBuilder();
+        builder.setCharacter(CharacterEnum.DEFECT);
+        builder.addCard(new CardOther.AscendersBane());
+        builder.addCard(new CardDefect.Zap());
+        builder.addCard(new CardDefect.DualCast());
+        builder.addCard(new CardDefect.MultiCast());
+        builder.addCard(new CardDefect.BallLightning(), 2);
+        builder.addCard(new CardDefect.SelfRepair());
+        builder.addCard(new CardDefect.StreamlineP());
+        builder.addCard(new CardDefect.Coolheaded());
+        builder.addCard(new CardDefect.ConsumeP());
+        builder.addCard(new CardDefect.CoolheadedP(), 3);
+        builder.addCard(new CardDefect.Rebound());
+        builder.addCard(new CardDefect.CoreSurge());
+        builder.addCard(new CardDefect.DarknessP());
+        builder.addCard(new CardDefect.RebootP());
+        builder.addCard(new CardDefect.Capacitor());
+        builder.addCard(new CardDefect.DefragmentP());
+        builder.addCard(new CardDefect.ChargeBatteryP());
+        builder.addCard(new CardDefect.Sunder());
+        builder.addCard(new CardColorless.TripP());
+        builder.addCard(new CardDefect.RecursionP(), 2);
+        builder.addCard(new CardDefect.ColdSnapP());
+        builder.addCard(new CardDefect.CompiledDriverP());
+        builder.addCard(new CardDefect.GoForTheEyeP());
+        builder.addCard(new CardDefect.HologramP(), 3);
+        builder.addCard(new CardDefect.Electrodynamics());
+        builder.addCard(new CardDefect.WhiteNoiseP());
+        builder.addCard(new CardDefect.BootSequenceP());
+        builder.addCard(new CardDefect.RecycleP());
+        builder.addCard(new CardDefect.ReinforcedBodyP());
+        builder.addCard(new CardDefect.Loop());
+        builder.addCard(new CardDefect.AllForOne(0 ,0));
+        builder.addCard(new Card.Strike(), 2);
+        builder.addCard(new Card.Defend(), 4);
+        builder.addRelic(new Relic.CrackedOrb());
+        builder.addRelic(new Relic.CursedKey());
+        builder.addRelic(new Relic.Pocketwatch());
+        builder.addRelic(new Relic.FusionHammer());
+        builder.addRelic(new Relic.Toolbox(new CardColorless.Purity(), new CardColorless.Apotheosis(), new CardColorless.HandOfGreed(2)));
+        builder.addRelic(new Relic.Orichalcum());
+        builder.addRelic(new Relic.CentennialPuzzle());
+        builder.addRelic(new Relic.FrozenEye());
+        builder.setGenerateCardOptions(GameProperties.GENERATE_CARD_APOTHEOSIS);
+        builder.setGameStateViaInteractiveMode(List.of("", "rng off", "0", "defend", "consume+", "defend", "cold snap+", "sunder", "multi-cast", "defend", "dual cast", "streamline+", "ball lightning", "holog+", "chargebatt+", "recursion+", "ball light", "white noise+", "coolhead+", "recycle+", "strike", "holo+", "defragmen+", "defend", "holo+", "gofortheeye+", "capacitor", "coresurge", "ascender", "selfrepair", "reinforce", "loop", "reboot+", "rebound", "recurs+", "coolheade+", "darkness+", "coolheade+", "strike", "coolhea", "electr", "allfor", "zap", "compile", "trip", "0", "0", "0", "0", "0", "1", "1", "e", "7", "32", "26", "24", "19", "c", "4", "2", "2", "2", "5", "2", "e", "6", "2", "6", "2", "3", "9", "0", "5", "7", "0", "3", "5", "1", "5", "0", "0", "e", "3", "0", "exit"));
+        EnemyEncounter.addCorruptHeartFight(builder);
+        builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
+        builder.setPotionsScenarios(1);
+        builder.setPlayer(new Player(67, 76));
+        return new GameState(builder);
+    }
+
     public static GameState TestStateSilentRun2() {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);
@@ -2471,7 +2524,7 @@ public class TestStates {
         builder.addRelic(new Relic.Vajira());
 //        builder.addRelic(new Relic.Toolbox());
         EnemyEncounter.addCorruptHeartFight(builder);
-        builder.setGameStateViaInteractiveMode(List.of("", "c", "1", "leg", "refl", "bla", "bla+", "asc", "mas", "gla", "e", "0", "ach", "35", "exit"));
+        builder.setGameStateViaInteractiveMode(List.of("", "c", "1", "leg", "refl", "bla", "bla+", "asc", "mas", "gla", "e", "0", "c", "8", "35", "exit"));
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.DuplicationPotion().setBasePenaltyRatio(100));
         builder.addPotion(new Potion.WeakPotion().setBasePenaltyRatio(100));

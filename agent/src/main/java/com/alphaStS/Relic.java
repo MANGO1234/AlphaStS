@@ -2832,6 +2832,48 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         }
     }
 
+    public static class SetPotionPenalty extends Relic {
+        String desc;
+        short penalty;
+        int potionIdx;
+        boolean usable;
+
+        public SetPotionPenalty(int potionIdx, boolean usable, short penalty) {
+            this.penalty = penalty;
+            this.potionIdx = potionIdx;
+            this.usable = usable;
+            if (usable) {
+                desc = "Set Potion " + potionIdx + " Penalty To " + penalty;
+            } else {
+                desc = "Set Potion " + potionIdx + " To Unusable";
+            }
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        if (usable) {
+                            state.setPotionUsable(potionIdx);
+                            state.setPotionPenalty(potionIdx, penalty);
+                        } else {
+                            state.setPotionUnusable(potionIdx, penalty);
+                        }
+                    }
+                }
+            });
+            if (usable) {
+                desc = "Set " + state.properties.potions.get(potionIdx) + " Penalty To " + penalty;
+            } else {
+                desc = "Set " + state.properties.potions.get(potionIdx) + " To Unusable";
+            }
+        }
+
+        @Override public String toString() {
+            return desc;
+        }
+    }
+
     // **********************************************************************************************************************************************
     // ********************************************************** Watcher Specific Relics ***********************************************************
     // **********************************************************************************************************************************************

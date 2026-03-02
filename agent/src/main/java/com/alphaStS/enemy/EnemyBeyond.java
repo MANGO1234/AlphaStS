@@ -2134,7 +2134,7 @@ public class EnemyBeyond {
     public static class Transient extends Enemy {
         private static final int ATTACK = 0;
         private static final int MAX_FADING_TURNS = 6;
-        private int turn;
+        private int turn = 1;
 
         public Transient() {
             this(999);
@@ -2176,13 +2176,14 @@ public class EnemyBeyond {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             state.enemyDoDamageToPlayer(this, 40 + (turn - 1) * 10, 1);
-        }
-
-        @Override public void nextMove(GameState state, RandomGen random) {
             turn++;
             if (turn > MAX_FADING_TURNS) {
                 health = 0;
+                state.adjustEnemiesAlive(-1);
             }
+        }
+
+        @Override public void nextMove(GameState state, RandomGen random) {
             move = ATTACK;
         }
 

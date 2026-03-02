@@ -16,6 +16,7 @@ public class EnemyEncounter {
         SLIME_BOSS,
         BRONZE_AUTOMATON,
         COLLECTOR,
+        GREMLIN_GANG,
     }
 
     public int startingHealth;

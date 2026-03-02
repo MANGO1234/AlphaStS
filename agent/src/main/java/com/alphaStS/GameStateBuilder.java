@@ -37,6 +37,7 @@ public class GameStateBuilder {
     private int[] potionsScenarios;
     private boolean isBurningElite;
     private Function<GameState, GameState> switchBattleHandler;
+    private int generateCardOptions = 0;
 
     public void setSwitchBattleHandler(Function<GameState, GameState> switchBattleHandler) {
         this.switchBattleHandler = switchBattleHandler;
@@ -96,10 +97,6 @@ public class GameStateBuilder {
         boolean isGremlinLeaderFight = false;
         boolean isGremlinGangFight = false;
         for (Enemy enemy : enemies) {
-            if (enemy instanceof EnemyExordium.FatGremlin) {
-                isGremlinGangFight = true;
-                break;
-            }
             if (enemy instanceof EnemyCity.GremlinLeader) {
                 isGremlinLeaderFight = true;
                 break;
@@ -111,7 +108,7 @@ public class GameStateBuilder {
             indexes.add(new Tuple<>(this.enemies.size() + 2, 0));
             indexes.add(new Tuple<>(this.enemies.size() + 3, -1));
             gremlinEncounterFightIndexes.add(enemiesEncounters.size());
-        } else if (isGremlinGangFight) {
+        } else if (encounterEnum == EnemyEncounter.EncounterEnum.GREMLIN_GANG) {
             for (int i = 0; i < enemies.length; i++) {
                 indexes.add(new Tuple<>(this.enemies.size() + i, -1));
             }
@@ -304,6 +301,14 @@ public class GameStateBuilder {
 
     public CharacterEnum getCharacter() {
         return character;
+    }
+
+    public void setGenerateCardOptions(int generateCardOptions) {
+        this.generateCardOptions = generateCardOptions;
+    }
+
+    public int getGenerateCardOptions() {
+        return generateCardOptions;
     }
 
     public GameEventHandler getEndOfPreBattleSetupHandler() {

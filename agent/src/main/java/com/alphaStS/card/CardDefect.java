@@ -751,8 +751,8 @@ public class CardDefect {
             return energyCost > 0 ? prop.streamlineIndexes[energyCost - 1] : -1;
         }
 
-        public Card getPermCostIfPossible(int permCost) {
-            if (permCost <= 2) {
+        @Override public Card getPermCostIfPossible(int permCost) {
+            if (permCost <= 3) {
                 return new Streamline(permCost);
             }
             return super.getPermCostIfPossible(permCost);
@@ -789,8 +789,8 @@ public class CardDefect {
             return energyCost > 0 ? prop.streamlinePIndexes[energyCost - 1] : -1;
         }
 
-        public Card getPermCostIfPossible(int permCost) {
-            if (permCost <= 2) {
+        @Override public Card getPermCostIfPossible(int permCost) {
+            if (permCost <= 3) {
                 return new StreamlineP(permCost);
             }
             return super.getPermCostIfPossible(permCost);

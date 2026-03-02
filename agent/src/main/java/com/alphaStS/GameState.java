@@ -370,6 +370,7 @@ public final class GameState implements State {
         properties.potionsScenarios = builder.getPotionsScenarios();
         properties.enemiesReordering = builder.getEnemyReordering().size() == 0 ? null : builder.getEnemyReordering();
         properties.character = builder.getCharacter();
+        properties.generateCardOptions = builder.getGenerateCardOptions();
         properties.relics = builder.getRelics();
         properties.enemiesEncounters = builder.getEnemiesEncounters();
         if (properties.potions.size() > 0) {
@@ -1731,7 +1732,6 @@ public final class GameState implements State {
         if (properties.character == CharacterEnum.WATCHER) {
             exitDivinityAtStartOfTurn();
         }
-        triggerOrbsPassiveStartOfTurn();
         if ((buffs & PlayerBuff.USED_VAULT.mask()) == 0) {
             var enemies = getEnemiesForWrite();
             for (int i = 0; i < enemies.size(); i++) {
@@ -1757,6 +1757,7 @@ public final class GameState implements State {
                 }
             }
         }
+        triggerOrbsPassiveStartOfTurn();
         buffs &= ~PlayerBuff.USED_VAULT.mask();
         if (properties.toolbox != null && turnNum == 0 && properties.toolbox.isRelicEnabledInScenario(this)) {
             Relic.Toolbox.changeToSelectionCtx(this);
@@ -1779,7 +1780,7 @@ public final class GameState implements State {
         if (properties.toolsOfTheTradeCounterIdx >= 0) {
             drawCount += getCounterForRead()[properties.toolsOfTheTradeCounterIdx];
         }
-        if (properties.sneckoEye != null) {
+        if (properties.sneckoEye != null && properties.sneckoEye.isRelicEnabledInScenario(this)) {
             drawCount += 2;
         }
         draw(drawCount);

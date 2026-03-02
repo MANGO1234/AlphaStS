@@ -180,7 +180,6 @@ public class InteractiveMode {
             }
             if (printAction) {
                 printAction(state);
-                printAction = true;
                 printState = false;
             }
             out.print("> ");
@@ -542,8 +541,7 @@ public class InteractiveMode {
     private int parseActionInput(GameState state, String line) {
         int action = parseInt(line, -1);
         if (action < 0 || action >= state.getLegalActions().length) {
-            var _state = state;
-            var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(_state::getActionString).toList();
+            var actionsOrig = IntStream.range(0, state.getLegalActions().length).mapToObj(state::getActionString).toList();
             var actions = actionsOrig.stream().map(String::toLowerCase).toList();
             var actionStr = com.alphaStS.utils.FuzzyMatch.getBestFuzzyMatch(line.toLowerCase(), actions);
             if (actionStr != null) {
@@ -1955,7 +1953,9 @@ public class InteractiveMode {
                 history.add(line);
                 if (!line.isEmpty()) {
                     if (line.equals("e")) {
-                        startingAction = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()].length - 1;
+                        if (state.getActionString(state.getLegalActions().length - 1).equals("End Turn")) {
+                            startingAction = state.getLegalActions().length - 1;
+                        }
                     } else {
                         startingAction = parseInt(line, -1);
                     }

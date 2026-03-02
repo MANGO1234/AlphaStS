@@ -86,7 +86,7 @@ public class CardManager {
         cards.add(new CardColorless.Trip());
         cards.add(new CardColorless.Apotheosis());
         cards.add(new CardColorless.Chrysalis());
-        cards.add(new CardColorless.HandOfGreed(0));
+        cards.add(new CardColorless.HandOfGreed(2));
         cards.add(new CardColorless.Magnetism());
         cards.add(new CardColorless.MasterOfStrategy());
         cards.add(new CardColorless.Mayhem());

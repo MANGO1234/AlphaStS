@@ -826,12 +826,6 @@ public class GameProperties implements Cloneable {
                 newCards.add(x.getPermCostIfPossible(i));
             }
         });
-        if (cards.stream().anyMatch((x) -> x.cardName.equals("Streamline"))) {
-            newCards.add(new CardDefect.Streamline(3));
-        }
-        if (cards.stream().anyMatch((x) -> x.cardName.equals("Streamline+"))) {
-            newCards.add(new CardDefect.StreamlineP(3));
-        }
         return newCards;
     }
 

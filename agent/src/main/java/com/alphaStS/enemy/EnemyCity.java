@@ -1507,8 +1507,8 @@ public class EnemyCity {
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.SNECKO, 1);
             } else if (move == TAIL_WHIP) {
                 state.enemyDoDamageToPlayer(this, 10, 1);
-                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
                 state.getPlayerForWrite().applyDebuff(state, DebuffType.WEAK, 2);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.VULNERABLE, 2);
             } else if (move == BITE) {
                 state.enemyDoDamageToPlayer(this, 18, 1);
             }

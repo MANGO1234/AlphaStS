@@ -460,12 +460,14 @@ public class ScenarioStats {
                     .mapToObj(x -> new Tuple<>(properties.cardDict[x], select1OutOf3Count[x]))
                     .sorted(Comparator.comparing(x -> -x.v2()))
                     .toList();
-            var total = IntStream.of(select1OutOf3Count).sum();
-            for (int i = 0; i < select1OutOf3CountList.size(); i++) {
-                System.out.print(i == 0 ? indent + "Select 1 Out Of 3 Card Chosen Count: [" : ", ");
-                System.out.print(select1OutOf3CountList.get(i).v1().cardName + ": " + select1OutOf3CountList.get(i).v2() + " (" + Utils.formatFloat( select1OutOf3CountList.get(i).v2() / (double) total * 100) + "%)");
+            if (!select1OutOf3CountList.isEmpty()) {
+                var total = IntStream.of(select1OutOf3Count).sum();
+                for (int i = 0; i < select1OutOf3CountList.size(); i++) {
+                    System.out.print(i == 0 ? indent + "Select 1 Out Of 3 Card Chosen Count: [" : ", ");
+                    System.out.print(select1OutOf3CountList.get(i).v1().cardName + ": " + select1OutOf3CountList.get(i).v2() + " (" + Utils.formatFloat( select1OutOf3CountList.get(i).v2() / (double) total * 100) + "%)");
+                }
+                System.out.println("]");
             }
-            System.out.println("]");
             if (properties.astrolabeCardsIdxes != null) {
                 var transformedCountList = IntStream.range(0, properties.astrolabeCardsIdxes.length)
                         .filter(x -> astrolabeCount[x][1] > 0)
@@ -523,6 +525,7 @@ public class ScenarioStats {
     public static String getCommonString(Map<Integer, GameStateRandomization.Info> scenarios, int[] scenarioGroup) {
         String prefix = scenarios.get(scenarioGroup[0]).desc();
         String suffix = scenarios.get(scenarioGroup[0]).desc();
+        List<String> diff = new ArrayList<>();
         for (int i = 1; i < scenarioGroup.length; i++) {
             var c = scenarios.get(scenarioGroup[i]).desc();
             for (int j = 0; j < prefix.length(); j++) {
@@ -538,10 +541,21 @@ public class ScenarioStats {
                 }
             }
         }
+        int minLen = scenarios.get(scenarioGroup[0]).desc().length();
+        for (int i = 1; i < scenarioGroup.length; i++) {
+            minLen = Math.min(minLen, scenarios.get(scenarioGroup[i]).desc().length());
+        }
+        if (prefix.length() + suffix.length() > minLen) {
+            suffix = suffix.substring(prefix.length() + suffix.length() - minLen);
+        }
+        for (int i = 0; i < scenarioGroup.length; i++) {
+            var c = scenarios.get(scenarioGroup[i]).desc();
+            diff.add(c.substring(prefix.length(), c.length() - suffix.length()));
+        }
         if (prefix.endsWith(" + ")) {
             prefix = prefix.substring(0, prefix.length() - 3);
         }
-        return prefix + suffix;
+        return prefix + String.join("/", diff) + suffix;
     }
 
     public static void printScenarioGroupComparisonTable(int[][] scenariosGroup, Map<Integer, ScenarioStats> scenarioStats, GameProperties properties) {
