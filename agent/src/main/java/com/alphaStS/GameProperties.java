@@ -252,6 +252,7 @@ public class GameProperties implements Cloneable {
     }
 
     public int inputLen;
+    public NNInputSchema nnInputProperties;
     public int extraOutputLen;
     public int v_total_len;
     public boolean cardInDiscardInNNInput;
