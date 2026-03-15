@@ -27,7 +27,7 @@ public class Main {
             return;
         }
 
-        var state = TestStates.TestState();
+        var state = TestStates.TestStateDefectD();
 //        ((RandomGen.RandomGenPlain) state.properties.random).random.setSeed(5);
 
         if (args.length > 0 && args[0].equals("--get-lengths")) {
@@ -190,16 +190,16 @@ public class Main {
         }
 
         if (SAVES_DIR.startsWith("../")) {
-            SAVES_DIR = "../saves";
+            SAVES_DIR = "../saves_zzzzza";
             PRINT_DAMAGE_LEVEL = MatchSession.PrintDamageLevel.NONE;
+            Configuration.STATS_PRINT_CARD_USAGE_COUNT = false;
             WRITE_MATCHES = true;
-            NUMBER_OF_GAMES_TO_PLAY = 1000;
             int n = state.properties.randomization == null ? 1 : state.properties.randomization.listRandomizations().size();
             n *= state.properties.preBattleRandomization == null ? 1 : state.properties.preBattleRandomization.listRandomizations().size();
             n *= state.properties.preBattleScenarios == null ? 1 : state.properties.preBattleScenarios.listRandomizations().size();
             NUMBER_OF_GAMES_TO_PLAY = args[0].equals("--training") ? 1 : n * 2000;
-            NUMBER_OF_NODES_PER_TURN = args[0].equals("--training") ? 1 : 200;
-//            ITERATION = 56;
+            NUMBER_OF_NODES_PER_TURN = args[0].equals("--training") ? 1 : 2000;
+//            ITERATION = 41;
 //            COMPARE_DIR = "../saves/iteration60";
            MAKE_PRE_BATTLE_SCENARIOS_RANDOM = COMPARE_DIR == null;
 //            WAIT_FOR_ITERATION = 66;

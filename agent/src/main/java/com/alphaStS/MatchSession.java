@@ -418,6 +418,9 @@ public class MatchSession {
                 lastPrintTime = System.currentTimeMillis();
                 System.out.println("Progress: " + game_i + "/" + numOfGames);
                 remoteServerGames.forEach((key, value) -> System.out.printf("Server %s: %d games\n", key, value));
+                if (game_i.get() == numOfGames) {
+                    System.out.println("Player Health: " + origState.getPlayerForRead().getHealth());
+                }
                 if (scenarioStats.size() > 1) {
                     for (var info : combinedInfoMap.entrySet()) {
                         var i = info.getKey();
