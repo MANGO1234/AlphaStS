@@ -286,7 +286,6 @@ public class GameProperties implements Cloneable {
 
     // V Extra indices for training targets
     public int fightProgressVExtraIdx = -1;
-    public int qwinVExtraIdx = -1;
     public int turnsLeftVExtraIdx = -1;
     public int zeroDmgProbVExtraIdx = -1;
     public int alchemizeVExtraIdx = -1;
@@ -842,7 +841,7 @@ public class GameProperties implements Cloneable {
         }
         for (int i = 0; i < cardDict.length; i++) {
             var card = cardDict[i];
-            if (card instanceof Card.CardWrapper c && c.isPermChangeCost() && card.energyCost < 4) {
+            if (card instanceof Card.CardWrapper c && (c.isPermChangeCost() && !c.isTmpChangeCost()) && card.energyCost < 4) {
                 var a = m.get(c.getBaseCard().cardName);
                 a[++a[0]] = i;
                 sneckoIdxes[i] = a;

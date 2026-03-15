@@ -875,7 +875,7 @@ public class MatchSession {
                 action = MCTS.getActionWithMaxNodesOrTerminal(state);
                 greedyAction = action;
             } else {
-                action = mcts.getActionRandomOrTerminal(state, false);
+                action = mcts.getActionRandomOrTerminal(state);
                 greedyAction = MCTS.getActionWithMaxNodesOrTerminal(state);
             }
             var step = new GameStep(state, action);
@@ -923,7 +923,6 @@ public class MatchSession {
         }
         ChanceState lastChanceState = null;
         for (int i = steps.size() - 2; i >= 0; i--) {
-            int isBetter = 0;
             if (!USE_Z_TRAINING && steps.get(i).isExplorationMove) {
                 List<GameStep> extraSteps = new ArrayList<>();
                 ChanceState cState = findBestLineChanceState(steps.get(i).state(), nodeCount, mcts, extraSteps);
@@ -932,9 +931,6 @@ public class MatchSession {
                 if (cState != null && !cState.equals(lastChanceState)) {
                     VArray ret = calcExpectedValue(cState, null, mcts, new VArray(vLen));
                     if (lastChanceState != null || ret.get(GameState.V_COMB_IDX) > vCur.get(GameState.V_COMB_IDX)) {
-                        if (ret.get(GameState.V_COMB_IDX) > vCur.get(GameState.V_COMB_IDX)) {
-                            isBetter = -1;
-                        }
                         state = steps.get(i).state().clone(false);
                         state.setSearchRandomGen(steps.get(i).searchRandomGenMCTS);
                         state.policyMod = steps.get(i).state().policyMod;
@@ -951,8 +947,6 @@ public class MatchSession {
                         vCur = ret;
                         vPro = ret.copy();
                         lastChanceState = cState;
-                    } else {
-                        isBetter = 1;
                     }
 //                    for (GameStep step : extraSteps) {
 //                        step.v = ret;
@@ -962,17 +956,6 @@ public class MatchSession {
                 }
             }
             steps.get(i).v = vPro.copy();
-            if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
-                if (!USE_Z_TRAINING && steps.get(i).isExplorationMove && steps.get(i + 1).v != null) {
-                    var vWin = steps.get(i + 1).v.getVExtra(state.properties.qwinVExtraIdx) - (-10);
-                    if (isBetter < 0) {
-                        steps.get(i + 1).v.setVExtra(state.properties.qwinVExtraIdx, 0.75 * vWin);
-                    } else if (isBetter > 0) {
-                        steps.get(i + 1).v.setVExtra(state.properties.qwinVExtraIdx, 1 - 0.75 * (1 - vWin));
-                    }
-                }
-                steps.get(i).v.setVExtra(state.properties.qwinVExtraIdx, -10 + steps.get(i).state().getVExtra(state.properties.qwinVExtraIdx));
-            }
             state = steps.get(i).state();
             state.clearNextStates();
             if (state.isStochastic && i > 0) {
@@ -1390,9 +1373,7 @@ public class MatchSession {
                 for (var target : state.properties.extraTrainingTargets) {
                     int n = target.getNumberOfTargets();
                     if (n == 1) {
-                        if (state.properties.extraTrainingTargetsLabel.get(k).startsWith("Z") && false) {
-                            stream.writeFloat((float) (step.v.get(v_idx)));
-                        } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
+                        if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
                             stream.writeFloat((float) ((((step.v.get(v_idx) - step.state().realTurnNum / state.properties.maxPossibleRealTurnsLeft) * 2) - 1)));
                         } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("ZeroDmgProb")) {
                             stream.writeFloat((float) (step.v.getVZeroDmg(step.state().getPlayeForRead().getAccumulatedDamage())));

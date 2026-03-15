@@ -349,7 +349,7 @@ public final class GameState implements State {
         GameStateRandomization randomization = builder.getRandomization();
         GameStateRandomization preBattleRandomization = builder.getPreBattleRandomization();
         GameStateRandomization preBattleScenarios = builder.getPreBattleScenarios();
-        // game properties (shared)
+
         properties = new GameProperties();
         properties.originalGameState = this;
         properties.switchBattleHandler = builder.getSwitchBattleHandler();
@@ -517,7 +517,6 @@ public final class GameState implements State {
             }
         }
 
-        // game state
         if (properties.preBattleRandomization != null || builder.getEndOfPreBattleSetupHandler() != null) {
             actionCtx = GameActionCtx.BEGIN_PRE_BATTLE;
         } else if (properties.preBattleScenarios != null) {
@@ -656,25 +655,6 @@ public final class GameState implements State {
                         v.setVExtra(state.properties.fightProgressVExtraIdx, 1);
                     } else if (isTerminal == 0) {
                         v.setVExtra(state.properties.fightProgressVExtraIdx, state.getVExtra(properties.fightProgressVExtraIdx));
-                    }
-                }
-
-                @Override public void updateQValues(GameState state, VArray v) {}
-            });
-        }
-        if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION) {
-            properties.addExtraTrainingTarget("ZAWin", new GameProperties.TrainingTargetRegistrant() {
-                @Override public void setVExtraIdx(GameProperties properties, int idx) {
-                    properties.qwinVExtraIdx = idx;
-                }
-            }, new TrainingTarget() {
-                @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
-                    if (isTerminal > 0) {
-                        v.setVExtra(state.properties.qwinVExtraIdx, 0);
-                    } else if (isTerminal < 0) {
-                        v.setVExtra(state.properties.qwinVExtraIdx, 0);
-                    } else if (isTerminal == 0) {
-                        v.setVExtra(state.properties.qwinVExtraIdx, state.getVExtra(properties.qwinVExtraIdx));
                     }
                 }
 

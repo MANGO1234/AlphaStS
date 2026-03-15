@@ -172,32 +172,28 @@ public class NNInputSchema {
         }
 
         // Hand size
-        if (Configuration.CARD_IN_HAND_IN_NN_INPUT) {
-            inputLen += 1;
-            descBody.append("    1 input for number of cards in hand\n");
-            inputModules.add((s, x, idx) -> {
-                x[idx] = (s.handArrLen - 5) / 10.0f;
-                return 1;
-            });
-            inputPrinters.add((s, input, idx) -> {
-                System.out.println("Hand Size: " + input[idx]);
-                return 1;
-            });
-        }
+        inputLen += 1;
+        descBody.append("    1 input for number of cards in hand\n");
+        inputModules.add((s, x, idx) -> {
+            x[idx] = (s.handArrLen - 5) / 10.0f;
+            return 1;
+        });
+        inputPrinters.add((s, input, idx) -> {
+            System.out.println("Hand Size: " + input[idx]);
+            return 1;
+        });
 
         // Deck size
-        if (Configuration.CARD_IN_DECK_IN_NN_INPUT) {
-            inputLen += 1;
-            descBody.append("    1 input for number of cards in deck\n");
-            inputModules.add((s, x, idx) -> {
-                x[idx] = s.getNumCardsInDeck() / 40.0f;
-                return 1;
-            });
-            inputPrinters.add((s, input, idx) -> {
-                System.out.println("Deck Size: " + input[idx]);
-                return 1;
-            });
-        }
+        inputLen += 1;
+        descBody.append("    1 input for number of cards in deck\n");
+        inputModules.add((s, x, idx) -> {
+            x[idx] = s.getNumCardsInDeck() / 40.0f;
+            return 1;
+        });
+        inputPrinters.add((s, input, idx) -> {
+            System.out.println("Deck Size: " + input[idx]);
+            return 1;
+        });
 
         // Discard size
         if (props.cardInDiscardInNNInput) {

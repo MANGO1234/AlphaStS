@@ -1716,76 +1716,7 @@ public class MCTS {
         return policy;
     }
 
-    public static int getActionRandomOrTerminalWithUncertainty(GameState state) {
-        if (state.terminalAction >= 0) {
-            return state.terminalAction;
-        }
-        var total_n = 0;
-        DescriptiveStatistics ds = new DescriptiveStatistics();
-        var uncertainty = new double[state.policy.length];
-        for (int i = 0; i < state.policy.length; i++) {
-            if (state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0)) {
-                total_n += state.n[i] * state.n[i];
-                if (state.ns[i] instanceof ChanceState cs) {
-                    var t = 0.0;
-                    for (ChanceState.Node node : cs.cache.values()) {
-                        t += node.state.getVExtra(state.properties.qwinVExtraIdx) * node.n / cs.total_node_n;
-                    }
-                    ds.addValue(t);
-                    uncertainty[i] = t;
-                } else {
-                    ds.addValue(((GameState) state.ns[i]).getVExtra(state.properties.qwinVExtraIdx));
-                    uncertainty[i] = ((GameState) state.ns[i]).getVExtra(state.properties.qwinVExtraIdx);
-                }
-            }
-        }
-        boolean useAll = false;
-        if (total_n == 0) {
-            useAll = true;
-        }
-        var max = ds.getMax();
-        var min = ds.getMin();
-        var p = new double[state.n.length];
-        for (int i = 0; i < state.policy.length; i++) {
-            if (useAll) {
-                p[i] = state.n[i];
-            } else if ((state.n[i] > 0 && (state.ns[i] instanceof ChanceState || ((GameState) state.ns[i]).isTerminal() >= 0))) {
-                var pow = 2.0;
-                if (max == min) {
-                    pow = 1;
-                } else {
-                    pow = pow + 2 * ((uncertainty[i] - min) / (max - min) - 0.5);
-                }
-                p[i] = Math.pow(state.n[i] + 1, pow);
-            }
-        }
-
-        var total_p = 0.0;
-        var prevP = Arrays.copyOf(p, p.length);
-        for (int i = 0; i < p.length; i++) {
-            total_p += p[i];
-        }
-        for (int i = 0; i < p.length; i++) {
-            p[i] = (float) (p[i] / total_p);
-        }
-
-        double r = state.getSearchRandomGen(true).nextDouble(RandomGenCtx.Other);
-        int action = -1;
-        double acc = 0.0;
-        for (int i = 0; i < p.length; i++) {
-            acc += p[i];
-            if (acc > r) {
-                action = i;
-                break;
-            }
-        }
-        return action;
-    }
-
-    public int getActionRandomOrTerminal(GameState state, boolean useUncertainty) {
-        if (Configuration.TRAINING_EXPERIMENT_USE_UNCERTAINTY_FOR_EXPLORATION && useUncertainty && !Configuration.USE_Z_TRAINING) {
-            return getActionRandomOrTerminalWithUncertainty(state);
-        }
+    public int getActionRandomOrTerminal(GameState state) {
         if (state.terminalAction >= 0) {
             return state.terminalAction;
         }

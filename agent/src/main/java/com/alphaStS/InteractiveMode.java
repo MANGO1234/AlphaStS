@@ -2273,9 +2273,6 @@ public class InteractiveMode {
         state.setMultithreaded(false);
 
         out.println(state);
-        if (state.properties.qwinVExtraIdx >= 0) {
-            out.println("Q-Win: " + state.getTotalQ(GameState.V_EXTRA_IDX_START + state.properties.qwinVExtraIdx) / (state.total_n + 1));
-        }
         if (state.properties.turnsLeftVExtraIdx >= 0) {
             out.println("Predicted Number of Turns Left: " + Utils.formatFloat(state.getTotalQ(GameState.V_EXTRA_IDX_START + state.properties.turnsLeftVExtraIdx) / (state.total_n + 1) * state.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
         }
