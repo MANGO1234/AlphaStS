@@ -413,9 +413,10 @@ public class EnemyBeyond {
             super(health, 4, true);
             properties.canGainStrength = true;
             properties.canGainBlock = true;
-            properties.canVulnerable = true;
-            properties.canWeaken = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerFrailed = true;
+            properties.entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
             properties.isBoss = true;
         }
 
@@ -640,7 +641,7 @@ public class EnemyBeyond {
             super(health, 3, true);
             properties.isElite = true;
             properties.actNumber = 3;
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public GiantHead(EnemyBeyond.GiantHead other) {
@@ -1052,7 +1053,7 @@ public class EnemyBeyond {
             super(health, 3, true);
             properties.isElite = true;
             properties.actNumber = 3;
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public Reptomancer(EnemyBeyond.Reptomancer other) {
@@ -1266,8 +1267,8 @@ public class EnemyBeyond {
         public TheMaw(int health) {
             super(health, 4, false);
             properties.canGainStrength = true;
-            properties.canWeaken = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerFrailed = true;
         }
 
         public TheMaw(EnemyBeyond.TheMaw other) {
@@ -1372,8 +1373,8 @@ public class EnemyBeyond {
 
         public WrithingMass(int health) {
             super(health, 5, true);
-            properties.canWeaken = true;
-            properties.canVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerVulnerable = true;
             properties.canGainBlock = true;
         }
 

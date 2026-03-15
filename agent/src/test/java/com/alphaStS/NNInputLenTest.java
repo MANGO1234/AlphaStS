@@ -237,7 +237,7 @@ public class NNInputLenTest {
 
         builder.setPlayer(new Player(32, 75));
 
-        assertEquals(91, new GameState(builder).properties.inputLen);
+        assertEquals(92, new GameState(builder).properties.inputLen); // Duality now correctly contributes changePlayerDexterityEot
     }
 
     // endregion

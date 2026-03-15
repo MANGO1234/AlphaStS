@@ -24,7 +24,7 @@ public class EnemyExordium {
             super(health, 4, false);
             properties.isElite = true;
             properties.actNumber = 1;
-            properties.canVulnerable = true;
+            properties.entityProperty.changePlayerVulnerable = true;
             properties.canGainStrength = true;
         }
 
@@ -117,8 +117,8 @@ public class EnemyExordium {
             properties.isElite = true;
             properties.actNumber = 1;
             properties.canGainBlock = true;
-            properties.changePlayerStrength = true;
-            properties.changePlayerDexterity = true;
+            properties.entityProperty.changePlayerStrength = true;
+            properties.entityProperty.changePlayerDexterity = true;
         }
 
         public Lagavulin(Lagavulin other) {
@@ -403,8 +403,8 @@ public class EnemyExordium {
             super(health, 7, false);
             properties.isBoss = true;
             properties.canGainBlock = true;
-            properties.canVulnerable = true;
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
             modeShiftDmg = 40;
             maxModeShiftDmg = 40;
         }
@@ -678,7 +678,7 @@ public class EnemyExordium {
 
         public LargeSpikeSlime(int health) {
             super(health, 3, true);
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerFrailed = true;
             splitMaxHealth = properties.maxHealth;
         }
 
@@ -785,7 +785,7 @@ public class EnemyExordium {
 
         public MediumSpikeSlime(int health) {
             super(health, 2, true);
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerFrailed = true;
         }
 
         public MediumSpikeSlime(int health, boolean startDead) {
@@ -907,7 +907,7 @@ public class EnemyExordium {
 
         public LargeAcidSlime(int health) {
             super(health, 3, true);
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
             splitMaxHealth = properties.maxHealth;
         }
 
@@ -1025,7 +1025,7 @@ public class EnemyExordium {
 
         public MediumAcidSlime(int health) {
             super(health, 3, true);
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public MediumAcidSlime(int health, boolean startDead) {
@@ -1110,7 +1110,7 @@ public class EnemyExordium {
 
         public SmallAcidSlime(int health) {
             super(health, 2, false);
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public SmallAcidSlime(SmallAcidSlime other) {
@@ -1168,8 +1168,8 @@ public class EnemyExordium {
 
         public RedSlaver(int health) {
             super(health, 3, true);
-            properties.canVulnerable = true;
-            properties.canEntangle = true;
+            properties.entityProperty.changePlayerVulnerable = true;
+            properties.entityProperty.changePlayerEntangled = true;
         }
 
         public RedSlaver(RedSlaver other) {
@@ -1266,7 +1266,7 @@ public class EnemyExordium {
 
         public BlueSlaver(int health) {
             super(health, 2, true);
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public BlueSlaver(BlueSlaver other) {
@@ -1644,7 +1644,7 @@ public class EnemyExordium {
 
         public GreenLouse(int health) {
             super(health, 2, true);
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public GreenLouse(GreenLouse other) {
@@ -1753,7 +1753,7 @@ public class EnemyExordium {
 
         public FungiBeast(int health) {
             super(health, 2, true);
-            properties.canVulnerable = true;
+            properties.entityProperty.changePlayerVulnerable = true;
             properties.canGainStrength = true;
         }
 
@@ -2073,8 +2073,8 @@ public class EnemyExordium {
 
         public FatGremlin(int health) {
             super(health, 1, false);
-            properties.canWeaken = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerFrailed = true;
         }
 
         public FatGremlin(FatGremlin other) {

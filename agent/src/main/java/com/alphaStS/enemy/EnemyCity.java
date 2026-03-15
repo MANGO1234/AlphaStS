@@ -29,9 +29,9 @@ public class EnemyCity {
             super(health, 7, true);
             properties.canGainStrength = true;
             properties.canGainMetallicize = true;
-            properties.canWeaken = true;
-            properties.canVulnerable = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerVulnerable = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.canGainBlock = true;
             properties.isBoss = true;
         }
@@ -469,9 +469,9 @@ public class EnemyCity {
             super(health, 4, true);
             properties.canGainStrength = true;
             properties.canGainBlock = true;
-            properties.canVulnerable = true;
-            properties.canWeaken = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.isBoss = true;
         }
 
@@ -1307,7 +1307,7 @@ public class EnemyCity {
 
         public SphericGuardian(int health) {
             super(health, 4, false);
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.canGainBlock = true;
             properties.hasArtifact = true;
             artifact = 3;
@@ -1385,7 +1385,7 @@ public class EnemyCity {
 
         public ShelledParasite(int health) {
             super(health, 4, true);
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.canGainBlock = true;
             properties.canHeal = true;
             metallicize = 14;
@@ -1490,8 +1490,8 @@ public class EnemyCity {
 
         public Snecko(int health) {
             super(health, 3, true);
-            properties.canWeaken = true;
-            properties.canVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerVulnerable = true;
         }
 
         public Snecko(Snecko other) {
@@ -1628,7 +1628,7 @@ public class EnemyCity {
 
         public Romeo(int health) {
             super(health, 4, false);
-            properties.canWeaken = true;
+            properties.entityProperty.changePlayerWeakened = true;
         }
 
         public Romeo(Romeo other) {
@@ -1691,7 +1691,7 @@ public class EnemyCity {
 
         public Bear(int health) {
             super(health, 3, false);
-            properties.changePlayerDexterity = true;
+            properties.entityProperty.changePlayerDexterity = true;
             properties.canGainBlock = true;
         }
 
@@ -1839,7 +1839,7 @@ public class EnemyCity {
         public Mystic(int health) {
             super(health, 3, true);
             properties.canGainStrength = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.canHeal = true;
         }
 
@@ -1930,8 +1930,8 @@ public class EnemyCity {
         public Chosen(int health) {
             super(health, 5, false);
             properties.canGainStrength = true;
-            properties.canWeaken = true;
-            properties.canVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerVulnerable = true;
         }
 
         public Chosen(Chosen other) {
@@ -2043,8 +2043,8 @@ public class EnemyCity {
 
         public SnakePlant(int health) {
             super(health, 2, true);
-            properties.canWeaken = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.canGainBlock = true;
         }
 

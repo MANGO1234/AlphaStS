@@ -27,7 +27,7 @@ public class CardIronclad {
             this.damage = damage;
             this.vulnerable = vulnerable;
             selectEnemy = true;
-            vulnEnemy = true;
+            entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -242,7 +242,7 @@ public class CardIronclad {
             this.damage = damage;
             this.weak = weak;
             selectEnemy = true;
-            weakEnemy = true;
+            entityProperty.weakEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -271,8 +271,8 @@ public class CardIronclad {
         public _FlexT(String cardName, int strength) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.strength = strength;
-            changePlayerStrength = true;
-            changePlayerStrengthEot = true;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerStrengthEot = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -591,7 +591,7 @@ public class CardIronclad {
         public _ThunderclapT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            vulnEnemy = true;
+            entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1090,7 +1090,7 @@ public class CardIronclad {
             this.strengthLoss = strengthLoss;
             exhaustWhenPlayed = true;
             selectEnemy = true;
-            affectEnemyStrength = true;
+            entityProperty.affectEnemyStrength = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1492,7 +1492,7 @@ public class CardIronclad {
         public _InflameT(String cardName, int strength) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.strength = strength;
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1519,7 +1519,7 @@ public class CardIronclad {
         public _IntimidateT(String cardName, int weak) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.weak = weak;
-            weakEnemy = true;
+            entityProperty.weakEnemy = true;
             exhaustWhenPlayed = true;
         }
 
@@ -1827,7 +1827,7 @@ public class CardIronclad {
 
         public _RuptureT(String cardName, int n) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
             this.n = n;
         }
 
@@ -2042,8 +2042,8 @@ public class CardIronclad {
             super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.debuffAmount = debuffAmount;
             exhaustWhenPlayed = true;
-            vulnEnemy = true;
-            weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+            entityProperty.weakEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2074,7 +2074,7 @@ public class CardIronclad {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.strength = strength;
             selectEnemy = true;
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2104,8 +2104,8 @@ public class CardIronclad {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.debuffAmount = debuffAmount;
             selectEnemy = true;
-            vulnEnemy = true;
-            weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+            entityProperty.weakEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2167,6 +2167,7 @@ public class CardIronclad {
     private static abstract class _BarricadeT extends Card {
         public _BarricadeT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
+            entityProperty.possibleBuffs |= PlayerBuff.BARRICADE.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2193,7 +2194,7 @@ public class CardIronclad {
         public _BerserkT(String cardName, int vulnerable) {
             super(cardName, Card.POWER, 0, Card.RARE);
             this.vulnerable = vulnerable;
-            this.changePlayerVulnerable = true;
+            this.entityProperty.changePlayerVulnerable = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2290,6 +2291,7 @@ public class CardIronclad {
         public _CorruptionT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
             exhaustSkill = true;
+            entityProperty.possibleBuffs |= PlayerBuff.CORRUPTION.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2315,7 +2317,7 @@ public class CardIronclad {
 
         public _DemonFormT(String cardName, int n) {
             super(cardName, Card.POWER, 3, Card.RARE);
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
             this.n = n;
         }
 
@@ -2802,7 +2804,7 @@ public class CardIronclad {
     private static abstract class _LimitBreakT extends Card {
         public _LimitBreakT(String cardName, boolean exhaustWhenPlayedFlag) {
             super(cardName, Card.SKILL, 1, Card.RARE);
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
             exhaustWhenPlayed = exhaustWhenPlayedFlag;
         }
 

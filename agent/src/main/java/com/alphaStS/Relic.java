@@ -17,15 +17,9 @@ import one.util.streamex.IntStreamEx;
 import java.util.*;
 
 public abstract class Relic implements GameProperties.CounterRegistrant, GameProperties.TrainingTargetRegistrant {
-    public boolean changePlayerStrength;
-    public boolean changePlayerDexterity;
-    public boolean changePlayerDexterityEot;
-    public boolean vulnEnemy;
-    public boolean weakEnemy;
-    public boolean poisonEnemy;
+    public EntityProperty entityProperty = new EntityProperty();
     public boolean healPlayer;
     public boolean scry;
-    public boolean changeEnemyStrength;
     public boolean[] preBattleScenariosEnabled;
     public boolean[] battleRandomizationIdxsEnabled;
     public Card startOfBattleAction;
@@ -126,6 +120,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
 
     public static class Akabeko extends Relic {
+        public Akabeko() {
+            entityProperty.possibleBuffs |= PlayerBuff.AKABEKO.mask();
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -169,6 +167,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class ArtOfWar extends Relic {
+        public ArtOfWar() {
+            entityProperty.possibleBuffs |= PlayerBuff.ART_OF_WAR.mask();
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
@@ -196,7 +198,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class BagOfMarbles extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            vulnEnemy = true;
+            entityProperty.vulnEnemy = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
@@ -248,6 +250,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class CentennialPuzzle extends Relic {
+        public CentennialPuzzle() {
+            entityProperty.possibleBuffs |= PlayerBuff.CENTENNIAL_PUZZLE.mask();
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -773,7 +779,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Kunai extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            changePlayerDexterity = true;
+            entityProperty.changePlayerDexterity = true;
             state.properties.registerCounter("Kunai", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
@@ -987,7 +993,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Shuriken extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
             state.properties.registerCounter("Shuriken", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
@@ -1997,6 +2003,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Nloth's Mask: No need to implement
 
     public static class Necronomicon extends Relic {
+        public Necronomicon() {
+            entityProperty.possibleBuffs |= PlayerBuff.NECRONOMICON.mask();
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -2073,7 +2083,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class RedMask extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            weakEnemy = true;
+            entityProperty.weakEnemy = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
@@ -2153,7 +2163,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class RedSkull extends Relic {
         public RedSkull() {
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2257,8 +2267,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Brimstone extends Relic {
         public Brimstone() {
-            changePlayerStrength = true;
-            changeEnemyStrength = true;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.affectEnemyStrength = true;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2401,7 +2411,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class TwistedFunnel extends Relic {
         public TwistedFunnel() {
-            poisonEnemy = true;
+            entityProperty.poisonEnemy = true;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2909,8 +2919,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class Duality extends Relic {
         public Duality() {
-            changePlayerDexterity = true;
-            changePlayerDexterityEot = true;
+            entityProperty.changePlayerDexterity = true;
+            entityProperty.changePlayerDexterityEot = true;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {

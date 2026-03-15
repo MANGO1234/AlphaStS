@@ -239,10 +239,6 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.origMaxHealth = properties.maxHealth;
             properties.isElite = possibleEnemies.stream().anyMatch((e) -> e.properties.isElite);
             properties.isMinion = possibleEnemies.stream().anyMatch((e) -> e.properties.isMinion);
-            properties.canVulnerable = possibleEnemies.stream().anyMatch((e) -> e.properties.canVulnerable);
-            properties.canEntangle = possibleEnemies.stream().anyMatch((e) -> e.properties.canEntangle);
-            properties.canWeaken = possibleEnemies.stream().anyMatch((e) -> e.properties.canWeaken);
-            properties.canFrail = possibleEnemies.stream().anyMatch((e) -> e.properties.canFrail);
             properties.canGainStrength = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainStrength);
             properties.canGainLoseStrengthEot = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainLoseStrengthEot);
             properties.canGainRegeneration = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainRegeneration);
@@ -250,9 +246,9 @@ public abstract class Enemy extends EnemyReadOnly {
             properties.canGainMetallicize = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainMetallicize);
             properties.canGainPlatedArmor = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainPlatedArmor);
             properties.canGainBlock = possibleEnemies.stream().anyMatch((e) -> e.properties.canGainBlock);
-            properties.changePlayerStrength = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerStrength);
-            properties.changePlayerDexterity = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerDexterity);
-            properties.changePlayerFocus = possibleEnemies.stream().anyMatch((e) -> e.properties.changePlayerFocus);
+            for (var e : possibleEnemies) {
+                properties.entityProperty.mergeFrom(e.properties.entityProperty);
+            }
             properties.hasBurningEliteBuff = possibleEnemies.stream().anyMatch((e) -> e.properties.hasBurningEliteBuff);
             properties.hasArtifact = possibleEnemies.stream().anyMatch((e) -> e.properties.hasArtifact);
             properties.actNumber = possibleEnemies.stream().mapToInt((enemy) -> enemy.properties.actNumber).reduce(0, Math::max);

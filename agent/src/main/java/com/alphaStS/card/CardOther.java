@@ -453,7 +453,7 @@ public class CardOther {
         public _WishStrengthT(String cardName, int strength) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.strength = strength;
-            this.changePlayerStrength = true;
+            this.entityProperty.changePlayerStrength = true;
             this.select1OutOf3CardEffectCard = true;
         }
 

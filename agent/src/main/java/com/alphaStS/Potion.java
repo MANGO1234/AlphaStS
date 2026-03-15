@@ -11,16 +11,8 @@ import com.alphaStS.utils.Utils;
 import java.util.*;
 
 public abstract class Potion implements GameProperties.CounterRegistrant {
-    boolean vulnEnemy;
-    boolean weakEnemy;
-    boolean changePlayerStrength;
-    boolean changePlayerStrengthEot;
-    boolean changePlayerFocus;
-    boolean changePlayerDexterity;
-    boolean changePlayerDexterityEot;
-    boolean changePlayerArtifact;
+    EntityProperty entityProperty = new EntityProperty();
     boolean selectEnemy;
-    boolean poisonEnemy;
     boolean healPlayer;
     boolean selectFromHand;
     boolean selectFromDiscard;
@@ -94,7 +86,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class FearPotion extends Potion {
         public FearPotion() {
-            vulnEnemy = true;
+            entityProperty.vulnEnemy = true;
             selectEnemy = true;
         }
 
@@ -107,7 +99,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class WeakPotion extends Potion {
         public WeakPotion() {
-            weakEnemy = true;
+            entityProperty.weakEnemy = true;
             selectEnemy = true;
         }
 
@@ -157,7 +149,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class PoisonPotion extends Potion {
         public PoisonPotion() {
             selectEnemy = true;
-            poisonEnemy = true;
+            entityProperty.poisonEnemy = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -169,7 +161,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class StrengthPotion extends Potion {
         public StrengthPotion() {
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -181,7 +173,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class DexterityPotion extends Potion {
         public DexterityPotion() {
-            changePlayerDexterity = true;
+            entityProperty.changePlayerDexterity = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -193,8 +185,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class FlexPotion extends Potion {
         public FlexPotion() {
-            changePlayerStrength = true;
-            changePlayerStrengthEot = true;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerStrengthEot = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -207,8 +199,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class SpeedPotion extends Potion {
         public SpeedPotion() {
-            changePlayerDexterity = true;
-            changePlayerDexterityEot = true;
+            entityProperty.changePlayerDexterity = true;
+            entityProperty.changePlayerDexterityEot = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -378,7 +370,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class AncientPotion extends Potion {
         public AncientPotion() {
-            changePlayerArtifact = true;
+            entityProperty.changePlayerArtifact = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -573,7 +565,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class CultistPotion extends Potion {
         public CultistPotion() {
-            changePlayerStrength = true;
+            entityProperty.changePlayerStrength = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -649,7 +641,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class FocusPotion extends Potion {
         public FocusPotion() {
-            changePlayerFocus = true;
+            entityProperty.changePlayerFocus = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {

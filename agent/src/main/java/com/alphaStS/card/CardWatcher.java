@@ -172,7 +172,7 @@ public class CardWatcher {
             this.vulnerable = vulnerable;
             this.selectEnemy = true;
             this.needsLastCardType = true;
-            this.vulnEnemy = true;
+            this.entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -496,7 +496,7 @@ public class CardWatcher {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.mark = mark;
             this.selectEnemy = true;
-            this.markEnemy = true;
+            this.entityProperty.markEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -592,7 +592,7 @@ public class CardWatcher {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             this.weak = weak;
-            this.weakEnemy = true;
+            this.entityProperty.weakEnemy = true;
             this.selectEnemy = true;
             this.needsLastCardType = true;
         }
@@ -815,6 +815,7 @@ public class CardWatcher {
         public _ConcludeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
+            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -904,8 +905,8 @@ public class CardWatcher {
         public _FastingT(String cardName, int statBonus) {
             super(cardName, Card.POWER, 2, Card.UNCOMMON);
             this.statBonus = statBonus;
-            this.changePlayerStrength = true;
-            this.changePlayerDexterity = true;
+            this.entityProperty.changePlayerStrength = true;
+            this.entityProperty.changePlayerDexterity = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1064,7 +1065,7 @@ public class CardWatcher {
         public _IndignationT(String cardName, int vulnerable) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.vulnerable = vulnerable;
-            this.vulnEnemy = true;
+            this.entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1174,6 +1175,7 @@ public class CardWatcher {
             super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
             this.cardCount = cardCount;
             this.selectFromDiscard = true;
+            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1899,7 +1901,7 @@ public class CardWatcher {
             this.blockReturn = blockReturn;
             this.selectEnemy = true;
             this.exhaustWhenPlayed = true;
-            this.talkToTheHandEnemy = true;
+            this.entityProperty.talkToTheHandEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1989,7 +1991,7 @@ public class CardWatcher {
         public _WaveOfTheHandT(String cardName, int weakAmount) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.weakAmount = weakAmount;
-            this.weakEnemy = true;
+            this.entityProperty.weakEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2347,6 +2349,7 @@ public class CardWatcher {
             super(cardName, Card.SKILL, 1, Card.RARE);
             this.exhaustWhenPlayed = true;
             this.retain = retain;
+            entityProperty.possibleBuffs |= PlayerBuff.BLASPHEMY.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2903,6 +2906,7 @@ public class CardWatcher {
         public _VaultT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
             this.exhaustWhenPlayed = true;
+            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask() | PlayerBuff.USED_VAULT.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

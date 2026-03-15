@@ -1,9 +1,10 @@
 package com.alphaStS.enemy;
 
-import com.alphaStS.card.Card;
+import com.alphaStS.EntityProperty;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
+import com.alphaStS.card.Card;
 
 import java.util.List;
 import java.util.Objects;
@@ -18,10 +19,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean isElite = false;
         public boolean isBoss = false;
         public boolean isMinion = false;
-        public boolean canVulnerable = false;
-        public boolean canEntangle = false;
-        public boolean canWeaken = false;
-        public boolean canFrail = false;
+        public EntityProperty entityProperty = new EntityProperty();
         public boolean canGainStrength = false;
         public boolean canGainLoseStrengthEot = false;
         public boolean canGainRegeneration = false;
@@ -29,9 +27,6 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         public boolean canGainMetallicize = false;
         public boolean canGainPlatedArmor = false;
         public boolean canGainBlock = false;
-        public boolean changePlayerStrength = false;
-        public boolean changePlayerFocus = false;
-        public boolean changePlayerDexterity = false;
         public boolean hasBurningEliteBuff = false;
         public boolean hasArtifact = false;
         public boolean useLast2MovesForMoveSelection;

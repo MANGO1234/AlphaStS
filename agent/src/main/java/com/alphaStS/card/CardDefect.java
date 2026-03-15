@@ -992,7 +992,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
             selectEnemy = true;
-            lockOnEnemy = true;
+            entityProperty.lockOnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1141,7 +1141,7 @@ public class CardDefect {
         public _ConsumeT(String cardName, int n) {
             super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.n = n;
-            this.changePlayerFocus = true;
+            this.entityProperty.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1198,7 +1198,7 @@ public class CardDefect {
         public _DefragmentT(String cardName, int n) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.n = n;
-            this.changePlayerFocus = true;
+            this.entityProperty.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2018,9 +2018,9 @@ public class CardDefect {
         public _ReprogramT(String cardName, int n) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
-            changePlayerStrength = true;
-            changePlayerDexterity = true;
-            changePlayerFocus = true;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerDexterity = true;
+            entityProperty.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2532,7 +2532,7 @@ public class CardDefect {
 
         public _BiasedCognitionT(String cardName, int n) {
             super(cardName, Card.POWER, 1, Card.RARE);
-            this.changePlayerFocus = true;
+            this.entityProperty.changePlayerFocus = true;
             this.n = n;
         }
 
@@ -2620,7 +2620,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.n = n;
             selectEnemy = true;
-            changePlayerArtifact = true;
+            entityProperty.changePlayerArtifact = true;
             exhaustWhenPlayed = true;
         }
 
@@ -2898,7 +2898,7 @@ public class CardDefect {
         public _HyperBeamT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
-            this.changePlayerFocus = true;
+            this.entityProperty.changePlayerFocus = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

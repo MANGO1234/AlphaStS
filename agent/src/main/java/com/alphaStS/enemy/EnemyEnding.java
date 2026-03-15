@@ -23,8 +23,8 @@ public class EnemyEnding {
             properties.hasArtifact = true;
             properties.canGainBlock = true;
             properties.canGainStrength = true;
-            properties.changePlayerStrength = true;
-            properties.changePlayerFocus = true;
+            properties.entityProperty.changePlayerStrength = true;
+            properties.entityProperty.changePlayerFocus = true;
             properties.isElite = true;
         }
 
@@ -277,9 +277,9 @@ public class EnemyEnding {
             super(health, 4, true);
             properties.hasArtifact = true;
             properties.canGainStrength = true;
-            properties.canVulnerable = true;
-            properties.canWeaken = true;
-            properties.canFrail = true;
+            properties.entityProperty.changePlayerVulnerable = true;
+            properties.entityProperty.changePlayerWeakened = true;
+            properties.entityProperty.changePlayerFrailed = true;
             properties.isBoss = true;
             if (dead) {
                 this.health = 0;

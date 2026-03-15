@@ -512,7 +512,7 @@ public class NNInputSchema {
         }
 
         // Focus
-        if (props.playerFocusCanChange) {
+        if (props.anyEntityProperty.changePlayerFocus) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player focus\n");
             inputModules.add((s, x, idx) -> {
@@ -566,7 +566,7 @@ public class NNInputSchema {
         }
 
         // Player artifact
-        if (props.playerArtifactCanChange) {
+        if (props.anyEntityProperty.changePlayerArtifact) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player artifact\n");
             inputModules.add((s, x, idx) -> {
@@ -580,7 +580,7 @@ public class NNInputSchema {
         }
 
         // Player strength
-        if (props.playerStrengthCanChange) {
+        if (props.anyEntityProperty.changePlayerStrength) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player strength\n");
             inputModules.add((s, x, idx) -> {
@@ -594,7 +594,7 @@ public class NNInputSchema {
         }
 
         // Player dexterity
-        if (props.playerDexterityCanChange) {
+        if (props.anyEntityProperty.changePlayerDexterity) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player dexterity\n");
             inputModules.add((s, x, idx) -> {
@@ -608,7 +608,7 @@ public class NNInputSchema {
         }
 
         // Player lose strength eot
-        if (props.playerStrengthEotCanChange) {
+        if (props.anyEntityProperty.changePlayerStrengthEot) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player lose strength eot debuff\n");
             inputModules.add((s, x, idx) -> {
@@ -622,7 +622,7 @@ public class NNInputSchema {
         }
 
         // Player lose dexterity eot
-        if (props.playerDexterityEotCanChange) {
+        if (props.anyEntityProperty.changePlayerDexterityEot) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player lose dexterity eot debuff\n");
             inputModules.add((s, x, idx) -> {
@@ -650,7 +650,7 @@ public class NNInputSchema {
         }
 
         // Player vulnerable
-        if (props.playerCanGetVuln) {
+        if (props.anyEntityProperty.changePlayerVulnerable) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player vulnerable\n");
             inputModules.add((s, x, idx) -> {
@@ -664,7 +664,7 @@ public class NNInputSchema {
         }
 
         // Player weak
-        if (props.playerCanGetWeakened) {
+        if (props.anyEntityProperty.changePlayerWeakened) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player weak\n");
             inputModules.add((s, x, idx) -> {
@@ -678,7 +678,7 @@ public class NNInputSchema {
         }
 
         // Player frail
-        if (props.playerCanGetFrailed) {
+        if (props.anyEntityProperty.changePlayerFrailed) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player frail\n");
             inputModules.add((s, x, idx) -> {
@@ -692,7 +692,7 @@ public class NNInputSchema {
         }
 
         // Player entangled
-        if (props.playerCanGetEntangled) {
+        if (props.anyEntityProperty.changePlayerEntangled) {
             inputLen += 1;
             descBody.append("    1 input to keep track of whether player is entangled or not\n");
             inputModules.add((s, x, idx) -> {
@@ -735,7 +735,7 @@ public class NNInputSchema {
 
         // Player buffs
         for (PlayerBuff buff : PlayerBuff.BUFFS) {
-            if ((props.possibleBuffs & buff.mask()) != 0) {
+            if ((props.anyEntityProperty.possibleBuffs & buff.mask()) != 0) {
                 inputLen += 1;
                 descBody.append("    1 input to keep track of buff ").append(buff.name()).append("\n");
                 final long mask = buff.mask();
@@ -1009,7 +1009,7 @@ public class NNInputSchema {
         });
 
         // Vulnerable
-        if (props.enemyCanGetVuln) {
+        if (props.anyEntityProperty.vulnEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of vulnerable\n"; }
@@ -1025,7 +1025,7 @@ public class NNInputSchema {
         }
 
         // Weak
-        if (props.enemyCanGetWeakened) {
+        if (props.anyEntityProperty.weakEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of weak\n"; }
@@ -1041,7 +1041,7 @@ public class NNInputSchema {
         }
 
         // Choke
-        if (props.enemyCanGetChoked) {
+        if (props.anyEntityProperty.chokeEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of choke\n"; }
@@ -1057,7 +1057,7 @@ public class NNInputSchema {
         }
 
         // Lock-On
-        if (props.enemyCanGetLockOn) {
+        if (props.anyEntityProperty.lockOnEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of lockOn\n"; }
@@ -1073,7 +1073,7 @@ public class NNInputSchema {
         }
 
         // Talk to the Hand
-        if (props.enemyCanGetTalkToTheHand) {
+        if (props.anyEntityProperty.talkToTheHandEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of talkToTheHand\n"; }
@@ -1089,7 +1089,7 @@ public class NNInputSchema {
         }
 
         // Mark
-        if (props.enemyCanGetMark) {
+        if (props.anyEntityProperty.markEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of mark\n"; }
@@ -1105,7 +1105,7 @@ public class NNInputSchema {
         }
 
         // Poison
-        if (props.enemyCanGetPoisoned) {
+        if (props.anyEntityProperty.poisonEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of poison\n"; }
@@ -1121,7 +1121,7 @@ public class NNInputSchema {
         }
 
         // Corpse Explosion
-        if (props.enemyCanGetCorpseExplosion) {
+        if (props.anyEntityProperty.corpseExplosionEnemy) {
             allEnemyModules.add(new EnemyInputModule() {
                 @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
                 @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of corpse explosion\n"; }
@@ -1139,7 +1139,7 @@ public class NNInputSchema {
         // Lose Strength EOT (per-enemy or global)
         allEnemyModules.add(new EnemyInputModule() {
             @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
-                return (enemy.properties.canGainLoseStrengthEot || p.enemyStrengthEotCanChange) ? 1 : 0;
+                return (enemy.properties.canGainLoseStrengthEot || p.anyEntityProperty.affectEnemyStrengthEot) ? 1 : 0;
             }
             @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) {
                 return "        1 input to keep track of enemy gain strength eot\n";
@@ -1175,7 +1175,7 @@ public class NNInputSchema {
         // Enemy Strength (per-enemy or global)
         allEnemyModules.add(new EnemyInputModule() {
             @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
-                return (enemy.properties.canGainStrength || p.enemyStrengthCanChange) ? 1 : 0;
+                return (enemy.properties.canGainStrength || p.anyEntityProperty.affectEnemyStrength) ? 1 : 0;
             }
             @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) {
                 return "        1 input to keep track of strength\n";
@@ -1265,7 +1265,7 @@ public class NNInputSchema {
         // Enemy Max Health (per-enemy: canGainRegeneration || canHeal || global: enemyCanGetCorpseExplosion)
         allEnemyModules.add(new EnemyInputModule() {
             @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
-                return (enemy.properties.canGainRegeneration || enemy.properties.canHeal || p.enemyCanGetCorpseExplosion) ? 1 : 0;
+                return (enemy.properties.canGainRegeneration || enemy.properties.canHeal || p.anyEntityProperty.corpseExplosionEnemy) ? 1 : 0;
             }
             @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) {
                 return "        1 input to keep track of enemy max health\n";

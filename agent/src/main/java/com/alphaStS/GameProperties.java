@@ -26,29 +26,9 @@ public class GameProperties implements Cloneable {
     public boolean biasedCognitionLimitSet;
     public int biasedCognitionLimitUsed;
     public double[] biasedCognitionLimitDistribution;
-    public boolean playerArtifactCanChange;
-    public boolean playerStrengthCanChange;
-    public boolean playerDexterityCanChange;
-    public boolean playerStrengthEotCanChange;
-    public boolean playerDexterityEotCanChange;
-    public boolean playerFocusCanChange;
+    public EntityProperty anyEntityProperty = new EntityProperty();
     public boolean playerPlatedArmorCanChange;
-    public boolean playerCanGetVuln;
-    public boolean playerCanGetWeakened;
-    public boolean playerCanGetFrailed;
-    public boolean playerCanGetEntangled;
     public boolean previousCardPlayTracking;
-    public boolean enemyCanGetVuln;
-    public boolean enemyCanGetWeakened;
-    public boolean enemyCanGetChoked;
-    public boolean enemyCanGetLockOn;
-    public boolean enemyCanGetTalkToTheHand;
-    public boolean enemyCanGetMark;
-    public boolean enemyStrengthCanChange;
-    public boolean enemyStrengthEotCanChange;
-    public boolean enemyCanGetPoisoned;
-    public boolean enemyCanGetCorpseExplosion;
-    public long possibleBuffs;
     public boolean needDeckOrderMemory;
     public boolean selectFromExhaust;
     public RandomGen random;
@@ -315,6 +295,20 @@ public class GameProperties implements Cloneable {
     public int[] potionsVExtraIdx;
 
     public int difficultyChosen;
+
+    public void setupEntityProperties(
+            java.util.List<com.alphaStS.card.Card> cards,
+            java.util.List<Relic> relics,
+            java.util.List<Potion> potions,
+            java.util.List<? extends com.alphaStS.enemy.EnemyReadOnly> enemies,
+            boolean playerHasArtifact) {
+        anyEntityProperty = new EntityProperty();
+        if (playerHasArtifact) anyEntityProperty.changePlayerArtifact = true;
+        for (var c : cards)   anyEntityProperty.mergeFrom(c.entityProperty);
+        for (var r : relics)  anyEntityProperty.mergeFrom(r.entityProperty);
+        for (var p : potions) anyEntityProperty.mergeFrom(p.entityProperty);
+        for (var e : enemies) anyEntityProperty.mergeFrom(e.properties.entityProperty);
+    }
 
     public GameProperties clone() {
         try {

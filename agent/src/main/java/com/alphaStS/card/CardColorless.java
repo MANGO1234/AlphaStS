@@ -45,7 +45,7 @@ public class CardColorless {
         public Blind() {
             super("Blind", Card.SKILL, 0, Card.UNCOMMON);
             selectEnemy = true;
-            weakEnemy = true;
+            entityProperty.weakEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -57,7 +57,7 @@ public class CardColorless {
     public static class BlindP extends Card {
         public BlindP() {
             super("Blind+", Card.SKILL, 0, Card.UNCOMMON);
-            weakEnemy = true;
+            entityProperty.weakEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -76,8 +76,8 @@ public class CardColorless {
             this.n = n;
             this.exhaustWhenPlayed = true;
             this.selectEnemy = true;
-            this.affectEnemyStrength = true;
-            this.affectEnemyStrengthEot = true;
+            this.entityProperty.affectEnemyStrength = true;
+            this.entityProperty.affectEnemyStrengthEot = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -507,7 +507,7 @@ public class CardColorless {
         public _PanaceaT(String cardName, int n) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
-            changePlayerArtifact = true;
+            entityProperty.changePlayerArtifact = true;
             exhaustWhenPlayed = true;
         }
 
@@ -650,7 +650,7 @@ public class CardColorless {
         public Trip() {
             super("Trip", Card.SKILL, 0, Card.UNCOMMON);
             selectEnemy = true;
-            vulnEnemy = true;
+            entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -662,7 +662,7 @@ public class CardColorless {
     public static class TripP extends Card {
         public TripP() {
             super("Trip+", Card.SKILL, 0, Card.UNCOMMON);
-            vulnEnemy = true;
+            entityProperty.vulnEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
