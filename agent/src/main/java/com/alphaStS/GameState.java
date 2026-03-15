@@ -538,7 +538,7 @@ public final class GameState implements State {
         enemiesAlive = (int) enemiesArg.stream().filter(EnemyReadOnly::isAlive).count();
         this.player = player;
         drawOrder = new DrawOrder(10);
-        if (potions.size() > 0) {
+        if (!potions.isEmpty()) {
             potionsState = new short[potions.size() * 3];
             for (int i = 0; i < properties.potions.size(); i++) {
                 potionsState[i * 3] = 0;
@@ -547,7 +547,7 @@ public final class GameState implements State {
             }
         }
 
-        if (properties.cardIndexCache.size() == 0) {
+        if (properties.cardIndexCache.isEmpty()) {
             Map<Class<?>, List<Integer>> tempCache = new HashMap<>();
             for (int i = 0; i < properties.cardDict.length; i++) {
                 Class<?> baseClass = properties.cardDict[i].getBaseCard().getClass();
@@ -631,6 +631,11 @@ public final class GameState implements State {
         Collections.sort(properties.onCardDrawnHandlers);
         Collections.sort(properties.onRetainHandlers);
 
+        properties.originalEnemies = new EnemyList(enemies);
+        for (int i = 0; i < properties.originalEnemies.size(); i++) {
+            properties.originalEnemies.getForWrite(i);
+        }
+
         if (properties.biasedCognitionLimitCounterIdx >= 0) {
             properties.actionsByCtx[GameActionCtx.AFTER_RANDOMIZATION.ordinal()] = new GameAction[] { new GameAction(GameActionType.AFTER_RANDOMIZATION, 0) };
         }
@@ -639,12 +644,7 @@ public final class GameState implements State {
         properties.previousCardPlayTracking = cards.stream().anyMatch((x) -> x.needsLastCardType);
         properties.needDeckOrderMemory |= cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
         properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
-//        heal end of act makes learning harder due to loss of damage taken
-//        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
-        properties.originalEnemies = new EnemyList(enemies);
-        for (int i = 0; i < properties.originalEnemies.size(); i++) {
-            properties.originalEnemies.getForWrite(i);
-        }
+
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             properties.addExtraTrainingTarget("FightProgress", new GameProperties.TrainingTargetRegistrant() {
                 @Override public void setVExtraIdx(GameProperties properties, int idx) {

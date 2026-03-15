@@ -371,7 +371,6 @@ public class NNInputSchema {
                 }
                 int dIdx = idx + l1;
                 k = 10;
-                int nextIdx = dIdx + l2;
                 for (int i = 0; i < s.discardArrLen; i++) {
                     if (p.cardDict[s.discardArr[i]].realEnergyCost() == 0) {
                         int j = 0;
@@ -719,16 +718,16 @@ public class NNInputSchema {
             });
         }
 
-        // Berserk / energy refill
+        // energy refill
         if (props.anyEntityProperty.changeEnergyRefill) {
             inputLen += 1;
-            descBody.append("    1 input to keep track of berserk\n");
+            descBody.append("    1 input to keep track of energy refill\n");
             inputModules.add((s, x, idx) -> {
                 x[idx] = (s.energyRefill - 5) / 2f;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
-                System.out.println("Energy Refill (Berserk): " + input[idx]);
+                System.out.println("Energy Refill: " + input[idx]);
                 return 1;
             });
         }
