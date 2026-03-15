@@ -88,6 +88,10 @@ public class Configuration {
     // combine with USE_TURNS_LEFT_HEAD below for maximum effect
     public static boolean ADD_CURRENT_TURN_NUM_TO_NN_INPUT = true;
 
+    // Use compact orb encoding based on which orb types can actually be generated,
+    // reducing NN input size for Defect. Set to false to restore legacy 5-features-per-slot behavior.
+    public static boolean USE_ORB_GENERATION_POSSIBLE_FOR_NN_INPUT = true;
+
     // predict how many turns remains in the battle (regardless of win or loss), use it to select the move that
     // ends the battle faster among moves with similar evaluation
     // basic testing show it significantly helps in preventing losing to 50 turns and dramatically shorten number of turns

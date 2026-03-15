@@ -25,6 +25,7 @@ public class EntityProperty {
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
     public long possibleBuffs;
+    public short orbGenerationPossible;
 
     public void mergeFrom(EntityProperty other) {
         changePlayerArtifact |= other.changePlayerArtifact;
@@ -49,6 +50,7 @@ public class EntityProperty {
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
         changeEnergyRefill |= other.changeEnergyRefill;
         possibleBuffs |= other.possibleBuffs;
+        orbGenerationPossible |= other.orbGenerationPossible;
     }
 
     public static EntityProperty aggregate(List<EntityProperty> list) {

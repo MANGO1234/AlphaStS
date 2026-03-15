@@ -43,28 +43,28 @@ public class NNInputLenTest {
         assertEquals(121, TestStates.TestState7().properties.inputLen);
         assertEquals(74, TestStates.TestState8().properties.inputLen);
         assertEquals(169, TestStates.TestState9().properties.inputLen);
-        assertEquals(143, TestStates.TestStateDefect().properties.inputLen);
-        assertEquals(112, TestStates.TestStateDefect1p1().properties.inputLen);
-        assertEquals(181, TestStates.TestStateDefect1p2().properties.inputLen);
-        assertEquals(201, TestStates.TestStateDefect1p3().properties.inputLen);
-        assertEquals(203, TestStates.TestStateDefect1p4().properties.inputLen);
-        assertEquals(91, TestStates.TestStateDefect2().properties.inputLen);
-        assertEquals(53, TestStates.TestStateDefect3().properties.inputLen);
+        assertEquals(137, TestStates.TestStateDefect().properties.inputLen);
+        assertEquals(106, TestStates.TestStateDefect1p1().properties.inputLen);
+        assertEquals(175, TestStates.TestStateDefect1p2().properties.inputLen);
+        assertEquals(193, TestStates.TestStateDefect1p3().properties.inputLen);
+        assertEquals(195, TestStates.TestStateDefect1p4().properties.inputLen);
+        assertEquals(85, TestStates.TestStateDefect2().properties.inputLen);
+        assertEquals(50, TestStates.TestStateDefect3().properties.inputLen);
         assertEquals(183, TestStates.TestStateDefectB1().properties.inputLen);
         assertEquals(292, TestStates.TestStateDefectB2().properties.inputLen);
         assertEquals(723, TestStates.TestStateDefectB3().properties.inputLen);
         assertEquals(704, TestStates.TestStateDefectB4().properties.inputLen);
-        assertEquals(631, TestStates.TestStateDefectRun10().properties.inputLen);
-        assertEquals(618, TestStates.TestStateDefectRun10D().properties.inputLen);
-        assertEquals(662, TestStates.TestStateDefectRun11().properties.inputLen);
+        assertEquals(611, TestStates.TestStateDefectRun10().properties.inputLen);
+        assertEquals(608, TestStates.TestStateDefectRun10D().properties.inputLen);
+        assertEquals(652, TestStates.TestStateDefectRun11().properties.inputLen);
         assertEquals(444, TestStates.TestStateDefectRun4().properties.inputLen);
         assertEquals(393, TestStates.TestStateDefectRun5().properties.inputLen);
-        assertEquals(668, TestStates.TestStateDefectRun6().properties.inputLen);
+        assertEquals(658, TestStates.TestStateDefectRun6().properties.inputLen);
         assertEquals(252, TestStates.TestStateDefectRun7().properties.inputLen);
         assertEquals(259, TestStates.TestStateDefectRun8().properties.inputLen);
         assertEquals(571, TestStates.TestStateDefectRun9().properties.inputLen);
         assertEquals(247, TestStates.TestStateIronCladHeart().properties.inputLen);
-        assertEquals(233, TestStates.TestStateReddit().properties.inputLen);
+        assertEquals(230, TestStates.TestStateReddit().properties.inputLen);
         assertEquals(208, TestStates.TestStateReplayLostRunIronClad().properties.inputLen);
         assertEquals(196, TestStates.TestStateSilent2().properties.inputLen);
         assertEquals(270, TestStates.TestStateSilentHeartOrangePellet().properties.inputLen);
@@ -78,11 +78,11 @@ public class NNInputLenTest {
         assertEquals(533, TestStates.TestStateSilentRun8().properties.inputLen);
         assertEquals(522, TestStates.TestStateSilentRun9().properties.inputLen);
         assertEquals(260, TestStates.TestStateSilentTodo().properties.inputLen);
-        assertEquals(236, TestStates.TestStateStreamerRun().properties.inputLen);
-        assertEquals(253, TestStates.TestStateStreamerRun3().properties.inputLen);
-        assertEquals(243, TestStates.TestStateStreamerRun4().properties.inputLen);
+        assertEquals(230, TestStates.TestStateStreamerRun().properties.inputLen);
+        assertEquals(247, TestStates.TestStateStreamerRun3().properties.inputLen);
+        assertEquals(237, TestStates.TestStateStreamerRun4().properties.inputLen);
         assertEquals(219, TestStates.TestStateStreamerRun6().properties.inputLen);
-        assertEquals(205, TestStates.TestStateXecnar2().properties.inputLen);
+        assertEquals(195, TestStates.TestStateXecnar2().properties.inputLen);
     }
 
     // endregion

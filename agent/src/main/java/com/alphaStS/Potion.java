@@ -290,6 +290,10 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EssenceOfDarkness extends Potion {
+        public EssenceOfDarkness() {
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
+        }
+
         @Override public GameActionCtx use(GameState state, int idx) {
             if (state.getOrbs() != null) {
                 var count = state.getOrbs().length / 2;

@@ -459,50 +459,111 @@ public class NNInputSchema {
 
         // Orbs
         {
-            int len = props.maxNumOfOrbs * 5;
-            inputLen += len;
-            if (props.maxNumOfOrbs > 0) {
-                descBody.append("    ").append(props.maxNumOfOrbs).append("*5 inputs to keep track of player orb slots\n");
-            }
-            final int maxOrbs = props.maxNumOfOrbs;
-            inputModules.add((s, x, idx) -> {
-                int l = s.properties.maxNumOfOrbs * 5;
-                var orbs = s.getOrbs();
-                int orbIdx = idx;
-                if (orbs != null) {
-                    for (int i = 0; i < orbs.length; i += 2) {
-                        if (orbs[i] == OrbType.DARK.ordinal()) {
-                            x[orbIdx + orbs[i]] = orbs[i + 1] / 50.0f;
-                        } else if (orbs[i] > 0) {
-                            x[orbIdx + orbs[i]] = 0.5f;
-                        }
-                        orbIdx += 5;
+            if (Configuration.USE_ORB_GENERATION_POSSIBLE_FOR_NN_INPUT) {
+                short ogp = props.anyEntityProperty.orbGenerationPossible;
+                int featuresPerSlot = 1 + Integer.bitCount(ogp & 0xFFFF);
+                int len = props.maxNumOfOrbs * featuresPerSlot;
+                inputLen += len;
+                if (props.maxNumOfOrbs > 0) {
+                    descBody.append("    ").append(props.maxNumOfOrbs).append("*").append(featuresPerSlot).append(" inputs to keep track of player orb slots\n");
+                }
+                final int maxOrbs = props.maxNumOfOrbs;
+                final int fps = featuresPerSlot;
+                // Build compact index map: orbType ordinal -> local offset within slot block
+                final int[] orbTypeToCompactIdx = new int[OrbType.values().length];
+                int compactIdx = 1; // 0 is EMPTY
+                for (OrbType t : OrbType.values()) {
+                    if (t == OrbType.EMPTY) {
+                        orbTypeToCompactIdx[t.ordinal()] = 0;
+                    } else if ((ogp & t.mask) != 0) {
+                        orbTypeToCompactIdx[t.ordinal()] = compactIdx++;
                     }
                 }
-                for (int i = orbs == null ? 0 : orbs.length / 2; i < s.properties.maxNumOfOrbs; i++) {
-                    x[orbIdx] = 0.5f;
-                    orbIdx += 5;
-                }
-                return l;
-            });
-            if (maxOrbs > 0) {
-                inputPrinters.add((s, input, idx) -> {
-                    int l = s.properties.maxNumOfOrbs * 5;
-                    System.out.println("Orbs:");
+                inputModules.add((s, x, idx) -> {
+                    int l = s.properties.maxNumOfOrbs * fps;
+                    var orbs = s.getOrbs();
                     int orbIdx = idx;
-                    for (int i = 0; i < s.properties.maxNumOfOrbs; i++) {
-                        System.out.print("  Orb " + i + ": [");
-                        for (int j = 0; j < 5; j++) {
-                            if (j > 0) System.out.print(", ");
-                            System.out.print(input[orbIdx + j]);
+                    if (orbs != null) {
+                        for (int i = 0; i < orbs.length; i += 2) {
+                            if (orbs[i] == OrbType.DARK.ordinal()) {
+                                x[orbIdx + orbTypeToCompactIdx[orbs[i]]] = orbs[i + 1] / 50.0f;
+                            } else if (orbs[i] > 0) {
+                                x[orbIdx + orbTypeToCompactIdx[orbs[i]]] = 0.5f;
+                            }
+                            orbIdx += fps;
                         }
-                        System.out.println("]");
+                    }
+                    for (int i = orbs == null ? 0 : orbs.length / 2; i < s.properties.maxNumOfOrbs; i++) {
+                        x[orbIdx] = 0.5f;
+                        orbIdx += fps;
+                    }
+                    return l;
+                });
+                if (maxOrbs > 0) {
+                    inputPrinters.add((s, input, idx) -> {
+                        int l = s.properties.maxNumOfOrbs * fps;
+                        System.out.println("Orbs:");
+                        int orbIdx = idx;
+                        for (int i = 0; i < s.properties.maxNumOfOrbs; i++) {
+                            System.out.print("  Orb " + i + ": [");
+                            for (int j = 0; j < fps; j++) {
+                                if (j > 0) System.out.print(", ");
+                                System.out.print(input[orbIdx + j]);
+                            }
+                            System.out.println("]");
+                            orbIdx += fps;
+                        }
+                        return l;
+                    });
+                } else {
+                    inputPrinters.add((s, input, idx) -> 0);
+                }
+            } else {
+                int len = props.maxNumOfOrbs * 5;
+                inputLen += len;
+                if (props.maxNumOfOrbs > 0) {
+                    descBody.append("    ").append(props.maxNumOfOrbs).append("*5 inputs to keep track of player orb slots\n");
+                }
+                final int maxOrbs = props.maxNumOfOrbs;
+                inputModules.add((s, x, idx) -> {
+                    int l = s.properties.maxNumOfOrbs * 5;
+                    var orbs = s.getOrbs();
+                    int orbIdx = idx;
+                    if (orbs != null) {
+                        for (int i = 0; i < orbs.length; i += 2) {
+                            if (orbs[i] == OrbType.DARK.ordinal()) {
+                                x[orbIdx + orbs[i]] = orbs[i + 1] / 50.0f;
+                            } else if (orbs[i] > 0) {
+                                x[orbIdx + orbs[i]] = 0.5f;
+                            }
+                            orbIdx += 5;
+                        }
+                    }
+                    for (int i = orbs == null ? 0 : orbs.length / 2; i < s.properties.maxNumOfOrbs; i++) {
+                        x[orbIdx] = 0.5f;
                         orbIdx += 5;
                     }
                     return l;
                 });
-            } else {
-                inputPrinters.add((s, input, idx) -> 0);
+                if (maxOrbs > 0) {
+                    inputPrinters.add((s, input, idx) -> {
+                        int l = s.properties.maxNumOfOrbs * 5;
+                        System.out.println("Orbs:");
+                        int orbIdx = idx;
+                        for (int i = 0; i < s.properties.maxNumOfOrbs; i++) {
+                            System.out.print("  Orb " + i + ": [");
+                            for (int j = 0; j < 5; j++) {
+                                if (j > 0) System.out.print(", ");
+                                System.out.print(input[orbIdx + j]);
+                            }
+                            System.out.println("]");
+                            orbIdx += 5;
+                        }
+                        return l;
+                    });
+                } else {
+                    inputPrinters.add((s, input, idx) -> 0);
+                }
             }
         }
 

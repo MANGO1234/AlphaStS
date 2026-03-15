@@ -41,6 +41,7 @@ public class CardDefect {
     public static class Zap extends Card {
         public Zap() {
             super("Zap", Card.SKILL, 1, Card.COMMON);
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -52,6 +53,7 @@ public class CardDefect {
     public static class ZapP extends Card {
         public ZapP() {
             super("Zap+", Card.SKILL, 0, Card.COMMON);
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -67,6 +69,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             selectEnemy = true;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -333,6 +336,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             selectEnemy = true;
+            entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -395,6 +399,7 @@ public class CardDefect {
         public _CoolheadedT(String cardName, int n) {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
+            entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1079,6 +1084,7 @@ public class CardDefect {
         public _ChaosT(String cardName, int n) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask | OrbType.FROST.mask | OrbType.DARK.mask | OrbType.PLASMA.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1107,6 +1113,7 @@ public class CardDefect {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.innate = innate;
             this.exhaustWhenPlayed = true;
+            entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1169,6 +1176,7 @@ public class CardDefect {
         public _DarknessT(String cardName, boolean triggerDarkPassive) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.triggerDarkPassive = triggerDarkPassive;
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1225,6 +1233,7 @@ public class CardDefect {
         public _DoomAndGloomT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1501,6 +1510,7 @@ public class CardDefect {
     private static abstract class _FusionT extends Card {
         public _FusionT(String cardName, int n) {
             super(cardName, Card.SKILL, n, Card.UNCOMMON);
+            entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1695,6 +1705,7 @@ public class CardDefect {
         public _GlacierT(String cardName, int n) {
             super(cardName, Card.SKILL, 2, Card.UNCOMMON);
             this.n = n;
+            entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2202,6 +2213,7 @@ public class CardDefect {
         public _StaticDischargeT(String cardName, int n) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.n = n;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2247,6 +2259,7 @@ public class CardDefect {
         public _StormT(String cardName, boolean innate) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.innate = innate;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2329,6 +2342,7 @@ public class CardDefect {
             super(cardName, Card.SKILL, -1, Card.UNCOMMON);
             this.n = n;
             isXCost = true;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2815,6 +2829,7 @@ public class CardDefect {
         public _ElectrodynamicsT(String cardName, int n) {
             super(cardName, Card.POWER, 2, Card.RARE);
             this.n = n;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2970,6 +2985,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 5, Card.RARE);
             this.n = n;
             selectEnemy = true;
+            entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -3029,6 +3045,7 @@ public class CardDefect {
         public _RainbowT(String cardName, boolean exhaustWhenPlayed) {
             super(cardName, Card.SKILL, 2, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask | OrbType.FROST.mask | OrbType.DARK.mask;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

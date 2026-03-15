@@ -2468,6 +2468,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // **********************************************************************************************************************************************
 
     public static class CrackedOrb extends Relic {
+        public CrackedOrb() {
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
@@ -2531,6 +2535,10 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class NuclearBattery extends Relic {
+        public NuclearBattery() {
+            entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {

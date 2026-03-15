@@ -4,13 +4,19 @@ import com.alphaStS.GameState;
 import com.alphaStS.RandomGenCtx;
 
 public enum OrbType {
-    EMPTY("E", "Empty"), LIGHTNING("L", "Lightning"), FROST("F", "Frost"), DARK("D", "Dark"), PLASMA("P", "Plasma");
+    EMPTY("E", "Empty", (short) 1),
+    LIGHTNING("L", "Lightning", (short) 2),
+    FROST("F", "Frost", (short) 4),
+    DARK("D", "Dark", (short) 8),
+    PLASMA("P", "Plasma", (short) 16);
 
     public final String abbrev;
     public final String displayName;
-    OrbType(String abbrev, String displayName) {
+    public final short mask;
+    OrbType(String abbrev, String displayName, short mask) {
         this.abbrev = abbrev;
         this.displayName = displayName;
+        this.mask = mask;
     }
 
     public static OrbType getRandom(GameState state) {
