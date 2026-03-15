@@ -639,8 +639,6 @@ public final class GameState implements State {
         properties.previousCardPlayTracking = cards.stream().anyMatch((x) -> x.needsLastCardType);
         properties.needDeckOrderMemory |= cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
         properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
-        properties.battleTranceExist = cards.stream().anyMatch((x) -> x.cardName.contains("Battle Trance"));
-        properties.energyRefillCanChange = cards.stream().anyMatch((x) -> x.cardName.contains("Berserk"));
 //        heal end of act makes learning harder due to loss of damage taken
 //        prop.healEndOfAct = builder.getEnemies().stream().allMatch((x) -> x.property.isBoss);
         properties.originalEnemies = new EnemyList(enemies);

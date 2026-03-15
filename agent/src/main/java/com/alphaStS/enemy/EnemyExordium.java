@@ -1596,16 +1596,17 @@ public class EnemyExordium {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 1;
+            return 2;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "1 input to keep track of Red Louse Bite damage";
+            return "2 inputs to keep track of Red Louse Bite damage and Curl Up amount";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = d < 0 ? -0.5f : d / 8.0f;
-            return 1;
+            input[idx + 1] = (curlUpAmount - 10) / 2.0f;
+            return 2;
         }
     }
 
@@ -1728,16 +1729,17 @@ public class EnemyExordium {
         }
 
         @Override public int getNNInputLen(GameProperties prop) {
-            return 1;
+            return 2;
         }
 
         @Override public String getNNInputDesc(GameProperties prop) {
-            return "1 input to keep track of Green Louse Bite damage";
+            return "2 inputs to keep track of Green Louse Bite damage and Curl Up amount";
         }
 
         @Override public int writeNNInput(GameProperties prop, float[] input, int idx) {
             input[idx] = d < 0 ? -0.5f : d / 8.0f;
-            return 1;
+            input[idx + 1] = (curlUpAmount - 10) / 2.0f;
+            return 2;
         }
     }
 

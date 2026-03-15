@@ -224,8 +224,6 @@ public class GameProperties implements Cloneable {
 
     // cached game properties for generating NN input
     public int shieldAndSpireFacingIdx = -1;
-    public boolean battleTranceExist;
-    public boolean energyRefillCanChange;
 
     public static boolean isHeartFight(GameState state) {
         return state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART;

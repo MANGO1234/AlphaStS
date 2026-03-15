@@ -23,6 +23,7 @@ public class EntityProperty {
     public boolean markEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
+    public boolean changeEnergyRefill;
     public long possibleBuffs;
 
     public void mergeFrom(EntityProperty other) {
@@ -46,6 +47,7 @@ public class EntityProperty {
         markEnemy |= other.markEnemy;
         affectEnemyStrength |= other.affectEnemyStrength;
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
+        changeEnergyRefill |= other.changeEnergyRefill;
         possibleBuffs |= other.possibleBuffs;
     }
 

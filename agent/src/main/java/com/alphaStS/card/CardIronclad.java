@@ -762,6 +762,7 @@ public class CardIronclad {
         public _BattleTranceT(String cardName, int draw) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.draw = draw;
+            this.entityProperty.possibleBuffs |= PlayerBuff.BATTLE_TRANCE.mask();
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2195,6 +2196,7 @@ public class CardIronclad {
             super(cardName, Card.POWER, 0, Card.RARE);
             this.vulnerable = vulnerable;
             this.entityProperty.changePlayerVulnerable = true;
+            this.entityProperty.changeEnergyRefill = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

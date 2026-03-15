@@ -706,7 +706,7 @@ public class NNInputSchema {
         }
 
         // Battle trance
-        if (props.battleTranceExist) {
+        if ((props.anyEntityProperty.possibleBuffs & PlayerBuff.BATTLE_TRANCE.mask()) != 0) {
             inputLen += 1;
             descBody.append("    1 input to keep track of battle trance cannot draw card debuff\n");
             inputModules.add((s, x, idx) -> {
@@ -720,7 +720,7 @@ public class NNInputSchema {
         }
 
         // Berserk / energy refill
-        if (props.energyRefillCanChange) {
+        if (props.anyEntityProperty.changeEnergyRefill) {
             inputLen += 1;
             descBody.append("    1 input to keep track of berserk\n");
             inputModules.add((s, x, idx) -> {
@@ -1459,28 +1459,6 @@ public class NNInputSchema {
                 }
                 System.out.println("]");
                 return len;
-            }
-        });
-
-        // Louse curl-up
-        allEnemyModules.add(new EnemyInputModule() {
-            @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
-                return (enemy instanceof EnemyExordium.RedLouse || enemy instanceof EnemyExordium.GreenLouse) ? 1 : 0;
-            }
-            @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) {
-                return "        1 input to keep track of louse damage\n";
-            }
-            @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
-                if (enemy instanceof EnemyExordium.RedLouse louse) {
-                    x[idx] = (louse.getCurlUpAmount() - 10) / 2.0f;
-                } else {
-                    x[idx] = (((EnemyExordium.GreenLouse) enemy).getCurlUpAmount() - 10) / 2.0f;
-                }
-                return 1;
-            }
-            @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
-                System.out.println("  Louse Curl Up: " + input[idx]);
-                return 1;
             }
         });
 
