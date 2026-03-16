@@ -1915,7 +1915,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
         @Override public void setCounterIdx(GameProperties properties, int counterIdx) {
             super.setCounterIdx(properties, counterIdx);
-            properties.velvetChokerCounterIndexIdx = counterIdx;
+            properties.velvetChokerCounterIdx = counterIdx;
         }
     }
 

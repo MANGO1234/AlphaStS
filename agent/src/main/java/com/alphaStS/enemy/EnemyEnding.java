@@ -193,14 +193,14 @@ public class EnemyEnding {
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.registerCounter("Shield & Spear Facing", new GameProperties.CounterRegistrant() {
                 @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-                    gameProperties.shieldAndSpireFacingIdx = idx;
+                    gameProperties.shieldAndSpireFacingCounterIdx = idx;
                 }
                 @Override public int getCounterIdx(GameProperties gameProperties) {
-                    return  gameProperties.shieldAndSpireFacingIdx;
+                    return  gameProperties.shieldAndSpireFacingCounterIdx;
                 }
             }, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
-                    int facing = state.getCounterForRead()[state.properties.shieldAndSpireFacingIdx];
+                    int facing = state.getCounterForRead()[state.properties.shieldAndSpireFacingCounterIdx];
                     if (facing == 1 || facing == 2) {
                         input[idx + facing - 1] = 0.5f;
                     }
@@ -212,7 +212,7 @@ public class EnemyEnding {
                 }
 
                 @Override public String getDisplayString(GameState state) {
-                    int facing = state.getCounterForRead()[state.properties.shieldAndSpireFacingIdx];
+                    int facing = state.getCounterForRead()[state.properties.shieldAndSpireFacingCounterIdx];
                     if (facing == 1) {
                         return "Shield";
                     } else if (facing == 2) {
@@ -226,7 +226,7 @@ public class EnemyEnding {
                 @Override public void handle(GameState state) {
                     for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                         if (state.getEnemiesForRead().get(i).isAlive() && state.getEnemiesForRead().get(i) instanceof SpireSpear) {
-                            state.getCounterForWrite()[state.properties.shieldAndSpireFacingIdx] = 2;
+                            state.getCounterForWrite()[state.properties.shieldAndSpireFacingCounterIdx] = 2;
                         }
                     }
                 }
@@ -234,9 +234,9 @@ public class EnemyEnding {
             state.properties.addOnEnemyDeathHandler(new GameEventEnemyHandler() {
                 @Override public void handle(GameState state2, EnemyReadOnly enemy) {
                     if (enemy instanceof EnemyEnding.SpireShield) {
-                        state2.getCounterForWrite()[state2.properties.shieldAndSpireFacingIdx] = 2;
+                        state2.getCounterForWrite()[state2.properties.shieldAndSpireFacingCounterIdx] = 2;
                     } else {
-                        state2.getCounterForWrite()[state2.properties.shieldAndSpireFacingIdx] = 1;
+                        state2.getCounterForWrite()[state2.properties.shieldAndSpireFacingCounterIdx] = 1;
                     }
                 }
             });

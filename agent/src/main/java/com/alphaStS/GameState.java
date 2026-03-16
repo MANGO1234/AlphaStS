@@ -1140,7 +1140,7 @@ public final class GameState implements State {
     private boolean isCardPlayBlocked() {
         return (properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12) ||
             (properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) ||
-            (properties.velvetChokerCounterIndexIdx >= 0 && counter[properties.velvetChokerCounterIndexIdx] >= 6);
+            (properties.velvetChokerCounterIdx >= 0 && counter[properties.velvetChokerCounterIdx] >= 6);
     }
 
     private int getCardEnergyCost(int cardIdx) {
@@ -1196,7 +1196,7 @@ public final class GameState implements State {
             energyCost += 2;
         }
 
-        if (properties.velvetChokerCounterIndexIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIndexIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
+        if (properties.velvetChokerCounterIdx >= 0 && getCounterForRead()[properties.velvetChokerCounterIdx] >= 6 && actionCtx == GameActionCtx.PLAY_CARD) {
             return false;
         } else if (properties.timeEaterCounterIdx >= 0 && getCounterForRead()[properties.timeEaterCounterIdx] == 12 && cardIdx != properties.wellLaidPlansCardIdx) {
             return false;
@@ -2221,11 +2221,11 @@ public final class GameState implements State {
     }
 
     public void onSelectEnemy(int idx) {
-        if (properties.shieldAndSpireFacingIdx >= 0) {
+        if (properties.shieldAndSpireFacingCounterIdx >= 0) {
             if (getEnemiesForRead().get(idx) instanceof EnemyEnding.SpireShield) {
-                getCounterForWrite()[properties.shieldAndSpireFacingIdx] = 1;
+                getCounterForWrite()[properties.shieldAndSpireFacingCounterIdx] = 1;
             } else if (getEnemiesForRead().get(idx) instanceof EnemyEnding.SpireSpear) {
-                getCounterForWrite()[properties.shieldAndSpireFacingIdx] = 2;
+                getCounterForWrite()[properties.shieldAndSpireFacingCounterIdx] = 2;
             }
         }
     }
@@ -3864,10 +3864,10 @@ public final class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
         }
-        if (properties.shieldAndSpireFacingIdx >= 0) {
-            if (getCounterForRead()[properties.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
+        if (properties.shieldAndSpireFacingCounterIdx >= 0) {
+            if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
                 dmg *= 1.5;
-            } else if (getCounterForRead()[properties.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
+            } else if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
                 dmg *= 1.5;
             }
         }
@@ -3904,10 +3904,10 @@ public final class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
         }
-        if (properties.shieldAndSpireFacingIdx >= 0) {
-            if (getCounterForRead()[properties.shieldAndSpireFacingIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
+        if (properties.shieldAndSpireFacingCounterIdx >= 0) {
+            if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
                 dmg = dmg + dmg / 2;
-            } else if (getCounterForRead()[properties.shieldAndSpireFacingIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
+            } else if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
                 dmg = dmg + dmg / 2;
             }
         }

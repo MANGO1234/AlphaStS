@@ -16,219 +16,67 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class GameProperties implements Cloneable {
+    // MCTS/Training/Playing etc. specific variables
     public boolean testNewFeature = true;
     public boolean multithreadedMTCS;
     public boolean doingComparison;
     public boolean curriculumTraining;
     public boolean isTraining;
+    public int difficultyChosen;
     public MCTS currentMCTS;
-    public ConcurrentMap<GameState, Tuple<double[], double[]>> biasedCognitionLimitCache = new ConcurrentHashMap<>();
-    public boolean biasedCognitionLimitSet;
-    public int biasedCognitionLimitUsed;
-    public double[] biasedCognitionLimitDistribution;
-    public EntityProperty anyEntityProperty = new EntityProperty();
-    public boolean playerPlatedArmorCanChange;
-    public boolean previousCardPlayTracking;
-    public boolean needDeckOrderMemory;
-    public boolean selectFromExhaust;
     public RandomGen random;
     public RandomGen realMoveRandomGen;
     public boolean makingRealMove;
     public boolean isInteractive;
     public boolean stateDescOn;
+    public double cpuct = 0.1;
+    public float maxPossibleRealTurnsLeft = 50.0f;
+
+    // General 
+    public CharacterEnum character;
     public Card[] cardDict;
-    public List<Potion> potions;
-    public Potion.PotionGenerator potionsGenerator;
-    public List<Integer> alchemizeCardIdxes;
-    public int numOfPotionSlots = 2;
-    public int nonGeneratedPotionsLength;
-    public int[] potionsScenarios;
+    public int realCardsLen; // not including CardTmpCostChange (e.g. from liquid memory)
+    public List<Relic> relics;
+    // defect specific
+    public int maxNumOfOrbs;
+    public EntityProperty anyEntityProperty = new EntityProperty();
+    // todo: move those into anyEntityProperty
+    public boolean playerPlatedArmorCanChange;
+    public boolean selectFromExhaust;
     public EnemyList originalEnemies;
     public int maxNumOfActions;
     public int totalNumOfActions;
     public GameAction[][] actionsByCtx;
+    public GameStateRandomization preBattleRandomization;
+    public GameStateRandomization preBattleScenarios;
+    public GameStateRandomization preBattleScenariosBackup;
+    public GameStateRandomization randomization;
+    public GameStateRandomization.EnemyHealthRandomization enemyHealthRandomization;
+    public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
+    public List<BiConsumer<GameState, int[]>> enemiesReordering;
+
+    // Potion related
+    public List<Potion> potions;
+    public int numOfPotionSlots = 2;
+    public Potion.PotionGenerator potionsGenerator;
+    public List<Integer> alchemizeCardIdxes;
+    public int nonGeneratedPotionsLength;
+    public int[] potionsScenarios;
+    public double alchemizeMult = 1.25;
+
+    // misc
+    public boolean previousCardPlayTracking;
+    public boolean needDeckOrderMemory;
     public List<Relic> startOfBattleActions;
     public List<List<String>> perScenarioCommands;
-    public CharacterEnum character;
-
-    // todo: implement this
-    public final static int GENERATE_CARD_DISCOVERY = 1;
-    public final static int GENERATE_CARD_METAMORPHOSIS = 1 << 1;
-    public final static int GENERATE_CARD_CHRYSALIS = 1 << 2;
-    public final static int GENERATE_CARD_MADNESS = 1 << 3;
-    public final static int GENERATE_CARD_ENLIGHTENMENT = 1 << 4;
-    public final static int GENERATE_CARD_TRANSMUTATION = 1 << 5;
-    public final static int GENERATE_CARD_INFERNAL_BLADE = 1 << 6;
-    public final static int GENERATE_CARD_RAMPAGE_UPGRADE = 1 << 7;
-    public final static int GENERATE_CARD_ARMANENT = 1 << 8;
-    public final static int GENERATE_CARD_APOTHEOSIS = 1 << 9;
-    public final static int GENERATE_CARD_SEARING_BLOW_UPGRADE = 1 << 10;
-    public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
-    public int generateCardOptions;
-
-    // cached card indexes
-    public int realCardsLen; // not including CardTmpCostChange (due to liquid memory)
-    public int[] discardIdxes; // cards that can change in number of copies during a fight
-    public int[] discardReverseIdxes;
-    public int[] upgradeIdxes;
-    public int[] tmp0CostCardTransformIdxes;
-    public int[] tmpModifiedCardReverseTransformIdxes;
-    public int[] select1OutOf3CardsIdxes;
-    public int[] select1OutOf3CardsReverseIdxes;
-    public int[] nilroysCodexIdxes;
-    public int nilroysCodexHelperCardIdx = -1;
-    public int[] cardRewardIdxes;
-    public int[] astrolabeCardsIdxes;
-    public int[] pandorasBoxCardsIdxes;
-    public int[][] sneckoIdxes;
-    public int[] strikeCardIdxes;
-    // cached status indexes
-    public int normalityCardIdx = -1;
-    public int echoFormCardIdx = -1;
-    public int echoFormPCardIdx = -1;
-    public int apotheosisCardIdx = -1;
-    public int apotheosisPCardIdx = -1;
-    public int wellLaidPlansCardIdx = -1;
-    public int gamblingChipsCardIdx = -1;
-    public int toolsOfTheTradeCardIdx = -1;
-    public int foresightCardIdx = -1;
-    public int[] sandsOfTimeTransformIndexes;
-    public int[] sandsOfTimePTransformIndexes;
-    public int[] windmillStrikeTransformIndexes;
-    public int[] windmillStrikePTransformIndexes;
-    public int[] perseveranceTransformIndexes;
-    public int[] perseverancePTransformIndexes;
-    public int[] masterfulStabTransformIndexes;
-    public int[] masterfulStabPTransformIndexes;
-    public int[] streamlineIndexes;
-    public int[] streamlinePIndexes;
-    public int[] bloodForBloodTransformIndexes;
-    public int[] bloodForBloodPTransformIndexes;
-    public int[] forceFieldTransformIndexes;
-    public int[] forceFieldPTransformIndexes;
-    public int[] clawTransformIndexes;
-    public int[] clawAfterPlayTransformIndexes;
-    public int[] clawPTransformIndexes;
-    public int[] clawPAfterPlayTransformIndexes;
-    public int[] rampageTransformIndexes;
-    public int[] rampagePTransformIndexes;
-    public int[] glassKnifeTransformIndexes;
-    public int[] glassKnifePTransformIndexes;
-    public int[] steamBarrierTransformIndexes;
-    public int[] steamBarrierPTransformIndexes;
-    public int[] healCardsIdxes;
-    public boolean[] healCardsBooleanArr;
-    public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
-    public List<String> extraTrainingTargetsLabel = new ArrayList<>();
-    public int ritualDaggerCounterIdx = -1;
-    public int feedCounterIdx = -1;
-    public int handOfGreedCounterIdx = -1;
-    public int regenerationCounterIdx = -1;
-    public int nunchakuCounterIdx = -1;
-    public int penNibCounterIdx = -1;
-    public int inkBottleCounterIdx = -1;
-    public int happyFlowerCounterIdx = -1;
-    public int velvetChokerCounterIndexIdx = -1;
-    public int incenseBurnerCounterIdx = -1;
+    public ConcurrentMap<GameState, Tuple<double[], double[]>> biasedCognitionLimitCache = new ConcurrentHashMap<>();
+    public boolean biasedCognitionLimitSet;
+    public int biasedCognitionLimitUsed;
+    public double[] biasedCognitionLimitDistribution;
     public int incenseBurnerRewardType = -1;
-    public int echoFormCounterIdx = -1;
-    public int selfRepairCounterIdx = -1;
-    public int equilibriumCounterIdx = -1;
-    public int blizzardCounterIdx = -1;
-    public int thunderStrikeCounterIdx = -1;
-    public int intangibleCounterIdx = -1;
-    public int metallicizeCounterIdx = -1;
-    public int sneakyStrikeCounterIdx = -1;
-    public int eviscerateCounterIdx = -1;
-    public int wellLaidPlansCounterIdx = -1;
-    public int hoveringKiteCounterIdx = -1;
-    public int blurCounterIdx = -1;
-    public int accuracyCounterIdx = -1;
-    public int phantasmalKillerCounterIdx = -1;
-    public int reboundCounterIdx = -1;
-    public int sneckoDebuffCounterIdx = -1;
-    public int envenomCounterIdx = -1;
-    public int geneticAlgorithmCounterIdx = -1;
-    public int bufferCounterIdx = -1;
-    public int sundialCounterIdx = -1;
-    public int sadisticNatureCounterIdx = -1;
-    public int inserterCounterIdx = -1;
-    public int havocCounterIdx = -1;
-    public int loopCounterIdx = -1;
-    public int forceFieldCounterIdx = -1;
-    public int bloodForBloodCounterIdx = -1;
-    public int toolsOfTheTradeCounterIdx = -1;
-    public int foresightCounterIdx = -1;
-    public int electrodynamicsCounterIdx = -1;
-    public int biasedCognitionLimitCounterIdx = -1;
-    public int mantraCounterIdx = -1;
-    public int brillianceCounterIdx = -1;
-    public int wreathOfFlameCounterIdx = -1;
-    public int swivelCounterIdx = -1;
-
-    public Relic blueCandle = null;
-    public Relic boot = null;
-    public Relic toyOrnithopter = null;
-    public Relic calipers = null;
-    public Relic ginger = null;
-    public Relic iceCream = null;
-    public Relic frozenEye = null;
-    public Relic medicalKit = null;
-    public Relic violetLotus = null;
-    public Relic goldenEye = null;
-    public Relic oddMushroom = null;
-    public Relic runicDome = null;
-    public boolean isRunicDomeEnabled(GameState state) {
-        return runicDome != null && runicDome.isRelicEnabledInScenario(state);
-    }
-    public Relic runicPyramid = null;
-    public Relic sacredBark = null;
-    public Relic strangeSpoon = null;
-    public Relic toolbox = null;
-    public Relic nilroysCodex = null;
-    public Relic turnip = null;
-    public Relic unceasingTop = null;
-    public Relic torii = null;
-    public Relic tungstenRod = null;
-    public Relic championBelt = null;
-    public Relic paperPhrog = null;
-    public Relic meatOnTheBone = null;
-    public Relic birdFacedUrn = null;
-    public Relic burningBlood = null;
-    public Relic magicFlower = null;
-    public Relic blackBlood = null;
-    public Relic bloodyIdol = null;
-    public Relic bloodVial = null;
-    public Relic paperCrane = null;
-    public Relic sneckoSkull = null;
-    public Relic sneckoEye = null;
-    public Relic strikeDummy = null;
-    public Relic tingsha = null;
-    public Relic toughBandages = null;
-    public Relic goldPlatedCable = null;
-    public Relic chemicalX = null;
-    public Relic handDrill = null;
-    public Relic markOfTheBloom = null;
-    public Relic deadBranch = null;
-    public Relic hoveringKite = null;
-    public Relic wristBlade = null;
-
-    public int loseDexterityPerTurnCounterIdx = -1;
-    public int loseFocusPerTurnCounterIdx = -1;
-    public int loseEnergyPerTurnCounterIdx = -1;
-    public int constrictedCounterIdx = -1;
-    public int drawReductionCounterIdx = -1;
-    public int timeEaterCounterIdx = -1;
-    public int normalityCounterIdx = -1;
-    public int playCardOnTopOfDeckCounterIdx = -1;
-
-    // cached game properties for generating NN input
-    public int shieldAndSpireFacingIdx = -1;
-
     public static boolean isHeartFight(GameState state) {
         return state.currentEncounter == EnemyEncounter.EncounterEnum.CORRUPT_HEART;
     }
-
     public int inputLen;
     public NNInputSchema nnInputProperties;
     public int extraOutputLen;
@@ -246,52 +94,187 @@ public class GameProperties implements Cloneable {
     public int enemiesEncounterChosen;
     public int[] astrolabeCardsTransformed;
     public int[] pandorasBoxCardsTransformed;
-    public double alchemizeMult = 1.25;
 
-    // relics/cards can add checks like e.g. Burn checking if it's in hand pre end of turn
-    public Map<String, Object> gameEventHandlers = new HashMap<>();
-    public List<Relic> relics;
-    GameEventHandler endOfPreBattleHandler;
-    public List<GameEventHandler> startOfBattleHandlers = new ArrayList<>();
-    public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
-    public List<GameEventHandler> preStartOfTurnHandlers = new ArrayList<>();
-    public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
-    public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
-    public List<GameEventHandler> endOfTurnHandlers = new ArrayList<>();
-    public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
-    public List<GameEventHandler> onBlockHandlers = new ArrayList<>();
-    public List<GameEventHandler> onShuffleHandlers = new ArrayList<>();
-    public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
-    public List<GameEventHandler> onScryHandlers = new ArrayList<>();
-    public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
-    public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
-    public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
-    public List<GameEventCardHandler> onPreCardPlayedHandlers = new ArrayList<>();
-    public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
-    public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
-    public List<GameEventCardHandler> onRetainHandlers = new ArrayList<>();
-    public GameStateRandomization randomization;
-    public GameStateRandomization preBattleRandomization;
-    public GameStateRandomization preBattleScenarios;
-    public GameStateRandomization preBattleScenariosBackup;
-    public GameStateRandomization.EnemyHealthRandomization enemyHealthRandomization;
-    public List<Map.Entry<Integer, GameStateRandomization.Info>> preBattleGameScenariosList;
-    public List<BiConsumer<GameState, int[]>> enemiesReordering;
+    // set in GameStateBuilder: this turns off certain card generation that would significantly bloat network size
+    // sometimes the deck is so strong it doesn't matter, or the relative strength of card picks doesn't change
+    public final static int GENERATE_CARD_DISCOVERY = 1;
+    public final static int GENERATE_CARD_METAMORPHOSIS = 1 << 1;
+    public final static int GENERATE_CARD_CHRYSALIS = 1 << 2;
+    public final static int GENERATE_CARD_MADNESS = 1 << 3;
+    public final static int GENERATE_CARD_ENLIGHTENMENT = 1 << 4;
+    public final static int GENERATE_CARD_TRANSMUTATION = 1 << 5;
+    public final static int GENERATE_CARD_INFERNAL_BLADE = 1 << 6;
+    public final static int GENERATE_CARD_RAMPAGE_UPGRADE = 1 << 7;
+    public final static int GENERATE_CARD_ARMANENT = 1 << 8;
+    public final static int GENERATE_CARD_APOTHEOSIS = 1 << 9;
+    public final static int GENERATE_CARD_SEARING_BLOW_UPGRADE = 1 << 10;
+    public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
+    public int generateCardOptions;
 
-    // defect specific
-    public int maxNumOfOrbs;
+    // system card indexes
+    public boolean[] healCardsBooleanArr;
+    public int[] astrolabeCardsIdxes;
+    public int[] cardRewardIdxes;
+    public int[] discardIdxes; // cards that can change in number of copies during a fight
+    public int[] discardReverseIdxes;
+    public int[] select1OutOf3CardsIdxes;
+    public int[] select1OutOf3CardsReverseIdxes;
+    public int[] tmp0CostCardTransformIdxes;
+    public int[] tmpModifiedCardReverseTransformIdxes;
+    public int[] upgradeIdxes;
+    public int[][] sneckoIdxes;
+    // individual cards indexes
+    public int[] bloodForBloodPTransformIndexes;
+    public int[] bloodForBloodTransformIndexes;
+    public int[] clawAfterPlayTransformIndexes;
+    public int[] clawPAfterPlayTransformIndexes;
+    public int[] clawPTransformIndexes;
+    public int[] clawTransformIndexes;
+    public int[] forceFieldPTransformIndexes;
+    public int[] forceFieldTransformIndexes;
+    public int[] glassKnifePTransformIndexes;
+    public int[] glassKnifeTransformIndexes;
+    public int[] healCardsIdxes;
+    public int[] masterfulStabPTransformIndexes;
+    public int[] masterfulStabTransformIndexes;
+    public int[] nilroysCodexIdxes;
+    public int[] pandorasBoxCardsIdxes;
+    public int[] perseverancePTransformIndexes;
+    public int[] perseveranceTransformIndexes;
+    public int[] rampagePTransformIndexes;
+    public int[] rampageTransformIndexes;
+    public int[] sandsOfTimePTransformIndexes;
+    public int[] sandsOfTimeTransformIndexes;
+    public int[] steamBarrierPTransformIndexes;
+    public int[] steamBarrierTransformIndexes;
+    public int[] streamlineIndexes;
+    public int[] streamlinePIndexes;
+    public int[] strikeCardIdxes;
+    public int[] windmillStrikePTransformIndexes;
+    public int[] windmillStrikeTransformIndexes;
+    public int apotheosisCardIdx = -1;
+    public int apotheosisPCardIdx = -1;
+    public int echoFormCardIdx = -1;
+    public int echoFormPCardIdx = -1;
+    public int foresightCardIdx = -1;
+    public int gamblingChipsCardIdx = -1;
+    public int nilroysCodexHelperCardIdx = -1;
+    public int normalityCardIdx = -1;
+    public int toolsOfTheTradeCardIdx = -1;
+    public int wellLaidPlansCardIdx = -1;
 
-    public double cpuct = 0.1;
-    public float maxPossibleRealTurnsLeft = 50.0f;
+    // cached counter indexes
+    public int accuracyCounterIdx = -1;
+    public int biasedCognitionLimitCounterIdx = -1;
+    public int blizzardCounterIdx = -1;
+    public int bloodForBloodCounterIdx = -1;
+    public int blurCounterIdx = -1;
+    public int brillianceCounterIdx = -1;
+    public int bufferCounterIdx = -1;
+    public int constrictedCounterIdx = -1;
+    public int drawReductionCounterIdx = -1;
+    public int echoFormCounterIdx = -1;
+    public int electrodynamicsCounterIdx = -1;
+    public int envenomCounterIdx = -1;
+    public int equilibriumCounterIdx = -1;
+    public int eviscerateCounterIdx = -1;
+    public int feedCounterIdx = -1;
+    public int forceFieldCounterIdx = -1;
+    public int foresightCounterIdx = -1;
+    public int geneticAlgorithmCounterIdx = -1;
+    public int handOfGreedCounterIdx = -1;
+    public int happyFlowerCounterIdx = -1;
+    public int havocCounterIdx = -1;
+    public int hoveringKiteCounterIdx = -1;
+    public int incenseBurnerCounterIdx = -1;
+    public int inkBottleCounterIdx = -1;
+    public int inserterCounterIdx = -1;
+    public int intangibleCounterIdx = -1;
+    public int loopCounterIdx = -1;
+    public int loseDexterityPerTurnCounterIdx = -1;
+    public int loseEnergyPerTurnCounterIdx = -1;
+    public int loseFocusPerTurnCounterIdx = -1;
+    public int mantraCounterIdx = -1;
+    public int metallicizeCounterIdx = -1;
+    public int normalityCounterIdx = -1;
+    public int nunchakuCounterIdx = -1;
+    public int penNibCounterIdx = -1;
+    public int phantasmalKillerCounterIdx = -1;
+    public int playCardOnTopOfDeckCounterIdx = -1;
+    public int reboundCounterIdx = -1;
+    public int regenerationCounterIdx = -1;
+    public int ritualDaggerCounterIdx = -1;
+    public int sadisticNatureCounterIdx = -1;
+    public int selfRepairCounterIdx = -1;
+    public int shieldAndSpireFacingCounterIdx = -1;
+    public int sneakyStrikeCounterIdx = -1;
+    public int sneckoDebuffCounterIdx = -1;
+    public int sundialCounterIdx = -1;
+    public int swivelCounterIdx = -1;
+    public int thunderStrikeCounterIdx = -1;
+    public int timeEaterCounterIdx = -1;
+    public int toolsOfTheTradeCounterIdx = -1;
+    public int velvetChokerCounterIdx = -1;
+    public int wellLaidPlansCounterIdx = -1;
+    public int wreathOfFlameCounterIdx = -1;
 
-    // V Extra indices for training targets
+    public Relic birdFacedUrn = null;
+    public Relic blackBlood = null;
+    public Relic bloodVial = null;
+    public Relic bloodyIdol = null;
+    public Relic blueCandle = null;
+    public Relic boot = null;
+    public Relic burningBlood = null;
+    public Relic calipers = null;
+    public Relic championBelt = null;
+    public Relic chemicalX = null;
+    public Relic deadBranch = null;
+    public Relic frozenEye = null;
+    public Relic ginger = null;
+    public Relic goldenEye = null;
+    public Relic goldPlatedCable = null;
+    public Relic handDrill = null;
+    public Relic hoveringKite = null;
+    public Relic iceCream = null;
+    public Relic magicFlower = null;
+    public Relic markOfTheBloom = null;
+    public Relic meatOnTheBone = null;
+    public Relic medicalKit = null;
+    public Relic nilroysCodex = null;
+    public Relic oddMushroom = null;
+    public Relic paperCrane = null;
+    public Relic paperPhrog = null;
+    public Relic runicDome = null;
+    public Relic runicPyramid = null;
+    public Relic sacredBark = null;
+    public Relic sneckoEye = null;
+    public Relic sneckoSkull = null;
+    public Relic strangeSpoon = null;
+    public Relic strikeDummy = null;
+    public Relic tingsha = null;
+    public Relic toolbox = null;
+    public Relic torii = null;
+    public Relic toughBandages = null;
+    public Relic toyOrnithopter = null;
+    public Relic tungstenRod = null;
+    public Relic turnip = null;
+    public Relic unceasingTop = null;
+    public Relic violetLotus = null;
+    public Relic wristBlade = null;
+    public boolean isRunicDomeEnabled(GameState state) {
+        return runicDome != null && runicDome.isRelicEnabledInScenario(state);
+    }
+
+    // cached V Extra indices for training targets
     public int fightProgressVExtraIdx = -1;
     public int turnsLeftVExtraIdx = -1;
     public int zeroDmgProbVExtraIdx = -1;
     public int alchemizeVExtraIdx = -1;
     public int[] potionsVExtraIdx;
 
-    public int difficultyChosen;
+    // ***************************************************************************************************************
+    // ************************************************* Main ********************************************************
+    // ***************************************************************************************************************
 
     public void setupEntityProperties(
             java.util.List<com.alphaStS.card.Card> cards,
@@ -334,6 +317,10 @@ public class GameProperties implements Cloneable {
         int[] cached = cardIndexCache.get(cardClass);
         return cached != null ? cached : new int[0];
     }
+
+    // ***************************************************************************************************************
+    // *************************** Counters/Training Target/NN Input Registration ************************************
+    // ***************************************************************************************************************
 
     public interface CounterRegistrant {
         void setCounterIdx(GameProperties gameProperties, int idx);
@@ -446,6 +433,9 @@ public class GameProperties implements Cloneable {
     Map<String, TrainingTarget> trainingTargetsMap = new HashMap<>();
     Map<String, TrainingTargetRegistrant> trainingTargetsRegistrantMap = new HashMap<>();
     Map<Integer, Tuple<String, Integer>> trainingTargetsRegistrantVIdxMap = new HashMap<>();
+    public List<TrainingTarget> extraTrainingTargets = new ArrayList<>();
+    public List<String> extraTrainingTargetsLabel = new ArrayList<>();
+
 
     public void addExtraTrainingTarget(String targetId, TrainingTargetRegistrant registrant, TrainingTarget target) {
         if (trainingTargetsMap.get(targetId) == null) {
@@ -464,6 +454,33 @@ public class GameProperties implements Cloneable {
             extraTrainingTargetsLabel.add(registrants.get(i).getKey());
         }
     }
+
+
+    // ***************************************************************************************************************
+    // ************************************************** Handlers ***************************************************
+    // ***************************************************************************************************************
+
+    // event handlers that cards etc. add their effect in
+    public Map<String, Object> gameEventHandlers = new HashMap<>();
+    GameEventHandler endOfPreBattleHandler;
+    public List<GameEventHandler> startOfBattleHandlers = new ArrayList<>();
+    public List<GameEventHandler> endOfBattleHandlers = new ArrayList<>();
+    public List<GameEventHandler> preStartOfTurnHandlers = new ArrayList<>();
+    public List<GameEventHandler> startOfTurnHandlers = new ArrayList<>();
+    public List<GameEventHandler> preEndTurnHandlers = new ArrayList<>();
+    public List<GameEventHandler> endOfTurnHandlers = new ArrayList<>();
+    public List<GameEventHandler> onExhaustHandlers = new ArrayList<>();
+    public List<GameEventHandler> onBlockHandlers = new ArrayList<>();
+    public List<GameEventHandler> onShuffleHandlers = new ArrayList<>();
+    public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
+    public List<GameEventHandler> onScryHandlers = new ArrayList<>();
+    public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
+    public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
+    public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
+    public List<GameEventCardHandler> onPreCardPlayedHandlers = new ArrayList<>();
+    public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
+    public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
+    public List<GameEventCardHandler> onRetainHandlers = new ArrayList<>();
 
     public void addStartOfBattleHandler(GameEventHandler handler) {
         startOfBattleHandlers.add(handler);
@@ -663,6 +680,10 @@ public class GameProperties implements Cloneable {
             onShuffleHandlers.add(handler);
         }
     }
+
+    // ********************************************************************************************************************
+    // ******************************** Shared Effects Registration *******************************************************
+    // ********************************************************************************************************************
 
     private static CounterRegistrant IntangibleCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
