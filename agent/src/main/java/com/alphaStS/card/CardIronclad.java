@@ -908,11 +908,11 @@ public class CardIronclad {
         }
     }
 
-    private static abstract class _BloodlettingT extends Card {
+    static abstract class _BloodlettingT extends Card {
         private final int energy;
 
-        public _BloodlettingT(String cardName, int energy) {
-            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+        public _BloodlettingT(String cardName, int energy, int rarity) {
+            super(cardName, Card.SKILL, 0, rarity);
             this.energy = energy;
         }
 
@@ -925,13 +925,13 @@ public class CardIronclad {
 
     public static class Bloodletting extends _BloodlettingT {
         public Bloodletting() {
-            super("Bloodletting", 2);
+            super("Bloodletting", 2, Card.UNCOMMON);
         }
     }
 
     public static class BloodlettingP extends _BloodlettingT {
         public BloodlettingP() {
-            super("Bloodletting+", 3);
+            super("Bloodletting+", 3, Card.UNCOMMON);
         }
     }
 

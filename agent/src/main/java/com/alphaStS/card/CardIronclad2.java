@@ -1,105 +1,280 @@
 package com.alphaStS.card;
 
+import com.alphaStS.*;
+import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.DebuffType;
+import com.alphaStS.gameAction.GameActionCtx;
+
 public class CardIronclad2 {
     // **************************************************************************************************
     // ********************************************* Basic  *********************************************
     // **************************************************************************************************
 
-    // TODO: Bash (Basic) - 2 energy, Attack
-    //   Effect: Deal 8 damage. Apply 2 Vulnerable.
-    //   Upgraded Effect: Deal 10 damage. Apply 3 Vulnerable.
+    public static class Bash extends CardIronclad.Bash {
+    }
 
-    // TODO: Defend (Ironclad) (Basic) - 1 energy, Skill
-    //   Effect: Gain 5 Block.
-    //   Upgraded Effect: Gain 8 Block.
+    public static class BashP extends CardIronclad.BashP {
+    }
 
-    // TODO: Strike (Ironclad) (Basic) - 1 energy, Attack
-    //   Effect: Deal 6 damage.
-    //   Upgraded Effect: Deal 9 damage.
+    public static class Defend extends Card.Defend {
+    }
+
+    public static class DefendP extends Card.DefendP {
+    }
+
+    public static class Strike extends Card.Strike {
+    }
+
+    public static class StrikeP extends Card.StrikeP {
+    }
 
     // **************************************************************************************************
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Anger (Common) - 0 energy, Attack
-    //   Effect: Deal 6 damage. Add a copy of this card into your Discard Pile.
-    //   Upgraded Effect: Deal 8 damage. Add a copy of this card into your Discard Pile.
+    public static class Anger extends CardIronclad.Anger {
+    }
 
-    // TODO: Armaments (Common) - 1 energy, Skill
-    //   Effect: Gain 5 Block. Upgrade a card in your Hand.
-    //   Upgraded Effect: Gain 5 Block. Upgrade ALL cards in your Hand.
+    public static class AngerP extends CardIronclad.AngerP {
+    }
 
-    // TODO: Blood Wall (Common) - 2 energy, Skill
-    //   Effect: Lose 2 HP. Gain 16 Block.
-    //   Upgraded Effect: Lose 2 HP. Gain 20 Block.
+    public static class Armaments extends CardIronclad.Armanent {
+    }
 
-    // TODO: Bloodletting (Common) - 0 energy, Skill
-    //   Effect: Lose 3 HP. Gain 2 energy.
-    //   Upgraded Effect: Lose 3 HP. Gain 3 energy.
+    public static class ArmamentsP extends CardIronclad.ArmanentP {
+    }
 
-    // TODO: Body Slam (Common) - 1 energy, Attack
-    //   Effect: Deal damage equal to your Block.
-    //   Upgraded Effect (0 energy): Deal damage equal to your Block.
+    private static abstract class _BloodWallT extends Card {
+        private final int block;
 
-    // TODO: Breakthrough (Common) - 1 energy, Attack
-    //   Effect: Lose 1 HP. Deal 9 damage to ALL enemies.
-    //   Upgraded Effect: Lose 1 HP. Deal 13 damage to ALL enemies.
+        public _BloodWallT(String cardName, int block) {
+            super(cardName, Card.SKILL, 2, Card.COMMON);
+            this.block = block;
+        }
 
-    // TODO: Cinder (Common) - 2 energy, Attack
-    //   Effect: Deal 17 damage. Exhaust the top card of your Draw Pile.
-    //   Upgraded Effect: Deal 22 damage. Exhaust the top card of your Draw Pile.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.doNonAttackDamageToPlayer(2, false, this);
+            state.getPlayerForWrite().gainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Havoc (Common) - 1 energy, Skill
-    //   Effect: Play the top card of your Draw Pile and Exhaust it.
-    //   Upgraded Effect (0 energy): Play the top card of your Draw Pile and Exhaust it.
+    public static class BloodWall extends _BloodWallT {
+        public BloodWall() {
+            super("Blood Wall", 16);
+        }
+    }
 
-    // TODO: Headbutt (Common) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Put a card from your Discard Pile on top of your Draw Pile.
-    //   Upgraded Effect: Deal 12 damage. Put a card from your Discard Pile on top of your Draw Pile.
+    public static class BloodWallP extends _BloodWallT {
+        public BloodWallP() {
+            super("Blood Wall+", 20);
+        }
+    }
 
-    // TODO: Iron Wave (Common) - 1 energy, Attack
-    //   Effect: Gain 5 Block. Deal 5 damage.
-    //   Upgraded Effect: Gain 7 Block. Deal 7 damage.
+    public static class Bloodletting extends CardIronclad._BloodlettingT {
+        public Bloodletting() {
+            super("Bloodletting", 2, Card.COMMON);
+        }
+    }
+
+    public static class BloodlettingP extends CardIronclad._BloodlettingT {
+        public BloodlettingP() {
+            super("Bloodletting+", 3, Card.COMMON);
+        }
+    }
+
+    public static class BodySlam extends CardIronclad.BodySlam {
+    }
+
+    public static class BodySlamP extends CardIronclad.BodySlamP {
+    }
+
+    private static abstract class _BreakthroughT extends Card {
+        private final int damage;
+
+        public _BreakthroughT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.doNonAttackDamageToPlayer(1, false, this);
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Breakthrough extends _BreakthroughT {
+        public Breakthrough() {
+            super("Breakthrough", 9);
+        }
+    }
+
+    public static class BreakthroughP extends _BreakthroughT {
+        public BreakthroughP() {
+            super("Breakthrough+", 13);
+        }
+    }
+
+    private static abstract class _CinderT extends Card {
+        private final int damage;
+
+        public _CinderT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            canExhaustAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            int cardIdx = state.drawOneCardSpecial();
+            if (cardIdx >= 0) {
+                state.exhaustedCardHandle(cardIdx, true);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Cinder extends _CinderT {
+        public Cinder() {
+            super("Cinder", 17);
+        }
+    }
+
+    public static class CinderP extends _CinderT {
+        public CinderP() {
+            super("Cinder+", 22);
+        }
+    }
+
+    public static class Havoc extends CardIronclad.Havoc {
+    }
+
+    public static class HavocP extends CardIronclad.HavocP {
+    }
+
+    public static class Headbutt extends CardIronclad.Headbutt {
+    }
+
+    public static class HeadbuttP extends CardIronclad.HeadbuttP {
+    }
+
+    public static class IronWave extends CardIronclad.IronWave {
+    }
+
+    public static class IronWaveP extends CardIronclad.IronWaveP {
+    }
 
     // TODO: Molten Fist (Common) - 1 energy, Attack
     //   Effect: Deal 10 damage. Double the enemy's Vulnerable. Exhaust.
     //   Upgraded Effect: Deal 14 damage. Double the enemy's Vulnerable. Exhaust.
 
-    // TODO: Perfected Strike (Common) - 2 energy, Attack
-    //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards containing “Strike”.
-    //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards containing “Strike”.
+    public static class PerfectedStrike extends CardIronclad.PerfectedStrike {
+    }
 
-    // TODO: Pommel Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Draw 1 card.
-    //   Upgraded Effect: Deal 10 damage. Draw 2 cards.
+    public static class PerfectedStrikeP extends CardIronclad.PerfectedStrikeP {
+    }
 
-    // TODO: Setup Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Gain 2 Strength this turn.
-    //   Upgraded Effect: Deal 9 damage. Gain 3 Strength this turn.
+    public static class PommelStrike extends CardIronclad.PommelStrike {
+    }
 
-    // TODO: Shrug It Off (Common) - 1 energy, Skill
-    //   Effect: Gain 8 Block. Draw 1 card.
-    //   Upgraded Effect: Gain 11 Block. Draw 1 card.
+    public static class PommelStrikeP extends CardIronclad.PommelStrikeP {
+    }
 
-    // TODO: Sword Boomerang (Common) - 1 energy, Attack
-    //   Effect: Deal 3 damage to a random enemy 3 times.
-    //   Upgraded Effect: Deal 3 damage to a random enemy 4 times.
+    private static abstract class _SetupStrikeT extends Card {
+        private final int damage;
+        private final int strength;
 
-    // TODO: Thunderclap (Common) - 1 energy, Attack
-    //   Effect: Deal 4 damage and apply 1 Vulnerable to ALL enemies.
-    //   Upgraded Effect: Deal 7 damage and apply 1 Vulnerable to ALL enemies.
+        public _SetupStrikeT(String cardName, int damage, int strength) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.strength = strength;
+            entityProperty.selectEnemy = true;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerStrengthEot = true;
+        }
 
-    // TODO: Tremble (Common) - 1 energy, Skill
-    //   Effect: Apply 2 Vulnerable.
-    //   Upgraded Effect: Apply 3 Vulnerable.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            var player = state.getPlayerForWrite();
+            player.gainStrength(strength);
+            player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strength);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: True Grit (Common) - 1 energy, Skill
-    //   Effect: Gain 7 Block. Exhaust 1 card at random.
-    //   Upgraded Effect: Gain 9 Block. Exhaust 1 card .
+    public static class SetupStrike extends _SetupStrikeT {
+        public SetupStrike() {
+            super("Setup Strike", 7, 2);
+        }
+    }
 
-    // TODO: Twin Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 5 damage twice.
-    //   Upgraded Effect: Deal 7 damage twice.
+    public static class SetupStrikeP extends _SetupStrikeT {
+        public SetupStrikeP() {
+            super("Setup Strike+", 9, 3);
+        }
+    }
+
+    public static class ShrugItOff extends CardIronclad.ShrugItOff {
+    }
+
+    public static class ShrugItOffP extends CardIronclad.ShrugItOffP {
+    }
+
+    public static class SwordBoomerang extends CardIronclad.SwordBoomerang {
+    }
+
+    public static class SwordBoomerangP extends CardIronclad.SwordBoomerangP {
+    }
+
+    public static class Thunderclap extends CardIronclad.Thunderclap {
+    }
+
+    public static class ThunderclapP extends CardIronclad.ThunderclapP {
+    }
+
+    private static abstract class _TrembleT extends Card {
+        private final int vulnerable;
+
+        public _TrembleT(String cardName, int vulnerable) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.vulnerable = vulnerable;
+            entityProperty.selectEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Tremble extends _TrembleT {
+        public Tremble() {
+            super("Tremble", 2);
+        }
+    }
+
+    public static class TrembleP extends _TrembleT {
+        public TrembleP() {
+            super("Tremble+", 3);
+        }
+    }
+
+    public static class TrueGrit extends CardIronclad.TrueGrit {
+    }
+
+    public static class TrueGritP extends CardIronclad.TrueGritP {
+    }
+
+    public static class TwinStrike extends CardIronclad.TwinStrike {
+    }
+
+    public static class TwinStrikeP extends CardIronclad.TwinStrikeP {
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
@@ -163,7 +338,7 @@ public class CardIronclad2 {
 
     // TODO: Forgotten Ritual (Uncommon) - 1 energy, Skill
     //   Effect: If you Exhausted a card this turn, gain 3 energy.
-    //   Upgraded Effect: If you Exhausted a card this turn, gain 4energy.
+    //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy.
 
     // TODO: Grapple (Uncommon) - 1 energy, Attack
     //   Effect: Deal 7 damage. Whenever you gain Block this turn, deal 5 damage to the enemy.
@@ -302,8 +477,8 @@ public class CardIronclad2 {
     //   Upgraded Effect: Exhaust your Hand. Deal 10 damage for each card Exhausted. Exhaust.
 
     // TODO: Hellraiser (Rare) - 2 energy, Power
-    //   Effect: Whenever you draw a card containing “Strike”, it is played against a random enemy.
-    //   Upgraded Effect (1 energy): Whenever you draw a card containing “Strike”, it is played against a random enemy.
+    //   Effect: Whenever you draw a card containing "Strike", it is played against a random enemy.
+    //   Upgraded Effect (1 energy): Whenever you draw a card containing "Strike", it is played against a random enemy.
 
     // TODO: Impervious (Rare) - 2 energy, Skill
     //   Effect: Gain 30 Block. Exhaust.
