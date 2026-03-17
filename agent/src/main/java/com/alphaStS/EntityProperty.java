@@ -24,6 +24,13 @@ public class EntityProperty {
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
+    public boolean changePlatedArmor;
+    public boolean selectEnemy;
+    public boolean selectFromDiscard;
+    public boolean selectFromExhaust;
+    public boolean selectFromDeck;
+    public boolean selectFromHand;
+    public boolean putCardOnTopDeck;
     public long possibleBuffs;
     public short orbGenerationPossible;
 
@@ -49,6 +56,13 @@ public class EntityProperty {
         affectEnemyStrength |= other.affectEnemyStrength;
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
         changeEnergyRefill |= other.changeEnergyRefill;
+        changePlatedArmor |= other.changePlatedArmor;
+        selectEnemy |= other.selectEnemy;
+        selectFromDiscard |= other.selectFromDiscard;
+        selectFromExhaust |= other.selectFromExhaust;
+        selectFromDeck |= other.selectFromDeck;
+        selectFromHand |= other.selectFromHand;
+        putCardOnTopDeck |= other.putCardOnTopDeck;
         possibleBuffs |= other.possibleBuffs;
         orbGenerationPossible |= other.orbGenerationPossible;
     }

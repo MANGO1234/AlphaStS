@@ -74,7 +74,7 @@ public class CardDefect {
         public _BallLightningT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
         }
 
@@ -103,7 +103,7 @@ public class CardDefect {
         public _BarrageT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -138,7 +138,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n1 = n1;
             this.n2 = n2;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -217,7 +217,7 @@ public class CardDefect {
             super("Claw (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
             this.limit = limit;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public Claw(int dmg) {
@@ -284,7 +284,7 @@ public class CardDefect {
             super("Claw+ (" + dmg + ")", Card.ATTACK, 0, Card.COMMON);
             this.dmg = dmg;
             this.limit = limit;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public ClawP(int dmg) {
@@ -341,7 +341,7 @@ public class CardDefect {
         public _ColdSnapT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.FROST.mask;
         }
 
@@ -370,7 +370,7 @@ public class CardDefect {
         public _CompiledDriverT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -435,7 +435,7 @@ public class CardDefect {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n1 = n1;
             this.n2 = n2;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -466,7 +466,7 @@ public class CardDefect {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
             this.exhaustWhenPlayed = exhaustWhenPlayed;
-            selectFromDiscard = true;
+            entityProperty.selectFromDiscard = true;
             selectFromDiscardLater = true;
         }
 
@@ -528,8 +528,8 @@ public class CardDefect {
         public _ReboundT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            selectEnemy = true;
-            putCardOnTopDeck = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.putCardOnTopDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -735,7 +735,7 @@ public class CardDefect {
     public static class Streamline extends Card {
         public Streamline(int energyCost) {
             super("Streamline (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public Streamline() {
@@ -773,7 +773,7 @@ public class CardDefect {
     public static class StreamlineP extends Card {
         public StreamlineP(int energyCost) {
             super("Streamline+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public StreamlineP() {
@@ -1002,7 +1002,7 @@ public class CardDefect {
         public _BullsEyeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.lockOnEnemy = true;
         }
 
@@ -1344,7 +1344,7 @@ public class CardDefect {
         public _FTLT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1914,7 +1914,7 @@ public class CardDefect {
         public _MelterT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1971,7 +1971,7 @@ public class CardDefect {
     private static abstract class _RecycleT extends Card {
         public _RecycleT(String cardName, int n) {
             super(cardName, Card.SKILL, n, Card.UNCOMMON);
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
             canExhaustAnyCard = true;
         }
 
@@ -2106,7 +2106,7 @@ public class CardDefect {
         public _ScrapeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2317,7 +2317,7 @@ public class CardDefect {
         public _SunderT(String cardName, int n) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2431,7 +2431,7 @@ public class CardDefect {
         public _AllForOneT(String cardName, int n, int discardOrderMaxKeepTrackIn10s, int discardOrder0CardMaxCopies) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.discardOrderMaxKeepTrackIn10s = discardOrderMaxKeepTrackIn10s;
             this.discardOrder0CardMaxCopies = discardOrder0CardMaxCopies;
         }
@@ -2639,7 +2639,7 @@ public class CardDefect {
         public _CoreSurgeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.changePlayerArtifact = true;
             exhaustWhenPlayed = true;
         }
@@ -2990,7 +2990,7 @@ public class CardDefect {
         public _MeteorStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 5, Card.RARE);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.orbGenerationPossible |= OrbType.PLASMA.mask;
         }
 
@@ -3110,7 +3110,7 @@ public class CardDefect {
             super(cardName, Card.SKILL, 0, Card.RARE);
             this.isUpgraded = isUpgraded;
             exhaustWhenPlayed = true;
-            selectFromDeck = true;
+            entityProperty.selectFromDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

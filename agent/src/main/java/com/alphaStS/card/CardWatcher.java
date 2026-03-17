@@ -23,7 +23,7 @@ public class CardWatcher {
     private static abstract class _EruptionT extends Card {
         public _EruptionT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.COMMON);
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -78,7 +78,7 @@ public class CardWatcher {
         public _BowlingBashT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -170,7 +170,7 @@ public class CardWatcher {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             this.vulnerable = vulnerable;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.needsLastCardType = true;
             this.entityProperty.vulnEnemy = true;
         }
@@ -204,7 +204,7 @@ public class CardWatcher {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             this.scryAmount = scryAmount;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.scry = true;
         }
 
@@ -264,7 +264,7 @@ public class CardWatcher {
         public _EmptyFistT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -323,7 +323,7 @@ public class CardWatcher {
         public _FlurryOfBlowsT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -367,7 +367,7 @@ public class CardWatcher {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             this.retain = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -395,7 +395,7 @@ public class CardWatcher {
         public _FollowUpT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.needsLastCardType = true;
         }
 
@@ -462,7 +462,7 @@ public class CardWatcher {
             this.scryAmount = scryAmount;
             this.block = block;
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.scry = true;
         }
 
@@ -495,7 +495,7 @@ public class CardWatcher {
         public _PressurePointsT(String cardName, int mark) {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.mark = mark;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.entityProperty.markEnemy = true;
         }
 
@@ -593,7 +593,7 @@ public class CardWatcher {
             this.damage = damage;
             this.weak = weak;
             this.entityProperty.weakEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.needsLastCardType = true;
         }
 
@@ -732,7 +732,7 @@ public class CardWatcher {
         public _CarveRealityT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -959,7 +959,7 @@ public class CardWatcher {
         public _FearNoEvilT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1174,7 +1174,7 @@ public class CardWatcher {
         public _MeditateT(String cardName, int energyCost, int cardCount) {
             super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
             this.cardCount = cardCount;
-            this.selectFromDiscard = true;
+            entityProperty.selectFromDiscard = true;
             entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
         }
 
@@ -1495,7 +1495,7 @@ public class CardWatcher {
         public _ReachHeavenT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1604,7 +1604,7 @@ public class CardWatcher {
 
         private SandsOfTime(int energyCost) {
             super("Sands of Time (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.retain = true;
         }
 
@@ -1657,7 +1657,7 @@ public class CardWatcher {
 
         private SandsOfTimeP(int energyCost) {
             super("Sands of Time+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.retain = true;
         }
 
@@ -1709,7 +1709,7 @@ public class CardWatcher {
         public _SignatureMoveT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1899,7 +1899,7 @@ public class CardWatcher {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
             this.blockReturn = blockReturn;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
             this.entityProperty.talkToTheHandEnemy = true;
         }
@@ -1929,7 +1929,7 @@ public class CardWatcher {
         public _TantrumT(String cardName, int hits) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.hits = hits;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.returnToDeckWhenPlay = true;
         }
 
@@ -1960,7 +1960,7 @@ public class CardWatcher {
         public _WallopT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2044,7 +2044,7 @@ public class CardWatcher {
         public _WeaveT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2086,7 +2086,7 @@ public class CardWatcher {
         public _WheelKickT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2120,7 +2120,7 @@ public class CardWatcher {
             super("Windmill Strike (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
             this.limit = limit;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.retain = true;
         }
 
@@ -2186,7 +2186,7 @@ public class CardWatcher {
             super("Windmill Strike+ (" + damage + ")", Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
             this.limit = limit;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.retain = true;
         }
 
@@ -2388,7 +2388,7 @@ public class CardWatcher {
         public _BrillianceT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2651,7 +2651,7 @@ public class CardWatcher {
         public _JudgmentT(String cardName, int hpThreshold) {
             super(cardName, Card.SKILL, 1, Card.RARE);
             this.hpThreshold = hpThreshold;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2681,7 +2681,7 @@ public class CardWatcher {
         public _LessonLearnedT(String cardName, int damage, double healthRewardRatio) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
             this.healthRewardRatio = healthRewardRatio;
         }
@@ -2775,7 +2775,7 @@ public class CardWatcher {
     public static abstract class _OmniscienceT extends Card {
         public _OmniscienceT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
-            this.selectFromDeck = true;
+            entityProperty.selectFromDeck = true;
             this.exhaustWhenPlayed = true;
         }
 

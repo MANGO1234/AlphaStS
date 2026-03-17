@@ -450,7 +450,7 @@ public final class GameState implements State {
         }
 
         // select hand actions
-        if (cards.stream().anyMatch((x) -> x.selectFromHand) || potions.stream().anyMatch((x) -> x.selectFromHand)) {
+        if (cards.stream().anyMatch((x) -> x.entityProperty.selectFromHand) || potions.stream().anyMatch((x) -> x.entityProperty.selectFromHand)) {
             properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] = new GameAction[l];
             for (int i = 0; i < cards.size(); i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_HAND, i);
@@ -462,7 +462,7 @@ public final class GameState implements State {
         }
 
         // select from discard actions
-        if (cards.stream().anyMatch((x) -> x.selectFromDiscard) || potions.stream().anyMatch((x) -> x.selectFromDiscard)) {
+        if (cards.stream().anyMatch((x) -> x.entityProperty.selectFromDiscard) || potions.stream().anyMatch((x) -> x.entityProperty.selectFromDiscard)) {
             properties.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] = new GameAction[properties.realCardsLen];
             for (int i = 0; i < properties.realCardsLen; i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_DISCARD, i);
@@ -470,7 +470,7 @@ public final class GameState implements State {
         }
 
         // select from exhaust actions
-        if (cards.stream().anyMatch((x) -> x.selectFromExhaust)) {
+        if (cards.stream().anyMatch((x) -> x.entityProperty.selectFromExhaust)) {
             properties.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] = new GameAction[properties.realCardsLen];
             for (int i = 0; i < properties.realCardsLen; i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_EXHAUST, i);
@@ -478,7 +478,7 @@ public final class GameState implements State {
         }
 
         // select from deck actions
-        if (cards.stream().anyMatch((x) -> x.selectFromDeck)) {
+        if (cards.stream().anyMatch((x) -> x.entityProperty.selectFromDeck)) {
             properties.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] = new GameAction[properties.realCardsLen];
             for (int i = 0; i < properties.realCardsLen; i++) {
                 properties.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()][i] = new GameAction(GameActionType.SELECT_CARD_DECK, i);
@@ -647,8 +647,6 @@ public final class GameState implements State {
 
         properties.setupEntityProperties(cards, relics, potions, enemiesArg, getPlayeForRead().getArtifact() > 0);
         properties.previousCardPlayTracking = cards.stream().anyMatch((x) -> x.needsLastCardType);
-        properties.needDeckOrderMemory |= cards.stream().anyMatch((x) -> x.putCardOnTopDeck);
-        properties.selectFromExhaust = cards.stream().anyMatch((x) -> x.selectFromExhaust);
 
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
             properties.addExtraTrainingTarget("FightProgress", new GameProperties.TrainingTargetRegistrant() {
@@ -822,14 +820,14 @@ public final class GameState implements State {
                     }
                 }
             }
-            if (cards.get(i).selectFromDiscard || cards.get(i).canExhaustAnyCard || cards.get(i).canDiscardAnyCard) {
+            if (cards.get(i).entityProperty.selectFromDiscard || cards.get(i).canExhaustAnyCard || cards.get(i).canDiscardAnyCard) {
                 for (int j = 0; j < cards.size(); j++) {
                     l.add(j);
                 }
             }
         }
         for (Potion potion : potions) {
-            if (potion.selectFromDiscard) {
+            if (potion.entityProperty.selectFromDiscard) {
                 for (int j = 0; j < cards.size(); j++) {
                     l.add(j);
                 }
@@ -1231,15 +1229,15 @@ public final class GameState implements State {
             for (var handler : properties.onPreCardPlayedHandlers) {
                 handler.handle(this, cardIdx, lastSelectedIdx, energyCost, cloneSource, -1);
             }
-            if (properties.cardDict[cardIdx].selectEnemy) {
+            if (properties.cardDict[cardIdx].entityProperty.selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, cloneSource);
-            } else if (properties.cardDict[cardIdx].selectFromHand && !properties.cardDict[cardIdx].selectFromHandLater) {
+            } else if (properties.cardDict[cardIdx].entityProperty.selectFromHand && !properties.cardDict[cardIdx].selectFromHandLater) {
                 setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, cloneSource);
-            } else if (properties.cardDict[cardIdx].selectFromDiscard && !properties.cardDict[cardIdx].selectFromDiscardLater) {
+            } else if (properties.cardDict[cardIdx].entityProperty.selectFromDiscard && !properties.cardDict[cardIdx].selectFromDiscardLater) {
                 setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, cloneSource);
-            } else if (properties.cardDict[cardIdx].selectFromExhaust) {
+            } else if (properties.cardDict[cardIdx].entityProperty.selectFromExhaust) {
                 setActionCtx(GameActionCtx.SELECT_CARD_EXHAUST, action, cloneSource);
-            } else if (properties.cardDict[cardIdx].selectFromDeck) {
+            } else if (properties.cardDict[cardIdx].entityProperty.selectFromDeck) {
                 setActionCtx(GameActionCtx.SELECT_CARD_DECK, action, cloneSource);
             }
         }
@@ -1536,11 +1534,11 @@ public final class GameState implements State {
             if (properties.toyOrnithopter != null) {
                 healPlayer(5);
             }
-            if (properties.potions.get(potionIdx).selectEnemy) {
+            if (properties.potions.get(potionIdx).entityProperty.selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, null);
-            } else if (properties.potions.get(potionIdx).selectFromHand) {
+            } else if (properties.potions.get(potionIdx).entityProperty.selectFromHand) {
                 setActionCtx(GameActionCtx.SELECT_CARD_HAND, action, null);
-            } else if (properties.potions.get(potionIdx).selectFromDiscard) {
+            } else if (properties.potions.get(potionIdx).entityProperty.selectFromDiscard) {
                 setActionCtx(GameActionCtx.SELECT_CARD_DISCARD, action, null);
             }
         }
@@ -3082,7 +3080,7 @@ public final class GameState implements State {
                             if (cost < 0 || cost > energy) {
                                 continue;
                             }
-                            if (properties.cardDict[handArr[i]].selectEnemy) {
+                            if (properties.cardDict[handArr[i]].entityProperty.selectEnemy) {
                                 var atLeastOneTarget = false;
                                 for (int j = 0; j < enemies.size(); j++) {
                                     if (enemies.get(j).isTargetable()) {

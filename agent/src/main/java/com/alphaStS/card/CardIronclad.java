@@ -32,7 +32,7 @@ public class CardIronclad {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.damage = damage;
             this.vulnerable = vulnerable;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.vulnEnemy = true;
         }
 
@@ -59,7 +59,7 @@ public class CardIronclad {
     public static class Anger extends Card {
         public Anger() {
             super("Anger", Card.ATTACK, 0, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -76,7 +76,7 @@ public class CardIronclad {
     public static class AngerP extends Card {
         public AngerP() {
             super("Anger+", Card.ATTACK, 0, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -95,12 +95,12 @@ public class CardIronclad {
 
         public Armanent() {
             super("Armanent", Card.SKILL, 1, Card.COMMON);
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
             canUpgrade = (state.properties.generateCardOptions & GameProperties.GENERATE_CARD_ARMANENT) != 0;
-            selectFromHand = canUpgrade;
+            entityProperty.selectFromHand = canUpgrade;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -154,7 +154,7 @@ public class CardIronclad {
     private static abstract class _BodySlamT extends Card {
         public _BodySlamT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -181,7 +181,7 @@ public class CardIronclad {
         public _ClashT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -247,7 +247,7 @@ public class CardIronclad {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.damage = damage;
             this.weak = weak;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.weakEnemy = true;
         }
 
@@ -356,10 +356,10 @@ public class CardIronclad {
         public _HeadbuttT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            selectEnemy = true;
-            selectFromDiscard = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromDiscard = true;
             selectFromDiscardLater = true;
-            putCardOnTopDeck = true;
+            entityProperty.putCardOnTopDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -394,7 +394,7 @@ public class CardIronclad {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.baseDamage = 14;
             this.strengthMultiplier = strengthMultiplier;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -421,7 +421,7 @@ public class CardIronclad {
         public _IronWaveT(String cardName, int damageAndBlock) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damageAndBlock = damageAndBlock;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -446,7 +446,7 @@ public class CardIronclad {
     public static class PerfectedStrike extends Card {
         public PerfectedStrike() {
             super("Perfected Strike", Card.ATTACK, 2, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -467,7 +467,7 @@ public class CardIronclad {
     public static class PerfectedStrikeP extends Card {
         public PerfectedStrikeP() {
             super("Perfected Strike+", Card.ATTACK, 2, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -493,7 +493,7 @@ public class CardIronclad {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.baseDamage = baseDamage;
             this.draw = draw;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -653,7 +653,7 @@ public class CardIronclad {
     public static class TrueGritP extends Card {
         public TrueGritP() {
             super("True Grit+", Card.SKILL, 1, Card.COMMON);
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
             canExhaustAnyCard = true;
         }
 
@@ -670,7 +670,7 @@ public class CardIronclad {
         public _TwinStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -701,9 +701,9 @@ public class CardIronclad {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.n = n;
             exhaustWhenPlayed = true;
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
             selectFromHandLater = true;
-            putCardOnTopDeck = true;
+            entityProperty.putCardOnTopDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -736,7 +736,7 @@ public class CardIronclad {
         public _WildStrikeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -797,7 +797,7 @@ public class CardIronclad {
 
         public BloodForBlood(int energyCost) {
             super("Blood For Blood (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -864,7 +864,7 @@ public class CardIronclad {
 
         public BloodForBloodP(int energyCost) {
             super("Blood For Blood+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -941,7 +941,7 @@ public class CardIronclad {
         public _BurningPactT(String cardName, int draw) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.draw = draw;
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
             canExhaustAnyCard = true;
         }
 
@@ -970,7 +970,7 @@ public class CardIronclad {
         public _CarnageT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             ethereal = true;
         }
 
@@ -1096,7 +1096,7 @@ public class CardIronclad {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.strengthLoss = strengthLoss;
             exhaustWhenPlayed = true;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.affectEnemyStrength = true;
         }
 
@@ -1124,7 +1124,7 @@ public class CardIronclad {
         public _DropkickT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1156,7 +1156,7 @@ public class CardIronclad {
         public _DualWieldT(String cardName, int copies) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.copies = copies;
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1434,7 +1434,7 @@ public class CardIronclad {
         public _HemokinesisT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1618,7 +1618,7 @@ public class CardIronclad {
         public _PummelT(String cardName, int hits) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.hits = hits;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             exhaustWhenPlayed = true;
         }
 
@@ -1705,7 +1705,7 @@ public class CardIronclad {
             super("Rampage (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
             this.limit = limit;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public Rampage(int dmg, int limit, boolean upgradable) {
@@ -1762,7 +1762,7 @@ public class CardIronclad {
             super("Rampage+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
             this.dmg = dmg;
             this.limit = limit;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1803,7 +1803,7 @@ public class CardIronclad {
         public _RecklessChargeT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1883,7 +1883,7 @@ public class CardIronclad {
         public SearingBlow(int numberOfUpgrades) {
             super(numberOfUpgrades == 0 ? "Searing Blow" : "Searing Blow+" + numberOfUpgrades, Card.ATTACK, 2, Card.UNCOMMON);
             n = numberOfUpgrades;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public SearingBlow(int numberOfUpgrades, boolean upgradable) {
@@ -2014,7 +2014,7 @@ public class CardIronclad {
         public _SeverSoulT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             exhaustNonAttacks = true;
         }
 
@@ -2080,7 +2080,7 @@ public class CardIronclad {
         public _SpotWeaknessT(String cardName, int strength) {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.strength = strength;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.changePlayerStrength = true;
         }
 
@@ -2110,7 +2110,7 @@ public class CardIronclad {
         public _UppercutT(String cardName, int debuffAmount) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.debuffAmount = debuffAmount;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.vulnEnemy = true;
             entityProperty.weakEnemy = true;
         }
@@ -2230,7 +2230,7 @@ public class CardIronclad {
         public _BludgeonT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 3, Card.RARE);
             this.damage = damage;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2428,7 +2428,7 @@ public class CardIronclad {
     private static abstract class _ExhumeT extends Card {
         public _ExhumeT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
-            selectFromExhaust = true;
+            entityProperty.selectFromExhaust = true;
             exhaustWhenPlayed = true;
         }
 
@@ -2467,7 +2467,7 @@ public class CardIronclad {
             this.healthRewardRatio = healthRewardRatio;
             healPlayer = true;
             exhaustWhenPlayed = true;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -2663,7 +2663,7 @@ public class CardIronclad {
         public _FiendFireT(String cardName, int damagePerCard) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.damagePerCard = damagePerCard;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             exhaustWhenPlayed = true;
             canExhaustAnyCard = true;
         }

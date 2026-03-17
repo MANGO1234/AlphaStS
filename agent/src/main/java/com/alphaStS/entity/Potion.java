@@ -20,10 +20,7 @@ import java.util.*;
 
 public abstract class Potion implements GameProperties.CounterRegistrant {
     public EntityProperty entityProperty = new EntityProperty();
-    public boolean selectEnemy;
     public boolean healPlayer;
-    public boolean selectFromHand;
-    public boolean selectFromDiscard;
     public boolean isGenerated;
     public int generatedIdx;
     public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
@@ -95,7 +92,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class FearPotion extends Potion {
         public FearPotion() {
             entityProperty.vulnEnemy = true;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -108,7 +105,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     public static class WeakPotion extends Potion {
         public WeakPotion() {
             entityProperty.weakEnemy = true;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -120,7 +117,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class FirePotion extends Potion {
         public FirePotion() {
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -156,7 +153,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class PoisonPotion extends Potion {
         public PoisonPotion() {
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.poisonEnemy = true;
         }
 
@@ -421,7 +418,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class LiquidMemory extends Potion {
         public LiquidMemory() {
-            selectFromDiscard = true;
+            entityProperty.selectFromDiscard = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -607,7 +604,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class GamblersBrew extends Potion {
         public GamblersBrew() {
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -1064,7 +1061,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class Elixir extends Potion {
         public Elixir() {
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {

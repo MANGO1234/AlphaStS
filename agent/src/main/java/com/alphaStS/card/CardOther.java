@@ -245,7 +245,7 @@ public class CardOther {
     public static class GamblingChips extends Card {
         public GamblingChips() {
             super("Gambling Chips", Card.SKILL, -1, Card.COMMON);
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -283,7 +283,7 @@ public class CardOther {
             if (count <= 0) {
                 throw new IllegalArgumentException();
             }
-            selectFromDeck = true;
+            entityProperty.selectFromDeck = true;
             this.count = count;
             this.cards = cards;
         }
@@ -328,7 +328,7 @@ public class CardOther {
             if (count <= 0) {
                 throw new IllegalArgumentException();
             }
-            selectFromDeck = true;
+            entityProperty.selectFromDeck = true;
             this.count = count;
             this.cards = cards;
         }
@@ -372,7 +372,7 @@ public class CardOther {
                 throw new IllegalArgumentException();
             }
             this.cards = cards;
-            this.selectFromExhaust = true;
+            entityProperty.selectFromExhaust = true;
             this.exhaustWhenPlayed = true;
         }
 

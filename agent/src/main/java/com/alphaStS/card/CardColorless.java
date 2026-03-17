@@ -48,7 +48,7 @@ public class CardColorless {
     public static class Blind extends Card {
         public Blind() {
             super("Blind", Card.SKILL, 0, Card.UNCOMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.weakEnemy = true;
         }
 
@@ -79,7 +79,7 @@ public class CardColorless {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
             this.exhaustWhenPlayed = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.entityProperty.affectEnemyStrength = true;
             this.entityProperty.affectEnemyStrengthEot = true;
         }
@@ -280,7 +280,7 @@ public class CardColorless {
         public _FlashOfSteelT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -484,7 +484,7 @@ public class CardColorless {
         public _MindBlastT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.UNCOMMON);
             innate = true;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -629,7 +629,7 @@ public class CardColorless {
         public _SwiftStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -653,7 +653,7 @@ public class CardColorless {
     public static class Trip extends Card {
         public Trip() {
             super("Trip", Card.SKILL, 0, Card.UNCOMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
             entityProperty.vulnEnemy = true;
         }
 
@@ -770,7 +770,7 @@ public class CardColorless {
         public _HandOfGreedT(String cardName, int n, double healthRewardRatio) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.healthRewardRatio = healthRewardRatio;
         }
 
@@ -1150,7 +1150,7 @@ public class CardColorless {
         public _SecretTechniqueT(String cardName, boolean exhaustWhenPlayed) {
             super(cardName, Card.SKILL, 0, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
-            selectFromDeck = true;
+            entityProperty.selectFromDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1180,7 +1180,7 @@ public class CardColorless {
         public _SecretWeaponT(String cardName, boolean exhaustWhenPlayed) {
             super(cardName, Card.SKILL, 0, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
-            selectFromDeck = true;
+            entityProperty.selectFromDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1272,9 +1272,9 @@ public class CardColorless {
         public _ThinkingAheadT(String cardName, boolean exhaustWhenPlayed) {
             super(cardName, Card.SKILL, 0, Card.RARE);
             this.exhaustWhenPlayed = exhaustWhenPlayed;
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
             selectFromHandLater = true;
-            putCardOnTopDeck = true;
+            entityProperty.putCardOnTopDeck = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1396,7 +1396,7 @@ public class CardColorless {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             this.heal = heal;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.healPlayer = true;
         }
 
@@ -1428,7 +1428,7 @@ public class CardColorless {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
             this.dmgInc = dmgInc;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
             this.healthRewardRatio = healthRewardRatio;
         }
@@ -1543,7 +1543,7 @@ public class CardColorless {
         public _ShivT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
         }
 
@@ -1600,7 +1600,7 @@ public class CardColorless {
         public _SmiteT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.retain = true;
             this.exhaustWhenPlayed = true;
         }
@@ -1685,7 +1685,7 @@ public class CardColorless {
         public _ThroughViolenceT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.damage = damage;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.retain = true;
             this.exhaustWhenPlayed = true;
         }
@@ -1819,7 +1819,7 @@ public class CardColorless {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.damage = damage;
             this.xValue = xValue;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

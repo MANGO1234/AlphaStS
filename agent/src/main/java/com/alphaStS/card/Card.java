@@ -31,12 +31,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean alwaysDiscard = false;
     public boolean returnToDeckWhenPlay = false;
     public boolean retain = false;
-    public boolean selectEnemy;
     public boolean delayUseEnergy;
-    public boolean selectFromDiscard;
-    public boolean selectFromExhaust;
-    public boolean selectFromDeck;
-    public boolean selectFromHand;
     public boolean isXCost;
     public boolean selectFromDiscardLater;
     public boolean selectFromHandLater;
@@ -46,7 +41,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean canDiscardAnyCard;
     public EntityProperty entityProperty = new EntityProperty();
     public boolean needsLastCardType;
-    public boolean putCardOnTopDeck;
     public boolean healPlayer;
     public boolean scry;
     public boolean select1OutOf3CardEffectCard;
@@ -225,12 +219,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             alwaysDiscard = card.alwaysDiscard;
             returnToDeckWhenPlay = card.returnToDeckWhenPlay;
             retain = card.retain;
-            selectEnemy = card.selectEnemy;
             delayUseEnergy = card.delayUseEnergy;
-            selectFromDiscard = card.selectFromDiscard;
-            selectFromExhaust = card.selectFromExhaust;
-            selectFromDeck = card.selectFromDeck;
-            selectFromHand = card.selectFromHand;
             isXCost = card.isXCost;
             selectFromDiscardLater = card.selectFromDiscardLater;
             selectFromHandLater = card.selectFromHandLater;
@@ -240,7 +229,6 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             canDiscardAnyCard = card.canDiscardAnyCard;
             entityProperty = card.entityProperty;
             needsLastCardType = card.needsLastCardType;
-            putCardOnTopDeck = card.putCardOnTopDeck;
             healPlayer = card.healPlayer;
             scry = card.scry;
             select1OutOf3CardEffectCard = card.select1OutOf3CardEffectCard;
@@ -446,7 +434,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class Strike extends Card {
         public Strike() {
             super("Strike", Card.ATTACK, 1, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -458,7 +446,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public static class StrikeP extends Card {
         public StrikeP() {
             super("Strike+", Card.ATTACK, 1, Card.COMMON);
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {

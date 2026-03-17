@@ -235,7 +235,7 @@ public class NNInputSchema {
         }
 
         // Cards in exhaust
-        if (props.selectFromExhaust) {
+        if (props.anyEntityProperty.selectFromExhaust) {
             int len = props.realCardsLen;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs for cards in exhaust\n");
@@ -307,7 +307,7 @@ public class NNInputSchema {
         }
 
         // Deck order memory
-        if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && props.needDeckOrderMemory) {
+        if (MAX_AGENT_DECK_ORDER_MEMORY > 0 && props.anyEntityProperty.putCardOnTopDeck) {
             int len = props.realCardsLen * MAX_AGENT_DECK_ORDER_MEMORY * MAX_AGENT_DECK_ORDER_MEMORY_DUPLICATE_CARDS;
             inputLen += len;
             descBody.append("    ").append(len).append(" inputs to keep track of known card draw order\n");
@@ -693,7 +693,7 @@ public class NNInputSchema {
         }
 
         // Player plated armor
-        if (props.playerPlatedArmorCanChange) {
+        if (props.anyEntityProperty.changePlatedArmor) {
             inputLen += 1;
             descBody.append("    1 input to keep track of player plated armor\n");
             inputModules.add((s, x, idx) -> {
@@ -873,8 +873,8 @@ public class NNInputSchema {
         // Select enemy context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_ENEMY.ordinal()] != null && enemies.size() > 1) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].selectEnemy && action.idx() < props.realCardsLen) ||
-                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).selectEnemy) {
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectEnemy && action.idx() < props.realCardsLen) ||
+                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectEnemy) {
                     inputLen += 1;
                     final GameAction act = action;
                     String actDesc;
@@ -900,8 +900,8 @@ public class NNInputSchema {
         // Select card from hand context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_HAND.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].selectFromHand && action.idx() < props.realCardsLen) ||
-                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).selectFromHand) {
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromHand && action.idx() < props.realCardsLen) ||
+                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromHand) {
                     inputLen += 1;
                     final GameAction act = action;
                     String actDesc;
@@ -927,8 +927,8 @@ public class NNInputSchema {
         // Select card from discard context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_DISCARD.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].selectFromDiscard && action.idx() < props.realCardsLen) ||
-                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).selectFromDiscard) {
+                if ((action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDiscard && action.idx() < props.realCardsLen) ||
+                     action.type() == GameActionType.USE_POTION && props.potions.get(action.idx()).entityProperty.selectFromDiscard) {
                     inputLen += 1;
                     final GameAction act = action;
                     String actDesc;
@@ -954,7 +954,7 @@ public class NNInputSchema {
         // Select card from exhaust context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_EXHAUST.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].selectFromExhaust && action.idx() < props.realCardsLen) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromExhaust && action.idx() < props.realCardsLen) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for selecting card from exhaust\n");
@@ -974,7 +974,7 @@ public class NNInputSchema {
         // Select card from deck context actions
         if (props.actionsByCtx[GameActionCtx.SELECT_CARD_DECK.ordinal()] != null) {
             for (GameAction action : props.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()]) {
-                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].selectFromDeck && action.idx() < props.realCardsLen) {
+                if (action.type() == GameActionType.PLAY_CARD && props.cardDict[action.idx()].entityProperty.selectFromDeck && action.idx() < props.realCardsLen) {
                     inputLen += 1;
                     final GameAction act = action;
                     descBody.append("    1 input to keep track of currently played card ").append(props.cardDict[action.idx()].cardName).append(" for selecting card from deck\n");

@@ -47,9 +47,6 @@ public class GameProperties implements Cloneable {
     // defect specific
     public int maxNumOfOrbs;
     public EntityProperty anyEntityProperty = new EntityProperty();
-    // todo: move those into anyEntityProperty
-    public boolean playerPlatedArmorCanChange;
-    public boolean selectFromExhaust;
     public EnemyList originalEnemies;
     public int maxNumOfActions;
     public int totalNumOfActions;
@@ -73,7 +70,6 @@ public class GameProperties implements Cloneable {
 
     // misc
     public boolean previousCardPlayTracking;
-    public boolean needDeckOrderMemory;
     public List<Relic> startOfBattleActions;
     public List<List<String>> perScenarioCommands;
     public ConcurrentMap<GameState, Tuple<double[], double[]>> biasedCognitionLimitCache = new ConcurrentHashMap<>();

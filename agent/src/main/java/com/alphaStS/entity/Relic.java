@@ -1456,7 +1456,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
     public static class ThreadAndNeedle extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.playerPlatedArmorCanChange = true;
+            entityProperty.changePlatedArmor = true;
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {

@@ -25,7 +25,7 @@ public class CardSilent {
         public Neutralize() {
             super("Neutralize", Card.ATTACK, 0, Card.COMMON);
             this.entityProperty.weakEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -39,7 +39,7 @@ public class CardSilent {
         public NeutralizeP() {
             super("Neutralize+", Card.ATTACK, 0, Card.COMMON);
             this.entityProperty.weakEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -55,7 +55,7 @@ public class CardSilent {
         public _SurvivorT(String cardName, int n) {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
-            this.selectFromHand = true;
+            entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
             this.canDiscardAnyCard = true;
         }
@@ -89,7 +89,7 @@ public class CardSilent {
         public _AcrobaticsT(String cardName, int n) {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
-            this.selectFromHand = true;
+            entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
             this.canDiscardAnyCard = true;
         }
@@ -149,7 +149,7 @@ public class CardSilent {
 
         public _BaneT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.n = n;
         }
 
@@ -275,8 +275,8 @@ public class CardSilent {
         public _DaggerThrowT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
-            this.selectFromHand = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
             this.canDiscardAnyCard = true;
         }
@@ -311,7 +311,7 @@ public class CardSilent {
         public _DeadlyPoisonT(String cardName, int n) {
             super(cardName, Card.SKILL, 1, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.entityProperty.poisonEnemy = true;
         }
 
@@ -411,7 +411,7 @@ public class CardSilent {
 
         public _FlyingKneeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.n = n;
         }
 
@@ -539,7 +539,7 @@ public class CardSilent {
         public _PoisonedStabT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.entityProperty.poisonEnemy = true;
         }
 
@@ -569,7 +569,7 @@ public class CardSilent {
         public _PreparedT(String cardName, int n) {
             super(cardName, Card.SKILL, 0, Card.COMMON);
             this.n = n;
-            this.selectFromHand = true;
+            entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
             this.canDiscardAnyCard = true;
         }
@@ -629,7 +629,7 @@ public class CardSilent {
         public _QuickSlashT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -657,7 +657,7 @@ public class CardSilent {
         public _SliceT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -684,7 +684,7 @@ public class CardSilent {
         public _SneakyStrikeT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.COMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -739,7 +739,7 @@ public class CardSilent {
             this.n = n;
             this.weak = weak;
             this.entityProperty.weakEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -859,7 +859,7 @@ public class CardSilent {
             this.n = n;
             this.innate = true;
             this.exhaustWhenPlayed = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1018,7 +1018,7 @@ public class CardSilent {
             super(cardName, Card.SKILL, 1, Card.UNCOMMON);
             this.n = n;
             this.entityProperty.poisonEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
         }
 
@@ -1050,7 +1050,7 @@ public class CardSilent {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
             this.entityProperty.chokeEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1090,7 +1090,7 @@ public class CardSilent {
         public _ConcentrateT(String cardName, int n) {
             super(cardName, Card.SKILL, 0, Card.UNCOMMON);
             this.n = n;
-            this.selectFromHand = true;
+            entityProperty.selectFromHand = true;
             this.canDiscardAnyCard = true;
         }
 
@@ -1169,7 +1169,7 @@ public class CardSilent {
         public _DashT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1228,7 +1228,7 @@ public class CardSilent {
         public _EndlessAgonyT(String cardName, int n) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
         }
 
@@ -1312,7 +1312,7 @@ public class CardSilent {
         public _EviscerateT(String cardName, int n) {
             super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1397,7 +1397,7 @@ public class CardSilent {
         public _FinisherT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1453,7 +1453,7 @@ public class CardSilent {
         public _FlechetteT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1510,7 +1510,7 @@ public class CardSilent {
         public _HeelHookT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1593,7 +1593,7 @@ public class CardSilent {
             this.n = n;
             this.weak = weak;
             this.entityProperty.weakEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1625,7 +1625,7 @@ public class CardSilent {
         public MasterfulStab(int energyCost, int maxEnergyCost) {
             super("Masterful Stab (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             this.maxEnergyCost = maxEnergyCost;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1681,7 +1681,7 @@ public class CardSilent {
         public MasterfulStabP(int energyCost, int maxEnergyCost) {
             super("Masterful Stab+ (" + energyCost + ")", Card.ATTACK, energyCost, Card.UNCOMMON);
             this.maxEnergyCost = maxEnergyCost;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1782,7 +1782,7 @@ public class CardSilent {
         public _PredatorT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1860,7 +1860,7 @@ public class CardSilent {
         public _RiddleWithHolesT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -1889,8 +1889,8 @@ public class CardSilent {
         public _SetupT(String cardName, int energyCost, boolean doNothing) {
             this(cardName + (doNothing ? "(N/A)" : ""), energyCost);
             this.doNothing = doNothing;
-            this.selectFromHand = !doNothing;
-            this.putCardOnTopDeck = !doNothing;
+            entityProperty.selectFromHand = !doNothing;
+            entityProperty.putCardOnTopDeck = !doNothing;
         }
 
         public _SetupT(String cardName, int energyCost) {
@@ -1937,7 +1937,7 @@ public class CardSilent {
         public _SkewerT(String cardName, int n) {
             super(cardName, Card.ATTACK, -1, Card.UNCOMMON);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.isXCost = true;
             this.delayUseEnergy = true;
         }
@@ -1999,7 +1999,7 @@ public class CardSilent {
         public _TerrorT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
             this.entityProperty.vulnEnemy = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.exhaustWhenPlayed = true;
         }
 
@@ -2027,7 +2027,7 @@ public class CardSilent {
         public _WellLaidPlansT(String cardName, int n) {
             super(cardName, Card.POWER, 1, Card.UNCOMMON);
             this.n = n;
-            this.selectFromHand = true;
+            entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
         }
 
@@ -2443,7 +2443,7 @@ public class CardSilent {
         public _CorpseExplosionT(String cardName, int n) {
             super(cardName, Card.SKILL, 2, Card.RARE);
             this.n = n;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.entityProperty.poisonEnemy = true;
             this.entityProperty.corpseExplosionEnemy = true;
         }
@@ -2619,7 +2619,7 @@ public class CardSilent {
             super("Glass Knife (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
             this.dmg = dmg;
             this.limit = limit;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GlassKnife(int dmg) {
@@ -2671,7 +2671,7 @@ public class CardSilent {
             super("Glass Knife+ (" + dmg + ")", Card.ATTACK, 1, Card.RARE);
             this.dmg = dmg;
             this.limit = limit;
-            selectEnemy = true;
+            entityProperty.selectEnemy = true;
         }
 
         public GlassKnifeP(int dmg) {
@@ -2757,7 +2757,7 @@ public class CardSilent {
             this.exhaustWhenPlayed = true;
             this.entityProperty.weakEnemy = true;
             this.entityProperty.affectEnemyStrength = true;
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.delayUseEnergy = true;
         }
 
@@ -2790,7 +2790,7 @@ public class CardSilent {
     private static abstract class _NightmareT extends Card {
         public _NightmareT(String cardName, int energyCost) {
             super(cardName, Card.SKILL, energyCost, Card.RARE);
-            selectFromHand = true;
+            entityProperty.selectFromHand = true;
             exhaustWhenPlayed = true;
         }
 
@@ -2923,7 +2923,7 @@ public class CardSilent {
     private static abstract class _ToolsOfTheTradeT extends Card {
         public _ToolsOfTheTradeT(String cardName, int energyCost) {
             super(cardName, Card.POWER, energyCost, Card.RARE);
-            this.selectFromHand = true;
+            entityProperty.selectFromHand = true;
             this.selectFromHandLater = true;
         }
 
@@ -2972,7 +2972,7 @@ public class CardSilent {
 
         public _UnloadT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.RARE);
-            this.selectEnemy = true;
+            entityProperty.selectEnemy = true;
             this.discardNonAttack = true;
             this.n = n;
         }
