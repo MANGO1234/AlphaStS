@@ -4,6 +4,10 @@ import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardOther;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.OnDamageHandler;
+import com.alphaStS.random.RandomGen;
+import com.alphaStS.random.RandomGenCtx;
 
 import java.util.List;
 

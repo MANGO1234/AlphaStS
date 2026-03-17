@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.utils;
 
 public class ServerRequest {
     public ServerRequestType type;

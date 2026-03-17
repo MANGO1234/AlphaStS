@@ -1,7 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.gameAction;
 
-public enum GameActionCtx {
-    BEGIN_PRE_BATTLE,
+public enum GameActionType {
     BEGIN_BATTLE,
     PLAY_CARD,
     SELECT_ENEMY,
@@ -10,9 +9,13 @@ public enum GameActionCtx {
     SELECT_CARD_EXHAUST,
     SELECT_CARD_DECK,
     SELECT_CARD_1_OUT_OF_3,
-    SCRYING,
+    SCRY_KEEP_CARD,
+    END_TURN,
+    USE_POTION,
+    BEGIN_PRE_BATTLE,
     SELECT_SCENARIO,
     BEGIN_TURN,
+    END_SELECT_CARD_HAND,
+    END_SELECT_CARD_1_OUT_OF_3,
     AFTER_RANDOMIZATION,
-    START_OF_BATTLE,
 }

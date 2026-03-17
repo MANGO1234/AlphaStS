@@ -1,28 +1,36 @@
-package com.alphaStS;
+package com.alphaStS.entity;
 
+import com.alphaStS.EntityProperty;
+import com.alphaStS.GameProperties;
+import com.alphaStS.GameState;
+import com.alphaStS.GameStateUtils;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.OrbType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
 
 import java.util.*;
 
 public abstract class Potion implements GameProperties.CounterRegistrant {
-    EntityProperty entityProperty = new EntityProperty();
-    boolean selectEnemy;
-    boolean healPlayer;
-    boolean selectFromHand;
-    boolean selectFromDiscard;
-    boolean isGenerated;
-    int generatedIdx;
+    public EntityProperty entityProperty = new EntityProperty();
+    public boolean selectEnemy;
+    public boolean healPlayer;
+    public boolean selectFromHand;
+    public boolean selectFromDiscard;
+    public boolean isGenerated;
+    public int generatedIdx;
     public int generatedCardIdx = -1; // when getPossibleGeneratedCards return 1 card, this is the card index for it
     public int[] generatedCardIdxes; // when getPossibleGeneratedCards returns non-empty list, this is the card indexes for each card in the order of the list
     public int[] generatedCardReverseIdxes; // given a cardIdx, return the index of it in generatedCardIdxes (-1 otherwise)
     int counterIdx = -1;
-    protected short basePenaltyRatio = 80;
+    public short basePenaltyRatio = 80;
     private int penaltyRatioSteps = 1;
 
     public short getBasePenaltyRatio() {
@@ -62,8 +70,8 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public abstract GameActionCtx use(GameState state, int idx);
-    List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) { return List.of(); }
-    List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
+    public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) { return List.of(); }
+    public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
 
     public void setupGeneratedCardIndexes(GameProperties properties) {
         List<Card> possibleCards = getPossibleGeneratedCards(properties, List.of(properties.cardDict));
@@ -141,7 +149,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardColorless.ShivP());
         }
     }
@@ -438,7 +446,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             }
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0).map((x) -> (Card) x.getTemporaryCostIfPossible(0)).toList();
         }
 
@@ -492,11 +500,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
-        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.ATTACK, false);
         }
     }
@@ -507,11 +515,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
-        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.SKILL, false);
         }
     }
@@ -522,11 +530,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
-        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCardsByTypeTmp0Cost(gameProperties.character, Card.POWER, false);
         }
     }
@@ -537,11 +545,11 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
-        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getColorlessCardsTmp0Cost(false);
         }
     }
@@ -666,7 +674,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
     }
 
     public static class EntropicBrew extends Potion {
-        int possibleGeneratedPotions;
+        public int possibleGeneratedPotions;
 
         public EntropicBrew() {
         }
@@ -1089,7 +1097,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.PLAY_CARD;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardColorless.Miracle());
         }
     }
@@ -1111,7 +1119,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
             return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(
                 new com.alphaStS.card.CardOther.EnterCalm(),
                 new com.alphaStS.card.CardOther.EnterWrath()

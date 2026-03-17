@@ -1,4 +1,4 @@
-package com.alphaStS;
+package com.alphaStS.random;
 
 public enum RandomGenCtx {
     CardDraw,

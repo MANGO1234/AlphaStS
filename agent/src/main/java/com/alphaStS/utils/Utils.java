@@ -1,8 +1,8 @@
 package com.alphaStS.utils;
 
 import com.alphaStS.GameState;
-import com.alphaStS.RandomGen;
-import com.alphaStS.RandomGenCtx;
+import com.alphaStS.random.RandomGen;
+import com.alphaStS.random.RandomGenCtx;
 import org.apache.commons.math3.distribution.ChiSquaredDistribution;
 
 public class Utils {

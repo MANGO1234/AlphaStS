@@ -4,14 +4,20 @@ import com.alphaStS.action.EndOfGameAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.*;
-import com.alphaStS.enums.CharacterEnum;
-import com.alphaStS.enums.DebuffType;
-import com.alphaStS.enums.OrbType;
-import com.alphaStS.enums.Stance;
+import com.alphaStS.entity.Potion;
+import com.alphaStS.entity.Relic;
+import com.alphaStS.enums.*;
+import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnDamageHandler;
+import com.alphaStS.gameAction.GameAction;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.gameAction.GameActionType;
 import com.alphaStS.model.Model;
 import com.alphaStS.model.NNOutput;
 import com.alphaStS.player.Player;
 import com.alphaStS.player.PlayerReadOnly;
+import com.alphaStS.random.RandomGen;
+import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.*;
 
 import java.io.OutputStream;
@@ -36,7 +42,7 @@ public final class GameState implements State {
     public static final int EXHAUST = 3;
 
     public boolean isStochastic;
-    StringBuilder stateDesc;
+    public StringBuilder stateDesc;
     public GameProperties properties;
     public GameActionCtx actionCtx;
     Class actionCardCloneSource;

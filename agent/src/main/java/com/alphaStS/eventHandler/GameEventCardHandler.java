@@ -1,4 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.eventHandler;
+
+import com.alphaStS.GameState;
 
 public abstract class GameEventCardHandler implements Comparable<GameEventCardHandler> {
     // todo: figure out how the game handle priority properly...

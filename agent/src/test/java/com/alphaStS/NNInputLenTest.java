@@ -5,6 +5,8 @@ import com.alphaStS.enemy.EnemyCity;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyExordium;
+import com.alphaStS.entity.Potion;
+import com.alphaStS.entity.Relic;
 import com.alphaStS.player.Player;
 import org.junit.Test;
 

@@ -1,15 +1,15 @@
 package com.alphaStS.card;
 
 import com.alphaStS.enums.DebuffType;
-import com.alphaStS.GameActionCtx;
-import com.alphaStS.GameEventCardHandler;
-import com.alphaStS.GameEventHandler;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
 import com.alphaStS.VArray;
 import com.alphaStS.PlayerBuff;
-import com.alphaStS.RandomGenCtx;
+import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.TrainingTarget;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.enemy.EnemyEncounter;

@@ -3,6 +3,7 @@ package com.alphaStS.enemy;
 import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.random.RandomGen;
 
 import java.util.ArrayList;
 import java.util.List;

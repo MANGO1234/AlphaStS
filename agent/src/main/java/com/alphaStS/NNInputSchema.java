@@ -2,9 +2,10 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.enemy.*;
-import com.alphaStS.enums.CharacterEnum;
-import com.alphaStS.enums.OrbType;
-import com.alphaStS.enums.Stance;
+import com.alphaStS.enums.*;
+import com.alphaStS.gameAction.GameAction;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.gameAction.GameActionType;
 
 import java.util.ArrayList;
 import java.util.List;

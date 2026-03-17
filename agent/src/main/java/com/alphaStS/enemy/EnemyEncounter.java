@@ -3,7 +3,10 @@ package com.alphaStS.enemy;
 import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.card.CardSilent;
+import com.alphaStS.entity.Potion;
 import com.alphaStS.enums.CharacterEnum;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
 
 import java.util.*;

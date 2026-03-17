@@ -1,7 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.EntityProperty;
-import com.alphaStS.GameActionCtx;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;

@@ -1,7 +1,7 @@
 package com.alphaStS.enums;
 
 import com.alphaStS.GameState;
-import com.alphaStS.RandomGenCtx;
+import com.alphaStS.random.RandomGenCtx;
 
 public enum OrbType {
     EMPTY("E", "Empty", (short) 1),

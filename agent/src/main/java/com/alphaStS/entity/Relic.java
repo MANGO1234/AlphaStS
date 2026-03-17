@@ -1,5 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.entity;
 
+import com.alphaStS.*;
 import com.alphaStS.action.CardDrawAction;
 import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.card.*;
@@ -7,8 +8,14 @@ import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.enums.Stance;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventEnemyHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnDamageHandler;
+import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
@@ -36,9 +43,9 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public void gamePropertiesSetup(GameState state) {}
-    List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
-    List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) { return List.of(); }
-    List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
+    public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) { return List.of(); }
+    public List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) { return List.of(); }
+    public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) { return List.of(); }
     public Relic setPreBattleScenariosEnabled(int... preBattleScenariosEnabled) {
         if (preBattleScenariosEnabled.length == 0) {
             this.preBattleScenariosEnabled = null;
@@ -596,7 +603,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
         }
     }
@@ -630,7 +637,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).filter((card) -> card.cardType == Card.ATTACK).distinct().toList();
         }
     }
@@ -926,7 +933,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleTransformTmpCostCards(GameProperties properties, List<Card> cards) {
             if (cards.stream().allMatch((c) -> c.cardType != Card.POWER)) {
                 return List.of();
             }
@@ -1197,7 +1204,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return CardManager.getCharacterCards(properties.character, false);
         }
     }
@@ -1233,7 +1240,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class GamblingChip extends Relic {
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardOther.GamblingChips());
         }
     }
@@ -1625,11 +1632,11 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.setActionCtx(GameActionCtx.SELECT_CARD_1_OUT_OF_3, null, null);
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return getPossibleSelect1OutOf3Cards(gameProperties);
         }
 
-        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return filter != null ? filter : CardManager.getColorlessCards(false);
         }
 
@@ -1668,7 +1675,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return CardManager.getCharacterCards(properties.character, true).stream()
                     .map(Card::getUpgrade)
                     .filter(Objects::nonNull)
@@ -1780,7 +1787,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             List<Card> generatedCards = CardManager.getCharacterCards(properties.character, true);
             if (upgradeSkill) {
                 for (int i = 0; i < generatedCards.size(); i++) {
@@ -1849,7 +1856,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class SneckoEye extends Relic {
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return GameProperties.generateSneckoCards(cards);
         }
 
@@ -1961,7 +1968,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return filter == null ? CardManager.getCharacterCardsByTypeTmp0Cost(properties.character, Card.POWER, false) : List.of(filter.getTemporaryCostIfPossible(0));
         }
     }
@@ -2039,7 +2046,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Necronomicurse());
         }
     }
@@ -2064,13 +2071,13 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             return true;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             var result = new ArrayList<>(getPossibleSelect1OutOf3Cards(properties));
             result.add(new CardOther.NilroysCodexChoice());
             return result;
         }
 
-        @Override List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
             return CardManager.getCharacterCards(gameProperties.character, false);
         }
     }
@@ -2139,7 +2146,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).toList();
         }
     }
@@ -2317,7 +2324,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.Wound());
         }
     }
@@ -2368,7 +2375,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Shiv());
         }
     }
@@ -2699,7 +2706,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return cards.stream().map(Card::getUpgrade).filter(Objects::nonNull).distinct().toList();
         }
     }
@@ -2718,7 +2725,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             this(1, cards);
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             cards = new ArrayList<>();
             cards.add(startOfBattleAction);
             cards.addAll(this.cards.stream().map((c) -> c.getUpgrade()).toList());
@@ -2739,7 +2746,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             this(1, cards);
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             return List.of(new CardOther.RemoveCardBeforeBattleStarts(this.cards, ((CardOther.RemoveCardBeforeBattleStarts) startOfBattleAction).count));
         }
     }
@@ -2752,7 +2759,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             this.cards = cards;
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
             cards = new ArrayList<>();
             cards.add(startOfBattleAction);
             cards.addAll(this.cards.stream().flatMap(Collection::stream).toList());
@@ -2788,7 +2795,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Bite());
         }
     }
@@ -2807,7 +2814,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return CardManager.getCharacterRareCards(properties.character, true);
         }
     }
@@ -2827,7 +2834,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.registerIntangibleCounter();
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Apparition());
         }
     }
@@ -2907,7 +2914,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Miracle());
         }
     }
@@ -3002,7 +3009,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardOther.ScryOnShuffle());
         }
     }
@@ -3020,7 +3027,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             });
         }
 
-        @Override List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
             return List.of(new CardColorless.Miracle());
         }
     }

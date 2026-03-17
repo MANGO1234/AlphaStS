@@ -1,6 +1,8 @@
 package com.alphaStS;
 
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.model.ModelPlain;
+import com.alphaStS.utils.ServerRequest;
 import com.alphaStS.utils.Tuple3;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -13,13 +15,6 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-
-enum ServerRequestType {
-    PLAY_GAMES,
-    PLAY_TRAINING_GAMES,
-    UPLOAD_MODEL,
-    UPLOAD_MODEL_CMP
-}
 
 public class Main {
     public static void main(String[] args) throws IOException {

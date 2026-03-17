@@ -1,9 +1,9 @@
 package com.alphaStS.action;
 
-import com.alphaStS.GameActionCtx;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.GameState;
 import com.alphaStS.GameStateUtils;
-import com.alphaStS.RandomGenCtx;
+import com.alphaStS.random.RandomGenCtx;
 
 public class HavocAction implements GameEnvironmentAction {
     int cardIdx;

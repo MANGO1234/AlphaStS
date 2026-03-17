@@ -1,5 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.eventHandler;
 
+import com.alphaStS.GameState;
 import com.alphaStS.enemy.EnemyReadOnly;
 
 public abstract class GameEventEnemyHandler implements Comparable<GameEventEnemyHandler> {

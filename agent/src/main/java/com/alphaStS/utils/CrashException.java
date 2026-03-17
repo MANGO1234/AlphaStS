@@ -1,4 +1,6 @@
-package com.alphaStS;
+package com.alphaStS.utils;
+
+import com.alphaStS.GameState;
 
 public class CrashException extends RuntimeException {
     private String message;

@@ -1,5 +1,8 @@
 package com.alphaStS;
 
+import com.alphaStS.gameAction.GameAction;
+import com.alphaStS.random.RandomGen;
+
 import java.util.List;
 
 public final class GameStep {

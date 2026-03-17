@@ -8,8 +8,8 @@ import ai.onnxruntime.OrtSession.Result;
 import ai.onnxruntime.OrtSession.SessionOptions;
 import ai.onnxruntime.OrtSession.SessionOptions.OptLevel;
 import com.alphaStS.Configuration;
-import com.alphaStS.CrashException;
-import com.alphaStS.GameActionCtx;
+import com.alphaStS.utils.CrashException;
+import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.GameState;
 import com.alphaStS.utils.Utils;
 

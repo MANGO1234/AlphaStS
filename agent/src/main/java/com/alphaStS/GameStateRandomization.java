@@ -2,6 +2,8 @@ package com.alphaStS;
 
 import com.alphaStS.card.Card;
 import com.alphaStS.enemy.*;
+import com.alphaStS.entity.Potion;
+import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple3;
 
 import java.io.OutputStream;
