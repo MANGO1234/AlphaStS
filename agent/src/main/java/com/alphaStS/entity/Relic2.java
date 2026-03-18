@@ -1,175 +1,399 @@
 package com.alphaStS.entity;
 
+import com.alphaStS.*;
+import com.alphaStS.card.Card;
+import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.OrbType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.CounterStat;
+
 public class Relic2 {
     // **************************************************************************************************
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Amethyst Aubergine (Common)
-    //   Effect: Enemies drop 10 additional Gold.
+    // No need to implement Amethyst Aubergine: Enemies drop 10 additional Gold.
 
-    // TODO: Anchor (Common)
-    //   Effect: Start each combat with 10 Block.
+    public static class Anchor extends Relic.Anchor {
+    }
 
-    // TODO: Bag of Preparation (Common)
-    //   Effect: At the start of each combat, draw 2 additional cards.
+    public static class BagOfPreparation extends Relic.BagOfPreparation {
+    }
 
-    // TODO: Blood Vial (Common)
-    //   Effect: At the start of each combat, heal 2 HP.
+    public static class BloodVial extends Relic.BloodVial {
+    }
 
-    // TODO: Book of Five Rings (Common)
-    //   Effect: Every 5 cards you add to your Deck, heal 15 HP.
+    // No need to implement Book of Five Rings: Every 5 cards you add to your Deck, heal 15 HP.
 
-    // TODO: Bronze Scales (Common)
-    //   Effect: Start each combat with 3 Thorns.
+    public static class BronzeScales extends Relic.BronzeScales {
+    }
 
-    // TODO: Centennial Puzzle (Common)
-    //   Effect: The first time you lose HP each combat, draw 3 cards.
+    public static class CentennialPuzzle extends Relic.CentennialPuzzle {
+    }
 
-    // TODO: Festive Popper (Common)
-    //   Effect: At the start of each combat, deal 9 damage to ALL enemies.
+    public static class FestivePopper extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("FestivePopper", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, 9, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Gorget (Common)
     //   Effect: At the start of each combat, gain 4 Plating.
 
-    // TODO: Happy Flower (Common)
-    //   Effect: Every 3 turns, gain energy.
+    public static class HappyFlower extends Relic.HappyFlower {
+        public HappyFlower(int n, int healthReward) {
+            super(n, healthReward);
+        }
+    }
 
-    // TODO: Juzu Bracelet (Common)
-    //   Effect: Regular enemy combats are no longer encountered in ? rooms.
+    // No need to implement Juzu Bracelet: Regular enemy combats are no longer encountered in ? rooms.
 
-    // TODO: Lantern (Common)
-    //   Effect: Start each combat with an additional energy.
+    public static class Lantern extends Relic.Lantern {
+    }
 
-    // TODO: Meal Ticket (Common)
-    //   Effect: Whenever you enter a shop room, heal 15 HP.
+    // No need to implement Meal Ticket: Whenever you enter a shop room, heal 15 HP.
 
-    // TODO: Oddly Smooth Stone (Common)
-    //   Effect: Start each combat with 1 Dexterity.
+    public static class OddlySmoothStone extends Relic.OddlySmoothStone {
+    }
 
     // TODO: Pendulum (Common)
     //   Effect: Whenever you shuffle your Draw Pile, draw a card.
 
-    // TODO: Permafrost (Common)
-    //   Effect: The first time you play a Powers each combat, gain 6 Block.
+    public static class Permafrost extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Permafrost", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx];
+                    return idx + 1;
+                }
 
-    // TODO: Potion Belt (Common)
-    //   Effect: Upon pickup, gain 2 potion slots.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER && state.getCounterForRead()[counterIdx] == 0) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Regal Pillow (Common)
-    //   Effect: Whenever you Rest, heal an additional 15 HP.
+    public static class PotionBelt extends Relic.PotionBelt {
+    }
 
-    // TODO: Strawberry (Common)
-    //   Effect: Upon pickup, raise your Max HP by 7.
+    // No need to implement Regal Pillow: Whenever you Rest, heal an additional 15 HP.
 
-    // TODO: Strike Dummy (Common)
-    //   Effect: Cards containing “Strike” deal 3 additional damage.
+    // No need to implement Strawberry: Upon pickup, raise your Max HP by 7.
 
-    // TODO: Tiny Mailbox (Common)
-    //   Effect: Whenever you Rest, procure a random potion.
+    public static class StrikeDummy extends Relic.StrikeDummy {
+    }
 
-    // TODO: Vajra (Common)
-    //   Effect: Start each combat with 1 Strength.
+    // No need to implement Tiny Mailbox: Whenever you Rest, procure a random potion.
+
+    public static class Vajra extends Relic.Vajira {
+    }
 
     // TODO: Venerable Tea Set (Common)
     //   Effect: Whenever you enter a Rest Site, start the next combat with an additional 2 energy .
 
-    // TODO: War Paint (Common)
-    //   Effect: Upon pickup, Upgrade 2 random Skills.
+    public static class WarPaint extends Relic.WarPaint {
+    }
 
-    // TODO: Whetstone (Common)
-    //   Effect: Upon pickup, Upgrade 2 random Attacks.
+    public static class Whetstone extends Relic.WhetStone {
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Akabeko (Uncommon)
-    //   Effect: At the start of each combat, gain 8 Vigor.
+    public static class Akabeko extends Relic.Akabeko {
+    }
 
-    // TODO: Bag of Marbles (Uncommon)
-    //   Effect: At the start of each combat, apply 1 Vulnerable to ALL enemies.
+    public static class BagOfMarbles extends Relic.BagOfMarbles {
+    }
 
     // TODO: Bellows (Uncommon)
     //   Effect: The first Hand you draw each combat is Upgrade.
 
-    // TODO: Bowler Hat (Uncommon)
-    //   Effect: Gain 20% additional Gold.
+    // No need to implement Bowler Hat: Gain 20% additional Gold.
 
-    // TODO: Candelabra (Uncommon)
-    //   Effect: At the start of your 2nd turn, gain 2 energy .
+    public static class Candelabra extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addNNInputHandler("Candelabra", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.turnNum <= 2 ? state.turnNum / 2.0f : -0.5f;
+                    return idx + 1;
+                }
 
-    // TODO: Eternal Feather (Uncommon)
-    //   Effect: For every 5 cards in your Deck, heal 3 HP whenever you enter a Rest Site.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Candelabra", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 2 && isRelicEnabledInScenario(state)) {
+                        state.gainEnergy(2);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Gremlin Horn (Uncommon)
-    //   Effect: Whenever an enemy dies, gain energy and draw 1 card.
+    // No need to implement Eternal Feather: For every 5 cards in your Deck, heal 3 HP whenever you enter a Rest Site.
 
-    // TODO: Horn Cleat (Uncommon)
-    //   Effect: At the start of your 2nd turn, gain 14 Block.
+    public static class GremlinHorn extends Relic.GremlinHorn {
+    }
+
+    public static class HornCleat extends Relic.HornCleat {
+    }
 
     // TODO: Joss Paper (Uncommon)
     //   Effect: Every 5 times you Exhaust a card, draw 1 card.
 
-    // TODO: Kusarigama (Uncommon)
-    //   Effect: Every time you play 3 Attacks in a single turn, deal 6 damage to a random enemy.
+    public static class Kusarigama extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Kusarigama", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] + 1) / 3.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Letter Opener (Uncommon)
-    //   Effect: Every time you play 3 Skills in a single turn, deal 5 damage to ALL enemies.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        var counter = state.getCounterForWrite();
+                        counter[counterIdx]++;
+                        if (counter[counterIdx] == 3) {
+                            counter[counterIdx] = 0;
+                            int randomEnemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                            if (randomEnemyIdx >= 0) {
+                                state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(randomEnemyIdx), 6, true);
+                                state.setIsStochastic();
+                            }
+                        }
+                    }
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("Kusarigama", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
 
-    // TODO: Lucky Fysh (Uncommon)
-    //   Effect: Whenever you add a card to your Deck, gain 15 Gold.
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Kusarigama");
+        }
+    }
 
-    // TODO: Mercury Hourglass (Uncommon)
-    //   Effect: At the start of your turn, deal 3 damage to ALL enemies.
+    public static class LetterOpener extends Relic.LetterOpener {
+    }
+
+    // No need to implement Lucky Fysh: Whenever you add a card to your Deck, gain 15 Gold.
+
+    public static class MercuryHourglass extends Relic.MercuryHourglass {
+    }
 
     // TODO: Miniature Cannon (Uncommon)
     //   Effect: Upgrade Attacks deal 3 additional damage.
 
-    // TODO: Nunchaku (Uncommon)
-    //   Effect: Every time you play 10 Attacks, gain energy.
+    public static class Nunchaku extends Relic.Nunchaku {
+        public Nunchaku(int n, int healthReward) {
+            super(n, healthReward);
+        }
+    }
 
-    // TODO: Orichalcum (Uncommon)
-    //   Effect: If you end your turn without 2 Block, gain 6 .
+    public static class Orichalcum extends Relic.Orichalcum {
+    }
 
-    // TODO: Ornamental Fan (Uncommon)
-    //   Effect: Every time you play 3 Attacks in a single turn, gain 4 Block.
+    public static class OrnamentalFan extends Relic.OrnamentalFan {
+    }
 
-    // TODO: Pantograph (Uncommon)
-    //   Effect: At the start of each Boss combat, heal 25 HP.
+    public static class Pantograph extends Relic.Pantograph {
+    }
 
     // TODO: Parrying Shield (Uncommon)
     //   Effect: If you end a turn with at least 10 Block, deal 6 damage to a random enemy.
 
-    // TODO: Pear (Uncommon)
-    //   Effect: Upon pickup, raise your Max HP by 10.
+    // No need to implement Pear: Upon pickup, raise your Max HP by 10.
 
-    // TODO: Pen Nib (Uncommon)
-    //   Effect: Every 10th Attack you play deals double damage.
+    public static class PenNib extends Relic.PenNib {
+        public PenNib(int n, int healthReward) {
+            super(n, healthReward);
+        }
+    }
 
     // TODO: Petrified Toad (Uncommon)
     //   Effect: At the start of each combat, procure a  Potion-Shaped Rock.
 
-    // TODO: Planisphere (Uncommon)
-    //   Effect: Whenever you enter a ? room, heal 4 HP.
+    // No need to implement Planisphere: Whenever you enter a ? room, heal 4 HP.
 
-    // TODO: Red Mask (Uncommon)
-    //   Effect: At the start of each combat, apply 1 Weak to ALL enemies.
+    public static class RedMask extends Relic.RedMask {
+    }
 
     // TODO: Reptile Trinket (Uncommon)
     //   Effect: Whenever you use a potion, gain 3 Strength this turn.
 
-    // TODO: Ripple Basin (Uncommon)
-    //   Effect: If you did not play any Attacks during your turn, gain 4 Block.
+    public static class RippleBasin extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("RippleBasin", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx];
+                    return idx + 1;
+                }
 
-    // TODO: Sparkling Rouge (Uncommon)
-    //   Effect: At the start of your 3rd turn, gain 1 Strength and 1 Dexterity.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("RippleBasin", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    }
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("RippleBasin", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] == 0) {
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(4);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SparklingRouge extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addNNInputHandler("SparklingRouge", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.turnNum <= 3 ? state.turnNum / 3.0f : -0.5f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("SparklingRouge", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 3 && isRelicEnabledInScenario(state)) {
+                        state.getPlayerForWrite().gainStrength(1);
+                        state.getPlayerForWrite().gainDexterity(1);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Stone Cracker (Uncommon)
     //   Effect: At the start of Boss combats, Upgrade 3 random cards in your Draw Pile for the rest of combat.
 
-    // TODO: Tuning Fork (Uncommon)
-    //   Effect: Every time you play 10 Skills, gain 7 Block.
+    public static class TuningFork extends Relic {
+        int n;
+        int healthReward;
+
+        public TuningFork(int n, int healthReward) {
+            this.n = n;
+            this.healthReward = healthReward;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TuningFork", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    var counter = state.getCounterForRead();
+                    input[idx] = (counter[counterIdx] + 1) / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            }, true);
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = n;
+                    }
+                }
+            });
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                        var counter = state.getCounterForWrite();
+                        counter[counterIdx]++;
+                        if (counter[counterIdx] == 10) {
+                            counter[counterIdx] = 0;
+                            state.getPlayerForWrite().gainBlockNotFromCardPlay(7);
+                        }
+                    }
+                }
+            });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("TuningFork", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 9.0);
+                        } else if (isTerminal == 0) {
+                            v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                    }
+                });
+            }
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Tuning Fork");
+        }
+    }
 
     // TODO: Vambrace (Uncommon)
     //   Effect: The first time you gain Block from a card each combat, double the amount gained.
@@ -178,68 +402,102 @@ public class Relic2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Art of War (Rare)
-    //   Effect: If you do not play any Attacks during your turn, gain an additional energy next turn.
+    public static class ArtOfWar extends Relic.ArtOfWar {
+    }
 
     // TODO: Beating Remnant (Rare)
     //   Effect: You cannot lose more than 20 HP in a single turn.
 
-    // TODO: Captain's Wheel (Rare)
-    //   Effect: At the start of your 3rd turn, gain 18 Block.
+    public static class CaptainsWheel extends Relic.CaptainsWheel {
+    }
 
-    // TODO: Chandelier (Rare)
-    //   Effect: At the start of your 3rd turn, gain 3 energy  .
+    public static class Chandelier extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addNNInputHandler("Chandelier", new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.turnNum <= 3 ? state.turnNum / 3.0f : -0.5f;
+                    return idx + 1;
+                }
 
-    // TODO: Cloak Clasp (Rare)
-    //   Effect: At the end of your turn, gain 1 Block for each card in your Hand.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Chandelier", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.turnNum == 3 && isRelicEnabledInScenario(state)) {
+                        state.gainEnergy(3);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Frozen Egg (Rare)
-    //   Effect: Whenever you add a Powers into your Deck, Upgrade it.
+    public static class CloakClasp extends Relic.CloakClasp {
+    }
 
-    // TODO: Gambling Chip (Rare)
-    //   Effect: At the start of each combat, discard any number of cards then draw that many.
+    // No need to implement Frozen Egg: Whenever you add a Powers into your Deck, Upgrade it.
 
-    // TODO: Game Piece (Rare)
-    //   Effect: Whenever you play a Power, draw 1 card.
+    public static class GamblingChip extends Relic.GamblingChip {
+    }
 
-    // TODO: Girya (Rare)
-    //   Effect: You can now gain Strength at Rest Sites. (3 times max)
+    public static class GamePiece extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && state.properties.cardDict[cardIdx].cardType == Card.POWER) {
+                        state.draw(1);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Ice Cream (Rare)
-    //   Effect: Energy is now conserved between turns.
+    public static class Girya extends Relic.Girya {
+        public Girya(int strength) {
+            super(strength);
+        }
+    }
 
-    // TODO: Intimidating Helmet (Rare)
-    //   Effect: Whenever you play a card that costs 2 energy  or more, gain 4 Block.
+    public static class IceCream extends Relic.IceCream {
+    }
 
-    // TODO: Kunai (Rare)
-    //   Effect: Every time you play 3 Attacks in a single turn, gain 1 Dexterity.
+    public static class IntimidatingHelmet extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (isRelicEnabledInScenario(state) && energyUsed >= 2) {
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(4);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Lasting Candy (Rare)
-    //   Effect: Every other combat, your card rewards gain an additional Power.
+    public static class Kunai extends Relic.Kunai {
+    }
 
-    // TODO: Lizard Tail (Rare)
-    //   Effect: When you would die, heal to 50% of your Max HP instead (works once).
+    // No need to implement Lasting Candy: Every other combat, your card rewards gain an additional Power.
 
-    // TODO: Mango (Rare)
-    //   Effect: Upon pickup, raise your Max HP by 14.
+    public static class LizardTail extends Relic.LizardTail {
+    }
 
-    // TODO: Meat on the Bone (Rare)
-    //   Effect: If your HP is at or below 50% at the end of combat, heal 12 HP.
+    // No need to implement Mango: Upon pickup, raise your Max HP by 14.
 
-    // TODO: Molten Egg (Rare)
-    //   Effect: Whenever you add an Attack card to your Deck, Upgrade it.
+    public static class MeatOnTheBone extends Relic.MeatOnTheBone {
+    }
 
-    // TODO: Mummified Hand (Rare)
-    //   Effect: Whenever you play a Power, a random card in your Hand is free to play that turn.
+    // No need to implement Molten Egg: Whenever you add an Attack card to your Deck, Upgrade it.
 
-    // TODO: Old Coin (Rare)
-    //   Effect: Upon pickup, gain 300 Gold.
+    public static class MummifiedHand extends Relic.MummifiedHand {
+    }
 
-    // TODO: Pocketwatch (Rare)
-    //   Effect: Whenever you play 3 or fewer cards during your turn, draw 3 additional cards at the start of your next turn.
+    // No need to implement Old Coin: Upon pickup, gain 300 Gold.
 
-    // TODO: Prayer Wheel (Rare)
-    //   Effect: Normal enemies drop an additional card reward.
+    public static class Pocketwatch extends Relic.Pocketwatch {
+    }
+
+    // No need to implement Prayer Wheel: Normal enemies drop an additional card reward.
 
     // TODO: Rainbow Ring (Rare)
     //   Effect: The first time you play an Attack, Skill, and Powers each turn, gain 1 Strength and 1 Dexterity.
@@ -247,29 +505,26 @@ public class Relic2 {
     // TODO: Razor Tooth (Rare)
     //   Effect: Every time you play an Attack or Skill, Upgrade it for the remainder of combat.
 
-    // TODO: Shovel (Rare)
-    //   Effect: You can now dig at Rest Sites to obtain a random Relic.
+    // No need to implement Shovel: You can now dig at Rest Sites to obtain a random Relic.
 
-    // TODO: Shuriken (Rare)
-    //   Effect: Every time you play 3 Attacks in a single turn, gain 1 Strength.
+    public static class Shuriken extends Relic.Shuriken {
+    }
 
-    // TODO: Stone Calendar (Rare)
-    //   Effect: At the end of turn 7, deal 52 damage to ALL enemies.
+    public static class StoneCalendar extends Relic.StoneCalendar {
+    }
 
     // TODO: Sturdy Clamp (Rare)
     //   Effect: Up to 10 Block persists across turns.
 
-    // TODO: The Courier (Rare)
-    //   Effect: The merchant no longer runs out of cards, relics, or potions and his prices are reduced by 20%.
+    // No need to implement The Courier: The merchant no longer runs out of cards, relics, or potions and his prices are reduced by 20%.
 
-    // TODO: Toxic Egg (Rare)
-    //   Effect: Whenever you add a Skill into your Deck, Upgrade it.
+    // No need to implement Toxic Egg: Whenever you add a Skill into your Deck, Upgrade it.
 
-    // TODO: Tungsten Rod (Rare)
-    //   Effect: Whenever you would lose HP, lose 1 less.
+    public static class TungstenRod extends Relic.TungstenRod {
+    }
 
-    // TODO: Unceasing Top (Rare)
-    //   Effect: Whenever you have no cards in Hand during your turn, draw a card.
+    public static class UnceasingTop extends Relic.UnceasingTop {
+    }
 
     // TODO: Unsettling Lamp (Rare)
     //   Effect: Each combat, the first time you play a card that Debuffs an enemy, double its effect.
@@ -277,11 +532,9 @@ public class Relic2 {
     // TODO: Vexing Puzzlebox (Rare)
     //   Effect: At the start of each combat, add a random card into your Hand. It costs 0energy.
 
-    // TODO: White Beast Statue (Rare)
-    //   Effect: Potions always appear in combat rewards.
+    // No need to implement White Beast Statue: Potions always appear in combat rewards.
 
-    // TODO: White Star (Rare)
-    //   Effect: Elites drop an additional Rare card reward.
+    // No need to implement White Star: Elites drop an additional Rare card reward.
 
     // **************************************************************************************************
     // *********************************************  Shop  *********************************************
@@ -296,20 +549,16 @@ public class Relic2 {
     // TODO: Burning Sticks (Shop)
     //   Effect: The first time each combat you Exhaust a Skill, add a copy of it into your Hand.
 
-    // TODO: Cauldron (Shop)
-    //   Effect: Upon pickup, brews 5 random potions.
+    // No need to implement Cauldron: Upon pickup, brews 5 random potions.
 
-    // TODO: Chemical X (Shop)
-    //   Effect: The effects of your cost X cards are increased by 2.
+    public static class ChemicalX extends Relic.ChemicalX {
+    }
 
-    // TODO: Dingy Rug (Shop)
-    //   Effect: Card rewards can now contain Colorless cards.
+    // No need to implement Dingy Rug: Card rewards can now contain Colorless cards.
 
-    // TODO: Dolly's Mirror (Shop)
-    //   Effect: Upon pickup, obtain an additional copy of a card in your Deck.
+    // No need to implement Dolly's Mirror: Upon pickup, obtain an additional copy of a card in your Deck.
 
-    // TODO: Dragon Fruit (Shop)
-    //   Effect: Whenever you gain Gold, raise your Max HP by 1.
+    // No need to implement Dragon Fruit: Whenever you gain Gold, raise your Max HP by 1.
 
     // TODO: Ghost Seed (Shop)
     //   Effect: Strikes and Defends gain Ethereal.
@@ -320,23 +569,18 @@ public class Relic2 {
     // TODO: Kifuda (Shop)
     //   Effect: Upon pickup, Enchant up to 3 cards with Adroit.
 
-    // TODO: Lava Lamp (Shop)
-    //   Effect: At the end of combat, Upgrade all card rewards if you took no damage.
+    // No need to implement Lava Lamp: At the end of combat, Upgrade all card rewards if you took no damage.
 
-    // TODO: Lee's Waffle (Shop)
-    //   Effect: Upon pickup, raise your Max HP by 7 and heal all of your HP.
+    // No need to implement Lee's Waffle: Upon pickup, raise your Max HP by 7 and heal all of your HP.
 
-    // TODO: Membership Card (Shop)
-    //   Effect: 50% discount on all products!
+    // No need to implement Membership Card: 50% discount on all products!
 
-    // TODO: Miniature Tent (Shop)
-    //   Effect: You may choose any number of options at Rest Sites.
+    // No need to implement Miniature Tent: You may choose any number of options at Rest Sites.
 
     // TODO: Mystic Lighter (Shop)
     //   Effect: Enchanted Attacks deal 9 additional damage.
 
-    // TODO: Orrery (Shop)
-    //   Effect: Upon pickup, gain 5 card rewards.
+    // No need to implement Orrery: Upon pickup, gain 5 card rewards.
 
     // TODO: Punch Dagger (Shop)
     //   Effect: Upon pickup, Enchant an Attack with Momentum 5.
@@ -347,17 +591,28 @@ public class Relic2 {
     // TODO: Royal Stamp (Shop)
     //   Effect: Upon pickup, choose an Attack or Skill in your Deck to Enchant with Royally Approved.
 
-    // TODO: Screaming Flagon (Shop)
-    //   Effect: If you end your turn with no cards in your Hand, deal 20 damage to ALL enemies.
+    public static class ScreamingFlagon extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addPreEndOfTurnHandler("ScreamingFlagon", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.handArrLen == 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, 20, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Sling of Courage (Shop)
-    //   Effect: Start each Elite combat with 2 Strength.
+    public static class SlingOfCourage extends Relic.SlingOfCourage {
+    }
 
-    // TODO: The Abacus (Shop)
-    //   Effect: Whenever you shuffle your Draw Pile, gain 6 Block.
+    public static class TheAbacus extends Relic.TheAbacus {
+    }
 
-    // TODO: Toolbox (Shop)
-    //   Effect: At the start of each combat, choose 1 of 3 random Colorless cards and add the chosen card into your Hand.
+    public static class Toolbox extends Relic.Toolbox {
+    }
 
     // TODO: Wing Charm (Shop)
     //   Effect: A random card in each card reward is Enchanted with Swift 1.
@@ -366,17 +621,22 @@ public class Relic2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
-    // TODO: Anchor??? (Event)
-    //   Effect: Start each combat with 4 Block.
+    public static class AnchorQQQ extends Relic.Anchor {
+        public AnchorQQQ() {
+            super(4);
+        }
+    }
 
     // TODO: Big Mushroom (Event)
     //   Effect: Upon pickup, raise your Max HP by 20. At the start of each combat, draw 2 fewer cards.
 
-    // TODO: Bing Bong (Event)
-    //   Effect: Whenever you add a card to your Deck, add one additional copy.
+    // No need to implement Bing Bong: Whenever you add a card to your Deck, add one additional copy.
 
-    // TODO: Blood Vial??? (Event)
-    //   Effect: At the start of each combat, heal 1 HP.
+    public static class BloodVialQQQ extends Relic.BloodVial {
+        public BloodVialQQQ() {
+            super(1);
+        }
+    }
 
     // TODO: Bone Tea (Event)
     //   Effect: At the start of the next combat, Upgrade your starting hand.
@@ -384,14 +644,12 @@ public class Relic2 {
     // TODO: Byrdpip (Event)
     //   Effect: Upon pickup, gain the card  Byrd Swoop. A Byrdpip will accompany you in battles.
 
-    // TODO: Darkstone Periapt (Event)
-    //   Effect: Whenever you obtain a Curse, raise your Max HP by 6.
+    // No need to implement Darkstone Periapt: Whenever you obtain a Curse, raise your Max HP by 6.
 
     // TODO: Daughter of the Wind (Event)
     //   Effect: Whenever you play an Attack, gain 1 Block.
 
-    // TODO: Dream Catcher (Event)
-    //   Effect: Whenever you Rest, you may add a card to your Deck.
+    // No need to implement Dream Catcher: Whenever you Rest, you may add a card to your Deck.
 
     // TODO: Ember Tea (Event)
     //   Effect: At the start of the next 5 combats, gain 2 Strength.
@@ -405,32 +663,36 @@ public class Relic2 {
     // TODO: Fresnel Lens (Event)
     //   Effect: Whenever you add a card that gains Block to your Deck, Enchant it with Nimble 2.
 
-    // TODO: Hand Drill (Event)
-    //   Effect: Whenever you break an enemy's Block, apply 2 Vulnerable.
+    public static class HandDrill extends Relic.HandDrill {
+    }
 
-    // TODO: Happy Flower??? (Event)
-    //   Effect: Every 5 turns, gain energy.
+    public static class HappyFlowerQQQ extends Relic.HappyFlower {
+        public HappyFlowerQQQ() {
+            super(0, 0, 5);
+            counterName = "HappyFlowerQQQ";
+        }
+    }
 
     // TODO: History Course (Event)
     //   Effect: At the start of your turn, play a copy of your last played Attack or Skill.
 
-    // TODO: Lee's Waffle??? (Event)
-    //   Effect: Upon pickup, heal 10% of your HP.
+    // No need to implement Lee's Waffle???: Upon pickup, heal 10% of your HP.
 
     // TODO: Lost Wisp (Event)
     //   Effect: Whenever you play a Power, deal 8 damage to ALL enemies.
 
-    // TODO: Mango??? (Event)
-    //   Effect: Upon pickup, raise your Max HP by 3.
+    // No need to implement Mango???: Upon pickup, raise your Max HP by 3.
 
-    // TODO: Maw Bank (Event)
-    //   Effect: Whenever you climb a floor, gain 12 Gold. No longer works when you spend any Gold at the shop.
+    // No need to implement Maw Bank: Whenever you climb a floor, gain 12 Gold. No longer works when you spend any Gold at the shop.
 
     // TODO: Mr. Struggles (Event)
     //   Effect: At the start of your turn, deal damage equal to the turn number to ALL enemies.
 
-    // TODO: Orichalcum??? (Event)
-    //   Effect: If you end your turn without 2 Block, gain 3 .
+    public static class OrichalcumQQQ extends Relic.Orichalcum {
+        public OrichalcumQQQ() {
+            super(3);
+        }
+    }
 
     // TODO: Pollinous Core (Event)
     //   Effect: Every 4 turns, draw 2 additional cards.
@@ -442,41 +704,35 @@ public class Relic2 {
     //   Effect: Start each combat Confused.
 
     // TODO: Strike Dummy??? (Event)
-    //   Effect: Cards containing “Strike” deal 1 additional damage.
+    //   Effect: Cards containing "Strike" deal 1 additional damage.
 
     // TODO: Sword of Jade (Event)
     //   Effect: Start each combat with 3 Strength.
 
-    // TODO: Sword of Stone (Event)
-    //   Effect: Transforms into a powerful Relic after defeating 5 Elites.
+    // No need to implement Sword of Stone: Transforms into a powerful Relic after defeating 5 Elites.
 
     // TODO: Tea of Discourtesy (Event)
     //   Effect: At the start of the next combat, shuffle 2 Dazed into your Draw Pile.
 
-    // TODO: The Boot (Event)
-    //   Effect: Whenever you would deal 4 or less unblocked attack damage, increase it to 5.
+    public static class TheBoot extends Relic.TheBoot {
+    }
 
-    // TODO: The Chosen Cheese (Event)
-    //   Effect: At the end of combat, gain 1 Max HP.
+    // No need to implement The Chosen Cheese: At the end of combat, gain 1 Max HP.
 
-    // TODO: The Merchant's Rug??? (Event)
-    //   Effect: Poor imitation. Does nothing.
+    // No need to implement The Merchant's Rug???: Poor imitation. Does nothing.
 
     // TODO: Venerable Tea Set??? (Event)
     //   Effect: Whenever you enter a Rest Site, start the next combat with an additional energy.
 
-    // TODO: Wongo Customer Appreciation Badge (Event)
-    //   Effect: Does nothing.
+    // No need to implement Wongo Customer Appreciation Badge: Does nothing.
 
-    // TODO: Wongo's Mystery Ticket (Event)
-    //   Effect: Receive 3 random Relics after 5 combats.
+    // No need to implement Wongo's Mystery Ticket: Receive 3 random Relics after 5 combats.
 
     // **************************************************************************************************
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
-    // TODO: Alchemical Coffer (Ancient)
-    //   Effect: Upon pickup, gain 4 potion slots filled with random potions.
+    // No need to implement Alchemical Coffer: Upon pickup, gain 4 potion slots filled with random potions.
 
     // TODO: Arcane Scroll (Ancient)
     //   Effect: Upon pickup, obtain a random Rare Card to add to your Deck.
@@ -484,8 +740,8 @@ public class Relic2 {
     // TODO: Archaic Tooth (Ancient)
     //   Effect: Upon pickup, Transform a starter card with an ancient version.
 
-    // TODO: Astrolabe (Ancient)
-    //   Effect: Upon pickup, Transform 3 cards, then Upgrade them.
+    public static class Astrolabe extends Relic.Astrolabe {
+    }
 
     // TODO: Beautiful Bracelet (Ancient)
     //   Effect: Upon pickup, choose 3 cards in your Deck. Enchant them with Swift 3.
@@ -493,8 +749,7 @@ public class Relic2 {
     // TODO: Biiig Hug (Ancient)
     //   Effect: Upon pickup, remove 4 cards from your Deck. Whenever you shuffle your Draw Pile, add a  Soot into your Draw Pile.
 
-    // TODO: Black Star (Ancient)
-    //   Effect: Elites drop an additional Relic when defeated.
+    // No need to implement Black Star: Elites drop an additional Relic when defeated.
 
     // TODO: Blessed Antler (Ancient)
     //   Effect: Gain energy at the start of each turn. At the start of each combat, shuffle 3  Dazed into your Draw Pile.
@@ -508,20 +763,17 @@ public class Relic2 {
     // TODO: Brilliant Scarf (Ancient)
     //   Effect: The 5th card you play each turn is free.
 
-    // TODO: Calling Bell (Ancient)
-    //   Effect: Upon pickup, obtain a unique File:StS2 CardIcon Colorless Skill Common.png Curse and 3 Relics.
+    // No need to implement Calling Bell: Upon pickup, obtain a unique Curse and 3 Relics.
 
     // TODO: Choices Paradox (Ancient)
     //   Effect: At the start of each combat, add 1 of 5 random cards into your Hand. Add Retain to the chosen card.
 
-    // TODO: Claws (Ancient)
-    //   Effect: Upon pickup, Transform up to 6 cards into  Maul.
+    // No need to implement Claws: Upon pickup, Transform up to 6 cards into Maul.
 
     // TODO: Crossbow (Ancient)
     //   Effect: At the start of your turn, add a random Attack into your Hand. It costs 0energy this turn.
 
-    // TODO: Cursed Pearl (Ancient)
-    //   Effect: Upon pickup, receive  Greed. Gain 333 Gold.
+    // No need to implement Cursed Pearl: Upon pickup, receive Greed. Gain 333 Gold.
 
     // TODO: Delicate Frond (Ancient)
     //   Effect: At the start of each combat, fill all empty potion slots with random potions.
@@ -529,41 +781,34 @@ public class Relic2 {
     // TODO: Diamond Diadem (Ancient)
     //   Effect: Whenever you play 2 or fewer cards in a turn, take half damage from enemies.
 
-    // TODO: Distinguished Cape (Ancient)
-    //   Effect: Upon pickup, lose 9 Max HP. Add 3 Apparitions to your Deck.
+    // No need to implement Distinguished Cape: Upon pickup, lose 9 Max HP. Add 3 Apparitions to your Deck.
 
-    // TODO: Driftwood (Ancient)
-    //   Effect: You may reroll each card reward once.
+    // No need to implement Driftwood: You may reroll each card reward once.
 
     // TODO: Dusty Tome (Ancient)
     //   Effect: Upon pickup, obtain an Ancient Card.
 
-    // TODO: Ectoplasm (Ancient)
-    //   Effect: You can no longer gain Gold. Gain energy at the start of each turn.
+    public static class Ectoplasm extends Relic.Ectoplasm {
+    }
 
     // TODO: Electric Shrymp (Ancient)
     //   Effect: Upon pickup, Enchant a Skill with Imbued.
 
-    // TODO: Empty Cage (Ancient)
-    //   Effect: Upon pickup, remove 2 cards from your Deck.
+    // No need to implement Empty Cage: Upon pickup, remove 2 cards from your Deck.
 
     // TODO: Fiddle (Ancient)
     //   Effect: At the start of each turn, draw 2 additional cards. You may not draw cards during your turn.
 
-    // TODO: Fur Coat (Ancient)
-    //   Effect: Upon pickup, mark 7 random combats. Enemies in those rooms have 1 HP.
+    // No need to implement Fur Coat: Upon pickup, mark 7 random combats. Enemies in those rooms have 1 HP.
 
-    // TODO: Glass Eye (Ancient)
-    //   Effect: Upon pickup, obtain 2 Common cards, 2 Uncommon cards, and 1 Rare card.
+    // No need to implement Glass Eye: Upon pickup, obtain 2 Common cards, 2 Uncommon cards, and 1 Rare card.
 
     // TODO: Glitter (Ancient)
     //   Effect: Enchant all card rewards with Glam.
 
-    // TODO: Golden Compass (Ancient)
-    //   Effect: Upon pickup, replace the Act 2 Map with a single special path.
+    // No need to implement Golden Compass: Upon pickup, replace the Act 2 Map with a single special path.
 
-    // TODO: Golden Pearl (Ancient)
-    //   Effect: Upon pickup, gain 150 Gold.
+    // No need to implement Golden Pearl: Upon pickup, gain 150 Gold.
 
     // TODO: Iron Club (Ancient)
     //   Effect: Every 4 cards you play, draw 1 card.
@@ -571,47 +816,34 @@ public class Relic2 {
     // TODO: Jeweled Mask (Ancient)
     //   Effect: At the start of combat put a random Powers from your Draw Pile into your Hand, it's free to play.
 
-    // TODO: Jewelry Box (Ancient)
-    //   Effect: Upon pickup, add 1  Apotheosis to your Deck.
+    // No need to implement Jewelry Box: Upon pickup, add 1 Apotheosis to your Deck.
 
-    // TODO: Large Capsule (Ancient)
-    //   Effect: Upon pickup, obtain 2 random Relics. Add an additional Strike and Defend to your Deck.
+    // No need to implement Large Capsule: Upon pickup, obtain 2 random Relics. Add an additional Strike and Defend to your Deck.
 
-    // TODO: Lava Rock (Ancient)
-    //   Effect: The Act 1 Boss drops 2 Relics.
+    // No need to implement Lava Rock: The Act 1 Boss drops 2 Relics.
 
-    // TODO: Lead Paperweight (Ancient)
-    //   Effect: Upon pickup, choose 1 of 2 Colorless cards to add to your Deck.
+    // No need to implement Lead Paperweight: Upon pickup, choose 1 of 2 Colorless cards to add to your Deck.
 
-    // TODO: Leafy Poultice (Ancient)
-    //   Effect: Upon pickup, Transform 1 of your Strikes and 1 of your Defends and lose 10 Max HP.
+    // No need to implement Leafy Poultice: Upon pickup, Transform 1 of your Strikes and 1 of your Defends and lose 10 Max HP.
 
-    // TODO: Looming Fruit (Ancient)
-    //   Effect: Upon pickup, raise your Max HP by 31.
+    // No need to implement Looming Fruit: Upon pickup, raise your Max HP by 31.
 
-    // TODO: Lord's Parasol (Ancient)
-    //   Effect: When you encounter the Merchant, immediately obtain EVERYTHING he sells.
+    // No need to implement Lord's Parasol: When you encounter the Merchant, immediately obtain EVERYTHING he sells.
 
-    // TODO: Lost Coffer (Ancient)
-    //   Effect: Upon pickup, gain 1 card reward and procure 1 random potion.
+    // No need to implement Lost Coffer: Upon pickup, gain 1 card reward and procure 1 random potion.
 
-    // TODO: Massive Scroll (Ancient)
-    //   Effect: Upon pickup, choose 1 of 3 Multiplayer Colorless Cards to add to your Deck.
+    // No need to implement Massive Scroll: Upon pickup, choose 1 of 3 Multiplayer Colorless Cards to add to your Deck.
 
-    // TODO: Meat Cleaver (Ancient)
-    //   Effect: You may Cook at Rest Sites.
+    // No need to implement Meat Cleaver: You may Cook at Rest Sites.
 
     // TODO: Music Box (Ancient)
     //   Effect: Create an Ethereal copy of the first Attack you play each turn.
 
-    // TODO: Neow's Torment (Ancient)
-    //   Effect: Upon pickup, add 1  Neow's Fury to your Deck.
+    // No need to implement Neow's Torment: Upon pickup, add 1 Neow's Fury to your Deck.
 
-    // TODO: New Leaf (Ancient)
-    //   Effect: Upon pickup, Transform 1 card.
+    // No need to implement New Leaf: Upon pickup, Transform 1 card.
 
-    // TODO: Nutritious Oyster (Ancient)
-    //   Effect: Upon pickup, raise your Max HP by 11.
+    // No need to implement Nutritious Oyster: Upon pickup, raise your Max HP by 11.
 
     // TODO: Nutritious Soup (Ancient)
     //   Effect: Upon pickup, Enchant all Strikes in your Deck with Tezcatara.
@@ -631,8 +863,7 @@ public class Relic2 {
     // TODO: Pael's Growth (Ancient)
     //   Effect: Upon pickup, Enchant a card with Clone.
 
-    // TODO: Pael's Horn (Ancient)
-    //   Effect: Upon pickup, add 2  Relax  to your Deck.|2}}
+    // No need to implement Pael's Horn: Upon pickup, add 2 Relax to your Deck.
 
     // TODO: Pael's Legion (Ancient)
     //   Effect: Doubles Block gained from a card, then goes to sleep for 2 turns.
@@ -640,29 +871,26 @@ public class Relic2 {
     // TODO: Pael's Tears (Ancient)
     //   Effect: If you end your turn with unspent 3 energy, gain an additional   next turn.
 
-    // TODO: Pael's Tooth (Ancient)
-    //   Effect: Upon pickup, remove 5 cards from your Deck. After each combat, randomly add 1 back Upgrade.
+    // No need to implement Pael's Tooth: Upon pickup, remove 5 cards from your Deck. After each combat, randomly add 1 back Upgrade.
 
-    // TODO: Pael's Wing (Ancient)
-    //   Effect: You may sacrifice card rewards to Pael. Every 2 sacrifices, obtain a Relic.
+    // No need to implement Pael's Wing: You may sacrifice card rewards to Pael. Every 2 sacrifices, obtain a Relic.
 
-    // TODO: Pandora's Box (Ancient)
-    //   Effect: Transform ALL Strikes and Defends.
+    public static class PandorasBox extends Relic.PandorasBox {
+        public PandorasBox(int n) {
+            super(n);
+        }
+    }
 
-    // TODO: Philosopher's Stone (Ancient)
-    //   Effect: Gain energy at the start of each turn. ALL enemies start combat with 1 Strength.
+    public static class PhilosophersStone extends Relic.PhilosophersStone {
+    }
 
-    // TODO: Pomander (Ancient)
-    //   Effect: Upon pickup, Upgrade a card.
+    // No need to implement Pomander: Upon pickup, Upgrade a card.
 
-    // TODO: Precarious Shears (Ancient)
-    //   Effect: Upon pickup, remove 2 cards from your Deck and take 13 damage.
+    // No need to implement Precarious Shears: Upon pickup, remove 2 cards from your Deck and take 13 damage.
 
-    // TODO: Precise Scissors (Ancient)
-    //   Effect: Upon pickup, remove 1 card from your Deck.
+    // No need to implement Precise Scissors: Upon pickup, remove 1 card from your Deck.
 
-    // TODO: Preserved Fog (Ancient)
-    //   Effect: Upon pickup, remove 5 cards from your Deck. Add  Folly to your Deck.
+    // No need to implement Preserved Fog: Upon pickup, remove 5 cards from your Deck. Add Folly to your Deck.
 
     // TODO: Prismatic Gem (Ancient)
     //   Effect: Gain energy at the start of each turn. Card rewards now contain cards from other colors.
@@ -673,8 +901,8 @@ public class Relic2 {
     // TODO: Radiant Pearl (Ancient)
     //   Effect: At the start of each combat, add 1  Luminesce into your Hand.
 
-    // TODO: Runic Pyramid (Ancient)
-    //   Effect: At the end of your turn, you no longer discard your Hand.
+    public static class RunicPyramid extends Relic.RunicPyramid {
+    }
 
     // TODO: Sai (Ancient)
     //   Effect: At the start of your turn, gain 7 Block.
@@ -682,44 +910,36 @@ public class Relic2 {
     // TODO: Sand Castle (Ancient)
     //   Effect: Upon pickup, Upgrade 6 random cards.
 
-    // TODO: Scroll Boxes (Ancient)
-    //   Effect: Upon pickup, lose all Gold and choose 1 of 2 packs of cards to add to your Deck.
+    // No need to implement Scroll Boxes: Upon pickup, lose all Gold and choose 1 of 2 packs of cards to add to your Deck.
 
-    // TODO: Sea Glass (Ancient)
-    //   Effect: See 15 cards from another character. Choose any number of them to add to your Deck.
+    // No need to implement Sea Glass: See 15 cards from another character. Choose any number of them to add to your Deck.
 
     // TODO: Seal of Gold (Ancient)
     //   Effect: At the start of your turn, spend 5 Gold to gain energy.
 
     // TODO: Sere Talon (Ancient)
-    //   Effect: Upon pickup, add 2 random Curses and 3  Wishes to your Deck.
+    //   Effect: Upon pickup, add 2 random Curses and 3 Wishes to your Deck.
 
-    // TODO: Signet Ring (Ancient)
-    //   Effect: Upon pickup, gain 999 Gold.
+    // No need to implement Signet Ring: Upon pickup, gain 999 Gold.
 
-    // TODO: Silver Crucible (Ancient)
-    //   Effect: The first 3 card rewards you see are Upgrade. The first Treasure Chest you open is empty.
+    // No need to implement Silver Crucible: The first 3 card rewards you see are Upgrade. The first Treasure Chest you open is empty.
 
-    // TODO: Small Capsule (Ancient)
-    //   Effect: Upon pickup, obtain a random Relic.
+    // No need to implement Small Capsule: Upon pickup, obtain a random Relic.
 
-    // TODO: Snecko Eye (Ancient)
-    //   Effect: At the start of your turn, draw 2 additional cards. Start each combat Confused.
+    public static class SneckoEye extends Relic.SneckoEye {
+    }
 
-    // TODO: Sozu (Ancient)
-    //   Effect: Gain energy at the start of each turn. You can no longer obtain potions.
+    public static class Sozu extends Relic.Sozu {
+    }
 
     // TODO: Spiked Gauntlets (Ancient)
     //   Effect: Gain 2 energy at the start of each turn. Powers cost 1 more .
 
-    // TODO: Stone Humidifier (Ancient)
-    //   Effect: Whenever you Rest at a Rest Site, raise your Max HP by 5.
+    // No need to implement Stone Humidifier: Whenever you Rest at a Rest Site, raise your Max HP by 5.
 
-    // TODO: Storybook (Ancient)
-    //   Effect: Upon pickup, add 1  Brightest Flame to your Deck.
+    // No need to implement Storybook: Upon pickup, add 1 Brightest Flame to your Deck.
 
-    // TODO: Tanx's Whistle (Ancient)
-    //   Effect: Upon pickup, add 1  Whistle to your Deck.
+    // No need to implement Tanx's Whistle: Upon pickup, add 1 Whistle to your Deck.
 
     // TODO: Throwing Axe (Ancient)
     //   Effect: The first card you play each combat is played an extra time.
@@ -727,67 +947,62 @@ public class Relic2 {
     // TODO: Toasty Mittens (Ancient)
     //   Effect: At the start of your turn, Exhaust the top card of your Draw Pile and gain 1 Strength.
 
-    // TODO: Touch of Orobas (Ancient)
-    //   Effect: Upon pickup, replace your starter Relic with an Ancient version.
+    // No need to implement Touch of Orobas: Upon pickup, replace your starter Relic with an Ancient version.
 
-    // TODO: Toy Box (Ancient)
-    //   Effect: Upon pickup, obtain 4 Wax Relics. Every 3 combats, your left-most Wax Relic will melt away.
+    // No need to implement Toy Box: Upon pickup, obtain 4 Wax Relics. Every 3 combats, your left-most Wax Relic will melt away.
 
     // TODO: Tri-Boomerang (Ancient)
     //   Effect: Choose 3 Attacks in your Deck. Enchant them with Instinct.
 
-    // TODO: Velvet Choker (Ancient)
-    //   Effect: Gain energy at the start of each turn. You cannot play more than 6 cards per turn.
+    public static class VelvetChoker extends Relic.VelvetChoker {
+    }
 
     // TODO: Very Hot Cocoa (Ancient)
     //   Effect: Start each combat with an additional 4energy.
 
-    // TODO: War Hammer (Ancient)
-    //   Effect: Whenever you kill an Elite, Upgrade 4 random cards.
+    // No need to implement War Hammer: Whenever you kill an Elite, Upgrade 4 random cards.
 
     // TODO: Whispering Earring (Ancient)
     //   Effect: Gain energy at the start of each turn. Vakuu plays your first turn for you.
 
-    // TODO: Yummy Cookie (Ancient)
-    //   Effect: Upon pickup, Upgrade 4 cards.
+    // No need to implement Yummy Cookie: Upon pickup, Upgrade 4 cards.
 
     // **************************************************************************************************
     // ********************************************* Special *********************************************
     // **************************************************************************************************
 
-    // TODO: Circlet (Special)
-    //   Effect: It's a circlet.
+    // No need to implement Circlet: It's a circlet.
 
     // **************************************************************************************************
     // ********************************************* Ironclad *********************************************
     // **************************************************************************************************
 
-    // TODO: Black Blood (Starter)
-    //   Effect: At the end of combat, heal 12 HP.
+    public static class BlackBlood extends Relic.BlackBlood {
+    }
 
-    // TODO: Brimstone (Shop)
-    //   Effect: At the start of your turn, gain 2 2 Strength and ALL enemies gain 1 .
+    public static class Brimstone extends Relic.Brimstone {
+    }
 
-    // TODO: Burning Blood (Starter)
-    //   Effect: At the end of combat, heal 6 HP.
+    public static class BurningBlood extends Relic.BurningBlood {
+    }
 
-    // TODO: Charon's Ashes (Rare)
-    //   Effect: Whenever you Exhaust a card, deal 3 damage to ALL enemies.
+    public static class CharonsAshes extends Relic.CharonsAshes {
+    }
 
     // TODO: Demon Tongue (Rare)
     //   Effect: The first time you lose HP on your turn, heal HP equal to the amount lost.
 
-    // TODO: Paper Phrog (Uncommon)
-    //   Effect: Enemies with Vulnerable take 75% more damage rather than 50%.
+    public static class PaperPhrog extends Relic.PaperPhrog {
+    }
 
-    // TODO: Red Skull (Common)
-    //   Effect: While your HP is at or below 50%, you have 3 additional Strength.
+    public static class RedSkull extends Relic.RedSkull {
+    }
 
     // TODO: Ruined Helmet (Rare)
     //   Effect: The first time you gain Strength each combat, double the amount gained.
 
-    // TODO: Self-Forming Clay (Uncommon)
-    //   Effect: Whenever you lose HP in combat, gain 3 Block next turn.
+    public static class SelfFormingClay extends Relic.SelfFormingClay {
+    }
 
     // **************************************************************************************************
     // ********************************************* Silent *********************************************
@@ -796,48 +1011,63 @@ public class Relic2 {
     // TODO: Helical Dart (Rare)
     //   Effect: Whenever you play a Shiv, gain 1 Dexterity this turn.
 
-    // TODO: Ninja Scroll (Shop)
-    //   Effect: At the start of each combat, add 3  Shivs into your Hand.
+    public static class NinjaScroll extends Relic.NinjaScroll {
+    }
 
-    // TODO: Paper Krane (Rare)
-    //   Effect: Enemies with Weak deal 40% less damage to you rather than 25%.
+    public static class PaperKrane extends Relic.PaperCrane {
+    }
 
     // TODO: Ring of the Drake (Starter)
     //   Effect: At the start of your first 3 turns, draw 2 additional cards.
 
-    // TODO: Ring of the Snake (Starter)
-    //   Effect: At the start of each combat, draw 2 additional cards.
+    public static class RingOfTheSnake extends Relic.RingOfSnake {
+    }
 
-    // TODO: Snecko Skull (Common)
-    //   Effect: Whenever you apply 2 Poison, apply an additional 1 .
+    public static class SneckoSkull extends Relic.SneckoSkull {
+    }
 
-    // TODO: Tingsha (Uncommon)
-    //   Effect: Whenever you discard a card during your turn, deal 3 damage to a random enemy for each card discarded.
+    public static class Tingsha extends Relic.Tingsha {
+    }
 
-    // TODO: Tough Bandages (Rare)
-    //   Effect: Whenever you discard a card during your turn, gain 3 Block.
+    public static class ToughBandages extends Relic.ToughBandages {
+    }
 
-    // TODO: Twisted Funnel (Uncommon)
-    //   Effect: At the start of each combat, apply 4 Poison to ALL enemies.
+    public static class TwistedFunnel extends Relic.TwistedFunnel {
+    }
 
     // **************************************************************************************************
     // ********************************************* Defect *********************************************
     // **************************************************************************************************
 
-    // TODO: Cracked Core (Starter)
-    //   Effect: At the start of each combat, Channel 1 Lightning.
+    public static class CrackedCore extends Relic.CrackedOrb {
+    }
 
-    // TODO: Data Disk (Common)
-    //   Effect: Start each combat with 1 Focus.
+    public static class DataDisk extends Relic.DataDisk {
+    }
 
-    // TODO: Emotion Chip (Rare)
-    //   Effect: If you lost HP during the previous turn, trigger the passive ability of all Orbs at the start of your turn.
+    public static class EmotionChip extends Relic.EmotionChip {
+    }
 
-    // TODO: Gold-Plated Cables (Uncommon)
-    //   Effect: Your rightmost Orb triggers its passive an additional time.
+    public static class GoldPlatedCables extends Relic.GoldPlatedCable {
+    }
 
-    // TODO: Infused Core (Starter)
-    //   Effect: At the start of each combat, Channel 3 Lightning.
+    public static class InfusedCore extends Relic {
+        public InfusedCore() {
+            entityProperty.orbGenerationPossible |= OrbType.LIGHTNING.mask;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.channelOrb(OrbType.LIGHTNING);
+                        state.channelOrb(OrbType.LIGHTNING);
+                        state.channelOrb(OrbType.LIGHTNING);
+                    }
+                }
+            });
+        }
+    }
 
     // TODO: Metronome (Rare)
     //   Effect: The first time you Channel 7 Orbs each combat, deal 30 damage to ALL enemies.
@@ -845,11 +1075,24 @@ public class Relic2 {
     // TODO: Power Cell (Rare)
     //   Effect: At the start of each combat, add 2 zero-cost cards from your Draw Pile into your Hand.
 
-    // TODO: Runic Capacitor (Shop)
-    //   Effect: Start each combat with 3 additional Orb Slots.
+    public static class RunicCapacitor extends Relic.RunicCapacitor {
+    }
 
-    // TODO: Symbiotic Virus (Uncommon)
-    //   Effect: At the start of each combat, Channel 1 Dark.
+    public static class SymbioticVirus extends Relic {
+        public SymbioticVirus() {
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.channelOrb(OrbType.DARK);
+                    }
+                }
+            });
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Regent *********************************************
@@ -880,7 +1123,7 @@ public class Relic2 {
     //   Effect: Whenever you create a Colorless card, gain 2 Block.
 
     // TODO: Vitruvian Minion (Shop)
-    //   Effect: Cards containing “Minion” deal double damage and gain double Block.
+    //   Effect: Cards containing "Minion" deal double damage and gain double Block.
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************

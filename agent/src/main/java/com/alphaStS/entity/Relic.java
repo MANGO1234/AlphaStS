@@ -150,11 +150,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class Anchor extends Relic {
+        private final int block;
+
+        public Anchor() {
+            this(10);
+        }
+
+        public Anchor(int block) {
+            this.block = block;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addStartOfTurnHandler("Anchor", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(10);
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(block);
                     }
                 }
             });
@@ -231,12 +241,22 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     }
 
     public static class BloodVial extends Relic {
+        private final int heal;
+
+        public BloodVial() {
+            this(2);
+        }
+
+        public BloodVial(int heal) {
+            this.heal = heal;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.bloodVial = this;
             state.properties.addEndOfBattleHandler("BloodVial", new GameEventHandler(1) {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state) && state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
-                        state.healPlayer(2);
+                        state.healPlayer(heal);
                     }
                 }
             });
@@ -287,17 +307,24 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     public static class HappyFlower extends Relic {
         int n;
         int healthReward;
+        int period;
+        protected String counterName = "HappyFlower";
 
         public HappyFlower(int n, int healthReward) {
+            this(n, healthReward, 3);
+        }
+
+        public HappyFlower(int n, int healthReward, int period) {
             this.n = n;
             this.healthReward = healthReward;
+            this.period = period;
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("HappyFlower", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter(counterName, this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     var counter = state.getCounterForRead();
-                    input[idx] = (counter[counterIdx] == 0 ? 3 : counter[counterIdx]) / 3.0f;
+                    input[idx] = (counter[counterIdx] == 0 ? period : counter[counterIdx]) / (float) period;
                     return idx + 1;
                 }
                 @Override public int getInputLenDelta() {
@@ -318,17 +345,17 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
                     var counter = state.getCounterForWrite();
                     counter[counterIdx]++;
-                    if (counter[counterIdx] == 3) {
+                    if (counter[counterIdx] == period) {
                         counter[counterIdx] = 0;
                         state.gainEnergy(1);
                     }
                 }
             });
             if (healthReward > 0) {
-                state.properties.addExtraTrainingTarget("HappyFlower", this, new TrainingTarget() {
+                state.properties.addExtraTrainingTarget(counterName, this, new TrainingTarget() {
                     @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                         if (isTerminal > 0) {
-                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 3.0);
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / (double) period);
                         } else if (isTerminal == 0) {
                             v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
                         }
@@ -442,11 +469,21 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
     // Omamori: No need to implement
 
     public static class Orichalcum extends Relic {
+        private final int gainBlock;
+
+        public Orichalcum() {
+            this(6);
+        }
+
+        public Orichalcum(int gainBlock) {
+            this.gainBlock = gainBlock;
+        }
+
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addPreEndOfTurnHandler(new GameEventHandler(0) {
                 @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getBlock() == 0 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
+                        state.getPlayerForWrite().gainBlockNotFromCardPlay(gainBlock);
                     }
                 }
             });
