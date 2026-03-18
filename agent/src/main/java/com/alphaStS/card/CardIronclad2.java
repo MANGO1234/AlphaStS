@@ -3,7 +3,11 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
 
 public class CardIronclad2 {
     // **************************************************************************************************
@@ -306,9 +310,35 @@ public class CardIronclad2 {
     // ********************************************* Uncommon *******************************************
     // **************************************************************************************************
 
-    // TODO: Ashen Strike (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 6 damage. Deals 3 additional damage for each card in your Exhaust Pile.
-    //   Upgraded Effect: Deal 6 damage. Deals 4 additional damage for each card in your Exhaust Pile.
+    private static abstract class _AshenStrikeT extends Card {
+        private final int damage;
+        private final int dmgPerExhaust;
+
+        public _AshenStrikeT(String cardName, int damage, int dmgPerExhaust) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.dmgPerExhaust = dmgPerExhaust;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage + dmgPerExhaust * state.exhaustArrLen);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class AshenStrike extends _AshenStrikeT {
+        public AshenStrike() {
+            super("Ashen Strike", 6, 3);
+        }
+    }
+
+    public static class AshenStrikeP extends _AshenStrikeT {
+        public AshenStrikeP() {
+            super("Ashen Strike+", 6, 4);
+        }
+    }
 
     public static class BattleTrance extends CardIronclad.BattleTrance {
     }
@@ -322,9 +352,35 @@ public class CardIronclad2 {
     public static class BludgeonP extends CardIronclad.BludgeonP {
     }
 
-    // TODO: Bully (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 4 damage. Deals 2 additional damage for each Vulnerable on the enemy.
-    //   Upgraded Effect: Deal 4 damage. Deals 3 additional damage for each Vulnerable on the enemy.
+    private static abstract class _BullyT extends Card {
+        private final int damage;
+        private final int bonus;
+
+        public _BullyT(String cardName, int damage, int bonus) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            this.bonus = bonus;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage + bonus * enemy.getVulnerable());
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Bully extends _BullyT {
+        public Bully() {
+            super("Bully", 4, 2);
+        }
+    }
+
+    public static class BullyP extends _BullyT {
+        public BullyP() {
+            super("Bully+", 4, 3);
+        }
+    }
 
     public static class BurningPact extends CardIronclad.BurningPact {
     }
@@ -334,25 +390,176 @@ public class CardIronclad2 {
 
     // No need to implement Demonic Shield: Multiplayer
 
-    // TODO: Dismantle (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. If the enemy is Vulnerable, hits twice.
-    //   Upgraded Effect: Deal 10 damage. If the enemy is Vulnerable, hits twice.
+    private static abstract class _DismantleT extends Card {
+        private final int damage;
 
-    // TODO: Dominate (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 1 Strength for each Vulnerable on the enemy. Exhaust.
-    //   Upgraded Effect: Gain 1 Strength for each Vulnerable on the enemy.
+        public _DismantleT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
 
-    // TODO: Drum of Battle (Uncommon) - 0 energy, Power
-    //   Effect: Draw 2 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
-    //   Upgraded Effect: Draw 3 cards. At the start of your turn, Exhaust the top card of your Draw Pile.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            if (enemy.getVulnerable() > 0) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Evil Eye (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 8 Block. Gain another 8 Block if you have Exhausted a card this turn.
-    //   Upgraded Effect: Gain 11 Block. Gain another 11 Block if you have Exhausted a card this turn.
+    public static class Dismantle extends _DismantleT {
+        public Dismantle() {
+            super("Dismantle", 8);
+        }
+    }
 
-    // TODO: Expect a Fight (Uncommon) - 2 energy, Skill
-    //   Effect: Gain energy for each Attack in your Hand.
-    //   Upgraded Effect (1 energy): Gain energy for each Attack in your Hand.
+    public static class DismantleP extends _DismantleT {
+        public DismantleP() {
+            super("Dismantle+", 10);
+        }
+    }
+
+    private static abstract class _DominateT extends Card {
+        public _DominateT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            entityProperty.selectEnemy = true;
+            entityProperty.changePlayerStrength = true;
+            exhaustWhenPlayed = exhaust;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.getPlayerForWrite().gainStrength(enemy.getVulnerable());
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Dominate extends _DominateT {
+        public Dominate() {
+            super("Dominate", true);
+        }
+    }
+
+    public static class DominateP extends _DominateT {
+        public DominateP() {
+            super("Dominate+", false);
+        }
+    }
+
+    private static abstract class _DrumOfBattleT extends Card {
+        private final int drawCount;
+
+        public _DrumOfBattleT(String cardName, int drawCount) {
+            super(cardName, Card.POWER, 0, Card.UNCOMMON);
+            this.drawCount = drawCount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(drawCount);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DrumOfBattle", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("DrumOfBattle", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int n = state.getCounterForRead()[counterIdx];
+                    for (int i = 0; i < n; i++) {
+                        int cardIdx = state.drawOneCardSpecial();
+                        if (cardIdx >= 0) {
+                            state.exhaustedCardHandle(cardIdx, false);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class DrumOfBattle extends _DrumOfBattleT {
+        public DrumOfBattle() {
+            super("Drum of Battle", 2);
+        }
+    }
+
+    public static class DrumOfBattleP extends _DrumOfBattleT {
+        public DrumOfBattleP() {
+            super("Drum of Battle+", 3);
+        }
+    }
+
+    private static abstract class _EvilEyeT extends Card {
+        private final int block;
+
+        public _EvilEyeT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            if (state.getCounterForRead()[state.properties.exhaustedThisTurnCounterIdx] > 0) {
+                state.getPlayerForWrite().gainBlock(block);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerExhaustedThisTurnCounter();
+        }
+    }
+
+    public static class EvilEye extends _EvilEyeT {
+        public EvilEye() {
+            super("Evil Eye", 8);
+        }
+    }
+
+    public static class EvilEyeP extends _EvilEyeT {
+        public EvilEyeP() {
+            super("Evil Eye+", 11);
+        }
+    }
+
+    private static abstract class _ExpectAFightT extends Card {
+        public _ExpectAFightT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int attackCount = 0;
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.properties.cardDict[state.handArr[i]].cardType == Card.ATTACK) {
+                    attackCount++;
+                }
+            }
+            state.gainEnergy(attackCount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ExpectAFight extends _ExpectAFightT {
+        public ExpectAFight() {
+            super("Expect a Fight", 2);
+        }
+    }
+
+    public static class ExpectAFightP extends _ExpectAFightT {
+        public ExpectAFightP() {
+            super("Expect a Fight+", 1);
+        }
+    }
 
     public static class FeelNoPain extends CardIronclad.FeelNoPain {
     }
@@ -360,9 +567,40 @@ public class CardIronclad2 {
     public static class FeelNoPainP extends CardIronclad.FeelNoPainP {
     }
 
-    // TODO: Fight Me! (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 5 damage twice. Gain 2 Strength. The enemy gains 1 Strength.
-    //   Upgraded Effect: Deal 6 damage twice. Gain 3 Strength. The enemy gains 1 Strength.
+    private static abstract class _FightMeT extends Card {
+        private final int damage;
+        private final int playerStr;
+
+        public _FightMeT(String cardName, int damage, int playerStr) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.playerStr = playerStr;
+            entityProperty.selectEnemy = true;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.affectEnemyStrength = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.getPlayerForWrite().gainStrength(playerStr);
+            enemy.gainStrength(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FightMe extends _FightMeT {
+        public FightMe() {
+            super("Fight Me!", 5, 2);
+        }
+    }
+
+    public static class FightMeP extends _FightMeT {
+        public FightMeP() {
+            super("Fight Me!+", 6, 3);
+        }
+    }
 
     public static class FlameBarrier extends CardIronclad.FlameBarrier {
     }
@@ -370,13 +608,104 @@ public class CardIronclad2 {
     public static class FlameBarrierP extends CardIronclad.FlameBarrierP {
     }
 
-    // TODO: Forgotten Ritual (Uncommon) - 1 energy, Skill
-    //   Effect: If you Exhausted a card this turn, gain 3 energy.
-    //   Upgraded Effect: If you Exhausted a card this turn, gain 4 energy.
+    private static abstract class _ForgottenRitualT extends Card {
+        private final int gainEnergy;
 
-    // TODO: Grapple (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Whenever you gain Block this turn, deal 5 damage to the enemy.
-    //   Upgraded Effect: Deal 9 damage. Whenever you gain Block this turn, deal 7 damage to the enemy.
+        public _ForgottenRitualT(String cardName, int gainEnergy) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.gainEnergy = gainEnergy;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.getCounterForRead()[state.properties.exhaustedThisTurnCounterIdx] > 0) {
+                state.gainEnergy(gainEnergy);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerExhaustedThisTurnCounter();
+        }
+    }
+
+    public static class ForgottenRitual extends _ForgottenRitualT {
+        public ForgottenRitual() {
+            super("Forgotten Ritual", 3);
+        }
+    }
+
+    public static class ForgottenRitualP extends _ForgottenRitualT {
+        public ForgottenRitualP() {
+            super("Forgotten Ritual+", 4);
+        }
+    }
+
+    private static abstract class _GrappleT extends Card {
+        private final int damage;
+        private final int dmgPerBlock;
+
+        public _GrappleT(String cardName, int damage, int dmgPerBlock) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.dmgPerBlock = dmgPerBlock;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.getCounterForWrite()[counterIdx] += dmgPerBlock;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Grapple", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 14.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnBlockHandler("Grapple", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        int i = 0;
+                        if (state.enemiesAlive > 1) {
+                            i = state.getSearchRandomGen().nextInt(state.enemiesAlive, RandomGenCtx.RandomEnemyGeneral, state);
+                            state.setIsStochastic();
+                        }
+                        int enemy_j = 0;
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            if (i == enemy_j) {
+                                state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                            }
+                            enemy_j++;
+                        }
+                    }
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("Grapple", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Grapple extends _GrappleT {
+        public Grapple() {
+            super("Grapple", 7, 5);
+        }
+    }
+
+    public static class GrappleP extends _GrappleT {
+        public GrappleP() {
+            super("Grapple+", 9, 7);
+        }
+    }
 
     public static class Hemokinesis extends CardIronclad._HemokinesisT {
         public Hemokinesis() {
@@ -400,9 +729,68 @@ public class CardIronclad2 {
     public static class InfernalBladeP extends CardIronclad.InfernalBladeP {
     }
 
-    // TODO: Inferno (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, lose 1 HP. Whenever you lose HP on your turn, deal 6 damage to ALL enemies.
-    //   Upgraded Effect: At the start of your turn, lose 1 HP. Whenever you lose HP on your turn, deal 9 damage to ALL enemies.
+    private static abstract class _InfernoT extends Card {
+        private final int dmgToEnemies;
+
+        public _InfernoT(String cardName, int dmgToEnemies) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.dmgToEnemies = dmgToEnemies;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += dmgToEnemies;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            // counterIdx = damage accumulator, counterIdx + 1 = is-player-turn flag
+            state.properties.registerCounter("Inferno", this, 2, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 18.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] > 0 ? 1.0f : 0.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Inferno", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx + 1] = 1;
+                        state.doNonAttackDamageToPlayer(1, false, this);
+                    }
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("Inferno", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx + 1] = 0;
+                }
+            });
+            state.properties.addOnDamageHandler("Inferno", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (!isAttack && damageDealt > 0 && state.getCounterForRead()[counterIdx] > 0 && state.getCounterForRead()[counterIdx + 1] > 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, state.getCounterForRead()[counterIdx], true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Inferno extends _InfernoT {
+        public Inferno() {
+            super("Inferno", 6);
+        }
+    }
+
+    public static class InfernoP extends _InfernoT {
+        public InfernoP() {
+            super("Inferno+", 9);
+        }
+    }
 
     public static class Inflame extends CardIronclad.Inflame {
     }
@@ -410,13 +798,95 @@ public class CardIronclad2 {
     public static class InflameP extends CardIronclad.InflameP {
     }
 
-    // TODO: Juggling (Uncommon) - 1 energy, Power
-    //   Effect: Add a copy of the third Attack you play each turn into your Hand.
-    //   Upgraded Effect: Innate. Add a copy of the third Attack you play each turn into your Hand.
+    private static abstract class _JugglingT extends Card {
+        public _JugglingT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.innate = innate;
+        }
 
-    // TODO: Pillage (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 6 damage. Draw cards until you draw a non-Attack card.
-    //   Upgraded Effect: Deal 9 damage. Draw cards until you draw a non-Attack card.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            // counterIdx = number of Juggling copies in play, counterIdx + 1 = attacks played this turn
+            state.properties.registerCounter("Juggling", this, 2, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 3.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Juggling", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.getCounterForWrite()[counterIdx + 1]++;
+                        if (state.getCounterForRead()[counterIdx + 1] == 3) {
+                            for (int i = 0; i < state.getCounterForRead()[counterIdx]; i++) {
+                                state.addCardToHand(cardIdx);
+                            }
+                        }
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("Juggling", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx + 1] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Juggling extends _JugglingT {
+        public Juggling() {
+            super("Juggling", false);
+        }
+    }
+
+    public static class JugglingP extends _JugglingT {
+        public JugglingP() {
+            super("Juggling+", true);
+        }
+    }
+
+    private static abstract class _PillageT extends Card {
+        private final int damage;
+
+        public _PillageT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            int drawnIdx;
+            while ((drawnIdx = state.draw(1)) >= 0) {
+                if (state.properties.cardDict[drawnIdx].cardType != Card.ATTACK) {
+                    break;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Pillage extends _PillageT {
+        public Pillage() {
+            super("Pillage", 6);
+        }
+    }
+
+    public static class PillageP extends _PillageT {
+        public PillageP() {
+            super("Pillage+", 9);
+        }
+    }
 
     public static class Rage extends CardIronclad.Rage {
     }

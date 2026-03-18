@@ -181,6 +181,7 @@ public class GameProperties implements Cloneable {
     public int envenomCounterIdx = -1;
     public int equilibriumCounterIdx = -1;
     public int eviscerateCounterIdx = -1;
+    public int exhaustedThisTurnCounterIdx = -1;
     public int feedCounterIdx = -1;
     public int forceFieldCounterIdx = -1;
     public int foresightCounterIdx = -1;
@@ -640,6 +641,15 @@ public class GameProperties implements Cloneable {
     // ******************************** Shared Effects Registration *******************************************************
     // ********************************************************************************************************************
 
+    private static CounterRegistrant ExhaustedThisTurnCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.exhaustedThisTurnCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.exhaustedThisTurnCounterIdx;
+        }
+    };
+
     private static CounterRegistrant IntangibleCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             gameProperties.intangibleCounterIdx = idx;
@@ -687,6 +697,29 @@ public class GameProperties implements Cloneable {
             }
             @Override public void onRegister(int counterIdx) {
                 state.properties.bufferCounterIdx = counterIdx;
+            }
+        });
+    }
+
+    public void registerExhaustedThisTurnCounter() {
+        registerCounter("ExhaustedThisTurn", ExhaustedThisTurnCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.exhaustedThisTurnCounterIdx] > 0 ? 1.0f : 0.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addOnExhaustHandler("ExhaustedThisTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.exhaustedThisTurnCounterIdx] = 1;
+            }
+        });
+        addStartOfTurnHandler("ExhaustedThisTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.exhaustedThisTurnCounterIdx] = 0;
             }
         });
     }
