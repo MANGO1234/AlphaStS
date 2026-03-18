@@ -1,61 +1,66 @@
 package com.alphaStS.entity;
 
+import com.alphaStS.GameState;
+import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.Tuple;
+
 public class Potion2 {
     // **************************************************************************************************
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Attack Potion (Common)
-    //   Effect: Choose 1 of 3 random Attack cards to add into your Hand. It's free to play this turn.
+    public static class AttackPotion extends Potion.AttackPotion {
+    }
 
-    // TODO: Block Potion (Common)
-    //   Effect: Gain 12 Block.
+    public static class BlockPotion extends Potion.BlockPotion {
+    }
 
-    // TODO: Colorless Potion (Common)
-    //   Effect: Choose 1 of 3 random Colorless cards to add into your Hand. It's free to play this turn.
+    public static class ColorlessPotion extends Potion.ColorlessPotion {
+    }
 
-    // TODO: Dexterity Potion (Common)
-    //   Effect: Gain 2 Dexterity.
+    public static class DexterityPotion extends Potion.DexterityPotion {
+    }
 
-    // TODO: Energy Potion (Common)
-    //   Effect: Gain 2 energy .
+    public static class EnergyPotion extends Potion.EnergyPotion {
+    }
 
-    // TODO: Explosive Ampoule (Common)
-    //   Effect: Deal 10 damage to ALL enemies.
+    public static class ExplosiveAmpoule extends Potion.ExplosivePotion {
+    }
 
-    // TODO: Fire Potion (Common)
-    //   Effect: Deal 20 damage.
+    public static class FirePotion extends Potion.FirePotion {
+    }
 
-    // TODO: Flex Potion (Common)
-    //   Effect: Gain 5 2 Strength. At the end of your turn, lose 5 .
+    public static class FlexPotion extends Potion.FlexPotion {
+    }
 
-    // TODO: Power Potion (Common)
-    //   Effect: Choose 1 of 3 random Power cards to add into your Hand. It's free to play this turn.
+    public static class PowerPotion extends Potion.PowerPotion {
+    }
 
-    // TODO: Skill Potion (Common)
-    //   Effect: Choose 1 of 3 random Skill cards to add into your Hand. It's free to play this turn.
+    public static class SkillPotion extends Potion.SkillPotion {
+    }
 
-    // TODO: Speed Potion (Common)
-    //   Effect: Gain 5 2 Dexterity. At the end of your turn, lose 5 .
+    public static class SpeedPotion extends Potion.SpeedPotion {
+    }
 
-    // TODO: Strength Potion (Common)
-    //   Effect: Gain 2 Strength.
+    public static class StrengthPotion extends Potion.StrengthPotion {
+    }
 
-    // TODO: Swift Potion (Common)
-    //   Effect: Draw 3 cards.
+    public static class SwiftPotion extends Potion.SwiftPotion {
+    }
 
-    // TODO: Vulnerable Potion (Common)
-    //   Effect: Apply 3 Vulnerable.
+    public static class VulnerablePotion extends Potion.FearPotion {
+    }
 
-    // TODO: Weak Potion (Common)
-    //   Effect: Apply 3 Weak.
+    public static class WeakPotion extends Potion.WeakPotion {
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Blessing of the Forge (Uncommon)
-    //   Effect: Upgrade all cards in your Hand for the rest of combat.
+    public static class BlessingOfTheForge extends Potion.BlessingOfTheForge {
+    }
 
     // TODO: Clarity Extract (Uncommon)
     //   Effect: Draw 1 card. At the start of your next 3 turns, draw 1 additional card.
@@ -63,8 +68,8 @@ public class Potion2 {
     // TODO: Cure All (Uncommon)
     //   Effect: Gain energy. Draw 2 cards.
 
-    // TODO: Duplicator (Uncommon)
-    //   Effect: This turn, your next card is played an extra time.
+    public static class Duplicator extends Potion.DuplicationPotion {
+    }
 
     // TODO: Fortifier (Uncommon)
     //   Effect: Triple your Block.
@@ -72,14 +77,14 @@ public class Potion2 {
     // TODO: Fysh Oil (Uncommon)
     //   Effect: Gain 1 Strength and 1 Dexterity.
 
-    // TODO: Gambler's Brew (Uncommon)
-    //   Effect: Discard any number of cards, then draw that many.
+    public static class GamblersBrew extends Potion.GamblersBrew {
+    }
 
     // TODO: Heart of Iron (Uncommon)
     //   Effect: Gain 7 Plating.
 
-    // TODO: Liquid Bronze (Uncommon)
-    //   Effect: Gain 3 Thorns.
+    public static class LiquidBronze extends Potion.LiquidBronze {
+    }
 
     // TODO: Potion of Binding (Uncommon)
     //   Effect: Apply 1 Weak and 1 Vulnerable to ALL enemies.
@@ -88,10 +93,10 @@ public class Potion2 {
     //   Effect: Enemy loses 9 HP at the end of each of its turns.
 
     // TODO: Radiant Tincture (Uncommon)
-    //   Effect: Gain 2 energy. Gain an additional  at the start of your next 3 turns.
+    //   Effect: Gain 2 energy. Gain an additional energy at the start of your next 3 turns.
 
-    // TODO: Regen Potion (Uncommon)
-    //   Effect: Gain 5 Regen.
+    public static class RegenPotion extends Potion.RegenerationPotion {
+    }
 
     // TODO: Stable Serum (Uncommon)
     //   Effect: Retain your Hand for 2 turns.
@@ -109,17 +114,17 @@ public class Potion2 {
     // TODO: Bottled Potential (Rare)
     //   Effect: Shuffle ALL your cards into your Draw Pile. Draw 5 cards.
 
-    // TODO: Distilled Chaos (Rare)
-    //   Effect: Play the top 3 cards of your Draw Pile.
+    public static class DistilledChaos extends Potion.DistilledChaos {
+    }
 
     // TODO: Droplet of Precognition (Rare)
     //   Effect: Choose a card in your Draw Pile and add it into your Hand.
 
-    // TODO: Entropic Brew (Rare)
-    //   Effect: Fill all your empty potion slots with random potions.
+    public static class EntropicBrew extends Potion.EntropicBrew {
+    }
 
-    // TODO: Fairy in a Bottle (Rare)
-    //   Effect: When you would die, instead this potion is discarded and you heal to 30% of your Max HP.
+    public static class FairyInABottle extends Potion.FairyInABottle {
+    }
 
     // TODO: Fruit Juice (Rare)
     //   Effect: Gain 5 Max HP.
@@ -127,8 +132,8 @@ public class Potion2 {
     // TODO: Gigantification Potion (Rare)
     //   Effect: The next Attack you play deals triple damage.
 
-    // TODO: Liquid Memories (Rare)
-    //   Effect: Put a card from your Discard Pile into your Hand. It costs 0 energy this turn.
+    public static class LiquidMemories extends Potion.LiquidMemory {
+    }
 
     // TODO: Lucky Tonic (Rare)
     //   Effect: Gain 1 Buffer.
@@ -143,10 +148,21 @@ public class Potion2 {
     //   Effect: ALL enemies lose 7 Strength this turn.
 
     // TODO: Ship in a Bottle (Rare)
-    //   Effect: Gain 10 2 Block. Next turn, gain 10 .
+    //   Effect: Gain 10 Block. Next turn, gain 10 more Block.
 
-    // TODO: Snecko Oil (Rare)
-    //   Effect: Draw 7 cards. Randomize the cost of cards in your Hand this turn.
+    // STS2 Snecko Oil draws 7 cards (up from 5 in STS1).
+    public static class SneckoOil extends Potion.SneckoOil {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            state.draw(7);
+            for (int i = 0; i < state.handArrLen; i++) {
+                var snecko = state.properties.sneckoIdxes[state.getHandArrForRead()[i]];
+                if (snecko[0] > 1) {
+                    state.getHandArrForWrite()[i] = (short) snecko[state.getSearchRandomGen().nextInt(snecko[0], RandomGenCtx.Snecko, new Tuple<>(state, state.getHandArrForRead()[i])) + 1];
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Event  *********************************************
@@ -172,8 +188,8 @@ public class Potion2 {
     // TODO: Ashwater (Uncommon)
     //   Effect: Exhaust any number of cards in your Hand.
 
-    // TODO: Blood Potion (Common)
-    //   Effect: Heal for 20% of your Max HP.
+    public static class BloodPotion extends Potion.BloodPotion {
+    }
 
     // TODO: Soldier's Stew (Rare)
     //   Effect: All cards containing Strike gain 1 Replay this combat.
@@ -182,27 +198,27 @@ public class Potion2 {
     // ********************************************* Silent *********************************************
     // **************************************************************************************************
 
-    // TODO: Cunning Potion (Uncommon)
-    //   Effect: Add 3 Upgrade  Shivs into your Hand.
+    public static class CunningPotion extends Potion.CunningPotion {
+    }
 
-    // TODO: Ghost in a Jar (Rare)
-    //   Effect: Gain 1 Intangible.
+    public static class GhostInAJar extends Potion.GhostInAJar {
+    }
 
-    // TODO: Poison Potion (Common)
-    //   Effect: Apply 6 Poison.
+    public static class PoisonPotion extends Potion.PoisonPotion {
+    }
 
     // **************************************************************************************************
     // ********************************************* Defect *********************************************
     // **************************************************************************************************
 
-    // TODO: Essence of Darkness (Rare)
-    //   Effect: Channel a Dark for each of your Orb Slots.
+    public static class EssenceOfDarkness extends Potion.EssenceOfDarkness {
+    }
 
-    // TODO: Focus Potion (Common)
-    //   Effect: Gain 2 Focus.
+    public static class FocusPotion extends Potion.FocusPotion {
+    }
 
-    // TODO: Potion of Capacity (Uncommon)
-    //   Effect: Gain 2 Orb Slots.
+    public static class PotionOfCapacity extends Potion.PotionOfCapacity {
+    }
 
     // **************************************************************************************************
     // ********************************************* Regent *********************************************
@@ -225,7 +241,7 @@ public class Potion2 {
     //   Effect: Summon 15.
 
     // TODO: Pot of Ghouls (Rare)
-    //   Effect: Add 2  Souls into your Hand.
+    //   Effect: Add 2 Souls into your Hand.
 
     // TODO: Potion of Doom (Common)
     //   Effect: Apply 33 Doom.
