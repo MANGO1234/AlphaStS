@@ -1155,6 +1155,8 @@ public final class GameState implements State {
             return 0;
         } else if (properties.swivelCounterIdx >= 0 && counter[properties.swivelCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
             return 0;
+        } else if (properties.unrelentingCounterIdx >= 0 && counter[properties.unrelentingCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+            return 0;
         }
         return properties.cardDict[cardIdx].energyCost(this);
     }

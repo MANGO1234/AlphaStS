@@ -209,6 +209,10 @@ public abstract class Enemy extends EnemyReadOnly {
             state.playerDoNonAttackDamageToEnemy(this, damage, false);
         }
 
+        for (var handler : state.properties.onEnemyDebuffHandlers) {
+            handler.handle(state, this, type, n);
+        }
+
         return true;
     }
 

@@ -8,6 +8,7 @@ import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.CharacterEnum;
 import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
@@ -144,6 +145,8 @@ public class GameProperties implements Cloneable {
     public int[] pandorasBoxCardsIdxes;
     public int[] perseverancePTransformIndexes;
     public int[] perseveranceTransformIndexes;
+    public int[] rampage2TransformIndexes;
+    public int[] rampageP2TransformIndexes;
     public int[] rampagePTransformIndexes;
     public int[] rampageTransformIndexes;
     public int[] sandsOfTimePTransformIndexes;
@@ -217,6 +220,7 @@ public class GameProperties implements Cloneable {
     public int sundialCounterIdx = -1;
     public int swivelCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
+    public int unrelentingCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
     public int toolsOfTheTradeCounterIdx = -1;
     public int velvetChokerCounterIdx = -1;
@@ -480,6 +484,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
     public List<GameEventHandler> onScryHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
+    public List<GameEventEnemyDebuffHandler> onEnemyDebuffHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onPreCardPlayedHandlers = new ArrayList<>();
@@ -580,6 +585,10 @@ public class GameProperties implements Cloneable {
 
     public void addOnEnemyDeathHandler(String handlerName, GameEventEnemyHandler handler) {
         addHandler(handlerName + "OnEnemyDeath", handler, onEnemyDeathHandlers);
+    }
+
+    public void addOnEnemyDebuffHandler(String handlerName, GameEventEnemyDebuffHandler handler) {
+        addHandler(handlerName + "OnEnemyDebuff", handler, onEnemyDebuffHandlers);
     }
 
     public void addOnDamageHandler(OnDamageHandler handler) {

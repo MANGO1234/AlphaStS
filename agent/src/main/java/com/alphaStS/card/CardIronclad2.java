@@ -1,13 +1,20 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.action.GameEnvironmentAction;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class CardIronclad2 {
     // **************************************************************************************************
@@ -719,9 +726,53 @@ public class CardIronclad2 {
         }
     }
 
-    // TODO: Howl from Beyond (Uncommon) - 3 energy, Attack
-    //   Effect: Deal 16 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
-    //   Upgraded Effect: Deal 21 damage to ALL enemies. At the start of your turn, plays from the Exhaust Pile.
+    private static abstract class _HowlFromBeyondT extends Card {
+        private final int damage;
+
+        public _HowlFromBeyondT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
+            this.damage = damage;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("HowlFromBeyond", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i = 0; i < state.exhaustArrLen; i++) {
+                        int cardIdx = state.exhaustArr[i];
+                        if (state.properties.cardDict[cardIdx].getBaseCard() instanceof _HowlFromBeyondT) {
+                            final int ci = cardIdx;
+                            state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                                @Override public void doAction(GameState s) {
+                                    var a = s.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][ci];
+                                    s.playCard(a, 0, true, _HowlFromBeyondT.class, false, false, -1, GameState.EXHAUST);
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class HowlFromBeyond extends _HowlFromBeyondT {
+        public HowlFromBeyond() {
+            super("Howl from Beyond", 16);
+        }
+    }
+
+    public static class HowlFromBeyondP extends _HowlFromBeyondT {
+        public HowlFromBeyondP() {
+            super("Howl from Beyond+", 21);
+        }
+    }
 
     public static class InfernalBlade extends CardIronclad.InfernalBlade {
     }
@@ -894,13 +945,143 @@ public class CardIronclad2 {
     public static class RageP extends CardIronclad.RageP {
     }
 
-    // TODO: Rampage (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Increase this card's damage by 5 this combat.
-    //   Upgraded Effect: Deal 9 damage. Increase this card's damage by 9 this combat.
+    private static abstract class _Rampage2T extends Card {
+        final int dmg;
+        final int limit;
 
-    // TODO: Rupture (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you lose HP on your turn, gain 1 Strength.
-    //   Upgraded Effect: Whenever you lose HP on your turn, gain 2 Strength.
+        public _Rampage2T(String cardName, int dmg, int limit) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.limit = limit;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Rampage extends _Rampage2T {
+        public Rampage() {
+            this(9, 34);
+        }
+
+        public Rampage(int dmg, int limit) {
+            super("Rampage (" + dmg + ")", dmg, limit);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof Rampage r) {
+                    for (int j = r.dmg + 5; j <= r.limit; j += 5) {
+                        c.add(card.wrapAfterPlay(new Rampage(j, r.limit)));
+                    }
+                }
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.rampage2TransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.rampage2TransformIndexes, -1);
+            for (int i = 0; i < state.properties.rampage2TransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof Rampage r) {
+                    state.properties.rampage2TransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(new Rampage(r.dmg + 5, r.limit)));
+                }
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.rampage2TransformIndexes[cardIdx];
+        }
+    }
+
+    public static class RampageP extends _Rampage2T {
+        public RampageP() {
+            this(9, 54);
+        }
+
+        public RampageP(int dmg, int limit) {
+            super("Rampage+ (" + dmg + ")", dmg, limit);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (Card card : cards) {
+                if (card.getBaseCard() instanceof RampageP r) {
+                    for (int j = r.dmg + 9; j <= r.limit; j += 9) {
+                        c.add(card.wrapAfterPlay(new RampageP(j, r.limit)));
+                    }
+                }
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.rampageP2TransformIndexes = new int[state.properties.cardDict.length];
+            Arrays.fill(state.properties.rampageP2TransformIndexes, -1);
+            for (int i = 0; i < state.properties.rampageP2TransformIndexes.length; i++) {
+                var card = state.properties.cardDict[i].getBaseCard();
+                if (card instanceof RampageP r) {
+                    state.properties.rampageP2TransformIndexes[i] = state.properties.findCardIndex(state.properties.cardDict[i].wrap(new RampageP(r.dmg + 9, r.limit)));
+                }
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return prop.rampageP2TransformIndexes[cardIdx];
+        }
+    }
+
+    private static abstract class _Rupture2T extends Card {
+        private final int n;
+
+        public _Rupture2T(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            entityProperty.changePlayerStrength = true;
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Rupture2", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnDamageHandler("Rupture2", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt > 0) {
+                        state.getPlayerForWrite().gainStrength(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Rupture extends _Rupture2T {
+        public Rupture() {
+            super("Rupture", 1);
+        }
+    }
+
+    public static class RuptureP extends _Rupture2T {
+        public RuptureP() {
+            super("Rupture+", 2);
+        }
+    }
 
     public static class SecondWind extends CardIronclad.SecondWind {
     }
@@ -908,17 +1089,191 @@ public class CardIronclad2 {
     public static class SecondWindP extends CardIronclad.SecondWindP {
     }
 
-    // TODO: Spite (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 6 damage. If you lost HP this turn, draw 1 card.
-    //   Upgraded Effect: Deal 9 damage. If you lost HP this turn, draw 1 card.
+    private static abstract class _SpiteT extends Card {
+        private final int damage;
 
-    // TODO: Stampede (Uncommon) - 2 energy, Power
-    //   Effect: At the end of your turn, 1 random Attack in your Hand is played against a random enemy.
-    //   Upgraded Effect (1 energy): At the end of your turn, 1 random Attack in your Hand is played against a random enemy.
+        public _SpiteT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
 
-    // TODO: Stomp (Uncommon) - 3 energy, Attack
-    //   Effect: Deal 12 damage to ALL enemies. Costs 1 less energy for each Attack played this turn.
-    //   Upgraded Effect: Deal 15 damage to ALL enemies. Costs 1 less energy for each Attack played this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            if (state.getCounterForRead()[counterIdx] > 0) {
+                state.draw(1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Spite", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] > 0 ? 1.0f : 0.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addPreStartOfTurnHandler("Spite", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+            state.properties.addOnDamageHandler("Spite", new OnDamageHandler() {
+                @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
+                    if (damageDealt > 0) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Spite extends _SpiteT {
+        public Spite() {
+            super("Spite", 6);
+        }
+    }
+
+    public static class SpiteP extends _SpiteT {
+        public SpiteP() {
+            super("Spite+", 9);
+        }
+    }
+
+    private static abstract class _StampedeT extends Card {
+        public _StampedeT(String cardName, int energy) {
+            super(cardName, Card.POWER, energy, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Stampede", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addPreEndOfTurnHandler("Stampede", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int copies = state.getCounterForRead()[counterIdx];
+                    if (copies == 0) return;
+                    for (int k = 0; k < copies; k++) {
+                        state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                            @Override public void doAction(GameState s) {
+                                int attackCount = 0;
+                                for (int i = 0; i < s.handArrLen; i++) {
+                                    if (s.properties.cardDict[s.getHandArrForRead()[i]].cardType == Card.ATTACK) {
+                                        attackCount++;
+                                    }
+                                }
+                                if (attackCount == 0) return;
+                                int r = 0;
+                                if (attackCount > 1) {
+                                    s.setIsStochastic();
+                                    r = s.getSearchRandomGen().nextInt(attackCount, RandomGenCtx.RandomCardHand, s);
+                                }
+                                int selectedCardIdx = -1;
+                                int acc = 0;
+                                for (int i = 0; i < s.handArrLen; i++) {
+                                    if (s.properties.cardDict[s.getHandArrForRead()[i]].cardType == Card.ATTACK) {
+                                        if (acc == r) {
+                                            selectedCardIdx = s.getHandArrForRead()[i];
+                                            break;
+                                        }
+                                        acc++;
+                                    }
+                                }
+                                int enemyIdx = GameStateUtils.getRandomEnemyIdx(s, RandomGenCtx.RandomEnemyGeneral);
+                                if (enemyIdx < 0) return;
+                                var a = s.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][selectedCardIdx];
+                                s.playCard(a, enemyIdx, true, null, false, false, -1, -1);
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Stampede extends _StampedeT {
+        public Stampede() {
+            super("Stampede", 2);
+        }
+    }
+
+    public static class StampedeP extends _StampedeT {
+        public StampedeP() {
+            super("Stampede+", 1);
+        }
+    }
+
+    private static abstract class _StompT extends Card {
+        private final int damage;
+
+        public _StompT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            if (state == null) return 3;
+            return Math.max(0, 3 - state.getCounterForRead()[counterIdx]);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Stomp", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Stomp", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("Stomp", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Stomp extends _StompT {
+        public Stomp() {
+            super("Stomp", 12);
+        }
+    }
+
+    public static class StompP extends _StompT {
+        public StompP() {
+            super("Stomp+", 15);
+        }
+    }
 
     private static abstract class _StoneArmorT extends Card {
         private final int amount;
@@ -981,9 +1336,58 @@ public class CardIronclad2 {
         }
     }
 
-    // TODO: Unrelenting (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 12 damage. The next Attack you play costs 0 energy.
-    //   Upgraded Effect: Deal 18 damage. The next Attack you play costs 0 energy.
+    private static abstract class _UnrelentingT extends Card {
+        private final int damage;
+
+        public _UnrelentingT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Unrelenting", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Unrelenting", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK && state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.unrelentingCounterIdx = idx;
+        }
+    }
+
+    public static class Unrelenting extends _UnrelentingT {
+        public Unrelenting() {
+            super("Unrelenting", 12);
+        }
+    }
+
+    public static class UnrelentingP extends _UnrelentingT {
+        public UnrelentingP() {
+            super("Unrelenting+", 18);
+        }
+    }
 
     public static class Uppercut extends CardIronclad.Uppercut {
     }
@@ -991,9 +1395,50 @@ public class CardIronclad2 {
     public static class UppercutP extends CardIronclad.UppercutP {
     }
 
-    // TODO: Vicious (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you apply Vulnerable, draw 1 card.
-    //   Upgraded Effect: Whenever you apply Vulnerable, draw 2 cards.
+    private static abstract class _ViciousT extends Card {
+        private final int n;
+
+        public _ViciousT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Vicious", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnEnemyDebuffHandler("Vicious", new GameEventEnemyDebuffHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, DebuffType type, int amount) {
+                    if (type == DebuffType.VULNERABLE && state.getCounterForRead()[counterIdx] > 0) {
+                        state.draw(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Vicious extends _ViciousT {
+        public Vicious() {
+            super("Vicious", 1);
+        }
+    }
+
+    public static class ViciousP extends _ViciousT {
+        public ViciousP() {
+            super("Vicious+", 2);
+        }
+    }
 
     public static class Whirlwind extends CardIronclad.Whirlwind {
     }
