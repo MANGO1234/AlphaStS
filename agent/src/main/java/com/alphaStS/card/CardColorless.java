@@ -168,7 +168,7 @@ public class CardColorless {
         }
     }
 
-    private static abstract class _DramaticEntranceT extends Card {
+    static abstract class _DramaticEntranceT extends Card {
         private final int n;
 
         public _DramaticEntranceT(String cardName, int n) {
@@ -247,7 +247,7 @@ public class CardColorless {
         }
     }
 
-    private static abstract class _FinesseT extends Card {
+    static abstract class _FinesseT extends Card {
         private final int n;
 
         public _FinesseT(String cardName, int n) {
@@ -274,7 +274,7 @@ public class CardColorless {
         }
     }
 
-    private static abstract class _FlashOfSteelT extends Card {
+    static abstract class _FlashOfSteelT extends Card {
         private final int n;
 
         public _FlashOfSteelT(String cardName, int n) {
@@ -480,7 +480,7 @@ public class CardColorless {
         }
     }
 
-    private static abstract class _MindBlastT extends Card {
+    static abstract class _MindBlastT extends Card {
         public _MindBlastT(String cardName, int energyCost) {
             super(cardName, Card.ATTACK, energyCost, Card.UNCOMMON);
             innate = true;

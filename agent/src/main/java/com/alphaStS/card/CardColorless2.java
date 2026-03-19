@@ -1,6 +1,7 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.gameAction.GameActionCtx;
 
 public class CardColorless2 {
@@ -24,17 +25,29 @@ public class CardColorless2 {
     //   Effect: Give another player 5 Strength this turn.
     //   Upgraded Effect: Give another player 8 Strength this turn.
 
-    // TODO: Dark Shackles (Uncommon) - 0 energy, Skill
-    //   Effect: Enemy loses 9 Strength this turn. Exhaust.
-    //   Upgraded Effect: Enemy loses 15 Strength this turn. Exhaust.
+    public static class DarkShackles extends CardColorless.DarkShackles {
+    }
 
-    // TODO: Discovery (Uncommon) - 1 energy, Skill
-    //   Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn. Exhaust.
-    //   Upgraded Effect: Choose 1 of 3 random cards to add into your Hand. It costs 0 energy this turn.
+    public static class DarkShacklesP extends CardColorless.DarkShacklesP {
+    }
 
-    // TODO: Dramatic Entrance (Uncommon) - 0 energy, Attack
-    //   Effect: Innate. Deal 11 damage to ALL enemies. Exhaust.
-    //   Upgraded Effect: Innate. Deal 15 damage to ALL enemies. Exhaust.
+    public static class Discovery extends CardColorless.Discovery {
+    }
+
+    public static class DiscoveryP extends CardColorless.DiscoveryP {
+    }
+
+    public static class DramaticEntrance extends CardColorless._DramaticEntranceT {
+        public DramaticEntrance() {
+            super("Dramatic Entrance", 11);
+        }
+    }
+
+    public static class DramaticEntranceP extends CardColorless._DramaticEntranceT {
+        public DramaticEntranceP() {
+            super("Dramatic Entrance+", 15);
+        }
+    }
 
     // TODO: Equilibrium (Uncommon) - 2 energy, Skill
     //   Effect: Gain 13 Block. Retain your Hand this turn.
@@ -44,17 +57,33 @@ public class CardColorless2 {
     //   Effect: Gain an additional 5 Block from Defend cards.
     //   Upgraded Effect: Gain an additional 7 Block from Defend cards.
 
-    // TODO: Finesse (Uncommon) - 0 energy, Skill
-    //   Effect: Gain 4 Block. Draw 1 card.
-    //   Upgraded Effect: Gain 7 Block. Draw 1 card.
+    public static class Finesse extends CardColorless._FinesseT {
+        public Finesse() {
+            super("Finesse", 4);
+        }
+    }
+
+    public static class FinesseP extends CardColorless._FinesseT {
+        public FinesseP() {
+            super("Finesse+", 7);
+        }
+    }
 
     // TODO: Fisticuffs (Uncommon) - 1 energy, Attack
     //   Effect: Deal 7 damage. Gain Block equal to damage dealt.
     //   Upgraded Effect: Deal 9 damage. Gain Block equal to damage dealt.
 
-    // TODO: Flash of Steel (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 5 damage. Draw 1 card.
-    //   Upgraded Effect: Deal 8 damage. Draw 1 card.
+    public static class FlashOfSteel extends CardColorless._FlashOfSteelT {
+        public FlashOfSteel() {
+            super("Flash Of Steel", 5);
+        }
+    }
+
+    public static class FlashOfSteelP extends CardColorless._FlashOfSteelT {
+        public FlashOfSteelP() {
+            super("Flash Of Steel+", 8);
+        }
+    }
 
     // TODO: Gang Up (Uncommon) - 1 energy, Attack
     //   Effect: Deal 5 damage. Deals 5 additional damage for each time another player has attacked the enemy this turn.
@@ -64,37 +93,53 @@ public class CardColorless2 {
     //   Effect: ALL allies draw 2 cards.
     //   Upgraded Effect: ALL allies draw 3 cards.
 
-    // TODO: Impatience (Uncommon) - 0 energy, Skill
-    //   Effect: If you have no Attacks in your Hand, draw 2 cards.
-    //   Upgraded Effect: If you have no Attacks in your Hand, draw 3 cards.
+    public static class Impatience extends CardColorless.Impatience {
+    }
+
+    public static class ImpatienceP extends CardColorless.ImpatienceP {
+    }
 
     // TODO: Intercept (Uncommon) - 1 energy, Skill
     //   Effect: Gain 9 Block. Redirect all incoming attacks that would be dealt to another player this turn to you.
     //   Upgraded Effect: Gain 13 Block. Redirect all incoming attacks that would be dealt to another player this turn to you.
 
-    // TODO: Jack of All Trades (Uncommon) - 0 energy, Skill
-    //   Effect: Add 1 random Colorless card into your Hand. Exhaust.
-    //   Upgraded Effect: Add 2 random Colorless cards into your Hand. Exhaust.
+    public static class JackOfAllTrades extends CardColorless.JackOfAllTrades {
+    }
+
+    public static class JackOfAllTradesP extends CardColorless.JackOfAllTradesP {
+    }
 
     // TODO: Lift (Uncommon) - 1 energy, Skill
     //   Effect: Give another player 11 Block.
     //   Upgraded Effect: Give another player 16 Block.
 
-    // TODO: Mind Blast (Uncommon) - 1 energy, Attack
-    //   Effect: Innate. Deal damage equal to the number of cards in your Draw Pile.
-    //   Upgraded Effect (0 energy): Innate. Deal damage equal to the number of cards in your Draw Pile.
+    public static class MindBlast extends CardColorless._MindBlastT {
+        public MindBlast() {
+            super("Mind Blast", 1);
+        }
+    }
+
+    public static class MindBlastP extends CardColorless._MindBlastT {
+        public MindBlastP() {
+            super("Mind Blast+", 0);
+        }
+    }
 
     // TODO: Omnislice (Uncommon) - 0 energy, Attack
     //   Effect: Deal 8 damage. Damage ALL other enemies equal to the damage dealt.
     //   Upgraded Effect: Deal 11 damage. Damage ALL other enemies equal to the damage dealt.
 
-    // TODO: Panache (Uncommon) - 0 energy, Power
-    //   Effect: Every time you play 5 cards in a single turn, deal 10 damage to ALL enemies.
-    //   Upgraded Effect: Every time you play 5 cards in a single turn, deal 14 damage to ALL enemies.
+    public static class Panache extends CardColorless.Panache {
+    }
 
-    // TODO: Panic Button (Uncommon) - 0 energy, Skill
-    //   Effect: Gain 30 Block. You cannot gain Block from cards for 2 turns. Exhaust.
-    //   Upgraded Effect: Gain 40 Block. You cannot gain Block from cards for 2 turns. Exhaust.
+    public static class PanacheP extends CardColorless.PanacheP {
+    }
+
+    public static class PanicButton extends CardColorless.PanicButton {
+    }
+
+    public static class PanicButtonP extends CardColorless.PanicButtonP {
+    }
 
     // TODO: Prep Time (Uncommon) - 1 energy, Power
     //   Effect: At the start of your turn, gain 4 Vigor.
@@ -112,9 +157,17 @@ public class CardColorless2 {
     //   Effect: Gain 1 Strength. Gain 1 Dexterity.
     //   Upgraded Effect: Gain 2 Strength. Gain 2 Dexterity.
 
-    // TODO: Purity (Uncommon) - 0 energy, Skill
-    //   Effect: Retain. Exhaust up to 3 cards in your Hand. Exhaust.
-    //   Upgraded Effect: Retain. Exhaust up to 5 cards in your Hand. Exhaust.
+    public static class Purity extends CardColorless.Purity {
+        public Purity() {
+            retain = true;
+        }
+    }
+
+    public static class PurityP extends CardColorless.PurityP {
+        public PurityP() {
+            retain = true;
+        }
+    }
 
     // TODO: Restlessness (Uncommon) - 0 energy, Skill
     //   Effect: Retain. If your Hand is empty, draw 2 cards and gain 2 energy.
@@ -124,9 +177,11 @@ public class CardColorless2 {
     //   Effect: Deal 6 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
     //   Upgraded Effect: Deal 9 damage. Choose 1 of 3 cards in your Draw Pile to add into your Hand.
 
-    // TODO: Shockwave (Uncommon) - 2 energy, Skill
-    //   Effect: Apply 3 Weak and Vulnerable to ALL enemies. Exhaust.
-    //   Upgraded Effect: Apply 5 Weak and Vulnerable to ALL enemies. Exhaust.
+    public static class Shockwave extends CardIronclad.Shockwave {
+    }
+
+    public static class ShockwaveP extends CardIronclad.ShockwaveP {
+    }
 
     // TODO: Splash (Uncommon) - 1 energy, Skill
     //   Effect: Choose 1 of 3 random Attacks from another character to add into your Hand. It's free to play this turn.
@@ -140,25 +195,74 @@ public class CardColorless2 {
     //   Effect: Deal 11 damage. The next Attack another player plays on the enemy is played an extra time.
     //   Upgraded Effect: Deal 15 damage. The next Attack another player plays on the enemy is played an extra time.
 
-    // TODO: The Bomb (Uncommon) - 2 energy, Skill
-    //   Effect: At the end of 3 turns, deal 40 damage to ALL enemies.
-    //   Upgraded Effect: At the end of 3 turns, deal 50 damage to ALL enemies.
+    public static class TheBomb extends CardColorless.TheBomb {
+    }
 
-    // TODO: Thinking Ahead (Uncommon) - 0 energy, Skill
-    //   Effect: Draw 2 cards. Put 1 card from your Hand on top of your Draw Pile. Exhaust.
-    //   Upgraded Effect: Draw 2 cards. Put 1 card from your Hand on top of your Draw Pile.
+    public static class TheBombP extends CardColorless.TheBombP {
+    }
+
+    public static class ThinkingAhead extends CardColorless.ThinkingAhead {
+    }
+
+    public static class ThinkingAheadP extends CardColorless.ThinkingAheadP {
+    }
 
     // TODO: Thrumming Hatchet (Uncommon) - 1 energy, Attack
     //   Effect: Deal 11 damage. At the start of your next turn, return this to your Hand.
     //   Upgraded Effect: Deal 14 damage. At the start of your next turn, return this to your Hand.
 
-    // TODO: Ultimate Defend (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 11 Block.
-    //   Upgraded Effect: Gain 15 Block.
+    private static abstract class _UltimateDefendT extends Card {
+        private final int block;
 
-    // TODO: Ultimate Strike (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 14 damage.
-    //   Upgraded Effect: Deal 20 damage.
+        public _UltimateDefendT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class UltimateDefend extends _UltimateDefendT {
+        public UltimateDefend() {
+            super("Ultimate Defend", 11);
+        }
+    }
+
+    public static class UltimateDefendP extends _UltimateDefendT {
+        public UltimateDefendP() {
+            super("Ultimate Defend+", 15);
+        }
+    }
+
+    private static abstract class _UltimateStrikeT extends Card {
+        private final int damage;
+
+        public _UltimateStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class UltimateStrike extends _UltimateStrikeT {
+        public UltimateStrike() {
+            super("Ultimate Strike", 14);
+        }
+    }
+
+    public static class UltimateStrikeP extends _UltimateStrikeT {
+        public UltimateStrikeP() {
+            super("Ultimate Strike+", 20);
+        }
+    }
 
     // TODO: Volley (Uncommon) - X energy, Attack
     //   Effect: Deal 10 damage to a random enemy X times.
@@ -246,13 +350,17 @@ public class CardColorless2 {
     //   Effect: Deal 10 damage. The enemy takes double damage from other players this turn.
     //   Upgraded Effect: Deal 14 damage. The enemy takes triple damage from other players this turn.
 
-    // TODO: Master of Strategy (Rare) - 0 energy, Skill
-    //   Effect: Draw 3 cards. Exhaust.
-    //   Upgraded Effect: Draw 4 cards. Exhaust.
+    public static class MasterOfStrategy extends CardColorless.MasterOfStrategy {
+    }
 
-    // TODO: Mayhem (Rare) - 2 energy, Power
-    //   Effect: At the start of your turn, play the top card of your Draw Pile.
-    //   Upgraded Effect (1 energy): At the start of your turn, play the top card of your Draw Pile.
+    public static class MasterOfStrategyP extends CardColorless.MasterOfStrategyP {
+    }
+
+    public static class Mayhem extends CardColorless.Mayhem {
+    }
+
+    public static class MayhemP extends CardColorless.MayhemP {
+    }
 
     // TODO: Mimic (Rare) - 1 energy, Skill
     //   Effect: Gain Block equal to the Block on another player. Exhaust.
@@ -282,13 +390,17 @@ public class CardColorless2 {
     //   Effect: Draw cards until your Hand is full. Exhaust.
     //   Upgraded Effect: Retain. Draw cards until your Hand is full. Exhaust.
 
-    // TODO: Secret Technique (Rare) - 0 energy, Skill
-    //   Effect: Put a Skill from your Draw Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Put a Skill from your Draw Pile into your Hand.
+    public static class SecretTechnique extends CardColorless.SecretTechnique {
+    }
 
-    // TODO: Secret Weapon (Rare) - 0 energy, Skill
-    //   Effect: Put an Attack from your Draw Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Put an Attack from your Draw Pile into your Hand.
+    public static class SecretTechniqueP extends CardColorless.SecretTechniqueP {
+    }
+
+    public static class SecretWeapon extends CardColorless.SecretWeapon {
+    }
+
+    public static class SecretWeaponP extends CardColorless.SecretWeaponP {
+    }
 
     // TODO: The Gambit (Rare) - 0 energy, Skill
     //   Effect: Gain 50 Block. If you take unblocked attack damage this combat, die.
@@ -298,33 +410,142 @@ public class CardColorless2 {
     // ********************************************* Event  *********************************************
     // **************************************************************************************************
 
-    // TODO: Byrd Swoop (Event) - 0 energy, Attack
-    //   Effect: Deal 14 damage.
-    //   Upgraded Effect: Deal 18 damage.
+    private static abstract class _ByrdSwoopT extends Card {
+        private final int damage;
 
-    // TODO: Enlightenment (Event) - 0 energy, Skill
-    //   Effect: Reduce the cost of ALL cards in your Hand to 1 this turn. Exhaust.
-    //   Upgraded Effect: Reduce the cost of ALL cards in your Hand to 1 this combat. Exhaust.
+        public _ByrdSwoopT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
 
-    // TODO: Exterminate (Event) - 1 energy, Attack
-    //   Effect: Deal 3 damage 4 times to ALL enemies.
-    //   Upgraded Effect: Deal 4 damage 4 times to ALL enemies.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ByrdSwoop extends _ByrdSwoopT {
+        public ByrdSwoop() {
+            super("Byrd Swoop", 14);
+        }
+    }
+
+    public static class ByrdSwoopP extends _ByrdSwoopT {
+        public ByrdSwoopP() {
+            super("Byrd Swoop+", 18);
+        }
+    }
+
+    public static class Enlightenment extends CardColorless.Enlightenment {
+    }
+
+    public static class EnlightenmentP extends CardColorless.EnlightenmentP {
+    }
+
+    private static abstract class _ExterminateT extends Card {
+        private final int damage;
+
+        public _ExterminateT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                for (int i = 0; i < 4; i++) {
+                    state.playerDoDamageToEnemy(enemy, damage);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Exterminate extends _ExterminateT {
+        public Exterminate() {
+            super("Exterminate", 3);
+        }
+    }
+
+    public static class ExterminateP extends _ExterminateT {
+        public ExterminateP() {
+            super("Exterminate+", 4);
+        }
+    }
 
     // TODO: Feeding Frenzy (Event) - 0 energy, Skill
     //   Effect: Gain 5 Strength this turn.
     //   Upgraded Effect: Gain 7 Strength this turn.
 
-    // TODO: Metamorphosis (Event) - 2 energy, Skill
-    //   Effect: Add 3 random Attacks into your Draw Pile. They're free to play this combat. Exhaust.
-    //   Upgraded Effect: Add 5 random Attacks into your Draw Pile. They're free to play this combat. Exhaust.
+    public static class Metamorphosis extends CardColorless.Metamorphosis {
+    }
 
-    // TODO: Peck (Event) - 1 energy, Attack
-    //   Effect: Deal 2 damage 3 times.
-    //   Upgraded Effect: Deal 2 damage 4 times.
+    public static class MetamorphosisP extends CardColorless.MetamorphosisP {
+    }
 
-    // TODO: Squash (Event) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Apply 2 Vulnerable.
-    //   Upgraded Effect: Deal 12 damage. Apply 3 Vulnerable.
+    private static abstract class _PeckT extends Card {
+        private final int damage;
+        private final int hits;
+
+        public _PeckT(String cardName, int damage, int hits) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.hits = hits;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            for (int i = 0; i < hits; i++) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Peck extends _PeckT {
+        public Peck() {
+            super("Peck", 2, 3);
+        }
+    }
+
+    public static class PeckP extends _PeckT {
+        public PeckP() {
+            super("Peck+", 2, 4);
+        }
+    }
+
+    private static abstract class _SquashT extends Card {
+        private final int damage;
+        private final int vulnerable;
+
+        public _SquashT(String cardName, int damage, int vulnerable) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.vulnerable = vulnerable;
+            entityProperty.selectEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Squash extends _SquashT {
+        public Squash() {
+            super("Squash", 10, 2);
+        }
+    }
+
+    public static class SquashP extends _SquashT {
+        public SquashP() {
+            super("Squash+", 12, 3);
+        }
+    }
 
     // TODO: Toric Toughness (Event) - 2 energy, Skill
     //   Effect: Gain 5 Block. Gain 5 Block at the start of the next 2 turns.
@@ -334,13 +555,23 @@ public class CardColorless2 {
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
-    // TODO: Apotheosis (Ancient) - 2 energy, Skill
-    //   Effect: Innate. Upgrade ALL your cards. Exhaust.
-    //   Upgraded Effect (1 energy): Innate. Upgrade ALL your cards. Exhaust.
+    public static class Apotheosis extends CardColorless.Apotheosis {
+        public Apotheosis() {
+            innate = true;
+        }
+    }
 
-    // TODO: Apparition (Ancient) - 1 energy, Skill
-    //   Effect: Ethereal.   Gain 1 Intangible. Exhaust.
-    //   Upgraded Effect: Gain 1 Intangible. Exhaust.
+    public static class ApotheosisP extends CardColorless.ApotheosisP {
+        public ApotheosisP() {
+            innate = true;
+        }
+    }
+
+    public static class Apparition extends CardColorless.Apparition {
+    }
+
+    public static class ApparitionP extends CardColorless.ApparitionP {
+    }
 
     // TODO: Brightest Flame (Ancient) - 0 energy, Skill
     //   Effect: Gain 2 energy. Draw 2 cards. Lose 1 Max HP.
@@ -362,21 +593,91 @@ public class CardColorless2 {
     //   Effect: Deal 33 damage. Stun the enemy. Exhaust.
     //   Upgraded Effect: Deal 44 damage. Stun the enemy. Exhaust.
 
-    // TODO: Wish (Ancient) - 0 energy, Skill
-    //   Effect: Put a card from your Draw Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Retain. Put a card from your Draw Pile into your Hand. Exhaust.
+    private static abstract class _WishT extends Card {
+        public _WishT(String cardName, boolean retain, boolean exhaustWhenPlayed) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.retain = retain;
+            this.exhaustWhenPlayed = exhaustWhenPlayed;
+            entityProperty.selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.removeCardFromDeck(idx, false);
+            state.addCardToHand(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Wish extends _WishT {
+        public Wish() {
+            super("Wish", false, true);
+        }
+    }
+
+    public static class WishP extends _WishT {
+        public WishP() {
+            super("Wish+", true, true);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Token  *********************************************
     // **************************************************************************************************
 
-    // TODO: Fuel (Token) - 0 energy, Skill
-    //   Effect: Gain energy. Draw 1 card. Exhaust.
-    //   Upgraded Effect: Gain energy. Draw 2 cards. Exhaust.
+    private static abstract class _FuelT extends Card {
+        private final int draws;
 
-    // TODO: Giant Rock (Token) - 1 energy, Attack
-    //   Effect: Deal 16 damage.
-    //   Upgraded Effect: Deal 20 damage.
+        public _FuelT(String cardName, int draws) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.draws = draws;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(1);
+            state.draw(draws);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Fuel extends _FuelT {
+        public Fuel() {
+            super("Fuel", 1);
+        }
+    }
+
+    public static class FuelP extends _FuelT {
+        public FuelP() {
+            super("Fuel+", 2);
+        }
+    }
+
+    private static abstract class _GiantRockT extends Card {
+        private final int damage;
+
+        public _GiantRockT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class GiantRock extends _GiantRockT {
+        public GiantRock() {
+            super("Giant Rock", 16);
+        }
+    }
+
+    public static class GiantRockP extends _GiantRockT {
+        public GiantRockP() {
+            super("Giant Rock+", 20);
+        }
+    }
 
     // TODO: Luminesce (Token) - 0 energy, Skill
     //   Effect: Retain. Gain 2 energy. Exhaust.
