@@ -102,7 +102,7 @@ public class Potion2 {
     //   Effect: Enemy loses 9 HP at the end of each of its turns.
 
     // TODO: Radiant Tincture (Uncommon)
-    //   Effect: Gain 2 energy. Gain an additional energy at the start of your next 3 turns.
+    //   Effect: Gain energy. Gain an additional energy at the start of your next 3 turns.
 
     public static class RegenPotion extends Potion.RegenerationPotion {
     }
@@ -157,7 +157,7 @@ public class Potion2 {
     //   Effect: ALL enemies lose 7 Strength this turn.
 
     // TODO: Ship in a Bottle (Rare)
-    //   Effect: Gain 10 Block. Next turn, gain 10 more Block.
+    //   Effect: Gain 10 Block. Next turn, gain 10 Block.
 
     // STS2 Snecko Oil draws 7 cards (up from 5 in STS1).
     public static class SneckoOil extends Potion.SneckoOil {
@@ -234,13 +234,13 @@ public class Potion2 {
     // **************************************************************************************************
 
     // TODO: Cosmic Concoction (Rare)
-    //   Effect: Add 3 Upgrade Colorless cards into your Hand.
+    //   Effect: Add 3 Upgraded Colorless cards into your Hand.
 
     // TODO: King's Courage (Uncommon)
     //   Effect: Forge 15.
 
     // TODO: Star Potion (Common)
-    //   Effect: Gain 3 star
+    //   Effect: Gain 3 star.
 
     // **************************************************************************************************
     // ********************************************* Necrobinder *********************************************

@@ -215,8 +215,8 @@ public class CardDefect2 {
     }
 
     // TODO: Feral (Uncommon) - 2 energy, Power
-    //   Effect: The first time you play a 0energy Attack each turn, return it to your Hand.
-    //   Upgraded Effect (1 energy): The first time you play a 0energy Attack each turn, return it to your Hand.
+    //   Effect: The first time you play a 0 energy Attack each turn, return it to your Hand.
+    //   Upgraded Effect (1 energy): The first time you play a 0 energy Attack each turn, return it to your Hand.
 
     // TODO: Fight Through (Uncommon) - 1 energy, Skill
     //   Effect: Gain 13 Block. Add 2 Wounds into your Discard Pile.
@@ -358,12 +358,12 @@ public class CardDefect2 {
     // **************************************************************************************************
 
     // TODO: Adaptive Strike (Rare) - 2 energy, Attack
-    //   Effect: Deal 18 damage. Add a 0energy copy of this card into your Discard Pile.
-    //   Upgraded Effect: Deal 23 damage. Add a 0energy copy of this card into your Discard Pile.
+    //   Effect: Deal 18 damage. Add a 0 energy copy of this card into your Discard Pile.
+    //   Upgraded Effect: Deal 23 damage. Add a 0 energy copy of this card into your Discard Pile.
 
     // TODO: All for One (Rare) - 2 energy, Attack
-    //   Effect: Deal 10 damage. Put ALL 0energy cards from your Discard Pile into your Hand.
-    //   Upgraded Effect: Deal 14 damage. Put ALL 0energy cards from your Discard Pile into your Hand.
+    //   Effect: Deal 10 damage. Put ALL 0 energy cards from your Discard Pile into your Hand.
+    //   Upgraded Effect: Deal 14 damage. Put ALL 0 energy cards from your Discard Pile into your Hand.
 
     public static class Buffer extends CardDefect.Buffer {
     }
@@ -505,7 +505,7 @@ public class CardDefect2 {
     //   Upgraded Effect: Channel 1 Glass. At the start of your turn, Channel 1 Glass.
 
     // TODO: Supercritical (Rare) - 0 energy, Skill
-    //   Effect: Gain 4energy. Exhaust.
+    //   Effect: Gain 4 energy. Exhaust.
     //   Upgraded Effect: Gain 6energy. Exhaust.
 
     // TODO: Trash to Treasure (Rare) - 1 energy, Power

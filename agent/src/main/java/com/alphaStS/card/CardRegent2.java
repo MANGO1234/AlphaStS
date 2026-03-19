@@ -50,8 +50,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Gain 9 Block. Put a card from your Discard Pile on top of your Draw Pile.
 
     // TODO: Crescent Spear (Common) - 1 energy, Attack
-    //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards that have a star  cost.
-    //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards that have a star  cost.
+    //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards that have a star cost.
+    //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards that have a star cost.
 
     // TODO: Crush Under (Common) - 1 energy, Attack
     //   Effect: Deal 7 damage to ALL enemies. All enemies lose 1 Strength this turn.
@@ -74,8 +74,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Deal 13 damage. Next turn, draw 3 cards.
 
     // TODO: Hidden Cache (Common) - 1 energy, Skill
-    //   Effect: Gain 4 star. Next turn, gain .
-    //   Upgraded Effect: Gain 5 star. Next turn, gain .
+    //   Effect: Gain star. Next turn, gain 3 star.
+    //   Upgraded Effect: Gain star. Next turn, gain 4 star.
 
     // TODO: Know Thy Place (Common) - 0 energy, Skill
     //   Effect: Apply 1 Weak. Apply 1 Vulnerable. Exhaust.
@@ -114,8 +114,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Gain 3 energy.
 
     // TODO: Black Hole (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you spend or gain star , deal 3 damage to ALL enemies.
-    //   Upgraded Effect: Whenever you spend or gain star , deal 4 damage to ALL enemies.
+    //   Effect: Whenever you spend or gain star, deal 3 damage to ALL enemies.
+    //   Upgraded Effect: Whenever you spend or gain star, deal 4 damage to ALL enemies.
 
     // TODO: Bulwark (Uncommon) - 2 energy, Skill
     //   Effect: Gain 13 Block. Forge 10.
@@ -126,8 +126,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes+.
 
     // TODO: Child of the Stars (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you spend 2 star , gain 2 Block for each   spent.
-    //   Upgraded Effect: Whenever you spend 2 star , gain 3 Block for each   spent.
+    //   Effect: Whenever you spend star, gain 2 Block for each star spent.
+    //   Upgraded Effect: Whenever you spend star, gain 3 Block for each star spent.
 
     // TODO: Conqueror (Uncommon) - 1 energy, Skill
     //   Effect: Forge 3. Sovereign Blade deals double damage to the enemy this turn.
@@ -186,8 +186,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Retain. Whenever you play a card this turn, gain 1 Strength this turn.
 
     // TODO: Orbit (Uncommon) - 2 energy, Power
-    //   Effect: Every 42 energy you spend, gain .
-    //   Upgraded Effect (1 energy): Every 42 energy you spend, gain .
+    //   Effect: Every 4 energy you spend, gain 1 energy.
+    //   Upgraded Effect (1 energy): Every 4 energy you spend, gain 1 energy.
 
     // TODO: Pale Blue Dot (Uncommon) - 1 energy, Power
     //   Effect: If you play 5 or more cards in a turn, draw 1 card at the start of your next turn.
@@ -214,8 +214,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Choose 1 of 3 random Upgraded Colorless cards to add into your Hand.
 
     // TODO: Radiate (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 3 damage to ALL enemies for each star  gained this turn.
-    //   Upgraded Effect: Deal 4 damage to ALL enemies for each star  gained this turn.
+    //   Effect: Deal 3 damage to ALL enemies for each star gained this turn.
+    //   Upgraded Effect: Deal 4 damage to ALL enemies for each star gained this turn.
 
     // TODO: Reflect (Uncommon) - 1 energy, Skill
     //   Effect: Gain 17 Block. Blocked attack damage is reflected to your attacker this turn.

@@ -128,7 +128,7 @@ public class Relic2 {
     }
 
     // TODO: Venerable Tea Set (Common)
-    //   Effect: Whenever you enter a Rest Site, start the next combat with an additional 2 energy .
+    //   Effect: Whenever you enter a Rest Site, start the next combat with an additional 2 energy.
 
     public static class WarPaint extends Relic.WarPaint {
     }
@@ -239,7 +239,7 @@ public class Relic2 {
     }
 
     // TODO: Miniature Cannon (Uncommon)
-    //   Effect: Upgrade Attacks deal 3 additional damage.
+    //   Effect: Upgraded Attacks deal 3 additional damage.
 
     public static class Nunchaku extends Relic.Nunchaku {
         public Nunchaku(int n, int healthReward) {
@@ -510,7 +510,7 @@ public class Relic2 {
     // No need to implement Prayer Wheel: Normal enemies drop an additional card reward.
 
     // TODO: Rainbow Ring (Rare)
-    //   Effect: The first time you play an Attack, Skill, and Powers each turn, gain 1 Strength and 1 Dexterity.
+    //   Effect: The first time you play an Attack, Skill, and Power each turn, gain 1 Strength and 1 Dexterity.
 
     // TODO: Razor Tooth (Rare)
     //   Effect: Every time you play an Attack or Skill, Upgrade it for the remainder of combat.
@@ -540,7 +540,7 @@ public class Relic2 {
     //   Effect: Each combat, the first time you play a card that Debuffs an enemy, double its effect.
 
     // TODO: Vexing Puzzlebox (Rare)
-    //   Effect: At the start of each combat, add a random card into your Hand. It costs 0energy.
+    //   Effect: At the start of each combat, add a random card into your Hand. It costs 0 energy.
 
     // No need to implement White Beast Statue: Potions always appear in combat rewards.
 
@@ -554,7 +554,7 @@ public class Relic2 {
     //   Effect: While you have no potions, you have 2 additional Dexterity.
 
     // TODO: Bread (Shop)
-    //   Effect: At the start of your first turn, lose [E 2 energy. At the start of all other turns, gain .
+    //   Effect: At the start of your first turn, lose 2 energy. At the start of all other turns, gain energy.
 
     // TODO: Burning Sticks (Shop)
     //   Effect: The first time each combat you Exhaust a Skill, add a copy of it into your Hand.
@@ -781,7 +781,7 @@ public class Relic2 {
     // No need to implement Claws: Upon pickup, Transform up to 6 cards into Maul.
 
     // TODO: Crossbow (Ancient)
-    //   Effect: At the start of your turn, add a random Attack into your Hand. It costs 0energy this turn.
+    //   Effect: At the start of your turn, add a random Attack into your Hand. It costs 0 energy this turn.
 
     // No need to implement Cursed Pearl: Upon pickup, receive Greed. Gain 333 Gold.
 
@@ -879,7 +879,7 @@ public class Relic2 {
     //   Effect: Doubles Block gained from a card, then goes to sleep for 2 turns.
 
     // TODO: Pael's Tears (Ancient)
-    //   Effect: If you end your turn with unspent 3 energy, gain an additional   next turn.
+    //   Effect: If you end your turn with unspent energy, gain an additional 2 energy next turn.
 
     // No need to implement Pael's Tooth: Upon pickup, remove 5 cards from your Deck. After each combat, randomly add 1 back Upgrade.
 
@@ -943,7 +943,7 @@ public class Relic2 {
     }
 
     // TODO: Spiked Gauntlets (Ancient)
-    //   Effect: Gain 2 energy at the start of each turn. Powers cost 1 more .
+    //   Effect: Gain energy at the start of each turn. Powers cost 1 more energy.
 
     // No need to implement Stone Humidifier: Whenever you Rest at a Rest Site, raise your Max HP by 5.
 
@@ -968,7 +968,7 @@ public class Relic2 {
     }
 
     // TODO: Very Hot Cocoa (Ancient)
-    //   Effect: Start each combat with an additional 4energy.
+    //   Effect: Start each combat with an additional 4 energy.
 
     // No need to implement War Hammer: Whenever you kill an Elite, Upgrade 4 random cards.
 
@@ -1155,13 +1155,13 @@ public class Relic2 {
     //   Effect: At the start of your turn, Summon 1.
 
     // TODO: Funerary Mask (Uncommon)
-    //   Effect: At the start of each combat, add 3  Souls into your Draw Pile.
+    //   Effect: At the start of each combat, add 3 Souls into your Draw Pile.
 
     // TODO: Ivory Tile (Rare)
-    //   Effect: Whenever you play a card that costs 4 energy   or more, gain .
+    //   Effect: Whenever you play a card that costs 3 energy or more, gain energy.
 
     // TODO: Phylactery Unbound (Starter)
-    //   Effect: At the start of each combat, 2 Summon 5. At the start of your turn,  2.
+    //   Effect: At the start of each combat, Summon 5. At the start of your turn, Summon 2.
 
     // TODO: Undying Sigil (Shop)
     //   Effect: Enemies with at least as much Doom as HP deal 50% less damage.

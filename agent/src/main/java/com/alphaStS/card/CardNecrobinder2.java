@@ -303,7 +303,7 @@ public class CardNecrobinder2 {
 
     // TODO: Neurosurge (Rare) - 0 energy, Power
     //   Effect: Gain 3 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
-    //   Upgraded Effect: Gain 4energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
+    //   Upgraded Effect: Gain 4 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
 
     // TODO: Oblivion (Rare) - 0 energy, Skill
     //   Effect: Whenever you play a card this turn, apply 3 Doom to the enemy.
