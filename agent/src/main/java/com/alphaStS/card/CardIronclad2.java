@@ -1235,31 +1235,11 @@ public class CardIronclad2 {
 
         @Override public int energyCost(GameState state) {
             if (state == null) return 3;
-            return Math.max(0, 3 - state.getCounterForRead()[counterIdx]);
+            return Math.max(0, 3 - state.getCounterForRead()[state.properties.attacksPlayedThisTurnCounterIdx]);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("Stomp", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addOnCardPlayedHandler("Stomp", new GameEventCardHandler() {
-                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
-                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        state.getCounterForWrite()[counterIdx]++;
-                    }
-                }
-            });
-            state.properties.addStartOfTurnHandler("Stomp", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    state.getCounterForWrite()[counterIdx] = 0;
-                }
-            });
+            state.properties.registerAttacksPlayedThisTurnCounter();
         }
     }
 
@@ -1450,9 +1430,83 @@ public class CardIronclad2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Aggression (Rare) - 1 energy, Power
-    //   Effect: At the start of your turn, put a random Attack from your Discard Pile into your Hand and Upgrade it.
-    //   Upgraded Effect: Innate. At the start of your turn, put a random Attack from your Discard Pile into your Hand and Upgrade it.
+    private static abstract class _AggressionT extends Card {
+        public _AggressionT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Aggression", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Aggression", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int n = state.getCounterForRead()[counterIdx];
+                    for (int j = 0; j < n; j++) {
+                        if (state.handArrLen >= GameState.HAND_LIMIT) {
+                            return;
+                        }
+                        var discardArr = state.getDiscardArrForRead();
+                        int discardLen = state.getNumCardsInDiscard();
+                        var attackIdxes = new ArrayList<Integer>();
+                        for (int i = 0; i < discardLen; i++) {
+                            if (state.properties.cardDict[discardArr[i]].cardType == Card.ATTACK) {
+                                attackIdxes.add(i);
+                            }
+                        }
+                        if (attackIdxes.isEmpty()) {
+                            return;
+                        }
+                        int posInDiscard;
+                        if (attackIdxes.size() > 1) {
+                            state.setIsStochastic();
+                            int pick = state.getSearchRandomGen().nextInt(attackIdxes.size(), RandomGenCtx.RandomCardDiscardAggression);
+                            posInDiscard = attackIdxes.get(pick);
+                        } else {
+                            posInDiscard = attackIdxes.get(0);
+                        }
+                        int cardIdx = discardArr[posInDiscard];
+                        state.removeCardFromDiscardByPosition(posInDiscard);
+                        int upgradedIdx = state.properties.upgradeIdxes[cardIdx];
+                        state.addCardToHand(upgradedIdx >= 0 ? upgradedIdx : cardIdx);
+                    }
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream()
+                    .filter(c -> c.cardType == Card.ATTACK)
+                    .map(Card::getUpgrade)
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+        }
+    }
+
+    public static class Aggression extends _AggressionT {
+        public Aggression() {
+            super("Aggression", false);
+        }
+    }
+
+    public static class AggressionP extends _AggressionT {
+        public AggressionP() {
+            super("Aggression+", true);
+        }
+    }
 
     public static class Barricade extends CardIronclad.Barricade {
     }
@@ -1464,21 +1518,167 @@ public class CardIronclad2 {
     //   Effect: Lose 1 HP. Exhaust 1 card. Gain 1 Strength.
     //   Upgraded Effect: Lose 1 HP. Exhaust 1 card. Gain 2 Strength.
 
-    // TODO: Cascade (Rare) - X energy, Skill
-    //   Effect: Play the top X cards of your Draw Pile.
-    //   Upgraded Effect: Play the top X+1 cards of your Draw Pile.
+    private static abstract class _CascadeT extends Card {
+        private final int extraCards;
 
-    // TODO: Colossus (Rare) - 1 energy, Skill
-    //   Effect: Gain 5 Block. You receive 50% less damage from Vulnerable enemies this turn.
-    //   Upgraded Effect: Gain 8 Block. You receive 50% less damage from Vulnerable enemies this turn.
+        public _CascadeT(String cardName, int extraCards) {
+            super(cardName, Card.SKILL, -1, Card.RARE);
+            isXCost = true;
+            this.extraCards = extraCards;
+        }
 
-    // TODO: Conflagration (Rare) - 1 energy, Attack
-    //   Effect: Deal 8 damage to ALL enemies. Deals 2 additional damage for each other Attack you've played this turn.
-    //   Upgraded Effect: Deal 9 damage to ALL enemies. Deals 3 additional damage for each other Attack you've played this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.properties.playCardOnTopOfDeckCounterIdx] += energyUsed + extraCards;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Crimson Mantle (Rare) - 1 energy, Power
-    //   Effect: At the start of your turn, lose 1 HP and gain 8 Block.
-    //   Upgraded Effect: At the start of your turn, lose 1 HP and gain 10 Block.
+        public int energyCost(GameState state) {
+            return state.energy;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlayCardOnTopOfDeckCounter();
+        }
+    }
+
+    public static class Cascade extends _CascadeT {
+        public Cascade() {
+            super("Cascade", 0);
+        }
+    }
+
+    public static class CascadeP extends _CascadeT {
+        public CascadeP() {
+            super("Cascade+", 1);
+        }
+    }
+
+    private static abstract class _ColossusT extends Card {
+        private final int block;
+
+        public _ColossusT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.block = block;
+            entityProperty.possibleBuffs |= PlayerBuff.COLOSSUS.mask();
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.buffs |= PlayerBuff.COLOSSUS.mask();
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Colossus", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.buffs &= ~PlayerBuff.COLOSSUS.mask();
+                }
+            });
+        }
+    }
+
+    public static class Colossus extends _ColossusT {
+        public Colossus() {
+            super("Colossus", 5);
+        }
+    }
+
+    public static class ColossusP extends _ColossusT {
+        public ColossusP() {
+            super("Colossus+", 8);
+        }
+    }
+
+    private static abstract class _ConflagrationT extends Card {
+        private final int baseDamage;
+        private final int bonusPerAttack;
+
+        public _ConflagrationT(String cardName, int baseDamage, int bonusPerAttack) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.baseDamage = baseDamage;
+            this.bonusPerAttack = bonusPerAttack;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int attacksPlayed = state.getCounterForRead()[state.properties.attacksPlayedThisTurnCounterIdx];
+            int damage = baseDamage + bonusPerAttack * attacksPlayed;
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerAttacksPlayedThisTurnCounter();
+        }
+    }
+
+    public static class Conflagration extends _ConflagrationT {
+        public Conflagration() {
+            super("Conflagration", 8, 2);
+        }
+    }
+
+    public static class ConflagrationP extends _ConflagrationT {
+        public ConflagrationP() {
+            super("Conflagration+", 9, 3);
+        }
+    }
+
+    private static abstract class _CrimsonMantleT extends Card {
+        private final int block;
+
+        public _CrimsonMantleT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1 << 16;
+            state.getCounterForWrite()[counterIdx] += block;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            var _this = this;
+            var name = cardName.endsWith("+") ? cardName.substring(0, cardName.length() - 1) : cardName;
+            state.properties.registerCounter(name, this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    int counter = state.getCounterForRead()[counterIdx];
+                    input[idx] = (counter >> 16) / 2.0f;
+                    input[idx + 1] = (counter & ((1 << 16) - 1)) / 20.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.properties.addStartOfTurnHandler(name, new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    var counter = state.getCounterForRead()[counterIdx];
+                    var selfDmg = counter >> 16;
+                    var blockAmount = counter & ((1 << 16) - 1);
+                    if (selfDmg > 0) {
+                        state.doNonAttackDamageToPlayer(selfDmg, false, _this);
+                        state.getPlayerForWrite().gainBlock(blockAmount);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class CrimsonMantle extends _CrimsonMantleT {
+        public CrimsonMantle() {
+            super("Crimson Mantle", 8);
+        }
+    }
+
+    public static class CrimsonMantleP extends _CrimsonMantleT {
+        public CrimsonMantleP() {
+            super("Crimson Mantle+", 10);
+        }
+    }
 
     // TODO: Cruelty (Rare) - 1 energy, Power
     //   Effect: Vulnerable enemies take an additional 25% damage.
@@ -1508,9 +1708,71 @@ public class CardIronclad2 {
     public static class FiendFireP extends CardIronclad.FiendFireP {
     }
 
-    // TODO: Hellraiser (Rare) - 2 energy, Power
-    //   Effect: Whenever you draw a card containing "Strike", it is played against a random enemy.
-    //   Upgraded Effect (1 energy): Whenever you draw a card containing "Strike", it is played against a random enemy.
+    private static abstract class _HellraiserT extends Card {
+        public _HellraiserT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Hellraiser", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            var isStrike = new boolean[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.strikeCardIdxes.length; i++) {
+                isStrike[state.properties.strikeCardIdxes[i]] = true;
+            }
+            state.properties.addOnCardDrawnHandler("Hellraiser", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0 && isStrike[cardIdx]) {
+                        state.addGameActionToStartOfDeque(new GameEnvironmentAction() {
+                            @Override public void doAction(GameState state) {
+                                if (!state.removeCardFromHand(cardIdx)) {
+                                    return;
+                                }
+                                var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                                state.playCard(action, -1, true, null, false, true, -1, -1);
+                                while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                                    int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                                    if (state.properties.makingRealMove || state.properties.stateDescOn) {
+                                        state.getStateDesc().append(" -> ").append(state.getEnemiesForRead().get(enemyIdx).getName()).append(" (").append(enemyIdx).append(")");
+                                    }
+                                    state.playCard(action, enemyIdx, true, null, false, true, -1, -1);
+                                }
+                            }
+
+                            @Override public boolean canHappenInsideCardPlay() {
+                                return true;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Hellraiser extends _HellraiserT {
+        public Hellraiser() {
+            super("Hellraiser", 2);
+        }
+    }
+
+    public static class HellraiserP extends _HellraiserT {
+        public HellraiserP() {
+            super("Hellraiser+", 1);
+        }
+    }
 
     public static class Impervious extends CardIronclad.Impervious {
     }
@@ -1524,9 +1786,38 @@ public class CardIronclad2 {
     public static class JuggernautP extends CardIronclad.JuggernautP {
     }
 
-    // TODO: Mangle (Rare) - 3 energy, Attack
-    //   Effect: Deal 15 damage. Enemy loses 10 Strength this turn.
-    //   Upgraded Effect: Deal 20 damage. Enemy loses 15 Strength this turn.
+    private static abstract class _MangleT extends Card {
+        private final int damage;
+        private final int strengthLoss;
+
+        public _MangleT(String cardName, int damage, int strengthLoss) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.damage = damage;
+            this.strengthLoss = strengthLoss;
+            entityProperty.selectEnemy = true;
+            entityProperty.affectEnemyStrength = true;
+            entityProperty.affectEnemyStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strengthLoss);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Mangle extends _MangleT {
+        public Mangle() {
+            super("Mangle", 15, 10);
+        }
+    }
+
+    public static class MangleP extends _MangleT {
+        public MangleP() {
+            super("Mangle+", 20, 15);
+        }
+    }
 
     public static class Offering extends CardIronclad.Offering {
     }

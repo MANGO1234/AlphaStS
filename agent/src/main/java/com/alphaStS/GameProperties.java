@@ -171,6 +171,7 @@ public class GameProperties implements Cloneable {
 
     // cached counter indexes
     public int accuracyCounterIdx = -1;
+    public int attacksPlayedThisTurnCounterIdx = -1;
     public int biasedCognitionLimitCounterIdx = -1;
     public int blizzardCounterIdx = -1;
     public int bloodForBloodCounterIdx = -1;
@@ -705,6 +706,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant AttacksPlayedThisTurnCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.attacksPlayedThisTurnCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.attacksPlayedThisTurnCounterIdx;
+        }
+    };
+
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -836,6 +846,31 @@ public class GameProperties implements Cloneable {
                 if (state.getCounterForRead()[state.properties.platingCounterIdx] > 0) {
                     state.getCounterForWrite()[state.properties.platingCounterIdx]--;
                 }
+            }
+        });
+    }
+
+    public void registerAttacksPlayedThisTurnCounter() {
+        registerCounter("AttacksPlayedThisTurn", AttacksPlayedThisTurnCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.attacksPlayedThisTurnCounterIdx] / 3.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addOnCardPlayedHandler("AttacksPlayedThisTurn", new GameEventCardHandler() {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                    state.getCounterForWrite()[state.properties.attacksPlayedThisTurnCounterIdx]++;
+                }
+            }
+        });
+        addStartOfTurnHandler("AttacksPlayedThisTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.attacksPlayedThisTurnCounterIdx] = 0;
             }
         });
     }

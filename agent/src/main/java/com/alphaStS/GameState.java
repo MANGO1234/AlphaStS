@@ -3868,6 +3868,9 @@ public final class GameState implements State {
         if (enemy.getWeak() > 0) {
             dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
         }
+        if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
+            dmg *= 0.5;
+        }
         if (properties.shieldAndSpireFacingCounterIdx >= 0) {
             if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
                 dmg *= 1.5;
@@ -3907,6 +3910,9 @@ public final class GameState implements State {
         }
         if (enemy.getWeak() > 0) {
             dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
+        }
+        if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
+            dmg *= 0.5;
         }
         if (properties.shieldAndSpireFacingCounterIdx >= 0) {
             if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {

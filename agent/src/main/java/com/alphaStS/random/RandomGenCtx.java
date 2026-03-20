@@ -19,6 +19,7 @@ public enum RandomGenCtx {
     Snecko,
     EntropicBrew,
     RandomCardGen,
+    RandomCardDiscardAggression,
     SelectCard1OutOf3,
     RandomEnemyHealth,
     Misc,
