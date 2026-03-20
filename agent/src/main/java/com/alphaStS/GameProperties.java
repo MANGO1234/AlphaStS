@@ -227,6 +227,7 @@ public class GameProperties implements Cloneable {
     public int velvetChokerCounterIdx = -1;
     public int wellLaidPlansCounterIdx = -1;
     public int wreathOfFlameCounterIdx = -1;
+    public int crueltyCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
     public Relic blackBlood = null;

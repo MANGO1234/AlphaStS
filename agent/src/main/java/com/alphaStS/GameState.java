@@ -3771,7 +3771,11 @@ public final class GameState implements State {
             dmg += counter[properties.wreathOfFlameCounterIdx];
         }
         if (enemy.getVulnerable() > 0) {
-            dmg = dmg * (properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(this) ? 1.75 : 1.5);
+            double vulnMult = properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(this) ? 1.75 : 1.5;
+            if (properties.crueltyCounterIdx >= 0 && counter[properties.crueltyCounterIdx] > 0) {
+                vulnMult += counter[properties.crueltyCounterIdx] / 100.0;
+            }
+            dmg = dmg * vulnMult;
         }
         if (player.getWeak() > 0) {
             dmg = dmg * 0.75;

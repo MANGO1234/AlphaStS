@@ -1514,9 +1514,40 @@ public class CardIronclad2 {
     public static class BarricadeP extends CardIronclad.BarricadeP {
     }
 
-    // TODO: Brand (Rare) - 0 energy, Skill
-    //   Effect: Lose 1 HP. Exhaust 1 card. Gain 1 Strength.
-    //   Upgraded Effect: Lose 1 HP. Exhaust 1 card. Gain 2 Strength.
+    private static abstract class _BrandT extends Card {
+        private final int strength;
+
+        public _BrandT(String cardName, int strength) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.strength = strength;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+            canExhaustAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.doNonAttackDamageToPlayer(1, false, this);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.exhaustCardFromHand(idx);
+                state.getPlayerForWrite().gainStrength(strength);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Brand extends _BrandT {
+        public Brand() {
+            super("Brand", 1);
+        }
+    }
+
+    public static class BrandP extends _BrandT {
+        public BrandP() {
+            super("Brand+", 2);
+        }
+    }
 
     private static abstract class _CascadeT extends Card {
         private final int extraCards;
@@ -1680,9 +1711,46 @@ public class CardIronclad2 {
         }
     }
 
-    // TODO: Cruelty (Rare) - 1 energy, Power
-    //   Effect: Vulnerable enemies take an additional 25% damage.
-    //   Upgraded Effect: Vulnerable enemies take an additional 50% damage.
+    private static abstract class _CrueltyT extends Card {
+        private final int bonusPct;
+
+        public _CrueltyT(String cardName, int bonusPct) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.bonusPct = bonusPct;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += bonusPct;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Cruelty", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.crueltyCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Cruelty extends _CrueltyT {
+        public Cruelty() {
+            super("Cruelty", 25);
+        }
+    }
+
+    public static class CrueltyP extends _CrueltyT {
+        public CrueltyP() {
+            super("Cruelty+", 50);
+        }
+    }
 
     public static class DarkEmbrace extends CardIronclad.DarkEmbrace {
     }
@@ -1825,29 +1893,194 @@ public class CardIronclad2 {
     public static class OfferingP extends CardIronclad.OfferingP {
     }
 
-    // TODO: One-Two Punch (Rare) - 1 energy, Skill
-    //   Effect: This turn, your next Attack is played an extra time.
-    //   Upgraded Effect: This turn, your next 2 Attacks are played an extra time.
+    private static abstract class _OneTwoPunchT extends Card {
+        private final int n;
 
-    // TODO: Pact's End (Rare) - 0 energy, Attack
-    //   Effect: Can only be played if you have 3 or more cards in your Exhaust Pile. Deal 17 damage to ALL enemies.
-    //   Upgraded Effect: Can only be played if you have 3 or more cards in your Exhaust Pile. Deal 23 damage to ALL enemies.
+        public _OneTwoPunchT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.n = n;
+        }
 
-    // TODO: Primal Force (Rare) - 0 energy, Skill
-    //   Effect: Transform all Attacks in your Hand into Giant Rock.
-    //   Upgraded Effect: Transform all Attacks in your Hand into Giant Rock+.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Pyre (Rare) - 2 energy, Power
-    //   Effect: Gain energy at the start of each turn.
-    //   Upgraded Effect: Gain 2 energy at the start of each turn.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("OneTwoPunch", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("OneTwoPunch", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    var card = state.properties.cardDict[cardIdx];
+                    if (cloneSource != null || card.cardType != Card.ATTACK) {
+                        return;
+                    } else if (state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    var counters = state.getCounterForWrite();
+                    counters[counterIdx] -= 1;
+                    state.addGameActionToEndOfDeque(curState -> {
+                        var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                        curState.playCard(action, lastIdx, true, OneTwoPunch.class, false, false, energyUsed, cloneParentLocation);
+                    });
+                }
+            });
+            state.properties.addEndOfTurnHandler("OneTwoPunch", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Stoke (Rare) - 1 energy, Skill
-    //   Effect: Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
-    //   Upgraded Effect (0 energy): Exhaust your Hand. Draw a card for each card Exhausted. Exhaust.
+    public static class OneTwoPunch extends _OneTwoPunchT {
+        public OneTwoPunch() {
+            super("One-Two Punch", 1);
+        }
+    }
 
-    // TODO: Tank (Rare) - 1 energy, Power
-    //   Effect: Take double damage from enemies. Allies take half damage from enemies.
-    //   Upgraded Effect (0 energy): Take double damage from enemies. Allies take half damage from enemies.
+    public static class OneTwoPunchP extends _OneTwoPunchT {
+        public OneTwoPunchP() {
+            super("One-Two Punch+", 2);
+        }
+    }
+
+    private static abstract class _PactsEndT extends Card {
+        private final int damage;
+
+        public _PactsEndT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            if (state == null) return 0;
+            return state.getNumCardsInExhaust() >= 3 ? 0 : -1;
+        }
+    }
+
+    public static class PactsEnd extends _PactsEndT {
+        public PactsEnd() {
+            super("Pact's End", 17);
+        }
+    }
+
+    public static class PactsEndP extends _PactsEndT {
+        public PactsEndP() {
+            super("Pact's End+", 23);
+        }
+    }
+
+    private static abstract class _PrimalForceT extends Card {
+        public _PrimalForceT(String cardName) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var handArr = state.getHandArrForWrite();
+            for (int i = 0; i < state.handArrLen; i++) {
+                if (state.properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
+                    handArr[i] = (short) generatedCardIdx;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class PrimalForce extends _PrimalForceT {
+        public PrimalForce() {
+            super("Primal Force");
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.GiantRock());
+        }
+    }
+
+    public static class PrimalForceP extends _PrimalForceT {
+        public PrimalForceP() {
+            super("Primal Force+");
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.GiantRockP());
+        }
+    }
+
+    private static abstract class _PyreT extends Card {
+        private final int energy;
+
+        public _PyreT(String cardName, int energy) {
+            super(cardName, Card.POWER, 2, Card.RARE);
+            this.energy = energy;
+            this.entityProperty.changeEnergyRefill = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.energyRefill += energy;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Pyre extends _PyreT {
+        public Pyre() {
+            super("Pyre", 1);
+        }
+    }
+
+    public static class PyreP extends _PyreT {
+        public PyreP() {
+            super("Pyre+", 2);
+        }
+    }
+
+    private static abstract class _StokeT extends Card {
+        public _StokeT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            exhaustWhenPlayed = true;
+            canExhaustAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int c = state.handArrLen;
+            for (int i = 0; i < c; i++) {
+                state.exhaustCardFromHandByPosition(i, false);
+            }
+            state.updateHandArr();
+            state.draw(c);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Stoke extends _StokeT {
+        public Stoke() {
+            super("Stoke", 1);
+        }
+    }
+
+    public static class StokeP extends _StokeT {
+        public StokeP() {
+            super("Stoke+", 0);
+        }
+    }
+
+    // No need to implement Tank: Multiplayer
 
     // TODO: Tear Asunder (Rare) - 2 energy, Attack
     //   Effect: Deal 5 damage. Hits an additional time for each time you lost HP this combat.
