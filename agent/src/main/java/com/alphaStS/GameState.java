@@ -1222,6 +1222,9 @@ public final class GameState implements State {
             }
             if (!properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                 energy -= realEnergyCost;
+                for (int i = 0; i < properties.onEnergySpendHandlers.size(); i++) {
+                    properties.onEnergySpendHandlers.get(i).handle(this, realEnergyCost);
+                }
             }
             if (cardIdx >= properties.realCardsLen) {
                 cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
@@ -1483,6 +1486,9 @@ public final class GameState implements State {
             if (cardPlayedSuccessfully) {
                 if (properties.cardDict[cardIdx].delayUseEnergy && useEnergy) {
                     energy -= realEnergyCost;
+                    for (int i = 0; i < properties.onEnergySpendHandlers.size(); i++) {
+                        properties.onEnergySpendHandlers.get(i).handle(this, realEnergyCost);
+                    }
                 }
                 runActionsInQueueIfNonEmpty();
             }
@@ -3508,6 +3514,13 @@ public final class GameState implements State {
         discardCloned = true;
     }
 
+    public int createCard(int cardIdx) {
+        for (int i = 0; i < properties.onCardCreationHandlers.size(); i++) {
+            properties.onCardCreationHandlers.get(i).handle(this, cardIdx);
+        }
+        return cardIdx;
+    }
+
     public void removeCardFromDiscard(int cardIndex) {
         for (int i = discardArrLen - 1; i >= 0; i--) {
             if (discardArr[i] == cardIndex) {
@@ -4308,11 +4321,10 @@ public final class GameState implements State {
         }
     }
 
-    public void triggerRightmostOrbActive() {
-        if (orbs == null) return;
-        if (orbs[0] == OrbType.FROST.ordinal()) {
+    private void triggerOrbActive(int i) {
+        if (orbs[i] == OrbType.FROST.ordinal()) {
             getPlayerForWrite().gainBlockNotFromCardPlay(5 + focus);
-        } else if (orbs[0] == OrbType.LIGHTNING.ordinal()) {
+        } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
             if (properties.electrodynamicsCounterIdx >= 0 && getCounterForRead()[properties.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
                     int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
@@ -4335,7 +4347,7 @@ public final class GameState implements State {
                     }
                 }
             }
-        } else if (orbs[0] == OrbType.DARK.ordinal()) {
+        } else if (orbs[i] == OrbType.DARK.ordinal()) {
             Enemy minEnemy = null;
             for (var enemy : getEnemiesForWrite().iterateOverAlive()) {
                 if (minEnemy == null || minEnemy.getHealth() > enemy.getHealth()) {
@@ -4343,15 +4355,20 @@ public final class GameState implements State {
                 }
             }
             if (minEnemy != null) {
-                playerDoNonAttackDamageToEnemy(minEnemy, orbs[1], true);
+                playerDoNonAttackDamageToEnemy(minEnemy, orbs[i + 1], true);
             }
-        } else if (orbs[0] == OrbType.PLASMA.ordinal()) {
+        } else if (orbs[i] == OrbType.PLASMA.ordinal()) {
             gainEnergy(2);
-        } else if (orbs[0] == OrbType.GLASS.ordinal()) {
+        } else if (orbs[i] == OrbType.GLASS.ordinal()) {
             for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
-                playerDoNonAttackDamageToEnemy(enemy, orbs[1], true);
+                playerDoNonAttackDamageToEnemy(enemy, orbs[i + 1], true);
             }
         }
+    }
+
+    public void triggerRightmostOrbActive() {
+        if (orbs == null) return;
+        triggerOrbActive(0);
     }
 
     public void triggerLightningOrbsAgainstEnemy(int targetIdx) {
@@ -4373,6 +4390,18 @@ public final class GameState implements State {
         System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
         orbs[orbs.length - 2] = 0;
         orbs[orbs.length - 1] = 0;
+    }
+
+    public void evokeOrbLeft() {
+        if (orbs == null) return;
+        for (int i = orbs.length - 2; i >= 0; i -= 2) {
+            if (orbs[i] != 0) {
+                triggerOrbActive(i);
+                orbs[i] = 0;
+                orbs[i + 1] = 0;
+                return;
+            }
+        }
     }
 
     public void removeRightmostOrb() {

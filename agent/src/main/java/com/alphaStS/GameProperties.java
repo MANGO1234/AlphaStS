@@ -11,7 +11,9 @@ import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnCardCreationHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
+import com.alphaStS.eventHandler.OnEnergySpendHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.utils.CounterStat;
@@ -154,6 +156,7 @@ public class GameProperties implements Cloneable {
     public int[] sandsOfTimeTransformIndexes;
     public int[] steamBarrierPTransformIndexes;
     public int[] steamBarrierTransformIndexes;
+    public int[] moddedTransformIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] strikeCardIdxes;
@@ -520,6 +523,8 @@ public class GameProperties implements Cloneable {
     public List<GameEventCardHandler> onCardPlayedHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onCardDrawnHandlers = new ArrayList<>();
     public List<GameEventCardHandler> onRetainHandlers = new ArrayList<>();
+    public List<OnCardCreationHandler> onCardCreationHandlers = new ArrayList<>();
+    public List<OnEnergySpendHandler> onEnergySpendHandlers = new ArrayList<>();
 
     private <T> void addHandler(String key, T handler, List<T> handlerList) {
         if (gameEventHandlers.get(key) == null) {
@@ -666,6 +671,14 @@ public class GameProperties implements Cloneable {
 
     public void addOnRetainHandler(String handlerName, GameEventCardHandler handler) {
         addHandler(handlerName + "OnRetain", handler, onRetainHandlers);
+    }
+
+    public void addOnCardCreationHandler(String handlerName, OnCardCreationHandler handler) {
+        addHandler(handlerName + "OnCardCreation", handler, onCardCreationHandlers);
+    }
+
+    public void addOnEnergySpendHandler(String handlerName, OnEnergySpendHandler handler) {
+        addHandler(handlerName + "OnEnergySpend", handler, onEnergySpendHandlers);
     }
 
     public void addOnShuffleHandler(GameEventHandler handler) {
