@@ -1140,6 +1140,18 @@ public final class GameState implements State {
         return cardIdx;
     }
 
+    public int takeRandomCardFromDeck() {
+        if (deckArrLen == 0) {
+            return -1;
+        }
+        setIsStochastic();
+        int idx = getSearchRandomGen().nextInt(deckArrLen, RandomGenCtx.CardDraw);
+        int cardIdx = deckArr[idx];
+        getDeckArrForWrite()[idx] = deckArr[deckArrLen - 1];
+        deckArrLen--;
+        return cardIdx;
+    }
+
     private boolean isCardPlayBlocked() {
         return (properties.timeEaterCounterIdx >= 0 && counter[properties.timeEaterCounterIdx] >= 12) ||
             (properties.normalityCounterIdx >= 0 && counter[properties.normalityCounterIdx] >= 3 && GameStateUtils.getCardCount(getHandArrForRead(), handArrLen, properties.normalityCardIdx) > 0) ||
@@ -3801,8 +3813,8 @@ public final class GameState implements State {
         if (properties.phantasmalKillerCounterIdx >= 0 && (counter[properties.phantasmalKillerCounterIdx] & ((1 << 8) - 1)) > 0) {
             dmg *= 2;
         }
-        if (properties.wreathOfFlameCounterIdx >= 0 && counter[properties.wreathOfFlameCounterIdx] > 0) {
-            dmg += counter[properties.wreathOfFlameCounterIdx];
+        if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
+            dmg += counter[properties.vigorCounterIdx];
         }
         if (enemy.getVulnerable() > 0) {
             double vulnMult = properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(this) ? 1.75 : 1.5;

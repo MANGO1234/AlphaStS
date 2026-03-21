@@ -373,24 +373,7 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("DodgeAndRoll", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
-                    return idx + 1;
-                }
-
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addStartOfTurnHandler("DodgeAndRoll", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
-                        state.getCounterForWrite()[counterIdx] = 0;
-                    }
-                }
-            });
+            state.properties.registerBlockNextTurnCounter(this);
         }
     }
 

@@ -1,7 +1,11 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.action.CatastropheAction;
+import com.alphaStS.action.CatastropheContinueAction;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 
 public class CardColorless2 {
@@ -9,21 +13,97 @@ public class CardColorless2 {
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Automation (Uncommon) - 1 energy, Power
-    //   Effect: Every 10 cards you draw, gain energy.
-    //   Upgraded Effect (0 energy): Every 10 cards you draw, gain energy.
+    private static abstract class _AutomationT extends Card {
+        public _AutomationT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+        }
 
-    // TODO: Believe in You (Uncommon) - 0 energy, Skill
-    //   Effect: Another player gains 3 energy.
-    //   Upgraded Effect: Another player gains 4 energy.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Catastrophe (Uncommon) - 2 energy, Skill
-    //   Effect: Play 2 random cards from your Draw Pile.
-    //   Upgraded Effect: Play 3 random cards from your Draw Pile.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Automation", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Coordinate (Uncommon) - 1 energy, Skill
-    //   Effect: Give another player 5 Strength this turn.
-    //   Upgraded Effect: Give another player 8 Strength this turn.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardDrawnHandler("Automation", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    state.getCounterForWrite()[counterIdx]++;
+                    if (state.getCounterForRead()[counterIdx] == 10) {
+                        state.gainEnergy(1);
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Automation extends _AutomationT {
+        public Automation() {
+            super("Automation", 1);
+        }
+    }
+
+    public static class AutomationP extends _AutomationT {
+        public AutomationP() {
+            super("Automation+", 0);
+        }
+    }
+
+    // No need to implement Believe in You: Multiplayer
+
+    private static abstract class _CatastropheT extends Card {
+        private final int numCards;
+
+        public _CatastropheT(String cardName, int numCards) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.numCards = numCards;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = numCards;
+            state.addGameActionToStartOfDeque(new CatastropheContinueAction());
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Catastrophe", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.catastropheCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Catastrophe extends _CatastropheT {
+        public Catastrophe() {
+            super("Catastrophe", 2);
+        }
+    }
+
+    public static class CatastropheP extends _CatastropheT {
+        public CatastropheP() {
+            super("Catastrophe+", 3);
+        }
+    }
+
+    // No need to implement Coordinate: Multiplayer
 
     public static class DarkShackles extends CardColorless.DarkShackles {
     }
@@ -49,13 +129,54 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Equilibrium (Uncommon) - 2 energy, Skill
-    //   Effect: Gain 13 Block. Retain your Hand this turn.
-    //   Upgraded Effect: Gain 16 Block. Retain your Hand this turn.
+    public static class Equilibrium extends CardDefect.Equilibrium {
+    }
 
-    // TODO: Fasten (Uncommon) - 1 energy, Power
-    //   Effect: Gain an additional 5 Block from Defend cards.
-    //   Upgraded Effect: Gain an additional 7 Block from Defend cards.
+    public static class EquilibriumP extends CardDefect.EquilibriumP {
+    }
+
+    private static abstract class _FastenT extends Card {
+        private final int bonus;
+
+        public _FastenT(String cardName, int bonus) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.bonus = bonus;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = bonus;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Fasten", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 14.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.fastenCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class Fasten extends _FastenT {
+        public Fasten() {
+            super("Fasten", 5);
+        }
+    }
+
+    public static class FastenP extends _FastenT {
+        public FastenP() {
+            super("Fasten+", 7);
+        }
+    }
 
     public static class Finesse extends CardColorless._FinesseT {
         public Finesse() {
@@ -69,9 +190,36 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Fisticuffs (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Gain Block equal to damage dealt.
-    //   Upgraded Effect: Deal 9 damage. Gain Block equal to damage dealt.
+    private static abstract class _FisticuffsT extends Card {
+        private final int damage;
+
+        public _FisticuffsT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int dmgDone = state.playerDoDamageToEnemy(enemy, damage);
+            if (dmgDone > 0) {
+                state.getPlayerForWrite().gainBlock(dmgDone);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Fisticuffs extends _FisticuffsT {
+        public Fisticuffs() {
+            super("Fisticuffs", 7);
+        }
+    }
+
+    public static class FisticuffsP extends _FisticuffsT {
+        public FisticuffsP() {
+            super("Fisticuffs+", 9);
+        }
+    }
 
     public static class FlashOfSteel extends CardColorless._FlashOfSteelT {
         public FlashOfSteel() {
@@ -85,13 +233,9 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Gang Up (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 5 damage. Deals 5 additional damage for each time another player has attacked the enemy this turn.
-    //   Upgraded Effect: Deal 5 damage. Deals 7 additional damage for each time another player has attacked the enemy this turn.
+    // No need to implement Gang Up: Multiplayer
 
-    // TODO: Huddle Up (Uncommon) - 1 energy, Skill
-    //   Effect: ALL allies draw 2 cards.
-    //   Upgraded Effect: ALL allies draw 3 cards.
+    // No need to implement Huddle Up: Multiplayer
 
     public static class Impatience extends CardColorless.Impatience {
     }
@@ -99,9 +243,7 @@ public class CardColorless2 {
     public static class ImpatienceP extends CardColorless.ImpatienceP {
     }
 
-    // TODO: Intercept (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 9 Block. Redirect all incoming attacks that would be dealt to another player this turn to you.
-    //   Upgraded Effect: Gain 13 Block. Redirect all incoming attacks that would be dealt to another player this turn to you.
+    // No need to implement Intercept: Multiplayer
 
     public static class JackOfAllTrades extends CardColorless.JackOfAllTrades {
     }
@@ -109,9 +251,7 @@ public class CardColorless2 {
     public static class JackOfAllTradesP extends CardColorless.JackOfAllTradesP {
     }
 
-    // TODO: Lift (Uncommon) - 1 energy, Skill
-    //   Effect: Give another player 11 Block.
-    //   Upgraded Effect: Give another player 16 Block.
+    // No need to implement Lift: Multiplayer
 
     public static class MindBlast extends CardColorless._MindBlastT {
         public MindBlast() {
@@ -125,9 +265,44 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Omnislice (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 8 damage. Damage ALL other enemies equal to the damage dealt.
-    //   Upgraded Effect: Deal 11 damage. Damage ALL other enemies equal to the damage dealt.
+    private static abstract class _OmnisliceT extends Card {
+        private final int damage;
+
+        public _OmnisliceT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var primary = state.getEnemiesForWrite().getForWrite(idx);
+            int dmgDone = state.playerDoDamageToEnemy(primary, damage);
+            if (dmgDone > 0) {
+                for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
+                    if (i == idx) {
+                        continue;
+                    }
+                    var other = state.getEnemiesForWrite().getForWrite(i);
+                    if (other.isAlive() && other.getHealth() > 0) {
+                        state.playerDoDamageToEnemy(other, dmgDone);
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Omnislice extends _OmnisliceT {
+        public Omnislice() {
+            super("Omnislice", 8);
+        }
+    }
+
+    public static class OmnisliceP extends _OmnisliceT {
+        public OmnisliceP() {
+            super("Omnislice+", 11);
+        }
+    }
 
     public static class Panache extends CardColorless.Panache {
     }
@@ -145,17 +320,86 @@ public class CardColorless2 {
     //   Effect: At the start of your turn, gain 4 Vigor.
     //   Upgraded Effect: At the start of your turn, gain 6 Vigor.
 
-    // TODO: Production (Uncommon) - 0 energy, Skill
-    //   Effect: Gain 2 energy. Exhaust.
-    //   Upgraded Effect: Gain 2 energy.
+    private static abstract class _ProductionT extends Card {
+        public _ProductionT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            exhaustWhenPlayed = exhaust;
+        }
 
-    // TODO: Prolong (Uncommon) - 0 energy, Skill
-    //   Effect: Next turn, gain Block equal to your current Block. Exhaust.
-    //   Upgraded Effect: Next turn, gain Block equal to your current Block.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Prowess (Uncommon) - 1 energy, Power
-    //   Effect: Gain 1 Strength. Gain 1 Dexterity.
-    //   Upgraded Effect: Gain 2 Strength. Gain 2 Dexterity.
+    public static class Production extends _ProductionT {
+        public Production() {
+            super("Production", true);
+        }
+    }
+
+    public static class ProductionP extends _ProductionT {
+        public ProductionP() {
+            super("Production+", false);
+        }
+    }
+
+    private static abstract class _ProlongT extends Card {
+        public _ProlongT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            exhaustWhenPlayed = exhaust;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = state.getPlayeForRead().getBlock();
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerBlockNextTurnCounter(this);
+        }
+    }
+
+    public static class Prolong extends _ProlongT {
+        public Prolong() {
+            super("Prolong", true);
+        }
+    }
+
+    public static class ProlongP extends _ProlongT {
+        public ProlongP() {
+            super("Prolong+", false);
+        }
+    }
+
+    private static abstract class _ProwessT extends Card {
+        private final int n;
+
+        public _ProwessT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerDexterity = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainStrength(n);
+            state.getPlayerForWrite().gainDexterity(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Prowess extends _ProwessT {
+        public Prowess() {
+            super("Prowess", 1);
+        }
+    }
+
+    public static class ProwessP extends _ProwessT {
+        public ProwessP() {
+            super("Prowess+", 2);
+        }
+    }
 
     public static class Purity extends CardColorless.Purity {
         public Purity() {
