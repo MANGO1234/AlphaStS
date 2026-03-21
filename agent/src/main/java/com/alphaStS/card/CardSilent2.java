@@ -1017,9 +1017,77 @@ public class CardSilent2 {
         }
     }
 
-    // TODO: Up My Sleeve (Uncommon) - 2 energy, Skill
-    //   Effect: Add 3 Shivs into your Hand. Reduce this card's cost by 1.
-    //   Upgraded Effect: Add 4 Shivs into your Hand. Reduce this card's cost by 1.
+    public static class UpMySleeve extends Card {
+        public UpMySleeve(int energyCost) {
+            super("Up My Sleeve (" + energyCost + ")", Card.SKILL, energyCost, Card.UNCOMMON);
+        }
+
+        public UpMySleeve() {
+            this(2);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < 3; i++) {
+                state.addCardToHand(generatedCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Shiv(), new UpMySleeve(2), new UpMySleeve(1), new UpMySleeve(0));
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.upMySleeveIndexes = new int[3];
+            for (int i = 0; i < 3; i++) {
+                state.properties.upMySleeveIndexes[i] = state.properties.findCardIndex(new UpMySleeve(i));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return energyCost > 0 ? prop.upMySleeveIndexes[energyCost - 1] : -1;
+        }
+
+        @Override public Card getPermCostIfPossible(int permCost) {
+            return permCost <= 3 ? new UpMySleeve(permCost) : super.getPermCostIfPossible(permCost);
+        }
+    }
+
+    public static class UpMySleeveP extends Card {
+        public UpMySleeveP(int energyCost) {
+            super("Up My Sleeve+ (" + energyCost + ")", Card.SKILL, energyCost, Card.UNCOMMON);
+        }
+
+        public UpMySleeveP() {
+            this(2);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < 4; i++) {
+                state.addCardToHand(generatedCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Shiv(), new UpMySleeveP(2), new UpMySleeveP(1), new UpMySleeveP(0));
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.upMySleeveIndexesP = new int[3];
+            for (int i = 0; i < 3; i++) {
+                state.properties.upMySleeveIndexesP[i] = state.properties.findCardIndex(new UpMySleeveP(i));
+            }
+        }
+
+        @Override public int onPlayTransformCardIdx(GameProperties prop, int cardIdx) {
+            return energyCost > 0 ? prop.upMySleeveIndexesP[energyCost - 1] : -1;
+        }
+
+        @Override public Card getPermCostIfPossible(int permCost) {
+            return permCost <= 3 ? new UpMySleeveP(permCost) : super.getPermCostIfPossible(permCost);
+        }
+    }
 
     public static class WellLaidPlans extends CardSilent.WellLaidPlans {
     }
@@ -1031,13 +1099,81 @@ public class CardSilent2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Abrasive (Rare) - 3 energy, Power
-    //   Effect: Sly. Gain 1 Dexterity. Gain 4 Thorns.
-    //   Upgraded Effect: Sly. Gain 1 Dexterity. Gain 6 Thorns.
+    private static abstract class _AbrasiveT extends Card {
+        private final int thorns;
 
-    // TODO: Accelerant (Rare) - 1 energy, Power
-    //   Effect: Poison is triggered 1 additional time.
-    //   Upgraded Effect: Poison is triggered 2 additional times.
+        public _AbrasiveT(String cardName, int thorns) {
+            super(cardName, Card.POWER, 3, Card.RARE);
+            this.thorns = thorns;
+            entityProperty.sly = true;
+            entityProperty.changePlayerDexterity = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainDexterity(1);
+            state.getCounterForWrite()[counterIdx] += thorns;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerThornCounter(state, this);
+        }
+    }
+
+    public static class Abrasive extends _AbrasiveT {
+        public Abrasive() {
+            super("Abrasive", 4);
+        }
+    }
+
+    public static class AbrasiveP extends _AbrasiveT {
+        public AbrasiveP() {
+            super("Abrasive+", 6);
+        }
+    }
+
+    private static abstract class _AccelerantT extends Card {
+        private final int n;
+
+        public _AccelerantT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Accelerant", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.accelerantCounterIdx = cIdx;
+                }
+            });
+        }
+    }
+
+    public static class Accelerant extends _AccelerantT {
+        public Accelerant() {
+            super("Accelerant", 1);
+        }
+    }
+
+    public static class AccelerantP extends _AccelerantT {
+        public AccelerantP() {
+            super("Accelerant+", 2);
+        }
+    }
 
     public static class Adrenaline extends CardSilent.Adrenaline {
     }
@@ -1085,9 +1221,56 @@ public class CardSilent2 {
         }
     }
 
-    // TODO: Blade of Ink (Rare) - 1 energy, Skill
-    //   Effect: This turn, whenever you play an Attack, gain 2 Strength this turn.
-    //   Upgraded Effect: This turn, whenever you play an Attack, gain 3 Strength this turn.
+    private static abstract class _BladeOfInkT extends Card {
+        private final int strength;
+
+        public _BladeOfInkT(String cardName, int strength) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.strength = strength;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += strength;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BladeOfInk", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("BladeOfInk", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK &&
+                            state.getCounterForRead()[counterIdx] > 0) {
+                        int str = state.getCounterForRead()[counterIdx];
+                        state.getPlayerForWrite().gainStrength(str);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, str);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class BladeOfInk extends _BladeOfInkT {
+        public BladeOfInk() {
+            super("Blade of Ink", 2);
+        }
+    }
+
+    public static class BladeOfInkP extends _BladeOfInkT {
+        public BladeOfInkP() {
+            super("Blade of Ink+", 3);
+        }
+    }
 
     public static class BulletTime extends CardSilent.BulletTime {
     }
@@ -1101,13 +1284,100 @@ public class CardSilent2 {
     public static class BurstP extends CardSilent.BurstP {
     }
 
-    // TODO: Corrosive Wave (Rare) - 1 energy, Skill
-    //   Effect: Whenever you draw a card this turn, apply 3 Poison to ALL enemies.
-    //   Upgraded Effect: Whenever you draw a card this turn, apply 4 Poison to ALL enemies.
+    private static abstract class _CorrosiveWaveT extends Card {
+        private final int poison;
 
-    // TODO: Echoing Slash (Rare) - 1 energy, Attack
-    //   Effect: Deal 10 damage to ALL enemies. Repeat this effect for each enemy killed.
-    //   Upgraded Effect: Deal 13 damage to ALL enemies. Repeat this effect for each enemy killed.
+        public _CorrosiveWaveT(String cardName, int poison) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.poison = poison;
+            entityProperty.poisonEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += poison;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("CorrosiveWave", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.corrosiveWaveCounterIdx = cIdx;
+                }
+            });
+            state.properties.addOnCardDrawnHandler("CorrosiveWave", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        int poisonAmt = state.getCounterForRead()[counterIdx];
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            enemy.applyDebuff(state, DebuffType.POISON, poisonAmt);
+                        }
+                    }
+                }
+            });
+            state.properties.addEndOfTurnHandler("CorrosiveWave", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class CorrosiveWave extends _CorrosiveWaveT {
+        public CorrosiveWave() {
+            super("Corrosive Wave", 3);
+        }
+    }
+
+    public static class CorrosiveWaveP extends _CorrosiveWaveT {
+        public CorrosiveWaveP() {
+            super("Corrosive Wave+", 4);
+        }
+    }
+
+    private static abstract class _EchoingSlashT extends Card {
+        private final int dmg;
+
+        public _EchoingSlashT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.dmg = dmg;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int numKills;
+            do {
+                numKills = 0;
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    int prevHp = enemy.getHealth();
+                    state.playerDoDamageToEnemy(enemy, dmg);
+                    if (prevHp > 0 && !enemy.isAlive()) {
+                        numKills++;
+                    }
+                }
+            } while (numKills > 0);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class EchoingSlash extends _EchoingSlashT {
+        public EchoingSlash() {
+            super("Echoing Slash", 10);
+        }
+    }
+
+    public static class EchoingSlashP extends _EchoingSlashT {
+        public EchoingSlashP() {
+            super("Echoing Slash+", 13);
+        }
+    }
 
     public static class Envenom extends CardSilent.Envenom {
     }
@@ -1118,9 +1388,55 @@ public class CardSilent2 {
         }
     }
 
-    // TODO: Fan of Knives (Rare) - 2 energy, Power
-    //   Effect: Shivs now hit ALL enemies. Add 4 Shivs into your Hand.
-    //   Upgraded Effect: Shivs now hit ALL enemies. Add 5 Shivs into your Hand.
+    private static abstract class _FanOfKnivesT extends Card {
+        private final int n;
+
+        public _FanOfKnivesT(String cardName, int n) {
+            super(cardName, Card.POWER, 2, Card.RARE);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1;
+            for (int i = 0; i < n; i++) {
+                state.addCardToHand(generatedCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("FanOfKnives", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.fanOfKnivesCounterIdx = cIdx;
+                }
+            });
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Shiv());
+        }
+    }
+
+    public static class FanOfKnives extends _FanOfKnivesT {
+        public FanOfKnives() {
+            super("Fan of Knives", 4);
+        }
+    }
+
+    public static class FanOfKnivesP extends _FanOfKnivesT {
+        public FanOfKnivesP() {
+            super("Fan of Knives+", 5);
+        }
+    }
 
     public static class GrandFinale extends CardSilent.GrandFinale {
     }
@@ -1128,9 +1444,67 @@ public class CardSilent2 {
     public static class GrandFinaleP extends CardSilent.GrandFinaleP {
     }
 
-    // TODO: Knife Trap (Rare) - 2 energy, Skill
-    //   Effect: Play every Shiv in your Exhaust Pile on the enemy.
-    //   Upgraded Effect: Upgrade and play every Shiv in your Exhaust Pile on the enemy.
+    private static abstract class _KnifeTrapT extends Card {
+        private final boolean upgraded;
+
+        public _KnifeTrapT(String cardName, boolean upgraded) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.upgraded = upgraded;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (upgraded && state.properties.shivUpgradeIdxes != null) {
+                state.exhaustArrTransform(state.properties.shivUpgradeIdxes);
+            }
+            int len = state.exhaustArrLen;
+            int[] shivCardIdxes = new int[len];
+            int shivCount = 0;
+            for (int i = 0; i < len; i++) {
+                int cardIdx = state.exhaustArr[i];
+                var base = state.properties.cardDict[cardIdx].getBaseCard();
+                if (base instanceof CardColorless.Shiv || base instanceof CardColorless.ShivP) {
+                    shivCardIdxes[shivCount++] = cardIdx;
+                }
+            }
+            for (int i = 0; i < shivCount; i++) {
+                state.removeCardFromExhaust(shivCardIdxes[i]);
+                var action = state.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][shivCardIdxes[i]];
+                if (action != null) {
+                    state.playCard(action, -1, true, null, false, true, -1, -1);
+                    while (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        state.playCard(action, idx, true, null, false, true, -1, -1);
+                    }
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (upgraded) {
+                int[] arr = new int[state.properties.cardDict.length];
+                for (int i = 0; i < arr.length; i++) arr[i] = -1;
+                int shivIdx = state.properties.findCardIndex(new CardColorless.Shiv());
+                int shivPIdx = state.properties.findCardIndex(new CardColorless.ShivP());
+                if (shivIdx >= 0 && shivPIdx >= 0) {
+                    arr[shivIdx] = shivPIdx;
+                }
+                state.properties.shivUpgradeIdxes = arr;
+            }
+        }
+    }
+
+    public static class KnifeTrap extends _KnifeTrapT {
+        public KnifeTrap() {
+            super("Knife Trap", false);
+        }
+    }
+
+    public static class KnifeTrapP extends _KnifeTrapT {
+        public KnifeTrapP() {
+            super("Knife Trap+", true);
+        }
+    }
 
     public static class Malaise extends CardSilent.Malaise {
     }
@@ -1142,9 +1516,51 @@ public class CardSilent2 {
     //   Effect: When you play a Skill, it gains Sly.
     //   Upgraded Effect (1 energy): When you play a Skill, it gains Sly.
 
-    // TODO: Murder (Rare) - 3 energy, Attack
-    //   Effect: Deal 1 damage. Deals 1 additional damage for each card drawn this combat.
-    //   Upgraded Effect (2 energy): Deal 1 damage. Deals 1 additional damage for each card drawn this combat.
+    private static abstract class _MurderT extends Card {
+        public _MurderT(String cardName, int cost) {
+            super(cardName, Card.ATTACK, cost, Card.RARE);
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 1 + state.getCounterForRead()[counterIdx]);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("CardsDrawnThisCombat", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 50.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.cardsDrawnThisCombatCounterIdx = cIdx;
+                }
+            });
+            state.properties.addOnCardDrawnHandler("CardsDrawnThisCombat", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    state.getCounterForWrite()[counterIdx]++;
+                }
+            });
+        }
+    }
+
+    public static class Murder extends _MurderT {
+        public Murder() {
+            super("Murder", 3);
+        }
+    }
+
+    public static class MurderP extends _MurderT {
+        public MurderP() {
+            super("Murder+", 2);
+        }
+    }
 
     public static class Nightmare extends CardSilent.Nightmare {
     }
@@ -1204,17 +1620,76 @@ public class CardSilent2 {
         }
     }
 
-    // TODO: Shadow Step (Rare) - 1 energy, Skill
-    //   Effect: Discard your Hand. Next turn, Attacks deal double damage.
-    //   Upgraded Effect (0 energy): Discard your Hand. Next turn, Attacks deal double damage.
+    private static abstract class _ShadowStepT extends Card {
+        public _ShadowStepT(String cardName, int cost) {
+            super(cardName, Card.SKILL, cost, Card.RARE);
+        }
 
-    // TODO: Shadowmeld (Rare) - 1 energy, Skill
-    //   Effect: Double your Block gain this turn.
-    //   Upgraded Effect (0 energy): Double your Block gain this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.discardHand(true);
+            state.getCounterForWrite()[counterIdx] += 1 << 8;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Sneaky (Rare) - 2 energy, Power
-    //   Effect: Sly. Whenever another player attacks an enemy, gain 1 Block.
-    //   Upgraded Effect: Sly. Whenever another player attacks an enemy, gain 2 Block.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerNextTurnDoubleAttackCounter(state, this, "ShadowStep",
+                    (cIdx) -> state.properties.shadowStepCounterIdx = cIdx);
+        }
+    }
+
+    public static class ShadowStep extends _ShadowStepT {
+        public ShadowStep() {
+            super("Shadow Step", 1);
+        }
+    }
+
+    public static class ShadowStepP extends _ShadowStepT {
+        public ShadowStepP() {
+            super("Shadow Step+", 0);
+        }
+    }
+
+    private static abstract class _ShadowmeldT extends Card {
+        public _ShadowmeldT(String cardName, int cost) {
+            super(cardName, Card.SKILL, cost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Shadowmeld", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.shadowmeldCounterIdx = cIdx;
+                }
+            });
+        }
+    }
+
+    public static class Shadowmeld extends _ShadowmeldT {
+        public Shadowmeld() {
+            super("Shadowmeld", 1);
+        }
+    }
+
+    public static class ShadowmeldP extends _ShadowmeldT {
+        public ShadowmeldP() {
+            super("Shadowmeld+", 0);
+        }
+    }
+
+    // No need to implement Sneaky: Multiplayer
 
     public static class StormOfSteel extends CardSilent.StormOfSteel {
     }
@@ -1222,9 +1697,66 @@ public class CardSilent2 {
     public static class StormOfSteelP extends CardSilent.StormOfSteelP {
     }
 
-    // TODO: The Hunt (Rare) - 1 energy, Attack
-    //   Effect: Deal 10 damage. If Fatal, gain an additional card reward. Exhaust.
-    //   Upgraded Effect: Deal 15 damage. If Fatal, gain an additional card reward. Exhaust.
+    private static abstract class _TheHuntT extends Card {
+        private final int dmg;
+        protected double healthRewardRatio;
+
+        public _TheHuntT(String cardName, int dmg, double healthRewardRatio) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.dmg = dmg;
+            this.healthRewardRatio = healthRewardRatio;
+            entityProperty.selectEnemy = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int prevHp = enemy.getHealth();
+            state.playerDoDamageToEnemy(enemy, dmg);
+            if (prevHp > 0 && !enemy.isAlive() && !enemy.properties.isMinion) {
+                state.getCounterForWrite()[counterIdx]++;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TheHunt", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("TheHunt", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 10.0);
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                    }
+                });
+            }
+        }
+    }
+
+    public static class TheHunt extends _TheHuntT {
+        public TheHunt(double healthRewardRatio) {
+            super("The Hunt", 10, healthRewardRatio);
+        }
+    }
+
+    public static class TheHuntP extends _TheHuntT {
+        public TheHuntP(double healthRewardRatio) {
+            super("The Hunt+", 15, healthRewardRatio);
+        }
+    }
 
     public static class ToolsOfTheTrade extends CardSilent.ToolsOfTheTrade {
     }
@@ -1232,9 +1764,46 @@ public class CardSilent2 {
     public static class ToolsOfTheTradeP extends CardSilent.ToolsOfTheTradeP {
     }
 
-    // TODO: Tracking (Rare) - 2 energy, Power
-    //   Effect: Weak enemies take double damage from Attacks.
-    //   Upgraded Effect (1 energy): Weak enemies take double damage from Attacks.
+    private static abstract class _TrackingT extends Card {
+        public _TrackingT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.RARE);
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Tracking", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.trackingCounterIdx = cIdx;
+                }
+            });
+        }
+    }
+
+    public static class Tracking extends _TrackingT {
+        public Tracking() {
+            super("Tracking", 2);
+        }
+    }
+
+    public static class TrackingP extends _TrackingT {
+        public TrackingP() {
+            super("Tracking+", 1);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Event  *********************************************

@@ -1548,7 +1548,13 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
+            if (state.properties.fanOfKnivesCounterIdx >= 0 && state.getCounterForRead()[state.properties.fanOfKnivesCounterIdx] > 0) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    state.playerDoDamageToEnemy(enemy, n, true);
+                }
+            } else {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
+            }
             return GameActionCtx.PLAY_CARD;
         }
     }

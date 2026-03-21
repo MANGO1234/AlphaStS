@@ -3813,6 +3813,9 @@ public final class GameState implements State {
         if (properties.phantasmalKillerCounterIdx >= 0 && (counter[properties.phantasmalKillerCounterIdx] & ((1 << 8) - 1)) > 0) {
             dmg *= 2;
         }
+        if (properties.shadowStepCounterIdx >= 0 && (counter[properties.shadowStepCounterIdx] & 0xFF) > 0) {
+            dmg *= 2;
+        }
         if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
             dmg += counter[properties.vigorCounterIdx];
         }
@@ -3822,6 +3825,9 @@ public final class GameState implements State {
                 vulnMult += counter[properties.crueltyCounterIdx] / 100.0;
             }
             dmg = dmg * vulnMult;
+        }
+        if (properties.trackingCounterIdx >= 0 && counter[properties.trackingCounterIdx] > 0 && enemy.getWeak() > 0) {
+            dmg *= 2;
         }
         if (player.getWeak() > 0) {
             dmg = dmg * 0.75;

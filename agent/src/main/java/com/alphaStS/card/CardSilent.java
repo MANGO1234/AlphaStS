@@ -2810,36 +2810,8 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("PhantasmalKiller", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = (state.getCounterForRead()[counterIdx] >> 8) / 10.0f;
-                    input[idx + 1] = (state.getCounterForRead()[counterIdx] & ((1 << 8) - 1)) / 2.0f;
-                    return idx + 2;
-                }
-
-                @Override public int getInputLenDelta() {
-                    return 2;
-                }
-
-                @Override public void onRegister(int counterIdx) {
-                    state.properties.phantasmalKillerCounterIdx = counterIdx;
-                }
-            });
-            state.properties.addEndOfTurnHandler("PhantasmalKiller", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if ((state.getCounterForRead()[counterIdx] & ((1 << 8) - 1)) > 0) {
-                        state.getCounterForWrite()[counterIdx]--;
-                    }
-                }
-            });
-            state.properties.addStartOfTurnHandler("PhantasmalKiller", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if ((state.getCounterForRead()[counterIdx] >> 8) > 0) {
-                        state.getCounterForWrite()[counterIdx] -= 1 << 8;
-                        state.getCounterForWrite()[counterIdx]++;
-                    }
-                }
-            });
+            state.properties.registerNextTurnDoubleAttackCounter(state, this, "PhantasmalKiller",
+                    (cIdx) -> state.properties.phantasmalKillerCounterIdx = cIdx);
         }
     }
 

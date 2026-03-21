@@ -116,7 +116,8 @@ public abstract class Enemy extends EnemyReadOnly {
 
     public void startTurn(GameState state) {
         block = 0;
-        if (poison > 0) {
+        int extraLoops = state.properties.accelerantCounterIdx >= 0 ? state.getCounterForRead()[state.properties.accelerantCounterIdx] : 0;
+        for (int i = 0; i <= extraLoops && poison > 0; i++) {
             state.playerDoNonAttackDamageToEnemy(this, poison, false);
             poison--;
         }

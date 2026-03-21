@@ -159,6 +159,9 @@ public class GameProperties implements Cloneable {
     public int[] moddedTransformIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
+    public int[] shivUpgradeIdxes;
+    public int[] upMySleeveIndexes;
+    public int[] upMySleeveIndexesP;
     public int[] strikeCardIdxes;
     public int[] windmillStrikePTransformIndexes;
     public int[] windmillStrikeTransformIndexes;
@@ -215,7 +218,14 @@ public class GameProperties implements Cloneable {
     public int normalityCounterIdx = -1;
     public int nunchakuCounterIdx = -1;
     public int penNibCounterIdx = -1;
+    public int accelerantCounterIdx = -1;
+    public int corrosiveWaveCounterIdx = -1;
+    public int fanOfKnivesCounterIdx = -1;
+    public int cardsDrawnThisCombatCounterIdx = -1;
     public int phantasmalKillerCounterIdx = -1;
+    public int shadowmeldCounterIdx = -1;
+    public int shadowStepCounterIdx = -1;
+    public int trackingCounterIdx = -1;
     public int platingCounterIdx = -1;
     public int playCardOnTopOfDeckCounterIdx = -1;
     public int reboundCounterIdx = -1;
@@ -420,6 +430,42 @@ public class GameProperties implements Cloneable {
                 if (state.getCounterForRead()[cIdx] > 0) {
                     state.gainEnergy(state.getCounterForRead()[cIdx]);
                     state.getCounterForWrite()[cIdx] = 0;
+                }
+            }
+        });
+    }
+
+    public void registerNextTurnDoubleAttackCounter(GameState state2, CounterRegistrant registrant, String name, java.util.function.IntConsumer onRegister) {
+        registerCounter(name, registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                input[idx] = (state.getCounterForRead()[cIdx] >> 8) / 10.0f;
+                input[idx + 1] = (state.getCounterForRead()[cIdx] & 0xFF) / 2.0f;
+                return idx + 2;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 2;
+            }
+
+            @Override public void onRegister(int cIdx) {
+                if (onRegister != null) onRegister.accept(cIdx);
+            }
+        });
+        addEndOfTurnHandler(name, new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                if ((state.getCounterForRead()[cIdx] & 0xFF) > 0) {
+                    state.getCounterForWrite()[cIdx]--;
+                }
+            }
+        });
+        addStartOfTurnHandler(name, new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                if ((state.getCounterForRead()[cIdx] >> 8) > 0) {
+                    state.getCounterForWrite()[cIdx] -= 1 << 8;
+                    state.getCounterForWrite()[cIdx]++;
                 }
             }
         });
