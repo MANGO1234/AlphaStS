@@ -3180,20 +3180,7 @@ public class CardDefect {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("ThunderStrike", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
-                    return idx + 1;
-                }
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-        }
-
-        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
-            super.setCounterIdx(gameProperties, idx);
-            gameProperties.thunderStrikeCounterIdx = idx;
+            state.properties.registerLightningChanneledCounter(this);
         }
     }
 

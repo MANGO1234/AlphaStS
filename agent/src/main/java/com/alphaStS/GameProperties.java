@@ -891,6 +891,23 @@ public class GameProperties implements Cloneable {
         });
     }
 
+    public void registerLightningChanneledCounter(CounterRegistrant registrant) {
+        registerCounter("LightningChanneled", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.thunderStrikeCounterIdx] / 20.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+
+            @Override public void onRegister(int counterIdx) {
+                thunderStrikeCounterIdx = counterIdx;
+            }
+        });
+    }
+
     public void registerAttacksPlayedThisTurnCounter() {
         registerCounter("AttacksPlayedThisTurn", AttacksPlayedThisTurnCounterRegistrant, new NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {

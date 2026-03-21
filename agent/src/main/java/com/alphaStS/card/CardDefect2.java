@@ -1696,29 +1696,251 @@ public class CardDefect2 {
     public static class RebootP extends CardDefect.RebootP {
     }
 
-    // TODO: Shatter (Rare) - 1 energy, Attack
-    //   Effect: Deal 11 damage to ALL enemies. Evoke all of your Orbs.
-    //   Upgraded Effect: Deal 15 damage to ALL enemies. Evoke all of your Orbs.
+    private static abstract class _ShatterT extends Card {
+        private final int damage;
 
-    // TODO: Signal Boost (Rare) - 1 energy, Skill
-    //   Effect: The next Power you play is played an additional time. Exhaust.
-    //   Upgraded Effect (0 energy): The next Power you play is played an additional time. Exhaust.
+        public _ShatterT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+        }
 
-    // TODO: Spinner (Rare) - 1 energy, Power
-    //   Effect: At the start of your turn, Channel 1 Glass.
-    //   Upgraded Effect: Channel 1 Glass. At the start of your turn, Channel 1 Glass.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            if (state.getOrbs() != null) {
+                while (state.getOrbs()[0] != OrbType.EMPTY.ordinal()) {
+                    state.evokeOrb(1);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Supercritical (Rare) - 0 energy, Skill
-    //   Effect: Gain 4 energy. Exhaust.
-    //   Upgraded Effect: Gain 6energy. Exhaust.
+    public static class Shatter extends _ShatterT {
+        public Shatter() {
+            super("Shatter", 11);
+        }
+    }
 
-    // TODO: Trash to Treasure (Rare) - 1 energy, Power
-    //   Effect: Whenever you create a Status card, Channel 1 random Orb.
-    //   Upgraded Effect: Innate. Whenever you create a Status card, Channel 1 random Orb.
+    public static class ShatterP extends _ShatterT {
+        public ShatterP() {
+            super("Shatter+", 15);
+        }
+    }
 
-    // TODO: Voltaic (Rare) - 2 energy, Skill
-    //   Effect: Channel Lightning equal to the Lightning already Channeled this combat. Exhaust.
-    //   Upgraded Effect: Channel Lightning equal to the Lightning already Channeled this combat.
+    private static abstract class _SignalBoostT extends Card {
+        public _SignalBoostT(String cardName, int energyCost) {
+            super(cardName, Card.SKILL, energyCost, Card.RARE);
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SignalBoost", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = Math.abs(state.getCounterForRead()[counterIdx]) / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("SignalBoost", new GameEventCardHandler(GameEventCardHandler.CLONE_CARD_PRIORITY) {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    var card = state.properties.cardDict[cardIdx];
+                    if (card.cardType != Card.POWER || state.getCounterForRead()[counterIdx] == 0) {
+                        return;
+                    }
+                    if (cloneSource != null && (state.getCounterForRead()[counterIdx] & (1 << 8)) > 0) {
+                        state.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                    } else {
+                        var counters = state.getCounterForWrite();
+                        counters[counterIdx]--;
+                        counters[counterIdx] |= 1 << 8;
+                        state.addGameActionToEndOfDeque(curState -> {
+                            var action = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][cardIdx];
+                            if (curState.playCard(action, lastIdx, true, SignalBoost.class, false, false, energyUsed, cloneParentLocation)) {
+                            } else {
+                                curState.getCounterForWrite()[counterIdx] ^= 1 << 8;
+                            }
+                        });
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SignalBoost extends _SignalBoostT {
+        public SignalBoost() {
+            super("Signal Boost", 1);
+        }
+    }
+
+    public static class SignalBoostP extends _SignalBoostT {
+        public SignalBoostP() {
+            super("Signal Boost+", 0);
+        }
+    }
+
+    private static abstract class _SpinnerT extends Card {
+        private final boolean channelOnPlay;
+
+        public _SpinnerT(String cardName, boolean channelOnPlay) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.channelOnPlay = channelOnPlay;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (channelOnPlay) {
+                state.channelOrb(OrbType.GLASS);
+            }
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Spinner", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Spinner", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int stacks = state.getCounterForRead()[counterIdx];
+                    for (int i = 0; i < stacks; i++) {
+                        state.channelOrb(OrbType.GLASS);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Spinner extends _SpinnerT {
+        public Spinner() {
+            super("Spinner", false);
+        }
+    }
+
+    public static class SpinnerP extends _SpinnerT {
+        public SpinnerP() {
+            super("Spinner+", true);
+        }
+    }
+
+    private static abstract class _SupercriticalT extends Card {
+        private final int n;
+
+        public _SupercriticalT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.n = n;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Supercritical extends _SupercriticalT {
+        public Supercritical() {
+            super("Supercritical", 4);
+        }
+    }
+
+    public static class SupercriticalP extends _SupercriticalT {
+        public SupercriticalP() {
+            super("Supercritical+", 6);
+        }
+    }
+
+    private static abstract class _TrashToTreasureT extends Card {
+        public _TrashToTreasureT(String cardName) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TrashToTreasure", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardCreationHandler("TrashToTreasure", new OnCardCreationHandler() {
+                @Override public void handle(GameState state, int cardIdx) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.STATUS) {
+                        int stacks = state.getCounterForRead()[counterIdx];
+                        for (int i = 0; i < stacks; i++) {
+                            state.channelOrb(OrbType.getRandom(state));
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class TrashToTreasure extends _TrashToTreasureT {
+        public TrashToTreasure() {
+            super("Trash to Treasure");
+        }
+    }
+
+    public static class TrashToTreasureP extends _TrashToTreasureT {
+        public TrashToTreasureP() {
+            super("Trash to Treasure+");
+        }
+    }
+
+    private static abstract class _VoltaicT extends Card {
+        public _VoltaicT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.exhaustWhenPlayed = exhaust;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int count = state.getCounterForRead()[counterIdx];
+            for (int i = 0; i < count; i++) {
+                state.channelOrb(OrbType.LIGHTNING);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerLightningChanneledCounter(this);
+        }
+    }
+
+    public static class Voltaic extends _VoltaicT {
+        public Voltaic() {
+            super("Voltaic", true);
+        }
+    }
+
+    public static class VoltaicP extends _VoltaicT {
+        public VoltaicP() {
+            super("Voltaic+", false);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Event  *********************************************
