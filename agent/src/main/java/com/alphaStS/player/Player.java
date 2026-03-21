@@ -102,7 +102,7 @@ public class Player extends PlayerReadOnly {
         return healed;
     }
 
-    public int gainBlock(int n) {
+    public int gainBlock(int n, GameState state) {
         if (noMoreBlockFromCards > 0) {
             return 0;
         }
@@ -111,6 +111,9 @@ public class Player extends PlayerReadOnly {
         if (n < 0) {
             n = 0;
         }
+        if (state.properties.shadowmeldCounterIdx >= 0) {
+            n *= (1 + state.getCounterForRead()[state.properties.shadowmeldCounterIdx]);
+        }
         block += n;
         if (block > 999) {
             block = 999;
@@ -118,7 +121,10 @@ public class Player extends PlayerReadOnly {
         return n;
     }
 
-    public void gainBlockNotFromCardPlay(int n) {
+    public void gainBlockNotFromCardPlay(int n, GameState state) {
+        if (state.properties.shadowmeldCounterIdx >= 0) {
+            n *= (1 + state.getCounterForRead()[state.properties.shadowmeldCounterIdx]);
+        }
         block += n;
         if (block > 999) {
             block = 999;
@@ -175,7 +181,7 @@ public class Player extends PlayerReadOnly {
     public void preEndTurn(GameState state) {
         cannotDrawCard = false;
         if (platedArmor > 0) {
-            gainBlockNotFromCardPlay(platedArmor);
+            gainBlockNotFromCardPlay(platedArmor, state);
         }
     }
 

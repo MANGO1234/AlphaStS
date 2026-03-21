@@ -462,7 +462,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int bonus = state.properties.fastenCounterIdx >= 0 ? state.getCounterForRead()[state.properties.fastenCounterIdx] : 0;
-            state.getPlayerForWrite().gainBlock(5 + bonus);
+            state.playerGainBlock(5 + bonus);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -474,7 +474,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int bonus = state.properties.fastenCounterIdx >= 0 ? state.getCounterForRead()[state.properties.fastenCounterIdx] : 0;
-            state.getPlayerForWrite().gainBlock(8 + bonus);
+            state.playerGainBlock(8 + bonus);
             return GameActionCtx.PLAY_CARD;
         }
     }

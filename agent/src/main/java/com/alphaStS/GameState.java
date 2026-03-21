@@ -3595,7 +3595,7 @@ public final class GameState implements State {
             });
         }
         if (properties.toughBandages != null && properties.toughBandages.isRelicEnabledInScenario(this)) {
-            getPlayerForWrite().gainBlockNotFromCardPlay(3);
+            playerGainBlockNotFromCardPlay(3);
         }
     }
 
@@ -3857,7 +3857,7 @@ public final class GameState implements State {
                 enemy.applyDebuff(this, DebuffType.POISON, getCounterForRead()[properties.envenomCounterIdx]);
             }
             if (enemy.getTalkToTheHand() > 0) {
-                getPlayerForWrite().gainBlockNotFromCardPlay(enemy.getTalkToTheHand());
+                playerGainBlockNotFromCardPlay(enemy.getTalkToTheHand());
             }
             if (enemy instanceof EnemyBeyond.Spiker spiker) {
                 doNonAttackDamageToPlayer(spiker.getThorn(), true, spiker);
@@ -4127,13 +4127,17 @@ public final class GameState implements State {
     }
 
     public int playerGainBlock(int n) {
-        int blockGained = getPlayerForWrite().gainBlock(n);
+        int blockGained = getPlayerForWrite().gainBlock(n, this);
         if (blockGained > 0) {
             for (var handler : properties.onBlockHandlers) {
                 handler.handle(this);
             }
         }
         return blockGained;
+    }
+
+    public void playerGainBlockNotFromCardPlay(int n) {
+        getPlayerForWrite().gainBlockNotFromCardPlay(n, this);
     }
 
     public DrawOrderReadOnly getDrawOrderForRead() {
@@ -4357,7 +4361,7 @@ public final class GameState implements State {
 
     private void triggerOrbActive(int i) {
         if (orbs[i] == OrbType.FROST.ordinal()) {
-            getPlayerForWrite().gainBlockNotFromCardPlay(5 + focus);
+            playerGainBlockNotFromCardPlay(5 + focus);
         } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
             if (properties.electrodynamicsCounterIdx >= 0 && getCounterForRead()[properties.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
@@ -4468,7 +4472,7 @@ public final class GameState implements State {
 
     private void triggerNonPlasmaOrbPassive(int i) {
         if (orbs[i] == OrbType.FROST.ordinal()) {
-            getPlayerForWrite().gainBlockNotFromCardPlay(2 + focus);
+            playerGainBlockNotFromCardPlay(2 + focus);
         } else if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
             if (properties.electrodynamicsCounterIdx >= 0 && getCounterForRead()[properties.electrodynamicsCounterIdx] != 0) {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {

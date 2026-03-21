@@ -62,7 +62,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.getPlayerForWrite().gainBlock(n);
+                state.playerGainBlock(n);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
                 state.discardCardFromHand(idx);
@@ -126,7 +126,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.draw(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -215,7 +215,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(6);
+            state.playerGainBlock(6);
             for (int i = 0; i < n; i++) {
                 state.addCardToHand(generatedCardIdx);
             }
@@ -342,7 +342,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -368,7 +368,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] += state.getPlayerForWrite().gainBlock(n);
+            state.getCounterForWrite()[counterIdx] += state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -855,7 +855,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1140,7 +1140,7 @@ public class CardSilent {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1254,7 +1254,7 @@ public class CardSilent {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var cardIdx = state.draw(1);
             if (cardIdx >= 0 && state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
-                state.getPlayerForWrite().gainBlock(n);
+                state.playerGainBlock(n);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1563,7 +1563,7 @@ public class CardSilent {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, weak);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2156,7 +2156,7 @@ public class CardSilent {
             state.properties.addOnCardPlayedHandler("AfterImage", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                        state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });

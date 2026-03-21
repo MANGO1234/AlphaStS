@@ -105,7 +105,7 @@ public class Relic2 {
                     }
                     if (state.properties.cardDict[cardIdx].cardType == Card.POWER && state.getCounterForRead()[counterIdx] == 0) {
                         state.getCounterForWrite()[counterIdx] = 1;
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
+                        state.playerGainBlockNotFromCardPlay(6);
                     }
                 }
             });
@@ -307,7 +307,7 @@ public class Relic2 {
             state.properties.addPreEndOfTurnHandler("RippleBasin", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state) && state.getCounterForRead()[counterIdx] == 0) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(4);
+                        state.playerGainBlockNotFromCardPlay(4);
                     }
                 }
             });
@@ -378,7 +378,7 @@ public class Relic2 {
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 10) {
                             counter[counterIdx] = 0;
-                            state.getPlayerForWrite().gainBlockNotFromCardPlay(7);
+                            state.playerGainBlockNotFromCardPlay(7);
                         }
                     }
                 }
@@ -477,7 +477,7 @@ public class Relic2 {
             state.properties.addOnCardPlayedHandler(new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (isRelicEnabledInScenario(state) && energyUsed >= 2) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(4);
+                        state.playerGainBlockNotFromCardPlay(4);
                     }
                 }
             });

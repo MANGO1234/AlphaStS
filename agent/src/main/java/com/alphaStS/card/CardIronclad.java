@@ -104,7 +104,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(5);
+            state.playerGainBlock(5);
             if (canUpgrade && idx >= 0) {
                 state.removeCardFromHand(idx);
                 state.addCardToHand(state.properties.upgradeIdxes[idx]);
@@ -136,7 +136,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(5);
+            state.playerGainBlock(5);
             if (canUpgrade) {
                 state.handArrTransform(state.properties.upgradeIdxes);
             }
@@ -426,7 +426,7 @@ public class CardIronclad {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damageAndBlock);
-            state.getPlayerForWrite().gainBlock(damageAndBlock);
+            state.playerGainBlock(damageAndBlock);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -524,7 +524,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -628,7 +628,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(7);
+            state.playerGainBlock(7);
             if (state.handArrLen > 0) {
                 int diff = 0;
                 var seen = new boolean[state.properties.cardDict.length];
@@ -658,7 +658,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(9);
+            state.playerGainBlock(9);
             state.exhaustCardFromHand(idx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1193,8 +1193,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var player = state.getPlayerForWrite();
-            player.gainBlockNotFromCardPlay(player.getBlock());
+            state.playerGainBlockNotFromCardPlay(state.getPlayeForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1281,7 +1280,7 @@ public class CardIronclad {
             });
             state.properties.addOnExhaustHandler("FNP", new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                    state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                 }
             });
         }
@@ -1359,7 +1358,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.getCounterForWrite()[counterIdx] += counter;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1411,7 +1410,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1589,7 +1588,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.addCardToHand(generatedCardIdx);
             state.addCardToHand(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -1668,7 +1667,7 @@ public class CardIronclad {
             state.properties.addOnCardPlayedHandler("Rage", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (state.properties.cardDict[cardIdx].cardType == Card.ATTACK) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                        state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1934,7 +1933,7 @@ public class CardIronclad {
             }
             state.updateHandArr();
             for (int i = 0; i < c; i++) {
-                state.getPlayerForWrite().gainBlock(blockPerCard);
+                state.playerGainBlock(blockPerCard);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1987,7 +1986,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2738,7 +2737,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
     }

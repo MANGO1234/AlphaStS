@@ -81,7 +81,7 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.addCardToDiscard(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -256,7 +256,7 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.getCounterForWrite()[counterIdx] += 2;
             return GameActionCtx.PLAY_CARD;
         }
@@ -481,7 +481,7 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             var handArr = state.getHandArrForWrite();
             for (int i = 0; i < state.handArrLen; i++) {
                 if (state.properties.cardDict[handArr[i]].cardType == Card.STATUS) {
@@ -596,7 +596,7 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.addCardToDiscard(generatedCardIdx);
             state.addCardToDiscard(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
@@ -647,7 +647,7 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.channelOrb(OrbType.GLASS);
             return GameActionCtx.PLAY_CARD;
         }
@@ -961,7 +961,7 @@ public class CardDefect2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.channelOrb(OrbType.DARK);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1406,7 +1406,7 @@ public class CardDefect2 {
                     }
                     int uniqueCount = Integer.bitCount(orbMask);
                     if (uniqueCount > 0) {
-                        state.getPlayerForWrite().gainBlock(n * uniqueCount);
+                        state.playerGainBlock(n * uniqueCount);
                     }
                 }
             });

@@ -303,7 +303,7 @@ public class CardSilent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -666,7 +666,7 @@ public class CardSilent2 {
                     totalPoison += e.getPoison();
                 }
             }
-            state.getPlayerForWrite().gainBlock(totalPoison);
+            state.playerGainBlock(totalPoison);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1672,6 +1672,13 @@ public class CardSilent2 {
 
                 @Override public void onRegister(int cIdx) {
                     state.properties.shadowmeldCounterIdx = cIdx;
+                }
+            });
+            state.properties.addEndOfTurnHandler(new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
                 }
             });
         }

@@ -54,7 +54,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.changeStance(Stance.CALM);
             return GameActionCtx.PLAY_CARD;
         }
@@ -240,7 +240,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.changeStance(Stance.NEUTRAL);
             return GameActionCtx.PLAY_CARD;
         }
@@ -295,7 +295,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.addCardToDeck(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -435,7 +435,7 @@ public class CardWatcher {
             if (state.getStance() == Stance.WRATH) {
                 totalBlock += wrathBonus;
             }
-            state.getPlayerForWrite().gainBlock(totalBlock);
+            state.playerGainBlock(totalBlock);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -468,7 +468,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.getPlayerForWrite().gainBlock(block);
+                state.playerGainBlock(block);
                 state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, true);
                 return state.startScry(scryAmount);
             } else {
@@ -535,7 +535,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.gainMantra(mantra);
             return GameActionCtx.PLAY_CARD;
         }
@@ -567,7 +567,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -631,7 +631,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.getPlayerForWrite().gainBlock(block);
+                state.playerGainBlock(block);
                 return state.startScry(scryAmount);
             } else {
                 return GameActionCtx.PLAY_CARD;
@@ -850,7 +850,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.addCardToHand(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1149,7 +1149,7 @@ public class CardWatcher {
             state.properties.addEndOfTurnHandler("LikeWater", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (counterIdx >= 0 && state.getCounterForRead()[counterIdx] > 0 && state.getStance() == Stance.CALM) {
-                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.playerGainBlock(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1264,7 +1264,7 @@ public class CardWatcher {
             state.properties.addOnStanceChangeHandler("MentalFortress", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.playerGainBlock(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1309,7 +1309,7 @@ public class CardWatcher {
             state.properties.addOnScryHandler("Nirvana", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.getPlayerForWrite().gainBlock(state.getCounterForRead()[counterIdx]);
+                        state.playerGainBlock(state.getCounterForRead()[counterIdx]);
                     }
                 }
             });
@@ -1348,7 +1348,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1413,7 +1413,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1577,7 +1577,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             if (state.getLastCardPlayedType() == Card.SKILL) {
                 state.draw(2);
             }
@@ -1849,7 +1849,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1967,7 +1967,7 @@ public class CardWatcher {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int dmgDone = state.playerDoDamageToEnemy(enemy, damage);
             if (dmgDone > 0) {
-                state.getPlayerForWrite().gainBlock(dmgDone);
+                state.playerGainBlock(dmgDone);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2864,7 +2864,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(state.handArrLen * blockPerCard);
+            state.playerGainBlock(state.handArrLen * blockPerCard);
             return GameActionCtx.PLAY_CARD;
         }
     }

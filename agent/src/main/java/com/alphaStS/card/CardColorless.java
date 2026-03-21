@@ -256,7 +256,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -337,7 +337,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -543,7 +543,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.getPlayerForWrite().applyDebuff(state, DebuffType.NO_BLOCK_FROM_CARDS, 2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1668,7 +1668,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
     }

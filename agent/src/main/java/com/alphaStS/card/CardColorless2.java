@@ -1,11 +1,9 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
-import com.alphaStS.action.CatastropheAction;
 import com.alphaStS.action.CatastropheContinueAction;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
-import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 
 public class CardColorless2 {
@@ -203,7 +201,7 @@ public class CardColorless2 {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int dmgDone = state.playerDoDamageToEnemy(enemy, damage);
             if (dmgDone > 0) {
-                state.getPlayerForWrite().gainBlock(dmgDone);
+                state.playerGainBlock(dmgDone);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -464,7 +462,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
     }

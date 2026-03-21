@@ -932,7 +932,7 @@ public class GameProperties implements Cloneable {
         });
         addPreEndOfTurnHandler("Metallicize", new GameEventHandler() {
             @Override public void handle(GameState state) {
-                state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.metallicizeCounterIdx]);
+                state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.metallicizeCounterIdx]);
             }
         });
     }
@@ -949,7 +949,7 @@ public class GameProperties implements Cloneable {
         });
         addPreEndOfTurnHandler("Plating", new GameEventHandler() {
             @Override public void handle(GameState state) {
-                state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.platingCounterIdx]);
+                state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.platingCounterIdx]);
             }
         });
         addEndOfTurnHandler("Plating", new GameEventHandler() {
@@ -1003,7 +1003,7 @@ public class GameProperties implements Cloneable {
         addStartOfTurnHandler("BlockNextTurn", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 if (state.getCounterForRead()[state.properties.blockNextTurnCounterIdx] > 0) {
-                    state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.blockNextTurnCounterIdx]);
+                    state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.blockNextTurnCounterIdx]);
                     state.getCounterForWrite()[state.properties.blockNextTurnCounterIdx] = 0;
                 }
             }

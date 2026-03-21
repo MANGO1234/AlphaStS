@@ -169,7 +169,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -472,7 +472,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.getPlayerForWrite().gainBlock(n);
+                state.playerGainBlock(n);
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
                 if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
@@ -505,7 +505,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -607,7 +607,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(state.getNumCardsInDiscard() + n);
+            state.playerGainBlock(state.getNumCardsInDiscard() + n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -647,7 +647,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -701,7 +701,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -904,7 +904,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.getPlayeForRead().getBlock() == 0) {
-                state.getPlayerForWrite().gainBlock(n);
+                state.playerGainBlock(n);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -979,7 +979,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1296,7 +1296,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1404,7 +1404,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(12);
+            state.playerGainBlock(12);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1471,7 +1471,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(16);
+            state.playerGainBlock(16);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1553,9 +1553,9 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.properties.echoFormCounterIdx >= 0 && state.getCounterForRead()[state.properties.echoFormCounterIdx] < 0) {
-                state.getPlayerForWrite().gainBlock(block + blockInc);
+                state.playerGainBlock(block + blockInc);
             } else {
-                state.getPlayerForWrite().gainBlock(block);
+                state.playerGainBlock(block);
             }
             if (healthRewardRatio > 0) {
                 state.getCounterForWrite()[counterIdx] += blockInc;
@@ -1715,7 +1715,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(n);
+            state.playerGainBlock(n);
             state.channelOrb(OrbType.FROST);
             state.channelOrb(OrbType.FROST);
             return GameActionCtx.PLAY_CARD;
@@ -2005,9 +2005,8 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            var player = state.getPlayerForWrite();
             for (int i = 0; i < energyUsed; i++) {
-                player.gainBlock(n);
+                state.playerGainBlock(n);
             }
             return GameActionCtx.PLAY_CARD;
         }

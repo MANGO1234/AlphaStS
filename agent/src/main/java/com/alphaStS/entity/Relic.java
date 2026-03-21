@@ -164,7 +164,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("Anchor", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 1 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(block);
+                        state.playerGainBlockNotFromCardPlay(block);
                     }
                 }
             });
@@ -483,7 +483,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addPreEndOfTurnHandler(new GameEventHandler(0) {
                 @Override public void handle(GameState state) {
                     if (state.getPlayeForRead().getBlock() == 0 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(gainBlock);
+                        state.playerGainBlockNotFromCardPlay(gainBlock);
                     }
                 }
             });
@@ -746,7 +746,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("HornCleat", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 2 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(14);
+                        state.playerGainBlockNotFromCardPlay(14);
                     }
                 }
             });
@@ -1000,7 +1000,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                         counter[counterIdx]++;
                         if (counter[counterIdx] == 3) {
                             counter[counterIdx] = 0;
-                            state.getPlayerForWrite().gainBlockNotFromCardPlay(4);
+                            state.playerGainBlockNotFromCardPlay(4);
                         }
                     }
                 }
@@ -1213,7 +1213,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfTurnHandler("CaptainsWheel", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.turnNum == 3 && isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(18);
+                        state.playerGainBlockNotFromCardPlay(18);
                     }
                 }
             });
@@ -1648,7 +1648,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addOnShuffleHandler("TheAbacus", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        state.getPlayerForWrite().gainBlockNotFromCardPlay(6);
+                        state.playerGainBlockNotFromCardPlay(6);
                     }
                 }
             });
@@ -2274,7 +2274,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
                         if (state.getCounterForRead()[counterIdx] > 0) {
-                            state.getPlayerForWrite().gainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
+                            state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[counterIdx]);
                             state.getCounterForWrite()[counterIdx] = 0;
                         }
                     }
@@ -3008,7 +3008,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (isRelicEnabledInScenario(state)) {
                         int handSize = state.handArr.length;
                         if (handSize > 0) {
-                            state.getPlayerForWrite().gainBlockNotFromCardPlay(handSize);
+                            state.playerGainBlockNotFromCardPlay(handSize);
                         }
                     }
                 }

@@ -65,7 +65,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(2, false, this);
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -515,9 +515,9 @@ public class CardIronclad2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             if (state.getCounterForRead()[state.properties.exhaustedThisTurnCounterIdx] > 0) {
-                state.getPlayerForWrite().gainBlock(block);
+                state.playerGainBlock(block);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1298,7 +1298,7 @@ public class CardIronclad2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1594,7 +1594,7 @@ public class CardIronclad2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getPlayerForWrite().gainBlock(block);
+            state.playerGainBlock(block);
             state.buffs |= PlayerBuff.COLOSSUS.mask();
             return GameActionCtx.PLAY_CARD;
         }
@@ -1692,7 +1692,7 @@ public class CardIronclad2 {
                     var blockAmount = counter & ((1 << 16) - 1);
                     if (selfDmg > 0) {
                         state.doNonAttackDamageToPlayer(selfDmg, false, _this);
-                        state.getPlayerForWrite().gainBlock(blockAmount);
+                        state.playerGainBlock(blockAmount);
                     }
                 }
             });
