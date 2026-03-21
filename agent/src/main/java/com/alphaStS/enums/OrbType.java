@@ -8,7 +8,8 @@ public enum OrbType {
     LIGHTNING("L", "Lightning", (short) 2),
     FROST("F", "Frost", (short) 4),
     DARK("D", "Dark", (short) 8),
-    PLASMA("P", "Plasma", (short) 16);
+    PLASMA("P", "Plasma", (short) 16),
+    GLASS("G", "Glass", (short) 32);
 
     public final String abbrev;
     public final String displayName;

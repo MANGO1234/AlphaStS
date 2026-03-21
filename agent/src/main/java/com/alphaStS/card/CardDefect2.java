@@ -536,13 +536,86 @@ public class CardDefect2 {
     public static class FTLP extends CardDefect.FTLP {
     }
 
-    // TODO: Feral (Uncommon) - 2 energy, Power
-    //   Effect: The first time you play a 0 energy Attack each turn, return it to your Hand.
-    //   Upgraded Effect (1 energy): The first time you play a 0 energy Attack each turn, return it to your Hand.
+    private static abstract class _FeralT extends Card {
+        public _FeralT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+        }
 
-    // TODO: Fight Through (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 13 Block. Add 2 Wounds into your Discard Pile.
-    //   Upgraded Effect: Gain 17 Block. Add 2 Wounds into your Discard Pile.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // Upper nibble = stacks (permanent), lower nibble = remaining triggers this turn
+            // Add 1 to each: +0x11 = +17
+            state.getCounterForWrite()[counterIdx] += 0x11;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Feral", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = (state.getCounterForRead()[counterIdx] >> 4) / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Feral", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int stacks = state.getCounterForRead()[counterIdx] >> 4;
+                    state.getCounterForWrite()[counterIdx] = (stacks << 4) | stacks;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.feralCounterIdx = idx;
+        }
+    }
+
+    public static class Feral extends _FeralT {
+        public Feral() {
+            super("Feral", 2);
+        }
+    }
+
+    public static class FeralP extends _FeralT {
+        public FeralP() {
+            super("Feral+", 1);
+        }
+    }
+
+    private static abstract class _FightThroughT extends Card {
+        private final int block;
+
+        public _FightThroughT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.addCardToDiscard(generatedCardIdx);
+            state.addCardToDiscard(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther.Wound());
+        }
+    }
+
+    public static class FightThrough extends _FightThroughT {
+        public FightThrough() {
+            super("Fight Through", 13);
+        }
+    }
+
+    public static class FightThroughP extends _FightThroughT {
+        public FightThroughP() {
+            super("Fight Through+", 17);
+        }
+    }
 
     public static class Fusion extends CardDefect.Fusion {
     }
@@ -562,17 +635,136 @@ public class CardDefect2 {
         }
     }
 
-    // TODO: Glasswork (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 5 Block. Channel 1 Glass.
-    //   Upgraded Effect: Gain 8 Block. Channel 1 Glass.
+    private static abstract class _GlassworkT extends Card {
+        private final int block;
 
-    // TODO: Hailstorm (Uncommon) - 1 energy, Power
-    //   Effect: At the end of your turn, if you have Frost, deal 6 damage to ALL enemies.
-    //   Upgraded Effect: At the end of your turn, if you have Frost, deal 8 damage to ALL enemies.
+        public _GlassworkT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            entityProperty.orbGenerationPossible |= OrbType.GLASS.mask;
+        }
 
-    // TODO: Iteration (Uncommon) - 1 energy, Power
-    //   Effect: The first time you draw a Status card each turn, draw 2 cards.
-    //   Upgraded Effect: The first time you draw a Status card each turn, draw 3 cards.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.channelOrb(OrbType.GLASS);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Glasswork extends _GlassworkT {
+        public Glasswork() {
+            super("Glasswork", 5);
+        }
+    }
+
+    public static class GlassworkP extends _GlassworkT {
+        public GlassworkP() {
+            super("Glasswork+", 8);
+        }
+    }
+
+    private static abstract class _HailstormT extends Card {
+        private final int damage;
+
+        public _HailstormT(String cardName, int damage) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addEndOfTurnHandler(cardName, new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    short[] orbs = state.getOrbs();
+                    if (orbs == null) return;
+                    for (int i = 0; i < orbs.length; i += 2) {
+                        if (orbs[i] == OrbType.FROST.ordinal()) {
+                            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                                state.playerDoNonAttackDamageToEnemy(enemy, damage, true);
+                            }
+                            return;
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Hailstorm extends _HailstormT {
+        public Hailstorm() {
+            super("Hailstorm", 6);
+        }
+    }
+
+    public static class HailstormP extends _HailstormT {
+        public HailstormP() {
+            super("Hailstorm+", 8);
+        }
+    }
+
+    private static abstract class _IterationT extends Card {
+        private final int draws;
+
+        public _IterationT(String cardName, int draws) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.draws = draws;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            // counterIdx = total draws (stacks), counterIdx+1 = triggered-this-turn flag
+            state.getCounterForWrite()[counterIdx] += draws;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Iteration", this, 2, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1];
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+            });
+            state.properties.addOnCardDrawnHandler("Iteration", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.STATUS
+                            && state.getCounterForRead()[counterIdx + 1] == 0
+                            && state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx + 1] = 1;
+                        state.draw(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("Iteration", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx + 1] = 0;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.iterationCounterIdx = idx;
+        }
+    }
+
+    public static class Iteration extends _IterationT {
+        public Iteration() {
+            super("Iteration", 2);
+        }
+    }
+
+    public static class IterationP extends _IterationT {
+        public IterationP() {
+            super("Iteration+", 3);
+        }
+    }
 
     public static class Loop extends CardDefect.Loop {
     }
@@ -580,9 +772,38 @@ public class CardDefect2 {
     public static class LoopP extends CardDefect.LoopP {
     }
 
-    // TODO: Null (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 10 damage. Apply 2 Weak. Channel 1 Dark.
-    //   Upgraded Effect: Deal 13 damage. Apply 3 Weak. Channel 1 Dark.
+    private static abstract class _NullT extends Card {
+        private final int damage;
+        private final int weak;
+
+        public _NullT(String cardName, int damage, int weak) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.weak = weak;
+            entityProperty.selectEnemy = true;
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            enemy.applyDebuff(state, DebuffType.WEAK, weak);
+            state.channelOrb(OrbType.DARK);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Null extends _NullT {
+        public Null() {
+            super("Null", 10, 2);
+        }
+    }
+
+    public static class NullP extends _NullT {
+        public NullP() {
+            super("Null+", 13, 3);
+        }
+    }
 
     public static class Overclock extends CardDefect.Overclock {
     }
@@ -590,9 +811,37 @@ public class CardDefect2 {
     public static class OverclockP extends CardDefect.OverclockP {
     }
 
-    // TODO: Refract (Uncommon) - 3 energy, Attack
-    //   Effect: Deal 9 damage twice. Channel 2 Glass.
-    //   Upgraded Effect: Deal 12 damage twice. Channel 2 Glass.
+    private static abstract class _RefractT extends Card {
+        private final int damage;
+
+        public _RefractT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.orbGenerationPossible |= OrbType.GLASS.mask;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage);
+            state.channelOrb(OrbType.GLASS);
+            state.channelOrb(OrbType.GLASS);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Refract extends _RefractT {
+        public Refract() {
+            super("Refract", 9);
+        }
+    }
+
+    public static class RefractP extends _RefractT {
+        public RefractP() {
+            super("Refract+", 12);
+        }
+    }
 
     public static class RipAndTear extends CardDefect.RipAndTear {
     }
@@ -604,9 +853,38 @@ public class CardDefect2 {
     //   Effect: Deal 13 damage. Draw 1 card. When a Status card is created, reduce this card's cost to 0 energy this turn.
     //   Upgraded Effect: Deal 14 damage. Draw 2 cards. When a Status card is created, reduce this card's cost to 0 energy this turn.
 
-    // TODO: Scavenge (Uncommon) - 1 energy, Skill
-    //   Effect: Exhaust a card. Next turn, gain 2 energy.
-    //   Upgraded Effect: Exhaust a card. Next turn, gain 3 energy.
+    private static abstract class _ScavengeT extends Card {
+        private final int energy;
+
+        public _ScavengeT(String cardName, int energy) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.energy = energy;
+            entityProperty.selectFromHand = true;
+            canExhaustAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.exhaustCardFromHand(idx);
+            state.getCounterForWrite()[counterIdx] += energy;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerEnergyNextTurnCounter(state, this);
+        }
+    }
+
+    public static class Scavenge extends _ScavengeT {
+        public Scavenge() {
+            super("Scavenge", 2);
+        }
+    }
+
+    public static class ScavengeP extends _ScavengeT {
+        public ScavengeP() {
+            super("Scavenge+", 3);
+        }
+    }
 
     public static class Scrape extends CardDefect.Scrape {
     }
@@ -614,9 +892,33 @@ public class CardDefect2 {
     public static class ScrapeP extends CardDefect.ScrapeP {
     }
 
-    // TODO: Shadow Shield (Uncommon) - 2 energy, Skill
-    //   Effect: Gain 11 Block. Channel 1 Dark.
-    //   Upgraded Effect: Gain 15 Block. Channel 1 Dark.
+    private static abstract class _ShadowShieldT extends Card {
+        private final int block;
+
+        public _ShadowShieldT(String cardName, int block) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.block = block;
+            entityProperty.orbGenerationPossible |= OrbType.DARK.mask;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(block);
+            state.channelOrb(OrbType.DARK);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ShadowShield extends _ShadowShieldT {
+        public ShadowShield() {
+            super("Shadow Shield", 11);
+        }
+    }
+
+    public static class ShadowShieldP extends _ShadowShieldT {
+        public ShadowShieldP() {
+            super("Shadow Shield+", 15);
+        }
+    }
 
     public static class Skim extends CardDefect.Skim {
     }
@@ -637,9 +939,37 @@ public class CardDefect2 {
         }
     }
 
-    // TODO: Subroutine (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you play a Power, gain energy.
-    //   Upgraded Effect (0 energy): Whenever you play a Power, gain energy.
+    private static abstract class _SubroutineT extends Card {
+        public _SubroutineT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("Subroutine", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER) {
+                        state.gainEnergy(1);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Subroutine extends _SubroutineT {
+        public Subroutine() {
+            super("Subroutine", 1);
+        }
+    }
+
+    public static class SubroutineP extends _SubroutineT {
+        public SubroutineP() {
+            super("Subroutine+", 0);
+        }
+    }
 
     public static class Sunder extends CardDefect.Sunder {
     }
@@ -647,13 +977,101 @@ public class CardDefect2 {
     public static class SunderP extends CardDefect.SunderP {
     }
 
-    // TODO: Synchronize (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 2 Focus this turn for each unique Orb you have. Exhaust.
-    //   Upgraded Effect: Gain 2 Focus this turn for each unique Orb you have.
+    private static abstract class _SynchronizeT extends Card {
+        public _SynchronizeT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.exhaustWhenPlayed = exhaust;
+            entityProperty.changePlayerFocus = true;
+            entityProperty.changePlayerFocusEot = true;
+        }
 
-    // TODO: Synthesis (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 12 damage. The next Power you play costs 0 energy.
-    //   Upgraded Effect: Deal 18 damage. The next Power you play costs 0 energy.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            short[] orbs = state.getOrbs();
+            int uniqueCount = 0;
+            if (orbs != null) {
+                int orbMask = 0;
+                for (int i = 0; i < orbs.length; i += 2) {
+                    if (orbs[i] != 0) {
+                        orbMask |= (1 << orbs[i]);
+                    }
+                }
+                uniqueCount = Integer.bitCount(orbMask);
+            }
+            int focusGain = 2 * uniqueCount;
+            if (focusGain > 0) {
+                state.gainFocus(focusGain);
+                state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS_EOT, focusGain);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Synchronize extends _SynchronizeT {
+        public Synchronize() {
+            super("Synchronize", true);
+        }
+    }
+
+    public static class SynchronizeP extends _SynchronizeT {
+        public SynchronizeP() {
+            super("Synchronize+", false);
+        }
+    }
+
+    private static abstract class _SynthesisT extends Card {
+        private final int damage;
+
+        public _SynthesisT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Synthesis", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Synthesis", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.POWER
+                            && state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                        state.gainEnergy(energyUsed);
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.synthesisCounterIdx = idx;
+        }
+    }
+
+    public static class Synthesis extends _SynthesisT {
+        public Synthesis() {
+            super("Synthesis", 12);
+        }
+    }
+
+    public static class SynthesisP extends _SynthesisT {
+        public SynthesisP() {
+            super("Synthesis+", 18);
+        }
+    }
 
     public static class Tempest extends CardDefect.Tempest {
     }
@@ -661,13 +1079,77 @@ public class CardDefect2 {
     public static class TempestP extends CardDefect.TempestP {
     }
 
-    // TODO: Tesla Coil (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 3 damage. Trigger all Lightning against the enemy.
-    //   Upgraded Effect: Deal 6 damage. Trigger all Lightning against the enemy.
+    private static abstract class _TeslaCoilT extends Card {
+        private final int damage;
 
-    // TODO: Thunder (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you Evoke Lightning, deal 6 damage to each enemy hit.
-    //   Upgraded Effect: Whenever you Evoke Lightning, deal 8 damage to each enemy hit.
+        public _TeslaCoilT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.triggerLightningOrbsAgainstEnemy(idx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TeslaCoil extends _TeslaCoilT {
+        public TeslaCoil() {
+            super("Tesla Coil", 3);
+        }
+    }
+
+    public static class TeslaCoilP extends _TeslaCoilT {
+        public TeslaCoilP() {
+            super("Tesla Coil+", 6);
+        }
+    }
+
+    private static abstract class _ThunderT extends Card {
+        private final int damage;
+
+        public _ThunderT(String cardName, int damage) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += damage;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Thunder", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.thunderDamageCounterIdx = idx;
+        }
+    }
+
+    public static class Thunder extends _ThunderT {
+        public Thunder() {
+            super("Thunder", 6);
+        }
+    }
+
+    public static class ThunderP extends _ThunderT {
+        public ThunderP() {
+            super("Thunder+", 8);
+        }
+    }
 
     public static class WhiteNoise extends CardDefect.WhiteNoise {
     }

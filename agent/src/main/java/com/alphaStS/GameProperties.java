@@ -188,6 +188,7 @@ public class GameProperties implements Cloneable {
     public int eviscerateCounterIdx = -1;
     public int exhaustedThisTurnCounterIdx = -1;
     public int feedCounterIdx = -1;
+    public int feralCounterIdx = -1;
     public int forceFieldCounterIdx = -1;
     public int foresightCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
@@ -199,6 +200,7 @@ public class GameProperties implements Cloneable {
     public int inkBottleCounterIdx = -1;
     public int inserterCounterIdx = -1;
     public int intangibleCounterIdx = -1;
+    public int iterationCounterIdx = -1;
     public int loopCounterIdx = -1;
     public int loseDexterityPerTurnCounterIdx = -1;
     public int loseEnergyPerTurnCounterIdx = -1;
@@ -221,6 +223,8 @@ public class GameProperties implements Cloneable {
     public int sneckoDebuffCounterIdx = -1;
     public int sundialCounterIdx = -1;
     public int swivelCounterIdx = -1;
+    public int synthesisCounterIdx = -1;
+    public int thunderDamageCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
     public int unrelentingCounterIdx = -1;
     public int timeEaterCounterIdx = -1;
@@ -388,6 +392,28 @@ public class GameProperties implements Cloneable {
 
     public void registerCounter(String name, CounterRegistrant registrant, NetworkInputHandler handler) {
         registerCounter(name, registrant, 1, handler, false);
+    }
+
+    public void registerEnergyNextTurnCounter(GameState state, CounterRegistrant registrant) {
+        registerCounter("EnergyNextTurn", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[registrant.getCounterIdx(state.properties)] / 15.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                if (state.getCounterForRead()[cIdx] > 0) {
+                    state.gainEnergy(state.getCounterForRead()[cIdx]);
+                    state.getCounterForWrite()[cIdx] = 0;
+                }
+            }
+        });
     }
 
     public boolean hasCounter(String name) {

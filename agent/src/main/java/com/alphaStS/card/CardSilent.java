@@ -469,24 +469,7 @@ public class CardSilent {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("EnergyNextTurn", this, new GameProperties.NetworkInputHandler() {
-                @Override public int addToInput(GameState state, float[] input, int idx) {
-                    input[idx] = state.getCounterForRead()[counterIdx] / 15.0f;
-                    return idx + 1;
-                }
-
-                @Override public int getInputLenDelta() {
-                    return 1;
-                }
-            });
-            state.properties.addStartOfTurnHandler("EnergyNextTurn", new GameEventHandler() {
-                @Override public void handle(GameState state) {
-                    if (state.getCounterForRead()[counterIdx] > 0) {
-                        state.gainEnergy(state.getCounterForRead()[counterIdx]);
-                        state.getCounterForWrite()[counterIdx] = 0;
-                    }
-                }
-            });
+            state.properties.registerEnergyNextTurnCounter(state, this);
         }
     }
 

@@ -488,6 +488,8 @@ public class NNInputSchema {
                         for (int i = 0; i < orbs.length; i += 2) {
                             if (orbs[i] == OrbType.DARK.ordinal()) {
                                 x[orbIdx + orbTypeToCompactIdx[orbs[i]]] = orbs[i + 1] / 50.0f;
+                            } else if (orbs[i] == OrbType.GLASS.ordinal()) {
+                                x[orbIdx + orbTypeToCompactIdx[orbs[i]]] = orbs[i + 1] / 4.0f;
                             } else if (orbs[i] > 0) {
                                 x[orbIdx + orbTypeToCompactIdx[orbs[i]]] = 0.5f;
                             }
@@ -534,6 +536,8 @@ public class NNInputSchema {
                         for (int i = 0; i < orbs.length; i += 2) {
                             if (orbs[i] == OrbType.DARK.ordinal()) {
                                 x[orbIdx + orbs[i]] = orbs[i + 1] / 50.0f;
+                            } else if (orbs[i] == OrbType.GLASS.ordinal()) {
+                                x[orbIdx + orbs[i]] = orbs[i + 1] / 4.0f;
                             } else if (orbs[i] > 0) {
                                 x[orbIdx + orbs[i]] = 0.5f;
                             }

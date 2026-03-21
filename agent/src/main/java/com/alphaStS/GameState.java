@@ -1451,7 +1451,12 @@ public final class GameState implements State {
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
                     addCardToDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
-                    if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
+                    if (properties.feralCounterIdx >= 0 && (getCounterForRead()[properties.feralCounterIdx] & 0xF) > 0
+                            && properties.cardDict[cardIdx].energyCost == 0
+                            && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
+                        getCounterForWrite()[properties.feralCounterIdx]--;
+                        addCardToHand(cardIdx);
+                    } else if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
                         if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
                             addCardToDiscard(cardIdx);
                             getCounterForWrite()[properties.reboundCounterIdx]++;
@@ -4280,6 +4285,8 @@ public final class GameState implements State {
             orbs[orbs.length - 2] = (short) orb.ordinal();
             if (orb == OrbType.DARK) {
                 orbs[orbs.length - 1] = 6;
+            } else if (orb == OrbType.GLASS) {
+                orbs[orbs.length - 1] = 4;
             }
         } else {
             for (int i = 0; i < orbs.length; i += 2) {
@@ -4287,6 +4294,8 @@ public final class GameState implements State {
                     orbs[i] = (short) orb.ordinal();
                     if (orb == OrbType.DARK) {
                         orbs[i + 1] = 6;
+                    } else if (orb == OrbType.GLASS) {
+                        orbs[i + 1] = 4;
                     }
                     break;
                 }
@@ -4308,6 +4317,9 @@ public final class GameState implements State {
                 for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
                     int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
                     playerDoNonAttackDamageToEnemy(enemy, dmg, true);
+                    if (properties.thunderDamageCounterIdx >= 0) {
+                        playerDoNonAttackDamageToEnemy(enemy, getCounterForRead()[properties.thunderDamageCounterIdx], true);
+                    }
                 }
             } else {
                 int idx = GameStateUtils.getRandomEnemyIdx(this, RandomGenCtx.RandomEnemyLightningOrb);
@@ -4318,6 +4330,9 @@ public final class GameState implements State {
                     }
                     int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
                     playerDoNonAttackDamageToEnemy(enemy, dmg, true);
+                    if (properties.thunderDamageCounterIdx >= 0) {
+                        playerDoNonAttackDamageToEnemy(enemy, getCounterForRead()[properties.thunderDamageCounterIdx], true);
+                    }
                 }
             }
         } else if (orbs[0] == OrbType.DARK.ordinal()) {
@@ -4332,6 +4347,21 @@ public final class GameState implements State {
             }
         } else if (orbs[0] == OrbType.PLASMA.ordinal()) {
             gainEnergy(2);
+        } else if (orbs[0] == OrbType.GLASS.ordinal()) {
+            for (Enemy enemy : getEnemiesForWrite().iterateOverAlive()) {
+                playerDoNonAttackDamageToEnemy(enemy, orbs[1], true);
+            }
+        }
+    }
+
+    public void triggerLightningOrbsAgainstEnemy(int targetIdx) {
+        if (orbs == null) return;
+        var enemy = getEnemiesForWrite().getForWrite(targetIdx);
+        for (int i = 0; i < orbs.length; i += 2) {
+            if (orbs[i] == OrbType.LIGHTNING.ordinal()) {
+                int dmg = 8 + focus + (enemy.getLockOn() > 0 ? (8 + focus) / 2 : 0);
+                playerDoNonAttackDamageToEnemy(enemy, dmg, true);
+            }
         }
     }
 
@@ -4395,6 +4425,8 @@ public final class GameState implements State {
             }
         } else if (orbs[i] == OrbType.DARK.ordinal()) {
             orbs[i + 1] += Math.max(0, 6 + focus);
+        } else if (orbs[i] == OrbType.GLASS.ordinal()) {
+            orbs[i + 1] = (short) Math.max(0, orbs[i + 1] - 1);
         }
     }
 
