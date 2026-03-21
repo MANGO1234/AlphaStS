@@ -34,6 +34,7 @@ public class EntityProperty {
     public boolean putCardOnTopDeck;
     public long possibleBuffs;
     public short orbGenerationPossible;
+    public boolean sly;
 
     public void mergeFrom(EntityProperty other) {
         changePlayerArtifact |= other.changePlayerArtifact;
@@ -67,6 +68,7 @@ public class EntityProperty {
         putCardOnTopDeck |= other.putCardOnTopDeck;
         possibleBuffs |= other.possibleBuffs;
         orbGenerationPossible |= other.orbGenerationPossible;
+        sly |= other.sly;
     }
 
     public static EntityProperty aggregate(List<EntityProperty> list) {

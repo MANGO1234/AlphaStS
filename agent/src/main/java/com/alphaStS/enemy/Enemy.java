@@ -220,6 +220,10 @@ public abstract class Enemy extends EnemyReadOnly {
         block = n;
     }
 
+    public void setArtifact(int n) {
+        artifact = n;
+    }
+
     public Enemy markAsBurningElite() {
         properties.applyBurningEliteBuff();
         return this;

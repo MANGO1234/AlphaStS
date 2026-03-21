@@ -2,8 +2,11 @@ package com.alphaStS.card;
 
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 
@@ -48,9 +51,33 @@ public class CardSilent2 {
     public static class AcrobaticsP extends CardSilent.AcrobaticsP {
     }
 
-    // TODO: Anticipate (Common) - 0 energy, Skill
-    //   Effect: Gain 3 Dexterity this turn.
-    //   Upgraded Effect: Gain 5 Dexterity this turn.
+    private static abstract class _AnticipateT extends Card {
+        private final int n;
+
+        public _AnticipateT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.n = n;
+            entityProperty.changePlayerDexterityEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainDexterity(n);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_DEXTERITY_EOT, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Anticipate extends _AnticipateT {
+        public Anticipate() {
+            super("Anticipate", 3);
+        }
+    }
+
+    public static class AnticipateP extends _AnticipateT {
+        public AnticipateP() {
+            super("Anticipate+", 5);
+        }
+    }
 
     public static class Backflip extends CardSilent.Backflip {
     }
@@ -108,9 +135,34 @@ public class CardSilent2 {
     public static class DodgeAndRollP extends CardSilent.DodgeAndRollP {
     }
 
-    // TODO: Flick-Flack (Common) - 1 energy, Attack
-    //   Effect: Sly. Deal 7 damage to ALL enemies.
-    //   Upgraded Effect: Sly. Deal 9 damage to ALL enemies.
+    private static abstract class _FlickFlackT extends Card {
+        private final int n;
+
+        public _FlickFlackT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.n = n;
+            entityProperty.sly = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class FlickFlack extends _FlickFlackT {
+        public FlickFlack() {
+            super("Flick-Flack", 7);
+        }
+    }
+
+    public static class FlickFlackP extends _FlickFlackT {
+        public FlickFlackP() {
+            super("Flick-Flack+", 9);
+        }
+    }
 
     private static abstract class _LeadingStrikeT extends Card {
         private final int n;
@@ -162,9 +214,37 @@ public class CardSilent2 {
     public static class PreparedP extends CardSilent.PreparedP {
     }
 
-    // TODO: Ricochet (Common) - 2 energy, Attack
-    //   Effect: Sly. Deal 3 damage to a random enemy 4 times.
-    //   Upgraded Effect: Sly. Deal 3 damage to a random enemy 5 times.
+    private static abstract class _RicochetT extends Card {
+        private final int n;
+
+        public _RicochetT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 2, Card.COMMON);
+            this.n = n;
+            entityProperty.sly = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < n; i++) {
+                int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                if (enemyIdx >= 0) {
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), 3);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Ricochet extends _RicochetT {
+        public Ricochet() {
+            super("Ricochet", 4);
+        }
+    }
+
+    public static class RicochetP extends _RicochetT {
+        public RicochetP() {
+            super("Ricochet+", 5);
+        }
+    }
 
     public static class Slice extends CardSilent.Slice {
     }
@@ -213,9 +293,32 @@ public class CardSilent2 {
         }
     }
 
-    // TODO: Untouchable (Common) - 2 energy, Skill
-    //   Effect: Sly. Gain 9 Block.
-    //   Upgraded Effect: Sly. Gain 12 Block.
+    private static abstract class _UntouchableT extends Card {
+        private final int n;
+
+        public _UntouchableT(String cardName, int n) {
+            super(cardName, Card.SKILL, 2, Card.COMMON);
+            this.n = n;
+            entityProperty.sly = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainBlock(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Untouchable extends _UntouchableT {
+        public Untouchable() {
+            super("Untouchable", 9);
+        }
+    }
+
+    public static class UntouchableP extends _UntouchableT {
+        public UntouchableP() {
+            super("Untouchable+", 12);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *******************************************
@@ -303,9 +406,37 @@ public class CardSilent2 {
     public static class ExpertiseP extends CardSilent.ExpertiseP {
     }
 
-    // TODO: Expose (Uncommon) - 0 energy, Skill
-    //   Effect: Remove all Artifact and Block from the enemy. Apply 2 Vulnerable. Exhaust.
-    //   Upgraded Effect: Remove all Artifact and Block from the enemy. Apply 3 Vulnerable. Exhaust.
+    private static abstract class _ExposeT extends Card {
+        private final int n;
+
+        public _ExposeT(String cardName, int n) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.n = n;
+            this.exhaustWhenPlayed = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            enemy.setBlock(0);
+            enemy.setArtifact(0);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Expose extends _ExposeT {
+        public Expose() {
+            super("Expose", 2);
+        }
+    }
+
+    public static class ExposeP extends _ExposeT {
+        public ExposeP() {
+            super("Expose+", 3);
+        }
+    }
 
     public static class Finisher extends CardSilent.Finisher {
     }
@@ -374,13 +505,88 @@ public class CardSilent2 {
     //   Effect: Gain 7 Block. Add Sly to a Skill in your Hand this turn.
     //   Upgraded Effect: Gain 10 Block. Add Sly to a Skill in your Hand this turn.
 
-    // TODO: Haze (Uncommon) - 3 energy, Skill
-    //   Effect: Sly. Apply 4 Poison to ALL enemies.
-    //   Upgraded Effect: Sly. Apply 6 Poison to ALL enemies.
+    private static abstract class _HazeT extends Card {
+        private final int n;
 
-    // TODO: Hidden Daggers (Uncommon) - 0 energy, Skill
-    //   Effect: Discard 2 cards. Add 2 Shivs into your Hand.
-    //   Upgraded Effect: Discard 2 cards. Add 2 Shivs+ into your Hand.
+        public _HazeT(String cardName, int n) {
+            super(cardName, Card.SKILL, 3, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.sly = true;
+            entityProperty.poisonEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.POISON, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Haze extends _HazeT {
+        public Haze() {
+            super("Haze", 4);
+        }
+    }
+
+    public static class HazeP extends _HazeT {
+        public HazeP() {
+            super("Haze+", 6);
+        }
+    }
+
+    private static abstract class _HiddenDaggersT extends Card {
+        public _HiddenDaggersT(String cardName) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            entityProperty.selectFromHand = true;
+            this.canDiscardAnyCard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.discardCardFromHand(idx);
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForRead()[counterIdx] < 2) {
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+            state.getCounterForWrite()[counterIdx] = 0;
+            state.addCardToHand(generatedCardIdx);
+            state.addCardToHand(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("HiddenDaggers", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class HiddenDaggers extends _HiddenDaggersT {
+        public HiddenDaggers() {
+            super("Hidden Daggers");
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.Shiv());
+        }
+    }
+
+    public static class HiddenDaggersP extends _HiddenDaggersT {
+        public HiddenDaggersP() {
+            super("Hidden Daggers+");
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless.ShivP());
+        }
+    }
 
     public static class InfiniteBlades extends CardSilent.InfiniteBlade {
     }
@@ -394,9 +600,57 @@ public class CardSilent2 {
     public static class LegSweepP extends CardSilent.LegSweepP {
     }
 
-    // TODO: Memento Mori (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Deals 4 additional damage for each card discarded this turn.
-    //   Upgraded Effect: Deal 10 damage. Deals 5 additional damage for each card discarded this turn.
+    private static abstract class _MementoMoriT extends Card {
+        private final int baseDmg;
+        private final int bonusPerDiscard;
+
+        public _MementoMoriT(String cardName, int baseDmg, int bonusPerDiscard) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.baseDmg = baseDmg;
+            this.bonusPerDiscard = bonusPerDiscard;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int discarded = state.getCounterForRead()[state.properties.cardsDiscardedThisTurnCounterIdx];
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusPerDiscard * discarded);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MementoMoriCardsDiscarded", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.cardsDiscardedThisTurnCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addStartOfTurnHandler("MementoMoriCardsDiscarded", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[state.properties.cardsDiscardedThisTurnCounterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class MementoMori extends _MementoMoriT {
+        public MementoMori() {
+            super("Memento Mori", 8, 4);
+        }
+    }
+
+    public static class MementoMoriP extends _MementoMoriT {
+        public MementoMoriP() {
+            super("Memento Mori+", 10, 5);
+        }
+    }
 
     private static abstract class _MirageT extends Card {
         public _MirageT(String cardName, int energyCost) {
@@ -435,21 +689,145 @@ public class CardSilent2 {
     public static class NoxiousFumesP extends CardSilent.NoxiousFumeP {
     }
 
-    // TODO: Outbreak (Uncommon) - 1 energy, Power
-    //   Effect: Every 3 times you apply Poison, deal 11 damage to ALL enemies.
-    //   Upgraded Effect: Every 3 times you apply Poison, deal 15 damage to ALL enemies.
+    private static abstract class _OutbreakT extends Card {
+        private final int n;
+
+        public _OutbreakT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = 0;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Outbreak", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnEnemyDebuffHandler("Outbreak", new GameEventEnemyDebuffHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, DebuffType type, int amount) {
+                    if (type == DebuffType.POISON) {
+                        state.getCounterForWrite()[counterIdx]++;
+                        if (state.getCounterForRead()[counterIdx] % 3 == 0) {
+                            for (Enemy e : state.getEnemiesForWrite().iterateOverAlive()) {
+                                state.playerDoNonAttackDamageToEnemy(e, n, true);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Outbreak extends _OutbreakT {
+        public Outbreak() {
+            super("Outbreak", 11);
+        }
+    }
+
+    public static class OutbreakP extends _OutbreakT {
+        public OutbreakP() {
+            super("Outbreak+", 15);
+        }
+    }
 
     // TODO: Phantom Blades (Uncommon) - 1 energy, Power
     //   Effect: Shivs gain Retain. The first Shiv you play each turn deals 9 additional damage.
     //   Upgraded Effect: Shivs gain Retain. The first Shiv you play each turn deals 12 additional damage.
 
-    // TODO: Pinpoint (Uncommon) - 3 energy, Attack
-    //   Effect: Deal 17 damage. Costs 1 less energy for each Skill played this turn.
-    //   Upgraded Effect: Deal 22 damage. Costs 1 less energy for each Skill played this turn.
+    private static abstract class _PinpointT extends Card {
+        private final int n;
 
-    // TODO: Pounce (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 12 damage. The next Skill you play costs 0 energy.
-    //   Upgraded Effect: Deal 18 damage. The next Skill you play costs 0 energy.
+        public _PinpointT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            if (state == null) return 3;
+            return Math.max(0, 3 - state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx]);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerSkillsPlayedThisTurnCounter();
+        }
+    }
+
+    public static class Pinpoint extends _PinpointT {
+        public Pinpoint() {
+            super("Pinpoint", 17);
+        }
+    }
+
+    public static class PinpointP extends _PinpointT {
+        public PinpointP() {
+            super("Pinpoint+", 22);
+        }
+    }
+
+    private static abstract class _PounceT extends Card {
+        private final int n;
+
+        public _PounceT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Pounce", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Pounce", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType == Card.SKILL && state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                        state.gainEnergy(energyUsed);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Pounce extends _PounceT {
+        public Pounce() {
+            super("Pounce", 12);
+        }
+    }
+
+    public static class PounceP extends _PounceT {
+        public PounceP() {
+            super("Pounce+", 18);
+        }
+    }
 
     private static abstract class _PreciseCutT extends Card {
         private final int n;
@@ -485,9 +863,32 @@ public class CardSilent2 {
     public static class PredatorP extends CardSilent.PredatorP {
     }
 
-    // TODO: Reflex (Uncommon) - 3 energy, Skill
-    //   Effect: Sly. Draw 2 cards.
-    //   Upgraded Effect: Sly. Draw 3 cards.
+    private static abstract class _ReflexT extends Card {
+        private final int n;
+
+        public _ReflexT(String cardName, int n) {
+            super(cardName, Card.SKILL, 3, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.sly = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Reflex extends _ReflexT {
+        public Reflex() {
+            super("Reflex", 2);
+        }
+    }
+
+    public static class ReflexP extends _ReflexT {
+        public ReflexP() {
+            super("Reflex+", 3);
+        }
+    }
 
     public static class Skewer extends CardSilent.Skewer {
     }
@@ -495,17 +896,126 @@ public class CardSilent2 {
     public static class SkewerP extends CardSilent.SkewerP {
     }
 
-    // TODO: Speedster (Uncommon) - 2 energy, Power
-    //   Effect: Whenever you draw a card during your turn, deal 2 damage to ALL enemies.
-    //   Upgraded Effect: Whenever you draw a card during your turn, deal 3 damage to ALL enemies.
+    private static abstract class _SpeedsterT extends Card {
+        private final int n;
 
-    // TODO: Strangle (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Whenever you play a card this turn, the enemy loses 2 HP.
-    //   Upgraded Effect: Deal 10 damage. Whenever you play a card this turn, the enemy loses 3 HP.
+        public _SpeedsterT(String cardName, int n) {
+            super(cardName, Card.POWER, 2, Card.UNCOMMON);
+            this.n = n;
+        }
 
-    // TODO: Tactician (Uncommon) - 3 energy, Skill
-    //   Effect: Sly. Gain energy.
-    //   Upgraded Effect: Sly. Gain 2 energy.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Speedster", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.registerIsPlayerTurnCounter();
+            state.properties.addOnCardDrawnHandler("Speedster", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int stacks = state.getCounterForRead()[counterIdx];
+                    if (stacks > 0 && state.getCounterForRead()[state.properties.isPlayerTurnCounterIdx] > 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoNonAttackDamageToEnemy(enemy, stacks * n, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Speedster extends _SpeedsterT {
+        public Speedster() {
+            super("Speedster", 2);
+        }
+    }
+
+    public static class SpeedsterP extends _SpeedsterT {
+        public SpeedsterP() {
+            super("Speedster+", 3);
+        }
+    }
+
+    private static abstract class _StrangleT extends Card {
+        private final int dmg;
+        private final int choke;
+
+        public _StrangleT(String cardName, int dmg, int choke) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.choke = choke;
+            entityProperty.selectEnemy = true;
+            entityProperty.chokeEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            enemy.applyDebuff(state, DebuffType.CHOKE, choke);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnPreCardPlayedHandler("Choke", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                        if (state.getEnemiesForRead().get(i).getChoke() > 0) {
+                            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), state.getEnemiesForRead().get(i).getChoke(), false);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Strangle extends _StrangleT {
+        public Strangle() {
+            super("Strangle", 8, 2);
+        }
+    }
+
+    public static class StrangleP extends _StrangleT {
+        public StrangleP() {
+            super("Strangle+", 10, 3);
+        }
+    }
+
+    private static abstract class _TacticianT extends Card {
+        private final int n;
+
+        public _TacticianT(String cardName, int n) {
+            super(cardName, Card.SKILL, 3, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.sly = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Tactician extends _TacticianT {
+        public Tactician() {
+            super("Tactician", 1);
+        }
+    }
+
+    public static class TacticianP extends _TacticianT {
+        public TacticianP() {
+            super("Tactician+", 2);
+        }
+    }
 
     // TODO: Up My Sleeve (Uncommon) - 2 energy, Skill
     //   Effect: Add 3 Shivs into your Hand. Reduce this card's cost by 1.

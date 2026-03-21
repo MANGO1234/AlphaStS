@@ -3543,6 +3543,19 @@ public final class GameState implements State {
 
     private void triggerDiscardEffect(int cardIndex) {
         properties.cardDict[cardIndex].onDiscard(this);
+        if (properties.cardDict[cardIndex].entityProperty.sly) {
+            final int slyCardIdx = cardIndex;
+            addGameActionToEndOfDeque(state1 -> {
+                var action = state1.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][slyCardIdx];
+                if (action != null) {
+                    state1.playCard(action, -1, false, null, false, false, -1, -1);
+                    while (state1.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(state1, RandomGenCtx.RandomEnemyGeneral);
+                        state1.playCard(action, enemyIdx, false, null, false, false, -1, -1);
+                    }
+                }
+            });
+        }
         if (properties.hoveringKite != null && properties.hoveringKite.isRelicEnabledInScenario(this)) {
             if (getCounterForRead()[properties.hoveringKiteCounterIdx] == 0) {
                 gainEnergy(1);
@@ -3554,6 +3567,9 @@ public final class GameState implements State {
         }
         if (properties.eviscerateCounterIdx >= 0) {
             getCounterForWrite()[properties.eviscerateCounterIdx] += 1;
+        }
+        if (properties.cardsDiscardedThisTurnCounterIdx >= 0) {
+            getCounterForWrite()[properties.cardsDiscardedThisTurnCounterIdx]++;
         }
         if (properties.tingsha != null && properties.tingsha.isRelicEnabledInScenario(this)) {
             addGameActionToEndOfDeque(new GameEnvironmentAction() {

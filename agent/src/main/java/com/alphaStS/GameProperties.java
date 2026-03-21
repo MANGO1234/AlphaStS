@@ -182,6 +182,7 @@ public class GameProperties implements Cloneable {
     public int blurCounterIdx = -1;
     public int brillianceCounterIdx = -1;
     public int bufferCounterIdx = -1;
+    public int cardsDiscardedThisTurnCounterIdx = -1;
     public int constrictedCounterIdx = -1;
     public int drawReductionCounterIdx = -1;
     public int echoFormCounterIdx = -1;
@@ -203,6 +204,7 @@ public class GameProperties implements Cloneable {
     public int inkBottleCounterIdx = -1;
     public int inserterCounterIdx = -1;
     public int intangibleCounterIdx = -1;
+    public int isPlayerTurnCounterIdx = -1;
     public int iterationCounterIdx = -1;
     public int loopCounterIdx = -1;
     public int loseDexterityPerTurnCounterIdx = -1;
@@ -222,6 +224,7 @@ public class GameProperties implements Cloneable {
     public int sadisticNatureCounterIdx = -1;
     public int selfRepairCounterIdx = -1;
     public int shieldAndSpireFacingCounterIdx = -1;
+    public int skillsPlayedThisTurnCounterIdx = -1;
     public int sneakyStrikeCounterIdx = -1;
     public int sneckoDebuffCounterIdx = -1;
     public int sundialCounterIdx = -1;
@@ -756,6 +759,24 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant SkillsPlayedThisTurnCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.skillsPlayedThisTurnCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.skillsPlayedThisTurnCounterIdx;
+        }
+    };
+
+    private static CounterRegistrant IsPlayerTurnCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.isPlayerTurnCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.isPlayerTurnCounterIdx;
+        }
+    };
+
     public void registerBufferCounter(GameState state, CounterRegistrant registrant) {
         state.properties.registerCounter("Buffer", registrant, new GameProperties.NetworkInputHandler() {
             @Override public int addToInput(GameState state, float[] input, int idx) {
@@ -929,6 +950,54 @@ public class GameProperties implements Cloneable {
         addStartOfTurnHandler("AttacksPlayedThisTurn", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getCounterForWrite()[state.properties.attacksPlayedThisTurnCounterIdx] = 0;
+            }
+        });
+    }
+
+    public void registerSkillsPlayedThisTurnCounter() {
+        registerCounter("SkillsPlayedThisTurn", SkillsPlayedThisTurnCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx] / 3.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addOnCardPlayedHandler("SkillsPlayedThisTurn", new GameEventCardHandler() {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                if (state.properties.cardDict[cardIdx].cardType == Card.SKILL) {
+                    state.getCounterForWrite()[state.properties.skillsPlayedThisTurnCounterIdx]++;
+                }
+            }
+        });
+        addStartOfTurnHandler("SkillsPlayedThisTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.skillsPlayedThisTurnCounterIdx] = 0;
+            }
+        });
+    }
+
+    public void registerIsPlayerTurnCounter() {
+        registerCounter("IsPlayerTurn", IsPlayerTurnCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.isPlayerTurnCounterIdx];
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addPreStartOfTurnHandler("IsPlayerTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.isPlayerTurnCounterIdx] = 1;
+            }
+        });
+        addEndOfTurnHandler("IsPlayerTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.isPlayerTurnCounterIdx] = 0;
             }
         });
     }
