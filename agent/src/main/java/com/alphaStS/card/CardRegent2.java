@@ -25,7 +25,7 @@ public class CardRegent2 {
     // ********************************************* Common *********************************************
     // **************************************************************************************************
 
-    // TODO: Astral Pulse (Common) - 0 energy, Attack
+    // TODO: Astral Pulse (Common) - 0 energy, 3 star, Attack
     //   Effect: Deal 14 damage to ALL enemies.
     //   Upgraded Effect: Deal 18 damage to ALL enemies.
 
@@ -37,7 +37,7 @@ public class CardRegent2 {
     //   Effect: Deal 6 damage 3 times.
     //   Upgraded Effect: Deal 8 damage 3 times.
 
-    // TODO: Cloak of Stars (Common) - 0 energy, Skill
+    // TODO: Cloak of Stars (Common) - 0 energy, 1 star, Skill
     //   Effect: Gain 7 Block.
     //   Upgraded Effect: Gain 10 Block.
 
@@ -49,7 +49,7 @@ public class CardRegent2 {
     //   Effect: Gain 6 Block. Put a card from your Discard Pile on top of your Draw Pile.
     //   Upgraded Effect: Gain 9 Block. Put a card from your Discard Pile on top of your Draw Pile.
 
-    // TODO: Crescent Spear (Common) - 1 energy, Attack
+    // TODO: Crescent Spear (Common) - 1 energy, 1 star, Attack
     //   Effect: Deal 6 damage. Deals 2 additional damage for ALL your cards that have a star cost.
     //   Upgraded Effect: Deal 6 damage. Deals 3 additional damage for ALL your cards that have a star cost.
 
@@ -109,7 +109,7 @@ public class CardRegent2 {
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Alignment (Uncommon) - 0 energy, Skill
+    // TODO: Alignment (Uncommon) - 0 energy, 2 star, Skill
     //   Effect: Gain 2 energy.
     //   Upgraded Effect: Gain 3 energy.
 
@@ -186,8 +186,8 @@ public class CardRegent2 {
     //   Upgraded Effect: Retain. Whenever you play a card this turn, gain 1 Strength this turn.
 
     // TODO: Orbit (Uncommon) - 2 energy, Power
-    //   Effect: Every 4 energy you spend, gain 1 energy.
-    //   Upgraded Effect (1 energy): Every 4 energy you spend, gain 1 energy.
+    //   Effect: Every 4 energy you spend, gain energy.
+    //   Upgraded Effect (1 energy): Every 4 energy you spend, gain energy.
 
     // TODO: Pale Blue Dot (Uncommon) - 1 energy, Power
     //   Effect: If you play 5 or more cards in a turn, draw 1 card at the start of your next turn.
@@ -277,7 +277,7 @@ public class CardRegent2 {
     //   Effect: Add 3 random Colorless cards into your Hand. Exhaust.
     //   Upgraded Effect: Add 4 random Colorless cards into your Hand. Exhaust.
 
-    // TODO: Comet (Rare) - 0 energy, Attack
+    // TODO: Comet (Rare) - 0 energy, 5 star, Attack
     //   Effect: Deal 33 damage. Apply 3 Weak. Apply 3 Vulnerable.
     //   Upgraded Effect: Deal 44 damage. Apply 3 Weak. Apply 3 Vulnerable.
 
@@ -285,7 +285,7 @@ public class CardRegent2 {
     //   Effect: Deal 21 damage to ALL enemies. Fill your Hand with Debris.
     //   Upgraded Effect: Deal 26 damage to ALL enemies. Fill your Hand with Debris.
 
-    // TODO: Decisions, Decisions (Rare) - 0 energy, Skill
+    // TODO: Decisions, Decisions (Rare) - 0 energy, 6 star, Skill
     //   Effect: Draw 3 cards. Choose a Skill in your Hand and play it 3 times. Exhaust.
     //   Upgraded Effect: Draw 5 cards. Choose a Skill in your Hand and play it 3 times. Exhaust.
 
@@ -365,11 +365,11 @@ public class CardRegent2 {
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
-    // TODO: Meteor Shower (Ancient) - 0 energy, Attack
+    // TODO: Meteor Shower (Ancient) - 0 energy, 2 star, Attack
     //   Effect: Deal 14 damage to ALL enemies. Apply 2 Weak and Vulnerable to ALL enemies.
     //   Upgraded Effect: Deal 21 damage to ALL enemies. Apply 2 Weak and Vulnerable to ALL enemies.
 
-    // TODO: The Sealed Throne (Ancient) - 1 energy, Power
+    // TODO: The Sealed Throne (Ancient) - 1 energy, 3 star, Power
     //   Effect: Whenever you play a card, gain star.
     //   Upgraded Effect: Innate. Whenever you play a card, gain star.
 }
