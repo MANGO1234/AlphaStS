@@ -1867,6 +1867,9 @@ public final class GameState implements State {
         if (properties.equilibriumCounterIdx >= 0 && getCounterForRead()[properties.equilibriumCounterIdx] > 0) {
             return false;
         }
+        if (properties.retainHandCounterIdx >= 0 && getCounterForRead()[properties.retainHandCounterIdx] > 0) {
+            return false;
+        }
         return true;
     }
 

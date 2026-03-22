@@ -248,6 +248,9 @@ public class GameProperties implements Cloneable {
     public int velvetChokerCounterIdx = -1;
     public int wellLaidPlansCounterIdx = -1;
     public int blockNextTurnCounterIdx = -1;
+    public int blockNextNextTurnCounterIdx = -1;
+    public int retainHandCounterIdx = -1;
+    public int drawNextTurnCounterIdx = -1;
     public int catastropheCounterIdx = -1;
     public int beatDownCounterIdx = -1;
     public int nostalgiaCounterIdx = -1;
@@ -367,6 +370,13 @@ public class GameProperties implements Cloneable {
         }
     }
 
+    public static class LocalCounterRegistrant implements CounterRegistrant {
+        private int idx = -1;
+
+        @Override public int getCounterIdx(GameProperties gp) { return idx; }
+        @Override public void setCounterIdx(GameProperties gp, int i) { idx = i; }
+    }
+
     public interface TrainingTargetRegistrant {
         void setVExtraIdx(GameProperties properties, int idx);
     }
@@ -431,6 +441,32 @@ public class GameProperties implements Cloneable {
                 int cIdx = registrant.getCounterIdx(state.properties);
                 if (state.getCounterForRead()[cIdx] > 0) {
                     state.gainEnergy(state.getCounterForRead()[cIdx]);
+                    state.getCounterForWrite()[cIdx] = 0;
+                }
+            }
+        });
+    }
+
+    public void registerDrawNextTurnCounter(CounterRegistrant registrant) {
+        registerCounter("DrawNextTurn", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[registrant.getCounterIdx(state.properties)] / 5.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+
+            @Override public void onRegister(int counterIdx) {
+                drawNextTurnCounterIdx = counterIdx;
+            }
+        });
+        addStartOfTurnHandler("DrawNextTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                if (state.getCounterForRead()[cIdx] > 0) {
+                    state.draw(state.getCounterForRead()[cIdx]);
                     state.getCounterForWrite()[cIdx] = 0;
                 }
             }
@@ -1007,6 +1043,56 @@ public class GameProperties implements Cloneable {
                 if (state.getCounterForRead()[state.properties.blockNextTurnCounterIdx] > 0) {
                     state.playerGainBlockNotFromCardPlay(state.getCounterForRead()[state.properties.blockNextTurnCounterIdx]);
                     state.getCounterForWrite()[state.properties.blockNextTurnCounterIdx] = 0;
+                }
+            }
+        });
+    }
+
+    public void registerBlockNextNextTurnCounter(CounterRegistrant registrant) {
+        registerCounter("BlockNextNextTurn", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.blockNextNextTurnCounterIdx] / 40.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+
+            @Override public void onRegister(int counterIdx) {
+                blockNextNextTurnCounterIdx = counterIdx;
+            }
+        });
+        addStartOfTurnHandler("BlockNextNextTurn", new GameEventHandler(1) {
+            @Override public void handle(GameState state) {
+                int v = state.getCounterForRead()[state.properties.blockNextNextTurnCounterIdx];
+                if (v > 0) {
+                    state.getCounterForWrite()[state.properties.blockNextTurnCounterIdx] += v;
+                    state.getCounterForWrite()[state.properties.blockNextNextTurnCounterIdx] = 0;
+                }
+            }
+        });
+    }
+
+    public void registerRetainHandCounter(CounterRegistrant registrant) {
+        registerCounter("RetainHand", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.retainHandCounterIdx] / 5.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+
+            @Override public void onRegister(int counterIdx) {
+                retainHandCounterIdx = counterIdx;
+            }
+        });
+        addEndOfTurnHandler("RetainHand", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                if (state.getCounterForRead()[state.properties.retainHandCounterIdx] > 0) {
+                    state.getCounterForWrite()[state.properties.retainHandCounterIdx]--;
                 }
             }
         });
