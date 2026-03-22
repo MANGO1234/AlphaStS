@@ -1,10 +1,14 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.action.BeatDownContinueAction;
 import com.alphaStS.action.CatastropheContinueAction;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.Utils;
 
 public class CardColorless2 {
     // **************************************************************************************************
@@ -314,9 +318,39 @@ public class CardColorless2 {
     public static class PanicButtonP extends CardColorless.PanicButtonP {
     }
 
-    // TODO: Prep Time (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, gain 4 Vigor.
-    //   Upgraded Effect: At the start of your turn, gain 6 Vigor.
+    private static abstract class _PrepTimeT extends Card {
+        private final int vigor;
+
+        public _PrepTimeT(String cardName, int vigor) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.vigor = vigor;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerVigorCounter(this);
+            state.properties.addStartOfTurnHandler("PrepTime", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[state.properties.vigorCounterIdx] += vigor;
+                }
+            });
+        }
+    }
+
+    public static class PrepTime extends _PrepTimeT {
+        public PrepTime() {
+            super("Prep Time", 4);
+        }
+    }
+
+    public static class PrepTimeP extends _PrepTimeT {
+        public PrepTimeP() {
+            super("Prep Time+", 6);
+        }
+    }
 
     private static abstract class _ProductionT extends Card {
         public _ProductionT(String cardName, boolean exhaust) {
@@ -433,9 +467,7 @@ public class CardColorless2 {
     //   Effect: Whenever you shuffle your Draw Pile, choose a card from it to put into your Hand.
     //   Upgraded Effect (0 energy): Whenever you shuffle your Draw Pile, choose a card from it to put into your Hand.
 
-    // TODO: Tag Team (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 11 damage. The next Attack another player plays on the enemy is played an extra time.
-    //   Upgraded Effect: Deal 15 damage. The next Attack another player plays on the enemy is played an extra time.
+    // No need to implement Tag Team: Multiplayer
 
     public static class TheBomb extends CardColorless.TheBomb {
     }
@@ -506,29 +538,148 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Volley (Uncommon) - X energy, Attack
-    //   Effect: Deal 10 damage to a random enemy X times.
-    //   Upgraded Effect: Deal 14 damage to a random enemy X times.
+    private static abstract class _VolleyT extends Card {
+        private final int damage;
+
+        public _VolleyT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, -1, Card.UNCOMMON);
+            this.damage = damage;
+            isXCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < energyUsed; i++) {
+                int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                if (enemyIdx < 0) {
+                    break;
+                }
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        public int energyCost(GameState state) {
+            return state.energy;
+        }
+    }
+
+    public static class Volley extends _VolleyT {
+        public Volley() {
+            super("Volley", 10);
+        }
+    }
+
+    public static class VolleyP extends _VolleyT {
+        public VolleyP() {
+            super("Volley+", 14);
+        }
+    }
 
     // **************************************************************************************************
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Alchemize (Rare) - 1 energy, Skill
-    //   Effect: Procure a random potion. Exhaust.
-    //   Upgraded Effect (0 energy): Procure a random potion. Exhaust.
+    public static class Alchemize extends CardSilent._AlchemizeT {
+        public Alchemize(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
+            super("Alchemize", 1, basePenaltyRatio, possibleGeneratedPotions, healthReward);
+        }
 
-    // TODO: Anointed (Rare) - 1 energy, Skill
-    //   Effect: Put every Rare card from your Draw Pile into your Hand. Exhaust.
-    //   Upgraded Effect: Retain. Put every Rare card from your Draw Pile into your Hand. Exhaust.
+        @Override public Card getUpgrade() {
+            return new AlchemizeP(basePenaltyRatio, possibleGeneratedPotions, healthReward);
+        }
+    }
 
-    // TODO: Beacon of Hope (Rare) - 1 energy, Power
-    //   Effect: Whenever you gain Block on your turn, other players gain half that much Block.
-    //   Upgraded Effect: Innate. Whenever you gain Block on your turn, other players gain half that much Block.
+    public static class AlchemizeP extends CardSilent._AlchemizeT {
+        public AlchemizeP(int basePenaltyRatio, int possibleGeneratedPotions, int healthReward) {
+            super("Alchemize+", 0, basePenaltyRatio, possibleGeneratedPotions, healthReward);
+        }
+    }
 
-    // TODO: Beat Down (Rare) - 3 energy, Skill
-    //   Effect: Play 3 random Attacks from your Discard Pile.
-    //   Upgraded Effect: Play 4 random Attacks from your Discard Pile.
+    private static abstract class _AnointedT extends Card {
+        public _AnointedT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            exhaustWhenPlayed = true;
+            this.retain = retain;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            short[] rareIdxes = new short[state.deckArrLen];
+            int len = 0;
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.properties.cardDict[state.deckArr[i]].rarity == Card.RARE) {
+                    rareIdxes[len++] = state.deckArr[i];
+                }
+            }
+            if (len > 1) {
+                state.setIsStochastic();
+                Utils.shuffle(state, rareIdxes, len, state.getSearchRandomGen());
+            }
+            for (int i = len - 1; i >= 0; i--) {
+                state.removeCardFromDeck(rareIdxes[i], false);
+                state.addCardToHand(rareIdxes[i]);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Anointed extends _AnointedT {
+        public Anointed() {
+            super("Anointed", false);
+        }
+    }
+
+    public static class AnointedP extends _AnointedT {
+        public AnointedP() {
+            super("Anointed+", true);
+        }
+    }
+
+    // No need to implement Beacon of Hope: Multiplayer
+
+    private static abstract class _BeatDownT extends Card {
+        private final int numAttacks;
+
+        public _BeatDownT(String cardName, int numAttacks) {
+            super(cardName, Card.SKILL, 3, Card.RARE);
+            this.numAttacks = numAttacks;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] = numAttacks;
+            state.addGameActionToStartOfDeque(new BeatDownContinueAction());
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BeatDown", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.beatDownCounterIdx = counterIdx;
+                }
+            });
+        }
+    }
+
+    public static class BeatDown extends _BeatDownT {
+        public BeatDown() {
+            super("Beat Down", 3);
+        }
+    }
+
+    public static class BeatDownP extends _BeatDownT {
+        public BeatDownP() {
+            super("Beat Down+", 4);
+        }
+    }
 
     // TODO: Bolas (Rare) - 0 energy, Attack
     //   Effect: Deal 3 damage. At the start of your next turn, return this to your Hand.
@@ -576,9 +727,17 @@ public class CardColorless2 {
     //   Effect: Deal damage equal to the number of cards played this combat.
     //   Upgraded Effect: Retain. Deal damage equal to the number of cards played this combat.
 
-    // TODO: Hand of Greed (Rare) - 2 energy, Attack
-    //   Effect: Deal 20 damage. If Fatal, gain 20 Gold.
-    //   Upgraded Effect: Deal 25 damage. If Fatal, gain 25 Gold.
+    public static class HandOfGreed extends CardColorless.HandOfGreed {
+        public HandOfGreed(double healthRewardRatio) {
+            super(healthRewardRatio);
+        }
+    }
+
+    public static class HandOfGreedP extends CardColorless.HandOfGreedP {
+        public HandOfGreedP(double healthRewardRatio) {
+            super(healthRewardRatio);
+        }
+    }
 
     // TODO: Hidden Gem (Rare) - 1 energy, Skill
     //   Effect: A random card in your Draw Pile gains Replay 2.
@@ -588,9 +747,7 @@ public class CardColorless2 {
     //   Effect: Deal 25 damage. Add 3 random 0 energy cards into your Hand.
     //   Upgraded Effect: Deal 30 damage. Add 3 random Upgraded 0 energy cards into your Hand.
 
-    // TODO: Knockdown (Rare) - 3 energy, Attack
-    //   Effect: Deal 10 damage. The enemy takes double damage from other players this turn.
-    //   Upgraded Effect: Deal 14 damage. The enemy takes triple damage from other players this turn.
+    // No need to implement Knockdown: Multiplayer
 
     public static class MasterOfStrategy extends CardColorless.MasterOfStrategy {
     }
@@ -604,17 +761,55 @@ public class CardColorless2 {
     public static class MayhemP extends CardColorless.MayhemP {
     }
 
-    // TODO: Mimic (Rare) - 1 energy, Skill
-    //   Effect: Gain Block equal to the Block on another player. Exhaust.
-    //   Upgraded Effect: Gain Block equal to the Block on another player.
+    // No need to implement Mimic: Multiplayer
 
-    // TODO: Nostalgia (Rare) - 1 energy, Power
-    //   Effect: The first Attack or Skill you play each turn is placed on top of your Draw Pile.
-    //   Upgraded Effect (0 energy): The first Attack or Skill you play each turn is placed on top of your Draw Pile.
+    private static abstract class _NostalgiaT extends Card {
+        public _NostalgiaT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
 
-    // TODO: Rally (Rare) - 2 energy, Skill
-    //   Effect: ALL players gain 12 Block.
-    //   Upgraded Effect: ALL players gain 17 Block.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Nostalgia", this, 2, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    input[idx + 1] = state.getCounterForRead()[counterIdx + 1] / 3.0f;
+                    return idx + 2;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 2;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.nostalgiaCounterIdx = counterIdx + 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Nostalgia", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx + 1] = state.getCounterForRead()[counterIdx];
+                }
+            });
+        }
+    }
+
+    public static class Nostalgia extends _NostalgiaT {
+        public Nostalgia() {
+            super("Nostalgia", 1);
+        }
+    }
+
+    public static class NostalgiaP extends _NostalgiaT {
+        public NostalgiaP() {
+            super("Nostalgia+", 0);
+        }
+    }
+
+    // No need to implement Rally: Multiplayer
 
     // TODO: Rend (Rare) - 2 energy, Attack
     //   Effect: Deal 15 damage. Deals 5 additional damage for each unique debuff on the enemy.
@@ -921,29 +1116,150 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Luminesce (Token) - 0 energy, Skill
-    //   Effect: Retain. Gain 2 energy. Exhaust.
-    //   Upgraded Effect: Retain. Gain 3 energy. Exhaust.
+    private static abstract class _LuminesceT extends Card {
+        private final int energy;
 
-    // TODO: Minion Dive Bomb (Token) - 1 energy, Attack
-    //   Effect: Deal 13 damage. Exhaust.
-    //   Upgraded Effect: Deal 16 damage. Exhaust.
+        public _LuminesceT(String cardName, int energy) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.energy = energy;
+            retain = true;
+            exhaustWhenPlayed = true;
+        }
 
-    // TODO: Minion Sacrifice (Token) - 0 energy, Skill
-    //   Effect: Gain 9 Block. Exhaust.
-    //   Upgraded Effect: Gain 12 Block. Exhaust.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(energy);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Minion Strike (Token) - 0 energy, Attack
-    //   Effect: Deal 7 damage. Draw 1 card. Exhaust.
-    //   Upgraded Effect: Deal 10 damage. Draw 1 card. Exhaust.
+    public static class Luminesce extends _LuminesceT {
+        public Luminesce() {
+            super("Luminesce", 2);
+        }
+    }
 
-    // TODO: Shiv (Token) - 0 energy, Attack
-    //   Effect: Deal 4 damage. Exhaust.
-    //   Upgraded Effect: Deal 6 damage. Exhaust.
+    public static class LuminesceP extends _LuminesceT {
+        public LuminesceP() {
+            super("Luminesce+", 3);
+        }
+    }
 
-    // TODO: Soul (Token) - 0 energy, Skill
-    //   Effect: Draw 2 cards. Exhaust.
-    //   Upgraded Effect: Draw 3 cards. Exhaust.
+    private static abstract class _MinionDiveBombT extends Card {
+        private final int damage;
+
+        public _MinionDiveBombT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MinionDiveBomb extends _MinionDiveBombT {
+        public MinionDiveBomb() {
+            super("Minion Dive Bomb", 13);
+        }
+    }
+
+    public static class MinionDiveBombP extends _MinionDiveBombT {
+        public MinionDiveBombP() {
+            super("Minion Dive Bomb+", 16);
+        }
+    }
+
+    private static abstract class _MinionSacrificeT extends Card {
+        private final int block;
+
+        public _MinionSacrificeT(String cardName, int block) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.block = block;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MinionSacrifice extends _MinionSacrificeT {
+        public MinionSacrifice() {
+            super("Minion Sacrifice", 9);
+        }
+    }
+
+    public static class MinionSacrificeP extends _MinionSacrificeT {
+        public MinionSacrificeP() {
+            super("Minion Sacrifice+", 12);
+        }
+    }
+
+    private static abstract class _MinionStrikeT extends Card {
+        private final int damage;
+
+        public _MinionStrikeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.draw(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MinionStrike extends _MinionStrikeT {
+        public MinionStrike() {
+            super("Minion Strike", 7);
+        }
+    }
+
+    public static class MinionStrikeP extends _MinionStrikeT {
+        public MinionStrikeP() {
+            super("Minion Strike+", 10);
+        }
+    }
+
+    public static class Shiv extends CardColorless.Shiv {
+    }
+
+    public static class ShivP extends CardColorless.ShivP {
+    }
+
+    private static abstract class _SoulT extends Card {
+        private final int draws;
+
+        public _SoulT(String cardName, int draws) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.draws = draws;
+            exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(draws);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Soul extends _SoulT {
+        public Soul() {
+            super("Soul", 2);
+        }
+    }
+
+    public static class SoulP extends _SoulT {
+        public SoulP() {
+            super("Soul+", 3);
+        }
+    }
 
     // TODO: Sovereign Blade (Token) - 2 energy, Attack
     //   Effect: Retain. Deal 10 damage.

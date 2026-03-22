@@ -1436,7 +1436,7 @@ public final class GameState implements State {
                     cloneParentLocation = GameState.EXHAUST;
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     cloneParentLocation = GameState.EXHAUST;
-                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
+                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay || (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL))) {
                     cloneParentLocation = GameState.DECK;
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                     if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
@@ -1465,6 +1465,9 @@ public final class GameState implements State {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
                     addCardToDeck(cardIdx);
+                } else if (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL)) {
+                    getCounterForWrite()[properties.nostalgiaCounterIdx]--;
+                    addCardOnTopOfDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                     if (properties.feralCounterIdx >= 0 && (getCounterForRead()[properties.feralCounterIdx] & 0xF) > 0
                             && properties.cardDict[cardIdx].energyCost == 0

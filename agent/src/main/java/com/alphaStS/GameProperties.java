@@ -249,6 +249,8 @@ public class GameProperties implements Cloneable {
     public int wellLaidPlansCounterIdx = -1;
     public int blockNextTurnCounterIdx = -1;
     public int catastropheCounterIdx = -1;
+    public int beatDownCounterIdx = -1;
+    public int nostalgiaCounterIdx = -1;
     public int fastenCounterIdx = -1;
     public int vigorCounterIdx = -1;
     public int crueltyCounterIdx = -1;
