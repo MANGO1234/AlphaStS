@@ -26,4 +26,5 @@ public enum DebuffType {
     LOSE_ENERGY_PER_TURN,
     TALK_TO_THE_HAND,
     MARK,
+    DOOM,
 }

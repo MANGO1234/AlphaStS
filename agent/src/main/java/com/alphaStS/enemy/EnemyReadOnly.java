@@ -79,6 +79,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int lockOn;
     protected int talkToTheHand;
     protected int mark;
+    protected int doom;
     protected int move = -1;
     protected int lastMove = -1;
     int vExtraIdx = -1;
@@ -146,6 +147,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         lockOn = other.lockOn;
         talkToTheHand = other.talkToTheHand;
         mark = other.mark;
+        doom = other.doom;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -216,6 +218,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getMark() {
         return mark;
+    }
+
+    public int getDoom() {
+        return doom;
     }
 
     public boolean hasBurningHealthBuff() {
@@ -297,6 +303,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (mark > 0) {
             str += ", mark=" + mark;
         }
+        if (doom > 0) {
+            str += ", doom=" + doom;
+        }
         return str + '}';
     }
 
@@ -350,6 +359,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (mark > 0) {
             str += ", mark=" + mark;
         }
+        if (doom > 0) {
+            str += ", doom=" + doom;
+        }
         return str + '}';
     }
 
@@ -365,10 +377,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         return health == enemy.health && maxHealthInBattle == enemy.maxHealthInBattle && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
-                choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark;
+                choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark && doom == enemy.doom;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, move, lastMove);
+        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, move, lastMove);
     }
 }

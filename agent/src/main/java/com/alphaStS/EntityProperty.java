@@ -22,6 +22,7 @@ public class EntityProperty {
     public boolean lockOnEnemy;
     public boolean talkToTheHandEnemy;
     public boolean markEnemy;
+    public boolean doomEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
@@ -35,6 +36,7 @@ public class EntityProperty {
     public long possibleBuffs;
     public short orbGenerationPossible;
     public boolean sly;
+    public boolean canSummon;
 
     public void mergeFrom(EntityProperty other) {
         changePlayerArtifact |= other.changePlayerArtifact;
@@ -56,6 +58,7 @@ public class EntityProperty {
         lockOnEnemy |= other.lockOnEnemy;
         talkToTheHandEnemy |= other.talkToTheHandEnemy;
         markEnemy |= other.markEnemy;
+        doomEnemy |= other.doomEnemy;
         affectEnemyStrength |= other.affectEnemyStrength;
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
         changeEnergyRefill |= other.changeEnergyRefill;
@@ -69,6 +72,7 @@ public class EntityProperty {
         possibleBuffs |= other.possibleBuffs;
         orbGenerationPossible |= other.orbGenerationPossible;
         sly |= other.sly;
+        canSummon |= other.canSummon;
     }
 
     public static EntityProperty aggregate(List<EntityProperty> list) {

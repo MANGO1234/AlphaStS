@@ -108,6 +108,7 @@ public abstract class Enemy extends EnemyReadOnly {
         poison = 0;
         lockOn = 0;
         mark = 0;
+        doom = 0;
     }
 
     public void setMove(int move) {
@@ -163,6 +164,7 @@ public abstract class Enemy extends EnemyReadOnly {
         metallicize = 0;
         platedArmor = 0;
         loseStrengthEot = 0;
+        doom = 0;
         move = -1;
         lastMove = -1;
     }
@@ -203,6 +205,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case LOCK_ON -> this.lockOn += n;
         case TALK_TO_THE_HAND -> this.talkToTheHand += n;
         case MARK -> this.mark += n;
+        case DOOM -> this.doom += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {

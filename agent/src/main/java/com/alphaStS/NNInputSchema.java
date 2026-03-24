@@ -1061,6 +1061,22 @@ public class NNInputSchema {
             }
         }
 
+        // Otsy HP and MaxHP
+        if (props.anyEntityProperty.canSummon) {
+            inputLen += 2;
+            descBody.append("    2 inputs to keep track of Otsy HP and MaxHP\n");
+            inputModules.add((s, x, idx) -> {
+                x[idx] = s.getCounterForRead()[s.properties.otsyHPCounterIdx] / 100.0f;
+                x[idx + 1] = s.getCounterForRead()[s.properties.otsyMaxHPCounterIdx] / 100.0f;
+                return 2;
+            });
+            inputPrinters.add((s, input, idx) -> {
+                System.out.println("Otsy HP: " + input[idx]);
+                System.out.println("Otsy MaxHP: " + input[idx + 1]);
+                return 2;
+            });
+        }
+
         // --- Enemy input modules ---
 
         var allEnemyModules = new ArrayList<EnemyInputModule>();
@@ -1190,6 +1206,22 @@ public class NNInputSchema {
                 }
                 @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
                     System.out.println("  Poison: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
+        // Doom
+        if (props.anyEntityProperty.doomEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of doom\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getDoom() / 100.0f;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Doom: " + input[idx]);
                     return 1;
                 }
             });

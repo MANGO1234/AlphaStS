@@ -618,6 +618,28 @@ public final class GameState implements State {
         if (Configuration.HEART_GAUNTLET_CARD_REWARD) {
             EnemyEncounter.gamePropertiesSetup(this);
         }
+        if (properties.anyEntityProperty.canSummon) {
+            properties.registerCounter("OtsyHP", new GameProperties.CounterRegistrant() {
+                @Override public void setCounterIdx(GameProperties gp, int idx) { gp.otsyHPCounterIdx = idx; }
+                @Override public int getCounterIdx(GameProperties gp) { return gp.otsyHPCounterIdx; }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState s, float[] input, int idx) {
+                    input[idx] = s.getCounterForRead()[s.properties.otsyHPCounterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            properties.registerCounter("OtsyMaxHP", new GameProperties.CounterRegistrant() {
+                @Override public void setCounterIdx(GameProperties gp, int idx) { gp.otsyMaxHPCounterIdx = idx; }
+                @Override public int getCounterIdx(GameProperties gp) { return gp.otsyMaxHPCounterIdx; }
+            }, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState s, float[] input, int idx) {
+                    input[idx] = s.getCounterForRead()[s.properties.otsyMaxHPCounterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+        }
         properties.compileCounterInfo();
         counter = new int[properties.counterLength];
         Collections.sort(properties.startOfBattleHandlers);
@@ -2013,6 +2035,12 @@ public final class GameState implements State {
                 }
                 if (i != livingEnemiesCount - 1) {
                     runActionsInQueueIfNonEmpty();
+                }
+            }
+            for (int i = 0; i < livingEnemiesCount; i++) {
+                var enemy2 = enemies.getForWrite(livingEnemies[i]);
+                if (enemy2.isAlive() && enemy2.getDoom() > 0 && enemy2.getHealth() <= enemy2.getDoom()) {
+                    killEnemy(livingEnemies[i], true);
                 }
             }
         }
@@ -3947,7 +3975,17 @@ public final class GameState implements State {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return totalDmgDealt;
             }
-            int dmgDealt = player.damage(this, (int) dmg);
+            int dmgToPlayer = (int) dmg;
+            if (properties.otsyHPCounterIdx >= 0 && getCounterForRead()[properties.otsyHPCounterIdx] > 0) {
+                int otsyHP = getCounterForRead()[properties.otsyHPCounterIdx];
+                int absorbed = Math.min(otsyHP, dmgToPlayer);
+                getCounterForWrite()[properties.otsyHPCounterIdx] -= absorbed;
+                dmgToPlayer -= absorbed;
+            }
+            if (dmgToPlayer <= 0) {
+                continue;
+            }
+            int dmgDealt = player.damage(this, dmgToPlayer);
             totalDmgDealt += dmgDealt;
             if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : properties.onDamageHandlers) {
