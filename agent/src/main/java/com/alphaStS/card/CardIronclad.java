@@ -90,11 +90,11 @@ public class CardIronclad {
         }
     }
 
-    public static class Armanent extends Card {
+    public static class Armaments extends Card {
         private boolean canUpgrade = true;
 
-        public Armanent() {
-            super("Armanent", Card.SKILL, 1, Card.COMMON);
+        public Armaments() {
+            super("Armament", Card.SKILL, 1, Card.COMMON);
             entityProperty.selectFromHand = true;
         }
 
@@ -124,11 +124,11 @@ public class CardIronclad {
         }
     }
 
-    public static class ArmanentP extends Card {
+    public static class ArmamentP extends Card {
         private boolean canUpgrade = true;
 
-        public ArmanentP() {
-            super("Armanent+", Card.SKILL, 1, Card.COMMON);
+        public ArmamentP() {
+            super("Armament+", Card.SKILL, 1, Card.COMMON);
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
@@ -2542,13 +2542,13 @@ public class CardIronclad {
 
         private static boolean canUpgradeFeed(GameState state) {
             boolean canUpgrade = false;
-            int[] idxes = state.properties.findCardIndex(Armanent.class);
+            int[] idxes = state.properties.findCardIndex(Armaments.class);
             for (int i = 0; i < idxes.length; i++) {
                 if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;
                 }
             }
-            idxes = state.properties.findCardIndex(ArmanentP.class);
+            idxes = state.properties.findCardIndex(ArmamentP.class);
             for (int i = 0; i < idxes.length; i++) {
                 if (getCardCount(state, idxes[i]) > 0) {
                     canUpgrade = true;

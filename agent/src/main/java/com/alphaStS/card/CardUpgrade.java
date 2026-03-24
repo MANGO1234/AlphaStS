@@ -13,7 +13,7 @@ public class CardUpgrade {
 
         map.put(new CardIronclad.Bash(), new CardIronclad.BashP());
         map.put(new CardIronclad.Anger(), new CardIronclad.AngerP());
-        map.put(new CardIronclad.Armanent(), new CardIronclad.ArmanentP());
+        map.put(new CardIronclad.Armaments(), new CardIronclad.ArmamentP());
         map.put(new CardIronclad.BodySlam(), new CardIronclad.BodySlamP());
         map.put(new CardIronclad.Clash(), new CardIronclad.ClashP());
         map.put(new CardIronclad.Cleave(), new CardIronclad.CleaveP());
@@ -122,13 +122,13 @@ public class CardUpgrade {
         map.put(new CardSilent.Eviscerate(), new CardSilent.EviscerateP());
         map.put(new CardSilent.Expertise(), new CardSilent.ExpertiseP());
         map.put(new CardSilent.Finisher(), new CardSilent.FinisherP());
-        map.put(new CardSilent.Flechette(), new CardSilent.FlechetteP());
+        map.put(new CardSilent.Flechettes(), new CardSilent.FlechetteP());
         map.put(new CardSilent.Footwork(), new CardSilent.FootworkP());
         map.put(new CardSilent.HeelHook(), new CardSilent.HeelHookP());
-        map.put(new CardSilent.InfiniteBlade(), new CardSilent.InfiniteBladeP());
+        map.put(new CardSilent.InfiniteBlades(), new CardSilent.InfiniteBladesP());
         map.put(new CardSilent.LegSweep(), new CardSilent.LegSweepP());
 //        map.put(new CardSilent.MasterfulStab(), new CardSilent.MasterfulStabP());
-        map.put(new CardSilent.NoxiousFume(), new CardSilent.NoxiousFumeP());
+        map.put(new CardSilent.NoxiousFumes(), new CardSilent.NoxiousFumesP());
         map.put(new CardSilent.Predator(), new CardSilent.PredatorP());
         map.put(new CardSilent.Reflex(), new CardSilent.ReflexP());
         map.put(new CardSilent.RiddleWithHoles(), new CardSilent.RiddleWithHolesP());
@@ -157,7 +157,7 @@ public class CardUpgrade {
         map.put(new CardSilent.Unload(), new CardSilent.UnloadP());
         map.put(new CardSilent.WraithForm(), new CardSilent.WraithFormP());
 
-        map.put(new CardDefect.DualCast(), new CardDefect.DualCastP());
+        map.put(new CardDefect.Dualcast(), new CardDefect.DualcastP());
         map.put(new CardDefect.Zap(), new CardDefect.ZapP());
         map.put(new CardDefect.BallLightning(), new CardDefect.BallLightningP());
         map.put(new CardDefect.Barrage(), new CardDefect.BarrageP());
@@ -167,7 +167,7 @@ public class CardUpgrade {
         map.put(new CardDefect.ColdSnap(), new CardDefect.ColdSnapP());
         map.put(new CardDefect.CompileDriver(), new CardDefect.CompileDriverP());
         map.put(new CardDefect.Coolheaded(), new CardDefect.CoolheadedP());
-        map.put(new CardDefect.GoForTheEye(), new CardDefect.GoForTheEyeP());
+        map.put(new CardDefect.GoForTheEyes(), new CardDefect.GoForTheEyesP());
         map.put(new CardDefect.Hologram(), new CardDefect.HologramP());
         map.put(new CardDefect.Leap(), new CardDefect.LeapP());
         map.put(new CardDefect.Rebound(), new CardDefect.ReboundP());
@@ -222,7 +222,7 @@ public class CardUpgrade {
         map.put(new CardDefect.EchoForm(), new CardDefect.EchoFormP());
         map.put(new CardDefect.Electrodynamics(), new CardDefect.ElectrodynamicsP());
         map.put(new CardDefect.Fission(), new CardDefect.FissionP());
-        map.put(new CardDefect.HyperBeam(), new CardDefect.HyperBeamP());
+        map.put(new CardDefect.Hyperbeam(), new CardDefect.HyperbeamP());
         map.put(new CardDefect.MachineLearning(), new CardDefect.MachineLearningP());
         map.put(new CardDefect.MeteorStrike(), new CardDefect.MeteorStrikeP());
         map.put(new CardDefect.MultiCast(), new CardDefect.MultiCastP());

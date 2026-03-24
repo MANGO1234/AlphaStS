@@ -156,7 +156,7 @@ public class CardManager {
             }
         } else if (cardType == Card.SKILL) {
             // Common skills
-            cards.add(new CardIronclad.Armanent());
+            cards.add(new CardIronclad.Armaments());
             cards.add(new CardIronclad.Flex());
             cards.add(new CardIronclad.Havoc());
             cards.add(new CardIronclad.ShrugItOff());
@@ -234,7 +234,7 @@ public class CardManager {
             cards.add(new CardSilent.EndlessAgony());
             cards.add(new CardSilent.Eviscerate());
             cards.add(new CardSilent.Finisher());
-            cards.add(new CardSilent.Flechette());
+            cards.add(new CardSilent.Flechettes());
             cards.add(new CardSilent.HeelHook());
             cards.add(new CardSilent.MasterfulStab(6));
             cards.add(new CardSilent.Predator());
@@ -291,8 +291,8 @@ public class CardManager {
             cards.add(new CardSilent.Accuracy());
             cards.add(new CardSilent.Caltrops());
             cards.add(new CardSilent.Footwork());
-            cards.add(new CardSilent.InfiniteBlade());
-            cards.add(new CardSilent.NoxiousFume());
+            cards.add(new CardSilent.InfiniteBlades());
+            cards.add(new CardSilent.NoxiousFumes());
             cards.add(new CardSilent.WellLaidPlans());
 
             // Rare powers
@@ -317,7 +317,7 @@ public class CardManager {
             cards.add(new CardDefect.Claw());
             cards.add(new CardDefect.ColdSnap());
             cards.add(new CardDefect.CompileDriver());
-            cards.add(new CardDefect.GoForTheEye());
+            cards.add(new CardDefect.GoForTheEyes());
             cards.add(new CardDefect.Rebound());
             cards.add(new CardDefect.Streamline());
             cards.add(new CardDefect.SweepingBeam());
@@ -335,7 +335,7 @@ public class CardManager {
             // Rare attacks
             cards.add(new CardDefect.AllForOne(0, 0));
             cards.add(new CardDefect.CoreSurge());
-            cards.add(new CardDefect.HyperBeam());
+            cards.add(new CardDefect.Hyperbeam());
             cards.add(new CardDefect.MeteorStrike());
             cards.add(new CardDefect.ThunderStrike());
         } else if (cardType == Card.SKILL) {
@@ -568,7 +568,7 @@ public class CardManager {
         // Rare attacks
         cards.add(new CardDefect.AllForOne(0, 0));
         cards.add(new CardDefect.CoreSurge());
-        cards.add(new CardDefect.HyperBeam());
+        cards.add(new CardDefect.Hyperbeam());
         cards.add(new CardDefect.MeteorStrike());
         cards.add(new CardDefect.ThunderStrike());
         // Rare skills

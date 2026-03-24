@@ -22,9 +22,9 @@ import java.util.List;
 import com.alphaStS.enums.CharacterEnum;
 
 public class CardDefect {
-    public static class DualCast extends Card {
-        public DualCast() {
-            super("Dual Cast", Card.SKILL, 1, Card.COMMON);
+    public static class Dualcast extends Card {
+        public Dualcast() {
+            super("Dualcast", Card.SKILL, 1, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -33,9 +33,9 @@ public class CardDefect {
         }
     }
 
-    public static class DualCastP extends Card {
-        public DualCastP() {
-            super("Dual Cast+", Card.SKILL, 0, Card.COMMON);
+    public static class DualcastP extends Card {
+        public DualcastP() {
+            super("Dualcast+", Card.SKILL, 0, Card.COMMON);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -447,15 +447,15 @@ public class CardDefect {
         }
     }
 
-    public static class GoForTheEye extends CardDefect._GoForTheEyeT {
-        public GoForTheEye() {
-            super("Go For The Eye", 3, 1);
+    public static class GoForTheEyes extends CardDefect._GoForTheEyeT {
+        public GoForTheEyes() {
+            super("Go For The Eyes", 3, 1);
         }
     }
 
-    public static class GoForTheEyeP extends CardDefect._GoForTheEyeT {
-        public GoForTheEyeP() {
-            super("Go For The Eye+", 4, 2);
+    public static class GoForTheEyesP extends CardDefect._GoForTheEyeT {
+        public GoForTheEyesP() {
+            super("Go For The Eyes+", 4, 2);
         }
     }
 
@@ -1830,7 +1830,7 @@ public class CardDefect {
                         new CardDefect.ColdSnap(),
                         new CardDefect.CompileDriver(),
                         new CardDefect.Coolheaded(),
-                        new CardDefect.GoForTheEye(),
+                        new GoForTheEyes(),
                         new CardDefect.Hologram(),
                         new CardDefect.Leap(),
                         new CardDefect.Rebound(),
@@ -2916,10 +2916,10 @@ public class CardDefect {
         }
     }
 
-    private static abstract class _HyperBeamT extends Card {
+    private static abstract class _HyperbeamT extends Card {
         private final int n;
 
-        public _HyperBeamT(String cardName, int n) {
+        public _HyperbeamT(String cardName, int n) {
             super(cardName, Card.ATTACK, 2, Card.RARE);
             this.n = n;
             this.entityProperty.changePlayerFocus = true;
@@ -2934,14 +2934,14 @@ public class CardDefect {
         }
     }
 
-    public static class HyperBeam extends CardDefect._HyperBeamT {
-        public HyperBeam() {
+    public static class Hyperbeam extends _HyperbeamT {
+        public Hyperbeam() {
             super("Hyperbeam", 26);
         }
     }
 
-    public static class HyperBeamP extends CardDefect._HyperBeamT {
-        public HyperBeamP() {
+    public static class HyperbeamP extends _HyperbeamT {
+        public HyperbeamP() {
             super("Hyperbeam+", 34);
         }
     }

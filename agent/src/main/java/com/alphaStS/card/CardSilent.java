@@ -1413,10 +1413,10 @@ public class CardSilent {
         }
     }
 
-    static abstract class _FlechetteT extends Card {
+    static abstract class _FlechettesT extends Card {
         private final int n;
 
-        public _FlechetteT(String cardName, int n) {
+        public _FlechettesT(String cardName, int n) {
             super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
             this.n = n;
             entityProperty.selectEnemy = true;
@@ -1432,15 +1432,15 @@ public class CardSilent {
         }
     }
 
-    public static class Flechette extends _FlechetteT {
-        public Flechette() {
-            super("Flechette", 4);
+    public static class Flechettes extends _FlechettesT {
+        public Flechettes() {
+            super("Flechettes", 4);
         }
     }
 
-    public static class FlechetteP extends _FlechetteT {
+    public static class FlechetteP extends _FlechettesT {
         public FlechetteP() {
-            super("Flechette+", 6);
+            super("Flechettes+", 6);
         }
     }
 
@@ -1538,15 +1538,15 @@ public class CardSilent {
         }
     }
 
-    public static class InfiniteBlade extends _InfiniteBladeT {
-        public InfiniteBlade() {
-            super("Infinite Blade", false);
+    public static class InfiniteBlades extends _InfiniteBladeT {
+        public InfiniteBlades() {
+            super("Infinite Blades", false);
         }
     }
 
-    public static class InfiniteBladeP extends _InfiniteBladeT {
-        public InfiniteBladeP() {
-            super("Infinite Blade+", true);
+    public static class InfiniteBladesP extends _InfiniteBladeT {
+        public InfiniteBladesP() {
+            super("Infinite Bladesz+", true);
         }
     }
 
@@ -1693,10 +1693,10 @@ public class CardSilent {
         }
     }
 
-    private static abstract class _NoxiousFumeT extends Card {
+    private static abstract class _NoxiousFumesT extends Card {
         private final int n;
 
-        public _NoxiousFumeT(String cardName, int n) {
+        public _NoxiousFumesT(String cardName, int n) {
             super(cardName, Card.POWER, 1, Card.RARE);
             entityProperty.poisonEnemy = true;
             this.n = n;
@@ -1708,7 +1708,7 @@ public class CardSilent {
         }
 
         public void gamePropertiesSetup(GameState state) {
-            state.properties.registerCounter("NoxiousFume", this, new GameProperties.NetworkInputHandler() {
+            state.properties.registerCounter("NoxiousFumes", this, new GameProperties.NetworkInputHandler() {
                 @Override public int addToInput(GameState state, float[] input, int idx) {
                     input[idx] = state.getCounterForRead()[counterIdx] / 9.0f;
                     return idx + 1;
@@ -1718,7 +1718,7 @@ public class CardSilent {
                     return 1;
                 }
             });
-            state.properties.addStartOfTurnHandler("NoxiousFume", new GameEventHandler() {
+            state.properties.addStartOfTurnHandler("NoxiousFumes", new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (state.getCounterForRead()[counterIdx] > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -1730,15 +1730,15 @@ public class CardSilent {
         }
     }
 
-    public static class NoxiousFume extends _NoxiousFumeT {
-        public NoxiousFume() {
-            super("Noxious Fume", 2);
+    public static class NoxiousFumes extends _NoxiousFumesT {
+        public NoxiousFumes() {
+            super("Noxious Fumes", 2);
         }
     }
 
-    public static class NoxiousFumeP extends _NoxiousFumeT {
-        public NoxiousFumeP() {
-            super("Noxious Fume+", 3);
+    public static class NoxiousFumesP extends _NoxiousFumesT {
+        public NoxiousFumesP() {
+            super("Noxious Fumes+", 3);
         }
     }
 

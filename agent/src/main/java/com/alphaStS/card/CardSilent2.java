@@ -446,13 +446,13 @@ public class CardSilent2 {
 
     // No need to implement Flanking: Multiplayer
 
-    public static class Flechettes extends CardSilent._FlechetteT {
+    public static class Flechettes extends CardSilent._FlechettesT {
         public Flechettes() {
             super("Flechettes", 5);
         }
     }
 
-    public static class FlechettesP extends CardSilent._FlechetteT {
+    public static class FlechettesP extends CardSilent._FlechettesT {
         public FlechettesP() {
             super("Flechettes+", 7);
         }
@@ -588,10 +588,10 @@ public class CardSilent2 {
         }
     }
 
-    public static class InfiniteBlades extends CardSilent.InfiniteBlade {
+    public static class InfiniteBlades extends CardSilent.InfiniteBlades {
     }
 
-    public static class InfiniteBladeP extends CardSilent.InfiniteBladeP {
+    public static class InfiniteBladesP extends CardSilent.InfiniteBladesP {
     }
 
     public static class LegSweep extends CardSilent.LegSweep {
@@ -683,10 +683,10 @@ public class CardSilent2 {
         }
     }
 
-    public static class NoxiousFumes extends CardSilent.NoxiousFume {
+    public static class NoxiousFumes extends CardSilent.NoxiousFumes {
     }
 
-    public static class NoxiousFumesP extends CardSilent.NoxiousFumeP {
+    public static class NoxiousFumesP extends CardSilent.NoxiousFumesP {
     }
 
     private static abstract class _OutbreakT extends Card {

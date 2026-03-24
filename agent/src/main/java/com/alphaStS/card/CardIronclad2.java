@@ -49,10 +49,10 @@ public class CardIronclad2 {
     public static class AngerP extends CardIronclad.AngerP {
     }
 
-    public static class Armaments extends CardIronclad.Armanent {
+    public static class Armaments extends CardIronclad.Armaments {
     }
 
-    public static class ArmamentsP extends CardIronclad.ArmanentP {
+    public static class ArmamentsP extends CardIronclad.ArmamentP {
     }
 
     private static abstract class _BloodWallT extends Card {

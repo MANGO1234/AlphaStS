@@ -142,7 +142,7 @@ public class TestStates {
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardIronclad.Anger(), 1);
         builder.addCard(new CardIronclad.Clash(), 1);
-        builder.addCard(new CardIronclad.Armanent(), 1);
+        builder.addCard(new CardIronclad.Armaments(), 1);
         builder.addCard(new CardIronclad.Carnage(), 1);
         builder.addCard(new CardIronclad.Metallicize(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
@@ -451,7 +451,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardColorless.RitualDaggerP(30, 2), 1);
         builder.addCard(new CardIronclad.BrutalityP(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.Shockwave(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 1);
         builder.addRelic(new Relic.BagOfPreparation());
@@ -481,7 +481,7 @@ public class TestStates {
         builder.addCard(new Card.Strike(), 4);
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.Exhume(), 1);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
         builder.addCard(new CardIronclad.Disarm(), 1);
@@ -537,7 +537,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addRelic(new Relic.Vajira());
         builder.addRelic(new Relic.Lantern());
@@ -564,7 +564,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
         builder.addCard(new CardIronclad.PowerThrough(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 1);
         builder.addCard(new CardIronclad.Disarm(), 1);
@@ -591,7 +591,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 2);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
         builder.addCard(new CardIronclad.Disarm(), 1);
@@ -627,7 +627,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -662,7 +662,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -712,7 +712,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 1);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -762,7 +762,7 @@ public class TestStates {
         builder.addCard(new CardIronclad.UppercutP(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.SpotWeakness(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.BattleTrance(), 2);
         builder.addCard(new CardIronclad.BattleTranceP(), 1);
         builder.addCard(new CardIronclad.SwordBoomerang(), 2);
@@ -812,7 +812,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardIronclad.Carnage(), 1);
-        builder.addCard(new CardIronclad.ArmanentP(), 1);
+        builder.addCard(new CardIronclad.ArmamentP(), 1);
         builder.addCard(new CardIronclad.Metallicize(), 1);
         builder.addCard(new CardIronclad.IronWave(), 1);
         builder.addCard(new CardIronclad.ShrugItOff(), 1);
@@ -908,7 +908,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.SunderP(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -940,7 +940,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -979,7 +979,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -1033,7 +1033,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -1086,7 +1086,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.SunderP(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -1142,7 +1142,7 @@ public class TestStates {
         builder.addCard(new Card.DefendP(), 1);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCastP(), 1);
+        builder.addCard(new CardDefect.DualcastP(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.BallLightning(), 2);
         builder.addCard(new CardDefect.Skim(), 2);
@@ -1180,7 +1180,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 3);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.BeamCell(), 1);
         builder.addCard(new CardDefect.BootSequence(), 1);
         builder.addCard(new CardDefect.DoomAndGloomP(), 1);
@@ -1315,7 +1315,7 @@ public class TestStates {
         builder.addCard(new Card.Strike(), 3);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 2);
         builder.addCard(new CardDefect.BiasedCognitionP(), 1);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
@@ -1354,7 +1354,7 @@ public class TestStates {
         builder.addCard(new Card.Strike(), 1);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 1);
         builder.addCard(new CardDefect.BiasedCognitionP(), 2);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
@@ -1405,7 +1405,7 @@ public class TestStates {
         builder.addCard(new Card.Strike(), 1);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 1);
         builder.addCard(new CardDefect.BiasedCognitionP(), 2);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
@@ -1457,7 +1457,7 @@ public class TestStates {
         builder.addCard(new Card.Strike(), 1);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.BiasedCognition(), 1);
         builder.addCard(new CardDefect.BiasedCognitionP(), 2);
         builder.addCard(new CardDefect.SteamBarrier(), 1);
@@ -1509,7 +1509,7 @@ public class TestStates {
         builder.addCard(new Card.StrikeP(), 1);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCastP(), 1);
+        builder.addCard(new CardDefect.DualcastP(), 1);
         builder.addCard(new CardDefect.CoolheadedP(), 2);
         builder.addCard(new CardDefect.SweepingBeamP(), 1);
         builder.addCard(new CardDefect.BallLightning(), 1);
@@ -1524,7 +1524,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Capacitor(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.HologramP(), 1);
-        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.GoForTheEyes(), 1);
         builder.addCard(new CardDefect.CoreSurge(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.ForceField(), 1);
@@ -1557,7 +1557,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 4);
         builder.addCard(new Card.Strike(), 3);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.Hologram(), 1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
         builder.addCard(new CardDefect.FTL(), 1);
@@ -1652,7 +1652,7 @@ public class TestStates {
         builder.addCard(new CardDefect.MeteorStrike(), 1);
         builder.addCard(new CardDefect.Glacier(), 1);
         builder.addCard(new CardDefect.Scrape(), 1);
-        builder.addCard(new CardDefect.GoForTheEyeP(), 1);
+        builder.addCard(new CardDefect.GoForTheEyesP(), 1);
         builder.addCard(new CardDefect.DefragmentP(), 1);
         builder.addCard(new CardDefect.Heatsinks(), 1);
         builder.addCard(new CardDefect.SeekP(), 1);
@@ -1695,13 +1695,13 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new Card.Defend(), 3);
         builder.addCard(new Card.DefendP(), 1);
         builder.addCard(new CardDefect.SweepingBeam(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.ColdSnapP(), 1);
-        builder.addCard(new CardDefect.HyperBeamP(), 1);
+        builder.addCard(new CardDefect.HyperbeamP(), 1);
         builder.addCard(new CardDefect.DefragmentP().setInnate(true), 1);
         builder.addCard(new CardDefect.SelfRepair(), 2);
         builder.addCard(new CardDefect.ChargeBattery(), 2);
@@ -1755,7 +1755,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.BallLightning(), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.SunderP(), 1);
@@ -1838,7 +1838,7 @@ public class TestStates {
         builder.addCard(new CardDefect.AllForOne(0, 0), 1);
         builder.addCard(new CardDefect.ConsumeP(), 1);
         builder.addCard(new CardDefect.RecursionP(), 1);
-        builder.addCard(new CardDefect.GoForTheEyeP(), 1);
+        builder.addCard(new CardDefect.GoForTheEyesP(), 1);
         builder.addCard(new CardDefect.SelfRepair(), 1);
         builder.addCard(new CardDefect.CoolheadedP(), 2);
         builder.addCard(new CardDefect.DefragmentP(), 3);
@@ -1890,7 +1890,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new Card.Strike(), 1);
         builder.addCard(new Card.StrikeP(), 1);
         builder.addCard(new Card.Defend(), 4);
@@ -1904,7 +1904,7 @@ public class TestStates {
         builder.addCard(new CardDefect.SeekP(), 2);
         builder.addCard(new CardDefect.CoreSurge(), 1);
         builder.addCard(new CardDefect.CoolheadedP(), 1);
-        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.GoForTheEyes(), 1);
         builder.addCard(new CardDefect.ConsumeP(), 1);
         builder.addCard(new CardDefect.DoomAndGloom(), 1);
         builder.addCard(new CardDefect.BiasedCognitionP(), 1);
@@ -1960,7 +1960,7 @@ public class TestStates {
         builder.addCard(new CardDefect.Overclock(), 2);
         builder.addCard(new CardDefect.Barrage(), 1);
         builder.addCard(new CardDefect.Heatsinks(), 1);
-        builder.addCard(new CardDefect.HyperBeam(), 1);
+        builder.addCard(new CardDefect.Hyperbeam(), 1);
         builder.addCard(new CardDefect.HologramP(), 1);
         builder.addCard(new CardDefect.Skim(), 1);
         builder.addCard(new CardDefect.SeekP(), 1);
@@ -2000,7 +2000,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardColorless.HandOfGreedP(2), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Skim(), 1);
@@ -2014,7 +2014,7 @@ public class TestStates {
         builder.addCard(new CardDefect.RipAndTear(), 1);
         builder.addCard(new CardDefect.BeamCell(), 1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
-        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.GoForTheEyes(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.EchoForm(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -2057,7 +2057,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.ZapP(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardColorless.HandOfGreedP(0), 1);
         builder.addCard(new CardDefect.ChargeBattery(), 1);
         builder.addCard(new CardDefect.Skim(), 1);
@@ -2071,7 +2071,7 @@ public class TestStates {
         builder.addCard(new CardDefect.RipAndTear(), 1);
         builder.addCard(new CardDefect.BeamCell(), 1);
         builder.addCard(new CardDefect.Coolheaded(), 1);
-        builder.addCard(new CardDefect.GoForTheEye(), 1);
+        builder.addCard(new CardDefect.GoForTheEyes(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.EchoForm(), 1);
         builder.addCard(new CardDefect.Turbo(), 1);
@@ -2109,7 +2109,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane());
         builder.addCard(new CardDefect.Zap());
-        builder.addCard(new CardDefect.DualCast());
+        builder.addCard(new CardDefect.Dualcast());
         builder.addCard(new CardDefect.MultiCast());
         builder.addCard(new CardDefect.BallLightning(), 2);
         builder.addCard(new CardDefect.SelfRepair());
@@ -2129,7 +2129,7 @@ public class TestStates {
         builder.addCard(new CardDefect.RecursionP(), 2);
         builder.addCard(new CardDefect.ColdSnapP());
         builder.addCard(new CardDefect.CompileDriverP());
-        builder.addCard(new CardDefect.GoForTheEyeP());
+        builder.addCard(new CardDefect.GoForTheEyesP());
         builder.addCard(new CardDefect.HologramP(), 3);
         builder.addCard(new CardDefect.Electrodynamics());
         builder.addCard(new CardDefect.WhiteNoiseP());
@@ -2239,7 +2239,7 @@ public class TestStates {
         builder.addCard(new CardSilent.Deflect(), 1);
         builder.addCard(new CardSilent.Acrobatics(), 2);
         builder.addCard(new CardSilent.AThousandCuts(), 1);
-        builder.addCard(new CardSilent.NoxiousFume(), 1);
+        builder.addCard(new CardSilent.NoxiousFumes(), 1);
         builder.addCard(new CardSilent.Terror(), 1);
         builder.addCard(new CardSilent.CloakAndDagger(), 1);
         builder.addCard(new CardColorless.DarkShackles(), 1);
@@ -2278,7 +2278,7 @@ public class TestStates {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addCard(new CardSilent.Flechette(), 1);
+        builder.addCard(new CardSilent.Flechettes(), 1);
         builder.addCard(new CardSilent.CloakAndDagger(), 2);
         builder.addCard(new CardSilent.DeadlyPoison(), 1);
         builder.addCard(new CardSilent.Backstab(), 1);
@@ -2395,7 +2395,7 @@ public class TestStates {
         builder.addCard(new CardSilent.CaltropsP(), 1);
         builder.addCard(new CardSilent.Malaise(), 1);
         builder.addCard(new CardSilent.Backflip(), 1);
-        builder.addCard(new CardSilent.NoxiousFumeP(), 1);
+        builder.addCard(new CardSilent.NoxiousFumesP(), 1);
         builder.addCard(new CardSilent.OutmaneuverP(), 1);
         builder.addCard(new CardSilent.QuickSlashP(), 1);
         builder.addCard(new CardColorless.RitualDagger(54, 0), 1);
@@ -2433,7 +2433,7 @@ public class TestStates {
         builder.addCard(new CardSilent.NeutralizeP(), 1);
         builder.addCard(new CardSilent.SneakyStrike(), 1);
         builder.addCard(new CardSilent.QuickSlash(), 1);
-        builder.addCard(new CardSilent.NoxiousFumeP(), 1);
+        builder.addCard(new CardSilent.NoxiousFumesP(), 1);
         builder.addCard(new CardSilent.BouncingFlaskP(), 1);
         builder.addCard(new CardSilent.Backstab(), 1);
         builder.addCard(new CardSilent.PiercingWailP(), 2);
@@ -2457,7 +2457,7 @@ public class TestStates {
         builder.addRelic(new Relic.InkBottle(9, 2));
         builder.addRelic(new Relic.BronzeScales());
         builder.addRelic(new Relic.RunicPyramid());
-        builder.addRelic(new Relic.BottledTornado(new CardSilent.NoxiousFumeP()));
+        builder.addRelic(new Relic.BottledTornado(new CardSilent.NoxiousFumesP()));
         EnemyEncounter.addCorruptHeartFight(builder);
         GameStateRandomization randomization = new StateModificationRandomization(List.of(
                 List.of(new Add(new CardSilent.CloakAndDaggerP())),
@@ -2478,7 +2478,7 @@ public class TestStates {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.SILENT);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addCard(new CardSilent.NoxiousFumeP(), 1);
+        builder.addCard(new CardSilent.NoxiousFumesP(), 1);
         builder.addCard(new CardSilent.Predator(), 1);
         builder.addCard(new CardSilent.Survivor(), 1);
         builder.addCard(new CardSilent.Neutralize(), 1);
@@ -2606,7 +2606,7 @@ public class TestStates {
         builder.addCard(new CardSilent.DaggerSprayP(), 1);
         builder.addCard(new CardSilent.DaggerSpray(), 1);
         builder.addCard(new CardSilent.Backstab(), 1);
-        builder.addCard(new CardSilent.InfiniteBlade(), 1);
+        builder.addCard(new CardSilent.InfiniteBlades(), 1);
         builder.addCard(new CardSilent.PiercingWail(), 1);
         builder.addCard(new CardSilent.LegSweep(), 1);
         builder.addCard(new CardSilent.AThousandCutsP(), 1);
@@ -2657,7 +2657,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 2);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.Rebound(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.SteamBarrier(6, -2), 1);
@@ -2703,7 +2703,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 2);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.Rebound(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.SteamBarrier(6, -2), 1);
@@ -2758,7 +2758,7 @@ public class TestStates {
         builder.addCard(new Card.Defend(), 2);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.Rebound(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.SteamBarrier(6, test ? 0 : -2), 1);
@@ -2846,7 +2846,7 @@ public class TestStates {
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
         builder.addCard(new CardDefect.Zap(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardColorless.SecretTechnique(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 1);
         builder.addCard(new CardDefect.BeamCellP(), 1);
@@ -2893,7 +2893,7 @@ public class TestStates {
         var builder = new GameStateBuilder();
         builder.setCharacter(CharacterEnum.DEFECT);
         builder.addCard(new CardOther.AscendersBane(), 1);
-        builder.addCard(new CardDefect.DualCast(), 1);
+        builder.addCard(new CardDefect.Dualcast(), 1);
         builder.addCard(new CardDefect.ColdSnap(), 3);
         builder.addCard(new CardDefect.GeneticAlgorithm(57, 0), 1);
         builder.addCard(new CardDefect.Tempest(), 1);

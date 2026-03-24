@@ -26,10 +26,10 @@ public class CardDefect2 {
     public static class DefendP extends Card.DefendP {
     }
 
-    public static class DualCast extends CardDefect.DualCast {
+    public static class Dualcast extends CardDefect.Dualcast {
     }
 
-    public static class DualCastP extends CardDefect.DualCastP {
+    public static class DualCastP extends CardDefect.DualcastP {
     }
 
     public static class Strike extends Card.Strike {
@@ -164,10 +164,10 @@ public class CardDefect2 {
         }
     }
 
-    public static class GoForTheEye extends CardDefect.GoForTheEye {
+    public static class GoForTheEyes extends CardDefect.GoForTheEyes {
     }
 
-    public static class GoForTheEyeP extends CardDefect.GoForTheEyeP {
+    public static class GoForTheEyesP extends CardDefect.GoForTheEyesP {
     }
 
     private static abstract class _GunkUpT extends Card {
@@ -1564,10 +1564,10 @@ public class CardDefect2 {
         }
     }
 
-    public static class HyperBeam extends CardDefect.HyperBeam {
+    public static class Hyperbeam extends CardDefect.Hyperbeam {
     }
 
-    public static class HyperBeamP extends CardDefect.HyperBeamP {
+    public static class HyperbeamP extends CardDefect.HyperbeamP {
     }
 
     private static abstract class _IceLanceT extends Card {
