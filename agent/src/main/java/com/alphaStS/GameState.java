@@ -194,36 +194,28 @@ public final class GameState implements State {
         return cardIdxArr;
     }
 
-    public void handArrTransform(int[] transformIdxes) {
-        for (int i = 0; i < handArrLen; i++) {
-            if (transformIdxes[handArr[i]] >= 0) {
-                getHandArrForWrite()[i] = (short) transformIdxes[handArr[i]];
+    private void transformCardArray(short[] arr, int arrLen, int[] transformIdxes) {
+        for (int i = 0; i < arrLen; i++) {
+            if (transformIdxes[arr[i]] >= 0) {
+                arr[i] = (short) transformIdxes[arr[i]];
             }
         }
+    }
+
+    public void handArrTransform(int[] transformIdxes) {
+        transformCardArray(getHandArrForWrite(), handArrLen, transformIdxes);
     }
 
     public void discardArrTransform(int[] transformIdxes) {
-        for (int i = 0; i < discardArrLen; i++) {
-            if (transformIdxes[discardArr[i]] >= 0) {
-                getDiscardArrForWrite()[i] = (short) transformIdxes[discardArr[i]];
-            }
-        }
+        transformCardArray(getDiscardArrForWrite(), discardArrLen, transformIdxes);
     }
 
     public void deckArrTransform(int[] transformIdxes) {
-        for (int i = 0; i < deckArrLen; i++) {
-            if (transformIdxes[deckArr[i]] >= 0) {
-                getDeckArrForWrite()[i] = (short) transformIdxes[deckArr[i]];
-            }
-        }
+        transformCardArray(getDeckArrForWrite(), deckArrLen, transformIdxes);
     }
 
     public void exhaustArrTransform(int[] transformIdxes) {
-        for (int i = 0; i < exhaustArrLen; i++) {
-            if (transformIdxes[exhaustArr[i]] >= 0) {
-                getExhaustArrForWrite()[i] = (short) transformIdxes[exhaustArr[i]];
-            }
-        }
+        transformCardArray(getExhaustArrForWrite(), exhaustArrLen, transformIdxes);
     }
 
     public void addNightmareCard(int idx) {
@@ -1216,6 +1208,26 @@ public final class GameState implements State {
         return actionCtx;
     }
 
+    // Returns -1 if there are 0 unique selectable cards, the card index if exactly 1,
+    // or Integer.MIN_VALUE if there are more than 1.
+    private int countUniqueSelectableCards(short[] arr, int len, Card card) {
+        int lastIdx = -1;
+        boolean[] seen = new boolean[properties.cardDict.length];
+        for (int j = 0; j < len; j++) {
+            if (!seen[arr[j]]) {
+                if (card != null && !card.canSelectCard(properties.cardDict[arr[j]])) {
+                    continue;
+                }
+                if (lastIdx >= 0) {
+                    return Integer.MIN_VALUE;
+                }
+                lastIdx = arr[j];
+                seen[arr[j]] = true;
+            }
+        }
+        return lastIdx;
+    }
+
     public boolean playCard(GameAction action, int selectIdx,
                             boolean runActionQueueOnEnd, // need to set to prevent running action queue while already in action queue execution
                             Class cloneSource, // cloned card source
@@ -1316,41 +1328,21 @@ public final class GameState implements State {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DISCARD) {
-                int possibleChoicesCount = 0, lastIdx = 0;
-                boolean[] seen = new boolean[properties.realCardsLen];
-                for (int j = 0; j < discardArrLen; j++) {
-                    if (!seen[discardArr[j]]) {
-                        if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[discardArr[j]])) {
-                            continue;
-                        }
-                        possibleChoicesCount++;
-                        lastIdx = discardArr[j];
-                        seen[discardArr[j]] = true;
-                    }
-                }
+                Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
+                int singleCardIdx = countUniqueSelectableCards(discardArr, discardArrLen, selectingCard);
                 if (selectIdx >= 0) {
                     setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
-                } else if (possibleChoicesCount == 0) {
+                } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
-                } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
+                } else if (singleCardIdx >= 0) {
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_HAND) {
-                int possibleChoicesCount = 0, lastIdx = 0;
-                boolean[] seen = new boolean[properties.cardDict.length];
-                for (int j = 0; j < handArrLen; j++) {
-                    if (!seen[handArr[j]]) {
-                        if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[handArr[j]])) {
-                            continue;
-                        }
-                        possibleChoicesCount++;
-                        lastIdx = handArr[j];
-                        seen[handArr[j]] = true;
-                    }
-                }
+                Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
+                int singleCardIdx = countUniqueSelectableCards(handArr, handArrLen, selectingCard);
                 if (cardIdx == properties.wellLaidPlansCardIdx) {
                     if (selectIdx >= 0) {
                         setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
@@ -1362,7 +1354,7 @@ public final class GameState implements State {
                             endTurn();
                             runActionsInQueueIfNonEmpty();
                         }
-                    } else if (possibleChoicesCount == 0) {
+                    } else if (singleCardIdx == -1) {
                         endTurn();
                         runActionsInQueueIfNonEmpty();
                     }
@@ -1370,7 +1362,7 @@ public final class GameState implements State {
                 } else if (cardIdx == properties.gamblingChipsCardIdx) {
                     if (selectIdx >= 0) {
                         setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
-                    } else if (possibleChoicesCount == 0) {
+                    } else if (singleCardIdx == -1) {
                         endTurn();
                         runActionsInQueueIfNonEmpty();
                     }
@@ -1379,56 +1371,36 @@ public final class GameState implements State {
                 if (selectIdx >= 0) {
                     setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
-                } else if (possibleChoicesCount == 0) {
+                } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
-                } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
+                } else if (singleCardIdx >= 0) {
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_EXHAUST) {
-                int possibleChoicesCount = 0, lastIdx = 0;
-                boolean[] seen = new boolean[properties.realCardsLen];
-                for (int j = 0; j < exhaustArrLen; j++) {
-                    if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[exhaustArr[j]])) {
-                        continue;
-                    }
-                    if (!seen[exhaustArr[j]]) {
-                        possibleChoicesCount++;
-                        lastIdx = exhaustArr[j];
-                        seen[exhaustArr[j]] = true;
-                    }
-                }
+                Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
+                int singleCardIdx = countUniqueSelectableCards(exhaustArr, exhaustArrLen, selectingCard);
                 if (selectIdx >= 0) {
                     setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
-                } else if (possibleChoicesCount == 0) {
+                } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
-                } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
+                } else if (singleCardIdx >= 0) {
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
             } else if (actionCtx == GameActionCtx.SELECT_CARD_DECK) {
-                int possibleChoicesCount = 0, lastIdx = 0;
-                boolean[] seen = new boolean[properties.realCardsLen];
-                for (int j = 0; j < deckArrLen; j++) {
-                    if (!seen[deckArr[j]]) {
-                        if (currentAction.type() == GameActionType.PLAY_CARD && !properties.cardDict[currentAction.idx()].canSelectCard(properties.cardDict[deckArr[j]])) {
-                            continue;
-                        }
-                        possibleChoicesCount++;
-                        lastIdx = deckArr[j];
-                        seen[deckArr[j]] = true;
-                    }
-                }
+                Card selectingCard = currentAction.type() == GameActionType.PLAY_CARD ? properties.cardDict[currentAction.idx()] : null;
+                int singleCardIdx = countUniqueSelectableCards(deckArr, deckArrLen, selectingCard);
                 if (selectIdx >= 0) {
                     setActionCtx(properties.cardDict[cardIdx].play(this, selectIdx, energyCost), action, cloneSource);
                     selectIdx = -1;
-                } else if (possibleChoicesCount == 0) {
+                } else if (singleCardIdx == -1) {
                     setActionCtx(GameActionCtx.PLAY_CARD, action, cloneSource);
-                } else if (possibleChoicesCount == 1) {
-                    setActionCtx(properties.cardDict[cardIdx].play(this, lastIdx, energyCost), action, cloneSource);
+                } else if (singleCardIdx >= 0) {
+                    setActionCtx(properties.cardDict[cardIdx].play(this, singleCardIdx, energyCost), action, cloneSource);
                 } else {
                     break;
                 }
@@ -3544,7 +3516,7 @@ public final class GameState implements State {
 
     public void removeCardFromHandByPosition(int idx) {
         for (int i = idx; i < handArrLen - 1; i++) {
-            getHandArrForWrite()[idx] = getHandArrForRead()[idx + 1];
+            getHandArrForWrite()[i] = getHandArrForRead()[i + 1];
         }
         handArrLen--;
     }
@@ -3963,10 +3935,7 @@ public final class GameState implements State {
         }
     }
 
-    public int enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmgInt, int times) {
-        int move = enemy.getMove();
-        int totalDmgDealt = 0;
-        var player = getPlayerForWrite();
+    private double calcEnemyDamageModifiers(EnemyReadOnly enemy, int dmgInt) {
         double dmg = dmgInt + enemy.getStrength();
         if (dmg < 0) {
             dmg = 0;
@@ -3997,6 +3966,14 @@ public final class GameState implements State {
         if (properties.intangibleCounterIdx >= 0 && getCounterForRead()[properties.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;
         }
+        return dmg;
+    }
+
+    public int enemyDoDamageToPlayer(EnemyReadOnly enemy, int dmgInt, int times) {
+        int move = enemy.getMove();
+        int totalDmgDealt = 0;
+        var player = getPlayerForWrite();
+        double dmg = calcEnemyDamageModifiers(enemy, dmgInt);
         for (int i = 0; i < times; i++) {
             if (!enemy.isAlive() || enemy.getMove() != move) { // dead or interrupted
                 return totalDmgDealt;
@@ -4023,38 +4000,7 @@ public final class GameState implements State {
     }
 
     public int enemyCalcDamageToPlayer(Enemy enemy, int dmgInt) {
-        double dmg = dmgInt;
-        dmg += enemy.getStrength();
-        if (dmg < 0) {
-            dmg = 0;
-        }
-        if (player.getVulnerable() > 0) {
-            dmg *= 1.5;
-        }
-        if (getStance() == Stance.WRATH) {
-            dmg *= 2;
-        }
-        if (enemy.getWeak() > 0) {
-            double weakMult = properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
-            if (enemy.getDebilitate() > 0) {
-                weakMult = 1.0 - (1.0 - weakMult) * 2;
-            }
-            dmg *= weakMult;
-        }
-        if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
-            dmg *= 0.5;
-        }
-        if (properties.shieldAndSpireFacingCounterIdx >= 0) {
-            if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 1 && enemy instanceof EnemyEnding.SpireSpear) {
-                dmg = dmg + dmg / 2;
-            } else if (getCounterForRead()[properties.shieldAndSpireFacingCounterIdx] == 2 && enemy instanceof EnemyEnding.SpireShield) {
-                dmg = dmg + dmg / 2;
-            }
-        }
-        if (properties.intangibleCounterIdx >= 0 && getCounterForRead()[properties.intangibleCounterIdx] > 0 && dmg > 0) {
-            dmg = 1;
-        }
-        return (int) dmg;
+        return (int) calcEnemyDamageModifiers(enemy, dmgInt);
     }
 
     public void doNonAttackDamageToPlayer(int dmg, boolean blockable, Object source) {
@@ -4494,14 +4440,18 @@ public final class GameState implements State {
         }
     }
 
+    private void shiftOrbsLeft() {
+        System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
+        orbs[orbs.length - 2] = 0;
+        orbs[orbs.length - 1] = 0;
+    }
+
     public void evokeOrb(int times) {
         if (orbs == null) return;
         for (int i = 0; i < times; i++) {
             triggerRightmostOrbActive();
         }
-        System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
-        orbs[orbs.length - 2] = 0;
-        orbs[orbs.length - 1] = 0;
+        shiftOrbsLeft();
     }
 
     public void evokeOrbLeft() {
@@ -4518,9 +4468,7 @@ public final class GameState implements State {
 
     public void removeRightmostOrb() {
         if (orbs == null) return;
-        System.arraycopy(orbs, 2, orbs, 0, orbs.length - 2);
-        orbs[orbs.length - 2] = 0;
-        orbs[orbs.length - 1] = 0;
+        shiftOrbsLeft();
     }
 
     public void rotateOrbToBack() {
