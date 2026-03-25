@@ -3923,7 +3923,8 @@ public final class GameState implements State {
         if (properties.otsyAttackedThisTurnCounterIdx >= 0) {
             getCounterForWrite()[properties.otsyAttackedThisTurnCounterIdx]++;
         }
-        return playerDoDamageToEnemy(enemy, dmgInt);
+        int bonus = properties.otsyDamageBonusCounterIdx >= 0 ? getCounterForRead()[properties.otsyDamageBonusCounterIdx] : 0;
+        return playerDoDamageToEnemy(enemy, dmgInt + bonus);
     }
 
     public void checkWristBladeBuffForZeroCostAttack(int cardIdx) {

@@ -418,33 +418,223 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Invoke (Common) - 1 energy, Skill
-    //   Effect: Next turn, Summon 2 and gain 2 energy.
-    //   Upgraded Effect: Next turn, Summon 3 and gain 3 energy.
+    private static abstract class _InvokeT extends Card {
+        private final int n;
+        private final GameProperties.LocalCounterRegistrant energyRegistrant = new GameProperties.LocalCounterRegistrant();
 
-    // TODO: Negative Pulse (Common) - 1 energy, Skill
-    //   Effect: Gain 5 Block. Apply 7 Doom to ALL enemies.
-    //   Upgraded Effect: Gain 6 Block. Apply 11 Doom to ALL enemies.
+        public _InvokeT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.n = n;
+            entityProperty.canSummon = true;
+        }
 
-    // TODO: Poke (Common) - 0 energy, Attack
-    //   Effect: Osty deals 6 damage.
-    //   Upgraded Effect: Osty deals 9 damage.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            state.getCounterForWrite()[energyRegistrant.getCounterIdx(state.properties)] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Pull Aggro (Common) - 2 energy, Skill
-    //   Effect: Summon 4. Gain 7 Block.
-    //   Upgraded Effect: Summon 5. Gain 9 Block.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerSummonNextTurnCounter(state, this);
+            state.properties.registerEnergyNextTurnCounter(state, energyRegistrant);
+        }
+    }
 
-    // TODO: Reap (Common) - 3 energy, Attack
-    //   Effect: Retain. Deal 27 damage.
-    //   Upgraded Effect: Retain. Deal 33 damage.
+    public static class Invoke extends _InvokeT {
+        public Invoke() {
+            super("Invoke", 2);
+        }
+    }
 
-    // TODO: Reave (Common) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Add a Soul into your Draw Pile.
-    //   Upgraded Effect: Deal 11 damage. Add a Soul+ into your Draw Pile.
+    public static class InvokeP extends _InvokeT {
+        public InvokeP() {
+            super("Invoke+", 3);
+        }
+    }
 
-    // TODO: Scourge (Common) - 1 energy, Skill
-    //   Effect: Apply 13 Doom. Draw 1 card.
-    //   Upgraded Effect: Apply 16 Doom. Draw 2 cards.
+    private static abstract class _NegativePulseT extends Card {
+        private final int block;
+        private final int doom;
+
+        public _NegativePulseT(String cardName, int block, int doom) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+            this.doom = doom;
+            entityProperty.doomEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.DOOM, doom);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class NegativePulse extends _NegativePulseT {
+        public NegativePulse() {
+            super("Negative Pulse", 5, 7);
+        }
+    }
+
+    public static class NegativePulseP extends _NegativePulseT {
+        public NegativePulseP() {
+            super("Negative Pulse+", 6, 11);
+        }
+    }
+
+    private static abstract class _PokeT extends Card {
+        private final int damage;
+
+        public _PokeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Poke extends _PokeT {
+        public Poke() {
+            super("Poke", 6);
+        }
+    }
+
+    public static class PokeP extends _PokeT {
+        public PokeP() {
+            super("Poke+", 9);
+        }
+    }
+
+    private static abstract class _PullAggroT extends Card {
+        private final int n;
+        private final int block;
+
+        public _PullAggroT(String cardName, int n, int block) {
+            super(cardName, Card.SKILL, 2, Card.COMMON);
+            this.n = n;
+            this.block = block;
+            entityProperty.canSummon = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.summon(n);
+            state.playerGainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class PullAggro extends _PullAggroT {
+        public PullAggro() {
+            super("Pull Aggro", 4, 7);
+        }
+    }
+
+    public static class PullAggroP extends _PullAggroT {
+        public PullAggroP() {
+            super("Pull Aggro+", 5, 9);
+        }
+    }
+
+    private static abstract class _ReapT extends Card {
+        private final int damage;
+
+        public _ReapT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 3, Card.COMMON);
+            this.damage = damage;
+            this.retain = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Reap extends _ReapT {
+        public Reap() {
+            super("Reap", 27);
+        }
+    }
+
+    public static class ReapP extends _ReapT {
+        public ReapP() {
+            super("Reap+", 33);
+        }
+    }
+
+    private static abstract class _ReaveT extends Card {
+        private final int damage;
+
+        public _ReaveT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.addCardToDeck(generatedCardIdx);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Reave extends _ReaveT {
+        public Reave() {
+            super("Reave", 9);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
+
+    public static class ReaveP extends _ReaveT {
+        public ReaveP() {
+            super("Reave+", 11);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.SoulP());
+        }
+    }
+
+    private static abstract class _ScourgeT extends Card {
+        private final int doom;
+        private final int draws;
+
+        public _ScourgeT(String cardName, int doom, int draws) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.doom = doom;
+            this.draws = draws;
+            entityProperty.selectEnemy = true;
+            entityProperty.doomEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.DOOM, doom);
+            state.draw(draws);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Scourge extends _ScourgeT {
+        public Scourge() {
+            super("Scourge", 13, 1);
+        }
+    }
+
+    public static class ScourgeP extends _ScourgeT {
+        public ScourgeP() {
+            super("Scourge+", 16, 2);
+        }
+    }
 
     // TODO: Sculpting Strike (Common) - 1 energy, Attack
     //   Effect: Deal 8 damage. Add Ethereal to a card in your Hand.
@@ -454,41 +644,269 @@ public class CardNecrobinder2 {
     //   Effect: Osty deals 7 damage. Add Retain to a card in your Hand.
     //   Upgraded Effect: Osty deals 10 damage. Add Retain to a card in your Hand.
 
-    // TODO: Sow (Common) - 1 energy, Attack
-    //   Effect: Retain. Deal 8 damage to ALL enemies.
-    //   Upgraded Effect: Retain. Deal 11 damage to ALL enemies.
+    private static abstract class _SowT extends Card {
+        private final int damage;
 
-    // TODO: Wisp (Common) - 0 energy, Skill
-    //   Effect: Gain energy. Exhaust.
-    //   Upgraded Effect: Retain. Gain energy. Exhaust.
+        public _SowT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.damage = damage;
+            this.retain = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Sow extends _SowT {
+        public Sow() {
+            super("Sow", 8);
+        }
+    }
+
+    public static class SowP extends _SowT {
+        public SowP() {
+            super("Sow+", 11);
+        }
+    }
+
+    private static abstract class _WispT extends Card {
+        public _WispT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.exhaustWhenPlayed = true;
+            this.retain = retain;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Wisp extends _WispT {
+        public Wisp() {
+            super("Wisp", false);
+        }
+    }
+
+    public static class WispP extends _WispT {
+        public WispP() {
+            super("Wisp+", true);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Bone Shards (Uncommon) - 1 energy, Attack
-    //   Effect: If Osty is alive, he deals 9 damage to ALL enemies and you gain 9 Block. Osty dies.
-    //   Upgraded Effect: If Osty is alive, he deals 12 damage to ALL enemies and you gain 12 Block. Osty dies.
+    private static abstract class _BoneShardsT extends Card {
+        private final int n;
 
-    // TODO: Borrowed Time (Uncommon) - 0 energy, Skill
-    //   Effect: Apply 3 Doom to yourself. Gain energy.
-    //   Upgraded Effect: Apply 3 Doom to yourself. Gain 2 energy.
+        public _BoneShardsT(String cardName, int n) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.n = n;
+        }
 
-    // TODO: Bury (Uncommon) - 4 energy, Attack
-    //   Effect: Deal 52 damage.
-    //   Upgraded Effect: Deal 63 damage.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int otsyHP = state.properties.otsyHPCounterIdx >= 0 ? state.getCounterForRead()[state.properties.otsyHPCounterIdx] : 0;
+            if (otsyHP > 0) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    state.otsyDoDamageToEnemy(enemy, n);
+                }
+                state.playerGainBlock(n);
+                state.getCounterForWrite()[state.properties.otsyHPCounterIdx] = 0;
+                state.getCounterForWrite()[state.properties.otsyMaxHPCounterIdx] = 0;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Calcify (Uncommon) - 1 energy, Power
-    //   Effect: Osty's attacks deal 4 additional damage.
-    //   Upgraded Effect: Osty's attacks deal 6 additional damage.
+    public static class BoneShards extends _BoneShardsT {
+        public BoneShards() {
+            super("Bone Shards", 9);
+        }
+    }
 
-    // TODO: Capture Spirit (Uncommon) - 1 energy, Skill
-    //   Effect: Enemy loses 3 HP. Add 3 Souls into your Draw Pile.
-    //   Upgraded Effect: Enemy loses 4 HP. Add 4 Souls into your Draw Pile.
+    public static class BoneShardsP extends _BoneShardsT {
+        public BoneShardsP() {
+            super("Bone Shards+", 12);
+        }
+    }
 
-    // TODO: Cleanse (Uncommon) - 1 energy, Skill
-    //   Effect: Summon 3. Exhaust 1 card from your Draw Pile.
-    //   Upgraded Effect: Summon 5. Exhaust 1 card from your Draw Pile.
+    private static abstract class _BorrowedTimeT extends Card {
+        private final int energy;
+
+        public _BorrowedTimeT(String cardName, int energy) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.energy = energy;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.DOOM, 3);
+            state.gainEnergy(energy);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlayerDoomCounter();
+        }
+    }
+
+    public static class BorrowedTime extends _BorrowedTimeT {
+        public BorrowedTime() {
+            super("Borrowed Time", 1);
+        }
+    }
+
+    public static class BorrowedTimeP extends _BorrowedTimeT {
+        public BorrowedTimeP() {
+            super("Borrowed Time+", 2);
+        }
+    }
+
+    private static abstract class _BuryT extends Card {
+        private final int damage;
+
+        public _BuryT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 4, Card.UNCOMMON);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Bury extends _BuryT {
+        public Bury() {
+            super("Bury", 52);
+        }
+    }
+
+    public static class BuryP extends _BuryT {
+        public BuryP() {
+            super("Bury+", 63);
+        }
+    }
+
+    private static abstract class _CalcifyT extends Card {
+        private final int n;
+
+        public _CalcifyT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("CalcifyBonus", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.otsyDamageBonusCounterIdx = idx;
+        }
+    }
+
+    public static class Calcify extends _CalcifyT {
+        public Calcify() {
+            super("Calcify", 4);
+        }
+    }
+
+    public static class CalcifyP extends _CalcifyT {
+        public CalcifyP() {
+            super("Calcify+", 6);
+        }
+    }
+
+    private static abstract class _CaptureSpiritT extends Card {
+        private final int hpLoss;
+        private final int souls;
+
+        public _CaptureSpiritT(String cardName, int hpLoss, int souls) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.hpLoss = hpLoss;
+            this.souls = souls;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), hpLoss, false);
+            for (int i = 0; i < souls; i++) {
+                state.addCardToDeck(generatedCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class CaptureSpirit extends _CaptureSpiritT {
+        public CaptureSpirit() {
+            super("Capture Spirit", 3, 3);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
+
+    public static class CaptureSpiritP extends _CaptureSpiritT {
+        public CaptureSpiritP() {
+            super("Capture Spirit+", 4, 4);
+        }
+
+        public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.SoulP());
+        }
+    }
+
+    private static abstract class _CleanseT extends Card {
+        private final int n;
+
+        public _CleanseT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.canSummon = true;
+            entityProperty.selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.summon(n);
+            state.removeCardFromDeck(idx, false);
+            state.exhaustedCardHandle(idx, false);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Cleanse extends _CleanseT {
+        public Cleanse() {
+            super("Cleanse", 3);
+        }
+    }
+
+    public static class CleanseP extends _CleanseT {
+        public CleanseP() {
+            super("Cleanse+", 5);
+        }
+    }
 
     // TODO: Countdown (Uncommon) - 1 energy, Power
     //   Effect: At the start of your turn, apply 6 Doom to a random enemy.

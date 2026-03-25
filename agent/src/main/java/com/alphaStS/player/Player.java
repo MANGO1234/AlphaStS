@@ -96,6 +96,13 @@ public class Player extends PlayerReadOnly {
         }
     }
 
+    public void kill(GameState state, boolean tryRevive) {
+        health = 0;
+        if (tryRevive) {
+            tryReviveWithFairyInABottle(state);
+        }
+    }
+
     public int heal(int n) {
         int healed = Math.min(n, getInBattleMaxHealth() - health);
         health += healed;
@@ -175,6 +182,7 @@ public class Player extends PlayerReadOnly {
         case DRAW_REDUCTION -> state.getCounterForWrite()[state.properties.drawReductionCounterIdx] += n;
         case NO_BLOCK_FROM_CARDS -> this.noMoreBlockFromCards += n;
         case SNECKO -> state.getCounterForWrite()[state.properties.sneckoDebuffCounterIdx] = 1;
+        case DOOM -> state.getCounterForWrite()[state.properties.playerDoomCounterIdx] += n;
         }
     }
 

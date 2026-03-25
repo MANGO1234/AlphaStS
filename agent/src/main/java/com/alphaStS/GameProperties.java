@@ -261,6 +261,8 @@ public class GameProperties implements Cloneable {
     public int otsyHPCounterIdx = -1;
     public int otsyMaxHPCounterIdx = -1;
     public int otsyAttackedThisTurnCounterIdx = -1;
+    public int otsyDamageBonusCounterIdx = -1;
+    public int playerDoomCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
     public Relic blackBlood = null;
@@ -445,6 +447,28 @@ public class GameProperties implements Cloneable {
                 int cIdx = registrant.getCounterIdx(state.properties);
                 if (state.getCounterForRead()[cIdx] > 0) {
                     state.gainEnergy(state.getCounterForRead()[cIdx]);
+                    state.getCounterForWrite()[cIdx] = 0;
+                }
+            }
+        });
+    }
+
+    public void registerSummonNextTurnCounter(GameState state, CounterRegistrant registrant) {
+        registerCounter("SummonNextTurn", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[registrant.getCounterIdx(state.properties)] / 15.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addStartOfTurnHandler("SummonNextTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                if (state.getCounterForRead()[cIdx] > 0) {
+                    state.summon(state.getCounterForRead()[cIdx]);
                     state.getCounterForWrite()[cIdx] = 0;
                 }
             }
@@ -805,6 +829,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant PlayerDoomCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.playerDoomCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.playerDoomCounterIdx;
+        }
+    };
+
     private static CounterRegistrant PlayCardOnTopOfDeckCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             gameProperties.playCardOnTopOfDeckCounterIdx = idx;
@@ -911,6 +944,28 @@ public class GameProperties implements Cloneable {
         addStartOfTurnHandler("ExhaustedThisTurn", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getCounterForWrite()[state.properties.exhaustedThisTurnCounterIdx] = 0;
+            }
+        });
+    }
+
+    public void registerPlayerDoomCounter() {
+        registerCounter("PlayerDoom", PlayerDoomCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.playerDoomCounterIdx] / 20.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addEndOfTurnHandler("PlayerDoom", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = state.properties.playerDoomCounterIdx;
+                if (state.getCounterForRead()[cIdx] > 0 &&
+                        state.getPlayeForRead().getHealth() <= state.getCounterForRead()[cIdx]) {
+                    state.getPlayerForWrite().kill(state, false);
+                }
             }
         });
     }
