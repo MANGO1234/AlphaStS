@@ -80,6 +80,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int talkToTheHand;
     protected int mark;
     protected int doom;
+    protected int debilitate;
     protected int move = -1;
     protected int lastMove = -1;
     int vExtraIdx = -1;
@@ -148,6 +149,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         talkToTheHand = other.talkToTheHand;
         mark = other.mark;
         doom = other.doom;
+        debilitate = other.debilitate;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -222,6 +224,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getDoom() {
         return doom;
+    }
+
+    public int getDebilitate() {
+        return debilitate;
     }
 
     public boolean hasBurningHealthBuff() {
@@ -306,6 +312,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (doom > 0) {
             str += ", doom=" + doom;
         }
+        if (debilitate > 0) {
+            str += ", debilitate=" + debilitate;
+        }
         return str + '}';
     }
 
@@ -377,10 +386,11 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         return health == enemy.health && maxHealthInBattle == enemy.maxHealthInBattle && move == enemy.move && lastMove == enemy.lastMove && block == enemy.block &&
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
-                choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark && doom == enemy.doom;
+                choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark && doom == enemy.doom &&
+                debilitate == enemy.debilitate;
     }
 
     @Override public int hashCode() {
-        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, move, lastMove);
+        return Objects.hash(health, block, strength, vulnerable, weak, artifact, poison, doom, debilitate, move, lastMove);
     }
 }

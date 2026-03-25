@@ -1211,6 +1211,22 @@ public class NNInputSchema {
             });
         }
 
+        // Debilitate
+        if (props.anyEntityProperty.debilitateEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of debilitate\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getDebilitate() / 10.0f;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Debilitate: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
         // Doom
         if (props.anyEntityProperty.doomEnemy) {
             allEnemyModules.add(new EnemyInputModule() {

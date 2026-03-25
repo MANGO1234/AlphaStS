@@ -23,6 +23,7 @@ public class EntityProperty {
     public boolean talkToTheHandEnemy;
     public boolean markEnemy;
     public boolean doomEnemy;
+    public boolean debilitateEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
@@ -59,6 +60,7 @@ public class EntityProperty {
         talkToTheHandEnemy |= other.talkToTheHandEnemy;
         markEnemy |= other.markEnemy;
         doomEnemy |= other.doomEnemy;
+        debilitateEnemy |= other.debilitateEnemy;
         affectEnemyStrength |= other.affectEnemyStrength;
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
         changeEnergyRefill |= other.changeEnergyRefill;

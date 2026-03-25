@@ -3862,6 +3862,9 @@ public final class GameState implements State {
             if (properties.crueltyCounterIdx >= 0 && counter[properties.crueltyCounterIdx] > 0) {
                 vulnMult += counter[properties.crueltyCounterIdx] / 100.0;
             }
+            if (enemy.getDebilitate() > 0) {
+                vulnMult = (vulnMult - 1.0) * 2 + 1.0;
+            }
             dmg = dmg * vulnMult;
         }
         if (properties.trackingCounterIdx >= 0 && counter[properties.trackingCounterIdx] > 0 && enemy.getWeak() > 0) {
@@ -3975,7 +3978,11 @@ public final class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getWeak() > 0) {
-            dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
+            double weakMult = properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
+            if (enemy.getDebilitate() > 0) {
+                weakMult = 1.0 - (1.0 - weakMult) * 2;
+            }
+            dmg *= weakMult;
         }
         if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
             dmg *= 0.5;
@@ -4028,7 +4035,11 @@ public final class GameState implements State {
             dmg *= 2;
         }
         if (enemy.getWeak() > 0) {
-            dmg *= properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
+            double weakMult = properties.paperCrane != null && properties.paperCrane.isRelicEnabledInScenario(this) ? 0.6 : 0.75;
+            if (enemy.getDebilitate() > 0) {
+                weakMult = 1.0 - (1.0 - weakMult) * 2;
+            }
+            dmg *= weakMult;
         }
         if ((buffs & PlayerBuff.COLOSSUS.mask()) != 0 && enemy.getVulnerable() > 0) {
             dmg *= 0.5;

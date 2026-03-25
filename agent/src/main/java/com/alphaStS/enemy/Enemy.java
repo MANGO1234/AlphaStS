@@ -134,6 +134,9 @@ public abstract class Enemy extends EnemyReadOnly {
         if (turnNum > 0 && lockOn > 0) {
             lockOn -= 1;
         }
+        if (turnNum > 0 && debilitate > 0) {
+            debilitate -= 1;
+        }
         if (loseStrengthEot != 0) {
             strength += loseStrengthEot;
             loseStrengthEot = 0;
@@ -165,6 +168,7 @@ public abstract class Enemy extends EnemyReadOnly {
         platedArmor = 0;
         loseStrengthEot = 0;
         doom = 0;
+        debilitate = 0;
         move = -1;
         lastMove = -1;
     }
@@ -206,6 +210,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case TALK_TO_THE_HAND -> this.talkToTheHand += n;
         case MARK -> this.mark += n;
         case DOOM -> this.doom += n;
+        case DEBILITATE -> this.debilitate += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {

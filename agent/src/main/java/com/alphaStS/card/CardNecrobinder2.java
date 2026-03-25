@@ -2,7 +2,11 @@ package com.alphaStS.card;
 
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
+import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 
@@ -908,57 +912,523 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Countdown (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, apply 6 Doom to a random enemy.
-    //   Upgraded Effect: At the start of your turn, apply 9 Doom to a random enemy.
+    private static abstract class _CountdownT extends Card {
+        private final int n;
 
-    // TODO: Danse Macabre (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you play a card that costs 2 energy or more, gain 3 Block.
-    //   Upgraded Effect: Whenever you play a card that costs 2 energy or more, gain 4 Block.
+        public _CountdownT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+            entityProperty.doomEnemy = true;
+        }
 
-    // TODO: Death March (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Deals 3 additional damage for each card drawn during your turn.
-    //   Upgraded Effect: Deal 9 damage. Deals 4 additional damage for each card drawn during your turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Death's Door (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 6 Block. If you applied Doom this turn, gain Block 2 additional times.
-    //   Upgraded Effect: Gain 7 Block. If you applied Doom this turn, gain Block 2 additional times.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Countdown", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Deathbringer (Uncommon) - 2 energy, Skill
-    //   Effect: Apply 21 Doom and 1 Weak to ALL enemies.
-    //   Upgraded Effect: Apply 26 Doom and 1 Weak to ALL enemies.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Countdown", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int doom = state.getCounterForRead()[counterIdx];
+                    if (doom > 0) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                        if (enemyIdx >= 0) {
+                            state.getEnemiesForWrite().getForWrite(enemyIdx).applyDebuff(state, DebuffType.DOOM, doom);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Debilitate (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Vulnerable and Weak are twice as effective against the enemy for the next 3 turns.
-    //   Upgraded Effect: Deal 9 damage. Vulnerable and Weak are twice as effective against the enemy for the next 4 turns.
+    public static class Countdown extends _CountdownT {
+        public Countdown() {
+            super("Countdown", 6);
+        }
+    }
 
-    // TODO: Delay (Uncommon) - 2 energy, Skill
-    //   Effect: Gain 11 Block. Next turn, gain energy.
-    //   Upgraded Effect: Gain 13 Block. Next turn, gain 2 energy.
+    public static class CountdownP extends _CountdownT {
+        public CountdownP() {
+            super("Countdown+", 9);
+        }
+    }
 
-    // TODO: Dirge (Uncommon) - X energy, Skill
-    //   Effect: Summon 3 X times. Add X Souls into your Draw Pile.
-    //   Upgraded Effect: Summon 4 X times. Add X Souls+ into your Draw Pile.
+    private static abstract class _DanseMacabreT extends Card {
+        private final int block;
 
-    // TODO: Dredge (Uncommon) - 1 energy, Skill
-    //   Effect: [etain. ]Put 3 cards from your Discard Pile into your Hand. Exhaust.
-    //   No upgrade.
+        public _DanseMacabreT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.block = block;
+        }
 
-    // TODO: Enfeebling Touch (Uncommon) - 1 energy, Skill
-    //   Effect: Ethereal. Enemy loses 8 Strength this turn.
-    //   Upgraded Effect: Ethereal. Enemy loses 11 Strength this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += block;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DanseMacabre", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("DanseMacabre", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int blockAmt = state.getCounterForRead()[counterIdx];
+                    if (blockAmt > 0 && energyUsed >= 2) {
+                        state.playerGainBlockNotFromCardPlay(blockAmt);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class DanseMacabre extends _DanseMacabreT {
+        public DanseMacabre() {
+            super("Danse Macabre", 3);
+        }
+    }
+
+    public static class DanseMacabreP extends _DanseMacabreT {
+        public DanseMacabreP() {
+            super("Danse Macabre+", 4);
+        }
+    }
+
+    private static abstract class _DeathMarchT extends Card {
+        private final int damage;
+        private final int bonus;
+        private final GameProperties.LocalCounterRegistrant drawnRegistrant = new GameProperties.LocalCounterRegistrant();
+
+        public _DeathMarchT(String cardName, int damage, int bonus) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.bonus = bonus;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int drawn = state.getCounterForRead()[drawnRegistrant.getCounterIdx(state.properties)];
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + bonus * drawn);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("CardsDrawnThisTurn", drawnRegistrant, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[drawnRegistrant.getCounterIdx(state.properties)] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("CardsDrawnThisTurn", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[drawnRegistrant.getCounterIdx(state.properties)] = 0;
+                }
+            });
+            state.properties.addOnCardDrawnHandler("CardsDrawnThisTurn", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    state.getCounterForWrite()[drawnRegistrant.getCounterIdx(state.properties)]++;
+                }
+            });
+        }
+    }
+
+    public static class DeathMarch extends _DeathMarchT {
+        public DeathMarch() {
+            super("Death March", 8, 3);
+        }
+    }
+
+    public static class DeathMarchP extends _DeathMarchT {
+        public DeathMarchP() {
+            super("Death March+", 9, 4);
+        }
+    }
+
+    private static abstract class _DeathsDoorT extends Card {
+        private final int block;
+        private final GameProperties.LocalCounterRegistrant doomAppliedRegistrant = new GameProperties.LocalCounterRegistrant();
+
+        public _DeathsDoorT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            if (state.getCounterForRead()[doomAppliedRegistrant.getCounterIdx(state.properties)] > 0) {
+                state.playerGainBlock(block);
+                state.playerGainBlock(block);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DoomAppliedThisTurn", doomAppliedRegistrant, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[doomAppliedRegistrant.getCounterIdx(state.properties)] > 0 ? 1.0f : 0.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnEnemyDebuffHandler("DoomAppliedThisTurn", new GameEventEnemyDebuffHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy, DebuffType type, int amount) {
+                    if (type == DebuffType.DOOM) {
+                        state.getCounterForWrite()[doomAppliedRegistrant.getCounterIdx(state.properties)] = 1;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("DoomAppliedThisTurn", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[doomAppliedRegistrant.getCounterIdx(state.properties)] = 0;
+                }
+            });
+        }
+    }
+
+    public static class DeathsDoor extends _DeathsDoorT {
+        public DeathsDoor() {
+            super("Death's Door", 6);
+        }
+    }
+
+    public static class DeathsDoorP extends _DeathsDoorT {
+        public DeathsDoorP() {
+            super("Death's Door+", 7);
+        }
+    }
+
+    private static abstract class _DeathbringerT extends Card {
+        private final int doom;
+
+        public _DeathbringerT(String cardName, int doom) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.doom = doom;
+            entityProperty.doomEnemy = true;
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.DOOM, doom);
+                enemy.applyDebuff(state, DebuffType.WEAK, 1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Deathbringer extends _DeathbringerT {
+        public Deathbringer() {
+            super("Deathbringer", 21);
+        }
+    }
+
+    public static class DeathbringerP extends _DeathbringerT {
+        public DeathbringerP() {
+            super("Deathbringer+", 26);
+        }
+    }
+
+    private static abstract class _DebilitateT extends Card {
+        private final int damage;
+        private final int turns;
+
+        public _DebilitateT(String cardName, int damage, int turns) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.damage = damage;
+            this.turns = turns;
+            entityProperty.selectEnemy = true;
+            entityProperty.debilitateEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            enemy.applyDebuff(state, DebuffType.DEBILITATE, turns);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Debilitate extends _DebilitateT {
+        public Debilitate() {
+            super("Debilitate", 7, 3);
+        }
+    }
+
+    public static class DebilitateP extends _DebilitateT {
+        public DebilitateP() {
+            super("Debilitate+", 9, 4);
+        }
+    }
+
+    private static abstract class _DelayT extends Card {
+        private final int block;
+        private final int energyGain;
+        private final GameProperties.LocalCounterRegistrant energyRegistrant = new GameProperties.LocalCounterRegistrant();
+
+        public _DelayT(String cardName, int block, int energyGain) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.block = block;
+            this.energyGain = energyGain;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.getCounterForWrite()[energyRegistrant.getCounterIdx(state.properties)] += energyGain;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerEnergyNextTurnCounter(state, energyRegistrant);
+        }
+    }
+
+    public static class Delay extends _DelayT {
+        public Delay() {
+            super("Delay", 11, 1);
+        }
+    }
+
+    public static class DelayP extends _DelayT {
+        public DelayP() {
+            super("Delay+", 13, 2);
+        }
+    }
+
+    private static abstract class _DirgeT extends Card {
+        private final int summonPerX;
+
+        public _DirgeT(String cardName, int summonPerX) {
+            super(cardName, Card.SKILL, -1, Card.UNCOMMON);
+            this.summonPerX = summonPerX;
+            this.isXCost = true;
+            this.delayUseEnergy = true;
+            entityProperty.canSummon = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (energyUsed > 0) {
+                state.summon(summonPerX * energyUsed);
+                for (int i = 0; i < energyUsed; i++) {
+                    state.addCardToDeck(generatedCardIdx);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            return state.energy;
+        }
+    }
+
+    public static class Dirge extends _DirgeT {
+        public Dirge() {
+            super("Dirge", 3);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
+
+    public static class DirgeP extends _DirgeT {
+        public DirgeP() {
+            super("Dirge+", 4);
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.SoulP());
+        }
+    }
+
+    private static abstract class _DredgeT extends Card {
+        public _DredgeT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.retain = retain;
+            this.exhaustWhenPlayed = true;
+            entityProperty.selectFromDiscard = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.removeCardFromDiscard(idx);
+            if (state.handArrLen < GameState.HAND_LIMIT) {
+                state.addCardToHand(idx);
+            }
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForWrite()[counterIdx] < 3) {
+                return GameActionCtx.SELECT_CARD_DISCARD;
+            } else {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Dredge", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class Dredge extends _DredgeT {
+        public Dredge() {
+            super("Dredge", false);
+        }
+    }
+
+    public static class DredgeP extends _DredgeT {
+        public DredgeP() {
+            super("Dredge+", true);
+        }
+    }
+
+    private static abstract class _EnfeeblingTouchT extends Card {
+        private final int n;
+
+        public _EnfeeblingTouchT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.n = n;
+            this.ethereal = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.affectEnemyStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class EnfeeblingTouch extends _EnfeeblingTouchT {
+        public EnfeeblingTouch() {
+            super("Enfeebling Touch", 8);
+        }
+    }
+
+    public static class EnfeeblingTouchP extends _EnfeeblingTouchT {
+        public EnfeeblingTouchP() {
+            super("Enfeebling Touch+", 11);
+        }
+    }
 
     // TODO: Fetch (Uncommon) - 0 energy, Attack
     //   Effect: Osty deals 3 damage. If this is the first time this card has been played this turn, draw 1 card.
     //   Upgraded Effect: Osty deals 6 damage. If this is the first time this card has been played this turn, draw 1 card.
+    //   Hint: every instance of fetch counts separately -> to properly make it work, have a FetchUsed/FetchUsedP card
+    //   that's transform on play, and then transform back to Fetch end of turn
 
-    // TODO: Friendship (Uncommon) - 1 energy, Power
-    //   Effect: Lose 2 Strength. Gain energy at the start of each turn.
-    //   Upgraded Effect: Lose 1 Strength. Gain energy at the start of each turn.
+    private static abstract class _FriendshipT extends Card {
+        private final int strengthLoss;
 
-    // TODO: Haunt (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you play a Soul, a random enemy loses 6 HP.
-    //   Upgraded Effect: Whenever you play a Soul, a random enemy loses 8 HP.
+        public _FriendshipT(String cardName, int strengthLoss) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.strengthLoss = strengthLoss;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changeEnergyRefill = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, strengthLoss);
+            state.energyRefill += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Friendship extends _FriendshipT {
+        public Friendship() {
+            super("Friendship", 2);
+        }
+    }
+
+    public static class FriendshipP extends _FriendshipT {
+        public FriendshipP() {
+            super("Friendship+", 1);
+        }
+    }
+
+    private static abstract class _HauntT extends Card {
+        private final int n;
+
+        public _HauntT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.n = n;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Haunt", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            var isSoul = new boolean[state.properties.cardDict.length];
+            for (int i = 0; i < state.properties.cardDict.length; i++) {
+                var base = state.properties.cardDict[i].getBaseCard();
+                isSoul[i] = base instanceof CardColorless2.Soul || base instanceof CardColorless2.SoulP;
+            }
+            state.properties.addOnCardPlayedHandler("Haunt", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int dmg = state.getCounterForRead()[counterIdx];
+                    if (dmg > 0 && isSoul[cardIdx]) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                        if (enemyIdx >= 0) {
+                            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), dmg, false);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Haunt extends _HauntT {
+        public Haunt() {
+            super("Haunt", 6);
+        }
+    }
+
+    public static class HauntP extends _HauntT {
+        public HauntP() {
+            super("Haunt+", 8);
+        }
+    }
 
     // TODO: High Five (Uncommon) - 2 energy, Attack
     //   Effect: Osty deals 11 damage and applies 2 Vulnerable to ALL enemies.

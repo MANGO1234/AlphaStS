@@ -27,4 +27,5 @@ public enum DebuffType {
     TALK_TO_THE_HAND,
     MARK,
     DOOM,
+    DEBILITATE,
 }
