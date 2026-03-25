@@ -1541,7 +1541,7 @@ public class InteractiveMode {
         var idx = readIntCommand(reader, history, state.properties.realCardsLen);
         for (int i = 0; i < state.handArrLen; i++) {
             if (state.getHandArrForRead()[i] == idx) {
-                state.discardCardFromHandByPosition2(i);
+                state.discardCardFromHandByPositionNoTrigger(i);
                 break;
             }
         }

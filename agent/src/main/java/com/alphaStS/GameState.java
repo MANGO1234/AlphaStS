@@ -232,7 +232,6 @@ public final class GameState implements State {
         } else {
             nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, idx);
         }
-        nightmareCards = cardIdxArrAdd(nightmareCards, true, nightmareCardsLen, idx);
         nightmareCardsLen++;
     }
 
@@ -2484,8 +2483,7 @@ public final class GameState implements State {
                 totalMaxHp += enemy.properties.maxHealth;
             }
         }
-        var t = 1 - ((double) totalCurHp) / totalMaxHp;
-        return t;
+        return 1 - ((double) totalCurHp) / totalMaxHp;
     }
 
     private boolean checkIfCanHeal() {
@@ -3570,7 +3568,7 @@ public final class GameState implements State {
         }
     }
 
-    public void discardCardFromHandByPosition2(int idx) {
+    public void discardCardFromHandByPositionNoTrigger(int idx) {
         var cardIdx = getHandArrForRead()[idx];
         addCardToDiscard(cardIdx);
         getHandArrForWrite()[idx] = -1;
@@ -4478,10 +4476,8 @@ public final class GameState implements State {
         int newMantra = (currentMantra + amount) % 10;
         if (currentMantra + amount >= 10) {
             changeStance(Stance.DIVINITY);
-            getCounterForWrite()[properties.mantraCounterIdx] = newMantra;
-        } else {
-            getCounterForWrite()[properties.mantraCounterIdx] = newMantra;
         }
+        getCounterForWrite()[properties.mantraCounterIdx] = newMantra;
     }
 
     public Stance getStance() {
@@ -4522,12 +4518,6 @@ public final class GameState implements State {
     }
 
     public boolean isFirstEncounter() {
-        if (!properties.isHeartGauntlet) {
-            return true;
-        }
-        if (!enemies.get(2).isAlive()) {
-            return true;
-        }
-        return false;
+        return !properties.isHeartGauntlet || !enemies.get(2).isAlive();
     }
 }
