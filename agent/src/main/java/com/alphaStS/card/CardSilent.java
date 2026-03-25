@@ -2238,7 +2238,7 @@ public class CardSilent {
                 @Override public void updateQValues(GameState state, VArray v) {
                     if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
                         for (int i = 0; i < 5; i++) {
-                            v.add(GameState.V_HEALTH_IDX, i * healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                            v.add(GameState.V_HEALTH_IDX, i * healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
                 }

@@ -363,7 +363,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
                     @Override public void updateQValues(GameState state, VArray v) {
                         if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
-                            v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                            v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
                 });
@@ -450,7 +450,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }
@@ -482,7 +482,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
         @Override public void gamePropertiesSetup(GameState state) {
             state.properties.addPreEndOfTurnHandler(new GameEventHandler(0) {
                 @Override public void handle(GameState state) {
-                    if (state.getPlayeForRead().getBlock() == 0 && isRelicEnabledInScenario(state)) {
+                    if (state.getPlayerForRead().getBlock() == 0 && isRelicEnabledInScenario(state)) {
                         state.playerGainBlockNotFromCardPlay(gainBlock);
                     }
                 }
@@ -543,7 +543,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
 
                     @Override public void updateQValues(GameState state, VArray v) {
                         if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
-                            v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                            v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
                 });
@@ -805,7 +805,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }
@@ -905,7 +905,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.meatOnTheBone = this;
             state.properties.addEndOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
-                    if (isRelicEnabledInScenario(state) && state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getInBattleMaxHealth() / 2) {
+                    if (isRelicEnabledInScenario(state) && state.getPlayerForRead().getHealth() <= state.getPlayerForRead().getInBattleMaxHealth() / 2) {
                         state.healPlayer(12);
                     }
                 }
@@ -1142,7 +1142,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / 2.0 / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / 2.0 / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }
@@ -2214,7 +2214,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addStartOfBattleHandler(new GameEventHandler() {
                 @Override public void handle(GameState state) {
                     if (isRelicEnabledInScenario(state)) {
-                        if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getInBattleMaxHealth() / 2) {
+                        if (state.getPlayerForRead().getHealth() <= state.getPlayerForRead().getInBattleMaxHealth() / 2) {
                             state.getPlayerForWrite().gainStrength(3);
                         }
                     }
@@ -2223,8 +2223,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addOnDamageHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int damageDealt) {
                     if (isRelicEnabledInScenario(state)) {
-                        if (state.getPlayeForRead().getHealth() <= state.getPlayeForRead().getInBattleMaxHealth() / 2) {
-                            if (state.getPlayeForRead().getHealth() + damageDealt > state.getPlayeForRead().getInBattleMaxHealth() / 2) {
+                        if (state.getPlayerForRead().getHealth() <= state.getPlayerForRead().getInBattleMaxHealth() / 2) {
+                            if (state.getPlayerForRead().getHealth() + damageDealt > state.getPlayerForRead().getInBattleMaxHealth() / 2) {
                                 state.getPlayerForWrite().gainStrength(3);
                             }
                         }
@@ -2234,8 +2234,8 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
             state.properties.addOnHealHandler(new OnDamageHandler() {
                 @Override public void handle(GameState state, Object source, boolean isAttack, int healed) {
                     if (isRelicEnabledInScenario(state)) {
-                        if (state.getPlayeForRead().getHealth() > state.getPlayeForRead().getInBattleMaxHealth() / 2) {
-                            if (state.getPlayeForRead().getHealth() - healed <= state.getPlayeForRead().getInBattleMaxHealth() / 2) {
+                        if (state.getPlayerForRead().getHealth() > state.getPlayerForRead().getInBattleMaxHealth() / 2) {
+                            if (state.getPlayerForRead().getHealth() - healed <= state.getPlayerForRead().getInBattleMaxHealth() / 2) {
                                 state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH, 3);
                             }
                         }
@@ -2660,7 +2660,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }
@@ -2720,7 +2720,7 @@ public abstract class Relic implements GameProperties.CounterRegistrant, GamePro
                     if (!isRelicEnabledInScenario(state)) {
                         return;
                     }
-                    state.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth() - dmg);
+                    state.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth() - dmg);
                     var cards = IntStreamEx.of(state.getDeckArrForRead()).mapToObj((cardIdx) -> new Tuple<>(cardIdx, state.properties.cardDict[cardIdx].getUpgrade())).filter((t) -> t.v2() != null).toList();
                     if (cards.size() == 1) {
                         var r1 = state.getSearchRandomGen().nextInt(cards.size(), RandomGenCtx.Misc);

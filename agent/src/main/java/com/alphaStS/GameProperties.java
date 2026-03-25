@@ -963,7 +963,7 @@ public class GameProperties implements Cloneable {
             @Override public void handle(GameState state) {
                 int cIdx = state.properties.playerDoomCounterIdx;
                 if (state.getCounterForRead()[cIdx] > 0 &&
-                        state.getPlayeForRead().getHealth() <= state.getCounterForRead()[cIdx]) {
+                        state.getPlayerForRead().getHealth() <= state.getCounterForRead()[cIdx]) {
                     state.getPlayerForWrite().kill(state, false);
                 }
             }

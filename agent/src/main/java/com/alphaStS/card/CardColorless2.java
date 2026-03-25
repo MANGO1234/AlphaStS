@@ -386,7 +386,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.getCounterForWrite()[counterIdx] = state.getPlayeForRead().getBlock();
+            state.getCounterForWrite()[counterIdx] = state.getPlayerForRead().getBlock();
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1309,7 +1309,7 @@ public class CardColorless2 {
 
                 @Override public void updateQValues(GameState state, VArray v) {
                     double vBF = v.getVExtra(vExtraIdx);
-                    v.add(GameState.V_HEALTH_IDX, -10.0 * vBF / state.getPlayeForRead().getMaxHealth());
+                    v.add(GameState.V_HEALTH_IDX, -10.0 * vBF / state.getPlayerForRead().getMaxHealth());
                 }
             });
         }

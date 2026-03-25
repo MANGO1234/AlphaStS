@@ -989,10 +989,10 @@ public class InteractiveMode {
         out.println("Player");
         out.println("  Energy: " + state.energy);
         int maxPossibleHealth = state.getMaxPossibleHealth();
-        int health = state.getPlayeForRead().getHealth();
+        int health = state.getPlayerForRead().getHealth();
         out.println("  HP: " + health + ((health != maxPossibleHealth) ? " (Max Possible HP=" + maxPossibleHealth + ")" : ""));
-        if (state.getPlayeForRead().getBlock() > 0) {
-            out.println("  Block: " + state.getPlayeForRead().getBlock());
+        if (state.getPlayerForRead().getBlock() > 0) {
+            out.println("  Block: " + state.getPlayerForRead().getBlock());
         }
         if (state.getOrbs() != null) {
             var orbs = state.getOrbs();
@@ -1005,29 +1005,29 @@ public class InteractiveMode {
             }
             out.println();
         }
-        if (state.getPlayeForRead().getStrength() != 0) {
-            out.println("  Strength: " + state.getPlayeForRead().getStrength());
+        if (state.getPlayerForRead().getStrength() != 0) {
+            out.println("  Strength: " + state.getPlayerForRead().getStrength());
         }
-        if (state.getPlayeForRead().getDexterity() != 0) {
-            out.println("  Dexterity: " + state.getPlayeForRead().getDexterity());
+        if (state.getPlayerForRead().getDexterity() != 0) {
+            out.println("  Dexterity: " + state.getPlayerForRead().getDexterity());
         }
-        if (state.getPlayeForRead().getPlatedArmor() != 0) {
-            out.println("  Plated Armor: " + state.getPlayeForRead().getPlatedArmor());
+        if (state.getPlayerForRead().getPlatedArmor() != 0) {
+            out.println("  Plated Armor: " + state.getPlayerForRead().getPlatedArmor());
         }
         if (state.getFocus() != 0) {
             out.println("  Focus: " + state.getFocus());
         }
-        if (state.getPlayeForRead().getVulnerable() > 0) {
-            out.println("  Vulnerable: " + state.getPlayeForRead().getVulnerable());
+        if (state.getPlayerForRead().getVulnerable() > 0) {
+            out.println("  Vulnerable: " + state.getPlayerForRead().getVulnerable());
         }
-        if (state.getPlayeForRead().getWeak() > 0) {
-            out.println("  Weak: " + state.getPlayeForRead().getWeak());
+        if (state.getPlayerForRead().getWeak() > 0) {
+            out.println("  Weak: " + state.getPlayerForRead().getWeak());
         }
-        if (state.getPlayeForRead().getFrail() > 0) {
-            out.println("  Frail: " + state.getPlayeForRead().getFrail());
+        if (state.getPlayerForRead().getFrail() > 0) {
+            out.println("  Frail: " + state.getPlayerForRead().getFrail());
         }
-        if (state.getPlayeForRead().getArtifact() > 0) {
-            out.println("  Artifact: " + state.getPlayeForRead().getArtifact());
+        if (state.getPlayerForRead().getArtifact() > 0) {
+            out.println("  Artifact: " + state.getPlayerForRead().getArtifact());
         }
         if (state.buffs != 0) {
             out.println("  Buffs:");
@@ -1052,10 +1052,10 @@ public class InteractiveMode {
             if (state.currentEncounter != EnemyEncounter.EncounterEnum.UNKNOWN) {
                 out.println("  - " + state.currentEncounter.name());
             }
-            if (state.getPlayeForRead().isEntangled()) {
+            if (state.getPlayerForRead().isEntangled()) {
                 out.println("  - Entangled");
             }
-            if (state.getPlayeForRead().cannotDrawCard()) {
+            if (state.getPlayerForRead().cannotDrawCard()) {
                 out.println("  - Cannot Draw Card");
             }
             for (int i = 0; i < state.properties.potions.size(); i++) {
@@ -2394,7 +2394,7 @@ public class InteractiveMode {
             o.append("  ").append(++move_i).append(". ").append(s.getActionString(action)).append(": n=").append(max_n);
             o.append(", q=").append(formatFloat(s.getChildQ(action, GameState.V_COMB_IDX) / max_n));
             o.append(", q_win=").append(formatFloat(s.getChildQ(action, GameState.V_WIN_IDX) / max_n));
-            o.append(", q_health=").append(formatFloat(s.getChildQ(action, GameState.V_HEALTH_IDX) / max_n)).append(" (").append(formatFloat(s.getChildQ(action, GameState.V_HEALTH_IDX) / max_n * s.getPlayeForRead().getMaxHealth())).append(")");
+            o.append(", q_health=").append(formatFloat(s.getChildQ(action, GameState.V_HEALTH_IDX) / max_n)).append(" (").append(formatFloat(s.getChildQ(action, GameState.V_HEALTH_IDX) / max_n * s.getPlayerForRead().getMaxHealth())).append(")");
             if (s.properties.fightProgressVExtraIdx >= 0 && s.getChildQ(action, GameState.V_COMB_IDX) / max_n < 0.001) {
                 o.append(", q_progress=").append(formatFloat(s.getChildQ(action, GameState.V_EXTRA_IDX_START + s.properties.fightProgressVExtraIdx) / max_n));
             }
@@ -2402,7 +2402,7 @@ public class InteractiveMode {
                 o.append(", turns_left=").append(formatFloat(s.getChildQ(action, GameState.V_EXTRA_IDX_START + s.properties.turnsLeftVExtraIdx) / max_n * s.properties.maxPossibleRealTurnsLeft - state.realTurnNum));
             }
             if (s.properties.zeroDmgProbVExtraIdx >= 0) {
-                o.append(", zero_dmg_take_prob=").append(formatFloat(s.getChildQArray(action).getVZeroDmg(s.getPlayeForRead().getAccumulatedDamage()) / max_n)).append("%");
+                o.append(", zero_dmg_take_prob=").append(formatFloat(s.getChildQArray(action).getVZeroDmg(s.getPlayerForRead().getAccumulatedDamage()) / max_n)).append("%");
             }
             out.println(o);
             finalOuput.append("\n").append(o);
@@ -2707,7 +2707,7 @@ public class InteractiveMode {
             }
             return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
                     ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
-                    " (" + formatFloat(x.q_health / x.n * state.getPlayeForRead().getMaxHealth()) + ")";
+                    " (" + formatFloat(x.q_health / x.n * state.getPlayerForRead().getMaxHealth()) + ")";
         }).forEach(out::println);
     }
 

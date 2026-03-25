@@ -589,7 +589,7 @@ public class EnemyEncounter {
                     newState.reviveEnemy(5, false, -1);
                 }
             }
-            newState.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth());
+            newState.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth());
             if (state.properties.potions.size() > 0) {
                 for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
                     newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];
@@ -641,9 +641,9 @@ public class EnemyEncounter {
             newState.killEnemy(1, false);
             newState.reviveEnemy(2, false, -1);
             ((EnemyEnding.CorruptHeart) newState.getEnemiesForWrite().getForWrite(2)).setInvincible(200);
-            newState.getPlayerForWrite().setHealth(state.getPlayeForRead().getHealth());
-            newState.getPlayerForWrite().setInBattleMaxHealth(state.getPlayeForRead().getInBattleMaxHealth());
-            newState.getPlayerForWrite().setAccumulatedDamage(state.getPlayeForRead().getAccumulatedDamage());
+            newState.getPlayerForWrite().setHealth(state.getPlayerForRead().getHealth());
+            newState.getPlayerForWrite().setInBattleMaxHealth(state.getPlayerForRead().getInBattleMaxHealth());
+            newState.getPlayerForWrite().setAccumulatedDamage(state.getPlayerForRead().getAccumulatedDamage());
             if (state.properties.potions.size() > 0) {
                 for (int i = 0; i < newState.getPotionsStateForWrite().length; i++) {
                     newState.getPotionsStateForWrite()[i] = state.getPotionsStateForRead()[i];

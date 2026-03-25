@@ -865,7 +865,7 @@ public class MCTS {
     }
 
     public boolean cannotImproveState(GameState state) {
-        if (state.playerTurnStartMaxPossibleHealth != state.getPlayeForRead().getHealth()) {
+        if (state.playerTurnStartMaxPossibleHealth != state.getPlayerForRead().getHealth()) {
             return false;
         }
         if (GameProperties.isHeartFight(state)) {
@@ -1629,7 +1629,7 @@ public class MCTS {
             }
             boolean useTurnLeftHead = !useFightProgress && Configuration.USE_TURNS_LEFT_HEAD && state.n[action] > 0;
             if (Configuration.USE_TURNS_LEFT_HEAD_ONLY_WHEN_NO_DMG) {
-                if (state.getTotalQArray().getVZeroDmg(state.getPlayeForRead().getAccumulatedDamage()) / (state.total_n + 1) < 0.99) {
+                if (state.getTotalQArray().getVZeroDmg(state.getPlayerForRead().getAccumulatedDamage()) / (state.total_n + 1) < 0.99) {
                     useTurnLeftHead = false;
                 }
             }

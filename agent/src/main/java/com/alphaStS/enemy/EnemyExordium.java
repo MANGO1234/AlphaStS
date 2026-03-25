@@ -311,7 +311,7 @@ public class EnemyExordium {
 
         @Override public void doMove(GameState state, EnemyReadOnly self) {
             if (move == DIVIDER) {
-                int n = state.getPlayeForRead().getHealth() / 12 + 1;
+                int n = state.getPlayerForRead().getHealth() / 12 + 1;
                 state.enemyDoDamageToPlayer(this, n, 6);
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
                 state.enemyDoDamageToPlayer(this, 6, 1);
@@ -350,7 +350,7 @@ public class EnemyExordium {
             if (move == ACTIVATE) {
                 return "Activate";
             } else if (move == DIVIDER) {
-                int n = state.getPlayeForRead().getHealth() / 12 + 1;
+                int n = state.getPlayerForRead().getHealth() / 12 + 1;
                 return "Attack " + state.enemyCalcDamageToPlayer(this, n) + "x6";
             } else if (move == SEAR_1 || move == SEAR_2 || move == SEAR_3) {
                 return "Attack " + state.enemyCalcDamageToPlayer(this, 6);

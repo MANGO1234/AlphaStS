@@ -107,7 +107,7 @@ public class SearchFrontier {
             }
             return String.join(", ", strings) + ": n=" + x.n + ", p=" + formatFloat(x.p_cur) + ", q=" + formatFloat(x.q_comb / x.n) +
                     ", q_win=" + formatFloat(x.q_win / x.n) + ", q_health=" + formatFloat(x.q_health / x.n)  +
-                    " (" + formatFloat(x.q_health / x.n * state.getPlayeForRead().getMaxHealth()) + ")";
+                    " (" + formatFloat(x.q_health / x.n * state.getPlayerForRead().getMaxHealth()) + ")";
         }).toList();
     }
 }

@@ -324,7 +324,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
         public int getHealAmount(GameState state) {
             int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 4 : 2;
-            return heal == 0 ? state.getPlayeForRead().getInBattleMaxHealth() * n / 10 : heal;
+            return heal == 0 ? state.getPlayerForRead().getInBattleMaxHealth() * n / 10 : heal;
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -633,7 +633,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class FairyInABottle extends Potion {
         public int getHealAmount(GameState state) {
-            return (int) ((state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 0.6 : 0.3) * state.getPlayeForRead().getInBattleMaxHealth());
+            return (int) ((state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 0.6 : 0.3) * state.getPlayerForRead().getInBattleMaxHealth());
         }
 
         @Override public GameActionCtx use(GameState state, int idx) {
@@ -644,7 +644,7 @@ public abstract class Potion implements GameProperties.CounterRegistrant {
 
     public static class LizardTail extends FairyInABottle {
         public int getHealAmount(GameState state) {
-            return (int) (0.5 * state.getPlayeForRead().getInBattleMaxHealth());
+            return (int) (0.5 * state.getPlayerForRead().getInBattleMaxHealth());
         }
     }
 

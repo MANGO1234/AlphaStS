@@ -1746,7 +1746,7 @@ public class CardSilent2 {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }

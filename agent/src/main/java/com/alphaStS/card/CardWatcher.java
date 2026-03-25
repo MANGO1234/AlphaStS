@@ -2700,7 +2700,7 @@ public class CardWatcher {
 
                     @Override public void updateQValues(GameState state, VArray v) {
                         if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
-                            v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                            v.add(GameState.V_HEALTH_IDX, 10 * v.getVExtra(vExtraIdx) * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }
                     }
                 });

@@ -434,7 +434,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player health\n");
             inputModules.add((s, x, idx) -> {
-                var player = s.getPlayeForRead();
+                var player = s.getPlayerForRead();
                 x[idx] = player.getHealth() / (float) player.getMaxHealth();
                 return 1;
             });
@@ -449,7 +449,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player block\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getBlock() / (float) 40.0;
+                x[idx] = s.getPlayerForRead().getBlock() / (float) 40.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -591,7 +591,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player lose focus eot debuff\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getLoseFocusEot() / 10.0f;
+                x[idx] = s.getPlayerForRead().getLoseFocusEot() / 10.0f;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -645,7 +645,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player artifact\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getArtifact() / (float) 3.0;
+                x[idx] = s.getPlayerForRead().getArtifact() / (float) 3.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -659,7 +659,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player strength\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getStrength() / (float) 30.0;
+                x[idx] = s.getPlayerForRead().getStrength() / (float) 30.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -673,7 +673,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player dexterity\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getDexterity() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getDexterity() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -687,7 +687,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player lose strength eot debuff\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getLoseStrengthEot() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getLoseStrengthEot() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -701,7 +701,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player lose dexterity eot debuff\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getLoseDexterityEot() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getLoseDexterityEot() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -715,7 +715,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player plated armor\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getPlatedArmor() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getPlatedArmor() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -729,7 +729,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player vulnerable\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getVulnerable() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getVulnerable() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -743,7 +743,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player weak\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getWeak() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getWeak() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -757,7 +757,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of player frail\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().getFrail() / (float) 10.0;
+                x[idx] = s.getPlayerForRead().getFrail() / (float) 10.0;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -771,7 +771,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of whether player is entangled or not\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().isEntangled() ? 0.5f : -0.5f;
+                x[idx] = s.getPlayerForRead().isEntangled() ? 0.5f : -0.5f;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {
@@ -785,7 +785,7 @@ public class NNInputSchema {
             inputLen += 1;
             descBody.append("    1 input to keep track of battle trance cannot draw card debuff\n");
             inputModules.add((s, x, idx) -> {
-                x[idx] = s.getPlayeForRead().cannotDrawCard() ? 0.5f : -0.5f;
+                x[idx] = s.getPlayerForRead().cannotDrawCard() ? 0.5f : -0.5f;
                 return 1;
             });
             inputPrinters.add((s, input, idx) -> {

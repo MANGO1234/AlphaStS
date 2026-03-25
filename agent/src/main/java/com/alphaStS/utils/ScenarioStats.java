@@ -173,7 +173,7 @@ public class ScenarioStats {
         this.modelCalls += modelCalls;
         totalTurns += state.realTurnNum;
         totalTurnsInWins += (state.isTerminal() == 1 ? state.realTurnNum : 0);
-        int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
+        int damageTaken = state.getPlayerForRead().getOrigHealth() - state.getPlayerForRead().getHealth();
         numOfGames++;
         deathCount += (state.isTerminal() == -1 ? 1 : 0);
         totalDamageTaken += damageTaken;
@@ -298,7 +298,7 @@ public class ScenarioStats {
             GameState state = steps.get(steps.size() - 1).state();
             GameState state2 = steps2.get(steps2.size() - 1).state();
             if ((state.isTerminal() == 1 && state2.isTerminal() == 1)) {
-                int diff = state.getPlayeForRead().getHealth() - state2.getPlayeForRead().getHealth();
+                int diff = state.getPlayerForRead().getHealth() - state2.getPlayerForRead().getHealth();
                 if (diff > 0) {
                     winDmgs.add((double) diff);
                 } else if (diff < 0) {

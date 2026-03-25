@@ -469,7 +469,7 @@ public class MatchSession {
 
     private void writeGameRecord(Writer writer, GameResult result, List<GameStep> steps, Map<Integer, GameStateRandomization.Info> combinedInfoMap, int r) throws IOException {
         var state = steps.get(steps.size() - 1).state();
-        int damageTaken = state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth();
+        int damageTaken = state.getPlayerForRead().getOrigHealth() - state.getPlayerForRead().getHealth();
         if (state.properties.randomization != null) {
             if (combinedInfoMap.size() > 1) {
                 writer.write("Scenario: " + combinedInfoMap.get(r).desc() + "\n");
@@ -1165,7 +1165,7 @@ public class MatchSession {
                 writer.write("No Temperature Moves From Turn " + game.noTemperatureTurn + "\n");
             }
             writer.write("Result: " + (state.isTerminal() == 1 ? "Win" : "Loss") + "\n");
-            writer.write("Damage Taken: " + (state.getPlayeForRead().getOrigHealth() - state.getPlayeForRead().getHealth()) + "\n");
+            writer.write("Damage Taken: " + (state.getPlayerForRead().getOrigHealth() - state.getPlayerForRead().getHealth()) + "\n");
             printGame(writer, steps);
             writer.write("\n");
             writer.write("\n");
@@ -1377,7 +1377,7 @@ public class MatchSession {
                         if (state.properties.extraTrainingTargetsLabel.get(k).equals("TurnsLeft")) {
                             stream.writeFloat((float) ((((step.v.get(v_idx) - step.state().realTurnNum / state.properties.maxPossibleRealTurnsLeft) * 2) - 1)));
                         } else if (state.properties.extraTrainingTargetsLabel.get(k).equals("ZeroDmgProb")) {
-                            stream.writeFloat((float) (step.v.getVZeroDmg(step.state().getPlayeForRead().getAccumulatedDamage())));
+                            stream.writeFloat((float) (step.v.getVZeroDmg(step.state().getPlayerForRead().getAccumulatedDamage())));
                         } else {
                             stream.writeFloat((float) ((step.v.get(v_idx) * 2) - 1));
                         }
@@ -1685,7 +1685,7 @@ public class MatchSession {
                         }
                     }
                     if (step.state().properties.zeroDmgProbVExtraIdx >= 0 && j == GameState.V_EXTRA_IDX_START + step.state().properties.zeroDmgProbVExtraIdx) {
-                        writer.write(String.valueOf(step.v.getVZeroDmg(step.state().getPlayeForRead().getAccumulatedDamage())));
+                        writer.write(String.valueOf(step.v.getVZeroDmg(step.state().getPlayerForRead().getAccumulatedDamage())));
                     } else {
                         writer.write(String.valueOf(step.v.get(j)));
                     }

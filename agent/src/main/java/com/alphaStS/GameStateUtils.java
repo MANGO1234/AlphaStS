@@ -222,7 +222,7 @@ public class GameStateUtils {
                 var q_comb = node.state.getTotalQ(GameState.V_COMB_IDX);
                 var q_win = node.state.getTotalQ(GameState.V_WIN_IDX);
                 var q_health = node.state.getTotalQ(GameState.V_HEALTH_IDX);
-                writer.write(indent + "n=" + n + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
+                writer.write(indent + "n=" + n + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayerForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayerForRead().getMaxHealth()) + "))\n");
                 printTreeH(parentState, parentAction, node.state, depth, writer, indent);
             }
         } else if (s instanceof GameState state) {
@@ -243,7 +243,7 @@ public class GameStateUtils {
                     for (int j = 0; j < 24 - l; j++) {
                         writer.write(' ');
                     }
-                    writer.write("n=" + n + " p=" + Utils.formatFloat(state.policy[i]) + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayeForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayeForRead().getMaxHealth()) + "))\n");
+                    writer.write("n=" + n + " p=" + Utils.formatFloat(state.policy[i]) + ", q=" + Utils.formatFloat(q_comb / n) + ", q_win=" + Utils.formatFloat(q_win / n) + ", q_health=" + Utils.formatFloat(q_health / n) + " (" + Utils.formatFloat(q_health / n * state.getPlayerForRead().getMaxHealth()) + ") v=(" + Utils.formatFloat(state.v_win) + "/" + Utils.formatFloat(state.v_health) + "(" + Utils.formatFloat(state.v_health * state.getPlayerForRead().getMaxHealth()) + "))\n");
                 }
                 printTreeH(state, i, state.ns[i], depth - 1, writer, indent + "    ");
             }

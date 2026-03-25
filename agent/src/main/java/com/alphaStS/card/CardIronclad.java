@@ -158,7 +158,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getPlayeForRead().getBlock());
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getPlayerForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -398,7 +398,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + state.getPlayeForRead().getStrength() * strengthMultiplier);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + state.getPlayerForRead().getStrength() * strengthMultiplier);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1193,7 +1193,7 @@ public class CardIronclad {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerGainBlockNotFromCardPlay(state.getPlayeForRead().getBlock());
+            state.playerGainBlockNotFromCardPlay(state.getPlayerForRead().getBlock());
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2515,7 +2515,7 @@ public class CardIronclad {
                         int minFeed = state.getCounterForRead()[counterIdx];
                         int maxFeedRemaining = getMaxPossibleFeedRemaining(state);
                         double vFeed = Math.max(minFeed / 16.0, Math.min((minFeed + maxFeedRemaining) / 16.0, v.getVExtra(vExtraIdx)));
-                        v.add(GameState.V_HEALTH_IDX, 16 * vFeed * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, 16 * vFeed * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }

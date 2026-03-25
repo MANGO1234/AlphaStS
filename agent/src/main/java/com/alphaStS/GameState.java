@@ -666,7 +666,7 @@ public final class GameState implements State {
             properties.actionsByCtx[GameActionCtx.AFTER_RANDOMIZATION.ordinal()] = new GameAction[] { new GameAction(GameActionType.AFTER_RANDOMIZATION, 0) };
         }
 
-        properties.setupEntityProperties(cards, relics, potions, enemiesArg, getPlayeForRead().getArtifact() > 0);
+        properties.setupEntityProperties(cards, relics, potions, enemiesArg, getPlayerForRead().getArtifact() > 0);
         properties.previousCardPlayTracking = cards.stream().anyMatch((x) -> x.needsLastCardType);
 
         if (Configuration.USE_FIGHT_PROGRESS_WHEN_LOSING) {
@@ -714,9 +714,9 @@ public final class GameState implements State {
                 @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
                     v.setVExtra(state.properties.zeroDmgProbVExtraIdx, 0);
                     if (isTerminal != 0) {
-                        v.setVZeroDmg(state.getPlayeForRead().getAccumulatedDamage(), (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0);
+                        v.setVZeroDmg(state.getPlayerForRead().getAccumulatedDamage(), (isTerminal > 0 || state.isLossFrom50()) ? 1 : 0);
                     } else {
-                        v.setVZeroDmg(state.getPlayeForRead().getAccumulatedDamage(), state.getVExtra(properties.zeroDmgProbVExtraIdx));
+                        v.setVZeroDmg(state.getPlayerForRead().getAccumulatedDamage(), state.getVExtra(properties.zeroDmgProbVExtraIdx));
                     }
                 }
                 @Override public void updateQValues(GameState state, VArray v) {}
@@ -768,9 +768,9 @@ public final class GameState implements State {
 
                     @Override public void updateQValues(GameState state, VArray v) {
                         if (properties.potions.get(_i) instanceof Potion.FairyInABottle pot) {
-                            v.add(V_HEALTH_IDX, pot.getHealAmount(state) * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayeForRead().getMaxHealth());
+                            v.add(V_HEALTH_IDX, pot.getHealAmount(state) * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayerForRead().getMaxHealth());
                         } else if (!properties.isHeartFight(state)) {
-                            v.add(V_HEALTH_IDX, 5 * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayeForRead().getMaxHealth());
+                            v.add(V_HEALTH_IDX, 5 * v.get(GameState.V_EXTRA_IDX_START + state.properties.potionsVExtraIdx[_i]) / state.getPlayerForRead().getMaxHealth());
                         }
                     }
                 });
@@ -1056,7 +1056,7 @@ public final class GameState implements State {
     }
 
     public int draw(int count) {
-        if (count == 0 || getPlayeForRead().cannotDrawCard()) {
+        if (count == 0 || getPlayerForRead().cannotDrawCard()) {
             return -1;
         }
         boolean triggerShuffleEffect = discardArrLen > 0;
@@ -2319,7 +2319,7 @@ public final class GameState implements State {
     }
 
     public boolean isLossFrom50() {
-        return getPlayeForRead().getHealth() > 0 && turnNum > 50;
+        return getPlayerForRead().getHealth() > 0 && turnNum > 50;
     }
 
     public double calcQValue(VArray v) {
@@ -2375,7 +2375,7 @@ public final class GameState implements State {
     }
 
     void getVArray(VArray out) {
-        var player = getPlayeForRead();
+        var player = getPlayerForRead();
         if (player.getHealth() <= 0 || turnNum > 50) {
             out.reset();
             if (properties.extraOutputLen > 0) {
@@ -2400,7 +2400,7 @@ public final class GameState implements State {
             out.set(V_HEALTH_IDX, ((double) player.getHealth()) / player.getMaxHealth());
         } else {
             out.set(V_WIN_IDX, v_win);
-            out.set(V_HEALTH_IDX, Math.min(v_health, getMaxPossibleHealth() / (float) getPlayeForRead().getMaxHealth()));
+            out.set(V_HEALTH_IDX, Math.min(v_health, getMaxPossibleHealth() / (float) getPlayerForRead().getMaxHealth()));
         }
         for (int i = 0; i < properties.extraTrainingTargets.size(); i++) {
             properties.extraTrainingTargets.get(i).fillVArray(this, out, enemiesAllDead ? 1 : 0);
@@ -2562,7 +2562,7 @@ public final class GameState implements State {
             return true;
         }
         if (properties.meatOnTheBone != null) {
-            return getPlayeForRead().getHealth() < getPlayeForRead().getInBattleMaxHealth() / 2 + 12;
+            return getPlayerForRead().getHealth() < getPlayerForRead().getInBattleMaxHealth() / 2 + 12;
         }
         if (properties.healCardsIdxes == null) {
             return false;
@@ -2718,7 +2718,7 @@ public final class GameState implements State {
             }
 
             int hp;
-            int maxPossibleHealth = getPlayeForRead().getHealth();
+            int maxPossibleHealth = getPlayerForRead().getHealth();
             for (int i = 0; i < properties.potions.size(); i++) {
                 if (potionUsable(i) && properties.potions.get(i) instanceof Potion.FairyInABottle pot) {
                     maxPossibleHealth = Math.max(maxPossibleHealth, pot.getHealAmount(this));
@@ -2782,7 +2782,7 @@ public final class GameState implements State {
     }
 
     public int isTerminal() {
-        if (getPlayeForRead().getHealth() <= 0 || turnNum > 50 || actionsInCurTurn > 100) {
+        if (getPlayerForRead().getHealth() <= 0 || turnNum > 50 || actionsInCurTurn > 100) {
             return -1;
         } else {
             for (var enemy : enemies) {
@@ -2972,7 +2972,7 @@ public final class GameState implements State {
                 }
             }
         }
-        str.append(", ").append(getPlayeForRead());
+        str.append(", ").append(getPlayerForRead());
         str.append(", [");
         int eAlive = 0;
         for (var enemy : enemies) {
@@ -3019,7 +3019,7 @@ public final class GameState implements State {
         if (showQComb) {
             str.append(formatFloat(calcQValue())).append("/");
         }
-        str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayeForRead().getMaxHealth()));
+        str.append(formatFloat(v_win)).append("/").append(formatFloat(v_health)).append(",").append(formatFloat(v_health * getPlayerForRead().getMaxHealth()));
         if (v_extra != null) {
             var vArray = new VArray(properties.v_total_len);
             getVArray(vArray);
@@ -3130,7 +3130,7 @@ public final class GameState implements State {
                 if (!isCardPlayBlocked()) {
                     for (int i = 0; i < handArrLen; i++) {
                         if (!legal[handArr[i]]) {
-                            if (getPlayeForRead().isEntangled() && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
+                            if (getPlayerForRead().isEntangled() && properties.cardDict[handArr[i]].cardType == Card.ATTACK) {
                                 continue;
                             }
                             int cost = getCardEnergyCost(handArr[i]);
@@ -3150,11 +3150,11 @@ public final class GameState implements State {
                             }
                             if (properties.biasedCognitionLimitCounterIdx >= 0) {
                                 if (properties.character == CharacterEnum.DEFECT) {
-                                    if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
+                                    if (getPlayerForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Biased") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
                                         continue;
                                     }
                                 } else if (properties.character == CharacterEnum.SILENT) {
-                                    if (getPlayeForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Wraith Form") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
+                                    if (getPlayerForRead().getArtifact() == 0 && properties.cardDict[handArr[i]].cardName.startsWith("Wraith Form") && calcFightProgress(true) < getCounterForRead()[properties.biasedCognitionLimitCounterIdx] / 100.0) {
                                         continue;
                                     }
                                 }
@@ -3833,7 +3833,7 @@ public final class GameState implements State {
     }
 
     public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, boolean isShiv) {
-        var player = getPlayeForRead();
+        var player = getPlayerForRead();
         double dmg = dmgInt;
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
             dmg += 8;
@@ -4188,7 +4188,7 @@ public final class GameState implements State {
         return enemies;
     }
 
-    public PlayerReadOnly getPlayeForRead() {
+    public PlayerReadOnly getPlayerForRead() {
         return player;
     }
 

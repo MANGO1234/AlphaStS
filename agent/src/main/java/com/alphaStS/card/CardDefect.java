@@ -903,7 +903,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            if (state.getPlayeForRead().getBlock() == 0) {
+            if (state.getPlayerForRead().getBlock() == 0) {
                 state.playerGainBlock(n);
             }
             return GameActionCtx.PLAY_CARD;
@@ -1591,7 +1591,7 @@ public class CardDefect {
                         int maxGARemaining = getMaxPossibleGARemaining(state);
                         double vGA = Math.max(minGA / 16.0, Math.min((minGA + maxGARemaining) / 16.0, v.getVExtra(vExtraIdx)));
                         if (state.currentEncounter != EnemyEncounter.EncounterEnum.CORRUPT_HEART) {
-                            v.add(GameState.V_HEALTH_IDX, 16 * vGA * healthRewardRatio / state.getPlayeForRead().getMaxHealth());
+                            v.add(GameState.V_HEALTH_IDX, 16 * vGA * healthRewardRatio / state.getPlayerForRead().getMaxHealth());
                         }
                     }
                 });

@@ -394,7 +394,7 @@ public class Relic2 {
                     }
 
                     @Override public void updateQValues(GameState state, VArray v) {
-                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayeForRead().getMaxHealth());
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
                     }
                 });
             }
