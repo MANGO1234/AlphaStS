@@ -38,6 +38,8 @@ public class EntityProperty {
     public short orbGenerationPossible;
     public boolean sly;
     public boolean canSummon;
+    public boolean hasStarCost;
+    public boolean canForge;
 
     public void mergeFrom(EntityProperty other) {
         changePlayerArtifact |= other.changePlayerArtifact;
@@ -75,6 +77,8 @@ public class EntityProperty {
         orbGenerationPossible |= other.orbGenerationPossible;
         sly |= other.sly;
         canSummon |= other.canSummon;
+        hasStarCost |= other.hasStarCost;
+        canForge |= other.canForge;
     }
 
     public static EntityProperty aggregate(List<EntityProperty> list) {

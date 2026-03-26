@@ -174,6 +174,7 @@ public class GameProperties implements Cloneable {
     public int gamblingChipsCardIdx = -1;
     public int nilroysCodexHelperCardIdx = -1;
     public int normalityCardIdx = -1;
+    public int sovereignBladeCardIdx = -1;
     public int toolsOfTheTradeCardIdx = -1;
     public int wellLaidPlansCardIdx = -1;
 
@@ -198,6 +199,7 @@ public class GameProperties implements Cloneable {
     public int feedCounterIdx = -1;
     public int feralCounterIdx = -1;
     public int forceFieldCounterIdx = -1;
+    public int forgeCounterIdx = -1;
     public int foresightCounterIdx = -1;
     public int geneticAlgorithmCounterIdx = -1;
     public int handOfGreedCounterIdx = -1;
@@ -969,6 +971,30 @@ public class GameProperties implements Cloneable {
             }
         });
     }
+
+    private static CounterRegistrant ForgeCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.forgeCounterIdx = idx;
+        }
+
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.forgeCounterIdx;
+        }
+    };
+
+    public void registerForgeCounter() {
+        registerCounter("Forge", ForgeCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.forgeCounterIdx] / 100.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+    }
+
 
     public void registerIntangibleCounter() {
         registerCounter("Intangible", IntangibleCounterRegistrant, new NetworkInputHandler() {

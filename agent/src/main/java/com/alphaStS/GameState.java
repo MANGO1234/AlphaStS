@@ -82,6 +82,7 @@ public final class GameState implements State {
     CircularArray<GameEnvironmentAction> gameActionDeque;
     public int energy;
     public int energyRefill;
+    public int starResource = 0;
     GameAction currentAction;
     public short turnNum;
     public short realTurnNum;
@@ -275,6 +276,7 @@ public final class GameState implements State {
         if (preBattleScenariosChosenIdx != gameState.preBattleScenariosChosenIdx) return false;
         if (battleRandomizationIdxChosen != gameState.battleRandomizationIdxChosen) return false;
         if (startOfBattleActionIdx != gameState.startOfBattleActionIdx) return false;
+        if (starResource != gameState.starResource) return false;
         boolean dequeIsNull = gameActionDeque == null || gameActionDeque.size() == 0;
         boolean oDequeIsNull = gameState.gameActionDeque == null || gameState.gameActionDeque.size() == 0;
         if (dequeIsNull != oDequeIsNull) {
@@ -311,7 +313,7 @@ public final class GameState implements State {
 
     @Override public int hashCode() {
         // actionCtx, energy, energyRefill, hand, enemies health, previousCardIdx, drawOrder, buffs should cover most
-        int result = Objects.hash(actionCtx, energy, energyRefill, currentAction, drawOrder, buffs);
+        int result = Objects.hash(actionCtx, energy, energyRefill, starResource, currentAction, drawOrder, buffs);
         for (var enemy : enemies) {
             result = 31 * result + enemy.getHealth();
         }
@@ -899,6 +901,14 @@ public final class GameState implements State {
             }
             set = newSet;
         } while (true);
+        boolean anyCanForge = set.stream().anyMatch(c -> c.entityProperty.canForge);
+        if (!anyCanForge) anyCanForge = relics.stream().anyMatch(r -> r.entityProperty.canForge);
+        if (!anyCanForge) anyCanForge = potions.stream().anyMatch(p -> p.entityProperty.canForge);
+        if (!anyCanForge) anyCanForge = enemies.stream().anyMatch(e -> e.properties.entityProperty.canForge);
+        if (anyCanForge) {
+            set.add(new CardColorless2.SovereignBlade());
+        }
+
         var newSet = new HashSet<>(set);
         for (Card c : set) {
             addPossibleGeneratedCardsFromListOfCard(c.getPossibleTransformTmpCostCards(set.stream().toList()), newSet, null);
@@ -979,6 +989,7 @@ public final class GameState implements State {
         nightmareCards = other.nightmareCards;
         nightmareCardsLen = other.nightmareCardsLen;
         energy = other.energy;
+        starResource = other.starResource;
         turnNum = other.turnNum;
         realTurnNum = other.realTurnNum;
         actionsInCurTurn = other.actionsInCurTurn;
@@ -1271,6 +1282,10 @@ public final class GameState implements State {
                 for (int i = 0; i < properties.onEnergySpendHandlers.size(); i++) {
                     properties.onEnergySpendHandlers.get(i).handle(this, realEnergyCost);
                 }
+            }
+            int realStarCost = properties.cardDict[cardIdx].starCost;
+            if (realStarCost > 0 && useEnergy) {
+                starResource -= realStarCost;
             }
             if (cardIdx >= properties.realCardsLen) {
                 cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
@@ -1683,6 +1698,7 @@ public final class GameState implements State {
         playerTurnStartPotionCount = getPotionCount();
         playerTurnStartMaxHandOfGreed = (byte) CardColorless.HandOfGreed.getMaxPossibleHandOfGreed(this);
         playerTurnStartMaxRitualDagger = (byte) CardColorless.RitualDagger.getMaxPossibleRitualDagger(this);
+        starResource = 0;
         gainEnergy(energyRefill);
         if (properties.character == CharacterEnum.WATCHER) {
             exitDivinityAtStartOfTurn();
@@ -3109,6 +3125,9 @@ public final class GameState implements State {
                             if (cost < 0 || cost > energy) {
                                 continue;
                             }
+                            if (properties.cardDict[handArr[i]].starCost > starResource) {
+                                continue;
+                            }
                             if (properties.cardDict[handArr[i]].entityProperty.selectEnemy) {
                                 var atLeastOneTarget = false;
                                 for (int j = 0; j < enemies.size(); j++) {
@@ -3457,6 +3476,18 @@ public final class GameState implements State {
 
     public void gainEnergy(int n) {
         energy = Math.max(energy + n, 0);
+    }
+
+    public void gainStar(int n) {
+        starResource += n;
+    }
+
+    public void forge(int amount) {
+        if (properties.forgeCounterIdx < 0) return;
+        if (getCounterForRead()[properties.forgeCounterIdx] == 0 && properties.sovereignBladeCardIdx >= 0) {
+            addCardToHand(properties.sovereignBladeCardIdx);
+        }
+        getCounterForWrite()[properties.forgeCounterIdx] += amount;
     }
 
     public void addCardToHand(int cardIndex) {

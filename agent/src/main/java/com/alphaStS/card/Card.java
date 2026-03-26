@@ -23,6 +23,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public final int cardType;
     public final String cardName;
     public final int energyCost;
+    public int starCost = 0;
     public final int rarity;
     public boolean ethereal = false;
     public boolean innate = false;

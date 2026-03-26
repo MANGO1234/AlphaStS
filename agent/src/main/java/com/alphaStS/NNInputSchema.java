@@ -429,6 +429,20 @@ public class NNInputSchema {
             });
         }
 
+        // Star resource
+        if (props.anyEntityProperty.hasStarCost) {
+            inputLen += 1;
+            descBody.append("    1 input to keep track of star resource\n");
+            inputModules.add((s, x, idx) -> {
+                x[idx] = s.starResource / 10.0f;
+                return 1;
+            });
+            inputPrinters.add((s, input, idx) -> {
+                System.out.println("Star Resource: " + input[idx]);
+                return 1;
+            });
+        }
+
         // Player health
         {
             inputLen += 1;

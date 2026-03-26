@@ -1642,9 +1642,42 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Sovereign Blade (Token) - 2 energy, Attack
-    //   Effect: Retain. Deal 10 damage.
-    //   Upgraded Effect (1 energy): Retain. Deal 10 damage.
+    private static abstract class _SovereignBladeT extends Card {
+        public _SovereignBladeT(String cardName, int energyCost) {
+            super(cardName, Card.ATTACK, energyCost, Card.COMMON);
+            this.retain = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        @Override public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int dmg = 10 + (state.properties.forgeCounterIdx >= 0
+                ? state.getCounterForRead()[state.properties.forgeCounterIdx]
+                : 0);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SovereignBlade extends _SovereignBladeT {
+        public SovereignBlade() {
+            super("Sovereign Blade", 2);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerForgeCounter();
+            state.properties.sovereignBladeCardIdx = state.properties.findCardIndex(this);
+        }
+    }
+
+    public static class SovereignBladeP extends _SovereignBladeT {
+        public SovereignBladeP() {
+            super("Sovereign Blade+", 1);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerForgeCounter();
+        }
+    }
 
     // TODO: Sweeping Gaze (Token) - 0 energy, Attack
     //   Effect: Ethereal. Osty deals 10 damage to a random enemy. Exhaust.
