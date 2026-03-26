@@ -3930,7 +3930,27 @@ public final class GameState implements State {
             getCounterForWrite()[properties.otsyAttackedThisTurnCounterIdx]++;
         }
         int bonus = properties.otsyDamageBonusCounterIdx >= 0 ? getCounterForRead()[properties.otsyDamageBonusCounterIdx] : 0;
-        return playerDoDamageToEnemy(enemy, dmgInt + bonus);
+        double dmg = dmgInt + bonus;
+        if (enemy.getVulnerable() > 0) {
+            double vulnMult = 1.5;
+            if (enemy.getDebilitate() > 0) {
+                vulnMult = (vulnMult - 1.0) * 2 + 1.0;
+            }
+            dmg *= vulnMult;
+        }
+        if (enemy.isAlive() && enemy.getHealth() > 0) {
+            int dmgDone = enemy.damage(dmg, this);
+            if (enemy.getHealth() == 0) {
+                for (var handler : properties.onEnemyDeathHandlers) {
+                    handler.handle(this, enemy);
+                }
+            }
+            if (!enemy.isAlive()) {
+                adjustEnemiesAlive(-1);
+            }
+            return dmgDone;
+        }
+        return 0;
     }
 
     public void checkWristBladeBuffForZeroCostAttack(int cardIdx) {
