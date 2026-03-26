@@ -6,6 +6,7 @@ import com.alphaStS.enemy.EnemyReadOnly;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
+import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
@@ -723,6 +724,9 @@ public class CardNecrobinder2 {
                 state.playerGainBlock(n);
                 state.getCounterForWrite()[state.properties.otsyHPCounterIdx] = 0;
                 state.getCounterForWrite()[state.properties.otsyMaxHPCounterIdx] = 0;
+                for (var handler : state.properties.onOtsyDeathHandlers) {
+                    handler.handle(state);
+                }
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1430,41 +1434,321 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: High Five (Uncommon) - 2 energy, Attack
-    //   Effect: Osty deals 11 damage and applies 2 Vulnerable to ALL enemies.
-    //   Upgraded Effect: Osty deals 13 damage and applies 3 Vulnerable to ALL enemies.
+    private static abstract class _HighFiveT extends Card {
+        private final int damage;
+        private final int vuln;
 
-    // TODO: Legion of Bone (Uncommon) - 2 energy, Skill
-    //   Effect: ALL players Summon 6. Exhaust.
-    //   Upgraded Effect: ALL players Summon 8. Exhaust.
+        public _HighFiveT(String cardName, int damage, int vuln) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.damage = damage;
+            this.vuln = vuln;
+            entityProperty.vulnEnemy = true;
+        }
 
-    // TODO: Lethality (Uncommon) - 1 energy, Power
-    //   Effect: Ethereal. The first Attack each turn deals 50% additional damage.
-    //   Upgraded Effect: Ethereal. The first Attack each turn deals 75% additional damage.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.otsyDoDamageToEnemy(enemy, damage);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, vuln);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Melancholy (Uncommon) - 3 energy, Skill
-    //   Effect: Gain 13 Block. Reduce this card's cost by energy whenever ANYONE dies.
-    //   Upgraded Effect: Gain 17 Block. Reduce this card's cost by energy whenever ANYONE dies.
+    public static class HighFive extends _HighFiveT {
+        public HighFive() {
+            super("High Five", 11, 2);
+        }
+    }
 
-    // TODO: No Escape (Uncommon) - 1 energy, Skill
-    //   Effect: Apply 10 Doom, plus an additional 5 Doom for every 10 Doom already on this enemy.
-    //   Upgraded Effect: Apply 15 Doom, plus an additional 5 Doom for every 10 Doom already on this enemy.
+    public static class HighFiveP extends _HighFiveT {
+        public HighFiveP() {
+            super("High Five+", 13, 3);
+        }
+    }
 
-    // TODO: Pagestorm (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you draw an Ethereal card, draw 1 card.
-    //   Upgraded Effect (0 energy): Whenever you draw an Ethereal card, draw 1 card.
+    // No need to implement Legion of Bone: Multiplayer
 
-    // TODO: Parse (Uncommon) - 1 energy, Skill
-    //   Effect: Ethereal. Draw 3 cards.
-    //   Upgraded Effect: Ethereal. Draw 4 cards.
+    private static abstract class _LethalityT extends Card {
+        private final int bonus;
 
-    // TODO: Pull from Below (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 5 damage for each Ethereal card played this combat.
-    //   Upgraded Effect: Deal 7 damage for each Ethereal card played this combat.
+        public _LethalityT(String cardName, int bonus) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.bonus = bonus;
+            this.ethereal = true;
+        }
 
-    // TODO: Putrefy (Uncommon) - 1 energy, Skill
-    //   Effect: Apply 2 Weak. Apply 2 Vulnerable. Exhaust.
-    //   Upgraded Effect: Apply 3 Weak. Apply 3 Vulnerable. Exhaust.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += bonus;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Lethality", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.registerAttacksPlayedThisTurnCounter();
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.lethalityCounterIdx = idx;
+        }
+    }
+
+    public static class Lethality extends _LethalityT {
+        public Lethality() {
+            super("Lethality", 50);
+        }
+    }
+
+    public static class LethalityP extends _LethalityT {
+        public LethalityP() {
+            super("Lethality+", 75);
+        }
+    }
+
+    private static abstract class _MelancholyT extends Card {
+        private final int block;
+
+        public _MelancholyT(String cardName, int block) {
+            super(cardName, Card.SKILL, 3, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            if (state == null) return 3;
+            return Math.max(0, 3 - state.getCounterForRead()[counterIdx]);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MelancholyDeathCount", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnEnemyDeathHandler("MelancholyDeathCount", new GameEventEnemyHandler() {
+                @Override public void handle(GameState state, EnemyReadOnly enemy) {
+                    state.getCounterForWrite()[counterIdx]++;
+                }
+            });
+            state.properties.addOnOtsyDeathHandler("MelancholyDeathCount", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx]++;
+                }
+            });
+        }
+    }
+
+    public static class Melancholy extends _MelancholyT {
+        public Melancholy() {
+            super("Melancholy", 13);
+        }
+    }
+
+    public static class MelancholyP extends _MelancholyT {
+        public MelancholyP() {
+            super("Melancholy+", 17);
+        }
+    }
+
+    private static abstract class _NoEscapeT extends Card {
+        private final int baseDoom;
+
+        public _NoEscapeT(String cardName, int baseDoom) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.baseDoom = baseDoom;
+            entityProperty.selectEnemy = true;
+            entityProperty.doomEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int doom = baseDoom + (enemy.getDoom() / 10) * 5;
+            enemy.applyDebuff(state, DebuffType.DOOM, doom);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class NoEscape extends _NoEscapeT {
+        public NoEscape() {
+            super("No Escape", 10);
+        }
+    }
+
+    public static class NoEscapeP extends _NoEscapeT {
+        public NoEscapeP() {
+            super("No Escape+", 15);
+        }
+    }
+
+    private static abstract class _PagestormT extends Card {
+        public _PagestormT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Pagestorm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardDrawnHandler("Pagestorm", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int stacks = state.getCounterForRead()[counterIdx];
+                    if (stacks > 0 && state.properties.cardDict[cardIdx].ethereal) {
+                        state.draw(stacks);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Pagestorm extends _PagestormT {
+        public Pagestorm() {
+            super("Pagestorm", 1);
+        }
+    }
+
+    public static class PagestormP extends _PagestormT {
+        public PagestormP() {
+            super("Pagestorm+", 0);
+        }
+    }
+
+    private static abstract class _ParseT extends Card {
+        private final int n;
+
+        public _ParseT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.n = n;
+            this.ethereal = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Parse extends _ParseT {
+        public Parse() {
+            super("Parse", 3);
+        }
+    }
+
+    public static class ParseP extends _ParseT {
+        public ParseP() {
+            super("Parse+", 4);
+        }
+    }
+
+    private static abstract class _PullFromBelowT extends Card {
+        private final int dmgPerCard;
+        private final GameProperties.LocalCounterRegistrant etherealCountRegistrant = new GameProperties.LocalCounterRegistrant();
+
+        public _PullFromBelowT(String cardName, int dmgPerCard) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmgPerCard = dmgPerCard;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int count = state.getCounterForRead()[etherealCountRegistrant.getCounterIdx(state.properties)];
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmgPerCard * count);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("EtherealCardsPlayedThisCombat", etherealCountRegistrant, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[etherealCountRegistrant.getCounterIdx(state.properties)] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("EtherealCardsPlayedThisCombat", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].ethereal) {
+                        state.getCounterForWrite()[etherealCountRegistrant.getCounterIdx(state.properties)]++;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class PullFromBelow extends _PullFromBelowT {
+        public PullFromBelow() {
+            super("Pull from Below", 5);
+        }
+    }
+
+    public static class PullFromBelowP extends _PullFromBelowT {
+        public PullFromBelowP() {
+            super("Pull from Below+", 7);
+        }
+    }
+
+    private static abstract class _PutrefyT extends Card {
+        private final int n;
+
+        public _PutrefyT(String cardName, int n) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.n = n;
+            this.exhaustWhenPlayed = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            enemy.applyDebuff(state, DebuffType.WEAK, n);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Putrefy extends _PutrefyT {
+        public Putrefy() {
+            super("Putrefy", 2);
+        }
+    }
+
+    public static class PutrefyP extends _PutrefyT {
+        public PutrefyP() {
+            super("Putrefy+", 3);
+        }
+    }
 
     // TODO: Rattle (Uncommon) - 1 energy, Attack
     //   Effect: Osty deals 7 damage. Hits an additional time for each other time he has attacked this turn.

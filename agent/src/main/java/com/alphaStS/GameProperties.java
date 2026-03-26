@@ -264,6 +264,7 @@ public class GameProperties implements Cloneable {
     public int otsyMaxHPCounterIdx = -1;
     public int otsyAttackedThisTurnCounterIdx = -1;
     public int otsyDamageBonusCounterIdx = -1;
+    public int lethalityCounterIdx = -1;
     public int playerDoomCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
@@ -636,6 +637,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> onStanceChangeHandlers = new ArrayList<>();
     public List<GameEventHandler> onScryHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
+    public List<GameEventHandler> onOtsyDeathHandlers = new ArrayList<>();
     public List<GameEventEnemyDebuffHandler> onEnemyDebuffHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
@@ -739,6 +741,10 @@ public class GameProperties implements Cloneable {
 
     public void addOnEnemyDeathHandler(String handlerName, GameEventEnemyHandler handler) {
         addHandler(handlerName + "OnEnemyDeath", handler, onEnemyDeathHandlers);
+    }
+
+    public void addOnOtsyDeathHandler(String handlerName, GameEventHandler handler) {
+        addHandler(handlerName + "OnOtsyDeath", handler, onOtsyDeathHandlers);
     }
 
     public void addOnEnemyDebuffHandler(String handlerName, GameEventEnemyDebuffHandler handler) {

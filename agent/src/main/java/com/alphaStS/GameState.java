@@ -3860,6 +3860,10 @@ public final class GameState implements State {
         if (properties.vigorCounterIdx >= 0 && counter[properties.vigorCounterIdx] > 0) {
             dmg += counter[properties.vigorCounterIdx];
         }
+        if (properties.lethalityCounterIdx >= 0 && counter[properties.lethalityCounterIdx] > 0 &&
+                counter[properties.attacksPlayedThisTurnCounterIdx] == 0) {
+            dmg = dmg * (1 + counter[properties.lethalityCounterIdx] / 100.0);
+        }
         if (enemy.getVulnerable() > 0) {
             double vulnMult = properties.paperPhrog != null && properties.paperPhrog.isRelicEnabledInScenario(this) ? 1.75 : 1.5;
             if (properties.crueltyCounterIdx >= 0 && counter[properties.crueltyCounterIdx] > 0) {
@@ -4034,6 +4038,11 @@ public final class GameState implements State {
                 int otsyHP = getCounterForRead()[properties.otsyHPCounterIdx];
                 int absorbed = Math.min(otsyHP, dmgToPlayer);
                 getCounterForWrite()[properties.otsyHPCounterIdx] -= absorbed;
+                if (getCounterForRead()[properties.otsyHPCounterIdx] == 0 && !properties.onOtsyDeathHandlers.isEmpty()) {
+                    for (var handler : properties.onOtsyDeathHandlers) {
+                        handler.handle(this);
+                    }
+                }
                 dmgToPlayer -= absorbed;
             }
             if (dmgToPlayer <= 0) {
