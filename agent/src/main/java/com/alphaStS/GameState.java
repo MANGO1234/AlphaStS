@@ -9,6 +9,7 @@ import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.*;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
+import com.alphaStS.eventHandler.OnOtsyDamageHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
@@ -3924,6 +3925,22 @@ public final class GameState implements State {
         return playerDoDamageToEnemy(enemy, dmgInt, false);
     }
 
+    public void dealDamageToOtsy(int amount) {
+        int currentHP = getCounterForRead()[properties.otsyHPCounterIdx];
+        if (currentHP <= 0) return;
+        int actualDmg = Math.min(amount, currentHP);
+        getCounterForWrite()[properties.otsyHPCounterIdx] -= actualDmg;
+        for (var handler : properties.onOtsyLosesHPHandlers) {
+            handler.handle(this, actualDmg);
+        }
+        if (getCounterForRead()[properties.otsyHPCounterIdx] == 0) {
+            getCounterForWrite()[properties.otsyMaxHPCounterIdx] = 0;
+            for (var handler : properties.onOtsyDeathHandlers) {
+                handler.handle(this);
+            }
+        }
+    }
+
     public void summon(int n) {
         if (properties.otsyHPCounterIdx >= 0) {
             getCounterForWrite()[properties.otsyHPCounterIdx] += n;
@@ -4043,7 +4060,11 @@ public final class GameState implements State {
                 int otsyHP = getCounterForRead()[properties.otsyHPCounterIdx];
                 int absorbed = Math.min(otsyHP, dmgToPlayer);
                 getCounterForWrite()[properties.otsyHPCounterIdx] -= absorbed;
-                if (getCounterForRead()[properties.otsyHPCounterIdx] == 0 && !properties.onOtsyDeathHandlers.isEmpty()) {
+                for (var handler : properties.onOtsyLosesHPHandlers) {
+                    handler.handle(this, absorbed);
+                }
+                if (getCounterForRead()[properties.otsyHPCounterIdx] == 0) {
+                    getCounterForWrite()[properties.otsyMaxHPCounterIdx] = 0;
                     for (var handler : properties.onOtsyDeathHandlers) {
                         handler.handle(this);
                     }

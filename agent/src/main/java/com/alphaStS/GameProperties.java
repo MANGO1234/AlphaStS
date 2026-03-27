@@ -14,6 +14,7 @@ import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnCardCreationHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.eventHandler.OnEnergySpendHandler;
+import com.alphaStS.eventHandler.OnOtsyDamageHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.utils.CounterStat;
@@ -639,6 +640,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventHandler> onScryHandlers = new ArrayList<>();
     public List<GameEventEnemyHandler> onEnemyDeathHandlers = new ArrayList<>();
     public List<GameEventHandler> onOtsyDeathHandlers = new ArrayList<>();
+    public List<OnOtsyDamageHandler> onOtsyLosesHPHandlers = new ArrayList<>();
     public List<GameEventEnemyDebuffHandler> onEnemyDebuffHandlers = new ArrayList<>();
     public List<OnDamageHandler> onDamageHandlers = new ArrayList<>();
     public List<OnDamageHandler> onHealHandlers = new ArrayList<>();
@@ -746,6 +748,10 @@ public class GameProperties implements Cloneable {
 
     public void addOnOtsyDeathHandler(String handlerName, GameEventHandler handler) {
         addHandler(handlerName + "OnOtsyDeath", handler, onOtsyDeathHandlers);
+    }
+
+    public void addOnOtsyLosesHPHandler(String handlerName, OnOtsyDamageHandler handler) {
+        addHandler(handlerName + "OnOtsyLosesHP", handler, onOtsyLosesHPHandlers);
     }
 
     public void addOnEnemyDebuffHandler(String handlerName, GameEventEnemyDebuffHandler handler) {

@@ -169,6 +169,7 @@ public abstract class Enemy extends EnemyReadOnly {
         loseStrengthEot = 0;
         doom = 0;
         debilitate = 0;
+        hang = 0;
         move = -1;
         lastMove = -1;
     }
@@ -212,6 +213,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case DOOM -> this.doom += n;
         case DEBILITATE -> this.debilitate += n;
         case SIC_EM -> this.sicEm += n;
+        case HANG -> this.hang += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {
@@ -224,6 +226,21 @@ public abstract class Enemy extends EnemyReadOnly {
         }
 
         return true;
+    }
+
+    public void applyDebuffsFrom(GameState state, EnemyReadOnly source) {
+        if (source.getVulnerable() > 0) applyDebuff(state, DebuffType.VULNERABLE, source.getVulnerable());
+        if (source.getWeak() > 0) applyDebuff(state, DebuffType.WEAK, source.getWeak());
+        if (source.getPoison() > 0) applyDebuff(state, DebuffType.POISON, source.getPoison());
+        if (source.getCorpseExplosion() > 0) applyDebuff(state, DebuffType.CORPSE_EXPLOSION, source.getCorpseExplosion());
+        if (source.getChoke() > 0) applyDebuff(state, DebuffType.CHOKE, source.getChoke());
+        if (source.getLockOn() > 0) applyDebuff(state, DebuffType.LOCK_ON, source.getLockOn());
+        if (source.getTalkToTheHand() > 0) applyDebuff(state, DebuffType.TALK_TO_THE_HAND, source.getTalkToTheHand());
+        if (source.getMark() > 0) applyDebuff(state, DebuffType.MARK, source.getMark());
+        if (source.getDoom() > 0) applyDebuff(state, DebuffType.DOOM, source.getDoom());
+        if (source.getDebilitate() > 0) applyDebuff(state, DebuffType.DEBILITATE, source.getDebilitate());
+        if (source.getSicEm() > 0) applyDebuff(state, DebuffType.SIC_EM, source.getSicEm());
+        if (source.getHang() > 0) applyDebuff(state, DebuffType.HANG, source.getHang());
     }
 
     public void setBlock(int n) {

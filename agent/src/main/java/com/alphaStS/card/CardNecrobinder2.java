@@ -8,6 +8,7 @@ import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventEnemyDebuffHandler;
 import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnOtsyDamageHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 
@@ -722,11 +723,7 @@ public class CardNecrobinder2 {
                     state.otsyDoDamageToEnemy(enemy, n);
                 }
                 state.playerGainBlock(n);
-                state.getCounterForWrite()[state.properties.otsyHPCounterIdx] = 0;
-                state.getCounterForWrite()[state.properties.otsyMaxHPCounterIdx] = 0;
-                for (var handler : state.properties.onOtsyDeathHandlers) {
-                    handler.handle(state);
-                }
+                state.dealDamageToOtsy(otsyHP);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2064,49 +2061,367 @@ public class CardNecrobinder2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Banshee's Cry (Rare) - 6 energy, Attack
-    //   Effect: Deal 33 damage to ALL enemies. Costs 2 energy less for each Ethereal card played this combat.
-    //   Upgraded Effect: Deal 39 damage to ALL enemies. Costs 2 energy less for each Ethereal card played this combat.
+    private static abstract class _BansheeCryT extends Card {
+        private final int damage;
+
+        public _BansheeCryT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 6, Card.RARE);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            if (state == null) return 6;
+            return Math.max(0, 6 - 2 * state.getCounterForRead()[counterIdx]);
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("EtherealCardsPlayedThisCombat", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("EtherealCardsPlayedThisCombat", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].ethereal) {
+                        state.getCounterForWrite()[counterIdx]++;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class BansheeCry extends _BansheeCryT {
+        public BansheeCry() {
+            super("Banshee's Cry", 33);
+        }
+    }
+
+    public static class BansheeCryP extends _BansheeCryT {
+        public BansheeCryP() {
+            super("Banshee's Cry+", 39);
+        }
+    }
 
     // TODO: Call of the Void (Rare) - 1 energy, Power
     //   Effect: At the start of your turn, add 1 random card into your Hand. It gains Ethereal.
     //   Upgraded Effect: Innate. At the start of your turn, add 1 random card into your Hand. It gains Ethereal.
 
-    // TODO: Demesne (Rare) - 3 energy, Power
-    //   Effect: Ethereal. At the start of your turn, gain energy and draw 1 additional card.
-    //   Upgraded Effect (2 energy): Ethereal. At the start of your turn, gain energy and draw 1 additional card.
+    private static abstract class _DemesneT extends Card {
+        public _DemesneT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.RARE);
+            this.ethereal = true;
+        }
 
-    // TODO: Devour Life (Rare) - 1 energy, Power
-    //   Effect: Whenever you play a Soul, Summon 1.
-    //   Upgraded Effect: Whenever you play a Soul, Summon 2.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Eidolon (Rare) - 2 energy, Skill
-    //   Effect: Exhaust your Hand. If 9 cards were Exhausted this way, gain 1 Intangible.
-    //   Upgraded Effect (1 energy): Exhaust your Hand. If 9 cards were Exhausted this way, gain 1 Intangible.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Demesne", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
 
-    // TODO: End of Days (Rare) - 3 energy, Skill
-    //   Effect: Apply 29 Doom to ALL enemies. Kill enemies with at least as much Doom as HP.
-    //   Upgraded Effect: Apply 37 Doom to ALL enemies. Kill enemies with at least as much Doom as HP.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Demesne", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int stacks = state.getCounterForRead()[counterIdx];
+                    if (stacks > 0) {
+                        state.gainEnergy(stacks);
+                        state.draw(stacks);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Eradicate (Rare) - X energy, Attack
-    //   Effect: Retain. Deal 11 damage X times.
-    //   Upgraded Effect: Retain. Deal 14 damage X times.
+    public static class Demesne extends _DemesneT {
+        public Demesne() {
+            super("Demesne", 3);
+        }
+    }
 
-    // TODO: Glimpse Beyond (Rare) - 1 energy, Skill
-    //   Effect: ALL players add 3 Souls into their Draw Pile. Exhaust.
-    //   Upgraded Effect: ALL players add 4 Souls into their Draw Pile. Exhaust.
+    public static class DemesneP extends _DemesneT {
+        public DemesneP() {
+            super("Demesne+", 2);
+        }
+    }
 
-    // TODO: Hang (Rare) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Double the damage ALL Hang cards deal to this enemy.
-    //   Upgraded Effect: Deal 13 damage. Double the damage ALL Hang cards deal to this enemy.
+    private static abstract class _DevourLifeT extends Card {
+        private final int n;
 
-    // TODO: Misery (Rare) - 0 energy, Attack
-    //   Effect: Deal 7 damage. Apply any debuffs on the enemy to ALL other enemies.
-    //   Upgraded Effect: Retain. Deal 9 damage. Apply any debuffs on the enemy to ALL other enemies.
+        public _DevourLifeT(String cardName, int n) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.n = n;
+            entityProperty.canSummon = true;
+        }
 
-    // TODO: Necro Mastery (Rare) - 2 energy, Power
-    //   Effect: Summon 5. Whenever Osty loses HP, ALL enemies lose that much HP as well.
-    //   Upgraded Effect: Summon 8. Whenever Osty loses HP, ALL enemies lose that much HP as well.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DevourLife", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("DevourLife", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    var base = state.properties.cardDict[cardIdx].getBaseCard();
+                    if (base instanceof CardColorless2.Soul || base instanceof CardColorless2.SoulP) {
+                        int summonAmt = state.getCounterForRead()[counterIdx];
+                        if (summonAmt > 0) {
+                            state.summon(summonAmt);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class DevourLife extends _DevourLifeT {
+        public DevourLife() {
+            super("Devour Life", 1);
+        }
+    }
+
+    public static class DevourLifeP extends _DevourLifeT {
+        public DevourLifeP() {
+            super("Devour Life+", 2);
+        }
+    }
+
+    private static abstract class _EidolonT extends Card {
+        public _EidolonT(String cardName, int cost) {
+            super(cardName, Card.SKILL, cost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int handSize = state.handArrLen;
+            for (int i = handSize - 1; i >= 0; i--) {
+                state.exhaustCardFromHandByPosition(i, false);
+            }
+            state.updateHandArr();
+            if (handSize >= 9) {
+                state.getCounterForWrite()[state.properties.intangibleCounterIdx]++;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerIntangibleCounter();
+        }
+    }
+
+    public static class Eidolon extends _EidolonT {
+        public Eidolon() {
+            super("Eidolon", 2);
+        }
+    }
+
+    public static class EidolonP extends _EidolonT {
+        public EidolonP() {
+            super("Eidolon+", 1);
+        }
+    }
+
+    private static abstract class _EndOfDaysT extends Card {
+        private final int doom;
+
+        public _EndOfDaysT(String cardName, int doom) {
+            super(cardName, Card.SKILL, 3, Card.RARE);
+            this.doom = doom;
+            entityProperty.doomEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.DOOM, doom);
+            }
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                var enemy = state.getEnemiesForRead().get(i);
+                if (enemy.isAlive() && enemy.getDoom() > 0 && enemy.getHealth() <= enemy.getDoom()) {
+                    state.killEnemy(i, true);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class EndOfDays extends _EndOfDaysT {
+        public EndOfDays() {
+            super("End of Days", 29);
+        }
+    }
+
+    public static class EndOfDaysP extends _EndOfDaysT {
+        public EndOfDaysP() {
+            super("End of Days+", 37);
+        }
+    }
+
+    private static abstract class _EradicateT extends Card {
+        private final int damage;
+
+        public _EradicateT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, -1, Card.RARE);
+            this.damage = damage;
+            this.isXCost = true;
+            this.retain = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            for (int i = 0; i < energyUsed; i++) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public int energyCost(GameState state) {
+            return state.energy;
+        }
+    }
+
+    public static class Eradicate extends _EradicateT {
+        public Eradicate() {
+            super("Eradicate", 11);
+        }
+    }
+
+    public static class EradicateP extends _EradicateT {
+        public EradicateP() {
+            super("Eradicate+", 14);
+        }
+    }
+
+    // No need to implement Glimpse Beyond: Multiplayer
+
+    private static abstract class _HangT extends Card {
+        private final int damage;
+
+        public _HangT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+            entityProperty.selectEnemy = true;
+            entityProperty.hangEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int scaledDamage = damage * (1 << enemy.getHang());
+            state.playerDoDamageToEnemy(enemy, scaledDamage);
+            enemy.applyDebuff(state, DebuffType.HANG, 1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Hang extends _HangT {
+        public Hang() {
+            super("Hang", 10);
+        }
+    }
+
+    public static class HangP extends _HangT {
+        public HangP() {
+            super("Hang+", 13);
+        }
+    }
+
+    private static abstract class _MiseryT extends Card {
+        private final int damage;
+
+        public _MiseryT(String cardName, int damage, boolean retain) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.damage = damage;
+            this.retain = retain;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var target = state.getEnemiesForRead().get(idx);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                if (i == idx || !state.getEnemiesForRead().get(i).isAlive()) continue;
+                state.getEnemiesForWrite().getForWrite(i).applyDebuffsFrom(state, target);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Misery extends _MiseryT {
+        public Misery() {
+            super("Misery", 7, false);
+        }
+    }
+
+    public static class MiseryP extends _MiseryT {
+        public MiseryP() {
+            super("Misery+", 9, true);
+        }
+    }
+
+    private static abstract class _NecroMasteryT extends Card {
+        private final int summonAmt;
+
+        public _NecroMasteryT(String cardName, int summonAmt) {
+            super(cardName, Card.POWER, 2, Card.RARE);
+            this.summonAmt = summonAmt;
+            entityProperty.canSummon = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.summon(summonAmt);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnOtsyLosesHPHandler("NecroMastery", new OnOtsyDamageHandler() {
+                @Override public void handle(GameState state, int amount) {
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        state.playerDoNonAttackDamageToEnemy(enemy, amount, false);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class NecroMastery extends _NecroMasteryT {
+        public NecroMastery() {
+            super("Necro Mastery", 5);
+        }
+    }
+
+    public static class NecroMasteryP extends _NecroMasteryT {
+        public NecroMasteryP() {
+            super("Necro Mastery+", 8);
+        }
+    }
 
     // TODO: Neurosurge (Rare) - 0 energy, Power
     //   Effect: Gain 3 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.

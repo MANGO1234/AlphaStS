@@ -29,4 +29,5 @@ public enum DebuffType {
     DOOM,
     DEBILITATE,
     SIC_EM,
+    HANG,
 }

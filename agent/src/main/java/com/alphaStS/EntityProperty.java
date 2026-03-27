@@ -25,6 +25,7 @@ public class EntityProperty {
     public boolean markEnemy;
     public boolean doomEnemy;
     public boolean debilitateEnemy;
+    public boolean hangEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
