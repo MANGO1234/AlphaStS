@@ -153,6 +153,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         doom = other.doom;
         debilitate = other.debilitate;
         sicEm = other.sicEm;
+        hang = other.hang;
         move = other.move;
         lastMove = other.lastMove;
     }
