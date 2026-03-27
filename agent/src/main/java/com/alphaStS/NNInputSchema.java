@@ -1272,6 +1272,22 @@ public class NNInputSchema {
             });
         }
 
+        // Doom Per Card
+        if (props.anyEntityProperty.doomPerCardEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of doom per card\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getDoomPerCard() / 10.0f;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Doom Per Card: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
         // Corpse Explosion
         if (props.anyEntityProperty.corpseExplosionEnemy) {
             allEnemyModules.add(new EnemyInputModule() {

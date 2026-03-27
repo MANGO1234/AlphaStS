@@ -83,6 +83,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int debilitate;
     protected int sicEm;
     protected int hang;
+    protected int doomPerCard;
     protected int move = -1;
     protected int lastMove = -1;
     int vExtraIdx = -1;
@@ -154,6 +155,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         debilitate = other.debilitate;
         sicEm = other.sicEm;
         hang = other.hang;
+        doomPerCard = other.doomPerCard;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -240,6 +242,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getHang() {
         return hang;
+    }
+
+    public int getDoomPerCard() {
+        return doomPerCard;
     }
 
     public boolean hasBurningHealthBuff() {

@@ -1679,7 +1679,34 @@ public class CardColorless2 {
         }
     }
 
-    // TODO: Sweeping Gaze (Token) - 0 energy, Attack
-    //   Effect: Ethereal. Osty deals 10 damage to a random enemy. Exhaust.
-    //   Upgraded Effect: Ethereal. Osty deals 15 damage to a random enemy. Exhaust.
+    private static abstract class _SweepingGazeT extends Card {
+        private final int damage;
+
+        public _SweepingGazeT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.COMMON);
+            this.damage = damage;
+            this.ethereal = true;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+            if (enemyIdx >= 0) {
+                state.otsyDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SweepingGaze extends _SweepingGazeT {
+        public SweepingGaze() {
+            super("Sweeping Gaze", 10);
+        }
+    }
+
+    public static class SweepingGazeP extends _SweepingGazeT {
+        public SweepingGazeP() {
+            super("Sweeping Gaze+", 15);
+        }
+    }
 }

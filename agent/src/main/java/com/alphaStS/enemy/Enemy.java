@@ -170,6 +170,7 @@ public abstract class Enemy extends EnemyReadOnly {
         doom = 0;
         debilitate = 0;
         hang = 0;
+        doomPerCard = 0;
         move = -1;
         lastMove = -1;
     }
@@ -214,6 +215,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case DEBILITATE -> this.debilitate += n;
         case SIC_EM -> this.sicEm += n;
         case HANG -> this.hang += n;
+        case DOOM_PER_CARD -> this.doomPerCard += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {

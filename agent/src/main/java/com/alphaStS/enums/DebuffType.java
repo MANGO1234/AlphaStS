@@ -27,6 +27,8 @@ public enum DebuffType {
     TALK_TO_THE_HAND,
     MARK,
     DOOM,
+    DOOM_PER_TURN,
+    DOOM_PER_CARD,
     DEBILITATE,
     SIC_EM,
     HANG,

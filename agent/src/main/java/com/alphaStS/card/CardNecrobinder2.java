@@ -2423,45 +2423,372 @@ public class CardNecrobinder2 {
         }
     }
 
-    // TODO: Neurosurge (Rare) - 0 energy, Power
-    //   Effect: Gain 3 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
-    //   Upgraded Effect: Gain 4 energy. Draw 2 cards. At the start of your turn, apply 3 Doom to yourself.
+    private static abstract class _NeurosurgeT extends Card {
+        private final int energy;
 
-    // TODO: Oblivion (Rare) - 0 energy, Skill
-    //   Effect: Whenever you play a card this turn, apply 3 Doom to the enemy.
-    //   Upgraded Effect: Whenever you play a card this turn, apply 4 Doom to the enemy.
+        public _NeurosurgeT(String cardName, int energy) {
+            super(cardName, Card.POWER, 0, Card.RARE);
+            this.energy = energy;
+        }
 
-    // TODO: Reanimate (Rare) - 3 energy, Skill
-    //   Effect: Summon 20. Exhaust.
-    //   Upgraded Effect: Summon 25. Exhaust.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(energy);
+            state.draw(2);
+            state.getPlayerForWrite().applyDebuff(state, DebuffType.DOOM_PER_TURN, 3);
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Reaper Form (Rare) - 3 energy, Power
-    //   Effect: Whenever Attacks deal damage, they also apply that much Doom.
-    //   Upgraded Effect: Retain. Whenever Attacks deal damage, they also apply that much Doom.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlayerDoomCounter();
+            state.properties.registerCounter("NeurosurgeDoomPerTurn", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Sacrifice (Rare) - 1 energy, Skill
-    //   Effect: Retain. If Osty is alive, he dies and you gain Block equal to double his Max HP.
-    //   Upgraded Effect (0 energy): Retain. If Osty is alive, he dies and you gain Block equal to double his Max HP.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("NeurosurgeDoomPerTurn", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int doom = state.getCounterForRead()[counterIdx];
+                    if (doom > 0) {
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.DOOM, doom);
+                    }
+                }
+            });
+        }
 
-    // TODO: Seance (Rare) - 0 energy, Skill
-    //   Effect: Ethereal. Transform a card in your Draw Pile into Soul.
-    //   Upgraded Effect: Ethereal. Transform a card in your Draw Pile into Soul+.
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            super.setCounterIdx(gameProperties, idx);
+            gameProperties.doomPerTurnCounterIdx = idx;
+        }
+    }
 
-    // TODO: Sentry Mode (Rare) - 2 energy, Power
-    //   Effect: At the start of your turn, add 1 Sweeping Gaze into your Hand.
-    //   Upgraded Effect (1 energy): At the start of your turn, add 1 Sweeping Gaze into your Hand.
+    public static class Neurosurge extends _NeurosurgeT {
+        public Neurosurge() {
+            super("Neurosurge", 3);
+        }
+    }
 
-    // TODO: Shared Fate (Rare) - 0 energy, Skill
-    //   Effect: Lose 2 Strength. Enemy loses 2 Strength. Exhaust.
-    //   Upgraded Effect: Lose 2 Strength. Enemy loses 3 Strength. Exhaust.
+    public static class NeurosurgeP extends _NeurosurgeT {
+        public NeurosurgeP() {
+            super("Neurosurge+", 4);
+        }
+    }
 
-    // TODO: Soul Storm (Rare) - 1 energy, Attack
-    //   Effect: Deal 9 damage. Deals 2 additional damage for each Soul in your Exhaust Pile.
-    //   Upgraded Effect: Deal 9 damage. Deals 3 additional damage for each Soul in your Exhaust Pile.
+    private static abstract class _OblivionT extends Card {
+        private final int doomPerCard;
 
-    // TODO: Spirit of Ash (Rare) - 1 energy, Power
-    //   Effect: Whenever you play an Ethereal card, gain 4 Block.
-    //   Upgraded Effect: Whenever you play an Ethereal card, gain 5 Block.
+        public _OblivionT(String cardName, int doomPerCard) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.doomPerCard = doomPerCard;
+            entityProperty.selectEnemy = true;
+            entityProperty.doomEnemy = true;
+            entityProperty.doomPerCardEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.DOOM_PER_CARD, doomPerCard);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("OblivionDoomPerCard", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
+                        var enemy = state.getEnemiesForRead().get(i);
+                        if (enemy.isAlive() && enemy.getDoomPerCard() > 0) {
+                            state.getEnemiesForWrite().getForWrite(i).applyDebuff(state, DebuffType.DOOM, enemy.getDoomPerCard());
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Oblivion extends _OblivionT {
+        public Oblivion() {
+            super("Oblivion", 3);
+        }
+    }
+
+    public static class OblivionP extends _OblivionT {
+        public OblivionP() {
+            super("Oblivion+", 4);
+        }
+    }
+
+    private static abstract class _ReanimateT extends Card {
+        private final int summonAmt;
+
+        public _ReanimateT(String cardName, int summonAmt) {
+            super(cardName, Card.SKILL, 3, Card.RARE);
+            this.summonAmt = summonAmt;
+            this.exhaustWhenPlayed = true;
+            entityProperty.canSummon = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.summon(summonAmt);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Reanimate extends _ReanimateT {
+        public Reanimate() {
+            super("Reanimate", 20);
+        }
+    }
+
+    public static class ReanimateP extends _ReanimateT {
+        public ReanimateP() {
+            super("Reanimate+", 25);
+        }
+    }
+
+    private static abstract class _ReaperFormT extends Card {
+        public _ReaperFormT(String cardName, boolean retain) {
+            super(cardName, Card.POWER, 3, Card.RARE);
+            this.retain = retain;
+            entityProperty.possibleBuffs |= PlayerBuff.REAPER_FORM.mask();
+            entityProperty.doomEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.buffs |= PlayerBuff.REAPER_FORM.mask();
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ReaperForm extends _ReaperFormT {
+        public ReaperForm() {
+            super("Reaper Form", false);
+        }
+    }
+
+    public static class ReaperFormP extends _ReaperFormT {
+        public ReaperFormP() {
+            super("Reaper Form+", true);
+        }
+    }
+
+    private static abstract class _SacrificeT extends Card {
+        public _SacrificeT(String cardName, int cost) {
+            super(cardName, Card.SKILL, cost, Card.RARE);
+            this.retain = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.properties.otsyHPCounterIdx >= 0) {
+                int otsyHP = state.getCounterForRead()[state.properties.otsyHPCounterIdx];
+                if (otsyHP > 0) {
+                    int maxHP = state.getCounterForRead()[state.properties.otsyMaxHPCounterIdx];
+                    state.dealDamageToOtsy(otsyHP);
+                    state.playerGainBlock(2 * maxHP);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Sacrifice extends _SacrificeT {
+        public Sacrifice() {
+            super("Sacrifice", 1);
+        }
+    }
+
+    public static class SacrificeP extends _SacrificeT {
+        public SacrificeP() {
+            super("Sacrifice+", 0);
+        }
+    }
+
+    private static abstract class _SeanceT extends Card {
+        public _SeanceT(String cardName) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.ethereal = true;
+            entityProperty.selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < state.deckArrLen; i++) {
+                if (state.deckArr[i] == idx) {
+                    state.transformCard(state.deckArr, i, generatedCardIdx);
+                    break;
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Seance extends _SeanceT {
+        public Seance() {
+            super("Seance");
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.Soul());
+        }
+    }
+
+    public static class SeanceP extends _SeanceT {
+        public SeanceP() {
+            super("Seance+");
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.SoulP());
+        }
+    }
+
+    private static abstract class _SentryModeT extends Card {
+        public _SentryModeT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("SentryMode", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.addCardToHand(generatedCardIdx);
+                }
+            });
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.SweepingGaze());
+        }
+    }
+
+    public static class SentryMode extends _SentryModeT {
+        public SentryMode() {
+            super("Sentry Mode", 2);
+        }
+    }
+
+    public static class SentryModeP extends _SentryModeT {
+        public SentryModeP() {
+            super("Sentry Mode+", 1);
+        }
+    }
+
+    private static abstract class _SharedFateT extends Card {
+        private final int enemyStrLoss;
+
+        public _SharedFateT(String cardName, int enemyStrLoss) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.enemyStrLoss = enemyStrLoss;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainStrength(-2);
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH, enemyStrLoss);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SharedFate extends _SharedFateT {
+        public SharedFate() {
+            super("Shared Fate", 2);
+        }
+    }
+
+    public static class SharedFateP extends _SharedFateT {
+        public SharedFateP() {
+            super("Shared Fate+", 3);
+        }
+    }
+
+    private static abstract class _SoulStormT extends Card {
+        private final int baseDamage;
+        private final int dmgPerSoul;
+
+        public _SoulStormT(String cardName, int baseDamage, int dmgPerSoul) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.baseDamage = baseDamage;
+            this.dmgPerSoul = dmgPerSoul;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int soulCount = 0;
+            for (int i = 0; i < state.exhaustArrLen; i++) {
+                var base = state.properties.cardDict[state.exhaustArr[i]].getBaseCard();
+                if (base instanceof CardColorless2.Soul || base instanceof CardColorless2.SoulP) {
+                    soulCount++;
+                }
+            }
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + dmgPerSoul * soulCount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SoulStorm extends _SoulStormT {
+        public SoulStorm() {
+            super("Soul Storm", 9, 2);
+        }
+    }
+
+    public static class SoulStormP extends _SoulStormT {
+        public SoulStormP() {
+            super("Soul Storm+", 9, 3);
+        }
+    }
+
+    private static abstract class _SpiritOfAshT extends Card {
+        private final int blockPerEthereal;
+
+        public _SpiritOfAshT(String cardName, int blockPerEthereal) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.blockPerEthereal = blockPerEthereal;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += blockPerEthereal;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SpiritOfAsh", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("SpiritOfAsh", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int block = state.getCounterForRead()[counterIdx];
+                    if (block > 0 && state.properties.cardDict[cardIdx].ethereal) {
+                        state.playerGainBlockNotFromCardPlay(block);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class SpiritOfAsh extends _SpiritOfAshT {
+        public SpiritOfAsh() {
+            super("Spirit of Ash", 4);
+        }
+    }
+
+    public static class SpiritOfAshP extends _SpiritOfAshT {
+        public SpiritOfAshP() {
+            super("Spirit of Ash+", 5);
+        }
+    }
 
     // TODO: Squeeze (Rare) - 3 energy, Attack
     //   Effect: Osty deals 25 damage. Deals 5 additional damage for ALL your other Osty Attacks.

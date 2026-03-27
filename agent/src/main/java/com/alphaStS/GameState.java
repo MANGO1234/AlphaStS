@@ -3900,6 +3900,9 @@ public final class GameState implements State {
                 enemy.applyDebuff(this, DebuffType.VULNERABLE, 2);
             }
 
+            if (dmgDone > 0 && (buffs & PlayerBuff.REAPER_FORM.mask()) != 0) {
+                enemy.applyDebuff(this, DebuffType.DOOM, dmgDone);
+            }
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
                     handler.handle(this, enemy);

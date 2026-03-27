@@ -268,6 +268,7 @@ public class GameProperties implements Cloneable {
     public int otsyDamageBonusCounterIdx = -1;
     public int lethalityCounterIdx = -1;
     public int playerDoomCounterIdx = -1;
+    public int doomPerTurnCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
     public Relic blackBlood = null;
