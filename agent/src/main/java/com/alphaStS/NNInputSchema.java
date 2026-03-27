@@ -1193,6 +1193,21 @@ public class NNInputSchema {
             });
         }
 
+        if (props.anyEntityProperty.sicEmEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of sicEm\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getSicEm() / (float) 10.0;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Sic Em: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
         // Mark
         if (props.anyEntityProperty.markEnemy) {
             allEnemyModules.add(new EnemyInputModule() {

@@ -1104,11 +1104,15 @@ public class CardColorless {
         }
     }
 
-    private static abstract class _SadisticNatureT extends Card implements GameProperties.CounterRegistrant {
+    static abstract class _SadisticNatureT extends Card implements GameProperties.CounterRegistrant {
         private final int damage;
 
         public _SadisticNatureT(String cardName, int damage) {
-            super(cardName, Card.POWER, 0, Card.RARE);
+            this(cardName, 0, Card.RARE, damage);
+        }
+
+        public _SadisticNatureT(String cardName, int energyCost, int rarity, int damage) {
+            super(cardName, Card.POWER, energyCost, rarity);
             this.damage = damage;
         }
 

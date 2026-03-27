@@ -1194,6 +1194,8 @@ public final class GameState implements State {
             return 0;
         } else if (properties.unrelentingCounterIdx >= 0 && counter[properties.unrelentingCounterIdx] > 0 && properties.cardDict[cardIdx].cardType == Card.ATTACK) {
             return 0;
+        } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal) {
+            return 0;
         }
         return properties.cardDict[cardIdx].energyCost(this);
     }
@@ -3944,6 +3946,9 @@ public final class GameState implements State {
         }
         if (enemy.isAlive() && enemy.getHealth() > 0) {
             int dmgDone = enemy.damage(dmg, this);
+            if (enemy.getSicEm() > 0) {
+                summon(enemy.getSicEm());
+            }
             if (enemy.getHealth() == 0) {
                 for (var handler : properties.onEnemyDeathHandlers) {
                     handler.handle(this, enemy);

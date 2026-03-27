@@ -21,6 +21,7 @@ public class EntityProperty {
     public boolean corpseExplosionEnemy;
     public boolean lockOnEnemy;
     public boolean talkToTheHandEnemy;
+    public boolean sicEmEnemy;
     public boolean markEnemy;
     public boolean doomEnemy;
     public boolean debilitateEnemy;
@@ -60,6 +61,7 @@ public class EntityProperty {
         corpseExplosionEnemy |= other.corpseExplosionEnemy;
         lockOnEnemy |= other.lockOnEnemy;
         talkToTheHandEnemy |= other.talkToTheHandEnemy;
+        sicEmEnemy |= other.sicEmEnemy;
         markEnemy |= other.markEnemy;
         doomEnemy |= other.doomEnemy;
         debilitateEnemy |= other.debilitateEnemy;

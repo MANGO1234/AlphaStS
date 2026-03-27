@@ -81,6 +81,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int mark;
     protected int doom;
     protected int debilitate;
+    protected int sicEm;
     protected int move = -1;
     protected int lastMove = -1;
     int vExtraIdx = -1;
@@ -150,6 +151,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         mark = other.mark;
         doom = other.doom;
         debilitate = other.debilitate;
+        sicEm = other.sicEm;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -216,6 +218,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getTalkToTheHand() {
         return talkToTheHand;
+    }
+
+    public int getSicEm() {
+        return sicEm;
     }
 
     public int getMark() {
@@ -315,6 +321,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (debilitate > 0) {
             str += ", debilitate=" + debilitate;
         }
+        if (sicEm > 0) {
+            str += ", sicEm=" + sicEm;
+        }
         return str + '}';
     }
 
@@ -371,6 +380,9 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         if (doom > 0) {
             str += ", doom=" + doom;
         }
+        if (sicEm > 0) {
+            str += ", sicEm=" + sicEm;
+        }
         return str + '}';
     }
 
@@ -387,7 +399,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
                 strength == enemy.strength && vulnerable == enemy.vulnerable && weak == enemy.weak && artifact == enemy.artifact &&
                 poison == enemy.poison && loseStrengthEot == enemy.loseStrengthEot && corpseExplosion == enemy.corpseExplosion &&
                 choke == enemy.choke && lockOn == enemy.lockOn && talkToTheHand == enemy.talkToTheHand && mark == enemy.mark && doom == enemy.doom &&
-                debilitate == enemy.debilitate;
+                debilitate == enemy.debilitate && sicEm == enemy.sicEm;
     }
 
     @Override public int hashCode() {

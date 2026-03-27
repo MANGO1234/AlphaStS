@@ -243,6 +243,7 @@ public class GameProperties implements Cloneable {
     public int sundialCounterIdx = -1;
     public int swivelCounterIdx = -1;
     public int synthesisCounterIdx = -1;
+    public int nextEtherealCostZeroCounterIdx = -1;
     public int thunderDamageCounterIdx = -1;
     public int thunderStrikeCounterIdx = -1;
     public int unrelentingCounterIdx = -1;

@@ -28,4 +28,5 @@ public enum DebuffType {
     MARK,
     DOOM,
     DEBILITATE,
+    SIC_EM,
 }

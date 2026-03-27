@@ -211,6 +211,7 @@ public abstract class Enemy extends EnemyReadOnly {
         case MARK -> this.mark += n;
         case DOOM -> this.doom += n;
         case DEBILITATE -> this.debilitate += n;
+        case SIC_EM -> this.sicEm += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {
@@ -227,6 +228,10 @@ public abstract class Enemy extends EnemyReadOnly {
 
     public void setBlock(int n) {
         block = n;
+    }
+
+    public void setSicEm(int n) {
+        sicEm = n;
     }
 
     public void setArtifact(int n) {
