@@ -3,6 +3,8 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 
 import java.util.List;
@@ -747,53 +749,480 @@ public class CardRegent2 {
     // ********************************************* Uncommon *********************************************
     // **************************************************************************************************
 
-    // TODO: Alignment (Uncommon) - 0 energy, 2 star, Skill
-    //   Effect: Gain 2 energy.
-    //   Upgraded Effect: Gain 3 energy.
+    private static abstract class _AlignmentT extends Card {
+        private final int energyGain;
 
-    // TODO: Black Hole (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you spend or gain star, deal 3 damage to ALL enemies.
-    //   Upgraded Effect: Whenever you spend or gain star, deal 4 damage to ALL enemies.
+        public _AlignmentT(String cardName, int energyGain) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.energyGain = energyGain;
+            this.starCost = 2;
+            entityProperty.hasStarCost = true;
+        }
 
-    // TODO: Bulwark (Uncommon) - 2 energy, Skill
-    //   Effect: Gain 13 Block. Forge 10.
-    //   Upgraded Effect: Gain 16 Block. Forge 13.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainEnergy(energyGain);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: CHARGE!! (Uncommon) - 1 energy, Skill
-    //   Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes.
-    //   Upgraded Effect: Choose 2 cards in your Draw Pile to Transform into Minion Strikes+.
+    public static class Alignment extends _AlignmentT {
+        public Alignment() {
+            super("Alignment", 2);
+        }
+    }
 
-    // TODO: Child of the Stars (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you spend star, gain 2 Block for each star spent.
-    //   Upgraded Effect: Whenever you spend star, gain 3 Block for each star spent.
+    public static class AlignmentP extends _AlignmentT {
+        public AlignmentP() {
+            super("Alignment+", 3);
+        }
+    }
 
-    // TODO: Conqueror (Uncommon) - 1 energy, Skill
-    //   Effect: Forge 3. Sovereign Blade deals double damage to the enemy this turn.
-    //   Upgraded Effect: Forge 5. Sovereign Blade deals double damage to the enemy this turn.
+    private static abstract class _BlackHoleT extends Card {
+        private final int dmg;
 
-    // TODO: Convergence (Uncommon) - 1 energy, Skill
-    //   Effect: Next turn, gain energy and star. Retain your Hand this turn.
-    //   Upgraded Effect: Next turn, gain energy and 2 star. Retain your Hand this turn.
+        public _BlackHoleT(String cardName, int dmg) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+        }
 
-    // TODO: Devastate (Uncommon) - 1 energy, 4 star, Attack
-    //   Effect: Deal 30 damage.
-    //   Upgraded Effect: Deal 40 damage.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += dmg;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Furnace (Uncommon) - 1 energy, Power
-    //   Effect: At the start of your turn, Forge 4.
-    //   Upgraded Effect: At the start of your turn, Forge 6.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("BlackHole", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
 
-    // TODO: Gamma Blast (Uncommon) - 0 energy, 3 star, Attack
-    //   Effect: Deal 13 damage. Apply 2 Weak. Apply 2 Vulnerable.
-    //   Upgraded Effect: Deal 18 damage. Apply 2 Weak. Apply 2 Vulnerable.
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnStarChangeHandler("BlackHole", new OnStarChangeHandler() {
+                @Override public void handle(GameState state, int amount) {
+                    int totalDmg = state.getCounterForRead()[counterIdx];
+                    if (totalDmg > 0) {
+                        for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                            state.playerDoDamageToEnemy(enemy, totalDmg);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Glimmer (Uncommon) - 1 energy, Skill
-    //   Effect: Draw 3 cards. Put 1 card from your Hand on top of your Draw Pile.
-    //   Upgraded Effect: Draw 4 cards. Put 1 card from your Hand on top of your Draw Pile.
+    public static class BlackHole extends _BlackHoleT {
+        public BlackHole() {
+            super("Black Hole", 3);
+        }
+    }
 
-    // TODO: Hegemony (Uncommon) - 2 energy, Attack
-    //   Effect: Deal 15 damage. Next turn, gain 2 energy.
-    //   Upgraded Effect: Deal 18 damage. Next turn, gain 3 energy.
+    public static class BlackHoleP extends _BlackHoleT {
+        public BlackHoleP() {
+            super("Black Hole+", 4);
+        }
+    }
+
+    private static abstract class _BulwarkT extends Card {
+        private final int block;
+        private final int forgeAmount;
+
+        public _BulwarkT(String cardName, int block, int forgeAmount) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.block = block;
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.forge(forgeAmount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Bulwark extends _BulwarkT {
+        public Bulwark() {
+            super("Bulwark", 13, 10);
+        }
+    }
+
+    public static class BulwarkP extends _BulwarkT {
+        public BulwarkP() {
+            super("Bulwark+", 16, 13);
+        }
+    }
+
+    private static abstract class _ChargeT extends Card {
+        public _ChargeT(String cardName) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            entityProperty.selectFromDeck = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var deck = state.getDeckArrForRead();
+            for (int i = 0; i < state.getNumCardsInDeck(); i++) {
+                if (deck[i] == idx) {
+                    state.transformCard(state.getDeckArrForWrite(), i, generatedCardIdx);
+                    break;
+                }
+            }
+            state.getCounterForWrite()[counterIdx]++;
+            if (state.getCounterForWrite()[counterIdx] >= 2) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+            return GameActionCtx.SELECT_CARD_DECK;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Charge", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
+
+    public static class Charge extends _ChargeT {
+        public Charge() {
+            super("CHARGE!!");
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.MinionStrike());
+        }
+    }
+
+    public static class ChargeP extends _ChargeT {
+        public ChargeP() {
+            super("CHARGE!!+");
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardColorless2.MinionStrikeP());
+        }
+    }
+
+    private static abstract class _ChildOfTheStarsT extends Card {
+        private final int blockPerStar;
+
+        public _ChildOfTheStarsT(String cardName, int blockPerStar) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.blockPerStar = blockPerStar;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += blockPerStar;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ChildOfTheStars", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnStarChangeHandler("ChildOfTheStars", new OnStarChangeHandler() {
+                @Override public void handle(GameState state, int amount) {
+                    int blockPerStarAmt = state.getCounterForRead()[counterIdx];
+                    if (blockPerStarAmt > 0 && amount < 0) {
+                        state.playerGainBlock(blockPerStarAmt * (-amount));
+                    }
+                }
+            });
+        }
+    }
+
+    public static class ChildOfTheStars extends _ChildOfTheStarsT {
+        public ChildOfTheStars() {
+            super("Child of the Stars", 2);
+        }
+    }
+
+    public static class ChildOfTheStarsP extends _ChildOfTheStarsT {
+        public ChildOfTheStarsP() {
+            super("Child of the Stars+", 3);
+        }
+    }
+
+    private static abstract class _ConquerorT extends Card {
+        private final int forgeAmount;
+
+        public _ConquerorT(String cardName, int forgeAmount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.forge(forgeAmount);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ConquerorMultiplier", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.conquerorCounterIdx = cIdx;
+                }
+            });
+            state.properties.addEndOfTurnHandler("ConquerorMultiplier", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Conqueror extends _ConquerorT {
+        public Conqueror() {
+            super("Conqueror", 3);
+        }
+    }
+
+    public static class ConquerorP extends _ConquerorT {
+        public ConquerorP() {
+            super("Conqueror+", 5);
+        }
+    }
+
+    private static abstract class _ConvergenceT extends Card {
+        private final int starAmount;
+        private final GameProperties.LocalCounterRegistrant energyRegistrant = new GameProperties.LocalCounterRegistrant();
+        private final GameProperties.LocalCounterRegistrant starRegistrant = new GameProperties.LocalCounterRegistrant();
+
+        public _ConvergenceT(String cardName, int starAmount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.starAmount = starAmount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[energyRegistrant.getCounterIdx(state.properties)] += 1;
+            state.getCounterForWrite()[starRegistrant.getCounterIdx(state.properties)] += starAmount;
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerEnergyNextTurnCounter(state, energyRegistrant);
+            state.properties.registerStarNextTurnCounter(starRegistrant);
+            state.properties.registerRetainHandCounter(this);
+        }
+    }
+
+    public static class Convergence extends _ConvergenceT {
+        public Convergence() {
+            super("Convergence", 1);
+        }
+    }
+
+    public static class ConvergenceP extends _ConvergenceT {
+        public ConvergenceP() {
+            super("Convergence+", 2);
+        }
+    }
+
+    private static abstract class _DevastateT extends Card {
+        private final int dmg;
+
+        public _DevastateT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.starCost = 4;
+            entityProperty.hasStarCost = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Devastate extends _DevastateT {
+        public Devastate() {
+            super("Devastate", 30);
+        }
+    }
+
+    public static class DevastateP extends _DevastateT {
+        public DevastateP() {
+            super("Devastate+", 40);
+        }
+    }
+
+    private static abstract class _FurnaceT extends Card {
+        private final int forgeAmount;
+
+        public _FurnaceT(String cardName, int forgeAmount) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += forgeAmount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Furnace", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 20.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Furnace", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.forge(state.getCounterForRead()[counterIdx]);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Furnace extends _FurnaceT {
+        public Furnace() {
+            super("Furnace", 4);
+        }
+    }
+
+    public static class FurnaceP extends _FurnaceT {
+        public FurnaceP() {
+            super("Furnace+", 6);
+        }
+    }
+
+    private static abstract class _GammaBlastT extends Card {
+        private final int dmg;
+
+        public _GammaBlastT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.starCost = 3;
+            entityProperty.hasStarCost = true;
+            entityProperty.selectEnemy = true;
+            entityProperty.weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            enemy.applyDebuff(state, DebuffType.WEAK, 2);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class GammaBlast extends _GammaBlastT {
+        public GammaBlast() {
+            super("Gamma Blast", 13);
+        }
+    }
+
+    public static class GammaBlastP extends _GammaBlastT {
+        public GammaBlastP() {
+            super("Gamma Blast+", 18);
+        }
+    }
+
+    private static abstract class _GlimmerT extends Card {
+        private final int drawCount;
+
+        public _GlimmerT(String cardName, int drawCount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.drawCount = drawCount;
+            entityProperty.selectFromHand = true;
+            entityProperty.putCardOnTopDeck = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(drawCount);
+                return state.getNumCardsInHand() > 0 ? GameActionCtx.SELECT_CARD_HAND : GameActionCtx.PLAY_CARD;
+            } else {
+                state.removeCardFromHand(idx);
+                state.addCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class Glimmer extends _GlimmerT {
+        public Glimmer() {
+            super("Glimmer", 3);
+        }
+    }
+
+    public static class GlimmerP extends _GlimmerT {
+        public GlimmerP() {
+            super("Glimmer+", 4);
+        }
+    }
+
+    private static abstract class _HegemonyT extends Card {
+        private final int dmg;
+        private final int energyAmount;
+
+        public _HegemonyT(String cardName, int dmg, int energyAmount) {
+            super(cardName, Card.ATTACK, 2, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.energyAmount = energyAmount;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.getCounterForWrite()[counterIdx] += energyAmount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerEnergyNextTurnCounter(state, this);
+        }
+    }
+
+    public static class Hegemony extends _HegemonyT {
+        public Hegemony() {
+            super("Hegemony", 15, 2);
+        }
+    }
+
+    public static class HegemonyP extends _HegemonyT {
+        public HegemonyP() {
+            super("Hegemony+", 18, 3);
+        }
+    }
 
     // TODO: Kingly Kick (Uncommon) - 4 energy, Attack
     //   Effect: Deal 24 damage. Whenever you draw this card, reduce its cost by 1.

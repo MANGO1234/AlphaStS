@@ -15,6 +15,7 @@ import com.alphaStS.eventHandler.OnCardCreationHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.eventHandler.OnEnergySpendHandler;
 import com.alphaStS.eventHandler.OnOtsyDamageHandler;
+import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.random.RandomGen;
 import com.alphaStS.utils.CounterStat;
@@ -270,6 +271,7 @@ public class GameProperties implements Cloneable {
     public int lethalityCounterIdx = -1;
     public int playerDoomCounterIdx = -1;
     public int doomPerTurnCounterIdx = -1;
+    public int conquerorCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
     public Relic blackBlood = null;
@@ -678,6 +680,7 @@ public class GameProperties implements Cloneable {
     public List<GameEventCardHandler> onRetainHandlers = new ArrayList<>();
     public List<OnCardCreationHandler> onCardCreationHandlers = new ArrayList<>();
     public List<OnEnergySpendHandler> onEnergySpendHandlers = new ArrayList<>();
+    public List<OnStarChangeHandler> onStarChangeHandlers = new ArrayList<>();
 
     private <T> void addHandler(String key, T handler, List<T> handlerList) {
         if (gameEventHandlers.get(key) == null) {
@@ -840,6 +843,10 @@ public class GameProperties implements Cloneable {
 
     public void addOnEnergySpendHandler(String handlerName, OnEnergySpendHandler handler) {
         addHandler(handlerName + "OnEnergySpend", handler, onEnergySpendHandlers);
+    }
+
+    public void addOnStarChangeHandler(String handlerName, OnStarChangeHandler handler) {
+        addHandler(handlerName + "OnStarChange", handler, onStarChangeHandlers);
     }
 
     public void addOnShuffleHandler(GameEventHandler handler) {

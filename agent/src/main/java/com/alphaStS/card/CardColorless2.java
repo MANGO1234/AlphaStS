@@ -1653,6 +1653,9 @@ public class CardColorless2 {
             int dmg = 10 + (state.properties.forgeCounterIdx >= 0
                 ? state.getCounterForRead()[state.properties.forgeCounterIdx]
                 : 0);
+            if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
+                dmg <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
+            }
             state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
             return GameActionCtx.PLAY_CARD;
         }

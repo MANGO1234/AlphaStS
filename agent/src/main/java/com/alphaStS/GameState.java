@@ -1289,6 +1289,9 @@ public final class GameState implements State {
             int realStarCost = properties.cardDict[cardIdx].starCost;
             if (realStarCost > 0 && useEnergy) {
                 starResource -= realStarCost;
+                for (int i = 0; i < properties.onStarChangeHandlers.size(); i++) {
+                    properties.onStarChangeHandlers.get(i).handle(this, -realStarCost);
+                }
             }
             if (cardIdx >= properties.realCardsLen) {
                 cardIdx = properties.tmpModifiedCardReverseTransformIdxes[cardIdx];
@@ -3483,6 +3486,9 @@ public final class GameState implements State {
 
     public void gainStar(int n) {
         starResource += n;
+        for (int i = 0; i < properties.onStarChangeHandlers.size(); i++) {
+            properties.onStarChangeHandlers.get(i).handle(this, n);
+        }
     }
 
     public void forge(int amount) {
@@ -4126,7 +4132,7 @@ public final class GameState implements State {
         return deckArr;
     }
 
-    private short[] getDeckArrForWrite() {
+    public short[] getDeckArrForWrite() {
         if (!deckCloned) {
             deckArr = Arrays.copyOf(deckArr, Math.min(deckArr.length, deckArrLen + 2));
             deckCloned = true;
