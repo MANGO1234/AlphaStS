@@ -3,10 +3,17 @@ package com.alphaStS.card;
 import com.alphaStS.*;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
+import com.alphaStS.eventHandler.OnCardCreationHandler;
+import com.alphaStS.eventHandler.OnEnergySpendHandler;
 import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.Tuple;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CardRegent2 {
@@ -1224,57 +1231,613 @@ public class CardRegent2 {
         }
     }
 
-    // TODO: Kingly Kick (Uncommon) - 4 energy, Attack
-    //   Effect: Deal 24 damage. Whenever you draw this card, reduce its cost by 1.
-    //   Upgraded Effect: Deal 30 damage. Whenever you draw this card, reduce its cost by 1.
+    private static abstract class _KinglyKickT extends Card {
+        private final int dmg;
+        final int defaultCost;
 
-    // TODO: Kingly Punch (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 3 this combat.
-    //   Upgraded Effect: Deal 8 damage. Whenever you draw this card, increase its damage by 5 this combat.
+        public _KinglyKickT(String cardName, int cost, int dmg) {
+            super(cardName, Card.ATTACK, cost, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.defaultCost = cost;
+            entityProperty.selectEnemy = true;
+        }
 
-    // TODO: Knockout Blow (Uncommon) - 3 energy, Attack
-    //   Effect: Deal 30 damage. If this kills an enemy, gain 5 star.
-    //   Upgraded Effect: Deal 38 damage. If this kills an enemy, gain 5 star.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Largesse (Uncommon) - 0 energy, Skill
-    //   Effect: Another player adds 1 random Colorless card to their Hand.
-    //   Upgraded Effect: Another player adds 1 random Upgraded Colorless card to their Hand.
+    public static class KinglyKick extends _KinglyKickT {
+        public KinglyKick() {
+            this(4);
+        }
 
-    // TODO: Lunar Blast (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 4 damage for each Skill already played this turn.
-    //   Upgraded Effect: Deal 5 damage for each Skill already played this turn.
+        public KinglyKick(int cost) {
+            super("Kingly Kick (" + cost + ")", cost, 24);
+        }
 
-    // TODO: Manifest Authority (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 7 Block. Add 1 random Colorless card into your Hand.
-    //   Upgraded Effect: Gain 8 Block. Add 1 random Upgraded Colorless card into your Hand.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = defaultCost - 1; i >= 0; i--) {
+                c.add(new KinglyKick(i));
+            }
+            return c;
+        }
 
-    // TODO: Monologue (Uncommon) - 0 energy, Skill
-    //   Effect: Whenever you play a card this turn, gain 1 Strength this turn.
-    //   Upgraded Effect: Retain. Whenever you play a card this turn, gain 1 Strength this turn.
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.kinglyKickTransformIndexes == null) {
+                state.properties.kinglyKickTransformIndexes = new int[state.properties.cardDict.length];
+                Arrays.fill(state.properties.kinglyKickTransformIndexes, -1);
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    var base = state.properties.cardDict[i].getBaseCard();
+                    if (base instanceof KinglyKick kk && kk.defaultCost > 0) {
+                        state.properties.kinglyKickTransformIndexes[i] = state.properties.findCardIndex(new KinglyKick(kk.defaultCost - 1));
+                    }
+                }
+            }
+            state.properties.addOnCardDrawnHandler("KinglyKick", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int newCardIdx = state.properties.kinglyKickTransformIndexes[cardIdx];
+                    if (newCardIdx >= 0) {
+                        for (int i = state.handArrLen - 1; i >= 0; i--) {
+                            if (state.handArr[i] == cardIdx) {
+                                state.getHandArrForWrite()[i] = (short) newCardIdx;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Orbit (Uncommon) - 2 energy, Power
-    //   Effect: Every 4 energy you spend, gain energy.
-    //   Upgraded Effect (1 energy): Every 4 energy you spend, gain energy.
+    public static class KinglyKickP extends _KinglyKickT {
+        public KinglyKickP() {
+            this(4);
+        }
 
-    // TODO: Pale Blue Dot (Uncommon) - 1 energy, Power
-    //   Effect: If you play 5 or more cards in a turn, draw 1 card at the start of your next turn.
-    //   Upgraded Effect: If you play 5 or more cards in a turn, draw 2 cards at the start of your next turn.
+        public KinglyKickP(int cost) {
+            super("Kingly Kick+ (" + cost + ")", cost, 30);
+        }
 
-    // TODO: Parry (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you play Sovereign Blade, gain 6 Block.
-    //   Upgraded Effect: Whenever you play Sovereign Blade, gain 9 Block.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = defaultCost - 1; i >= 0; i--) {
+                c.add(new KinglyKickP(i));
+            }
+            return c;
+        }
 
-    // TODO: Particle Wall (Uncommon) - 0 energy, 2 star, Skill
-    //   Effect: Gain 9 Block. Return this card to your Hand.
-    //   Upgraded Effect: Gain 12 Block. Return this card to your Hand.
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.kinglyKickPTransformIndexes == null) {
+                state.properties.kinglyKickPTransformIndexes = new int[state.properties.cardDict.length];
+                Arrays.fill(state.properties.kinglyKickPTransformIndexes, -1);
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    var base = state.properties.cardDict[i].getBaseCard();
+                    if (base instanceof KinglyKickP kk && kk.defaultCost > 0) {
+                        state.properties.kinglyKickPTransformIndexes[i] = state.properties.findCardIndex(new KinglyKickP(kk.defaultCost - 1));
+                    }
+                }
+            }
+            state.properties.addOnCardDrawnHandler("KinglyKickP", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int newCardIdx = state.properties.kinglyKickPTransformIndexes[cardIdx];
+                    if (newCardIdx >= 0) {
+                        for (int i = state.handArrLen - 1; i >= 0; i--) {
+                            if (state.handArr[i] == cardIdx) {
+                                state.getHandArrForWrite()[i] = (short) newCardIdx;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Pillar of Creation (Uncommon) - 1 energy, Power
-    //   Effect: Whenever you create a card, gain 3 Block.
-    //   Upgraded Effect: Whenever you create a card, gain 4 Block.
+    public static class KinglyPunch extends Card {
+        final int dmg;
 
-    // TODO: Prophesize (Uncommon) - 2 energy, Skill
-    //   Effect: Draw 6 cards.
-    //   Upgraded Effect: Draw 9 cards.
+        public KinglyPunch() {
+            this(8);
+        }
+
+        public KinglyPunch(int dmg) {
+            super("Kingly Punch (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = dmg + 3; i <= properties.kinglyPunchLimit; i += 3) {
+                c.add(new KinglyPunch(i));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.kinglyPunchTransformIndexes == null) {
+                state.properties.kinglyPunchTransformIndexes = new int[state.properties.cardDict.length];
+                Arrays.fill(state.properties.kinglyPunchTransformIndexes, -1);
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    var base = state.properties.cardDict[i].getBaseCard();
+                    if (base instanceof KinglyPunch kp && kp.dmg < state.properties.kinglyPunchLimit) {
+                        state.properties.kinglyPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunch(kp.dmg + 3));
+                    }
+                }
+            }
+            state.properties.addOnCardDrawnHandler("KinglyPunch", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int newCardIdx = state.properties.kinglyPunchTransformIndexes[cardIdx];
+                    if (newCardIdx >= 0) {
+                        for (int i = state.handArrLen - 1; i >= 0; i--) {
+                            if (state.handArr[i] == cardIdx) {
+                                state.getHandArrForWrite()[i] = (short) newCardIdx;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class KinglyPunchP extends Card {
+        final int dmg;
+
+        public KinglyPunchP() {
+            this(8);
+        }
+
+        public KinglyPunchP(int dmg) {
+            super("Kingly Punch+ (" + dmg + ")", Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            var c = new ArrayList<Card>();
+            for (int i = dmg + 5; i <= properties.kinglyPPunchLimit; i += 5) {
+                c.add(new KinglyPunchP(i));
+            }
+            return c;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            if (state.properties.kinglyPPunchTransformIndexes == null) {
+                state.properties.kinglyPPunchTransformIndexes = new int[state.properties.cardDict.length];
+                Arrays.fill(state.properties.kinglyPPunchTransformIndexes, -1);
+                for (int i = 0; i < state.properties.cardDict.length; i++) {
+                    var base = state.properties.cardDict[i].getBaseCard();
+                    if (base instanceof KinglyPunchP kp && kp.dmg < state.properties.kinglyPPunchLimit) {
+                        state.properties.kinglyPPunchTransformIndexes[i] = state.properties.findCardIndex(new KinglyPunchP(kp.dmg + 5));
+                    }
+                }
+            }
+            state.properties.addOnCardDrawnHandler("KinglyPunchP", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int newCardIdx = state.properties.kinglyPPunchTransformIndexes[cardIdx];
+                    if (newCardIdx >= 0) {
+                        for (int i = state.handArrLen - 1; i >= 0; i--) {
+                            if (state.handArr[i] == cardIdx) {
+                                state.getHandArrForWrite()[i] = (short) newCardIdx;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private static abstract class _KnockoutBlowT extends Card {
+        private final int dmg;
+
+        public _KnockoutBlowT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 3, Card.UNCOMMON);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, dmg);
+            if (state.getEnemiesForRead().get(idx).getHealth() <= 0) {
+                state.gainStar(5);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class KnockoutBlow extends _KnockoutBlowT {
+        public KnockoutBlow() {
+            super("Knockout Blow", 30);
+        }
+    }
+
+    public static class KnockoutBlowP extends _KnockoutBlowT {
+        public KnockoutBlowP() {
+            super("Knockout Blow+", 38);
+        }
+    }
+
+    // No need to implement Largesse: Multiplayer
+
+    private static abstract class _LunarBlastT extends Card {
+        private final int dmgPerSkill;
+
+        public _LunarBlastT(String cardName, int dmgPerSkill) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.dmgPerSkill = dmgPerSkill;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int dmg = dmgPerSkill * state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx];
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerSkillsPlayedThisTurnCounter();
+        }
+    }
+
+    public static class LunarBlast extends _LunarBlastT {
+        public LunarBlast() {
+            super("Lunar Blast", 4);
+        }
+    }
+
+    public static class LunarBlastP extends _LunarBlastT {
+        public LunarBlastP() {
+            super("Lunar Blast+", 5);
+        }
+    }
+
+    private static abstract class _ManifestAuthorityT extends Card {
+        private final int block;
+
+        public _ManifestAuthorityT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+            state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getColorlessCards(false);
+        }
+    }
+
+    public static class ManifestAuthority extends _ManifestAuthorityT {
+        public ManifestAuthority() {
+            super("Manifest Authority", 7);
+        }
+    }
+
+    public static class ManifestAuthorityP extends _ManifestAuthorityT {
+        public ManifestAuthorityP() {
+            super("Manifest Authority+", 8);
+        }
+    }
+
+    private static abstract class _MonologueT extends Card {
+        public _MonologueT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.retain = retain;
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Monologue", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Monologue", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int n = state.getCounterForRead()[counterIdx];
+                    if (n > 0) {
+                        state.getPlayerForWrite().gainStrength(n);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, n);
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("Monologue", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Monologue extends _MonologueT {
+        public Monologue() {
+            super("Monologue", false);
+        }
+    }
+
+    public static class MonologueP extends _MonologueT {
+        public MonologueP() {
+            super("Monologue+", true);
+        }
+    }
+
+    private static abstract class _OrbitT extends Card {
+        public _OrbitT(String cardName, int cost) {
+            super(cardName, Card.POWER, cost, Card.UNCOMMON);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Orbit", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 4.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnEnergySpendHandler("Orbit", new OnEnergySpendHandler() {
+                @Override public void handle(GameState state, int energySpent) {
+                    int carry = state.getCounterForRead()[counterIdx] + energySpent;
+                    int gains = carry / 4;
+                    if (gains > 0) {
+                        state.gainEnergy(gains);
+                    }
+                    state.getCounterForWrite()[counterIdx] = carry % 4;
+                }
+            });
+        }
+    }
+
+    public static class Orbit extends _OrbitT {
+        public Orbit() {
+            super("Orbit", 2);
+        }
+    }
+
+    public static class OrbitP extends _OrbitT {
+        public OrbitP() {
+            super("Orbit+", 1);
+        }
+    }
+
+    private static abstract class _PaleBlueDotT extends Card {
+        private final int drawCount;
+        private final GameProperties.LocalCounterRegistrant drawNextTurnRegistrant = new GameProperties.LocalCounterRegistrant();
+
+        public _PaleBlueDotT(String cardName, int drawCount) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.drawCount = drawCount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += drawCount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("PaleBlueDot", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.registerDrawNextTurnCounter(drawNextTurnRegistrant);
+            state.properties.registerCardsPlayedThisTurnCounter();
+            state.properties.addEndOfTurnHandler("PaleBlueDot", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int draws = state.getCounterForRead()[counterIdx];
+                    if (draws > 0 && state.getCounterForRead()[state.properties.cardsPlayedThisTurnCounterIdx] >= 5) {
+                        state.getCounterForWrite()[drawNextTurnRegistrant.getCounterIdx(state.properties)] += draws;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class PaleBlueDot extends _PaleBlueDotT {
+        public PaleBlueDot() {
+            super("Pale Blue Dot", 1);
+        }
+    }
+
+    public static class PaleBlueDotP extends _PaleBlueDotT {
+        public PaleBlueDotP() {
+            super("Pale Blue Dot+", 2);
+        }
+    }
+
+    private static abstract class _ParryT extends Card {
+        private final int block;
+
+        public _ParryT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += block;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Parry", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("Parry", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    int n = state.getCounterForRead()[counterIdx];
+                    if (n > 0) {
+                        var base = state.properties.cardDict[cardIdx].getBaseCard();
+                        if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
+                            state.playerGainBlock(n);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Parry extends _ParryT {
+        public Parry() {
+            super("Parry", 6);
+        }
+    }
+
+    public static class ParryP extends _ParryT {
+        public ParryP() {
+            super("Parry+", 9);
+        }
+    }
+
+    private static abstract class _ParticleWallT extends Card {
+        private final int block;
+
+        public _ParticleWallT(String cardName, int block) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.block = block;
+            this.starCost = 2;
+            entityProperty.hasStarCost = true;
+            this.returnToHandWhenPlay = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ParticleWall extends _ParticleWallT {
+        public ParticleWall() {
+            super("Particle Wall", 9);
+        }
+    }
+
+    public static class ParticleWallP extends _ParticleWallT {
+        public ParticleWallP() {
+            super("Particle Wall+", 12);
+        }
+    }
+
+    private static abstract class _PillarOfCreationT extends Card {
+        private final int block;
+
+        public _PillarOfCreationT(String cardName, int block) {
+            super(cardName, Card.POWER, 1, Card.UNCOMMON);
+            this.block = block;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx] += block;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("PillarOfCreation", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardCreationHandler("PillarOfCreation", new OnCardCreationHandler() {
+                @Override public void handle(GameState state, int cardIdx) {
+                    int n = state.getCounterForRead()[counterIdx];
+                    if (n > 0) {
+                        state.playerGainBlock(n);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class PillarOfCreation extends _PillarOfCreationT {
+        public PillarOfCreation() {
+            super("Pillar of Creation", 3);
+        }
+    }
+
+    public static class PillarOfCreationP extends _PillarOfCreationT {
+        public PillarOfCreationP() {
+            super("Pillar of Creation+", 4);
+        }
+    }
+
+    private static abstract class _ProphesizeT extends Card {
+        private final int drawCount;
+
+        public _ProphesizeT(String cardName, int drawCount) {
+            super(cardName, Card.SKILL, 2, Card.UNCOMMON);
+            this.drawCount = drawCount;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(drawCount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Prophesize extends _ProphesizeT {
+        public Prophesize() {
+            super("Prophesize", 6);
+        }
+    }
+
+    public static class ProphesizeP extends _ProphesizeT {
+        public ProphesizeP() {
+            super("Prophesize+", 9);
+        }
+    }
 
     // TODO: Quasar (Uncommon) - 0 energy, 2 star, Skill
     //   Effect: Choose 1 of 3 random Colorless cards to add into your Hand.

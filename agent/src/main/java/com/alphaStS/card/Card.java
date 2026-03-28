@@ -31,6 +31,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
     public boolean exhaustNonAttacks = false;
     public boolean alwaysDiscard = false;
     public boolean returnToDeckWhenPlay = false;
+    public boolean returnToHandWhenPlay = false;
     public boolean retain = false;
     public boolean delayUseEnergy;
     public boolean isXCost;
@@ -219,6 +220,7 @@ public abstract class Card implements GameProperties.CounterRegistrant, GameProp
             exhaustNonAttacks = card.exhaustNonAttacks;
             alwaysDiscard = card.alwaysDiscard;
             returnToDeckWhenPlay = card.returnToDeckWhenPlay;
+            returnToHandWhenPlay = card.returnToHandWhenPlay;
             retain = card.retain;
             delayUseEnergy = card.delayUseEnergy;
             isXCost = card.isXCost;

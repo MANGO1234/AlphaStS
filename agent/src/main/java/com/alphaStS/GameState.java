@@ -1453,6 +1453,8 @@ public final class GameState implements State {
                     cloneParentLocation = GameState.EXHAUST;
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay || (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL))) {
                     cloneParentLocation = GameState.DECK;
+                } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
+                    // card returns to hand; leave cloneParentLocation unset (0)
                 } else if (properties.cardDict[cardIdx].cardType != Card.POWER) {
                     if (properties.reboundCounterIdx >= 0 && getCounterForRead()[properties.reboundCounterIdx] > 0) {
                         if ((getCounterForRead()[properties.reboundCounterIdx] & (1 << 8)) != 0) {
@@ -1480,6 +1482,8 @@ public final class GameState implements State {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
                     addCardToDeck(cardIdx);
+                } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
+                    addCardToHand(cardIdx);
                 } else if (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL)) {
                     getCounterForWrite()[properties.nostalgiaCounterIdx]--;
                     addCardOnTopOfDeck(cardIdx);

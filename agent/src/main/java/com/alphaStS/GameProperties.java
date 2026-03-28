@@ -119,6 +119,8 @@ public class GameProperties implements Cloneable {
     public final static int GENERATE_CARD_DRAIN_POWER = 1 << 11;
     public final static int GENERATE_CARD_ALL_COLORLESS = GENERATE_CARD_DISCOVERY | GENERATE_CARD_METAMORPHOSIS | GENERATE_CARD_CHRYSALIS | GENERATE_CARD_MADNESS | GENERATE_CARD_ENLIGHTENMENT | GENERATE_CARD_APOTHEOSIS;
     public int generateCardOptions;
+    public int kinglyPunchLimit = 30;
+    public int kinglyPPunchLimit = 45;
 
     // system card indexes
     public boolean[] healCardsBooleanArr;
@@ -160,6 +162,10 @@ public class GameProperties implements Cloneable {
     public int[] steamBarrierPTransformIndexes;
     public int[] steamBarrierTransformIndexes;
     public int[] moddedTransformIndexes;
+    public int[] kinglyKickTransformIndexes;
+    public int[] kinglyKickPTransformIndexes;
+    public int[] kinglyPunchTransformIndexes;
+    public int[] kinglyPPunchTransformIndexes;
     public int[] streamlineIndexes;
     public int[] streamlinePIndexes;
     public int[] shivUpgradeIdxes;
@@ -271,6 +277,7 @@ public class GameProperties implements Cloneable {
     public int lethalityCounterIdx = -1;
     public int playerDoomCounterIdx = -1;
     public int doomPerTurnCounterIdx = -1;
+    public int cardsPlayedThisTurnCounterIdx = -1;
     public int conquerorCounterIdx = -1;
 
     public Relic birdFacedUrn = null;
@@ -951,6 +958,15 @@ public class GameProperties implements Cloneable {
         }
     };
 
+    private static CounterRegistrant CardsPlayedThisTurnCounterRegistrant = new CounterRegistrant() {
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            gameProperties.cardsPlayedThisTurnCounterIdx = idx;
+        }
+        @Override public int getCounterIdx(GameProperties gameProperties) {
+            return gameProperties.cardsPlayedThisTurnCounterIdx;
+        }
+    };
+
     private static CounterRegistrant IsPlayerTurnCounterRegistrant = new CounterRegistrant() {
         @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
             gameProperties.isPlayerTurnCounterIdx = idx;
@@ -1321,6 +1337,29 @@ public class GameProperties implements Cloneable {
         addStartOfTurnHandler("SkillsPlayedThisTurn", new GameEventHandler() {
             @Override public void handle(GameState state) {
                 state.getCounterForWrite()[state.properties.skillsPlayedThisTurnCounterIdx] = 0;
+            }
+        });
+    }
+
+    public void registerCardsPlayedThisTurnCounter() {
+        registerCounter("CardsPlayedThisTurn", CardsPlayedThisTurnCounterRegistrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[state.properties.cardsPlayedThisTurnCounterIdx] / 5.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+        });
+        addOnCardPlayedHandler("CardsPlayedThisTurn", new GameEventCardHandler() {
+            @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                state.getCounterForWrite()[state.properties.cardsPlayedThisTurnCounterIdx]++;
+            }
+        });
+        addStartOfTurnHandler("CardsPlayedThisTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                state.getCounterForWrite()[state.properties.cardsPlayedThisTurnCounterIdx] = 0;
             }
         });
     }
