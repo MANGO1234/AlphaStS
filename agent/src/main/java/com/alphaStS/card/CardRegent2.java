@@ -46,7 +46,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             enemy.applyDebuff(state, DebuffType.WEAK, 1);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
             return GameActionCtx.PLAY_CARD;
@@ -113,7 +113,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, dmg);
+                state.playerDoDamageToEnemy(enemy, dmg, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -144,7 +144,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
                 return state.getNumCardsInHand() > 0 ? GameActionCtx.SELECT_CARD_HAND : GameActionCtx.PLAY_CARD;
             } else {
                 var hand = state.getHandArrForRead();
@@ -191,7 +191,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < 3; i++) {
-                state.playerDoDamageToEnemy(enemy, dmg);
+                state.playerDoDamageToEnemy(enemy, dmg, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -247,7 +247,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.addCardToHand(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -331,7 +331,7 @@ public class CardRegent2 {
             for (int i = 0; i < state.getNumCardsInDiscard(); i++) {
                 if (state.properties.cardDict[discard[i]].starCost > 0) count++;
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusDmg * count);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusDmg * count, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -362,7 +362,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, dmg);
+                state.playerDoDamageToEnemy(enemy, dmg, this);
                 enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strengthLoss);
             }
             return GameActionCtx.PLAY_CARD;
@@ -482,7 +482,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.getCounterForWrite()[counterIdx] += drawCount;
             return GameActionCtx.PLAY_CARD;
         }
@@ -613,7 +613,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.PLAY_CARD) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
                 state.draw(drawCount);
                 return GameActionCtx.SELECT_CARD_HAND;
             } else {
@@ -680,7 +680,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.gainStar(stars);
             return GameActionCtx.PLAY_CARD;
         }
@@ -738,7 +738,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.forge(forgeAmount);
             return GameActionCtx.PLAY_CARD;
         }
@@ -817,7 +817,7 @@ public class CardRegent2 {
                     int totalDmg = state.getCounterForRead()[counterIdx];
                     if (totalDmg > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            state.playerDoDamageToEnemy(enemy, totalDmg);
+                            state.playerDoNonAttackDamageToEnemy(enemy, totalDmg, true);
                         }
                     }
                 }
@@ -1068,7 +1068,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1147,7 +1147,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             enemy.applyDebuff(state, DebuffType.WEAK, 2);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
             return GameActionCtx.PLAY_CARD;
@@ -1213,7 +1213,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.getCounterForWrite()[counterIdx] += energyAmount;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1247,7 +1247,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1354,7 +1354,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1407,7 +1407,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1457,7 +1457,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             if (state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 state.gainStar(5);
             }
@@ -1490,7 +1490,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int dmg = dmgPerSkill * state.getCounterForRead()[state.properties.skillsPlayedThisTurnCounterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1894,7 +1894,7 @@ public class CardRegent2 {
             if (starGained > 0) {
                 int dmg = starGained * dmgPerStar;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, dmg);
+                    state.playerDoDamageToEnemy(enemy, dmg, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2061,7 +2061,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.gainStar(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2110,7 +2110,7 @@ public class CardRegent2 {
                 for (int i = 0; i < x; i++) {
                     int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
                     if (enemyIdx < 0) break;
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), dmg);
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), dmg, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -2193,7 +2193,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int cardsCreated = state.getCounterForRead()[counterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + cardsCreated * dmgPerCard);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + cardsCreated * dmgPerCard, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2313,7 +2313,7 @@ public class CardRegent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int prevHits = enemy.getHitByAttack();
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             state.forge(forgeBase + forgeBase * prevHits);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2371,7 +2371,7 @@ public class CardRegent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2460,7 +2460,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.WEAK, 3);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, 3);
             return GameActionCtx.PLAY_CARD;
@@ -2489,7 +2489,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             while (state.handArrLen < GameState.HAND_LIMIT) {
                 state.addCardToHand(generatedCardIdx);
@@ -2578,7 +2578,7 @@ public class CardRegent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
                 enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, damage);
             }
             return GameActionCtx.PLAY_CARD;
@@ -2632,7 +2632,7 @@ public class CardRegent2 {
             }
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < x; i++) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }

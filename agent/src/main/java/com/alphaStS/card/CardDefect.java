@@ -79,7 +79,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.channelOrb(OrbType.LIGHTNING);
             return GameActionCtx.PLAY_CARD;
         }
@@ -111,7 +111,7 @@ public class CardDefect {
             if (orbs != null) {
                 var enemy = state.getEnemiesForWrite().getForWrite(idx);
                 for (int i = 0; i < orbs.length && orbs[i] > 0; i += 2) {
-                    state.playerDoDamageToEnemy(enemy, n);
+                    state.playerDoDamageToEnemy(enemy, n, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -142,7 +142,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.VULNERABLE, n2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -225,7 +225,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.handArrTransform(state.properties.clawTransformIndexes);
             state.discardArrTransform(state.properties.clawTransformIndexes);
             state.deckArrTransform(state.properties.clawTransformIndexes);
@@ -292,7 +292,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             state.handArrTransform(state.properties.clawPTransformIndexes);
             state.discardArrTransform(state.properties.clawPTransformIndexes);
             state.deckArrTransform(state.properties.clawPTransformIndexes);
@@ -346,7 +346,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.channelOrb(OrbType.FROST);
             return GameActionCtx.PLAY_CARD;
         }
@@ -374,7 +374,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             var orbs = state.getOrbs();
             if (orbs != null) {
                 int c = 0;
@@ -442,7 +442,7 @@ public class CardDefect {
             if (state.getEnemiesForWrite().get(idx).getMoveString(state).contains("Attack")) {
                 state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.WEAK, n2);
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n1, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -533,7 +533,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.getCounterForWrite()[counterIdx]++;
             state.getCounterForWrite()[counterIdx] |= 1 << 8;
             return GameActionCtx.PLAY_CARD;
@@ -743,7 +743,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 15);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 15, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -781,7 +781,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -818,7 +818,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoDamageToEnemy(enemy, n, this);
             }
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
@@ -933,7 +933,7 @@ public class CardDefect {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int c = state.getCounterForRead()[counterIdx];
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n * c);
+                state.playerDoDamageToEnemy(enemy, n * c, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1007,7 +1007,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.LOCK_ON, n / 3);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1244,7 +1244,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoDamageToEnemy(enemy, n, this);
             }
             state.channelOrb(OrbType.DARK);
             return GameActionCtx.PLAY_CARD;
@@ -1348,7 +1348,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             if (state.getCounterForRead()[counterIdx] <= n / 2) {
                 state.draw(1);
             }
@@ -1920,7 +1920,7 @@ public class CardDefect {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             Enemy enemy = state.getEnemiesForWrite().getForWrite(idx);
             enemy.setBlock(0);
-            state.playerDoDamageToEnemy(enemy, n);
+            state.playerDoDamageToEnemy(enemy, n, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -2071,14 +2071,14 @@ public class CardDefect {
             boolean stochastic = state.isStochastic;
             var i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n, this);
                 if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
                     state.getStateDesc().append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
                 }
             }
             i = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyRipAndTear);
             if (i >= 0) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(i), n, this);
                 if (state.properties.makingRealMove && !stochastic && state.isStochastic) {
                     state.getStateDesc().append(", ").append(cardName).append(" hit ").append(state.getEnemiesForRead().get(i).getName()).append(" (").append(i).append(")");
                 }
@@ -2109,7 +2109,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             var handCount = state.getNumCardsInHand();
             state.draw(Math.min((n + 1) / 2, GameState.HAND_LIMIT - handCount));
             var newHandCount = state.getNumCardsInHand();
@@ -2324,7 +2324,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             if (state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 state.gainEnergy(3);
             }
@@ -2440,7 +2440,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
                 var cardIdx = (int) state.getDiscardArrForRead()[i];
                 if (state.properties.cardDict[cardIdx].energyCost == 0) {
@@ -2648,7 +2648,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.getPlayerForWrite().gainArtifact(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2927,7 +2927,7 @@ public class CardDefect {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoDamageToEnemy(enemy, n, this);
             }
             state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_FOCUS, 3);
             return GameActionCtx.PLAY_CARD;
@@ -2998,7 +2998,7 @@ public class CardDefect {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0));
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0), this);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
             state.channelOrb(OrbType.PLASMA);
@@ -3173,7 +3173,7 @@ public class CardDefect {
                     break;
                 }
                 var enemy = state.getEnemiesForWrite().getForWrite(j);
-                state.playerDoDamageToEnemy(enemy, n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0));
+                state.playerDoDamageToEnemy(enemy, n + (state.properties.strikeDummy != null && state.properties.strikeDummy.isRelicEnabledInScenario(state) ? 3 : 0), this);
             }
             return GameActionCtx.PLAY_CARD;
         }

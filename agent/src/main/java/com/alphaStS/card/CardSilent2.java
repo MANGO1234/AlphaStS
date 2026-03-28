@@ -146,7 +146,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoDamageToEnemy(enemy, n, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -174,7 +174,7 @@ public class CardSilent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.addCardToHand(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -227,7 +227,7 @@ public class CardSilent2 {
             for (int i = 0; i < n; i++) {
                 int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
                 if (enemyIdx >= 0) {
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), 3);
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), 3, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -472,7 +472,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, dmg);
+                state.playerDoDamageToEnemy(enemy, dmg, this);
             }
             if (state.getLastCardPlayedType() == Card.SKILL) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
@@ -613,7 +613,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int discarded = state.getCounterForRead()[state.properties.cardsDiscardedThisTurnCounterIdx];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusPerDiscard * discarded);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + bonusPerDiscard * discarded, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -754,7 +754,7 @@ public class CardSilent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -790,7 +790,7 @@ public class CardSilent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -840,7 +840,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int dmg = Math.max(0, n - 2 * state.handArrLen);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -960,7 +960,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             enemy.applyDebuff(state, DebuffType.CHOKE, choke);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1203,7 +1203,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vul);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1357,7 +1357,7 @@ public class CardSilent2 {
                 numKills = 0;
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                     int prevHp = enemy.getHealth();
-                    state.playerDoDamageToEnemy(enemy, dmg);
+                    state.playerDoDamageToEnemy(enemy, dmg, this);
                     if (prevHp > 0 && !enemy.isAlive()) {
                         numKills++;
                     }
@@ -1523,7 +1523,7 @@ public class CardSilent2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 1 + state.getCounterForRead()[counterIdx]);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 1 + state.getCounterForRead()[counterIdx], this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1719,7 +1719,7 @@ public class CardSilent2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int prevHp = enemy.getHealth();
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             if (prevHp > 0 && !enemy.isAlive() && !enemy.properties.isMinion) {
                 state.getCounterForWrite()[counterIdx]++;
             }
@@ -1853,7 +1853,7 @@ public class CardSilent2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             enemy.applyDebuff(state, DebuffType.WEAK, weak);
             return GameActionCtx.PLAY_CARD;
         }

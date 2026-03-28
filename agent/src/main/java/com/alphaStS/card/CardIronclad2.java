@@ -111,7 +111,7 @@ public class CardIronclad2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             state.doNonAttackDamageToPlayer(1, false, this);
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -140,7 +140,7 @@ public class CardIronclad2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             int cardIdx = state.drawOneCardSpecial();
             if (cardIdx >= 0) {
                 state.exhaustedCardHandle(cardIdx, true);
@@ -191,7 +191,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, enemy.getVulnerable());
             return GameActionCtx.PLAY_CARD;
         }
@@ -235,7 +235,7 @@ public class CardIronclad2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             var player = state.getPlayerForWrite();
             player.gainStrength(strength);
             player.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strength);
@@ -330,7 +330,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage + dmgPerExhaust * state.exhaustArrLen);
+            state.playerDoDamageToEnemy(enemy, damage + dmgPerExhaust * state.exhaustArrLen, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -372,7 +372,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage + bonus * enemy.getVulnerable());
+            state.playerDoDamageToEnemy(enemy, damage + bonus * enemy.getVulnerable(), this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -408,9 +408,9 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             if (enemy.getVulnerable() > 0) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -589,8 +589,8 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             state.getPlayerForWrite().gainStrength(playerStr);
             enemy.gainStrength(1);
             return GameActionCtx.PLAY_CARD;
@@ -660,7 +660,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             state.getCounterForWrite()[counterIdx] += dmgPerBlock;
             return GameActionCtx.PLAY_CARD;
         }
@@ -737,7 +737,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -916,7 +916,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             int drawnIdx;
             while ((drawnIdx = state.draw(1)) >= 0) {
                 if (state.properties.cardDict[drawnIdx].cardType != Card.ATTACK) {
@@ -958,7 +958,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, dmg);
+            state.playerDoDamageToEnemy(enemy, dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1100,7 +1100,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             if (state.getCounterForRead()[counterIdx] > 0) {
                 state.draw(1);
             }
@@ -1228,7 +1228,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1327,7 +1327,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1634,7 +1634,7 @@ public class CardIronclad2 {
             int attacksPlayed = state.getCounterForRead()[state.properties.attacksPlayedThisTurnCounterIdx];
             int damage = baseDamage + bonusPerAttack * attacksPlayed;
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1869,7 +1869,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, strengthLoss);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1964,7 +1964,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2134,7 +2134,7 @@ public class CardIronclad2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
             return GameActionCtx.PLAY_CARD;
         }

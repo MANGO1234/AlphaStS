@@ -180,7 +180,7 @@ public class CardColorless {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, n);
+                state.playerDoDamageToEnemy(enemy, n, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -284,7 +284,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -488,7 +488,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getNumCardsInDeck());
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getNumCardsInDeck(), this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -633,7 +633,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -775,7 +775,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
@@ -1405,7 +1405,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             state.healPlayer(heal);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1438,7 +1438,7 @@ public class CardColorless {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof EnemyBeyond.AwakenedOne) {
@@ -1554,10 +1554,10 @@ public class CardColorless {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.properties.fanOfKnivesCounterIdx >= 0 && state.getCounterForRead()[state.properties.fanOfKnivesCounterIdx] > 0) {
                 for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                    state.playerDoDamageToEnemy(enemy, n, true);
+                    state.playerDoDamageToEnemy(enemy, n, this);
                 }
             } else {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, true);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), n, this);
             }
             return GameActionCtx.PLAY_CARD;
         }

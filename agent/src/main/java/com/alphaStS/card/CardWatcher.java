@@ -371,8 +371,8 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1609,7 +1609,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 20, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1662,7 +1662,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 26);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 26, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1905,7 +1905,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.TALK_TO_THE_HAND, blockReturn);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1935,7 +1935,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (int i = 0; i < hits; i++) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), 3, this);
             }
             state.changeStance(Stance.WRATH);
             return GameActionCtx.PLAY_CARD;
@@ -1965,7 +1965,7 @@ public class CardWatcher {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            int dmgDone = state.playerDoDamageToEnemy(enemy, damage);
+            int dmgDone = state.playerDoDamageToEnemy(enemy, damage, this);
             if (dmgDone > 0) {
                 state.playerGainBlock(dmgDone);
             }
@@ -2048,7 +2048,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2090,7 +2090,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(2);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2129,7 +2129,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2195,7 +2195,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -2666,7 +2666,7 @@ public class CardWatcher {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!state.getEnemiesForRead().get(idx).properties.isMinion && state.getEnemiesForRead().get(idx).getHealth() <= 0) {
                 if (state.getEnemiesForRead().get(idx) instanceof com.alphaStS.enemy.EnemyBeyond.Darkling ||
                         state.getEnemiesForRead().get(idx) instanceof com.alphaStS.enemy.EnemyBeyond.AwakenedOne) {
@@ -2812,7 +2812,7 @@ public class CardWatcher {
             for (int i = 0; i < hits; i++) {
                 var enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
                 if (enemyIdx >= 0) {
-                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage);
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;

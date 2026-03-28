@@ -206,7 +206,7 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            int dmgDone = state.playerDoDamageToEnemy(enemy, damage);
+            int dmgDone = state.playerDoDamageToEnemy(enemy, damage, this);
             if (dmgDone > 0) {
                 state.playerGainBlock(dmgDone);
             }
@@ -281,7 +281,7 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var primary = state.getEnemiesForWrite().getForWrite(idx);
-            int dmgDone = state.playerDoDamageToEnemy(primary, damage);
+            int dmgDone = state.playerDoDamageToEnemy(primary, damage, this);
             if (dmgDone > 0) {
                 for (int i = 0; i < state.getEnemiesForWrite().size(); i++) {
                     if (i == idx) {
@@ -289,7 +289,7 @@ public class CardColorless2 {
                     }
                     var other = state.getEnemiesForWrite().getForWrite(i);
                     if (other.isAlive() && other.getHealth() > 0) {
-                        state.playerDoDamageToEnemy(other, dmgDone);
+                        state.playerDoDamageToEnemy(other, dmgDone, this);
                     }
                 }
             }
@@ -550,7 +550,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -582,7 +582,7 @@ public class CardColorless2 {
                 if (enemyIdx < 0) {
                     break;
                 }
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -761,7 +761,7 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             // +1 to include Gold Axe itself (onCardPlayedHandlers fires after play())
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getCounterForRead()[counterIdx] + 1);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), state.getCounterForRead()[counterIdx] + 1, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -944,7 +944,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -1052,7 +1052,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1086,7 +1086,7 @@ public class CardColorless2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
                 for (int i = 0; i < 4; i++) {
-                    state.playerDoDamageToEnemy(enemy, damage);
+                    state.playerDoDamageToEnemy(enemy, damage, this);
                 }
             }
             return GameActionCtx.PLAY_CARD;
@@ -1154,7 +1154,7 @@ public class CardColorless2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < hits; i++) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -1186,7 +1186,7 @@ public class CardColorless2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vulnerable);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1342,7 +1342,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (state.discardArrLen > 2) {
                 state.setIsStochastic();
             }
@@ -1480,7 +1480,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1536,7 +1536,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1591,7 +1591,7 @@ public class CardColorless2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.draw(1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1656,7 +1656,7 @@ public class CardColorless2 {
             if (state.properties.conquerorCounterIdx >= 0 && state.getCounterForRead()[state.properties.conquerorCounterIdx] > 0) {
                 dmg <<= state.getCounterForRead()[state.properties.conquerorCounterIdx];
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
             return GameActionCtx.PLAY_CARD;
         }
     }

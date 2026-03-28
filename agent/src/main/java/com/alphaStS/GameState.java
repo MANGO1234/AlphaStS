@@ -9,7 +9,6 @@ import com.alphaStS.entity.Relic;
 import com.alphaStS.enums.*;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
-import com.alphaStS.eventHandler.OnOtsyDamageHandler;
 import com.alphaStS.gameAction.GameAction;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.gameAction.GameActionType;
@@ -3850,7 +3849,7 @@ public final class GameState implements State {
         return false;
     }
 
-    public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, boolean isShiv) {
+    public int playerDoDamageToEnemy(Enemy enemy, int dmgInt, Card damageSource) {
         var player = getPlayerForRead();
         double dmg = dmgInt;
         if ((buffs & PlayerBuff.AKABEKO.mask()) != 0) {
@@ -3860,7 +3859,7 @@ public final class GameState implements State {
             dmg += 4;
         }
         dmg += player.getStrength();
-        if (properties.accuracyCounterIdx >= 0 && isShiv) {
+        if (properties.accuracyCounterIdx >= 0 && (damageSource instanceof CardColorless.Shiv || damageSource instanceof CardColorless.ShivP)) {
             dmg += getCounterForRead()[properties.accuracyCounterIdx];
         }
         if (properties.penNibCounterIdx >= 0 && counter[properties.penNibCounterIdx] == 9) {
@@ -3937,10 +3936,6 @@ public final class GameState implements State {
             return dmgDone;
         }
         return 0;
-    }
-
-    public int playerDoDamageToEnemy(Enemy enemy, int dmgInt) {
-        return playerDoDamageToEnemy(enemy, dmgInt, false);
     }
 
     public void dealDamageToOtsy(int amount) {

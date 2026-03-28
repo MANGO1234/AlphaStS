@@ -132,7 +132,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            int dmgDealt = state.playerDoDamageToEnemy(enemy, damage);
+            int dmgDealt = state.playerDoDamageToEnemy(enemy, damage, this);
             if (dmgDealt > 0 && enemy.isAlive()) {
                 enemy.applyDebuff(state, DebuffType.DOOM, dmgDealt);
             }
@@ -163,7 +163,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -229,7 +229,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             if (!canUpgrade) {
                 return GameActionCtx.PLAY_CARD;
             }
@@ -297,7 +297,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.VULNERABLE, vuln);
             return GameActionCtx.PLAY_CARD;
         }
@@ -365,7 +365,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             if (state.actionCtx == GameActionCtx.SELECT_ENEMY) {
-                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
                 return GameActionCtx.SELECT_CARD_DISCARD;
             } else {
                 if (state.getNumCardsInHand() < GameState.HAND_LIMIT) {
@@ -558,7 +558,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -585,7 +585,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.addCardToDeck(generatedCardIdx);
             return GameActionCtx.PLAY_CARD;
         }
@@ -661,7 +661,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -782,7 +782,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
@@ -1025,7 +1025,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int drawn = state.getCounterForRead()[drawnRegistrant.getCounterIdx(state.properties)];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + bonus * drawn);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage + bonus * drawn, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1166,7 +1166,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
-            state.playerDoDamageToEnemy(enemy, damage);
+            state.playerDoDamageToEnemy(enemy, damage, this);
             enemy.applyDebuff(state, DebuffType.DEBILITATE, turns);
             return GameActionCtx.PLAY_CARD;
         }
@@ -1678,7 +1678,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             int count = state.getCounterForRead()[etherealCountRegistrant.getCounterIdx(state.properties)];
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmgPerCard * count);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmgPerCard * count, this);
             return GameActionCtx.PLAY_CARD;
         }
 
@@ -1837,7 +1837,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.addCardToDeck(generatedCardIdx);
             state.addCardToHand(generatedCardIdx);
             state.addCardToDiscard(generatedCardIdx);
@@ -2014,7 +2014,7 @@ public class CardNecrobinder2 {
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             state.getCounterForWrite()[counterIdx]++;
             return GameActionCtx.PLAY_CARD;
         }
@@ -2071,7 +2071,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2298,7 +2298,7 @@ public class CardNecrobinder2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             for (int i = 0; i < energyUsed; i++) {
-                state.playerDoDamageToEnemy(enemy, damage);
+                state.playerDoDamageToEnemy(enemy, damage, this);
             }
             return GameActionCtx.PLAY_CARD;
         }
@@ -2335,7 +2335,7 @@ public class CardNecrobinder2 {
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var enemy = state.getEnemiesForWrite().getForWrite(idx);
             int scaledDamage = damage * (1 << enemy.getHang());
-            state.playerDoDamageToEnemy(enemy, scaledDamage);
+            state.playerDoDamageToEnemy(enemy, scaledDamage, this);
             enemy.applyDebuff(state, DebuffType.HANG, 1);
             return GameActionCtx.PLAY_CARD;
         }
@@ -2365,7 +2365,7 @@ public class CardNecrobinder2 {
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
             var target = state.getEnemiesForRead().get(idx);
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage, this);
             for (int i = 0; i < state.getEnemiesForRead().size(); i++) {
                 if (i == idx || !state.getEnemiesForRead().get(i).isAlive()) continue;
                 state.getEnemiesForWrite().getForWrite(i).applyDebuffsFrom(state, target);
@@ -2726,7 +2726,7 @@ public class CardNecrobinder2 {
                     soulCount++;
                 }
             }
-            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + dmgPerSoul * soulCount);
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDamage + dmgPerSoul * soulCount, this);
             return GameActionCtx.PLAY_CARD;
         }
     }
