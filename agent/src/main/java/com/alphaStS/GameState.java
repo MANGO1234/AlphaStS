@@ -1451,7 +1451,7 @@ public final class GameState implements State {
                     cloneParentLocation = GameState.EXHAUST;
                 } else if ((buffs & PlayerBuff.CORRUPTION.mask()) != 0 && properties.cardDict[cardIdx].cardType == Card.SKILL) {
                     cloneParentLocation = GameState.EXHAUST;
-                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay || (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL))) {
+                } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay || properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay || (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL))) {
                     cloneParentLocation = GameState.DECK;
                 } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
                     // card returns to hand; leave cloneParentLocation unset (0)
@@ -1482,6 +1482,8 @@ public final class GameState implements State {
                     exhaustedCardHandle(cardIdx, true);
                 } else if (properties.cardDict[cardIdx].returnToDeckWhenPlay) {
                     addCardToDeck(cardIdx);
+                } else if (properties.cardDict[cardIdx].returnToTopOfDeckWhenPlay) {
+                    addCardOnTopOfDeck(cardIdx);
                 } else if (properties.cardDict[cardIdx].returnToHandWhenPlay) {
                     addCardToHand(cardIdx);
                 } else if (properties.nostalgiaCounterIdx >= 0 && getCounterForRead()[properties.nostalgiaCounterIdx] > 0 && (properties.cardDict[cardIdx].cardType == Card.ATTACK || properties.cardDict[cardIdx].cardType == Card.SKILL)) {
@@ -4089,6 +4091,10 @@ public final class GameState implements State {
             }
             int dmgDealt = player.damage(this, dmgToPlayer);
             totalDmgDealt += dmgDealt;
+            if (properties.reflectCounterIdx >= 0 && getCounterForRead()[properties.reflectCounterIdx] > 0) {
+                int enemyIdx = getEnemiesForRead().find(enemy);
+                playerDoNonAttackDamageToEnemy(getEnemiesForWrite().getForWrite(enemyIdx), dmgToPlayer, true);
+            }
             if (dmgDealt >= 0) {
                 for (OnDamageHandler handler : properties.onDamageHandlers) {
                     handler.handle(this, enemy, true, dmgDealt);

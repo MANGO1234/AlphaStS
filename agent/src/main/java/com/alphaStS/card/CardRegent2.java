@@ -1839,49 +1839,420 @@ public class CardRegent2 {
         }
     }
 
-    // TODO: Quasar (Uncommon) - 0 energy, 2 star, Skill
-    //   Effect: Choose 1 of 3 random Colorless cards to add into your Hand.
-    //   Upgraded Effect: Choose 1 of 3 random Upgraded Colorless cards to add into your Hand.
+    private static abstract class _QuasarT extends Card {
+        private final boolean upgraded;
 
-    // TODO: Radiate (Uncommon) - 0 energy, Attack
-    //   Effect: Deal 3 damage to ALL enemies for each star gained this turn.
-    //   Upgraded Effect: Deal 4 damage to ALL enemies for each star gained this turn.
+        public _QuasarT(String cardName, boolean upgraded) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.upgraded = upgraded;
+            this.starCost = 2;
+            this.exhaustWhenPlayed = true;
+            entityProperty.hasStarCost = true;
+        }
 
-    // TODO: Reflect (Uncommon) - 1 energy, 3 star, Skill
-    //   Effect: Gain 17 Block. Blocked attack damage is reflected to your attacker this turn.
-    //   Upgraded Effect: Gain 21 Block. Blocked attack damage is reflected to your attacker this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.setSelect1OutOf3Idxes(generatedCardIdxes);
+            return GameActionCtx.SELECT_CARD_1_OUT_OF_3;
+        }
 
-    // TODO: Resonance (Uncommon) - 1 energy, 3 star, Skill
-    //   Effect: Gain 1 Strength. ALL enemies lose 1 Strength.
-    //   Upgraded Effect: Gain 2 Strength. ALL enemies lose 1 Strength.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return getPossibleSelect1OutOf3Cards(gameProperties);
+        }
 
-    // TODO: Royal Gamble (Uncommon) - 0 energy, 5 star, Skill
-    //   Effect: Gain 9 star. Exhaust.
-    //   Upgraded Effect: Retain. Gain 9 star. Exhaust.
+        @Override public List<Card> getPossibleSelect1OutOf3Cards(GameProperties gameProperties) {
+            var colorlessCards = CardManager.getColorlessCardsTmp0Cost(false);
+            return upgraded ? colorlessCards.stream().map(Card::getUpgrade).filter(java.util.Objects::nonNull).toList() : colorlessCards;
+        }
+    }
 
-    // TODO: Shining Strike (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Gain 2 star. Put this card on top of your Draw Pile.
-    //   Upgraded Effect: Deal 11 damage. Gain 2 star. Put this card on top of your Draw Pile.
+    public static class Quasar extends _QuasarT {
+        public Quasar() {
+            super("Quasar", false);
+        }
+    }
 
-    // TODO: Spectrum Shift (Uncommon) - 2 energy, Power
-    //   Effect: At the start of your turn, add 1 random Colorless card into your Hand.
-    //   Upgraded Effect (1 energy): At the start of your turn, add 1 random Colorless card into your Hand.
+    public static class QuasarP extends _QuasarT {
+        public QuasarP() {
+            super("Quasar+", true);
+        }
+    }
 
-    // TODO: Stardust (Uncommon) - X energy, X star, Attack
-    //   Effect: Deal 5 damage to a random enemy X times.
-    //   Upgraded Effect: Deal 7 damage to a random enemy X times.
+    private static abstract class _RadiateT extends Card {
+        private final int dmgPerStar;
 
-    // TODO: Summon Forth (Uncommon) - 1 energy, Skill
-    //   Effect: Forge 8. Put Sovereign Blade into your Hand from anywhere.
-    //   Upgraded Effect: Forge 11. Put Sovereign Blade into your Hand from anywhere.
+        public _RadiateT(String cardName, int dmgPerStar) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.dmgPerStar = dmgPerStar;
+        }
 
-    // TODO: Supermassive (Uncommon) - 1 energy, Attack
-    //   Effect: Deal 5 damage. Deals 3 additional damage for each card you created this combat.
-    //   Upgraded Effect: Deal 5 damage. Deals 4 additional damage for each card you created this combat.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int starGained = state.getCounterForRead()[counterIdx];
+            if (starGained > 0) {
+                int dmg = starGained * dmgPerStar;
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    state.playerDoDamageToEnemy(enemy, dmg);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Terraforming (Uncommon) - 1 energy, Skill
-    //   Effect: Gain 6 Vigor.
-    //   Upgraded Effect: Gain 8 Vigor.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("RadiateStarGained", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnStarChangeHandler("RadiateStarGained", new OnStarChangeHandler() {
+                @Override public void handle(GameState state, int amount) {
+                    if (amount > 0) {
+                        state.getCounterForWrite()[counterIdx] += amount;
+                    }
+                }
+            });
+            state.properties.addStartOfTurnHandler("RadiateStarGained", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+        }
+    }
+
+    public static class Radiate extends _RadiateT {
+        public Radiate() {
+            super("Radiate", 3);
+        }
+    }
+
+    public static class RadiateP extends _RadiateT {
+        public RadiateP() {
+            super("Radiate+", 4);
+        }
+    }
+
+    private static abstract class _ReflectT extends Card {
+        private final int block;
+
+        public _ReflectT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.block = block;
+            this.starCost = 3;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Reflect", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int cIdx) {
+                    state.properties.reflectCounterIdx = cIdx;
+                }
+            });
+            state.properties.addStartOfTurnHandler("Reflect", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Reflect extends _ReflectT {
+        public Reflect() {
+            super("Reflect", 17);
+        }
+    }
+
+    public static class ReflectP extends _ReflectT {
+        public ReflectP() {
+            super("Reflect+", 21);
+        }
+    }
+
+    private static abstract class _ResonanceT extends Card {
+        private final int playerStrength;
+
+        public _ResonanceT(String cardName, int playerStrength) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.playerStrength = playerStrength;
+            this.starCost = 3;
+            entityProperty.hasStarCost = true;
+            entityProperty.changePlayerStrength = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getPlayerForWrite().gainStrength(playerStrength);
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH, 1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Resonance extends _ResonanceT {
+        public Resonance() {
+            super("Resonance", 1);
+        }
+    }
+
+    public static class ResonanceP extends _ResonanceT {
+        public ResonanceP() {
+            super("Resonance+", 2);
+        }
+    }
+
+    private static abstract class _RoyalGambleT extends Card {
+        public _RoyalGambleT(String cardName, boolean retain) {
+            super(cardName, Card.SKILL, 0, Card.UNCOMMON);
+            this.starCost = 5;
+            this.exhaustWhenPlayed = true;
+            this.retain = retain;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainStar(9);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class RoyalGamble extends _RoyalGambleT {
+        public RoyalGamble() {
+            super("Royal Gamble", false);
+        }
+    }
+
+    public static class RoyalGambleP extends _RoyalGambleT {
+        public RoyalGambleP() {
+            super("Royal Gamble+", true);
+        }
+    }
+
+    private static abstract class _ShiningStrikeT extends Card {
+        private final int dmg;
+
+        public _ShiningStrikeT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.dmg = dmg;
+            this.returnToTopOfDeckWhenPlay = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.gainStar(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class ShiningStrike extends _ShiningStrikeT {
+        public ShiningStrike() {
+            super("Shining Strike", 8);
+        }
+    }
+
+    public static class ShiningStrikeP extends _ShiningStrikeT {
+        public ShiningStrikeP() {
+            super("Shining Strike+", 11);
+        }
+    }
+
+    public static class SpectrumShift extends CardColorless._MagnetismT {
+        public SpectrumShift() {
+            super("Spectrum Shift", 2, Card.UNCOMMON);
+        }
+    }
+
+    public static class SpectrumShiftP extends CardColorless._MagnetismT {
+        public SpectrumShiftP() {
+            super("Spectrum Shift+", 1, Card.UNCOMMON);
+        }
+    }
+
+    private static abstract class _StardustT extends Card {
+        private final int dmg;
+
+        public _StardustT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
+            this.dmg = dmg;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int x = state.starResource;
+            if (x > 0) {
+                state.starResource = 0;
+                for (int i = 0; i < state.properties.onStarChangeHandlers.size(); i++) {
+                    state.properties.onStarChangeHandlers.get(i).handle(state, -x);
+                }
+                for (int i = 0; i < x; i++) {
+                    int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                    if (enemyIdx < 0) break;
+                    state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), dmg);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Stardust extends _StardustT {
+        public Stardust() {
+            super("Stardust", 5);
+        }
+    }
+
+    public static class StardustP extends _StardustT {
+        public StardustP() {
+            super("Stardust+", 7);
+        }
+    }
+
+    private static abstract class _SummonForthT extends Card {
+        private final int forgeAmount;
+
+        public _SummonForthT(String cardName, int forgeAmount) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.forge(forgeAmount);
+            for (int i = state.deckArrLen - 1; i >= 0; i--) {
+                var base = state.properties.cardDict[state.getDeckArrForRead()[i]].getBaseCard();
+                if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
+                    int foundIdx = state.getDeckArrForRead()[i];
+                    state.removeCardFromDeck(foundIdx, false);
+                    state.addCardToHand(foundIdx);
+                }
+            }
+            for (int i = state.discardArrLen - 1; i >= 0; i--) {
+                var base = state.properties.cardDict[state.getDiscardArrForRead()[i]].getBaseCard();
+                if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
+                    int foundIdx = state.getDiscardArrForRead()[i];
+                    state.removeCardFromDiscard(foundIdx);
+                    state.addCardToHand(foundIdx);
+                }
+            }
+            for (int i = state.exhaustArrLen - 1; i >= 0; i--) {
+                var base = state.properties.cardDict[state.getExhaustArrForRead()[i]].getBaseCard();
+                if (base instanceof CardColorless2.SovereignBlade || base instanceof CardColorless2.SovereignBladeP) {
+                    int foundIdx = state.getExhaustArrForRead()[i];
+                    state.removeCardFromExhaust(foundIdx);
+                    state.addCardToHand(foundIdx);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SummonForth extends _SummonForthT {
+        public SummonForth() {
+            super("Summon Forth", 8);
+        }
+    }
+
+    public static class SummonForthP extends _SummonForthT {
+        public SummonForthP() {
+            super("Summon Forth+", 11);
+        }
+    }
+
+    private static abstract class _SupermassiveT extends Card {
+        private final int baseDmg;
+        private final int dmgPerCard;
+
+        public _SupermassiveT(String cardName, int baseDmg, int dmgPerCard) {
+            super(cardName, Card.ATTACK, 1, Card.UNCOMMON);
+            this.baseDmg = baseDmg;
+            this.dmgPerCard = dmgPerCard;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int cardsCreated = state.getCounterForRead()[counterIdx];
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), baseDmg + cardsCreated * dmgPerCard);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SupermassiveCreatedCards", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 10.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addOnCardCreationHandler("SupermassiveCreatedCards", new OnCardCreationHandler() {
+                @Override public void handle(GameState state, int cardIdx) {
+                    state.getCounterForWrite()[counterIdx]++;
+                }
+            });
+        }
+    }
+
+    public static class Supermassive extends _SupermassiveT {
+        public Supermassive() {
+            super("Supermassive", 5, 3);
+        }
+    }
+
+    public static class SupermassiveP extends _SupermassiveT {
+        public SupermassiveP() {
+            super("Supermassive+", 5, 4);
+        }
+    }
+
+    private static abstract class _TerraformingT extends Card {
+        private final int vigor;
+
+        public _TerraformingT(String cardName, int vigor) {
+            super(cardName, Card.SKILL, 1, Card.UNCOMMON);
+            this.vigor = vigor;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.properties.vigorCounterIdx] += vigor;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerVigorCounter(this);
+        }
+    }
+
+    public static class Terraforming extends _TerraformingT {
+        public Terraforming() {
+            super("Terraforming", 6);
+        }
+    }
+
+    public static class TerraformingP extends _TerraformingT {
+        public TerraformingP() {
+            super("Terraforming+", 8);
+        }
+    }
 
     // **************************************************************************************************
     // *********************************************  Rare  *********************************************

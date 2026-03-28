@@ -878,9 +878,9 @@ public class CardColorless {
         }
     }
 
-    private static abstract class _MagnetismT extends Card {
-        public _MagnetismT(String cardName, int energyCost) {
-            super(cardName, Card.POWER, energyCost, Card.RARE);
+    static abstract class _MagnetismT extends Card {
+        public _MagnetismT(String cardName, int energyCost, int rarity) {
+            super(cardName, Card.POWER, energyCost, rarity);
         }
 
         public GameActionCtx play(GameState state, int idx, int energyUsed) {
@@ -918,13 +918,13 @@ public class CardColorless {
 
     public static class Magnetism extends _MagnetismT {
         public Magnetism() {
-            super("Magnetism", 2);
+            super("Magnetism", 2, Card.RARE);
         }
     }
 
     public static class MagnetismP extends _MagnetismT {
         public MagnetismP() {
-            super("Magnetism+", 1);
+            super("Magnetism+", 1, Card.RARE);
         }
     }
 
