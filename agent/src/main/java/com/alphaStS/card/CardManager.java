@@ -3,6 +3,7 @@ package com.alphaStS.card;
 import com.alphaStS.enums.CharacterEnum;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class CardManager {
@@ -100,6 +101,18 @@ public class CardManager {
         cards.add(new CardColorless.Transmutation());
         cards.add(new CardColorless.Violence());
         return cards;
+    }
+
+    private static HashSet<Class<?>> colorlessCardClasses;
+
+    public static boolean isColorlessCard(Card card) {
+        if (colorlessCardClasses == null) {
+            colorlessCardClasses = new HashSet<>();
+            for (var c : getColorlessCards(false)) {
+                colorlessCardClasses.add(c.getClass());
+            }
+        }
+        return colorlessCardClasses.contains(card.getBaseCard().getClass());
     }
 
     public static List<Card> getColorlessCardsTmp0Cost(boolean generateHealingCard) {

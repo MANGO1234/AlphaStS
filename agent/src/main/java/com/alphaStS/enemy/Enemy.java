@@ -98,6 +98,10 @@ public abstract class Enemy extends EnemyReadOnly {
         platedArmor += n;
     }
 
+    public void incrementHitByAttack() {
+        hitByAttack++;
+    }
+
     public void removeAllDebuffs() {
         vulnerable = 0;
         weak = 0;
@@ -117,6 +121,7 @@ public abstract class Enemy extends EnemyReadOnly {
 
     public void startTurn(GameState state) {
         block = 0;
+        hitByAttack = 0;
         int extraLoops = state.properties.accelerantCounterIdx >= 0 ? state.getCounterForRead()[state.properties.accelerantCounterIdx] : 0;
         for (int i = 0; i <= extraLoops && poison > 0; i++) {
             state.playerDoNonAttackDamageToEnemy(this, poison, false);

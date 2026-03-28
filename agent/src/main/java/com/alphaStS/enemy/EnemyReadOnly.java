@@ -84,6 +84,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int sicEm;
     protected int hang;
     protected int doomPerCard;
+    protected int hitByAttack;
     protected int move = -1;
     protected int lastMove = -1;
     int vExtraIdx = -1;
@@ -156,6 +157,7 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         sicEm = other.sicEm;
         hang = other.hang;
         doomPerCard = other.doomPerCard;
+        hitByAttack = other.hitByAttack;
         move = other.move;
         lastMove = other.lastMove;
     }
@@ -178,6 +180,10 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getLoseStrengthEot() {
         return loseStrengthEot;
+    }
+
+    public int getHitByAttack() {
+        return hitByAttack;
     }
 
     public int getVulnerable() {

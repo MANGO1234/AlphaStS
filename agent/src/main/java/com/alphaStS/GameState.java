@@ -3904,6 +3904,9 @@ public final class GameState implements State {
             }
         }
         if (enemy.isAlive() && enemy.getHealth() > 0) {
+            if (properties.anyEntityProperty.needToKeepTrackOfEnemyHitCount) {
+                enemy.incrementHitByAttack();
+            }
             int enemyBlockBefore = enemy.getBlock();
             int dmgDone = enemy.damage(dmg, this);
 

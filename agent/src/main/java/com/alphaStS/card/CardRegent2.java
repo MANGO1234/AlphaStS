@@ -1,6 +1,10 @@
 package com.alphaStS.card;
 
 import com.alphaStS.*;
+import com.alphaStS.GameStateUtils;
+import com.alphaStS.action.AddCardToDiscardAction;
+import com.alphaStS.action.GameEnvironmentAction;
+import com.alphaStS.action.PlayCardAction;
 import com.alphaStS.enemy.Enemy;
 import com.alphaStS.enums.DebuffType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
@@ -2258,41 +2262,340 @@ public class CardRegent2 {
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Arsenal (Rare) - 1 energy, Power
-    //   Effect: Whenever you play a Colorless card, gain 1 Strength.
-    //   Upgraded Effect: Whenever you play a Colorless card, gain 2 Strength.
+    private static abstract class _ArsenalT extends Card {
+        private final int strengthGain;
 
-    // TODO: Beat into Shape (Rare) - 1 energy, Attack
-    //   Effect: Deal 5 damage. Forge 5. Forges an additional 5 for every other time you've hit the enemy this turn.
-    //   Upgraded Effect: Deal 7 damage. Forge 7. Forges an additional 7 for every other time you've hit the enemy this turn.
+        public _ArsenalT(String cardName, int strengthGain) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.strengthGain = strengthGain;
+        }
 
-    // TODO: Big Bang (Rare) - 0 energy, Skill
-    //   Effect: Draw 1 card. Gain energy. Gain star. Forge 5. Exhaust.
-    //   Upgraded Effect: Innate. Draw 1 card. Gain energy. Gain star. Forge 5. Exhaust.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Bombardment (Rare) - 3 energy, Attack
-    //   Effect: Deal 18 damage. At the start of your turn, plays from the Exhaust Pile. Exhaust.
-    //   Upgraded Effect: Deal 24 damage. At the start of your turn, plays from the Exhaust Pile. Exhaust.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("Arsenal", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (CardManager.isColorlessCard(state.properties.cardDict[cardIdx])) {
+                        state.getPlayerForWrite().gainStrength(strengthGain);
+                    }
+                }
+            });
+        }
+    }
 
-    // TODO: Bundle of Joy (Rare) - 2 energy, Skill
-    //   Effect: Add 3 random Colorless cards into your Hand. Exhaust.
-    //   Upgraded Effect: Add 4 random Colorless cards into your Hand. Exhaust.
+    public static class Arsenal extends _ArsenalT {
+        public Arsenal() {
+            super("Arsenal", 1);
+        }
+    }
 
-    // TODO: Comet (Rare) - 0 energy, 5 star, Attack
-    //   Effect: Deal 33 damage. Apply 3 Weak. Apply 3 Vulnerable.
-    //   Upgraded Effect: Deal 44 damage. Apply 3 Weak. Apply 3 Vulnerable.
+    public static class ArsenalP extends _ArsenalT {
+        public ArsenalP() {
+            super("Arsenal+", 2);
+        }
+    }
 
-    // TODO: Crash Landing (Rare) - 1 energy, Attack
-    //   Effect: Deal 21 damage to ALL enemies. Fill your Hand with Debris.
-    //   Upgraded Effect: Deal 26 damage to ALL enemies. Fill your Hand with Debris.
+    private static abstract class _BeatIntoShapeT extends Card {
+        private final int dmg;
+        private final int forgeBase;
 
-    // TODO: Decisions, Decisions (Rare) - 0 energy, 6 star, Skill
-    //   Effect: Draw 3 cards. Choose a Skill in your Hand and play it 3 times. Exhaust.
-    //   Upgraded Effect: Draw 5 cards. Choose a Skill in your Hand and play it 3 times. Exhaust.
+        public _BeatIntoShapeT(String cardName, int dmg, int forgeBase) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.dmg = dmg;
+            this.forgeBase = forgeBase;
+            entityProperty.selectEnemy = true;
+            entityProperty.canForge = true;
+            entityProperty.needToKeepTrackOfEnemyHitCount = true;
+        }
 
-    // TODO: Dying Star (Rare) - 1 energy, 3 star, Attack
-    //   Effect: Ethereal. Deal 9 damage to ALL enemies. ALL enemies lose 9 Strength this turn.
-    //   Upgraded Effect: Ethereal. Deal 11 damage to ALL enemies. ALL enemies lose 11 Strength this turn.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            int prevHits = enemy.getHitByAttack();
+            state.playerDoDamageToEnemy(enemy, dmg);
+            state.forge(forgeBase + forgeBase * prevHits);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BeatIntoShape extends _BeatIntoShapeT {
+        public BeatIntoShape() {
+            super("Beat into Shape", 5, 5);
+        }
+    }
+
+    public static class BeatIntoShapeP extends _BeatIntoShapeT {
+        public BeatIntoShapeP() {
+            super("Beat into Shape+", 7, 7);
+        }
+    }
+
+    private static abstract class _BigBangT extends Card {
+        public _BigBangT(String cardName, boolean innate) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.exhaustWhenPlayed = true;
+            this.innate = innate;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.draw(1);
+            state.gainEnergy(1);
+            state.gainStar(1);
+            state.forge(5);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BigBang extends _BigBangT {
+        public BigBang() {
+            super("Big Bang", false);
+        }
+    }
+
+    public static class BigBangP extends _BigBangT {
+        public BigBangP() {
+            super("Big Bang+", true);
+        }
+    }
+
+    private static abstract class _BombardmentT extends Card {
+        private final int damage;
+
+        public _BombardmentT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 3, Card.RARE);
+            this.damage = damage;
+            this.exhaustWhenPlayed = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), damage);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfTurnHandler("Bombardment", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    for (int i = 0; i < state.exhaustArrLen; i++) {
+                        int cardIdx = state.exhaustArr[i];
+                        if (state.properties.cardDict[cardIdx].getBaseCard() instanceof _BombardmentT) {
+                            final int ci = cardIdx;
+                            state.addGameActionToEndOfDeque(new GameEnvironmentAction() {
+                                @Override public void doAction(GameState s) {
+                                    var a = s.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][ci];
+                                    s.playCard(a, -1, true, _BombardmentT.class, false, false, -1, GameState.EXHAUST);
+                                    while (s.actionCtx == GameActionCtx.SELECT_ENEMY) {
+                                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(s, RandomGenCtx.RandomEnemyGeneral);
+                                        s.playCard(a, enemyIdx, true, _BombardmentT.class, false, false, -1, GameState.EXHAUST);
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class Bombardment extends _BombardmentT {
+        public Bombardment() {
+            super("Bombardment", 18);
+        }
+    }
+
+    public static class BombardmentP extends _BombardmentT {
+        public BombardmentP() {
+            super("Bombardment+", 24);
+        }
+    }
+
+    private static abstract class _BundleOfJoyT extends Card {
+        private final int numCards;
+
+        public _BundleOfJoyT(String cardName, int numCards) {
+            super(cardName, Card.SKILL, 2, Card.RARE);
+            this.numCards = numCards;
+            this.exhaustWhenPlayed = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < numCards; i++) {
+                int randomIdx = state.getSearchRandomGen().nextInt(generatedCardIdxes.length, RandomGenCtx.RandomCardGen, new Tuple<>(state, generatedCardIdxes));
+                state.addCardToHand(state.createCard(generatedCardIdxes[randomIdx]));
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return CardManager.getColorlessCards(false);
+        }
+    }
+
+    public static class BundleOfJoy extends _BundleOfJoyT {
+        public BundleOfJoy() {
+            super("Bundle of Joy", 3);
+        }
+    }
+
+    public static class BundleOfJoyP extends _BundleOfJoyT {
+        public BundleOfJoyP() {
+            super("Bundle of Joy+", 4);
+        }
+    }
+
+    private static abstract class _CometT extends Card {
+        private final int damage;
+
+        public _CometT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.damage = damage;
+            this.starCost = 5;
+            entityProperty.selectEnemy = true;
+            entityProperty.hasStarCost = true;
+            entityProperty.weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            state.playerDoDamageToEnemy(enemy, damage);
+            enemy.applyDebuff(state, DebuffType.WEAK, 3);
+            enemy.applyDebuff(state, DebuffType.VULNERABLE, 3);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Comet extends _CometT {
+        public Comet() {
+            super("Comet", 33);
+        }
+    }
+
+    public static class CometP extends _CometT {
+        public CometP() {
+            super("Comet+", 44);
+        }
+    }
+
+    private static abstract class _CrashLandingT extends Card {
+        private final int damage;
+
+        public _CrashLandingT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            while (state.handArrLen < GameState.HAND_LIMIT) {
+                state.addCardToHand(generatedCardIdx);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return List.of(new CardOther2.Debris());
+        }
+    }
+
+    public static class CrashLanding extends _CrashLandingT {
+        public CrashLanding() {
+            super("Crash Landing", 21);
+        }
+    }
+
+    public static class CrashLandingP extends _CrashLandingT {
+        public CrashLandingP() {
+            super("Crash Landing+", 26);
+        }
+    }
+
+    private static abstract class _DecisionsDecisionsT extends Card {
+        private final int numCards;
+
+        public _DecisionsDecisionsT(String cardName, int numCards) {
+            super(cardName, Card.SKILL, 0, Card.RARE);
+            this.numCards = numCards;
+            this.starCost = 6;
+            this.exhaustWhenPlayed = true;
+            entityProperty.selectFromHand = true;
+            entityProperty.hasStarCost = true;
+            selectFromHandLater = true;
+        }
+
+        @Override public boolean canSelectCard(Card card) {
+            return card.cardType == Card.SKILL;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.draw(numCards);
+                for (int i = 0; i < state.handArrLen; i++) {
+                    if (state.properties.cardDict[state.handArr[i]].cardType == Card.SKILL) {
+                        return GameActionCtx.SELECT_CARD_HAND;
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                state.removeCardFromHand(idx);
+                state.addGameActionToStartOfDeque(new AddCardToDiscardAction(idx, state));
+                for (int i = 0; i < 3; i++) {
+                    state.addGameActionToStartOfDeque(new PlayCardAction(idx, state));
+                }
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class DecisionsDecisions extends _DecisionsDecisionsT {
+        public DecisionsDecisions() {
+            super("Decisions, Decisions", 3);
+        }
+    }
+
+    public static class DecisionsDecisionsP extends _DecisionsDecisionsT {
+        public DecisionsDecisionsP() {
+            super("Decisions, Decisions+", 5);
+        }
+    }
+
+    private static abstract class _DyingStarT extends Card {
+        private final int damage;
+
+        public _DyingStarT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, 1, Card.RARE);
+            this.damage = damage;
+            this.starCost = 3;
+            this.ethereal = true;
+            entityProperty.hasStarCost = true;
+            entityProperty.affectEnemyStrength = true;
+            entityProperty.affectEnemyStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, damage);
+                enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class DyingStar extends _DyingStarT {
+        public DyingStar() {
+            super("Dying Star", 9);
+        }
+    }
+
+    public static class DyingStarP extends _DyingStarT {
+        public DyingStarP() {
+            super("Dying Star+", 11);
+        }
+    }
 
     // TODO: Foregone Conclusion (Rare) - 1 energy, Skill
     //   Effect: Next turn, put 2 cards from your Draw Pile into your Hand.
@@ -2306,13 +2609,46 @@ public class CardRegent2 {
     //   Effect: At the start of your turn, gain 2 star.
     //   Upgraded Effect: At the start of your turn, gain 3 star.
 
-    // TODO: Hammer Time (Rare) - 2 energy, Power
-    //   Effect: Whenever you Forge, all allies Forge as well.
-    //   Upgraded Effect (1 energy): Whenever you Forge, all allies Forge as well.
+    // No need to implement Hammer Time: Multiplayer
 
-    // TODO: Heavenly Drill (Rare) - X energy, Attack
-    //   Effect: Deal 8 damage X times. Double X if it's 4 or more.
-    //   Upgraded Effect: Deal 10 damage X times. Double X if it's 4 or more.
+    private static abstract class _HeavenlyDrillT extends Card {
+        private final int damage;
+
+        public _HeavenlyDrillT(String cardName, int damage) {
+            super(cardName, Card.ATTACK, -1, Card.RARE);
+            this.damage = damage;
+            this.isXCost = true;
+            entityProperty.selectEnemy = true;
+        }
+
+        @Override public int energyCost(GameState state) {
+            return state.energy;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            int x = energyUsed;
+            if (x >= 4) {
+                x *= 2;
+            }
+            var enemy = state.getEnemiesForWrite().getForWrite(idx);
+            for (int i = 0; i < x; i++) {
+                state.playerDoDamageToEnemy(enemy, damage);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class HeavenlyDrill extends _HeavenlyDrillT {
+        public HeavenlyDrill() {
+            super("Heavenly Drill", 8);
+        }
+    }
+
+    public static class HeavenlyDrillP extends _HeavenlyDrillT {
+        public HeavenlyDrillP() {
+            super("Heavenly Drill+", 10);
+        }
+    }
 
     // TODO: Heirloom Hammer (Rare) - 2 energy, Attack
     //   Effect: Deal 17 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.

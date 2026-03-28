@@ -1322,6 +1322,24 @@ public class NNInputSchema {
             }
         });
 
+        // Hit by Attack this turn (global: needToKeepTrackOfEnemyHitCount)
+        allEnemyModules.add(new EnemyInputModule() {
+            @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
+                return p.anyEntityProperty.needToKeepTrackOfEnemyHitCount ? 1 : 0;
+            }
+            @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) {
+                return "        1 input to keep track of hit by attack count\n";
+            }
+            @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                x[idx] = enemy.getHitByAttack() / (float) 10.0;
+                return 1;
+            }
+            @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                System.out.println("  Hit by Attack: " + input[idx]);
+                return 1;
+            }
+        });
+
         // Enemy Block (per-enemy)
         allEnemyModules.add(new EnemyInputModule() {
             @Override public int getLength(GameProperties p, EnemyReadOnly enemy) {
