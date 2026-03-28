@@ -775,7 +775,7 @@ public class CardRegent2 {
     //   Effect: Next turn, gain energy and star. Retain your Hand this turn.
     //   Upgraded Effect: Next turn, gain energy and 2 star. Retain your Hand this turn.
 
-    // TODO: Devastate (Uncommon) - 1 energy, Attack
+    // TODO: Devastate (Uncommon) - 1 energy, 4 star, Attack
     //   Effect: Deal 30 damage.
     //   Upgraded Effect: Deal 40 damage.
 
@@ -783,7 +783,7 @@ public class CardRegent2 {
     //   Effect: At the start of your turn, Forge 4.
     //   Upgraded Effect: At the start of your turn, Forge 6.
 
-    // TODO: Gamma Blast (Uncommon) - 0 energy, Attack
+    // TODO: Gamma Blast (Uncommon) - 0 energy, 3 star, Attack
     //   Effect: Deal 13 damage. Apply 2 Weak. Apply 2 Vulnerable.
     //   Upgraded Effect: Deal 18 damage. Apply 2 Weak. Apply 2 Vulnerable.
 
@@ -835,7 +835,7 @@ public class CardRegent2 {
     //   Effect: Whenever you play Sovereign Blade, gain 6 Block.
     //   Upgraded Effect: Whenever you play Sovereign Blade, gain 9 Block.
 
-    // TODO: Particle Wall (Uncommon) - 0 energy, Skill
+    // TODO: Particle Wall (Uncommon) - 0 energy, 2 star, Skill
     //   Effect: Gain 9 Block. Return this card to your Hand.
     //   Upgraded Effect: Gain 12 Block. Return this card to your Hand.
 
@@ -847,7 +847,7 @@ public class CardRegent2 {
     //   Effect: Draw 6 cards.
     //   Upgraded Effect: Draw 9 cards.
 
-    // TODO: Quasar (Uncommon) - 0 energy, Skill
+    // TODO: Quasar (Uncommon) - 0 energy, 2 star, Skill
     //   Effect: Choose 1 of 3 random Colorless cards to add into your Hand.
     //   Upgraded Effect: Choose 1 of 3 random Upgraded Colorless cards to add into your Hand.
 
@@ -855,15 +855,15 @@ public class CardRegent2 {
     //   Effect: Deal 3 damage to ALL enemies for each star gained this turn.
     //   Upgraded Effect: Deal 4 damage to ALL enemies for each star gained this turn.
 
-    // TODO: Reflect (Uncommon) - 1 energy, Skill
+    // TODO: Reflect (Uncommon) - 1 energy, 3 star, Skill
     //   Effect: Gain 17 Block. Blocked attack damage is reflected to your attacker this turn.
     //   Upgraded Effect: Gain 21 Block. Blocked attack damage is reflected to your attacker this turn.
 
-    // TODO: Resonance (Uncommon) - 1 energy, Skill
+    // TODO: Resonance (Uncommon) - 1 energy, 3 star, Skill
     //   Effect: Gain 1 Strength. ALL enemies lose 1 Strength.
     //   Upgraded Effect: Gain 2 Strength. ALL enemies lose 1 Strength.
 
-    // TODO: Royal Gamble (Uncommon) - 0 energy, Skill
+    // TODO: Royal Gamble (Uncommon) - 0 energy, 5 star, Skill
     //   Effect: Gain 9 star. Exhaust.
     //   Upgraded Effect: Retain. Gain 9 star. Exhaust.
 
@@ -875,7 +875,7 @@ public class CardRegent2 {
     //   Effect: At the start of your turn, add 1 random Colorless card into your Hand.
     //   Upgraded Effect (1 energy): At the start of your turn, add 1 random Colorless card into your Hand.
 
-    // TODO: Stardust (Uncommon) - X energy, Attack
+    // TODO: Stardust (Uncommon) - X energy, X star, Attack
     //   Effect: Deal 5 damage to a random enemy X times.
     //   Upgraded Effect: Deal 7 damage to a random enemy X times.
 
@@ -927,7 +927,7 @@ public class CardRegent2 {
     //   Effect: Draw 3 cards. Choose a Skill in your Hand and play it 3 times. Exhaust.
     //   Upgraded Effect: Draw 5 cards. Choose a Skill in your Hand and play it 3 times. Exhaust.
 
-    // TODO: Dying Star (Rare) - 1 energy, Attack
+    // TODO: Dying Star (Rare) - 1 energy, 3 star, Attack
     //   Effect: Ethereal. Deal 9 damage to ALL enemies. ALL enemies lose 9 Strength this turn.
     //   Upgraded Effect: Ethereal. Deal 11 damage to ALL enemies. ALL enemies lose 11 Strength this turn.
 
@@ -967,7 +967,7 @@ public class CardRegent2 {
     //   Effect: Whenever you attack an enemy, it loses 1 Strength this turn.
     //   Upgraded Effect (2 energy): Whenever you attack an enemy, it loses 1 Strength this turn.
 
-    // TODO: Neutron Aegis (Rare) - 1 energy, Power
+    // TODO: Neutron Aegis (Rare) - 1 energy, 5 star, Power
     //   Effect: Gain 8 Plating.
     //   Upgraded Effect: Gain 11 Plating.
 
@@ -979,7 +979,7 @@ public class CardRegent2 {
     //   Effect: Forge 7. Sovereign Blade now deals damage to ALL enemies.
     //   Upgraded Effect: Forge 11. Sovereign Blade now deals damage to ALL enemies.
 
-    // TODO: Seven Stars (Rare) - 2 energy, Attack
+    // TODO: Seven Stars (Rare) - 2 energy, 7 star, Attack
     //   Effect: Deal 7 damage to ALL enemies 7 times.
     //   Upgraded Effect (1 energy): Deal 7 damage to ALL enemies 7 times.
 
@@ -987,7 +987,7 @@ public class CardRegent2 {
     //   Effect: Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
     //   Upgraded Effect (1 energy): Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
 
-    // TODO: The Smith (Rare) - 1 energy, Skill
+    // TODO: The Smith (Rare) - 1 energy, 4 star, Skill
     //   Effect: Forge 30.
     //   Upgraded Effect: Forge 40.
 
