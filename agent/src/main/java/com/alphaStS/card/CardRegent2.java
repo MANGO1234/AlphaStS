@@ -368,53 +368,380 @@ public class CardRegent2 {
         }
     }
 
-    // TODO: Gather Light (Common) - 1 energy, Skill
-    //   Effect: Gain 7 Block. Gain star.
-    //   Upgraded Effect: Gain 10 Block. Gain star.
+    private static abstract class _GatherLightT extends Card {
+        private final int block;
 
-    // TODO: Glitterstream (Common) - 2 energy, Skill
-    //   Effect: Gain 11 Block. Next turn, gain 4 Block.
-    //   Upgraded Effect: Gain 13 Block. Next turn, gain 6 Block.
+        public _GatherLightT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+        }
 
-    // TODO: Glow (Common) - 1 energy, Skill
-    //   Effect: Gain star. Draw 2 cards.
-    //   Upgraded Effect: Gain 2 star. Draw 2 cards.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.gainStar(1);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Guiding Star (Common) - 1 energy, Attack
-    //   Effect: Deal 12 damage. Next turn, draw 2 cards.
-    //   Upgraded Effect: Deal 13 damage. Next turn, draw 3 cards.
+    public static class GatherLight extends _GatherLightT {
+        public GatherLight() {
+            super("Gather Light", 7);
+        }
+    }
 
-    // TODO: Hidden Cache (Common) - 1 energy, Skill
-    //   Effect: Gain star. Next turn, gain 3 star.
-    //   Upgraded Effect: Gain star. Next turn, gain 4 star.
+    public static class GatherLightP extends _GatherLightT {
+        public GatherLightP() {
+            super("Gather Light+", 10);
+        }
+    }
 
-    // TODO: Know Thy Place (Common) - 0 energy, Skill
-    //   Effect: Apply 1 Weak. Apply 1 Vulnerable. Exhaust.
-    //   Upgraded Effect: Apply 1 Weak. Apply 1 Vulnerable.
+    private static abstract class _GlitterstreamT extends Card {
+        private final int block;
+        private final int nextBlock;
 
-    // TODO: Patter (Common) - 1 energy, Skill
-    //   Effect: Gain 8 Block. Gain 2 Vigor.
-    //   Upgraded Effect: Gain 10 Block. Gain 3 Vigor.
+        public _GlitterstreamT(String cardName, int block, int nextBlock) {
+            super(cardName, Card.SKILL, 2, Card.COMMON);
+            this.block = block;
+            this.nextBlock = nextBlock;
+        }
 
-    // TODO: Photon Cut (Common) - 1 energy, Attack
-    //   Effect: Deal 10 damage. Draw 1 card. Put 1 card from your Hand on top of your Draw Pile.
-    //   Upgraded Effect: Deal 13 damage. Draw 2 cards. Put 1 card from your Hand on top of your Draw Pile.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.getCounterForWrite()[counterIdx] += nextBlock;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Refine Blade (Common) - 1 energy, Skill
-    //   Effect: Forge 6. Next turn, gain energy.
-    //   Upgraded Effect: Forge 10. Next turn, gain energy.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerBlockNextTurnCounter(this);
+        }
+    }
 
-    // TODO: Solar Strike (Common) - 1 energy, Attack
-    //   Effect: Deal 8 damage. Gain star.
-    //   Upgraded Effect: Deal 9 damage. Gain 2 star.
+    public static class Glitterstream extends _GlitterstreamT {
+        public Glitterstream() {
+            super("Glitterstream", 11, 4);
+        }
+    }
 
-    // TODO: Spoils of Battle (Common) - 1 energy, Skill
-    //   Effect: Forge 10.
-    //   Upgraded Effect: Forge 15.
+    public static class GlitterstreamP extends _GlitterstreamT {
+        public GlitterstreamP() {
+            super("Glitterstream+", 13, 6);
+        }
+    }
 
-    // TODO: Wrought in War (Common) - 1 energy, Attack
-    //   Effect: Deal 7 damage. Forge 5.
-    //   Upgraded Effect: Deal 9 damage. Forge 7.
+    private static abstract class _GlowT extends Card {
+        private final int stars;
+
+        public _GlowT(String cardName, int stars) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.stars = stars;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainStar(stars);
+            state.draw(2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class Glow extends _GlowT {
+        public Glow() {
+            super("Glow", 1);
+        }
+    }
+
+    public static class GlowP extends _GlowT {
+        public GlowP() {
+            super("Glow+", 2);
+        }
+    }
+
+    private static abstract class _GuidingStarT extends Card {
+        private final int dmg;
+        private final int drawCount;
+
+        public _GuidingStarT(String cardName, int dmg, int drawCount) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.dmg = dmg;
+            this.drawCount = drawCount;
+            this.starCost = 2;
+            entityProperty.selectEnemy = true;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.getCounterForWrite()[counterIdx] += drawCount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerDrawNextTurnCounter(this);
+        }
+    }
+
+    public static class GuidingStar extends _GuidingStarT {
+        public GuidingStar() {
+            super("Guiding Star", 12, 2);
+        }
+    }
+
+    public static class GuidingStarP extends _GuidingStarT {
+        public GuidingStarP() {
+            super("Guiding Star+", 13, 3);
+        }
+    }
+
+    private static abstract class _HiddenCacheT extends Card {
+        private final int nextStar;
+
+        public _HiddenCacheT(String cardName, int nextStar) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.nextStar = nextStar;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.gainStar(1);
+            state.getCounterForWrite()[counterIdx] += nextStar;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerStarNextTurnCounter(this);
+        }
+    }
+
+    public static class HiddenCache extends _HiddenCacheT {
+        public HiddenCache() {
+            super("Hidden Cache", 3);
+        }
+    }
+
+    public static class HiddenCacheP extends _HiddenCacheT {
+        public HiddenCacheP() {
+            super("Hidden Cache+", 4);
+        }
+    }
+
+    private static abstract class _KnowThyPlaceT extends Card {
+        public _KnowThyPlaceT(String cardName, boolean exhaust) {
+            super(cardName, Card.SKILL, 0, Card.COMMON);
+            this.exhaustWhenPlayed = exhaust;
+            entityProperty.weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.WEAK, 1);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 1);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class KnowThyPlace extends _KnowThyPlaceT {
+        public KnowThyPlace() {
+            super("Know Thy Place", true);
+        }
+    }
+
+    public static class KnowThyPlaceP extends _KnowThyPlaceT {
+        public KnowThyPlaceP() {
+            super("Know Thy Place+", false);
+        }
+    }
+
+    private static abstract class _PatterT extends Card {
+        private final int block;
+        private final int vigor;
+
+        public _PatterT(String cardName, int block, int vigor) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.block = block;
+            this.vigor = vigor;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            state.getCounterForWrite()[state.properties.vigorCounterIdx] += vigor;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerVigorCounter(this);
+        }
+    }
+
+    public static class Patter extends _PatterT {
+        public Patter() {
+            super("Patter", 8, 2);
+        }
+    }
+
+    public static class PatterP extends _PatterT {
+        public PatterP() {
+            super("Patter+", 10, 3);
+        }
+    }
+
+    private static abstract class _PhotonCutT extends Card {
+        private final int dmg;
+        private final int drawCount;
+
+        public _PhotonCutT(String cardName, int dmg, int drawCount) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.dmg = dmg;
+            this.drawCount = drawCount;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromHand = true;
+            entityProperty.putCardOnTopDeck = true;
+            selectFromHandLater = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+                state.draw(drawCount);
+                return GameActionCtx.SELECT_CARD_HAND;
+            } else {
+                state.removeCardFromHand(idx);
+                state.addCardOnTopOfDeck(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
+    }
+
+    public static class PhotonCut extends _PhotonCutT {
+        public PhotonCut() {
+            super("Photon Cut", 10, 1);
+        }
+    }
+
+    public static class PhotonCutP extends _PhotonCutT {
+        public PhotonCutP() {
+            super("Photon Cut+", 13, 2);
+        }
+    }
+
+    private static abstract class _RefineBladeT extends Card {
+        private final int forgeAmount;
+
+        public _RefineBladeT(String cardName, int forgeAmount) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.forge(forgeAmount);
+            state.getCounterForWrite()[counterIdx] += 1;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerEnergyNextTurnCounter(state, this);
+        }
+    }
+
+    public static class RefineBladeCard extends _RefineBladeT {
+        public RefineBladeCard() {
+            super("Refine Blade", 6);
+        }
+    }
+
+    public static class RefineBladeCardP extends _RefineBladeT {
+        public RefineBladeCardP() {
+            super("Refine Blade+", 10);
+        }
+    }
+
+    private static abstract class _SolarStrikeT extends Card {
+        private final int dmg;
+        private final int stars;
+
+        public _SolarStrikeT(String cardName, int dmg, int stars) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.dmg = dmg;
+            this.stars = stars;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.gainStar(stars);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SolarStrike extends _SolarStrikeT {
+        public SolarStrike() {
+            super("Solar Strike", 8, 1);
+        }
+    }
+
+    public static class SolarStrikeP extends _SolarStrikeT {
+        public SolarStrikeP() {
+            super("Solar Strike+", 9, 2);
+        }
+    }
+
+    private static abstract class _SpoilsOfBattleT extends Card {
+        private final int forgeAmount;
+
+        public _SpoilsOfBattleT(String cardName, int forgeAmount) {
+            super(cardName, Card.SKILL, 1, Card.COMMON);
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.forge(forgeAmount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SpoilsOfBattle extends _SpoilsOfBattleT {
+        public SpoilsOfBattle() {
+            super("Spoils of Battle", 10);
+        }
+    }
+
+    public static class SpoilsOfBattleP extends _SpoilsOfBattleT {
+        public SpoilsOfBattleP() {
+            super("Spoils of Battle+", 15);
+        }
+    }
+
+    private static abstract class _WroughtInWarT extends Card {
+        private final int dmg;
+        private final int forgeAmount;
+
+        public _WroughtInWarT(String cardName, int dmg, int forgeAmount) {
+            super(cardName, Card.ATTACK, 1, Card.COMMON);
+            this.dmg = dmg;
+            this.forgeAmount = forgeAmount;
+            entityProperty.selectEnemy = true;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg);
+            state.forge(forgeAmount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class WroughtInWar extends _WroughtInWarT {
+        public WroughtInWar() {
+            super("Wrought in War", 7, 5);
+        }
+    }
+
+    public static class WroughtInWarP extends _WroughtInWarT {
+        public WroughtInWarP() {
+            super("Wrought in War+", 9, 7);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Uncommon *********************************************

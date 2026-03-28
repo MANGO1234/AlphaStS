@@ -256,6 +256,7 @@ public class GameProperties implements Cloneable {
     public int blockNextNextTurnCounterIdx = -1;
     public int retainHandCounterIdx = -1;
     public int drawNextTurnCounterIdx = -1;
+    public int starNextTurnCounterIdx = -1;
     public int catastropheCounterIdx = -1;
     public int beatDownCounterIdx = -1;
     public int nostalgiaCounterIdx = -1;
@@ -501,6 +502,32 @@ public class GameProperties implements Cloneable {
                 int cIdx = registrant.getCounterIdx(state.properties);
                 if (state.getCounterForRead()[cIdx] > 0) {
                     state.draw(state.getCounterForRead()[cIdx]);
+                    state.getCounterForWrite()[cIdx] = 0;
+                }
+            }
+        });
+    }
+
+    public void registerStarNextTurnCounter(CounterRegistrant registrant) {
+        registerCounter("StarNextTurn", registrant, new NetworkInputHandler() {
+            @Override public int addToInput(GameState state, float[] input, int idx) {
+                input[idx] = state.getCounterForRead()[registrant.getCounterIdx(state.properties)] / 5.0f;
+                return idx + 1;
+            }
+
+            @Override public int getInputLenDelta() {
+                return 1;
+            }
+
+            @Override public void onRegister(int counterIdx) {
+                starNextTurnCounterIdx = counterIdx;
+            }
+        });
+        addStartOfTurnHandler("StarNextTurn", new GameEventHandler() {
+            @Override public void handle(GameState state) {
+                int cIdx = registrant.getCounterIdx(state.properties);
+                if (state.getCounterForRead()[cIdx] > 0) {
+                    state.gainStar(state.getCounterForRead()[cIdx]);
                     state.getCounterForWrite()[cIdx] = 0;
                 }
             }
