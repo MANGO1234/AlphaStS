@@ -913,7 +913,7 @@ public class CardColorless2 {
                     int dmg = state.getCounterForRead()[counterIdx];
                     if (dmg > 0) {
                         for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
-                            state.playerDoDamageToEnemy(enemy, dmg);
+                            state.playerDoNonAttackDamageToEnemy(enemy, dmg, true);
                         }
                         state.getCounterForWrite()[counterIdx] += 5;
                     }

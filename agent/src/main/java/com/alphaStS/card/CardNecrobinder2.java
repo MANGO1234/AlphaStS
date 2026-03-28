@@ -1783,10 +1783,10 @@ public class CardNecrobinder2 {
         }
     }
 
-    private static abstract class _RightHandT extends Card {
+    private static abstract class _RightHandHandT extends Card {
         private final int damage;
 
-        public _RightHandT(String cardName, int damage) {
+        public _RightHandHandT(String cardName, int damage) {
             super(cardName, Card.ATTACK, 0, Card.UNCOMMON);
             this.damage = damage;
             entityProperty.selectEnemy = true;
@@ -1798,12 +1798,12 @@ public class CardNecrobinder2 {
         }
 
         @Override public void gamePropertiesSetup(GameState state) {
-            state.properties.addOnCardPlayedHandler("RightHand", new GameEventCardHandler() {
+            state.properties.addOnCardPlayedHandler("RightHandHand", new GameEventCardHandler() {
                 @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
                     if (energyUsed >= 2) {
                         for (int i = 0; i < state.discardArrLen && state.handArrLen < GameState.HAND_LIMIT; i++) {
                             int cIdx = state.getDiscardArrForRead()[i];
-                            if (state.properties.cardDict[cIdx].getBaseCard() instanceof _RightHandT) {
+                            if (state.properties.cardDict[cIdx].getBaseCard() instanceof _RightHandHandT) {
                                 state.removeCardFromDiscardByPosition(i);
                                 i--;
                                 state.addCardToHand(cIdx);
@@ -1815,15 +1815,15 @@ public class CardNecrobinder2 {
         }
     }
 
-    public static class RightHand extends _RightHandT {
-        public RightHand() {
-            super("Right Hand", 4);
+    public static class RightHandHand extends _RightHandHandT {
+        public RightHandHand() {
+            super("Right Hand Hand", 4);
         }
     }
 
-    public static class RightHandP extends _RightHandT {
-        public RightHandP() {
-            super("Right Hand+", 6);
+    public static class RightHandHandP extends _RightHandHandT {
+        public RightHandHandP() {
+            super("Right Hand Hand+", 6);
         }
     }
 
