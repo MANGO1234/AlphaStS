@@ -1581,6 +1581,9 @@ public final class GameState implements State {
             if (properties.toyOrnithopter != null) {
                 healPlayer(5);
             }
+            for (var handler : properties.onPotionUseHandlers) {
+                handler.handle(this);
+            }
             if (properties.potions.get(potionIdx).entityProperty.selectEnemy) {
                 setActionCtx(GameActionCtx.SELECT_ENEMY, action, null);
             } else if (properties.potions.get(potionIdx).entityProperty.selectFromHand) {
@@ -3858,6 +3861,9 @@ public final class GameState implements State {
         if ((buffs & PlayerBuff.WRIST_BLADE.mask()) != 0) {
             dmg += 4;
         }
+        if (properties.miniatureCannon != null && properties.miniatureCannon.isRelicEnabledInScenario(this) && CardManager.isUpgraded(damageSource)) {
+            dmg += 3;
+        }
         dmg += player.getStrength();
         if (properties.accuracyCounterIdx >= 0 && (damageSource instanceof CardColorless.Shiv || damageSource instanceof CardColorless.ShivP)) {
             dmg += getCounterForRead()[properties.accuracyCounterIdx];
@@ -4250,6 +4256,10 @@ public final class GameState implements State {
     }
 
     public int playerGainBlock(int n) {
+        if (properties.vambraceCounterIdx >= 0 && properties.vambrace.isRelicEnabledInScenario(this) && getCounterForRead()[properties.vambraceCounterIdx] == 0) {
+            getCounterForWrite()[properties.vambraceCounterIdx] = 1;
+            n *= 2;
+        }
         int blockGained = getPlayerForWrite().gainBlock(n, this);
         if (blockGained > 0) {
             for (var handler : properties.onBlockHandlers) {

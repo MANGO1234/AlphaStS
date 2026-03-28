@@ -8,6 +8,10 @@ import java.util.List;
 
 public class CardManager {
 
+    public static boolean isUpgraded(Card card) {
+        return card.cardName.contains("+");
+    }
+
     public static List<Card> getCharacterCardsByType(CharacterEnum character, int cardType, boolean generateHealingCard) {
         return switch (character) {
             case IRONCLAD -> getIroncladCards(cardType, generateHealingCard);

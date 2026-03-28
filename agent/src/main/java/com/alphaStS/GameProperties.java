@@ -324,6 +324,10 @@ public class GameProperties implements Cloneable {
     public Relic unceasingTop = null;
     public Relic violetLotus = null;
     public Relic wristBlade = null;
+    public Relic miniatureCannon = null;
+    public Relic vambrace = null;
+    public int vambraceCounterIdx = -1;
+
     public boolean isRunicDomeEnabled(GameState state) {
         return runicDome != null && runicDome.isRelicEnabledInScenario(state);
     }
@@ -689,6 +693,7 @@ public class GameProperties implements Cloneable {
     public List<OnCardCreationHandler> onCardCreationHandlers = new ArrayList<>();
     public List<OnEnergySpendHandler> onEnergySpendHandlers = new ArrayList<>();
     public List<OnStarChangeHandler> onStarChangeHandlers = new ArrayList<>();
+    public List<GameEventHandler> onPotionUseHandlers = new ArrayList<>();
 
     private <T> void addHandler(String key, T handler, List<T> handlerList) {
         if (gameEventHandlers.get(key) == null) {
@@ -863,6 +868,14 @@ public class GameProperties implements Cloneable {
 
     public void addOnShuffleHandler(String handlerName, GameEventHandler handler) {
         addHandler(handlerName + "OnShuffle", handler, onShuffleHandlers);
+    }
+
+    public void addOnPotionUseHandler(GameEventHandler handler) {
+        onPotionUseHandlers.add(handler);
+    }
+
+    public void addOnPotionUseHandler(String handlerName, GameEventHandler handler) {
+        addHandler(handlerName + "OnPotionUse", handler, onPotionUseHandlers);
     }
 
     // ********************************************************************************************************************

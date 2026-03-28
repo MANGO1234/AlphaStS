@@ -3,6 +3,7 @@ package com.alphaStS.entity;
 import com.alphaStS.*;
 import com.alphaStS.card.Card;
 import com.alphaStS.enemy.Enemy;
+import com.alphaStS.enums.DebuffType;
 import com.alphaStS.enums.OrbType;
 import com.alphaStS.eventHandler.GameEventCardHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
@@ -76,8 +77,17 @@ public class Relic2 {
     public static class OddlySmoothStone extends Relic.OddlySmoothStone {
     }
 
-    // TODO: Pendulum (Common)
-    //   Effect: Whenever you shuffle your Draw Pile, draw a card.
+    public static class Pendulum extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnShuffleHandler("Pendulum", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.draw(1);
+                    }
+                }
+            });
+        }
+    }
 
     public static class Permafrost extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -127,8 +137,8 @@ public class Relic2 {
     public static class Vajra extends Relic.Vajira {
     }
 
-    // TODO: Venerable Tea Set (Common)
-    //   Effect: Whenever you enter a Rest Site, start the next combat with an additional 2 energy.
+    public static class VenerableTeaSet extends Relic.AncientTeaSet {
+    }
 
     public static class WarPaint extends Relic.WarPaint {
     }
@@ -146,8 +156,34 @@ public class Relic2 {
     public static class BagOfMarbles extends Relic.BagOfMarbles {
     }
 
-    // TODO: Bellows (Uncommon)
-    //   Effect: The first Hand you draw each combat is Upgrade.
+    public static class Bellows extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("Bellows", this, null);
+            state.properties.addStartOfTurnHandler("Bellows", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state) && state.turnNum == 1) {
+                        state.getCounterForWrite()[counterIdx] = 1;
+                    }
+                }
+            });
+            state.properties.addOnCardDrawnHandler("Bellows", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (!isRelicEnabledInScenario(state) || state.getCounterForRead()[counterIdx] != 0) {
+                        return;
+                    }
+                    int upgIdx = state.properties.upgradeIdxes[cardIdx];
+                    if (upgIdx >= 0) {
+                        for (int i = state.handArrLen - 1; i >= 0; i--) {
+                            if (state.handArr[i] == cardIdx) {
+                                state.getHandArrForWrite()[i] = (short) upgIdx;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Bowler Hat: Gain 20% additional Gold.
 
@@ -181,8 +217,58 @@ public class Relic2 {
     public static class HornCleat extends Relic.HornCleat {
     }
 
-    // TODO: Joss Paper (Uncommon)
-    //   Effect: Every 5 times you Exhaust a card, draw 1 card.
+    public static class JossPaper extends Relic {
+        int healthReward;
+
+        public JossPaper(int healthReward) {
+            this.healthReward = healthReward;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("JossPaper", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 5.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            }, true);
+            state.properties.addOnExhaustHandler("JossPaper", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    var counter = state.getCounterForWrite();
+                    counter[counterIdx]++;
+                    if (counter[counterIdx] == 5) {
+                        counter[counterIdx] = 0;
+                        state.draw(1);
+                    }
+                }
+            });
+            if (healthReward > 0) {
+                state.properties.addExtraTrainingTarget("JossPaper", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 4.0);
+                        } else if (isTerminal == 0) {
+                            v.setVExtra(vExtraIdx, state.getVExtra(vExtraIdx));
+                        }
+                    }
+
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        v.add(GameState.V_HEALTH_IDX, healthReward * v.getVExtra(vExtraIdx) / state.getPlayerForRead().getMaxHealth());
+                    }
+                });
+            }
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Joss Paper");
+        }
+    }
 
     public static class Kusarigama extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -238,8 +324,11 @@ public class Relic2 {
     public static class MercuryHourglass extends Relic.MercuryHourglass {
     }
 
-    // TODO: Miniature Cannon (Uncommon)
-    //   Effect: Upgraded Attacks deal 3 additional damage.
+    public static class MiniatureCannon extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.miniatureCannon = this;
+        }
+    }
 
     public static class Nunchaku extends Relic.Nunchaku {
         public Nunchaku(int n, int healthReward) {
@@ -256,8 +345,23 @@ public class Relic2 {
     public static class Pantograph extends Relic.Pantograph {
     }
 
-    // TODO: Parrying Shield (Uncommon)
-    //   Effect: If you end a turn with at least 10 Block, deal 6 damage to a random enemy.
+    public static class ParryingShield extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addPreEndOfTurnHandler("ParryingShield", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state)) {
+                        return;
+                    }
+                    if (state.getPlayerForRead().getBlock() >= 10) {
+                        int enemyIdx = GameStateUtils.getRandomEnemyIdx(state, RandomGenCtx.RandomEnemyGeneral);
+                        if (enemyIdx >= 0) {
+                            state.playerDoNonAttackDamageToEnemy(state.getEnemiesForWrite().getForWrite(enemyIdx), 6, true);
+                        }
+                    }
+                }
+            });
+        }
+    }
 
     // No need to implement Pear: Upon pickup, raise your Max HP by 10.
 
@@ -275,8 +379,18 @@ public class Relic2 {
     public static class RedMask extends Relic.RedMask {
     }
 
-    // TODO: Reptile Trinket (Uncommon)
-    //   Effect: Whenever you use a potion, gain 3 Strength this turn.
+    public static class ReptileTrinket extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnPotionUseHandler("ReptileTrinket", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getPlayerForWrite().gainStrength(3);
+                        state.getPlayerForWrite().applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 3);
+                    }
+                }
+            });
+        }
+    }
 
     public static class RippleBasin extends Relic {
         @Override public void gamePropertiesSetup(GameState state) {
@@ -337,8 +451,41 @@ public class Relic2 {
         }
     }
 
-    // TODO: Stone Cracker (Uncommon)
-    //   Effect: At the start of Boss combats, Upgrade 3 random cards in your Draw Pile for the rest of combat.
+    public static class StoneCracker extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addStartOfBattleHandler("StoneCracker", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (!isRelicEnabledInScenario(state) || !isBossFight(state)) {
+                        return;
+                    }
+                    int count = 0;
+                    int[] positions = new int[state.deckArrLen];
+                    for (int i = 0; i < state.deckArrLen; i++) {
+                        if (state.properties.upgradeIdxes[state.getDeckArrForRead()[i]] >= 0) {
+                            positions[count++] = i;
+                        }
+                    }
+                    if (count == 0) {
+                        return;
+                    }
+                    int numToUpgrade = Math.min(count, 3);
+                    if (count > 3) {
+                        state.setIsStochastic();
+                        for (int i = 0; i < 3; i++) {
+                            int r = i + state.getSearchRandomGen().nextInt(count - i, RandomGenCtx.Other, state);
+                            int tmp = positions[i];
+                            positions[i] = positions[r];
+                            positions[r] = tmp;
+                        }
+                    }
+                    for (int i = 0; i < numToUpgrade; i++) {
+                        int pos = positions[i];
+                        state.getDeckArrForWrite()[pos] = (short) state.properties.upgradeIdxes[state.getDeckArrForRead()[pos]];
+                    }
+                }
+            });
+        }
+    }
 
     public static class TuningFork extends Relic {
         int n;
@@ -405,8 +552,32 @@ public class Relic2 {
         }
     }
 
-    // TODO: Vambrace (Uncommon)
-    //   Effect: The first time you gain Block from a card each combat, double the amount gained.
+    public static class Vambrace extends Relic {
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.vambrace = this;
+            state.properties.registerCounter("Vambrace", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx];
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+
+                @Override public void onRegister(int counterIdx) {
+                    state.properties.vambraceCounterIdx = counterIdx;
+                }
+            });
+            state.properties.addStartOfBattleHandler("Vambrace", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (isRelicEnabledInScenario(state)) {
+                        state.getCounterForWrite()[counterIdx] = 0;
+                    }
+                }
+            });
+        }
+    }
 
     // **************************************************************************************************
     // *********************************************  Rare  *********************************************
