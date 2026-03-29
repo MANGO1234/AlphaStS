@@ -27,6 +27,8 @@ public class EntityProperty {
     public boolean debilitateEnemy;
     public boolean hangEnemy;
     public boolean doomPerCardEnemy;
+    public boolean powderedDemiseEnemy;
+    public boolean beetleJuiceEnemy;
     public boolean affectEnemyStrength;
     public boolean affectEnemyStrengthEot;
     public boolean changeEnergyRefill;
@@ -69,6 +71,8 @@ public class EntityProperty {
         doomEnemy |= other.doomEnemy;
         doomPerCardEnemy |= other.doomPerCardEnemy;
         debilitateEnemy |= other.debilitateEnemy;
+        powderedDemiseEnemy |= other.powderedDemiseEnemy;
+        beetleJuiceEnemy |= other.beetleJuiceEnemy;
         affectEnemyStrength |= other.affectEnemyStrength;
         affectEnemyStrengthEot |= other.affectEnemyStrengthEot;
         changeEnergyRefill |= other.changeEnergyRefill;

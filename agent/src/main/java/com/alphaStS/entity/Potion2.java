@@ -1,9 +1,15 @@
 package com.alphaStS.entity;
 
+import com.alphaStS.GameProperties;
 import com.alphaStS.GameState;
+import com.alphaStS.card.Card;
+import com.alphaStS.enums.DebuffType;
+import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
 import com.alphaStS.utils.Tuple;
+
+import java.util.List;
 
 public class Potion2 {
     // **************************************************************************************************
@@ -62,20 +68,70 @@ public class Potion2 {
     public static class BlessingOfTheForge extends Potion.BlessingOfTheForge {
     }
 
-    // TODO: Clarity Extract (Uncommon)
-    //   Effect: Draw 1 card. At the start of your next 3 turns, draw 1 additional card.
+    public static class ClarityExtract extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
+            state.draw(n);
+            state.getCounterForWrite()[counterIdx] += n * 3;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Cure All (Uncommon)
-    //   Effect: Gain energy. Draw 2 cards.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("ClarityExtract", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("ClarityExtract", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.draw(1);
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+    }
+
+    public static class CureAll extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
+            state.gainEnergy(n);
+            state.draw(n * 2);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class Duplicator extends Potion.DuplicationPotion {
     }
 
-    // TODO: Fortifier (Uncommon)
-    //   Effect: Triple your Block.
+    public static class Fortifier extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int multiplier = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 5 : 2;
+            int currentBlock = state.getPlayerForRead().getBlock();
+            state.playerGainBlockNotFromCardPlay(currentBlock * multiplier);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Fysh Oil (Uncommon)
-    //   Effect: Gain 1 Strength and 1 Dexterity.
+    public static class FyshOil extends Potion {
+        public FyshOil() {
+            entityProperty.changePlayerStrength = true;
+            entityProperty.changePlayerDexterity = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
+            state.getPlayerForWrite().gainStrength(n);
+            state.getPlayerForWrite().gainDexterity(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class GamblersBrew extends Potion.GamblersBrew {
     }
@@ -95,39 +151,188 @@ public class Potion2 {
     public static class LiquidBronze extends Potion.LiquidBronze {
     }
 
-    // TODO: Potion of Binding (Uncommon)
-    //   Effect: Apply 1 Weak and 1 Vulnerable to ALL enemies.
+    public static class PotionOfBinding extends Potion {
+        public PotionOfBinding() {
+            entityProperty.weakEnemy = true;
+            entityProperty.vulnEnemy = true;
+        }
 
-    // TODO: Powdered Demise (Uncommon)
-    //   Effect: Enemy loses 9 HP at the end of each of its turns.
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
+            for (var enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                enemy.applyDebuff(state, DebuffType.WEAK, n);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, n);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
-    // TODO: Radiant Tincture (Uncommon)
-    //   Effect: Gain energy. Gain an additional energy at the start of your next 3 turns.
+    public static class PowderedDemise extends Potion {
+        public PowderedDemise() {
+            entityProperty.selectEnemy = true;
+            entityProperty.powderedDemiseEnemy = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 18 : 9;
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.POWDERED_DEMISE, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class RadiantTincture extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 2 : 1;
+            state.gainEnergy(n);
+            state.getCounterForWrite()[counterIdx] += n * 3;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("RadiantTincture", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 6.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+            state.properties.addStartOfTurnHandler("RadiantTincture", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.getCounterForRead()[counterIdx] > 0) {
+                        state.gainEnergy(1);
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+    }
 
     public static class RegenPotion extends Potion.RegenerationPotion {
     }
 
-    // TODO: Stable Serum (Uncommon)
-    //   Effect: Retain your Hand for 2 turns.
+    public static class StableSerum extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 4 : 2;
+            state.getCounterForWrite()[state.properties.retainHandCounterIdx] += n;
+            return GameActionCtx.PLAY_CARD;
+        }
 
-    // TODO: Touch of Insanity (Uncommon)
-    //   Effect: Choose a card in your Hand. It is free to play this combat.
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerRetainHandCounter(this);
+        }
+    }
+
+    public static class TouchOfInsanity extends Potion {
+        public TouchOfInsanity() {
+            entityProperty.selectFromHand = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (idx < 0 || idx >= state.properties.cardDict.length) {
+                return GameActionCtx.PLAY_CARD;
+            }
+            if (state.properties.tmp0CostCardTransformIdxes[idx] >= 0) {
+                state.removeCardFromHand(idx);
+                state.addCardToHand(state.properties.tmp0CostCardTransformIdxes[idx]);
+            }
+            if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
+                state.getCounterForWrite()[counterIdx]++;
+                if (state.getCounterForRead()[counterIdx] == 2) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                    return GameActionCtx.PLAY_CARD;
+                }
+                return GameActionCtx.SELECT_CARD_HAND;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties gameProperties, List<Card> cards) {
+            return cards.stream().filter((x) -> !x.isXCost && x.energyCost > 0).map((x) -> (Card) x.getTemporaryCostIfPossible(0)).toList();
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("TouchOfInsanity", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
 
     // **************************************************************************************************
     // *********************************************  Rare  *********************************************
     // **************************************************************************************************
 
-    // TODO: Beetle Juice (Rare)
-    //   Effect: Enemy's attacks deal 30% less damage for the next 4 turns.
+    public static class BeetleJuice extends Potion {
+        public BeetleJuice() {
+            entityProperty.selectEnemy = true;
+            entityProperty.beetleJuiceEnemy = true;
+        }
 
-    // TODO: Bottled Potential (Rare)
-    //   Effect: Shuffle ALL your cards into your Draw Pile. Draw 5 cards.
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 8 : 4;
+            state.getEnemiesForWrite().getForWrite(idx).applyDebuff(state, DebuffType.BEETLE_JUICE, n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class BottledPotential extends Potion {
+        @Override public GameActionCtx use(GameState state, int idx) {
+            int n = state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state) ? 10 : 5;
+            state.discardHand(false);
+            state.reshuffle();
+            state.draw(n);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
 
     public static class DistilledChaos extends Potion.DistilledChaos {
     }
 
-    // TODO: Droplet of Precognition (Rare)
-    //   Effect: Choose a card in your Draw Pile and add it into your Hand.
+    public static class DropletOfPrecognition extends Potion {
+        public DropletOfPrecognition() {
+            entityProperty.selectFromDeck = true;
+        }
+
+        @Override public GameActionCtx use(GameState state, int idx) {
+            if (idx < 0) {
+                state.getCounterForWrite()[counterIdx] = 0;
+                return GameActionCtx.PLAY_CARD;
+            }
+            state.removeCardFromDeck(idx, false);
+            state.addCardToHand(idx);
+            if (state.properties.sacredBark != null && state.properties.sacredBark.isRelicEnabledInScenario(state)) {
+                state.getCounterForWrite()[counterIdx]++;
+                if (state.getCounterForRead()[counterIdx] == 2 || state.getNumCardsInDeck() == 0) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                    return GameActionCtx.PLAY_CARD;
+                }
+                return GameActionCtx.SELECT_CARD_DECK;
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("DropletOfPrecognition", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 2.0f;
+                    return idx + 1;
+                }
+
+                @Override public int getInputLenDelta() {
+                    return 1;
+                }
+            });
+        }
+    }
 
     public static class EntropicBrew extends Potion.EntropicBrew {
     }
@@ -135,8 +340,7 @@ public class Potion2 {
     public static class FairyInABottle extends Potion.FairyInABottle {
     }
 
-    // TODO: Fruit Juice (Rare)
-    //   Effect: Gain 5 Max HP.
+    // No need to implement: Fruit Juice
 
     // TODO: Gigantification Potion (Rare)
     //   Effect: The next Attack you play deals triple damage.

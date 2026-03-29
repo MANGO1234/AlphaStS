@@ -1288,6 +1288,38 @@ public class NNInputSchema {
             });
         }
 
+        // Powdered Demise
+        if (props.anyEntityProperty.powderedDemiseEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of powdered demise\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getPowderedDemise() / 20.0f;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Powdered Demise: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
+        // Beetle Juice
+        if (props.anyEntityProperty.beetleJuiceEnemy) {
+            allEnemyModules.add(new EnemyInputModule() {
+                @Override public int getLength(GameProperties p, EnemyReadOnly enemy) { return 1; }
+                @Override public String getDescription(GameProperties p, EnemyReadOnly enemy) { return "        1 input to keep track of beetle juice\n"; }
+                @Override public int fill(GameState s, EnemyReadOnly enemy, float[] x, int idx) {
+                    x[idx] = enemy.getBeetleJuice() / 8.0f;
+                    return 1;
+                }
+                @Override public int print(GameState s, EnemyReadOnly enemy, float[] input, int idx) {
+                    System.out.println("  Beetle Juice: " + input[idx]);
+                    return 1;
+                }
+            });
+        }
+
         // Corpse Explosion
         if (props.anyEntityProperty.corpseExplosionEnemy) {
             allEnemyModules.add(new EnemyInputModule() {

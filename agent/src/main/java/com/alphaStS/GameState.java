@@ -4061,6 +4061,9 @@ public final class GameState implements State {
                 dmg *= 1.5;
             }
         }
+        if (enemy.getBeetleJuice() > 0) {
+            dmg *= 0.7;
+        }
         if (properties.intangibleCounterIdx >= 0 && getCounterForRead()[properties.intangibleCounterIdx] > 0 && dmg > 0) {
             dmg = 1;
         }

@@ -32,4 +32,6 @@ public enum DebuffType {
     DEBILITATE,
     SIC_EM,
     HANG,
+    POWDERED_DEMISE,
+    BEETLE_JUICE,
 }

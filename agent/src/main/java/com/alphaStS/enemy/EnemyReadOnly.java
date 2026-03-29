@@ -84,6 +84,8 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
     protected int sicEm;
     protected int hang;
     protected int doomPerCard;
+    protected int powderedDemise;
+    protected int beetleJuice;
     protected int hitByAttack;
     protected int move = -1;
     protected int lastMove = -1;
@@ -157,6 +159,8 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
         sicEm = other.sicEm;
         hang = other.hang;
         doomPerCard = other.doomPerCard;
+        powderedDemise = other.powderedDemise;
+        beetleJuice = other.beetleJuice;
         hitByAttack = other.hitByAttack;
         move = other.move;
         lastMove = other.lastMove;
@@ -252,6 +256,14 @@ public abstract class EnemyReadOnly implements GameProperties.TrainingTargetRegi
 
     public int getDoomPerCard() {
         return doomPerCard;
+    }
+
+    public int getPowderedDemise() {
+        return powderedDemise;
+    }
+
+    public int getBeetleJuice() {
+        return beetleJuice;
     }
 
     public boolean hasBurningHealthBuff() {

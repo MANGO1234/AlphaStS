@@ -127,6 +127,9 @@ public abstract class Enemy extends EnemyReadOnly {
             state.playerDoNonAttackDamageToEnemy(this, poison, false);
             poison--;
         }
+        if (powderedDemise > 0) {
+            state.playerDoNonAttackDamageToEnemy(this, powderedDemise, false);
+        }
     }
 
     public void endTurn(int turnNum) {
@@ -141,6 +144,9 @@ public abstract class Enemy extends EnemyReadOnly {
         }
         if (turnNum > 0 && debilitate > 0) {
             debilitate -= 1;
+        }
+        if (turnNum > 0 && beetleJuice > 0) {
+            beetleJuice -= 1;
         }
         if (loseStrengthEot != 0) {
             strength += loseStrengthEot;
@@ -176,6 +182,8 @@ public abstract class Enemy extends EnemyReadOnly {
         debilitate = 0;
         hang = 0;
         doomPerCard = 0;
+        powderedDemise = 0;
+        beetleJuice = 0;
         move = -1;
         lastMove = -1;
     }
@@ -221,6 +229,8 @@ public abstract class Enemy extends EnemyReadOnly {
         case SIC_EM -> this.sicEm += n;
         case HANG -> this.hang += n;
         case DOOM_PER_CARD -> this.doomPerCard += n;
+        case POWDERED_DEMISE -> this.powderedDemise += n;
+        case BEETLE_JUICE -> this.beetleJuice += n;
         }
 
         if (state.properties.sadisticNatureCounterIdx >= 0 && state.getCounterForRead()[state.properties.sadisticNatureCounterIdx] > 0) {
@@ -248,6 +258,8 @@ public abstract class Enemy extends EnemyReadOnly {
         if (source.getDebilitate() > 0) applyDebuff(state, DebuffType.DEBILITATE, source.getDebilitate());
         if (source.getSicEm() > 0) applyDebuff(state, DebuffType.SIC_EM, source.getSicEm());
         if (source.getHang() > 0) applyDebuff(state, DebuffType.HANG, source.getHang());
+        if (source.getPowderedDemise() > 0) applyDebuff(state, DebuffType.POWDERED_DEMISE, source.getPowderedDemise());
+        if (source.getBeetleJuice() > 0) applyDebuff(state, DebuffType.BEETLE_JUICE, source.getBeetleJuice());
     }
 
     public void setBlock(int n) {
