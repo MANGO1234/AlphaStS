@@ -1196,6 +1196,8 @@ public final class GameState implements State {
             return 0;
         } else if (properties.nextEtherealCostZeroCounterIdx >= 0 && counter[properties.nextEtherealCostZeroCounterIdx] > 0 && properties.cardDict[cardIdx].ethereal) {
             return 0;
+        } else if (properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0) {
+            return 0;
         }
         return properties.cardDict[cardIdx].energyCost(this);
     }
@@ -1286,7 +1288,7 @@ public final class GameState implements State {
                 }
             }
             int realStarCost = properties.cardDict[cardIdx].starCost;
-            if (realStarCost > 0 && useEnergy) {
+            if (realStarCost > 0 && useEnergy && !(properties.voidFormCounterIdx >= 0 && (counter[properties.voidFormCounterIdx] & 0xFF) > 0)) {
                 starResource -= realStarCost;
                 for (int i = 0; i < properties.onStarChangeHandlers.size(); i++) {
                     properties.onStarChangeHandlers.get(i).handle(this, -realStarCost);
@@ -3139,7 +3141,7 @@ public final class GameState implements State {
                             if (cost < 0 || cost > energy) {
                                 continue;
                             }
-                            if (properties.cardDict[handArr[i]].starCost > starResource) {
+                            if (properties.cardDict[handArr[i]].starCost > starResource && !(properties.voidFormCounterIdx >= 0 && (getCounterForRead()[properties.voidFormCounterIdx] & 0xFF) > 0)) {
                                 continue;
                             }
                             if (properties.cardDict[handArr[i]].entityProperty.selectEnemy) {

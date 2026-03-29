@@ -14,6 +14,7 @@ import com.alphaStS.eventHandler.OnEnergySpendHandler;
 import com.alphaStS.eventHandler.OnStarChangeHandler;
 import com.alphaStS.gameAction.GameActionCtx;
 import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 
 import java.util.ArrayList;
@@ -2650,63 +2651,558 @@ public class CardRegent2 {
         }
     }
 
-    // TODO: Heirloom Hammer (Rare) - 2 energy, Attack
-    //   Effect: Deal 17 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
-    //   Upgraded Effect: Deal 22 damage. Choose a Colorless card in your Hand. Add a copy of that card into your Hand.
+    private static abstract class _HeirloomHammerT extends Card {
+        private final int dmg;
 
-    // TODO: I Am Invincible (Rare) - 1 energy, Skill
-    //   Effect: Gain 9 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
-    //   Upgraded Effect: Gain 12 Block. At the end of your turn, if this is on top of your Draw Pile, play it.
+        public _HeirloomHammerT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 2, Card.RARE);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+            entityProperty.selectFromHand = true;
+            selectFromHandLater = true;
+        }
 
-    // TODO: Make It So (Rare) - 0 energy, Attack
-    //   Effect: Deal 6 damage. Every 3 Skills you play in a turn, put this into your Hand.
-    //   Upgraded Effect: Deal 9 damage. Every 3 Skills you play in a turn, put this into your Hand.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            if (state.actionCtx == GameActionCtx.PLAY_CARD) {
+                state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+                for (int i = 0; i < state.handArrLen; i++) {
+                    if (CardManager.isColorlessCard(state.properties.cardDict[state.handArr[i]])) {
+                        return GameActionCtx.SELECT_CARD_HAND;
+                    }
+                }
+                return GameActionCtx.PLAY_CARD;
+            } else {
+                state.addCardToHand(idx);
+                return GameActionCtx.PLAY_CARD;
+            }
+        }
 
-    // TODO: Monarch's Gaze (Rare) - 3 energy, Power
-    //   Effect: Whenever you attack an enemy, it loses 1 Strength this turn.
-    //   Upgraded Effect (2 energy): Whenever you attack an enemy, it loses 1 Strength this turn.
+        @Override public boolean canSelectCard(Card card) {
+            return CardManager.isColorlessCard(card);
+        }
 
-    // TODO: Neutron Aegis (Rare) - 1 energy, 5 star, Power
-    //   Effect: Gain 8 Plating.
-    //   Upgraded Effect: Gain 11 Plating.
+        @Override public List<Card> getPossibleGeneratedCards(GameProperties properties, List<Card> cards) {
+            return cards.stream().filter(CardManager::isColorlessCard).toList();
+        }
+    }
 
-    // TODO: Royalties (Rare) - 1 energy, Power
-    //   Effect: At the end of combat, gain 30 Gold.
-    //   Upgraded Effect: At the end of combat, gain 35 Gold.
+    public static class HeirloomHammer extends _HeirloomHammerT {
+        public HeirloomHammer() {
+            super("Heirloom Hammer", 17);
+        }
+    }
 
-    // TODO: Seeking Edge (Rare) - 1 energy, Power
-    //   Effect: Forge 7. Sovereign Blade now deals damage to ALL enemies.
-    //   Upgraded Effect: Forge 11. Sovereign Blade now deals damage to ALL enemies.
+    public static class HeirloomHammerP extends _HeirloomHammerT {
+        public HeirloomHammerP() {
+            super("Heirloom Hammer+", 22);
+        }
+    }
 
-    // TODO: Seven Stars (Rare) - 2 energy, 7 star, Attack
-    //   Effect: Deal 7 damage to ALL enemies 7 times.
-    //   Upgraded Effect (1 energy): Deal 7 damage to ALL enemies 7 times.
+    private static abstract class _IAmInvincibleT extends Card {
+        private final int block;
 
-    // TODO: Sword Sage (Rare) - 2 energy, Power
-    //   Effect: Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
-    //   Upgraded Effect (1 energy): Increase the cost of Sovereign Blade by 1. Sovereign Blade now hits an additional time.
+        public _IAmInvincibleT(String cardName, int block) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.block = block;
+        }
 
-    // TODO: The Smith (Rare) - 1 energy, 4 star, Skill
-    //   Effect: Forge 30.
-    //   Upgraded Effect: Forge 40.
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerGainBlock(block);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addPreEndOfTurnHandler("IAmInvincible", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int cardIdx = state.drawOneCardSpecial();
+                    if (cardIdx < 0) {
+                        return;
+                    }
+                    if (state.properties.cardDict[cardIdx].getBaseCard() instanceof _IAmInvincibleT) {
+                        final int ci = cardIdx;
+                        state.addGameActionToStartOfDeque(curState -> {
+                            var a = curState.properties.actionsByCtx[GameActionCtx.PLAY_CARD.ordinal()][ci];
+                            curState.playCard(a, -1, true, _IAmInvincibleT.class, false, false, -1, GameState.DISCARD);
+                        });
+                        state.addGameActionToStartOfDeque(new AddCardToDiscardAction(ci, state));
+                    } else {
+                        state.addCardOnTopOfDeck(cardIdx);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class IAmInvincible extends _IAmInvincibleT {
+        public IAmInvincible() {
+            super("I Am Invincible", 9);
+        }
+    }
+
+    public static class IAmInvincibleP extends _IAmInvincibleT {
+        public IAmInvincibleP() {
+            super("I Am Invincible+", 12);
+        }
+    }
+
+    private static abstract class _MakeItSoT extends Card {
+        private final int dmg;
+
+        public _MakeItSoT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.dmg = dmg;
+            entityProperty.selectEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.playerDoDamageToEnemy(state.getEnemiesForWrite().getForWrite(idx), dmg, this);
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("MakeItSo", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            state.properties.addStartOfTurnHandler("MakeItSo", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    state.getCounterForWrite()[counterIdx] = 0;
+                }
+            });
+            state.properties.addOnCardPlayedHandler("MakeItSo", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType != Card.SKILL) {
+                        return;
+                    }
+                    state.getCounterForWrite()[counterIdx]++;
+                    if (state.getCounterForRead()[counterIdx] % 3 == 0) {
+                        for (int i = state.discardArrLen - 1; i >= 0 && state.handArrLen < GameState.HAND_LIMIT; i--) {
+                            var base = state.properties.cardDict[state.getDiscardArrForRead()[i]].getBaseCard();
+                            if (base instanceof _MakeItSoT) {
+                                int foundIdx = state.getDiscardArrForRead()[i];
+                                state.removeCardFromDiscardByPosition(i);
+                                state.addCardToHand(foundIdx);
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    public static class MakeItSo extends _MakeItSoT {
+        public MakeItSo() {
+            super("Make It So", 6);
+        }
+    }
+
+    public static class MakeItSoP extends _MakeItSoT {
+        public MakeItSoP() {
+            super("Make It So+", 9);
+        }
+    }
+
+    private static abstract class _MonarchsGazeT extends Card {
+        public _MonarchsGazeT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+            entityProperty.affectEnemyStrength = true;
+            entityProperty.affectEnemyStrengthEot = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("MonarchsGaze", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if (state.properties.cardDict[cardIdx].cardType != Card.ATTACK) {
+                        return;
+                    }
+                    for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                        enemy.applyDebuff(state, DebuffType.LOSE_STRENGTH_EOT, 1);
+                    }
+                }
+            });
+        }
+    }
+
+    public static class MonarchsGaze extends _MonarchsGazeT {
+        public MonarchsGaze() {
+            super("Monarch's Gaze", 3);
+        }
+    }
+
+    public static class MonarchsGazeP extends _MonarchsGazeT {
+        public MonarchsGazeP() {
+            super("Monarch's Gaze+", 2);
+        }
+    }
+
+    private static abstract class _NeutronAegisT extends Card {
+        private final int amount;
+
+        public _NeutronAegisT(String cardName, int amount) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.amount = amount;
+            this.starCost = 5;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[state.properties.platingCounterIdx] += amount;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerPlatingCounter();
+        }
+    }
+
+    public static class NeutronAegis extends _NeutronAegisT {
+        public NeutronAegis() {
+            super("Neutron Aegis", 8);
+        }
+    }
+
+    public static class NeutronAegisP extends _NeutronAegisT {
+        public NeutronAegisP() {
+            super("Neutron Aegis+", 11);
+        }
+    }
+
+    private static abstract class _RoyaltiesT extends Card {
+        private final int goldAmount;
+        protected double healthRewardRatio = 0;
+
+        public _RoyaltiesT(String cardName, int goldAmount, double healthRewardRatio) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.goldAmount = goldAmount;
+            this.healthRewardRatio = healthRewardRatio;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("RoyaltiesGold", this, healthRewardRatio == 0 ? null : new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 100.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            if (healthRewardRatio > 0) {
+                state.properties.addExtraTrainingTarget("RoyaltiesGold", this, new TrainingTarget() {
+                    @Override public void fillVArray(GameState state, VArray v, int isTerminal) {
+                        if (isTerminal > 0) {
+                            v.setVExtra(vExtraIdx, state.getCounterForRead()[counterIdx] / 100.0);
+                        } else if (isTerminal == 0) {
+                            double vGold = Math.max(state.getCounterForRead()[counterIdx] / 100.0, Math.min((state.getCounterForRead()[counterIdx] + goldAmount) / 100.0, state.getVExtra(vExtraIdx)));
+                            v.setVExtra(vExtraIdx, vGold);
+                        }
+                    }
+                    @Override public void updateQValues(GameState state, VArray v) {
+                        double vGold = Math.max(state.getCounterForRead()[counterIdx] / 100.0, Math.min((state.getCounterForRead()[counterIdx] + goldAmount) / 100.0, v.getVExtra(vExtraIdx)));
+                        v.add(GameState.V_HEALTH_IDX, 100 * vGold * healthRewardRatio / 20.0 / state.getPlayerForRead().getMaxHealth());
+                    }
+                });
+            }
+            state.properties.addEndOfBattleHandler("RoyaltiesGold", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    if (state.isTerminal() > 0) {
+                        state.getCounterForWrite()[counterIdx] += goldAmount;
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+            gameProperties.royaltiesGoldCounterIdx = idx;
+        }
+
+        @Override public CounterStat getCounterStat() {
+            return new CounterStat(counterIdx, "Royalties Gold").setShowFrequency(true);
+        }
+    }
+
+    public static class Royalties extends _RoyaltiesT {
+        public Royalties(double healthRewardRatio) {
+            super("Royalties", 30, healthRewardRatio);
+        }
+    }
+
+    public static class RoyaltiesP extends _RoyaltiesT {
+        public RoyaltiesP(double healthRewardRatio) {
+            super("Royalties+", 35, healthRewardRatio);
+        }
+    }
+
+    private static abstract class _SeekingEdgeT extends Card {
+        private final int forgeAmount;
+
+        public _SeekingEdgeT(String cardName, int forgeAmount) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.forgeAmount = forgeAmount;
+            entityProperty.canForge = true;
+            entityProperty.possibleBuffs |= PlayerBuff.SEEKING_EDGE.mask();
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.forge(forgeAmount);
+            state.buffs |= PlayerBuff.SEEKING_EDGE.mask();
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SeekingEdge extends _SeekingEdgeT {
+        public SeekingEdge() {
+            super("Seeking Edge", 7);
+        }
+    }
+
+    public static class SeekingEdgeP extends _SeekingEdgeT {
+        public SeekingEdgeP() {
+            super("Seeking Edge+", 11);
+        }
+    }
+
+    private static abstract class _SevenStarsT extends Card {
+        public _SevenStarsT(String cardName, int energyCost) {
+            super(cardName, Card.ATTACK, energyCost, Card.RARE);
+            this.starCost = 7;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (int i = 0; i < 7; i++) {
+                for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                    state.playerDoDamageToEnemy(enemy, 7, this);
+                }
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class SevenStars extends _SevenStarsT {
+        public SevenStars() {
+            super("Seven Stars", 2);
+        }
+    }
+
+    public static class SevenStarsP extends _SevenStarsT {
+        public SevenStarsP() {
+            super("Seven Stars+", 1);
+        }
+    }
+
+    private static abstract class _SwordSageT extends Card {
+        public _SwordSageT(String cardName, int energyCost) {
+            super(cardName, Card.POWER, energyCost, Card.RARE);
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.getCounterForWrite()[counterIdx]++;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("SwordSage", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = state.getCounterForRead()[counterIdx] / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+            gameProperties.swordSageCounterIdx = idx;
+        }
+    }
+
+    public static class SwordSage extends _SwordSageT {
+        public SwordSage() {
+            super("Sword Sage", 2);
+        }
+    }
+
+    public static class SwordSageP extends _SwordSageT {
+        public SwordSageP() {
+            super("Sword Sage+", 1);
+        }
+    }
+
+    private static abstract class _TheSmithT extends Card {
+        private final int forgeAmount;
+
+        public _TheSmithT(String cardName, int forgeAmount) {
+            super(cardName, Card.SKILL, 1, Card.RARE);
+            this.forgeAmount = forgeAmount;
+            this.starCost = 4;
+            entityProperty.hasStarCost = true;
+            entityProperty.canForge = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.forge(forgeAmount);
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class TheSmith extends _TheSmithT {
+        public TheSmith() {
+            super("The Smith", 30);
+        }
+    }
+
+    public static class TheSmithP extends _TheSmithT {
+        public TheSmithP() {
+            super("The Smith+", 40);
+        }
+    }
 
     // TODO: Tyranny (Rare) - 1 energy, Power
     //   Effect: At the start of your turn, draw 1 card and Exhaust 1 card from your Hand.
     //   Upgraded Effect: Innate. At the start of your turn, draw 1 card and Exhaust 1 card from your Hand.
 
-    // TODO: Void Form (Rare) - 3 energy, Power
-    //   Effect: End your turn. The first 2 cards you play each turn are free to play.
-    //   Upgraded Effect: End your turn. The first 3 cards you play each turn are free to play.
+    private static abstract class _VoidFormT extends Card {
+        private final int freeCards;
+
+        public _VoidFormT(String cardName, int freeCards) {
+            super(cardName, Card.POWER, 3, Card.RARE);
+            this.freeCards = freeCards;
+            entityProperty.possibleBuffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            state.buffs |= PlayerBuff.END_TURN_IMMEDIATELY.mask();
+            int cur = state.getCounterForRead()[counterIdx];
+            int perTurn = (cur >> 8) + freeCards;
+            int remaining = (cur & 0xFF) + freeCards;
+            state.getCounterForWrite()[counterIdx] = (perTurn << 8) | remaining;
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.registerCounter("VoidForm", this, new GameProperties.NetworkInputHandler() {
+                @Override public int addToInput(GameState state, float[] input, int idx) {
+                    input[idx] = (state.getCounterForRead()[counterIdx] & 0xFF) / 3.0f;
+                    return idx + 1;
+                }
+                @Override public int getInputLenDelta() { return 1; }
+            });
+            state.properties.addStartOfTurnHandler("VoidForm", new GameEventHandler() {
+                @Override public void handle(GameState state) {
+                    int c = state.getCounterForRead()[counterIdx];
+                    int perTurn = c >> 8;
+                    if (perTurn > 0) {
+                        state.getCounterForWrite()[counterIdx] = (c & 0xFF00) | perTurn;
+                    }
+                }
+            });
+            state.properties.addOnCardPlayedHandler("VoidForm", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    if ((state.getCounterForRead()[counterIdx] & 0xFF) > 0) {
+                        state.getCounterForWrite()[counterIdx]--;
+                    }
+                }
+            });
+        }
+
+        @Override public void setCounterIdx(GameProperties gameProperties, int idx) {
+            counterIdx = idx;
+            gameProperties.voidFormCounterIdx = idx;
+        }
+    }
+
+    public static class VoidForm extends _VoidFormT {
+        public VoidForm() {
+            super("Void Form", 2);
+        }
+    }
+
+    public static class VoidFormP extends _VoidFormT {
+        public VoidFormP() {
+            super("Void Form+", 3);
+        }
+    }
 
     // **************************************************************************************************
     // ********************************************* Ancient *********************************************
     // **************************************************************************************************
 
-    // TODO: Meteor Shower (Ancient) - 0 energy, 2 star, Attack
-    //   Effect: Deal 14 damage to ALL enemies. Apply 2 Weak and Vulnerable to ALL enemies.
-    //   Upgraded Effect: Deal 21 damage to ALL enemies. Apply 2 Weak and Vulnerable to ALL enemies.
+    private static abstract class _MeteorShowerT extends Card {
+        private final int dmg;
 
-    // TODO: The Sealed Throne (Ancient) - 1 energy, 3 star, Power
-    //   Effect: Whenever you play a card, gain star.
-    //   Upgraded Effect: Innate. Whenever you play a card, gain star.
+        public _MeteorShowerT(String cardName, int dmg) {
+            super(cardName, Card.ATTACK, 0, Card.RARE);
+            this.dmg = dmg;
+            this.starCost = 2;
+            entityProperty.hasStarCost = true;
+            entityProperty.vulnEnemy = true;
+            entityProperty.weakEnemy = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            for (Enemy enemy : state.getEnemiesForWrite().iterateOverAlive()) {
+                state.playerDoDamageToEnemy(enemy, dmg, this);
+                enemy.applyDebuff(state, DebuffType.VULNERABLE, 2);
+                enemy.applyDebuff(state, DebuffType.WEAK, 2);
+            }
+            return GameActionCtx.PLAY_CARD;
+        }
+    }
+
+    public static class MeteorShower extends _MeteorShowerT {
+        public MeteorShower() {
+            super("Meteor Shower", 14);
+        }
+    }
+
+    public static class MeteorShowerP extends _MeteorShowerT {
+        public MeteorShowerP() {
+            super("Meteor Shower+", 21);
+        }
+    }
+
+    private static abstract class _TheSealedThroneT extends Card {
+        public _TheSealedThroneT(String cardName, boolean innate) {
+            super(cardName, Card.POWER, 1, Card.RARE);
+            this.innate = innate;
+            this.starCost = 3;
+            entityProperty.hasStarCost = true;
+        }
+
+        public GameActionCtx play(GameState state, int idx, int energyUsed) {
+            return GameActionCtx.PLAY_CARD;
+        }
+
+        @Override public void gamePropertiesSetup(GameState state) {
+            state.properties.addOnCardPlayedHandler("TheSealedThrone", new GameEventCardHandler() {
+                @Override public void handle(GameState state, int cardIdx, int lastIdx, int energyUsed, Class cloneSource, int cloneParentLocation) {
+                    state.gainStar(1);
+                }
+            });
+        }
+    }
+
+    public static class TheSealedThrone extends _TheSealedThroneT {
+        public TheSealedThrone() {
+            super("The Sealed Throne", false);
+        }
+    }
+
+    public static class TheSealedThroneP extends _TheSealedThroneT {
+        public TheSealedThroneP() {
+            super("The Sealed Throne+", true);
+        }
+    }
 }
