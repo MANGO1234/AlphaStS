@@ -1,6 +1,7 @@
 package com.alphaStS;
 
 import com.alphaStS.gameAction.GameActionCtx;
+import com.alphaStS.gui.BattleBuilderGuiServer;
 import com.alphaStS.model.ModelPlain;
 import com.alphaStS.utils.ServerRequest;
 import com.alphaStS.utils.Tuple3;
@@ -18,6 +19,11 @@ import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        if (args.length > 0 && args[0].equals("--gui-server")) {
+            BattleBuilderGuiServer.start(args);
+            return;
+        }
+
         var state = TestStates.TestState();
 //        ((RandomGen.RandomGenPlain) state.properties.random).random.setSeed(5);
 

@@ -16,6 +16,7 @@ import com.alphaStS.eventHandler.GameEventEnemyHandler;
 import com.alphaStS.eventHandler.GameEventHandler;
 import com.alphaStS.eventHandler.OnDamageHandler;
 import com.alphaStS.random.RandomGenCtx;
+import com.alphaStS.gui.BattleDefinitionReader;
 import com.alphaStS.utils.CounterStat;
 import com.alphaStS.utils.Tuple;
 import com.alphaStS.utils.Utils;
