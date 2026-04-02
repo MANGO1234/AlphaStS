@@ -279,6 +279,16 @@ public abstract class Enemy extends EnemyReadOnly {
         return this;
     }
 
+    public Enemy asElite() {
+        properties.isElite = true;
+        return this;
+    }
+
+    public Enemy notElite() {
+        properties.isElite = false;
+        return this;
+    }
+
     public Enemy markAsBurningElite() {
         properties.applyBurningEliteBuff();
         return this;

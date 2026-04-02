@@ -59,15 +59,7 @@ public class EnemyEncounter {
         state.enemiesAlive = k;
     }
 
-    public static void addDualFungiBeastFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.DUAL_FUNGI_BEASTS, new EnemyExordium.FungiBeast(), new EnemyExordium.FungiBeast());
-    }
-
-    public static void addLargeSpikeSlimeFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.LARGE_SPIKE_SLIME, new EnemyExordium.LargeSpikeSlime(), new EnemyExordium.MediumSpikeSlime(36).startDead(), new EnemyExordium.MediumSpikeSlime(36).startDead());
-    }
-
-    public static void addGremlinLeaderFight(GameStateBuilder builder) {
+    public static List<Enemy> getGremlinLeaderFightEnemies(GameStateBuilder builder) {
         var gremlinList = List.of(new EnemyExordium.MadGremlin(), new EnemyExordium.SneakyGremlin(), new EnemyExordium.FatGremlin(), new EnemyExordium.GremlinWizard(),
                 new EnemyExordium.ShieldGremlin());
         for (var gremlin : gremlinList) {
@@ -91,7 +83,7 @@ public class EnemyEncounter {
             gremlin.properties.isMinion = true;
             gremlin.properties.actNumber = 2;
         }
-        builder.addEnemyEncounter(PredefinedEncounter.GREMLIN_LEADER, gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
+        return List.of(gremlin0, gremlin1, new Enemy.MergedEnemy(gremlinList), new EnemyCity.GremlinLeader());
     }
 
     private static int mergedGremlinEnemiesCompare(Enemy.MergedEnemy g1, Enemy.MergedEnemy g2) {
@@ -135,7 +127,7 @@ public class EnemyEncounter {
         }
     };
 
-    public static final EnemyReordering TRIPLE_BYRDS_REORDERING = (state, encounter, order) -> {
+    public static final EnemyReordering TRIPLE_ENEMIES_REORDERING = (state, encounter, order) -> {
         int start = encounter.idxes.get(0).index();
         if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
             if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
@@ -160,148 +152,13 @@ public class EnemyEncounter {
         }
     };
 
-    public static final EnemyReordering SENTRIES_REORDERING = (state, encounter, order) -> {
+    public static final EnemyReordering FIRST_AND_LAST_REORDERING = (state, encounter, order) -> {
         int start = encounter.idxes.get(0).index();
         if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
             order[start] = start + 2;
             order[start + 2] = start;
         }
     };
-
-    public static final EnemyReordering TRIPLE_CULTISTS_REORDERING = (state, encounter, order) -> {
-        int start = encounter.idxes.get(0).index();
-        if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
-            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start;
-                order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
-                order[start + 2] = start + 3 - (order[start + 1] - start);
-            } else {
-                order[start] = start + 2;
-                order[start + 1] = start;
-                order[start + 2] = start + 1;
-            }
-        } else {
-            if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start + 1;
-                order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
-                order[start + 2] = start + 2 - (order[start + 1] - start);
-            } else {
-                order[start] = start + 2;
-                order[start + 1] = start + 1;
-                order[start + 2] = start;
-            }
-        }
-    };
-
-    public static final EnemyReordering TRIPLE_DARKLINGS_REORDERING = (state, encounter, order) -> {
-        int start = encounter.idxes.get(0).index();
-        if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
-            order[start] = start + 2;
-            order[start + 2] = start;
-        }
-    };
-
-    public static final EnemyReordering TRIPLE_JAW_WORMS_REORDERING = (state, encounter, order) -> {
-        int start = encounter.idxes.get(0).index();
-        if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 1).getHealth()) {
-            if (state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start;
-                order[start + 1] = state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start + 1 : start + 2;
-                order[start + 2] = start + 3 - (order[start + 1] - start);
-            } else {
-                order[start] = start + 2;
-                order[start + 1] = start;
-                order[start + 2] = start + 1;
-            }
-        } else {
-            if (state.getEnemiesForRead().get(start + 1).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth()) {
-                order[start] = start + 1;
-                order[start + 1] = state.getEnemiesForRead().get(start).getHealth() <= state.getEnemiesForRead().get(start + 2).getHealth() ? start : start + 2;
-                order[start + 2] = start + 2 - (order[start + 1] - start);
-            } else {
-                order[start] = start + 2;
-                order[start + 1] = start + 1;
-                order[start + 2] = start;
-            }
-        }
-    };
-
-    public static void addSlaversEliteFight(GameStateBuilder builder) {
-        Enemy blueSlaver = new EnemyExordium.BlueSlaver();
-        Enemy redSlaver = new EnemyExordium.RedSlaver();
-        Enemy taskmaster = new EnemyCity.Taskmaster();
-        blueSlaver.properties.isElite = true;
-        redSlaver.properties.isElite = true;
-        taskmaster.properties.isElite = true;
-        builder.addEnemyEncounter(PredefinedEncounter.SLAVERS_ELITE, blueSlaver, taskmaster, redSlaver);
-    }
-
-    public static void addAwakenedOneFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.AWAKENED_ONE, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyBeyond.AwakenedOne());
-    }
-
-    public static void addDonuAndDecaFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.DONU_AND_DECA, new EnemyBeyond.Deca(), new EnemyBeyond.Donu());
-    }
-
-    public static void addAcidSlimeFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.ACID_SLIME, new EnemyExordium.LargeAcidSlime(), new EnemyExordium.MediumAcidSlime(36).startDead(), new EnemyExordium.MediumAcidSlime(36).startDead());
-    }
-
-    public static void addByrdsFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_BYRDS, new EnemyCity.Byrd(), new EnemyCity.Byrd(), new EnemyCity.Byrd());
-    }
-
-    public static void addCenturionAndMysticFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.CENTURION_AND_MYSTIC, new EnemyCity.Centurion(), new EnemyCity.Mystic());
-    }
-
-    public static void addSentryAndSphericGuardianFight(GameStateBuilder builder) {
-        var sentry = new EnemyExordium.Sentry(EnemyExordium.Sentry.BOLT);
-        sentry.properties.isElite = false;
-        builder.addEnemyEncounter(PredefinedEncounter.SENTRY_AND_SPHERIC_GUARDIAN, sentry, new EnemyCity.SphericGuardian());
-    }
-
-    public static void addSentriesFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.SENTRIES, new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT),
-                new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BEAM),
-                new EnemyExordium.Sentry(45, EnemyExordium.Sentry.BOLT));
-    }
-
-    public static void addRobbersEventFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.ROBBERS_EVENT, new EnemyCity.Pointy(), new EnemyCity.Romeo(), new EnemyCity.Bear());
-    }
-
-    public static void addCultistsFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_CULTISTS, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
-    }
-
-    public static void addDarklingsFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_DARKLINGS, new EnemyBeyond.Darkling(false), new EnemyBeyond.Darkling(true), new EnemyBeyond.Darkling(false));
-    }
-
-    public static void addTripleJawWormsFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_JAW_WORMS, new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true), new EnemyExordium.JawWorm(true));
-    }
-
-    public static void addTripleCultistsFight(GameStateBuilder builder) {
-        builder.addEnemyEncounter(PredefinedEncounter.TRIPLE_CULTISTS, new EnemyExordium.Cultist(), new EnemyExordium.Cultist(), new EnemyExordium.Cultist());
-    }
-
-    public static void addReptomancerFight(GameStateBuilder builder) {
-//        var start = builder.getEnemies().size();
-        builder.addEnemyEncounter(PredefinedEncounter.REPTOMANCER, new EnemyBeyond.Dagger(), // top left
-                new EnemyBeyond.Dagger(), // bottom left
-                new EnemyBeyond.Reptomancer(),
-                new EnemyBeyond.Dagger(), // top right
-                new EnemyBeyond.Dagger()); // bottom right
-//        builder.addEnemyReordering((state, order) -> {
-//            if (state.getEnemiesForRead().get(start).getHealth() > state.getEnemiesForRead().get(start + 2).getHealth()) {
-//                order[start] = start + 2;
-//                order[start + 2] = start;
-//            }
-//        });
-    }
 
     public enum ACT3_BOSS {
         TIME_EATER_BOSS, AWAKENED_ONE_BOSS, DONU_AND_DECA_BOSS

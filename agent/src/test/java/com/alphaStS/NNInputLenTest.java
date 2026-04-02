@@ -2,9 +2,9 @@ package com.alphaStS;
 
 import com.alphaStS.card.*;
 import com.alphaStS.enemy.EnemyCity;
-import com.alphaStS.enemy.EnemyEncounter;
 import com.alphaStS.enemy.EnemyEnding;
 import com.alphaStS.enemy.EnemyExordium;
+import com.alphaStS.enemy.PredefinedEncounter;
 import com.alphaStS.entity.Potion;
 import com.alphaStS.entity.Relic;
 import com.alphaStS.player.Player;
@@ -130,7 +130,7 @@ public class NNInputLenTest {
         builder.addCard(new CardSilent.PiercingWail());    // affectEnemyStrengthEot
 
         builder.setPlayer(new Player(80, 80));
-        EnemyEncounter.addByrdsFight(builder);
+        builder.add(PredefinedEncounter.TRIPLE_BYRDS);
 
         assertEquals(129, new GameState(builder).properties.inputLen);
     }
@@ -168,7 +168,7 @@ public class NNInputLenTest {
         builder.addCard(new CardIronclad.Anger(), 1);
         builder.addCard(new CardIronclad.BurningPactP(), 1);
 
-        EnemyEncounter.addSentriesFight(builder);
+        builder.add(PredefinedEncounter.SENTRIES);
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
@@ -221,7 +221,7 @@ public class NNInputLenTest {
         builder.addCard(new CardIronclad.Anger(), 1);
         builder.addCard(new CardIronclad.BurningPactP(), 1);
 
-        EnemyEncounter.addSentriesFight(builder);
+        builder.add(PredefinedEncounter.SENTRIES);
 
         builder.addRelic(new Relic.Orichalcum());
         builder.addRelic(new Relic.BronzeScales());
